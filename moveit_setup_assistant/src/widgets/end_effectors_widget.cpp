@@ -496,7 +496,7 @@ void EndEffectorsWidget::doneEditing()
       // is this our existing effector? check if effector pointers are same
       if( &(*data_it) != searched_data )
       {
-        QMessageBox::warning( this, "Error Saving", "A effector already exists with that name!" );
+        QMessageBox::warning( this, "Error Saving", "An end-effector already exists with that name!" );
         return;
       }
     }
@@ -505,10 +505,10 @@ void EndEffectorsWidget::doneEditing()
   // Check that a group was selected
   if( group_name_field_->currentText().isEmpty() )
   {
-    QMessageBox::warning( this, "Error Saving", "A planning group must be chosen!" );
+    QMessageBox::warning( this, "Error Saving", "A group that contains the links of the end-effector must be chosen!" );
     return;    
   }
-
+  
   // Check that a parent link was selected
   if( parent_name_field_->currentText().isEmpty() )
   {
@@ -516,6 +516,14 @@ void EndEffectorsWidget::doneEditing()
     return;    
   }
 
+  const planning_models::KinematicModel::JointModelGroup *jmg =
+    config_data_->getKinematicModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
+  if (jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
+  {  
+    QMessageBox::warning( this, "Error Saving", QString::fromStdString("Group " + group_name_field_->currentText().toStdString() + " contains the link " + parent_name_field_->currentText().toStdString() + ". However, the parent link of the end-effector should not belong to the group for the end-effector itself."));
+    return;    
+  }
+  
   // Save the new effector name or create the new effector ----------------------------
   bool isNew = false;
 

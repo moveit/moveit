@@ -79,7 +79,8 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
 
   // Create main content stack for various screens
   main_content_ = new QStackedLayout();
-
+  current_index_ = 0;
+  
   // Wrap main_content_ with a widget
   middle_frame_ = new QWidget( this );
   middle_frame_->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Preferred );
@@ -150,19 +151,12 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   QApplication::processEvents();
 
   // Check that ROS Core is running
-  bool do_check = true;
-  while( do_check )
+  while (!ros::master::check() )
   {
-    if( ! ros::master::check() )
-    {
-      // roscore is not running
-      QMessageBox::warning( this, "ROS Error",
-                            "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
-    }
-    else
-    {
-      do_check = false;
-    }
+    // roscore is not running
+    QMessageBox::warning( this, "ROS Error",
+                          "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
+    ros::WallDuration(0.5).sleep();
   }
 }
 
@@ -193,12 +187,11 @@ void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
 // ******************************************************************************************
 void SetupAssistantWidget::moveToScreen( const int index )
 {
-  // Use this static variable to prevent double clicks on navigation from slowing down system
-  static int current_index = 0;
-
-  if( current_index != index )
+  boost::mutex::scoped_lock slock(change_screen_lock_);
+  
+  if( current_index_ != index )
   {
-    current_index = index;
+    current_index_ = index;
 
     //rviz_container_->show();
 
@@ -370,7 +363,7 @@ void SetupAssistantWidget::highlightGroup( const std::string& group_name )
 void SetupAssistantWidget::unhighlightAll()
 {
   // Get the names of the all links robot
-  const std::vector<std::string> links = config_data_->getKinematicModel()->getLinkModelNames();
+  const std::vector<std::string> &links = config_data_->getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
 
   // Quit if no links found
   if( links.empty() )

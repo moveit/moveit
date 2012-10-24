@@ -62,6 +62,7 @@
 // Other
 #include <ros/ros.h>
 #include <boost/program_options.hpp> // for parsing input arguments
+#include <boost/thread/mutex.hpp>
 
 // Forward declarations 
 namespace rviz
@@ -198,7 +199,9 @@ private:
   QWidget *rviz_container_;
   QSplitter *splitter_;
   QStackedLayout *main_content_;
-
+  int current_index_;
+  boost::mutex change_screen_lock_;
+  
   // Rviz Panel
   rviz::RenderPanel* rviz_render_panel_;
   rviz::VisualizationManager* rviz_manager_;
