@@ -1,0 +1,31 @@
+<launch>
+  <!-- Args -->
+  <arg name="monitor_robot_state" default="false"/>
+  <arg name="planning_plugin" default="ompl_interface_ros/OMPLPlanner" /> 
+  <arg name="planning_adapters" default="default_planner_request_adapters/FixWorkspaceBounds default_planner_request_adapters/FixStartStateBounds default_planner_request_adapters/FixStartStateCollision default_planner_request_adapters/FixStartStatePathConstraints" />
+
+  <!-- Debug -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <!-- Load the urdf unless monitor_robot_state is set to true -->
+  <param unless="$(arg monitor_robot_state)" name="robot_description" textfile="$(find [URDF_PACKAGE_NAME])/[URDF_RELATIVE_PATH]" />
+
+  <!-- Reference the planning context -->
+  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch" />
+  
+  <!-- Run state_publisher and clock -->
+  <node unless="$(arg monitor_robot_state)" pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
+  <node unless="$(arg monitor_robot_state)" pkg="moveit_visualization_ros" name="wall_clock_server" type="fake_time.py" />
+
+  <!-- Run moveit_visualization_ros -->
+  <node pkg="moveit_visualization_ros" type="moveit_visualizer" name="moveit_visualizer" output="screen" launch-prefix="$(arg launch_prefix)">
+    <param name="planning_plugin" value="$(arg planning_plugin)" />
+    <param name="request_adapters" value="$(arg planning_adapters)" />
+    <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/ompl_planning.yaml"/>
+    <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/kinematics.yaml"/>
+    <param name="monitor_robot_state" value="$(arg monitor_robot_state)"/>
+  </node>
+
+</launch>
