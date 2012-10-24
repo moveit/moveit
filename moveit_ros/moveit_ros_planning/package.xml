@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_planning</name>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
   <description>Planning components of MoveIt that use ROS</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
   <author email="sachinc@willowgarage.com">Sachin Chitta</author>
@@ -18,10 +18,12 @@
   <build_depend>moveit_ros_perception</build_depend>
   <build_depend>pluginlib</build_depend>
   <build_depend>actionlib</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
  
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_perception</run_depend>
   <run_depend>pluginlib</run_depend>
   <run_depend>actionlib</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
 
 </package>
