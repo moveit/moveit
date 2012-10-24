@@ -32,13 +32,11 @@
 #include "widgets/setup_assistant_widget.h"
 #include <ros/ros.h>
 #include <QApplication>
+#include <QMessageBox>
 #include <boost/program_options.hpp>
 
 int main(int argc, char **argv)
-{
-  // Start ROS Node
-  ros::init(argc, argv, "moveit_setup_assistant");
-
+{ 
   // Parse parameters
   namespace po = boost::program_options;
 
@@ -55,16 +53,20 @@ int main(int argc, char **argv)
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);    
 
-  if (vm.count("help")) {
-    std::cout << desc << "\n";
+  if (vm.count("help"))
+  {
+    std::cout << desc << std::endl;
     return 1;
   }
 
-  ros::NodeHandle nh;
-  
+  // Start ROS Node
+  ros::init(argc, argv, "moveit_setup_assistant");
+
   // ROS Spin
   ros::AsyncSpinner spinner(1);
   spinner.start();
+
+  ros::NodeHandle nh;
 
   // Create Qt Application
   QApplication qtApp(argc, argv);

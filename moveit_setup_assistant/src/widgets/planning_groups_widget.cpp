@@ -624,7 +624,7 @@ void PlanningGroupsWidget::loadGroupScreen( srdf::Model::Group *this_group )
 
   if( this_group == NULL ) // this is a new screen
   {
-    current_edit_group_ = ""; // provide a blank group name
+    current_edit_group_.clear(); // provide a blank group name
     group_edit_widget_->title_->setText( "Create New Planning Group" );
     group_edit_widget_->btn_delete_->hide();
     group_edit_widget_->new_buttons_widget_->show(); // helps user choose next step
@@ -816,7 +816,7 @@ srdf::Model::Group *PlanningGroupsWidget::findGroupByName( const std::string &na
   if( searched_group == NULL ) // not found
   {
     QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
-    exit(0); // TODO: is this the ROS way?
+    QApplication::quit();
   }
 
   return searched_group;
@@ -1235,6 +1235,22 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
 // ******************************************************************************************
 void PlanningGroupsWidget::cancelEditing()
 {
+  srdf::Model::Group *editing = findGroupByName( current_edit_group_ );
+  if( editing && editing->joints_.empty() && editing->links_.empty() && 
+      editing->chains_.empty() && editing->subgroups_.empty())
+  {
+    config_data_->group_meta_data_.erase(editing->name_);
+    for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
+         group_it != config_data_->srdf_->groups_.end();  ++group_it )
+      if (&(*group_it) == editing)
+      {
+        config_data_->srdf_->groups_.erase(group_it);
+        break;
+      }
+    // Load the data to the tree
+    loadGroupsTree();
+  }
+  
   // Switch to main screen
   showMainScreen();
 }
