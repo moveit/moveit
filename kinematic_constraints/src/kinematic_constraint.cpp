@@ -73,16 +73,20 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
 {
   joint_variable_name_ = jc.joint_name;
   local_variable_name_.clear();
-  std::size_t pos = jc.joint_name.find_last_of("/");
-  if (pos != std::string::npos)
-  {
-    joint_model_ = kmodel_->getJointModel(jc.joint_name.substr(0, pos));
-    if (pos + 1 < jc.joint_name.length())
-      local_variable_name_ = jc.joint_name.substr(pos + 1);
-  }
+  if (kmodel_->hasJointModel(joint_variable_name_))
+    joint_model_ = kmodel_->getJointModel(joint_variable_name_);
   else
-    joint_model_ = kmodel_->getJointModel(jc.joint_name);
-  
+  {
+    std::size_t pos = jc.joint_name.find_last_of("/");
+    if (pos != std::string::npos)
+    {
+      joint_model_ = kmodel_->getJointModel(jc.joint_name.substr(0, pos));
+      if (pos + 1 < jc.joint_name.length())
+        local_variable_name_ = jc.joint_name.substr(pos + 1);
+    }
+    else
+      joint_model_ = kmodel_->getJointModel(jc.joint_name);
+  }
   
   if (joint_model_)
   {
