@@ -37,7 +37,7 @@
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 
-#include <planning_models/kinematic_state.h>
+#include <moveit/planning_models/kinematic_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/PlannerInterfaceDescription.h>

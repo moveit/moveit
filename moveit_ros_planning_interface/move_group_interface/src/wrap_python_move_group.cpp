@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "move_group_interface/move_group.h"
+#include <moveit/move_group_interface/move_group.h>
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <boost/function.hpp>
 #include <boost/python.hpp>

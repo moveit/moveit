@@ -35,17 +35,17 @@
 /* Author: Ioan Sucan */
 
 #include <stdexcept>
-#include "move_group_interface/move_group.h"
-#include <planning_models_loader/kinematic_model_loader.h>
-#include <planning_scene_monitor/current_state_monitor.h>
-#include <planning_models/conversions.h>
+#include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_models_loader/kinematic_model_loader.h>
+#include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <moveit/planning_models/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <moveit/warehouse/constraints_storage.h>
-#include <kinematic_constraints/utils.h>
+#include <moveit/kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <std_msgs/String.h>
 #include <tf/transform_listener.h>
