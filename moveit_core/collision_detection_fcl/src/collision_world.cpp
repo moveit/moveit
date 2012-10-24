@@ -96,6 +96,155 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
   
   if (req.distance)
     res.distance = distanceRobotHelper(robot, state, acm);
+
+  // Refine/smooth the contact normals for contacts with octomap.
+  if(req.contacts && res.contact_count)
+  {
+    refineContactNormals(res);
+  }
+}
+
+void collision_detection::CollisionWorldFCL::refineContactNormals(CollisionResult &res) const
+{
+  // iterate through contacts
+  for( collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.begin(); it != res.contacts.end(); ++it)
+  {
+    std::string contact1 = it->first.first;
+    std::string contact2 = it->first.second;
+    std::string octomap_name = "";
+    std::vector<collision_detection::Contact>& contact_vector = it->second;
+
+    if(      contact1.find("octomap") != std::string::npos ) octomap_name = contact1;
+    else if( contact2.find("octomap") != std::string::npos ) octomap_name = contact2;
+    else
+    {
+      continue;
+    }
+
+    ObjectConstPtr object = getObject(octomap_name);
+    if(!object) return;
+
+    float cell_size = 0;
+    if(!object->shapes_.empty())
+    {
+      shapes::ShapeConstPtr shape = object->shapes_[0];
+      boost::shared_ptr<const shapes::OcTree> octree = boost::dynamic_pointer_cast<const shapes::OcTree>(shape);
+      if(octree)
+      {
+        cell_size = octree->octree->getResolution();
+        for(size_t contact_index = 0; contact_index < contact_vector.size(); contact_index++)
+        {
+          Eigen::Vector3d point =   contact_vector[contact_index].pos;
+          //Eigen::Vector3d normal =  contact_vector[contact_index].normal;
+
+          octomath::Vector3 contact_point(point[0], point[1], point[2]);
+          octomath::Vector3 diagonal = octomath::Vector3(1,1,1);
+          octomath::Vector3 bbx_min = contact_point - diagonal*cell_size; // TODO should this be a bit larger? (or smaller?)
+          octomath::Vector3 bbx_max = contact_point + diagonal*cell_size;
+          octomap::point3d_list node_centers;
+          octree->octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
+
+          octomath::Vector3 n;
+          if(getCloudNormal(node_centers, cell_size, contact_point, n))
+          {
+            contact_vector[contact_index].normal = Eigen::Vector3d(n.x(), n.y(), n.z());
+          }
+        }
+      }
+    }
+  }
+}
+
+bool collision_detection::CollisionWorldFCL::getCloudNormal(const octomap::point3d_list &cloud, const float &spacing, const octomath::Vector3 &position, octomath::Vector3 &normal) const
+{
+  float intensity;
+  octomath::Vector3 gradient;
+  if(sampleCloud(cloud, spacing, position, intensity, gradient))
+  {
+    gradient.normalize();
+    normal = -gradient; // by convention the normal should point "out"
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+
+bool collision_detection::CollisionWorldFCL::sampleCloud(const octomap::point3d_list &cloud, const float &spacing, const octomath::Vector3 &position, float &intensity, octomath::Vector3 &gradient) const
+{
+  intensity = 0.f;
+  gradient = octomath::Vector3(0,0,0);
+
+  float R = 1.5*spacing; // TODO magic number!
+  //float T = 0.5; // TODO magic number!
+
+  int NN = cloud.size();
+  if(NN == 0)
+  {
+    return false;
+  }
+
+  // variables for Wyvill
+  double a=0, b=0, c=0, R2=0, R4=0, R6=0, a1=0, b1=0, c1=0, a2=0, b2=0, c2=0;
+  bool WYVILL = true;
+
+  octomap::point3d_list::const_iterator it;
+  for ( it = cloud.begin(); it != cloud.end(); it++ )
+  {
+    octomath::Vector3 v = (*it);
+
+    if(WYVILL)
+    {
+      R2 = R*R;
+      R4 = R2*R2;
+      R6 = R4*R2;
+      a = -4.0/9.0; b  = 17.0/9.0; c = -22.0/9.0;
+      a1 = a/R6; b1 = b/R4; c1 = c/R2;
+      a2 = 6*a1; b2 = 4*b1; c2 = 2*c1;
+    }
+    else
+    {
+      ROS_ERROR("This should not be called!");
+    }
+
+    double f_val = 0;
+    octomath::Vector3 f_grad(0,0,0);
+
+    octomath::Vector3 pos = position-v;
+    double r = pos.norm();
+    pos = pos*(1.0/r);
+    if(r > R)  // must skip points outside valid bounds.
+    {
+      continue;
+    }
+    double r2 = r*r;
+    double r3 = r*r2;
+    double r4 = r2*r2;
+    double r5 = r3*r2;
+    double r6 = r3*r3;
+
+    if(WYVILL)
+    {
+      f_val = (a1*r6 + b1*r4 + c1*r2 + 1);
+      f_grad = pos*(a2*r5 + b2*r3 + c2*r);
+    }
+    else
+    {
+      ROS_ERROR("This should not be called!");
+      double r_scaled = r/R;
+      // TODO still need to address the scaling...
+      f_val = pow((1-r_scaled),4)*(4*r_scaled + 1);
+      f_grad = pos*(-4.0/R*pow(1.0-r_scaled,3)*(4.0*r_scaled+1.0)+4.0/R*pow(1-r_scaled,4));
+    }
+
+    // TODO:  The whole library should be overhauled to follow the "gradient points out"
+    //        convention of implicit functions.
+    intensity += f_val;
+    gradient += f_grad;
+  }
+  return true; // it worked
 }
 
 void collision_detection::CollisionWorldFCL::checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const
