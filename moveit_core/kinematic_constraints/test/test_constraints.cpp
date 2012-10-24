@@ -36,6 +36,8 @@
 
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <gtest/gtest.h>
+#include <urdf_parser/urdf_parser.h>
+#include <fstream>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -43,9 +45,20 @@ protected:
   
   virtual void SetUp()
   {
-    urdf_model.reset(new urdf::Model());
     srdf_model.reset(new srdf::Model());
-    urdf_model->initFile("../planning_models/test/urdf/robot.xml");
+    std::string xml_string;
+    std::fstream xml_file("../planning_models/test/urdf/robot.xml", std::fstream::in);
+    if (xml_file.is_open())
+    {
+      while ( xml_file.good() )
+      {
+        std::string line;
+        std::getline( xml_file, line);
+        xml_string += (line + "\n");
+      }
+      xml_file.close();
+      urdf_model = urdf::parseURDF(xml_string);
+    }
     kmodel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
   };
   
@@ -55,7 +68,7 @@ protected:
   
 protected:
   
-  boost::shared_ptr<urdf::Model>     urdf_model;
+  boost::shared_ptr<urdf::ModelInterface>     urdf_model;
   boost::shared_ptr<srdf::Model>     srdf_model;
   planning_models::KinematicModelPtr kmodel;
 };
@@ -154,7 +167,8 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.target_point_offset.z = 0;
     pcm.constraint_region.primitives.resize(1);
     pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
-    pcm.constraint_region.primitives[0].dimensions.x = 0.2;
+    pcm.constraint_region.primitives[0].dimensions.resize(1);
+    pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.2;
 
     pcm.header.frame_id = kmodel->getModelFrame();
 
@@ -195,7 +209,8 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 
     pcm.constraint_region.primitives.resize(1);
     pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
-    pcm.constraint_region.primitives[0].dimensions.x = 0.38 * 2.0;
+    pcm.constraint_region.primitives[0].dimensions.resize(1);
+    pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.38 * 2.0;
 
     pcm.header.frame_id = "r_wrist_roll_link"; 
 
@@ -215,9 +230,10 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     EXPECT_TRUE(pc.decide(ks).satisfied);
 
     pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-    pcm.constraint_region.primitives[0].dimensions.x = 0.2;
-    pcm.constraint_region.primitives[0].dimensions.y = 1.25;
-    pcm.constraint_region.primitives[0].dimensions.z = 0.1;
+    pcm.constraint_region.primitives[0].dimensions.resize(3);
+    pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.2;
+    pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.25;
+    pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1;
     EXPECT_TRUE(pc.configure(pcm));
 
     std::map<std::string, double> jvals;
