@@ -64,6 +64,8 @@ void CollisionVisualization::drawCollisions(const collision_detection::Collision
       {
         Eigen::Vector3d pos =     vec[contact_index].pos;
         Eigen::Vector3d normal =  vec[contact_index].normal;
+//        if(contact1.find("octomap") != std::string::npos || contact2.find("octomap") != std::string::npos)
+//          normal = -1.0*normal;
         double depth = vec[contact_index].depth;
         ROS_INFO("Contact between [%s] and [%s] point: %.2f %.2f %.2f normal: %.2f %.2f %.2f depth: %.3f",
                  contact1.c_str(), contact2.c_str(),
