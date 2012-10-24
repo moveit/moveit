@@ -30,7 +30,7 @@
 // Author: Dave Coleman
 
 #include "widgets/setup_assistant_widget.h"
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include <QApplication>
 #include <boost/program_options.hpp>
 
