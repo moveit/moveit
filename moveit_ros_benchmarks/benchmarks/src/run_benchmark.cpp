@@ -35,12 +35,12 @@
 /* Author: Ioan Sucan */
 
 #include <ros/ros.h>
-#include <planning_scene/planning_scene.h>
-#include <planning_models_loader/kinematic_model_loader.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/planning_models_loader/kinematic_model_loader.h>
 #include <pluginlib/class_loader.h>
-#include <planning_interface/planning_interface.h>
-#include <planning_models/conversions.h>
-#include <trajectory_processing/trajectory_tools.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_models/conversions.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 #include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
@@ -226,7 +226,7 @@ public:
     
     res.planner_interfaces.clear();
     std::vector<planning_interface::Planner*> planner_interfaces_to_benchmark;
-    std::vector<planning_interface::PlannerCapability> planner_interfaces_to_benchmark_capabilities;
+    std::vector<planning_interface::PlannerCapabilities> planner_interfaces_to_benchmark_capabilities;
     std::vector<std::vector<std::string> > planner_ids_to_benchmark_per_planner_interface;
     std::vector<std::size_t> average_count_per_planner_interface;
     moveit_msgs::GetMotionPlan::Request mp_req;
@@ -247,9 +247,9 @@ public:
         if (found < 0)
           continue;
       }
-      planning_interface::PlannerCapability capabilities;	
-      if (it->second->canServiceRequest(mp_req, capabilities))
+      if (it->second->canServiceRequest(mp_req))
       {
+        planning_interface::PlannerCapabilities capabilities = it->second->getPlannerCapabilities();
         res.planner_interfaces.resize(res.planner_interfaces.size() + 1);
         res.planner_interfaces.back().name = it->first;
         planner_interfaces_to_benchmark.push_back(it->second.get());
