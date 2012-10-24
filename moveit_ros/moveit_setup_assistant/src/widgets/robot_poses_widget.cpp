@@ -145,7 +145,7 @@ QWidget* RobotPosesWidget::createContentsWidget()
   controls_layout->setAlignment( btn_default, Qt::AlignLeft );
 
   // Set play button
-  QPushButton *btn_play = new QPushButton( "&MoveIt", this );
+  QPushButton *btn_play = new QPushButton( "&MoveIt!", this );
   btn_play->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
   btn_play->setMaximumWidth(300);
   connect(btn_play, SIGNAL(clicked()), this, SLOT(playPoses()));
@@ -408,9 +408,9 @@ void RobotPosesWidget::playPoses()
   {
     ROS_INFO_STREAM("Showing pose " << pose_it->name_ );
     showPose( &(*pose_it) );
-
+    ros::Duration(0.05).sleep();
     QApplication::processEvents();
-    ros::Duration(0.45).sleep();;
+    ros::Duration(0.45).sleep();
   }
 }
 
