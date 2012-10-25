@@ -6,7 +6,7 @@ target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_trajectory_execution_manager
   moveit_planning_scene_monitor
   ${catkin_LIBRARIES} ${Boost_LIBRARIES}
-  log4cxx pthread)
+  )
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)

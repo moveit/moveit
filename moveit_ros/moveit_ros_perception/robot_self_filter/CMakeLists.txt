@@ -1,8 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_robot_self_filter)
 
 add_library(${MOVEIT_LIB_NAME} src/self_mask.cpp)
-target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx pthread)
-# rosconsole should have brought in log4cxx
+target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(test_filter src/test_filter.cpp)
 target_link_libraries(test_filter ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
