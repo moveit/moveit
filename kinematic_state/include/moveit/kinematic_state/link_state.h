@@ -32,9 +32,18 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+#ifndef MOVEIT_KINEMATIC_STATE_LINK_STATE_
+#define MOVEIT_KINEMATIC_STATE_LINK_STATE_
+
+#include <moveit/kinematic_model/link_model.h>
+#include <eigen_stl_containers/eigen_stl_containers.h>
+
+namespace kinematic_state
+{
+
+class KinematicState;
+class JointState;
+class AttachedBody;
 
 /** @brief The state corresponding to a link */
 class LinkState
@@ -45,7 +54,8 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   /** @brief Constructor */
-  LinkState(KinematicState *state, const KinematicModel::LinkModel* lm);
+  LinkState(KinematicState *state, const kinematic_model::LinkModel *lm);
+
   ~LinkState(void);
   
   /** @brief Get the name of link corresponding to this state */
@@ -76,7 +86,7 @@ public:
   void updateAttachedBodies(void);
   
   /** @brief Get the link model corresponding to this state */
-  const KinematicModel::LinkModel* getLinkModel(void) const
+  const kinematic_model::LinkModel* getLinkModel(void) const
   {
     return link_model_;
   }
@@ -140,7 +150,7 @@ private:
   /** \brief The kinematic state this link is part of */
   KinematicState                      *kinematic_state_;
   
-  const KinematicModel::LinkModel     *link_model_;
+  const kinematic_model::LinkModel    *link_model_;
   
   const JointState                    *parent_joint_state_;
   
@@ -154,3 +164,6 @@ private:
   /** \brief The global transform for this link (computed by forward kinematics) */
   Eigen::Affine3d                      global_collision_body_transform_;
 };
+}
+
+#endif

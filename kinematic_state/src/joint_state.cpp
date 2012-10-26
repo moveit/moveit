@@ -34,27 +34,27 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/joint_state.h>
 
-planning_models::KinematicState::JointState::JointState(const planning_models::KinematicModel::JointModel *jm) : joint_model_(jm)
+kinematic_state::JointState::JointState(const kinematic_model::JointModel *jm) : joint_model_(jm)
 {
   joint_state_values_.resize(getVariableCount());
   variable_transform_.setIdentity();
   std::vector<double> values;
-  joint_model_->getDefaultValues(values);
+  joint_model_->getVariableDefaultValues(values);
   setVariableValues(values);
 }
 
-planning_models::KinematicState::JointState::JointState(const JointState &other) :
+kinematic_state::JointState::JointState(const JointState &other) :
   joint_model_(other.joint_model_), variable_transform_(other.variable_transform_), joint_state_values_(other.joint_state_values_), mimic_requests_(other.mimic_requests_)
 {
 }
 
-planning_models::KinematicState::JointState::~JointState(void)
+kinematic_state::JointState::~JointState(void)
 {
 }
 
-planning_models::KinematicState::JointState& planning_models::KinematicState::JointState::operator=(const planning_models::KinematicState::JointState &other)
+kinematic_state::JointState& kinematic_state::JointState::operator=(const kinematic_state::JointState &other)
 {
   if (this != &other)
   {
@@ -66,7 +66,7 @@ planning_models::KinematicState::JointState& planning_models::KinematicState::Jo
   return *this;
 }
 
-bool planning_models::KinematicState::JointState::setVariableValue(const std::string &variable, double value)
+bool kinematic_state::JointState::setVariableValue(const std::string &variable, double value)
 {
   std::map<std::string, unsigned int>::const_iterator it = getVariableIndexMap().find(variable);
   if (it != getVariableIndexMap().end())
@@ -76,27 +76,34 @@ bool planning_models::KinematicState::JointState::setVariableValue(const std::st
     return true;
   }
   else
+  {
+    logError("Cannot set variable %s to %lf for joint %s (variable not found).", variable.c_str(), value, getName().c_str());
     return false;
+  }
 }
 
-bool planning_models::KinematicState::JointState::setVariableValues(const std::vector<double>& joint_state_values)
+bool kinematic_state::JointState::setVariableValues(const std::vector<double>& joint_state_values)
 {
   if (joint_state_values.size() != getVariableCount())
+  {
+    logError("Joint %s expects %u variables but values for %u variables were specified.",
+             getName().c_str(), getVariableCount(), (unsigned int)joint_state_values.size());
     return false;
+  }
   joint_state_values_ = joint_state_values;
   joint_model_->updateTransform(joint_state_values, variable_transform_);
   updateMimicJoints();
   return true;
 }
 
-void planning_models::KinematicState::JointState::setVariableValues(const double *joint_state_values)
+void kinematic_state::JointState::setVariableValues(const double *joint_state_values)
 {
   std::copy(joint_state_values, joint_state_values + joint_state_values_.size(), joint_state_values_.begin());
   joint_model_->updateTransform(joint_state_values_, variable_transform_);
   updateMimicJoints();
 }
 
-void planning_models::KinematicState::JointState::setVariableValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing)
+void kinematic_state::JointState::setVariableValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing)
 {
   bool has_any = false;
   const std::map<std::string, unsigned int> &vim = getVariableIndexMap();
@@ -119,7 +126,7 @@ void planning_models::KinematicState::JointState::setVariableValues(const std::m
   }
 }
 
-void planning_models::KinematicState::JointState::setVariableValues(const std::map<std::string, double>& joint_value_map)
+void kinematic_state::JointState::setVariableValues(const std::map<std::string, double>& joint_value_map)
 {
   bool update = false;
   const std::map<std::string, unsigned int> &vim = getVariableIndexMap();
@@ -151,14 +158,14 @@ void planning_models::KinematicState::JointState::setVariableValues(const std::m
   }
 }
 
-void planning_models::KinematicState::JointState::setVariableValues(const Eigen::Affine3d& transform)
+void kinematic_state::JointState::setVariableValues(const Eigen::Affine3d& transform)
 {
   joint_model_->computeJointStateValues(transform, joint_state_values_);
   joint_model_->updateTransform(joint_state_values_, variable_transform_);
   updateMimicJoints();
 }
 
-void planning_models::KinematicState::JointState::updateMimicJoints(void)
+void kinematic_state::JointState::updateMimicJoints(void)
 {
   for (std::size_t i = 0 ; i < mimic_requests_.size() ; ++i)
   {
@@ -169,21 +176,21 @@ void planning_models::KinematicState::JointState::updateMimicJoints(void)
   }
 }
 
-void planning_models::KinematicState::JointState::enforceBounds(void)
+void kinematic_state::JointState::enforceBounds(void)
 {
   joint_model_->enforceBounds(joint_state_values_);  
   joint_model_->updateTransform(joint_state_values_, variable_transform_);
   updateMimicJoints();
 }
 
-void planning_models::KinematicState::JointState::interpolate(const JointState *to, const double t, JointState *dest) const
+void kinematic_state::JointState::interpolate(const JointState *to, const double t, JointState *dest) const
 {
   joint_model_->interpolate(joint_state_values_, to->joint_state_values_, t, dest->joint_state_values_);
   dest->joint_model_->updateTransform(dest->joint_state_values_, dest->variable_transform_);
   dest->updateMimicJoints();
 }
 
-bool planning_models::KinematicState::JointState::allVariablesAreDefined(const std::map<std::string, double>& joint_value_map) const
+bool kinematic_state::JointState::allVariablesAreDefined(const std::map<std::string, double>& joint_value_map) const
 {
   const std::map<std::string, unsigned int> &vim = getVariableIndexMap();
   for (std::map<std::string, unsigned int>::const_iterator it = vim.begin() ; it != vim.end() ; ++it)

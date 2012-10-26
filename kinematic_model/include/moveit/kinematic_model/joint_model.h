@@ -242,10 +242,7 @@ public:
   }
   
   /** \brief Override joint limits */
-  void setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
-  {
-    user_specified_limits_ = jlim;
-  }
+  void setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim);
   
   /** \brief Get the joint limits specified by the user with setLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
   const std::vector<moveit_msgs::JointLimits>& getVariableLimits(void) const

@@ -35,20 +35,20 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/kinematic_model/joint_model_group.h>
+#include <moveit/kinematic_model/kinematic_model.h>
 #include <algorithm>
-#include <set>
 
-namespace planning_models
+namespace kinematic_model
 {
-static bool orderLinksByIndex(const KinematicModel::LinkModel *a, const KinematicModel::LinkModel *b)
+static bool orderLinksByIndex(const LinkModel *a, const LinkModel *b)
 {
   return a->getTreeIndex() < b->getTreeIndex();
 }
 }
 
-planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::string& group_name,
-                                                                  const std::vector<const JointModel*> &group_joints,
-                                                                  const KinematicModel* parent_model) :
+kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
+                                                  const std::vector<const JointModel*> &group_joints,
+                                                  const KinematicModel* parent_model) :
   parent_model_(parent_model), name_(group_name), variable_count_(0), is_end_effector_(false), is_chain_(false)
 {
   for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
@@ -80,7 +80,7 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     while (joint->getParentLinkModel() != NULL)
     {
       joint = joint->getParentLinkModel()->getParentJointModel();
-      if (hasJointModel(joint->name_) && joint->getVariableCount() > 0 && joint->getMimic() == NULL)
+      if (hasJointModel(joint->getName()) && joint->getVariableCount() > 0 && joint->getMimic() == NULL)
       {
         found = true;
         break;
@@ -90,7 +90,7 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
       joint_roots_.push_back(joint_model_vector_[i]);
   }
   
-  // compute joint_variable_index_map_
+  // compute joint_variables_index_map_
   unsigned int vector_index_counter = 0;
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
   {
@@ -98,7 +98,8 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     for (std::size_t j = 0; j < name_order.size(); ++j)
     {
       joint_variables_index_map_[name_order[j]] = vector_index_counter + j;
-      active_dof_names_.push_back(name_order[j]);
+      active_variable_names_.push_back(name_order[j]);
+      active_variable_names_set_.insert(name_order[j]);
     }
     joint_variables_index_map_[joint_model_vector_[i]->getName()] = vector_index_counter;
     vector_index_counter += name_order.size();
@@ -107,10 +108,10 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
   for (std::size_t i = 0 ; i < mimic_joints_.size() ; ++i)
   {
     const std::vector<std::string>& name_order = mimic_joints_[i]->getVariableNames();
-    const std::vector<std::string>& mim_name_order = mimic_joints_[i]->mimic_->getVariableNames();
+    const std::vector<std::string>& mim_name_order = mimic_joints_[i]->getMimic()->getVariableNames();
     for (std::size_t j = 0; j < name_order.size(); ++j)
       joint_variables_index_map_[name_order[j]] = joint_variables_index_map_[mim_name_order[j]];
-    joint_variables_index_map_[mimic_joints_[i]->getName()] = joint_variables_index_map_[mimic_joints_[i]->mimic_->getName()];
+    joint_variables_index_map_[mimic_joints_[i]->getName()] = joint_variables_index_map_[mimic_joints_[i]->getMimic()->getName()];
   }
 
   // now we need to make another pass for group links (we include the fixed joints here)
@@ -136,10 +137,13 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
   for (std::set<const LinkModel*>::iterator it = u_links.begin(); it != u_links.end(); ++it)
   {
     updated_link_model_vector_.push_back(*it);
+    updated_link_model_set_.insert(*it);
+    updated_link_model_name_set_.insert((*it)->getName());
     if ((*it)->getShape())
     {
       updated_link_model_with_geometry_vector_.push_back(*it);
-      updated_link_model_with_geometry_set_.insert(*it);
+      updated_link_model_with_geometry_set_.insert(*it); 
+      updated_link_model_with_geometry_name_set_.insert((*it)->getName());
     }
   }
   std::sort(updated_link_model_vector_.begin(), updated_link_model_vector_.end(), &orderLinksByIndex);
@@ -150,11 +154,11 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry_vector_[i]->getName());
 }
 
-planning_models::KinematicModel::JointModelGroup::~JointModelGroup(void)
+kinematic_model::JointModelGroup::~JointModelGroup(void)
 {
 }
 
-bool planning_models::KinematicModel::JointModelGroup::isSubgroup(const std::string& group) const
+bool kinematic_model::JointModelGroup::isSubgroup(const std::string& group) const
 {
   for (std::size_t i = 0; i < subgroup_names_.size(); ++i)
     if (group == subgroup_names_[i])
@@ -162,17 +166,17 @@ bool planning_models::KinematicModel::JointModelGroup::isSubgroup(const std::str
   return false;
 }
 
-bool planning_models::KinematicModel::JointModelGroup::hasJointModel(const std::string &joint) const
+bool kinematic_model::JointModelGroup::hasJointModel(const std::string &joint) const
 {
   return joint_model_map_.find(joint) != joint_model_map_.end();
 }
 
-bool planning_models::KinematicModel::JointModelGroup::hasLinkModel(const std::string &link) const
+bool kinematic_model::JointModelGroup::hasLinkModel(const std::string &link) const
 {
   return std::find(link_model_name_vector_.begin(), link_model_name_vector_.end(), link) != link_model_name_vector_.end();
 }
 
-const planning_models::KinematicModel::JointModel* planning_models::KinematicModel::JointModelGroup::getJointModel(const std::string &name) const
+const kinematic_model::JointModel* kinematic_model::JointModelGroup::getJointModel(const std::string &name) const
 {
   std::map<std::string, const JointModel*>::const_iterator it = joint_model_map_.find(name);
   if (it == joint_model_map_.end())
@@ -184,13 +188,13 @@ const planning_models::KinematicModel::JointModel* planning_models::KinematicMod
     return it->second;
 }
 
-void planning_models::KinematicModel::JointModelGroup::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
+void kinematic_model::JointModelGroup::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
-    joint_model_vector_[i]->getRandomValues(rng, values);
+    joint_model_vector_[i]->getVariableRandomValues(rng, values);
 }
 
-bool planning_models::KinematicModel::JointModelGroup::getDefaultValues(const std::string &name, std::map<std::string, double> &values) const
+bool kinematic_model::JointModelGroup::getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const
 {
   std::map<std::string, std::map<std::string, double> >::const_iterator it = default_states_.find(name);
   if (it == default_states_.end())
@@ -199,31 +203,50 @@ bool planning_models::KinematicModel::JointModelGroup::getDefaultValues(const st
   return true;
 }
 
-void planning_models::KinematicModel::JointModelGroup::getDefaultValues(std::vector<double> &values) const
+void kinematic_model::JointModelGroup::getVariableDefaultValues(std::vector<double> &values) const
 {
   values.reserve(values.size() + joint_model_vector_.size());
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
-    joint_model_vector_[i]->getDefaultValues(values);
+    joint_model_vector_[i]->getVariableDefaultValues(values);
 }
 
-void planning_models::KinematicModel::JointModelGroup::getDefaultValues(std::map<std::string, double> &values) const
+void kinematic_model::JointModelGroup::getVariableDefaultValues(std::map<std::string, double> &values) const
 {
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
-    joint_model_vector_[i]->getDefaultValues(values);
+    joint_model_vector_[i]->getVariableDefaultValues(values);
 }
 
-std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointModelGroup::getVariableLimits(void) const
+std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVariableDefaultLimits(void) const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec;
   for(unsigned int i = 0; i < joint_model_vector_.size(); i++)
   {
-    std::vector<moveit_msgs::JointLimits> jvec = joint_model_vector_[i]->getVariableLimits();
+    const std::vector<moveit_msgs::JointLimits> &jvec = joint_model_vector_[i]->getVariableDefaultLimits();
     ret_vec.insert(ret_vec.end(), jvec.begin(), jvec.end());
   }
   return ret_vec;
 }
 
-void planning_models::KinematicModel::JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers)
+std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVariableLimits(void) const
+{
+  std::vector<moveit_msgs::JointLimits> ret_vec;
+  for(unsigned int i = 0; i < joint_model_vector_.size(); i++)
+  {
+    const std::vector<moveit_msgs::JointLimits> &jvec = joint_model_vector_[i]->getVariableLimits();
+    ret_vec.insert(ret_vec.end(), jvec.begin(), jvec.end());
+  }
+  return ret_vec;
+}
+
+void kinematic_model::JointModelGroup::setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
+{
+  // the following const_cast is safe because we are in a non-const function that operates on the same model
+  // the joint is part of
+  for (unsigned int i = 0; i < joint_model_vector_.size(); i++)
+    const_cast<JointModel*>(joint_model_vector_[i])->setVariableLimits(jlim);
+}
+
+void kinematic_model::JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers)
 {
   solver_allocators_ = solvers;
   if (solver_allocators_.first)
@@ -242,7 +265,7 @@ void planning_models::KinematicModel::JointModelGroup::setSolverAllocators(const
           solver_instance_.reset();
           return;
         }
-        const planning_models::KinematicModel::JointModel *jm = getJointModel(ik_jnames[i]);
+        const kinematic_model::JointModel *jm = getJointModel(ik_jnames[i]);
         for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
           ik_joint_bijection_.push_back(it->second + k);
       }
@@ -250,17 +273,17 @@ void planning_models::KinematicModel::JointModelGroup::setSolverAllocators(const
   }
 }
 
-bool planning_models::KinematicModel::JointModelGroup::canSetStateFromIK(const std::string &tip) const
+bool kinematic_model::JointModelGroup::canSetStateFromIK(const std::string &tip) const
 {
   const kinematics::KinematicsBaseConstPtr& solver = getSolverInstance();  
   const std::string &tip_frame = solver->getTipFrame();
   if (tip != tip_frame)
   {
-    const KinematicModel::LinkModel *lm = getParentModel()->getLinkModel(tip);
+    const LinkModel *lm = getParentModel()->getLinkModel(tip);
     if (!lm)
       return false;
-    const KinematicModel::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-    for (std::map<const KinematicModel::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+    const LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+    for (std::map<const LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
       if (it->first->getName() == tip_frame)
         return true;
     return false;
@@ -269,7 +292,7 @@ bool planning_models::KinematicModel::JointModelGroup::canSetStateFromIK(const s
     return true;
 }
 
-void planning_models::KinematicModel::JointModelGroup::printGroupInfo(std::ostream &out) const
+void kinematic_model::JointModelGroup::printGroupInfo(std::ostream &out) const
 {
   out << "Group '" << name_ << "':" << std::endl;
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
@@ -290,7 +313,7 @@ void planning_models::KinematicModel::JointModelGroup::printGroupInfo(std::ostre
       else
         out << b.second;
       out << "]";
-      if (joint_model_vector_[i]->mimic_)
+      if (joint_model_vector_[i]->getMimic())
         out << " *";
       out << std::endl;
     }

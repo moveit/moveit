@@ -34,47 +34,30 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#ifndef MOVEIT_PLANNING_MODELS_KINEMATIC_STATE_
-#define MOVEIT_PLANNING_MODELS_KINEMATIC_STATE_
+#ifndef MOVEIT_KINEMATIC_STATE_KINEMATIC_STATE_
+#define MOVEIT_KINEMATIC_STATE_KINEMATIC_STATE_
 
-#include <moveit/planning_models/kinematic_model.h>
-#include <boost/scoped_ptr.hpp>
+#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/kinematic_state/joint_state_group.h>
+#include <moveit/kinematic_state/attached_body.h>
 #include <std_msgs/ColorRGBA.h>
-#include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <eigen_stl_containers/eigen_stl_containers.h>
-#include <set>
 
-namespace planning_models
+namespace kinematic_state
 {
 
 /** @brief Definition of a kinematic state - the parts of the robot
  *   state which can change. Const members are thread safe */
 class KinematicState
 {
+  friend class LinkState;
+  friend class JointState;
 public:
   
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
-  /** \brief Forward definition of a joint state */;
-  class JointState;
-  
-  /** \brief Forward definition of a link state */
-  class LinkState;
-  
-  /** \brief Forward definition of an attached body */
-  class AttachedBody;
-  
-  /** \brief Forward definition of a joint group state */
-  class JointStateGroup;
-  
-#include "moveit/planning_models/kinematic_state/joint_state-inc.h"
-#include "moveit/planning_models/kinematic_state/attached_body-inc.h"
-#include "moveit/planning_models/kinematic_state/link_state-inc.h"
-#include "moveit/planning_models/kinematic_state/joint_state_group-inc.h"
-  
   /** \brief Create a state corresponding to a given kinematic model */
-  KinematicState(const KinematicModelConstPtr &kinematic_model);
+  KinematicState(const kinematic_model::KinematicModelConstPtr &kinematic_model);
   
   /** \brief Copy constructor */
   KinematicState(const KinematicState& state);
@@ -116,7 +99,7 @@ public:
   bool updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform);
   
   /** \brief Get the kinematic model corresponding to this state.*/
-  const KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return kinematic_model_;
   }
@@ -189,6 +172,8 @@ public:
   
   /** \brief Get all bodies attached to the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
+  
+  void attachBody(AttachedBody *body);
   
   /** \brief Clear all attached bodies */
   void clearAttachedBodies(void);
@@ -275,7 +260,7 @@ private:
   void buildState(void);
   void copyFrom(const KinematicState &ks);
   
-  KinematicModelConstPtr                  kinematic_model_;
+  kinematic_model::KinematicModelConstPtr kinematic_model_;
   
   std::vector<JointState*>                joint_state_vector_;
   std::map<std::string, JointState*>      joint_state_map_;

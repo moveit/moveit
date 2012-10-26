@@ -34,28 +34,29 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/link_state.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 
-planning_models::KinematicState::LinkState::LinkState(KinematicState *state, const planning_models::KinematicModel::LinkModel* lm) :
+kinematic_state::LinkState::LinkState(KinematicState *state, const kinematic_model::LinkModel* lm) :
   kinematic_state_(state), link_model_(lm), parent_joint_state_(NULL), parent_link_state_(NULL)
 {
   global_link_transform_.setIdentity();
   global_collision_body_transform_.setIdentity();
 }
 
-planning_models::KinematicState::LinkState::~LinkState(void)
+kinematic_state::LinkState::~LinkState(void)
 {
   clearAttachedBodies();
 }
 
-void planning_models::KinematicState::LinkState::updateGivenGlobalLinkTransform(const Eigen::Affine3d& transform)
+void kinematic_state::LinkState::updateGivenGlobalLinkTransform(const Eigen::Affine3d& transform)
 {
   global_link_transform_ = transform;
   global_collision_body_transform_ = global_link_transform_* link_model_->getCollisionOriginTransform();
   updateAttachedBodies();
 }
 
-void planning_models::KinematicState::LinkState::computeTransform(void)
+void kinematic_state::LinkState::computeTransform(void)
 {
   if (link_model_->isJointReversed())
     global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : kinematic_state_->getRootTransform()) * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
@@ -66,16 +67,16 @@ void planning_models::KinematicState::LinkState::computeTransform(void)
   updateAttachedBodies();
 }
 
-void planning_models::KinematicState::LinkState::updateAttachedBodies(void)
+void kinematic_state::LinkState::updateAttachedBodies(void)
 {  
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
     it->second->computeTransform();
 }
 
-void planning_models::KinematicState::LinkState::attachBody(const std::string &id,
-                                                            const std::vector<shapes::ShapeConstPtr> &shapes,
-                                                            const EigenSTL::vector_Affine3d &attach_trans,
-                                                            const std::vector<std::string> &touch_links)
+void kinematic_state::LinkState::attachBody(const std::string &id,
+                                            const std::vector<shapes::ShapeConstPtr> &shapes,
+                                            const EigenSTL::vector_Affine3d &attach_trans,
+                                            const std::vector<std::string> &touch_links)
 {
   AttachedBody *ab = new AttachedBody(this, id, shapes, attach_trans, touch_links);
   attached_body_map_[id] = ab;
@@ -83,12 +84,12 @@ void planning_models::KinematicState::LinkState::attachBody(const std::string &i
   ab->computeTransform();
 }
 
-bool planning_models::KinematicState::LinkState::hasAttachedBody(const std::string &id) const
+bool kinematic_state::LinkState::hasAttachedBody(const std::string &id) const
 {
   return attached_body_map_.find(id) != attached_body_map_.end();
 }
 
-const planning_models::KinematicState::AttachedBody* planning_models::KinematicState::LinkState::getAttachedBody(const std::string &id) const
+const kinematic_state::AttachedBody* kinematic_state::LinkState::getAttachedBody(const std::string &id) const
 {
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
   if (it == attached_body_map_.end())
@@ -100,7 +101,7 @@ const planning_models::KinematicState::AttachedBody* planning_models::KinematicS
     return it->second;
 }
 
-void planning_models::KinematicState::LinkState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
+void kinematic_state::LinkState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
 {
   attached_bodies.clear();
   attached_bodies.reserve(attached_body_map_.size());
@@ -108,7 +109,7 @@ void planning_models::KinematicState::LinkState::getAttachedBodies(std::vector<c
     attached_bodies.push_back(it->second);
 }
 
-bool planning_models::KinematicState::LinkState::clearAttachedBody(const std::string &id)
+bool kinematic_state::LinkState::clearAttachedBody(const std::string &id)
 {  
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
   if (it != attached_body_map_.end())
@@ -121,7 +122,7 @@ bool planning_models::KinematicState::LinkState::clearAttachedBody(const std::st
   return false;
 }
 
-void planning_models::KinematicState::LinkState::clearAttachedBodies(void)
+void kinematic_state::LinkState::clearAttachedBodies(void)
 { 
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
   {

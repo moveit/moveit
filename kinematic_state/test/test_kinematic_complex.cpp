@@ -34,9 +34,7 @@
 
 /** Author E. Gil Jones, Ioan Sucan */
 
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
-#include <planning_models/conversions.h>
+#include <moveit/kinematic_model/kinematic_model.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <gtest/gtest.h>

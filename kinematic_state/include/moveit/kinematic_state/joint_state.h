@@ -32,9 +32,17 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+/* Author: Ioan Sucan */
+
+#ifndef MOVEIT_KINEMATIC_STATE_JOINT_STATE_
+#define MOVEIT_KINEMATIC_STATE_JOINT_STATE_
+
+#include <moveit/kinematic_model/joint_model.h>
+
+namespace kinematic_state
+{
+
+class KinematicState;
 
 /** @brief Definition of a joint state - representation of state for a single joint */
 class JointState
@@ -44,7 +52,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   /** \brief Constructs the joint state from the model */
-  JointState(const KinematicModel::JointModel* jm);
+  JointState(const kinematic_model::JointModel* jm);
   
   /** \brief Copy constructor */
   JointState(const JointState &other);
@@ -109,7 +117,7 @@ public:
   }
   
   /** \brief Get the type of joint associated with this state */
-  KinematicModel::JointModel::JointType getType(void) const
+  kinematic_model::JointModel::JointType getType(void) const
   {
     return joint_model_->getType();
   }
@@ -157,7 +165,7 @@ public:
   }
   
   /** \brief Get the joint model corresponding to this state*/
-  const KinematicModel::JointModel* getJointModel(void) const
+  const kinematic_model::JointModel* getJointModel(void) const
   {
     return joint_model_;
   }
@@ -172,7 +180,7 @@ public:
 private:
   
   /** \brief The joint model this state corresponds to */
-  const KinematicModel::JointModel   *joint_model_;
+  const kinematic_model::JointModel  *joint_model_;
   
   /** \brief Tthe local transform (computed by forward kinematics) */
   Eigen::Affine3d                     variable_transform_;
@@ -184,3 +192,5 @@ private:
   std::vector<JointState*>            mimic_requests_;
 };
 
+}
+#endif

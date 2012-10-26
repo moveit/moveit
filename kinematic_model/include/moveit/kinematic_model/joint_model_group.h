@@ -36,9 +36,22 @@
 #define MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_GROUP_
 
 #include <moveit/kinematic_model/joint_model.h>
+#include <moveit/kinematic_model/link_model.h>
+#include <moveit/kinematics_base/kinematics_base.h>
+#include <boost/function.hpp>
+#include <set>
 
 namespace kinematic_model
 {
+
+class KinematicModel;
+class JointModelGroup;
+
+/// function type that allocates a kinematics solver for a particular group
+typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup*)> SolverAllocatorFn;
+
+/// function type that allocates a kinematics solvers for subgroups of a group
+typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn;
 
 class JointModelGroup
 {
@@ -47,7 +60,7 @@ public:
   
   JointModelGroup(const std::string& name, const std::vector<const JointModel*>& joint_vector, const KinematicModel *parent_model);
   
-  virtual ~JointModelGroup(void);
+  ~JointModelGroup(void);
   
   /** \brief Get the kinematic model this group is part of */
   const KinematicModel* getParentModel(void) const
@@ -163,24 +176,26 @@ public:
   {
     return updated_link_model_with_geometry_name_vector_;
   }
+
+  /** \brief Get the names of the links returned by getUpdatedLinkModels() */
+  const std::set<std::string>& getUpdatedLinkModelsWithGeometryNamesSet(void) const
+  {
+    return updated_link_model_with_geometry_name_set_;
+  }
   
   /** \brief True if this name is in the set of links that are to be updated when the state of this group changes. This
       includes links that are in the kinematic model but outside this group, if those links are descendants of
       joints in this group that have their values updated. */
   bool isLinkUpdated(const std::string &name) const
   {
-    if (std::find(updated_link_model_name_vector_.begin(), updated_link_model_name_vector_.end(),name) == updated_link_model_name_vector_.end())
-      return false;
-    return true;
+    return updated_link_model_name_set_.find(name) != updated_link_model_name_set_.end();
   }
   
   /** \brief Is the joint in the list of active joints in this group (that  have controllable DOF).
       This may not be the complete set of joints (see getFixedJointModels() and getMimicJointModels() ) */
   bool isActiveDOF(const std::string &name) const
   {
-    if (std::find(active_dof_names_.begin(), active_dof_names_.end(),name) == active_dof_names_.end())
-      return false;
-    return true;
+    return active_variable_names_set_.find(name) != active_variable_names_set_.end();
   }
   
   /** \brief A joint group consists of an array of joints. Each joint has a specific ordering of its variables.
@@ -218,12 +233,12 @@ public:
   /** \brief Check if the joints of group \e group are a subset of the joints in this group */
   bool isSubgroup(const std::string& group) const;
   
-  /** \brief Get the name of the group that makes up the end effector attached to this group's */
-  const std::string& getAttachedEndEffectorGroupName(void) const
+  /** \brief Check if this group is a linear chain */
+  bool isChain(void) const
   {
-    return attached_end_effector_group_name_;
+    return is_chain_;
   }
-
+  
   /** \brief Check if this group was designated as an end-effector in the SRDF */
   bool isEndEffector(void) const
   {
@@ -235,33 +250,32 @@ public:
   {
     return end_effector_parent_;
   }
-  
-  /** \brief Check if this group is a linear chain */
-  bool isChain(void) const
+
+  /** \brief Get the name of the group that makes up the end effector attached to this group's */
+  const std::string& getAttachedEndEffectorGroupName(void) const
   {
-    return is_chain_;
+    return attached_end_effector_group_name_;
   }
-  
+
   /** \brief Get the joint limits as read from the URDF */
-  virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
+  std::vector<moveit_msgs::JointLimits> getVariableDefaultLimits(void) const;
+
+  /** \brief Get the joint limits specified by the user with setJointLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
+  std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
   
   /** \brief Override joint limits */
-  void setJointLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
-  {
-    user_specified_joint_limits_ = jlim;
-  }
-  
-  /** \brief Get the joint limits specified by the user with setJointLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
-  std::vector<moveit_msgs::JointLimits> getJointLimits(void) const
-  {
-    return user_specified_joint_limits_.empty() ? getVariableLimits() : user_specified_joint_limits_;
-  }
+  void setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim);
   
   const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& getSolverAllocators(void) const
   {
     return solver_allocators_;
   }
-
+  
+  void setSolverAllocators(const SolverAllocatorFn &solver, const SolverAllocatorMapFn &solver_map = SolverAllocatorMapFn())
+  {
+    setSolverAllocators(std::make_pair(solver, solver_map));
+  }
+  
   void setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers);
 
   const kinematics::KinematicsBaseConstPtr& getSolverInstance(void) const
@@ -312,7 +326,10 @@ protected:
   std::vector<const JointModel*>                        mimic_joints_;
   
   /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not necessarily joint names!) */
-  std::vector<std::string>                              active_dof_names_;
+  std::vector<std::string>                              active_variable_names_;
+
+  /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not necessarily joint names!) */
+  std::set<std::string>                                 active_variable_names_set_;
   
   /** \brief The links that are on the direct lineage between joints
       and joint_roots_, as well as the children of the joint leafs.
@@ -324,9 +341,15 @@ protected:
   
   /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
   std::vector<const LinkModel*>                         updated_link_model_vector_;
+
+  /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
+  std::set<const LinkModel*>                            updated_link_model_set_;
   
   /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
   std::vector<std::string>                              updated_link_model_name_vector_;
+
+  /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
+  std::set<std::string>                                 updated_link_model_name_set_;
 
   /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
   std::vector<const LinkModel*>                         updated_link_model_with_geometry_vector_;
@@ -336,10 +359,13 @@ protected:
   
   /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
   std::vector<std::string>                              updated_link_model_with_geometry_name_vector_;
-  
+
+  /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
+  std::set<std::string>                                 updated_link_model_with_geometry_name_set_;
+
   /** \brief The number of variables necessary to describe this group of joints */
   unsigned int                                          variable_count_;
-  
+
   /** \brief The set of labelled subgroups that are included in this group */
   std::vector<std::string>                              subgroup_names_;
   
@@ -354,8 +380,6 @@ protected:
   
   bool                                                  is_chain_;
 
-  std::vector<moveit_msgs::JointLimits>                 user_specified_joint_limits_;
-  
   std::pair<SolverAllocatorFn, SolverAllocatorMapFn>    solver_allocators_;
   
   kinematics::KinematicsBaseConstPtr                    solver_instance_;
