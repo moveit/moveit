@@ -26,6 +26,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME}
+  src/collision_octomap_filter.cpp
   src/collision_world.cpp 
   src/collision_robot.cpp
   src/collision_matrix.cpp
