@@ -48,52 +48,52 @@ namespace collision_detection
     
   public:
     
-    CollisionRobotFCL(const planning_models::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
+    CollisionRobotFCL(const kinematic_model::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
     
     CollisionRobotFCL(const CollisionRobotFCL &other);
     
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const;    
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const;
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state) const;    
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2) const;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2, const AllowedCollisionMatrix &acm) const;
 
-    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
-				     const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
-    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
-				     const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state,
+				     const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state) const;
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state,
+				     const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state,
 				     const AllowedCollisionMatrix &acm) const;
-    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2,
-                                     const CollisionRobot &other_robot, const planning_models::KinematicState &other_state1, const planning_models::KinematicState &other_state2) const;
-    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2,
-                                     const CollisionRobot &other_robot, const planning_models::KinematicState &other_state1, const planning_models::KinematicState &other_state2,
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2,
+                                     const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state1, const kinematic_state::KinematicState &other_state2) const;
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2,
+                                     const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state1, const kinematic_state::KinematicState &other_state2,
                                      const AllowedCollisionMatrix &acm) const;
 
-    virtual double distanceSelf(const planning_models::KinematicState &state) const;
-    virtual double distanceSelf(const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-    virtual double distanceOther(const planning_models::KinematicState &state,
-                                 const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
-    virtual double distanceOther(const planning_models::KinematicState &state, const CollisionRobot &other_robot,
-                                 const planning_models::KinematicState &other_state, const AllowedCollisionMatrix &acm) const;
+    virtual double distanceSelf(const kinematic_state::KinematicState &state) const;
+    virtual double distanceSelf(const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+    virtual double distanceOther(const kinematic_state::KinematicState &state,
+                                 const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state) const;
+    virtual double distanceOther(const kinematic_state::KinematicState &state, const CollisionRobot &other_robot,
+                                 const kinematic_state::KinematicState &other_state, const AllowedCollisionMatrix &acm) const;
  
   protected:
     
     virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
-    void constructFCLObject(const planning_models::KinematicState &state, FCLObject &fcl_obj) const;
-    void allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const;
-    void getAttachedBodyObjects(const planning_models::KinematicState::AttachedBody *ab, std::vector<FCLGeometryConstPtr> &geoms) const;
+    void constructFCLObject(const kinematic_state::KinematicState &state, FCLObject &fcl_obj) const;
+    void allocSelfCollisionBroadPhase(const kinematic_state::KinematicState &state, FCLManager &manager) const;
+    void getAttachedBodyObjects(const kinematic_state::AttachedBody *ab, std::vector<FCLGeometryConstPtr> &geoms) const;
     
-    void checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+    void checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state,
 				  const AllowedCollisionMatrix *acm) const;
-    void checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
-				   const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+    void checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state,
+				   const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state,
 				   const AllowedCollisionMatrix *acm) const;
-    double distanceSelfHelper(const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
-    double distanceOtherHelper(const planning_models::KinematicState &state, const CollisionRobot &other_robot,
-                               const planning_models::KinematicState &other_state, const AllowedCollisionMatrix *acm) const;
+    double distanceSelfHelper(const kinematic_state::KinematicState &state, const AllowedCollisionMatrix *acm) const;
+    double distanceOtherHelper(const kinematic_state::KinematicState &state, const CollisionRobot &other_robot,
+                               const kinematic_state::KinematicState &other_state, const AllowedCollisionMatrix *acm) const;
     
-    std::vector<const planning_models::KinematicModel::LinkModel*> links_;
-    std::vector<FCLGeometryConstPtr>                               geoms_;
-    std::map<std::string, std::size_t>                             index_map_;
+    std::vector<const kinematic_model::LinkModel*> links_;
+    std::vector<FCLGeometryConstPtr>               geoms_;
+    std::map<std::string, std::size_t>             index_map_;
   };
 
 }

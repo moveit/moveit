@@ -54,8 +54,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   // If active components are specified
   if (cdata->active_components_only_)
   {
-    const planning_models::KinematicModel::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
-    const planning_models::KinematicModel::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+    const kinematic_model::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+    const kinematic_model::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
     
     // If neither of the involved components is active
     if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
@@ -372,8 +372,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   // If active components are specified
   if (cdata->active_components_only_)
   {
-    const planning_models::KinematicModel::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
-    const planning_models::KinematicModel::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+    const kinematic_model::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+    const kinematic_model::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
     
     // If neither of the involved components is active
     if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
@@ -509,7 +509,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
   // attached objects could have previously been CollisionWorld::Object; we try to move them
   // from their old cache to the new one, if possible. the code is not pretty, but should help
   // when we attach/detach objects that are in the world
-  if (IfSameType<T, planning_models::KinematicState::AttachedBody>::value == 1)
+  if (IfSameType<T, kinematic_state::AttachedBody>::value == 1)
   {
     // get the cache that corresponds to objects; maybe this attached object used to be a world object
     FCLShapeCache &othercache = GetShapeCache<BV, CollisionWorld::Object>();
@@ -547,7 +547,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     if (IfSameType<T, CollisionWorld::Object>::value == 1)
     {
       // get the cache that corresponds to objects; maybe this attached object used to be a world object
-      FCLShapeCache &othercache = GetShapeCache<BV, planning_models::KinematicState::AttachedBody>();
+      FCLShapeCache &othercache = GetShapeCache<BV, kinematic_state::AttachedBody>();
       
       // attached bodies could be just moved from the environment.
       othercache.lock_.lock(); // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
@@ -669,15 +669,15 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 
 /////////////////////////////////////////////////////
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const planning_models::KinematicModel::LinkModel *link)
+                                            const kinematic_model::LinkModel *link)
 {
-  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicModel::LinkModel>(shape, link);
+  return createCollisionGeometry<fcl::OBBRSS, kinematic_model::LinkModel>(shape, link);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const planning_models::KinematicState::AttachedBody *ab)
+                                            const kinematic_state::AttachedBody *ab)
 {
-  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicState::AttachedBody>(shape, ab);
+  return createCollisionGeometry<fcl::OBBRSS, kinematic_state::AttachedBody>(shape, ab);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
@@ -700,15 +700,15 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const planning_models::KinematicModel::LinkModel *link)
+                                            const kinematic_model::LinkModel *link)
 {
-  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicModel::LinkModel>(shape, scale, padding, link);
+  return createCollisionGeometry<fcl::OBBRSS, kinematic_model::LinkModel>(shape, scale, padding, link);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const planning_models::KinematicState::AttachedBody *ab)
+                                            const kinematic_state::AttachedBody *ab)
 {
-  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicState::AttachedBody>(shape, scale, padding, ab);
+  return createCollisionGeometry<fcl::OBBRSS, kinematic_state::AttachedBody>(shape, scale, padding, ab);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
@@ -719,7 +719,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 
 }
 
-void collision_detection::CollisionData::enableGroup(const planning_models::KinematicModelConstPtr &kmodel)
+void collision_detection::CollisionData::enableGroup(const kinematic_model::KinematicModelConstPtr &kmodel)
 {
   if (kmodel->hasJointModelGroup(req_->group_name))
     active_components_only_ = &kmodel->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsWithGeometrySet();

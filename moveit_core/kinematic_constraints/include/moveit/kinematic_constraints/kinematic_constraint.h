@@ -37,9 +37,9 @@
 #ifndef MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
 #define MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
 
-#include <moveit/planning_models/kinematic_model.h>
-#include <moveit/planning_models/kinematic_state.h>
-#include <moveit/planning_models/transforms.h>
+#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/kinematic_state/transforms.h>
 #include <moveit/collision_detection/collision_world.h>
 
 #include <geometric_shapes/bodies.h>
@@ -73,14 +73,14 @@ public:
       UNKNOWN_CONSTRAINT, JOINT_CONSTRAINT, POSITION_CONSTRAINT, ORIENTATION_CONSTRAINT, VISIBILITY_CONSTRAINT
     };
   
-  KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
+  KinematicConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf);
   virtual ~KinematicConstraint(void);
   
   /** \brief Clear the stored constraint */
   virtual void clear(void) = 0;
   
   /** \brief Decide whether the constraint is satisfied in the indicated state */
-  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const = 0;
+  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const = 0;
   
   /** \brief This function returns true if this constraint is
       configured and able to decide whether states do meet the
@@ -109,12 +109,12 @@ public:
     return constraint_weight_;
   }
   
-  const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return kmodel_;
   }
   
-  const planning_models::TransformsConstPtr& getTransforms(void) const
+  const kinematic_state::TransformsConstPtr& getTransforms(void) const
   {
     return tf_;
   }
@@ -122,8 +122,8 @@ public:
 protected:
   
   ConstraintType                          type_;
-  planning_models::KinematicModelConstPtr kmodel_;
-  planning_models::TransformsConstPtr     tf_;
+  kinematic_model::KinematicModelConstPtr kmodel_;
+  kinematic_state::TransformsConstPtr     tf_;
   double                                  constraint_weight_;
 };
 
@@ -134,7 +134,7 @@ class JointConstraint : public KinematicConstraint
 {
 public:
   
-  JointConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
+  JointConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), joint_model_(NULL)
   {
     type_ = JOINT_CONSTRAINT;
@@ -142,13 +142,13 @@ public:
   
   bool configure(const moveit_msgs::JointConstraint &jc);
   virtual bool equal(const KinematicConstraint &other, double margin) const;
-  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
+  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
   virtual bool enabled(void) const;
   virtual void clear(void);
   virtual void print(std::ostream &out = std::cout) const;
   
   /** \brief Get the joint model this constraint operates on */
-  const planning_models::KinematicModel::JointModel* getJointModel(void) const
+  const kinematic_model::JointModel* getJointModel(void) const
   {
     return joint_model_;
   }
@@ -180,11 +180,11 @@ public:
   
 protected:
   
-  const planning_models::KinematicModel::JointModel *joint_model_;
-  bool                                               joint_is_continuous_;
-  std::string                                        local_variable_name_;
-  std::string                                        joint_variable_name_;
-  double                                             joint_position_, joint_tolerance_above_, joint_tolerance_below_;
+  const kinematic_model::JointModel *joint_model_;
+  bool                               joint_is_continuous_;
+  std::string                        local_variable_name_;
+  std::string                        joint_variable_name_;
+  double                             joint_position_, joint_tolerance_above_, joint_tolerance_below_;
 };
 
 
@@ -194,7 +194,7 @@ public:
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  OrientationConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
+  OrientationConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
     type_ = ORIENTATION_CONSTRAINT;
@@ -203,11 +203,11 @@ public:
   bool configure(const moveit_msgs::OrientationConstraint &pc);
   virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
-  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
+  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
   virtual bool enabled(void) const;
   void print(std::ostream &out = std::cout) const;
   
-  const planning_models::KinematicModel::LinkModel* getLinkModel(void) const
+  const kinematic_model::LinkModel* getLinkModel(void) const
   {
     return link_model_;
   }
@@ -244,12 +244,12 @@ public:
   
 protected:
   
-  const planning_models::KinematicModel::LinkModel *link_model_;
-  Eigen::Matrix3d                                   desired_rotation_matrix_;
-  Eigen::Matrix3d                                   desired_rotation_matrix_inv_;
-  std::string                                       desired_rotation_frame_id_;
-  bool                                              mobile_frame_;
-  double                                            absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_;
+  const kinematic_model::LinkModel *link_model_;
+  Eigen::Matrix3d                   desired_rotation_matrix_;
+  Eigen::Matrix3d                   desired_rotation_matrix_inv_;
+  std::string                       desired_rotation_frame_id_;
+  bool                              mobile_frame_;
+  double                            absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_;
 };
 
 class PositionConstraint : public KinematicConstraint
@@ -258,7 +258,7 @@ public:
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  PositionConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
+  PositionConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
     type_ = POSITION_CONSTRAINT;
@@ -267,11 +267,11 @@ public:
   bool configure(const moveit_msgs::PositionConstraint &pc);
   virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
-  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
+  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
   virtual bool enabled(void) const;
   void print(std::ostream &out = std::cout) const;
   
-  const planning_models::KinematicModel::LinkModel* getLinkModel(void) const
+  const kinematic_model::LinkModel* getLinkModel(void) const
   {
     return link_model_;
   }
@@ -303,13 +303,13 @@ public:
   
 protected:
   
-  Eigen::Vector3d                                   offset_;
-  bool                                              has_offset_;
-  std::vector<bodies::BodyPtr>                      constraint_region_;
-  EigenSTL::vector_Affine3d                         constraint_region_pose_;
-  bool                                              mobile_frame_;
-  std::string                                       constraint_frame_id_;
-  const planning_models::KinematicModel::LinkModel *link_model_;
+  Eigen::Vector3d                   offset_;
+  bool                              has_offset_;
+  std::vector<bodies::BodyPtr>      constraint_region_;
+  EigenSTL::vector_Affine3d         constraint_region_pose_;
+  bool                              mobile_frame_;
+  std::string                       constraint_frame_id_;
+  const kinematic_model::LinkModel *link_model_;
 };
 
 class VisibilityConstraint : public KinematicConstraint
@@ -317,15 +317,15 @@ class VisibilityConstraint : public KinematicConstraint
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
+  VisibilityConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf);
   
   bool configure(const moveit_msgs::VisibilityConstraint &vc);
   virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
-  shapes::Mesh* getVisibilityCone(const planning_models::KinematicState &state) const;
-  void getMarkers(const planning_models::KinematicState &state, visualization_msgs::MarkerArray &markers) const;
+  shapes::Mesh* getVisibilityCone(const kinematic_state::KinematicState &state) const;
+  void getMarkers(const kinematic_state::KinematicState &state, visualization_msgs::MarkerArray &markers) const;
 
-  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
+  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
   virtual bool enabled(void) const;
   void print(std::ostream &out = std::cout) const;
   
@@ -352,7 +352,7 @@ class KinematicConstraintSet
 {
 public:
   
-  KinematicConstraintSet(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
+  KinematicConstraintSet(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
     kmodel_(model), tf_(tf)
   {
   }
@@ -381,10 +381,10 @@ public:
   bool add(const std::vector<moveit_msgs::VisibilityConstraint> &pc);
   
   /** \brief Decide whether the set of constraints is satisfied  */
-  ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
+  ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
 
   /** \brief Decide whether the set of constraints is satisfied but return the constraint evaluation results for each contained constraint too */
-  ConstraintEvaluationResult decide(const planning_models::KinematicState &state, std::vector<ConstraintEvaluationResult> &results, bool verbose = false) const;
+  ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, std::vector<ConstraintEvaluationResult> &results, bool verbose = false) const;
   
   bool equal(const KinematicConstraintSet &other, double margin) const;
   
@@ -428,8 +428,8 @@ public:
   
 protected:
   
-  planning_models::KinematicModelConstPtr         kmodel_;
-  planning_models::TransformsConstPtr             tf_;
+  kinematic_model::KinematicModelConstPtr         kmodel_;
+  kinematic_state::TransformsConstPtr             tf_;
   
   std::vector<KinematicConstraintPtr>             kinematic_constraints_;
   
