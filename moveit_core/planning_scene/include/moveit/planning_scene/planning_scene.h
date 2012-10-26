@@ -56,6 +56,10 @@
 namespace planning_scene
 {
 
+static const std::string COLLISION_MAP_NS = "_1_collision_map";
+static const std::string OCTOMAP_NS = "_2_octomap";
+static const std::string DEFAULT_SCENE_NAME = "(noname)";
+
 class PlanningScene;
 typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
 typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;

@@ -39,7 +39,6 @@
 
 #include <moveit/collision_detection_fcl/collision_robot.h>
 #include <fcl/broadphase/broadphase.h>
-#include <octomap/octomap.h>
 
 namespace collision_detection
 {
@@ -70,8 +69,6 @@ namespace collision_detection
     virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
     virtual void removeObject(const std::string &id);
     virtual void clearObjects(void);
-
-    virtual void refineContactNormals(CollisionResult &res) const;
     
   protected:
 
@@ -79,9 +76,6 @@ namespace collision_detection
     void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix *acm) const;
     double distanceRobotHelper(const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix *acm) const;
     double distanceWorldHelper(const CollisionWorld &world, const AllowedCollisionMatrix *acm) const;
-
-    bool getCloudNormal(const octomap::point3d_list &cloud, const float &spacing, const octomath::Vector3 &position, octomath::Vector3 &normal) const;
-    bool sampleCloud(const octomap::point3d_list &cloud, const float &spacing, const octomath::Vector3 &position, float &intensity, octomath::Vector3 &gradient) const;
     
     void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
     void updateFCLObject(const std::string &id);
