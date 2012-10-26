@@ -34,30 +34,30 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/kinematic_model/revolute_joint_model.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>
 
-planning_models::KinematicModel::RevoluteJointModel::RevoluteJointModel(const std::string& name) : JointModel(name),
-                                                                                                   axis_(0.0, 0.0, 0.0), continuous_(false)
+kinematic_model::RevoluteJointModel::RevoluteJointModel(const std::string& name) : JointModel(name),
+                                                                                   axis_(0.0, 0.0, 0.0), continuous_(false)
 {
   type_ = REVOLUTE;
   variable_bounds_.push_back(std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>()));
   variable_names_.push_back(name_);
 }
 
-unsigned int planning_models::KinematicModel::RevoluteJointModel::getStateSpaceDimension(void) const
+unsigned int kinematic_model::RevoluteJointModel::getStateSpaceDimension(void) const
 {
   return 1;
 }
 
-double planning_models::KinematicModel::RevoluteJointModel::getMaximumExtent(void) const
+double kinematic_model::RevoluteJointModel::getMaximumExtent(void) const
 {  
   return variable_bounds_[0].second - variable_bounds_[0].first;
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::getDefaultValues(std::vector<double> &values, const Bounds &bounds) const
+void kinematic_model::RevoluteJointModel::getVariableDefaultValues(std::vector<double> &values, const Bounds &bounds) const
 {
   // if zero is a valid value
   if (bounds[0].first <= 0.0 && bounds[0].second >= 0.0)
@@ -66,13 +66,13 @@ void planning_models::KinematicModel::RevoluteJointModel::getDefaultValues(std::
     values.push_back((bounds[0].first + bounds[0].second)/2.0);
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
+void kinematic_model::RevoluteJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
 {
   values.push_back(rng.uniformReal(bounds[0].first, bounds[0].second));
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
-                                                                                const std::vector<double> &near, const double distance) const
+void kinematic_model::RevoluteJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+                                                                        const std::vector<double> &near, const double distance) const
 {  
   if (continuous_)
   {
@@ -84,7 +84,7 @@ void planning_models::KinematicModel::RevoluteJointModel::getRandomValuesNearBy(
                                      std::min(bounds[0].second, near[values.size()] + distance)));
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+void kinematic_model::RevoluteJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
   if (continuous_)
   {
@@ -110,7 +110,7 @@ void planning_models::KinematicModel::RevoluteJointModel::interpolate(const std:
     state[0] = from[0] + (to[0] - from[0]) * t;
 }
 
-double planning_models::KinematicModel::RevoluteJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+double kinematic_model::RevoluteJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   assert(values1.size() == 1);
   assert(values2.size() == 1);
@@ -123,7 +123,7 @@ double planning_models::KinematicModel::RevoluteJointModel::distance(const std::
     return fabs(values1[0] - values2[0]);
 }
 
-bool planning_models::KinematicModel::RevoluteJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
+bool kinematic_model::RevoluteJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   if (continuous_)
     return true;
@@ -133,7 +133,7 @@ bool planning_models::KinematicModel::RevoluteJointModel::satisfiesBounds(const 
   return true;
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
+void kinematic_model::RevoluteJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
 {
   if (continuous_)
   {
@@ -156,26 +156,24 @@ void planning_models::KinematicModel::RevoluteJointModel::enforceBounds(std::vec
   }
 }
 
-std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::RevoluteJointModel::getVariableLimits(void) const
+void kinematic_model::RevoluteJointModel::computeDefaultVariableLimits(void)
 {
-  std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getVariableLimits();
+  JointModel::computeDefaultVariableLimits();
   if (continuous_)
-    ret_vec[0].has_position_limits = false;
-  return ret_vec;
+    default_limits_[0].has_position_limits = false;
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void kinematic_model::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
-  transf.translation() = Eigen::Vector3d(0.0, 0.0, 0.0);
   updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void kinematic_model::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_)); 
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
+void kinematic_model::RevoluteJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(1);
   Eigen::Quaterniond q(transf.rotation());

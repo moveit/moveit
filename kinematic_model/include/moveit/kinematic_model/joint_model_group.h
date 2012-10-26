@@ -32,9 +32,13 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+#ifndef MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_GROUP_
+#define MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_GROUP_
+
+#include <moveit/kinematic_model/joint_model.h>
+
+namespace kinematic_model
+{
 
 class JointModelGroup
 {
@@ -65,6 +69,9 @@ public:
    
   /** \brief Get a joint by its name. Return NULL if the joint is not part of this group. */
   const JointModel* getJointModel(const std::string &joint) const;
+
+  /** \brief Get a joint by its name. Return NULL if the joint is not part of this group. */
+  const LinkModel* getLinkModel(const std::string &joint) const;
   
   /** \brief Get the active joints in this group (that  have controllable DOF).
       This may not be the complete set of joints (see getFixedJointModels() and getMimicJointModels() ) */
@@ -72,7 +79,13 @@ public:
   {
     return joint_model_vector_;
   }
-  
+
+  /** \brief Get the names of the active joints in this group. These are the names of the joints returned by getJointModels(). */
+  const std::vector<std::string>& getJointModelNames(void) const
+  {
+    return joint_model_name_vector_;
+  }
+
   /** \brief Get the fixed joints that are part of this group */
   const std::vector<const JointModel*>& getFixedJointModels(void) const
   {
@@ -85,18 +98,12 @@ public:
     return mimic_joints_;
   }
   
-  /** \brief Get the names of the active joints in this group. These are the names of the joints returned by getJointModels(). */
-  const std::vector<std::string>& getJointModelNames(void) const
-  {
-    return joint_model_name_vector_;
-  }
-  
   /** \brief Get the names of the variables that make up the joints included in this group. Only active joints (not
       fixed, not mimic) are included. Effectively, these are the names of the DOF for this group. The number of
       returned elements is always equal to getVariableCount() */
-  const std::vector<std::string>& getActiveDOFNames(void) const
+  const std::vector<std::string>& getVariableNames(void) const
   {
-    return active_dof_names_;
+    return active_variable_names_;
   }
   
   /** \brief Unlike a complete kinematic model, a group may
@@ -160,7 +167,7 @@ public:
   /** \brief True if this name is in the set of links that are to be updated when the state of this group changes. This
       includes links that are in the kinematic model but outside this group, if those links are descendants of
       joints in this group that have their values updated. */
-  bool isUpdatedLink(const std::string &name) const
+  bool isLinkUpdated(const std::string &name) const
   {
     if (std::find(updated_link_model_name_vector_.begin(), updated_link_model_name_vector_.end(),name) == updated_link_model_name_vector_.end())
       return false;
@@ -185,16 +192,16 @@ public:
   }
   
   /** \brief Get the values that correspond to a named state as read from the URDF. Return false on failure. */
-  bool getDefaultValues(const std::string &name, std::map<std::string, double> &values) const;
+  bool getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const;
   
   /** \brief Compute the default values for the joint group */
-  void getDefaultValues(std::vector<double> &values) const;
+  void getVariableDefaultValues(std::vector<double> &values) const;
   
   /** \brief Compute the default values for the joint group */
-  void getDefaultValues(std::map<std::string, double> &values) const;
+  void getVariableDefaultValues(std::map<std::string, double> &values) const;
   
   /** \brief Compute random values for the state of the joint group */
-  void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
   
   /** \brief Get the number of variables that describe this joint group */
   unsigned int getVariableCount(void) const
@@ -359,3 +366,6 @@ protected:
   std::map<std::string, std::map<std::string, double> > default_states_;
 };
 
+}
+
+#endif

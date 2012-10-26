@@ -32,9 +32,21 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+#ifndef MOVEIT_KINEMATIC_MODEL_LINK_MODEL_
+#define MOVEIT_KINEMATIC_MODEL_LINK_MODEL_
+
+#include <map>
+#include <string>
+#include <vector>
+#include <utility>
+#include <Eigen/Geometry>
+#include <geometric_shapes/shapes.h>
+#include <geometric_shapes/shape_messages.h>
+
+namespace kinematic_model
+{
+
+class JointModel;
 
 /** \brief A link from the robot. Contains the constant transform applied to the link and its geometry */
 class LinkModel
@@ -55,19 +67,7 @@ public:
   {
     return name_;
   }
-  
-  /** \brief Get the filename of the mesh resource for this link */
-  const std::string& getFilename(void) const
-  {
-    return filename_;
-  }
-  
-  /** \brief Get the filename of the mesh resource for this link */
-  const std::string& getVisualFilename(void) const
-  {
-    return visual_filename_;
-  }
-  
+
   /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
   int getTreeIndex(void) const
   {
@@ -135,6 +135,18 @@ public:
   {
     return associated_fixed_transforms_;
   }
+    
+  /** \brief Get the filename of the mesh resource for this link */
+  const std::string& getMeshFilename(void) const
+  {
+    return filename_;
+  }
+  
+  /** \brief Get the filename of the mesh resource for this link */
+  const std::string& getVisualMeshFilename(void) const
+  {
+    return visual_filename_;
+  }
   
 private:
   
@@ -178,3 +190,6 @@ private:
   int                       tree_index_;
   
 };
+}
+
+#endif

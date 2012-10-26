@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/kinematic_model/joint_model_group.h>
 #include <algorithm>
 #include <set>
 

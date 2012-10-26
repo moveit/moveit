@@ -32,9 +32,13 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+#ifndef MOVEIT_KINEMATIC_MODEL_FLOATING_JOINT_MODEL_
+#define MOVEIT_KINEMATIC_MODEL_FLOATING_JOINT_MODEL_
+
+#include <moveit/kinematic_model/joint_model.h>
+
+namespace kinematic_model
+{
 
 /** \brief A floating joint */
 class FloatingJointModel : public JointModel
@@ -44,10 +48,10 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   FloatingJointModel(const std::string& name);
-  virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const; 
-  virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
-  virtual void getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
-                                     const std::vector<double> &near, const double distance) const;
+  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const; 
+  virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+  virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
+                                             const std::vector<double> &near, const double distance) const;
   virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
   virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const;
   
@@ -80,3 +84,6 @@ private:
   
   double angular_distance_weight_;
 };
+}
+
+#endif

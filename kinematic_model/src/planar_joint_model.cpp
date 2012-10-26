@@ -34,39 +34,39 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/kinematic_model/planar_joint_model.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>
 
-planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
+kinematic_model::PlanarJointModel::PlanarJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
 {
   type_ = PLANAR;
   
-  local_names_.push_back("x");
-  local_names_.push_back("y");
-  local_names_.push_back("theta");
+  local_variable_names_.push_back("x");
+  local_variable_names_.push_back("y");
+  local_variable_names_.push_back("theta");
   for (int i = 0 ; i < 3 ; ++i)
-    variable_names_.push_back(name_ + "/" + local_names_[i]);
+    variable_names_.push_back(name_ + "/" + local_variable_names_[i]);
   variable_bounds_.resize(3);
   variable_bounds_[0] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
   variable_bounds_[1] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
   variable_bounds_[2] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
 }
 
-unsigned int planning_models::KinematicModel::PlanarJointModel::getStateSpaceDimension(void) const
+unsigned int kinematic_model::PlanarJointModel::getStateSpaceDimension(void) const
 {
   return 3;
 }
 
-double planning_models::KinematicModel::PlanarJointModel::getMaximumExtent(void) const
+double kinematic_model::PlanarJointModel::getMaximumExtent(void) const
 {
   double dx = variable_bounds_[0].first - variable_bounds_[0].second;
   double dy = variable_bounds_[1].first - variable_bounds_[1].second;
   return sqrt(dx*dx + dy*dy) + boost::math::constants::pi<double>() * angular_distance_weight_;
 }
 
-void planning_models::KinematicModel::PlanarJointModel::getDefaultValues(std::vector<double>& values, const Bounds &bounds) const
+void kinematic_model::PlanarJointModel::getVariableDefaultValues(std::vector<double>& values, const Bounds &bounds) const
 {
   assert(bounds.size() > 1);
   for (unsigned int i = 0 ; i < 2 ; ++i)
@@ -80,7 +80,7 @@ void planning_models::KinematicModel::PlanarJointModel::getDefaultValues(std::ve
   values.push_back(0.0);
 }
 
-void planning_models::KinematicModel::PlanarJointModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
+void kinematic_model::PlanarJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
 {
   std::size_t s = values.size();
   values.resize(s + 3);
@@ -95,8 +95,8 @@ void planning_models::KinematicModel::PlanarJointModel::getRandomValues(random_n
   values[s + 2] = rng.uniformReal(bounds[2].first, bounds[2].second);
 }
 
-void planning_models::KinematicModel::PlanarJointModel::getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
-                                                                              const std::vector<double> &near, const double distance) const
+void kinematic_model::PlanarJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+                                                                      const std::vector<double> &near, const double distance) const
 {
   std::size_t s = values.size();
   values.resize(s + 3);
@@ -116,7 +116,7 @@ void planning_models::KinematicModel::PlanarJointModel::getRandomValuesNearBy(ra
   normalizeRotation(values);
 }
 
-void planning_models::KinematicModel::PlanarJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+void kinematic_model::PlanarJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
   // interpolate position
   state[0] = from[0] + (to[0] - from[0]) * t;
@@ -142,7 +142,7 @@ void planning_models::KinematicModel::PlanarJointModel::interpolate(const std::v
   }
 }
 
-double planning_models::KinematicModel::PlanarJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+double kinematic_model::PlanarJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   assert(values1.size() == 3);
   assert(values2.size() == 3);
@@ -154,7 +154,7 @@ double planning_models::KinematicModel::PlanarJointModel::distance(const std::ve
   return sqrt(dx*dx + dy*dy) + angular_distance_weight_ * d;
 }
 
-bool planning_models::KinematicModel::PlanarJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
+bool kinematic_model::PlanarJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   assert(bounds.size() > 1);
   for (unsigned int i = 0 ; i < 3 ; ++i)
@@ -163,7 +163,7 @@ bool planning_models::KinematicModel::PlanarJointModel::satisfiesBounds(const st
   return true;
 }
 
-void planning_models::KinematicModel::PlanarJointModel::normalizeRotation(std::vector<double> &values) const
+void kinematic_model::PlanarJointModel::normalizeRotation(std::vector<double> &values) const
 {
   double &v = values[2];
   v = fmod(v, 2.0 * boost::math::constants::pi<double>());
@@ -174,7 +174,7 @@ void planning_models::KinematicModel::PlanarJointModel::normalizeRotation(std::v
       v -= 2.0 * boost::math::constants::pi<double>();
 }
 
-void planning_models::KinematicModel::PlanarJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
+void kinematic_model::PlanarJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
 {
   normalizeRotation(values);
   for (unsigned int i = 0 ; i < 2 ; ++i)
@@ -188,17 +188,17 @@ void planning_models::KinematicModel::PlanarJointModel::enforceBounds(std::vecto
   }
 }
 
-void planning_models::KinematicModel::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void kinematic_model::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void kinematic_model::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], 0.0) * Eigen::AngleAxisd(joint_values[2], Eigen::Vector3d::UnitZ()));
 }
 
-void planning_models::KinematicModel::PlanarJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
+void kinematic_model::PlanarJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(3);
   joint_values[0] = transf.translation().x();

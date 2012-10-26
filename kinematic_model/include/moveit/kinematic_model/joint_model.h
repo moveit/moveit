@@ -32,9 +32,22 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+#ifndef MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_
+#define MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_
+
+#include <map>
+#include <string>
+#include <vector>
+#include <utility>
+#include <moveit_msgs/JointLimits.h>
+#include <random_numbers/random_numbers.h>
+#include <console_bridge/console.h>
+#include <Eigen/Geometry>
+
+namespace kinematic_model
+{
+
+class LinkModel;
 
 /** \brief A joint from the robot. Models the transform that
     this joint applies in the kinematic chain. A joint
@@ -43,13 +56,13 @@
     its name is the same as the joint's name. For multi-DOF
     joints, each variable has a local name (e.g., \e x, \e y)
     but the full variable name as seen from the outside of
-    this class is a concatenation of the "joint name"."local
+    this class is a concatenation of the "joint name"/"local
     name" (e.g., a joint named 'base' with local variables 'x'
-    and 'y' will store its full variable names as 'base.x' and
-    'base.y'). Local names are never used to reference
+    and 'y' will store its full variable names as 'base/x' and
+    'base/y'). Local names are never used to reference
     variables directly. */
 class JointModel
-{
+{  
   friend class KinematicModel;
 public:
   
@@ -104,16 +117,11 @@ public:
       @{ */
   
   /** \brief Get the names of the variables that make up this joint, in the order they appear in corresponding states.
-      For single DOF joints, this will be just the joint name. */
+      For single DOF joints, this will be just the joint name. For multi-DOF joints these will be the joint name followed by "/", followed by 
+      the local names of the variables */
   const std::vector<std::string>& getVariableNames(void) const
   {
     return variable_names_;
-  }
-  
-  /** \brief Get the names of the variable suffixes that are attached to joint names to construct the variable names. For single DOF joints, this will be empty. */
-  const std::vector<std::string>& getLocalVariableNames(void) const
-  {
-    return local_names_;
   }
   
   /** \brief Check if a particular variable is known to this joint */
@@ -134,58 +142,66 @@ public:
   {
     return variable_index_;
   }
+  
+  /** \brief Get the local names of the variable that make up the joint (suffixes that are attached to joint names to construct the variable names). 
+      For single DOF joints, this will be empty. */
+  const std::vector<std::string>& getLocalVariableNames(void) const
+  {
+    return local_variable_names_;
+  }
+  
   /** @} */
   
   /** @name Functionality specific to computing state values
       @{ */
   
-  /** \brief Provide a default value for the joint given the default joint variable bounds (maintained internally).
+  /** \brief Provide defaults value for the joint variables, given the default joint variable bounds (maintained internally).
       Most joints will use the default implementation provided in this base class, but the quaternion
       for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
-  void getDefaultValues(std::map<std::string, double> &values) const
+  void getVariableDefaultValues(std::map<std::string, double> &values) const
   {
-    getDefaultValues(values, variable_bounds_);
+    getVariableDefaultValues(values, variable_bounds_);
   }
   
-  /** \brief Provide a default value for the joint given the joint bounds.
+  /** \brief Provide a default value for the joint variables given the joint bounds.
       Most joints will use the default implementation provided in this base class, but the quaternion
       for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
-  void getDefaultValues(std::map<std::string, double> &values, const Bounds &other_bounds) const;
+  void getVariableDefaultValues(std::map<std::string, double> &values, const Bounds &other_bounds) const;
   
   /** \brief Provide a default value for the joint given the default joint variable bounds (maintained internally).
       Most joints will use the default implementation provided in this base class, but the quaternion
       for example needs a different implementation. The vector is NOT cleared; elements are only added with push_back */
-  void getDefaultValues(std::vector<double> &values) const
+  void getVariableDefaultValues(std::vector<double> &values) const
   {
-    getDefaultValues(values, variable_bounds_);
+    getVariableDefaultValues(values, variable_bounds_);
   }
   
   /** \brief Provide a default value for the joint given the joint variable bounds.
       Most joints will use the default implementation provided in this base class, but the quaternion
       for example needs a different implementation. The vector is NOT cleared; elements are only added with push_back */
-  virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const = 0;
+  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const = 0;
   
   /** \brief Provide random values for the joint variables (within default bounds). The map is NOT cleared; elements are only added (or overwritten). */
-  void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
   {
-    getRandomValues(rng, values, variable_bounds_);
+    getVariableRandomValues(rng, values, variable_bounds_);
   }
   
   /** \brief Provide random values for the joint variables (within specified bounds). The map is NOT cleared; elements are only added (or overwritten). */
-  void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values, const Bounds &other_bounds) const;
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values, const Bounds &other_bounds) const;
   
   /** \brief Provide random values for the joint variables (within default bounds). The vector is NOT cleared; elements are only added with push_back */
-  void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
   {
-    getRandomValues(rng, values, variable_bounds_);
+    getVariableRandomValues(rng, values, variable_bounds_);
   }
   
   /** \brief Provide random values for the joint variables (within specified bounds). The vector is NOT cleared; elements are only added with push_back */
-  virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const = 0;
+  virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const = 0;
   
   /** \brief Provide random values for the joint variables (within specified bounds). The vector is NOT cleared; elements are only added with push_back */
-  virtual void getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
-                                     const std::vector<double> &near, const double distance) const = 0;
+  virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
+                                             const std::vector<double> &near, const double distance) const = 0;
   
   /** @} */
   
@@ -220,29 +236,44 @@ public:
   }
   
   /** \brief Get variable limits as a message type */
-  virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
-
+  const std::vector<moveit_msgs::JointLimits>& getVariableDefaultLimits(void) const
+  {
+    return default_limits_;
+  }
+  
   /** \brief Override joint limits */
-  void setLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
+  void setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
   {
     user_specified_limits_ = jlim;
   }
   
   /** \brief Get the joint limits specified by the user with setLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
-  std::vector<moveit_msgs::JointLimits> getLimits(void) const
+  const std::vector<moveit_msgs::JointLimits>& getVariableLimits(void) const
   {
-    return user_specified_limits_.empty() ? getVariableLimits() : user_specified_limits_;
+    return user_specified_limits_.empty() ? getVariableDefaultLimits() : user_specified_limits_;
   }
 
+  virtual void computeDefaultVariableLimits(void);
+  
   /** @} */
   
   /** \brief Compute the distance between two joint states of the same model (represented by the variable values) */
   virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const = 0;
   
+  /** \brief Get the factor that should be applied to the value returned by distance() when that value is used in compound distances */
+  double getDistanceFactor(void) const
+  {
+    return distance_factor_;
+  }
+  
+  /** \brief Set the factor that should be applied to the value returned by distance() when that value is used in compound distances */
+  void setDistanceFactor(double factor)
+  {
+    distance_factor_ = factor;
+  }
   
   /** \brief Get the dimension of the state space that corresponds to this joint */
   virtual unsigned int getStateSpaceDimension(void) const = 0;
-  
   
   /** \brief Get the joint this one is mimicking */
   const JointModel* getMimic(void) const
@@ -268,22 +299,10 @@ public:
     return mimic_requests_;
   }
   
-  /** \brief Get the maximum velocity of this joint. If the result is zero, the value is considered not to be specified. */
+  /** \brief Get the maximum velocity of this joint. If the result is zero, the value is assumed not to be specified. */
   double getMaximumVelocity(void) const
   {
     return max_velocity_;
-  }
-  
-  /** \brief Get the factor that should be applied to the value returned by distance() when that value is used in compound distances */
-  double getDistanceFactor(void) const
-  {
-    return distance_factor_;
-  }
-  
-  /** \brief Set the factor that should be applied to the value returned by distance() when that value is used in compound distances */
-  void setDistanceFactor(double factor)
-  {
-    distance_factor_ = factor;
   }
   
   /** \brief Computes the state that lies at time @e t in [0, 1] on the segment that connects @e from state to @e to state.
@@ -319,7 +338,7 @@ protected:
   JointType                                         type_;
   
   /** \brief The local names to use for the variables that make up this joint */
-  std::vector<std::string>                          local_names_;
+  std::vector<std::string>                          local_variable_names_;
   
   /** \brief The full names to use for the variables that make up this joint */
   std::vector<std::string>                          variable_names_;
@@ -353,10 +372,17 @@ protected:
   
   /** \brief The factor applied to the distance between two joint states */
   double                                            distance_factor_;
-
+  
+  /** \brief Default limits for this joint */
+  std::vector<moveit_msgs::JointLimits>             default_limits_;
+  
   /** \brief User specified limits for this joint */
   std::vector<moveit_msgs::JointLimits>             user_specified_limits_;
-
+  
   /** \brief The index assigned to this joint when traversing the kinematic tree in depth first fashion */
   int                                               tree_index_;
 };
+
+}
+
+#endif
