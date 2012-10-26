@@ -32,31 +32,58 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+#ifndef MOVEIT_KINEMATIC_MODEL_PLANAR_JOINT_MODEL_
+#define MOVEIT_KINEMATIC_MODEL_PLANAR_JOINT_MODEL_
 
-/** \brief A fixed joint */
-class FixedJointModel : public JointModel
+#include <moveit/kinematic_model/joint_model.h>
+
+namespace kinematic_model
+{
+
+/** \brief A planar joint */
+class PlanarJointModel : public JointModel
 {
   friend class KinematicModel;
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
-  FixedJointModel(const std::string &name);
+  PlanarJointModel(const std::string& name);
   
-  virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;    
-  virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
-  virtual void getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
-                                     const std::vector<double> &near, const double distance) const;
+  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;
+  virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+  virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
+                                             const std::vector<double> &near, const double distance) const;
   virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
   virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const;
   
-  virtual unsigned int getStateSpaceDimension(void) const;   
+  virtual unsigned int getStateSpaceDimension(void) const;
   virtual double getMaximumExtent(void) const;
-  virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;    
+  virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
   virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
+  
   virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
-  virtual void computeJointStateValues(const Eigen::Affine3d& trans, std::vector<double>& joint_values) const;
+  virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
   virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
+  
+  double getAngularDistanceWeight(void) const
+  {
+    return angular_distance_weight_;
+  }
+  
+  void setAngularDistanceWeight(double weight)
+  {
+    angular_distance_weight_ = weight;
+  }
+  
+  /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function
+  void normalizeRotation(std::vector<double> &values) const;  
+  
+private:
+  
+  double angular_distance_weight_;
 };
+
+}
+#endif
+
+  

@@ -34,23 +34,23 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/kinematic_model/floating_joint_model.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>
 
-planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
+kinematic_model::FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
 {
   type_ = FLOATING;
-  local_names_.push_back("trans_x");
-  local_names_.push_back("trans_y");
-  local_names_.push_back("trans_z");
-  local_names_.push_back("rot_x");
-  local_names_.push_back("rot_y");
-  local_names_.push_back("rot_z");
-  local_names_.push_back("rot_w");
+  local_variable_names_.push_back("trans_x");
+  local_variable_names_.push_back("trans_y");
+  local_variable_names_.push_back("trans_z");
+  local_variable_names_.push_back("rot_x");
+  local_variable_names_.push_back("rot_y");
+  local_variable_names_.push_back("rot_z");
+  local_variable_names_.push_back("rot_w");
   for (int i = 0 ; i < 7 ; ++i)
-    variable_names_.push_back(name_ + "/" + local_names_[i]);
+    variable_names_.push_back(name_ + "/" + local_variable_names_[i]);
   variable_bounds_.resize(7);
   variable_bounds_[0] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
   variable_bounds_[1] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
@@ -61,7 +61,7 @@ planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const st
   variable_bounds_[6] = std::make_pair(-1.0, 1.0);
 }
 
-double planning_models::KinematicModel::FloatingJointModel::getMaximumExtent(void) const
+double kinematic_model::FloatingJointModel::getMaximumExtent(void) const
 {  
   double dx = variable_bounds_[0].first - variable_bounds_[0].second;
   double dy = variable_bounds_[1].first - variable_bounds_[1].second;
@@ -69,7 +69,7 @@ double planning_models::KinematicModel::FloatingJointModel::getMaximumExtent(voi
   return sqrt(dx*dx + dy*dy + dz*dz) + boost::math::constants::pi<double>() * 0.5 * angular_distance_weight_;
 }
 
-double planning_models::KinematicModel::FloatingJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+double kinematic_model::FloatingJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   assert(values1.size() == 7);
   assert(values2.size() == 7);
@@ -83,7 +83,7 @@ double planning_models::KinematicModel::FloatingJointModel::distance(const std::
     return angular_distance_weight_ * acos(dq) + sqrt(dx*dx + dy*dy + dz * dz);
 }
 
-double planning_models::KinematicModel::FloatingJointModel::distanceTranslation(const std::vector<double> &values1, const std::vector<double> &values2) const
+double kinematic_model::FloatingJointModel::distanceTranslation(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   assert(values1.size() == 7);
   assert(values2.size() == 7);
@@ -93,7 +93,7 @@ double planning_models::KinematicModel::FloatingJointModel::distanceTranslation(
   return sqrt(dx*dx + dy*dy + dz * dz);
 }
 
-double planning_models::KinematicModel::FloatingJointModel::distanceRotation(const std::vector<double> &values1, const std::vector<double> &values2) const
+double kinematic_model::FloatingJointModel::distanceRotation(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   double dq = fabs(values1[3] * values2[3] + values1[4] * values2[4] + values1[5] * values2[5] + values1[6] * values2[6]);
   if (dq + std::numeric_limits<double>::epsilon() >= 1.0)
@@ -103,7 +103,7 @@ double planning_models::KinematicModel::FloatingJointModel::distanceRotation(con
 }
 
 
-void planning_models::KinematicModel::FloatingJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+void kinematic_model::FloatingJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
   // interpolate position
   state[0] = from[0] + (to[0] - from[0]) * t;
@@ -133,7 +133,7 @@ void planning_models::KinematicModel::FloatingJointModel::interpolate(const std:
   }
 }
 
-bool planning_models::KinematicModel::FloatingJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
+bool kinematic_model::FloatingJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   assert(bounds.size() > 2);
   if (values[0] < bounds[0].first - margin || values[0] > bounds[0].second + margin)
@@ -148,7 +148,7 @@ bool planning_models::KinematicModel::FloatingJointModel::satisfiesBounds(const 
   return true;
 }
 
-void planning_models::KinematicModel::FloatingJointModel::normalizeRotation(std::vector<double> &values) const
+void kinematic_model::FloatingJointModel::normalizeRotation(std::vector<double> &values) const
 { 
   // normalize the quaternion if we need to
   double normSqr = values[3] * values[3] + values[4] * values[4] + values[5] * values[5] + values[6] * values[6];
@@ -173,12 +173,12 @@ void planning_models::KinematicModel::FloatingJointModel::normalizeRotation(std:
   }
 }
 
-unsigned int planning_models::KinematicModel::FloatingJointModel::getStateSpaceDimension(void) const
+unsigned int kinematic_model::FloatingJointModel::getStateSpaceDimension(void) const
 {
   return 6;
 }
 
-void planning_models::KinematicModel::FloatingJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
+void kinematic_model::FloatingJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
 {
   normalizeRotation(values);
   for (unsigned int i = 0 ; i < 3 ; ++i)
@@ -192,18 +192,18 @@ void planning_models::KinematicModel::FloatingJointModel::enforceBounds(std::vec
   }
 }
 
-void planning_models::KinematicModel::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void kinematic_model::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void kinematic_model::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], joint_values[2])
                            *Eigen::Quaterniond(joint_values[6],joint_values[3], joint_values[4], joint_values[5]).toRotationMatrix());
 }
 
-void planning_models::KinematicModel::FloatingJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
+void kinematic_model::FloatingJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(7);
   joint_values[0] = transf.translation().x();
@@ -216,7 +216,7 @@ void planning_models::KinematicModel::FloatingJointModel::computeJointStateValue
   joint_values[6] = q.w();
 }
 
-void planning_models::KinematicModel::FloatingJointModel::getDefaultValues(std::vector<double>& values, const Bounds &bounds) const
+void kinematic_model::FloatingJointModel::getVariableDefaultValues(std::vector<double>& values, const Bounds &bounds) const
 {
   assert(bounds.size() > 2);
   for (unsigned int i = 0 ; i < 3 ; ++i)
@@ -234,7 +234,7 @@ void planning_models::KinematicModel::FloatingJointModel::getDefaultValues(std::
   values.push_back(1.0);
 }
 
-void planning_models::KinematicModel::FloatingJointModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
+void kinematic_model::FloatingJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
 {
   std::size_t s = values.size();
   values.resize(s + 7);
@@ -259,8 +259,8 @@ void planning_models::KinematicModel::FloatingJointModel::getRandomValues(random
   values[s + 6] = q[3];
 }
 
-void planning_models::KinematicModel::FloatingJointModel::getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
-                                                                                const std::vector<double> &near, const double distance) const
+void kinematic_model::FloatingJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+                                                                        const std::vector<double> &near, const double distance) const
 {   
   std::size_t s = values.size();
   values.resize(s + 7);
