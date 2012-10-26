@@ -129,7 +129,7 @@ namespace collision_detection
       return aabb_min < other.aabb_min;
     }
   };
-  
+
   /** \brief Representation of a collision checking result */
   struct CollisionResult
   {
