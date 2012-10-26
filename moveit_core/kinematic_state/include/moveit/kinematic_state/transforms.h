@@ -34,25 +34,16 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_MODELS_TRANSFORMS_
-#define MOVEIT_PLANNING_MODELS_TRANSFORMS_
+#ifndef MOVEIT_KINEMATIC_STATE_TRANSFORMS_
+#define MOVEIT_KINEMATIC_STATE_TRANSFORMS_
 
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Pose.h>
-#include <string>
-#include <map>
 #include <Eigen/Geometry>
 
-namespace planning_models
+namespace kinematic_state
 {
-
-bool quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::Quaterniond &q);
-bool poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine3d &t);
-void pointFromMsg(const geometry_msgs::Point &pmsg, Eigen::Vector3d &p);
-void msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Pose &tmsg);
-void msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Transform &tmsg);
-void msgFromPoint(const Eigen::Vector3d &p, geometry_msgs::Point &msg);
 
 typedef std::map<std::string, Eigen::Affine3d, std::less<std::string>, 
                  Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > FixedTransformsMap;
@@ -68,42 +59,42 @@ public:
    * @brief Construct a transform list
    */
   Transforms(const std::string &target_frame);
-
+  
   /**
    * @brief Copy constructor
    */
   Transforms(const Transforms &other);
-
+  
   /**
    * @brief Destructor
    */
   ~Transforms(void);
-
+  
   /**
    * @brief Get the planning frame corresponding to this set of transforms
    * @return The planning frame
    */
   const std::string& getTargetFrame(void) const;
-
+  
   /**
    * @brief Check whether a particular frame is a fixed frame
    * @return True if the frame is fixed, false otherwise
    */
   bool isFixedFrame(const std::string &frame) const;
-
+  
   /**
    * @brief Return all the transforms
    * @return A map from string names of frames to corresponding Eigen::Affine3ds (w.r.t the planning frame)
    */
   const FixedTransformsMap& getAllTransforms(void) const;
-
+  
   /**
    * @brief Get transform for from_frame (w.r.t target frame)
    * @param from_frame The string id of the frame for which the transform is being computed
    * @return The required transform
    */
   const Eigen::Affine3d& getTransform(const std::string &from_frame) const;
-
+  
   /**
    * @brief Transform a vector in from_frame to the target_frame
    * @param from_frame The frame from which the transform is computed
@@ -111,7 +102,7 @@ public:
    * @param v_out The resultant (transformed) vector
    */
   void transformVector3(const std::string &from_frame, const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const;
-
+  
   /**
    * @brief Transform a quaternion in from_frame to the target_frame
    * @param from_frame The frame in which the input quaternion is specified
@@ -119,7 +110,7 @@ public:
    * @param v_out The resultant (transformed) quaternion
    */
   void transformQuaternion(const std::string &from_frame, const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const;
-
+  
   /**
    * @brief Transform a rotation matrix in from_frame to the target_frame
    * @param from_frame The frame in which the input rotation matrix is specified
@@ -127,7 +118,7 @@ public:
    * @param m_out The resultant (transformed) rotation matrix
    */
   void transformRotationMatrix(const std::string &from_frame, const Eigen::Matrix3d &m_in, Eigen::Matrix3d &m_out) const;
-
+  
   /**
    * @brief Transform a pose in from_frame to the target_frame
    * @param from_frame The frame in which the input rotation matrix is specified
@@ -135,14 +126,14 @@ public:
    * @param t_out The resultant (transformed) pose
    */
   void transformPose(const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const;
-
+  
   /**
    * @brief Get transform for from_frame (w.r.t target frame) given a kinematic state
    * @param kinematic_state The input kinematic state
    * @param from_frame The string id of the frame for which the transform is being computed
    */
-  const Eigen::Affine3d& getTransform(const planning_models::KinematicState &kinematic_state, const std::string &from_frame) const;
-
+  const Eigen::Affine3d& getTransform(const KinematicState &kinematic_state, const std::string &from_frame) const;
+  
   /**
    * @brief Transform a vector in from_frame to the target_frame
    * @param kinematic_state The input kinematic state
@@ -150,8 +141,8 @@ public:
    * @param v_in The input vector (in from_frame)
    * @param v_out The resultant (transformed) vector
    */
-  void transformVector3(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const;
-
+  void transformVector3(const KinematicState &kinematic_state, const std::string &from_frame, const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const;
+  
   /**
    * @brief Transform a quaternion in from_frame to the target_frame
    * @param kinematic_state The input kinematic state
@@ -159,8 +150,8 @@ public:
    * @param v_in The input quaternion (in from_frame)
    * @param v_out The resultant (transformed) quaternion
    */
-  void transformQuaternion(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const;
-
+  void transformQuaternion(const KinematicState &kinematic_state, const std::string &from_frame, const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const;
+  
   /**
    * @brief Transform a rotation matrix in from_frame to the target_frame
    * @param kinematic_state The input kinematic state
@@ -168,8 +159,8 @@ public:
    * @param m_in The input rotation matrix (in from_frame)
    * @param m_out The resultant (transformed) rotation matrix
    */
-  void transformRotationMatrix(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const Eigen::Matrix3d &m_in, Eigen::Matrix3d &m_out) const;
-
+  void transformRotationMatrix(const KinematicState &kinematic_state, const std::string &from_frame, const Eigen::Matrix3d &m_in, Eigen::Matrix3d &m_out) const;
+  
   /**
    * @brief Transform a pose in from_frame to the target_frame
    * @param kinematic_state The input kinematic state
@@ -177,38 +168,38 @@ public:
    * @param t_in The input pose (in from_frame)
    * @param t_out The resultant (transformed) pose
    */
-  void transformPose(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const;
-
+  void transformPose(const KinematicState &kinematic_state, const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const;
+  
   /**
    * @brief Set a transform in the transform tree (adding it if necessary)
    * @param t The input transform (w.r.t the target frame)
    * @param from_frame The frame for which the input transform is specified
    */
   void setTransform(const Eigen::Affine3d &t, const std::string &from_frame);
-
+  
   /**
    * @brief Set a transform in the transform tree (adding it if necessary)
    * @param transform The input transform (the frame_id must match the target frame)
    */
   void setTransform(const geometry_msgs::TransformStamped &transform);
-
+  
   /**
    * @brief Set a transform in the transform tree (adding it if necessary)
    * @param transform The input transforms (the frame_id must match the target frame)
    */
   void setTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms);
-
+  
   /**
    * @brief Get a vector of all the transforms as ROS messages
    * @param transforms The output transforms
    */
   void getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const;
-
+  
 private:
-
+  
   std::string        target_frame_;
   FixedTransformsMap transforms_;
-
+  
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

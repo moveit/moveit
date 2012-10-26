@@ -34,11 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <geometric_shapes/shape_operations.h>
-#include <set>
+#include <eigen_conversions/eigen_msg.h>
 
-namespace planning_models
+namespace kinematic_state
 {
 static bool jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state, std::set<std::string> *missing)
 {
@@ -81,9 +81,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
   
   for (unsigned int i = 0 ; i < mjs.joint_names.size(); ++i)
   {
-    if (!poseFromMsg(mjs.poses[i], transf[i]))
-      logError("MultiDOFJointState message has incorrect quaternion specification for joint '%s'. Assuming identity.",
-               mjs.joint_names[i].c_str());
+    tf::poseMsgToEigen(mjs.poses[i], transf[i]);
     
     // if frames do not mach, attempt to transform
     if (mjs.frame_ids[i] != state.getKinematicModel()->getModelFrame())
@@ -123,7 +121,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
       error = true;
       continue;
     }
-    planning_models::KinematicState::JointState* joint_state = state.getJointState(joint_name);
+    JointState *joint_state = state.getJointState(joint_name);
     
     if (mjs.child_frame_ids[i] != joint_state->getJointModel()->getChildLinkModel()->getName())
     {
@@ -139,13 +137,13 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
 
 static inline void kinematicStateToMultiDOFJointState(const KinematicState& state, moveit_msgs::MultiDOFJointState &mjs)
 {  
-  const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
+  const std::vector<JointState*> &js = state.getJointStateVector();
   mjs = moveit_msgs::MultiDOFJointState();
   for (std::size_t i = 0 ; i < js.size() ; ++i)
     if (js[i]->getVariableCount() > 1)
     {
       geometry_msgs::Pose p;
-      msgFromPose(js[i]->getVariableTransform(), p);
+      tf::poseEigenToMsg(js[i]->getVariableTransform(), p);
       mjs.joint_names.push_back(js[i]->getName());
       mjs.frame_ids.push_back(state.getKinematicModel()->getModelFrame());
       mjs.child_frame_ids.push_back(js[i]->getJointModel()->getChildLinkModel()->getName());
@@ -192,7 +190,7 @@ private:
   const geometry_msgs::Pose *pose_;
 };
 
-static void attachedBodyToMsg(const KinematicState::AttachedBody &attached_body, moveit_msgs::AttachedCollisionObject &aco)
+static void attachedBodyToMsg(const AttachedBody &attached_body, moveit_msgs::AttachedCollisionObject &aco)
 {
   aco.link_name = attached_body.getAttachedLinkName();
   const std::set<std::string> &touch_links = attached_body.getTouchLinks();
@@ -216,7 +214,7 @@ static void attachedBodyToMsg(const KinematicState::AttachedBody &attached_body,
     if (shapes::constructMsgFromShape(ab_shapes[j].get(), sm))
     {
       geometry_msgs::Pose p;
-      planning_models::msgFromPose(ab_tf[j], p);
+      tf::poseEigenToMsg(ab_tf[j], p);
       sv.addToObject(sm, p);
     }
   }
@@ -246,7 +244,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
         return;
       }
 
-      planning_models::KinematicState::LinkState *ls = state.getLinkState(aco.link_name);
+      LinkState *ls = state.getLinkState(aco.link_name);
       if (ls)
       {
         std::vector<shapes::ShapeConstPtr> shapes;
@@ -258,12 +256,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
           if (s)
           {
             Eigen::Affine3d p;
-            if(!planning_models::poseFromMsg(aco.object.primitive_poses[i], p))
-            {
-              logError("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
-              return;
-            }
-            
+            tf::poseMsgToEigen(aco.object.primitive_poses[i], p);            
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -274,12 +267,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
           if (s)
           {
             Eigen::Affine3d p;
-            if(!planning_models::poseFromMsg(aco.object.mesh_poses[i], p))
-            {
-              logError("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
-              return;
-            }
-            
+            tf::poseMsgToEigen(aco.object.mesh_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -290,11 +278,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
           if (s)
           {
             Eigen::Affine3d p;
-            if(!planning_models::poseFromMsg(aco.object.plane_poses[i], p))
-            {
-              logError("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
-              return;
-            }
+            tf::poseMsgToEigen(aco.object.plane_poses[i], p);
             
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
@@ -333,7 +317,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
   else
     if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
     {    
-      planning_models::KinematicState::LinkState *ls = state.getLinkState(aco.link_name);
+      LinkState *ls = state.getLinkState(aco.link_name);
       if (ls)
         ls->clearAttachedBody(aco.object.id);
     }
@@ -360,11 +344,11 @@ static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_
     if (!missing.empty())
       for (unsigned int i = 0 ; i < robot_state.multi_dof_joint_state.joint_names.size(); ++i)
       {
-        const KinematicModel::JointModel *jm = state.getKinematicModel()->getJointModel(robot_state.multi_dof_joint_state.joint_names[i]);
+        const kinematic_model::JointModel *jm = state.getKinematicModel()->getJointModel(robot_state.multi_dof_joint_state.joint_names[i]);
         if (jm)
         {
           const std::vector<std::string> &vnames = jm->getVariableNames();
-          for (unsigned int i = 0 ; i < vnames.size(); ++i)
+          for (std::size_t i = 0 ; i < vnames.size(); ++i)
             missing.erase(vnames[i]);
         }
       }
@@ -377,30 +361,30 @@ static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_
 
 }
 
-bool planning_models::jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state)
+bool kinematic_state::jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state)
 {
   bool result = jointStateToKinematicState(joint_state, state, NULL);
   state.updateLinkTransforms();
   return result;
 }
 
-bool planning_models::robotStateToKinematicState(const moveit_msgs::RobotState &robot_state, KinematicState& state, bool copy_attached_bodies)
+bool kinematic_state::robotStateToKinematicState(const moveit_msgs::RobotState &robot_state, KinematicState& state, bool copy_attached_bodies)
 {
   return robotStateToKinematicStateHelper(NULL, robot_state, state, copy_attached_bodies);
 }
 
-bool planning_models::robotStateToKinematicState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, KinematicState& state, bool copy_attached_bodies)
+bool kinematic_state::robotStateToKinematicState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, KinematicState& state, bool copy_attached_bodies)
 {
   return robotStateToKinematicStateHelper(&tf, robot_state, state, copy_attached_bodies);
 }
 
-void planning_models::kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies)
+void kinematic_state::kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies)
 {
   kinematicStateToJointState(state, robot_state.joint_state);
   kinematicStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
   if (copy_attached_bodies)
   {
-    std::vector<const KinematicState::AttachedBody*> attached_bodies;
+    std::vector<const AttachedBody*> attached_bodies;
     state.getAttachedBodies(attached_bodies);
     robot_state.attached_collision_objects.resize(attached_bodies.size());
     for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
@@ -408,9 +392,9 @@ void planning_models::kinematicStateToRobotState(const KinematicState& state, mo
   }
 }
 
-void planning_models::kinematicStateToJointState(const KinematicState& state, sensor_msgs::JointState &joint_state)
+void kinematic_state::kinematicStateToJointState(const KinematicState& state, sensor_msgs::JointState &joint_state)
 {
-  const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
+  const std::vector<JointState*> &js = state.getJointStateVector();
   joint_state = sensor_msgs::JointState();
   
   for (std::size_t i = 0 ; i < js.size() ; ++i)
@@ -423,13 +407,12 @@ void planning_models::kinematicStateToJointState(const KinematicState& state, se
   joint_state.header.frame_id = state.getKinematicModel()->getModelFrame();
 }
 
-bool planning_models::robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, std::size_t index, moveit_msgs::RobotState &rs)
+bool kinematic_state::robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, std::size_t index, moveit_msgs::RobotState &rs)
 {
   bool result = false;
   if (rt.joint_trajectory.points.size() > index)
   {
     rs.joint_state.header = rt.joint_trajectory.header;
-    rs.joint_state.header.stamp = rs.joint_state.header.stamp + rt.joint_trajectory.points[index].time_from_start;
     rs.joint_state.name = rt.joint_trajectory.joint_names;
     rs.joint_state.position = rt.joint_trajectory.points[index].positions;
     rs.joint_state.velocity = rt.joint_trajectory.points[index].velocities;
@@ -442,7 +425,7 @@ bool planning_models::robotTrajectoryPointToRobotState(const moveit_msgs::RobotT
     rs.multi_dof_joint_state.joint_names = rt.multi_dof_joint_trajectory.joint_names;
     rs.multi_dof_joint_state.frame_ids = rt.multi_dof_joint_trajectory.frame_ids;
     rs.multi_dof_joint_state.child_frame_ids = rt.multi_dof_joint_trajectory.child_frame_ids;
-    rs.multi_dof_joint_state.stamp = rt.joint_trajectory.header.stamp + rt.multi_dof_joint_trajectory.points[index].time_from_start;
+    rs.multi_dof_joint_state.stamp = rt.joint_trajectory.header.stamp;
     rs.multi_dof_joint_state.poses = rt.multi_dof_joint_trajectory.points[index].poses;
     result = true;
   }
