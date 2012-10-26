@@ -227,8 +227,9 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
       if (dif < -boost::math::constants::pi<double>())
         dif += 2.0*boost::math::constants::pi<double>(); // we include a sign change to have dif > 0
     // however, we want to include proper sign for diff, as the tol below is may be different from tol above
-    if (current_joint_position < joint_position_)
-      dif = -dif;
+    // EGJ - this gives incorrect values
+    // if (current_joint_position < joint_position_)
+    //   dif = -dif;
   }
   else
     dif = current_joint_position - joint_position_;
@@ -272,6 +273,11 @@ void kinematic_constraints::JointConstraint::print(std::ostream &out) const
 bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::PositionConstraint &pc)
 {
   link_model_ = kmodel_->getLinkModel(pc.link_name);
+  if(link_model_ == NULL) {
+    ROS_WARN_STREAM("Position constraint link model " << pc.link_name << " not found in kinematic model.  Constraint invalid.");
+    return false;
+  }
+
   offset_ = Eigen::Vector3d(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
   has_offset_ = offset_.squaredNorm() > std::numeric_limits<double>::epsilon();
   
@@ -289,12 +295,18 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     mobile_frame_ = true;
   }
   
-  // load primitive shapes
+  // load primitive shapes, first clearing any we already have
+  constraint_region_.clear();
+  constraint_region_pose_.clear();
   for (std::size_t i = 0 ; i < pc.constraint_region.primitives.size() ; ++i)
   {
     boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region.primitives[i]));
     if (shape)
     {
+      if (pc.constraint_region.primitive_poses.size() <= i) {
+        ROS_WARN("Constraint region message does not contain enough primitive poses");
+        continue;
+      }
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Affine3d t;
       if (!planning_models::poseFromMsg(pc.constraint_region.primitive_poses[i], t))
@@ -307,6 +319,8 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
         tf_->transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
         constraint_region_.back()->setPose(constraint_region_pose_.back());
       }
+    } else {
+      ROS_WARN_STREAM("Could not construct primitive shape " << i);
     }
   }
   
@@ -316,6 +330,10 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region.meshes[i]));
     if (shape)
     {
+      if (pc.constraint_region.mesh_poses.size() <= i) {
+        ROS_WARN("Constraint region message does not contain enough primitive poses");
+        continue;
+      }
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Affine3d t;
       if (!planning_models::poseFromMsg(pc.constraint_region.mesh_poses[i], t))
@@ -328,6 +346,8 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
         tf_->transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
         constraint_region_.back()->setPose(constraint_region_pose_.back());
       }
+    } else {
+      ROS_WARN_STREAM("Could not construct mesh shape " << i);
     }
   }
   
@@ -372,12 +392,14 @@ namespace kinematic_constraints
 static inline kinematic_constraints::ConstraintEvaluationResult finishPositionConstraintDecision(const Eigen::Vector3d &pt, const Eigen::Vector3d &desired, const std::string &name,
                                                                                                  double weight, bool result, bool verbose)
 {
-  if (verbose)
-    ROS_INFO("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
-             result ? "satisfied" : "violated", name.c_str(), desired.x(), desired.y(), desired.z(), pt.x(), pt.y(), pt.z());
   double dx = desired.x() - pt.x();
   double dy = desired.y() - pt.y();
   double dz = desired.z() - pt.z(); 
+  if (verbose) {
+    ROS_INFO("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
+             result ? "satisfied" : "violated", name.c_str(), desired.x(), desired.y(), desired.z(), pt.x(), pt.y(), pt.z());
+    ROS_INFO_STREAM("Differences " << dx << " " << dy << " " << dz);
+  }
   return ConstraintEvaluationResult(result, weight * sqrt(dx * dx + dy * dy + dz * dz));
 }
 }
@@ -402,18 +424,22 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Positio
     for (std::size_t i = 0 ; i < constraint_region_.size() ; ++i)
     {
       tf_->transformPose(state, constraint_frame_id_, constraint_region_pose_[i], tmp);
-      bool result = constraint_region_[i]->cloneAt(tmp)->containsPoint(pt);
+      bool result = constraint_region_[i]->cloneAt(tmp)->containsPoint(pt, verbose);
       if (result || (i + 1 == constraint_region_pose_.size()))
         return finishPositionConstraintDecision(pt, tmp.translation(), link_model_->getName(), constraint_weight_, result, verbose);
+      else 
+        finishPositionConstraintDecision(pt, tmp.translation(), link_model_->getName(), constraint_weight_, result, verbose);
     }
   }
   else
   {   
     for (std::size_t i = 0 ; i < constraint_region_.size() ; ++i)
     {
-      bool result = constraint_region_[i]->containsPoint(pt);
+      bool result = constraint_region_[i]->containsPoint(pt, true);
       if (result || (i + 1 == constraint_region_.size()))
         return finishPositionConstraintDecision(pt, constraint_region_[i]->getPose().translation(), link_model_->getName(), constraint_weight_, result, verbose);
+      else 
+        finishPositionConstraintDecision(pt, constraint_region_[i]->getPose().translation(), link_model_->getName(), constraint_weight_, result, verbose);
     }
   }
   return ConstraintEvaluationResult(false, 0.0);
@@ -444,6 +470,10 @@ bool kinematic_constraints::PositionConstraint::enabled(void) const
 bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::OrientationConstraint &oc)
 {
   link_model_ = kmodel_->getLinkModel(oc.link_name);
+  if(!link_model_) {
+    ROS_WARN_STREAM("Could not find link model for link name " << oc.link_name);
+    return false;
+  }
   Eigen::Quaterniond q;
   if (!planning_models::quatFromMsg(oc.orientation, q))
     ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc.link_name.c_str(),
@@ -526,7 +556,8 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Orienta
     Eigen::Matrix3d tmp;
     tf_->transformRotationMatrix(state, desired_rotation_frame_id_, desired_rotation_matrix_, tmp);
     Eigen::Affine3d diff(tmp.inverse() * link_state->getGlobalLinkTransform().rotation());
-    xyz = diff.rotation().eulerAngles(0, 1, 2); // XYZ
+    xyz = diff.rotation().eulerAngles(0, 1, 2); 
+    // 0,1,2 corresponds to ZXZ, the convention used in sampling constraints
   }
   else
   {
@@ -858,7 +889,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
       if (max_range_angle_ < ang)
       {
 	if (verbose)
-	  ROS_INFO("Visibility constraint is violated because the range angle is %lf (above the maximum allowed of %lf)", ang, max_view_angle_);
+	  ROS_INFO("Visibility constraint is violated because the range angle is %lf (above the maximum allowed of %lf)", ang, max_range_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }
     }
