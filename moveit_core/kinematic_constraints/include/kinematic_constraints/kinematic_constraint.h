@@ -60,8 +60,8 @@ struct ConstraintEvaluationResult
   /** 
    * \brief Constructor
    * 
-   * @param result_satisfied True if the constraint evaluated to true, otherwise false
-   * @param dist The distance from 
+   * @param [in] result_satisfied True if the constraint evaluated to true, otherwise false
+   * @param [in] dist The distance from 
    * 
    * @return 
    */
@@ -87,8 +87,8 @@ public:
   /** 
    * \brief Constructor
    * 
-   * @param model The kinematic model used for constraint evaluation
-   * @param tf The transform set used for constraint evaluation
+   * @param [in] model The kinematic model used for constraint evaluation
+   * @param [in] tf The transform set used for constraint evaluation
    */
   KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
   virtual ~KinematicConstraint(void);
@@ -99,8 +99,8 @@ public:
   /** 
    * \brief Decide whether the constraint is satisfied in the indicated state
    * 
-   * @param state The kinematic state used for evaluation
-   * @param verbose Whether or not to print output
+   * @param [in] state The kinematic state used for evaluation
+   * @param [in] verbose Whether or not to print output
    * 
    * @return 
    */
@@ -119,8 +119,8 @@ public:
    * same, and all values associated with the constraint are within a
    * margin.  The other constraint must also be enabled.
    * 
-   * @param other The other constraint to test
-   * @param margin The margin to apply to all values associated with constraint
+   * @param [in] other The other constraint to test
+   * @param [in] margin The margin to apply to all values associated with constraint
    * 
    * @return True if equal, otherwise false
    */
@@ -140,7 +140,7 @@ public:
   /** 
    * \brief Print the constraint data
    * 
-   * @param out The file descriptor for printing
+   * @param [in] out The file descriptor for printing
    */
   virtual void print(std::ostream &out = std::cout) const
   {
@@ -186,8 +186,8 @@ protected:
   double                                  constraint_weight_; /**< \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function  */
 };
 
-typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr;
-typedef boost::shared_ptr<const KinematicConstraint> KinematicConstraintConstPtr;
+typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr; /**< \brief boost::shared_ptr to a Kinematic Constraint */
+typedef boost::shared_ptr<const KinematicConstraint> KinematicConstraintConstPtr; /**< \brief boost::shared_ptr to a Const Kinematic Constraint */
 
 /**
  * \brief Class for handling single DOF joint constraints.
@@ -220,7 +220,7 @@ public:
    * (for these joints, local variables should be used), and TODO the
    * tolerance values must be positive.
    * 
-   * @param jc JointConstraint for configuration
+   * @param [in] jc JointConstraint for configuration
    * 
    * @return True if constraint can be configured from jc
    */  
@@ -236,8 +236,8 @@ public:
    * act on the same joint, and the position and tolerance values must
    * be within the margins.
    * 
-   * @param other The other constraint to test
-   * @param margin The margin to apply to all values associated with constraint
+   * @param [in] other The other constraint to test
+   * @param [in] margin The margin to apply to all values associated with constraint
    * 
    * @return True if equal, otherwise false
    */
@@ -356,7 +356,7 @@ public:
    * For the configure command to be successful, the link must exist
    * in the kinematic model. TODO - more conditions
    * 
-   * @param oc OrientationConstraint for configuration
+   * @param [in] oc OrientationConstraint for configuration
    * 
    * @return True if constraint can be configured from oc
    */  
@@ -373,8 +373,8 @@ public:
    * quaternions must be within the margin, and the tolerances must
    * all be within the margin.
    * 
-   * @param other The other constraint to test
-   * @param margin The margin to apply to all values associated with constraint
+   * @param [in] other The other constraint to test
+   * @param [in] margin The margin to apply to all values associated with constraint
    * 
    * @return True if equal, otherwise false
    */
@@ -506,7 +506,7 @@ public:
    * and a pose for that shape.  If an invalid quaternion is passed
    * for a shape, the identity quaternion will be substituted.
    * 
-   * @param pc moveit_msgs::PositionConstraint for configuration
+   * @param [in] pc moveit_msgs::PositionConstraint for configuration
    * 
    * @return True if constraint can be configured from pc
    */  
@@ -520,8 +520,8 @@ public:
    * constraint region poses and volumes are within the margin, and
    * that constrained regions are in the same order.
    * 
-   * @param other The other constraint to test
-   * @param margin The margin to apply to all values associated with constraint
+   * @param [in] other The other constraint to test
+   * @param [in] margin The margin to apply to all values associated with constraint
    * 
    * @return True if equal, otherwise false
    */
@@ -649,10 +649,24 @@ protected:
   double                                 max_range_angle_;
 };
 
+/**
+ * \brief A class that contains many different constraints, and can
+ * check KinematicState versus the full set.  A set is satisfied if
+ * and only if all constraints are satisfied.
+ * 
+ * The set may contain any number of different kinds of constraints.
+ * All constraints, including invalid ones, are stored internally.  
+ */
 class KinematicConstraintSet
 {
 public:
-  
+
+  /** 
+   * \brief Constructor
+   * 
+   * @param [in] model The kinematic model used for constraint evaluation
+   * @param [in] tf The transform set used for constraint evaluation
+   */
   KinematicConstraintSet(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     kmodel_(model), tf_(tf)
   {
@@ -666,62 +680,172 @@ public:
   /** \brief Clear the stored constraints */
   void clear(void);
   
-  /** \brief Add all known constraints */
+  /** 
+   * \brief Add all known constraints
+   * 
+   * @param [in] c A message potentially contain vectors of constraints of add types 
+   * 
+   * @return Whether or not all constraints could be successfully
+   * configured given the contents of the message.  The
+   * KinematicConstraintSet can still be used even if the addition
+   * returns false.
+   */  
   bool add(const moveit_msgs::Constraints &c);
   
-  /** \brief Add a set of joint constraints */
+  /** 
+   * \brief Add a vector of joint constraints
+   * 
+   * @param [in] jc A vector of joint constraints
+   * 
+   * @return Will return true only if all constraints are valid, and false otherwise
+   */
   bool add(const std::vector<moveit_msgs::JointConstraint> &jc);
   
-  /** \brief Add a set of position constraints */
+  /** 
+   * \brief Add a vector of position constraints
+   * 
+   * @param [in] pc A vector of position constraints
+   * 
+   * @return Will return true only if all constraints are valid, and false otherwise
+   */
   bool add(const std::vector<moveit_msgs::PositionConstraint> &pc);
   
-  /** \brief Add a set of orientation constraints */
+  /** 
+   * \brief Add a vector of orientation constraints
+   * 
+   * @param [in] oc A vector of orientation constraints
+   * 
+   * @return Will return true only if all constraints are valid, and false otherwise
+   */
   bool add(const std::vector<moveit_msgs::OrientationConstraint> &pc);
   
-  /** \brief Add a set of orientation constraints */
+  /** 
+   * \brief Add a vector of visibility constraints
+   * 
+   * @param [in] vc A vector of visibility constraints
+   * 
+   * @return Will return true only if all constraints are valid, and false otherwise
+   */
   bool add(const std::vector<moveit_msgs::VisibilityConstraint> &pc);
   
-  /** \brief Decide whether the set of constraints is satisfied  */
+  /** 
+   * \brief Determines whether all constraints are satisfied by state,
+   * returning a single evaluation result
+   * 
+   * @param [in] state The state to test
+   * @param [in] verbose Whether or not to make each constraint give debug output
+   * 
+   * @return A single constraint evaluation result, where it will
+   * report satisfied only if all constraints are satisfied, and with
+   * a distance that is the sum of all individual distances.
+   */
   ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
 
-  /** \brief Decide whether the set of constraints is satisfied but return the constraint evaluation results for each contained constraint too */
+  /** 
+   * 
+   * \brief Determines whether all constraints are satisfied by state,
+   * returning a vector of results through a parameter in addition to
+   * a summed result.
+   * 
+   * @param [in] state The state to test 
+   * 
+   * @param [out] results The individual results from constraint
+   * evaluation on each constraint contained in the set.  
+   *
+   * @param [in] verbose Whether to print the results of each constraint
+   * check.
+   * 
+   * @return A single constraint evaluation result, where it will
+   * report satisfied only if all constraints are satisfied, and with
+   * a distance that is the sum of all individual distances.
+   */
   ConstraintEvaluationResult decide(const planning_models::KinematicState &state, std::vector<ConstraintEvaluationResult> &results, bool verbose = false) const;
   
+  /** 
+   * \brief Whether or not another KinematicConstraintSet is equal to
+   * this one.
+   * 
+   * Equality means that for each constraint in this set there is a
+   * constraint in the other set for which equal() is true with the
+   * given margin.  Multiple constraints in this set can be matched to
+   * single constraints in the other set.  Some constraints in the
+   * other set may not be matched to constraints in this set.
+   *
+   * @param [in] other The other set against which to test 
+   * @param [in] margin The margin to apply to all individual constraint equality tests
+   * 
+   * @return True if all constraints are matched, false otherwise
+   */
   bool equal(const KinematicConstraintSet &other, double margin) const;
   
-  /** \brief Print the constraint data */
+  /** 
+   * \brief Print the constraint data
+   * 
+   * @param [in] out The file stream for printing 
+   */
   void print(std::ostream &out = std::cout) const;
   
-  /** \brief Get the active position constraints */
+  /** 
+   * \brief Get all position constraints in the set
+   * 
+   * 
+   * @return All position constraints
+   */
   const std::vector<moveit_msgs::PositionConstraint>& getPositionConstraints(void) const
   {
     return position_constraints_;
   }
   
-  /** \brief Get the active orientation constraints */
+  /** 
+   * \brief Get all orientation constraints in the set
+   * 
+   * 
+   * @return All orientation constraints
+   */
   const std::vector<moveit_msgs::OrientationConstraint>& getOrientationConstraints(void) const
   {
     return orientation_constraints_;
   }
   
-  /** \brief Get the active pose constraints */
+  /** 
+   * \brief Get all joint constraints in the set
+   * 
+   * 
+   * @return All joint constraints
+   */
   const std::vector<moveit_msgs::JointConstraint>& getJointConstraints(void) const
   {
     return joint_constraints_;
   }
   
-  /** \brief Get the active visibility constraints */
+  /** 
+   * \brief Get all visibility constraints in the set
+   * 
+   * 
+   * @return All visibility constraints
+   */
   const std::vector<moveit_msgs::VisibilityConstraint>& getVisibilityConstraints(void) const
   {
     return visibility_constraints_;
   }
   
-  /** \brief Get all the contained constraints */
+  /** 
+   * \brief Get all constraints in the set
+   * 
+   * 
+   * @return All constraints in a single message
+   */
   const moveit_msgs::Constraints& getAllConstraints(void) const
   {
     return all_constraints_;
   }
   
+  /** 
+   * \brief Returns whether or not there are any constraints in the set
+   * 
+   * 
+   * @return True if there are no constraints, otherwise false.
+   */
   bool empty(void) const
   {
     return kinematic_constraints_.empty();
@@ -729,21 +853,21 @@ public:
   
 protected:
   
-  planning_models::KinematicModelConstPtr         kmodel_;
-  planning_models::TransformsConstPtr             tf_;
+  planning_models::KinematicModelConstPtr         kmodel_; /**< \brief The kinematic model used for by the Set */
+  planning_models::TransformsConstPtr             tf_; /**< \brief The transforms used by the Set */
   
-  std::vector<KinematicConstraintPtr>             kinematic_constraints_;
+  std::vector<KinematicConstraintPtr>             kinematic_constraints_; /**<  \brief Shared pointers to all the member constraints */
   
-  std::vector<moveit_msgs::JointConstraint>       joint_constraints_;
-  std::vector<moveit_msgs::PositionConstraint>    position_constraints_;
-  std::vector<moveit_msgs::OrientationConstraint> orientation_constraints_;
-  std::vector<moveit_msgs::VisibilityConstraint>  visibility_constraints_;
-  moveit_msgs::Constraints                        all_constraints_;
+  std::vector<moveit_msgs::JointConstraint>       joint_constraints_; /**<  \brief Messages corresponding to all internal joint constraints */
+  std::vector<moveit_msgs::PositionConstraint>    position_constraints_;/**<  \brief Messages corresponding to all internal position constraints */
+  std::vector<moveit_msgs::OrientationConstraint> orientation_constraints_;/**<  \brief Messages corresponding to all internal orientation constraints */
+  std::vector<moveit_msgs::VisibilityConstraint>  visibility_constraints_;/**<  \brief Messages corresponding to all internal visibility constraints */
+  moveit_msgs::Constraints                        all_constraints_; /**<  \brief Messages corresponding to all internal constraints */
   
 };
 
-typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr;
-typedef boost::shared_ptr<const KinematicConstraintSet> KinematicConstraintSetConstPtr;
+typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr; /**< \brief boost::shared_ptr to a KinematicConstraintSetPtr */
+typedef boost::shared_ptr<const KinematicConstraintSet> KinematicConstraintSetConstPtr; /**< \brief boost::shared_ptr to a KinematicConstraintSet Const */
 
 }
 
