@@ -32,9 +32,21 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+/* Author: Ioan Sucan */
+
+#ifndef MOVEIT_KINEMATIC_STATE_JOINT_STATE_GROUP_
+#define MOVEIT_KINEMATIC_STATE_JOINT_STATE_GROUP_
+
+#include <moveit/kinematic_model/joint_model_group.h>
+#include <moveit/kinematic_state/link_state.h>
+#include <moveit/kinematic_state/joint_state.h>
+#include <sensor_msgs/JointState.h>
+#include <boost/scoped_ptr.hpp>
+
+namespace kinematic_state
+{
+
+class KinematicState;
 
 /** @class JointStateGroup
  *  @brief The joint state corresponding to a group
@@ -50,11 +62,11 @@ public:
    *  @param state A pointer to the kinematic state
    *  @param jmg The joint model group corresponding to this joint state
    */
-  JointStateGroup(KinematicState *state, const KinematicModel::JointModelGroup *jmg);
+  JointStateGroup(KinematicState *state, const kinematic_model::JointModelGroup *jmg);
   ~JointStateGroup(void);
   
   /** \brief Get the kinematic state this link is part of */
-  const KinematicState* getParentState(void) const
+  const KinematicState* getKinematicState(void) const
   {
     return kinematic_state_;
   }
@@ -66,7 +78,7 @@ public:
   }
   
   /** \brief Get the joint model corresponding to this joint state group */
-  const KinematicModel::JointModelGroup* getJointModelGroup(void)
+  const kinematic_model::JointModelGroup* getJointModelGroup(void) const
   {
     return joint_model_group_;
   }
@@ -87,19 +99,19 @@ public:
       within a group. Links that are not in the group are also
       updated, but transforms for joints that are not in the
       group are not recomputed.  */
-  bool setStateValues(const std::vector<double>& joint_state_values);
+  bool setVariableValues(const std::vector<double>& joint_state_values);
   
   /** \brief Perform forward kinematics starting at the roots
       within a group. Links that are not in the group are also
       updated, but transforms for joints that are not in the
       group are not recomputed.  */
-  void setStateValues(const std::map<std::string, double>& joint_state_map);
+  void setVariableValues(const std::map<std::string, double>& joint_state_map);
   
   /** \brief Perform forward kinematics starting at the roots
       within a group. Links that are not in the group are also
       updated, but transforms for joints that are not in the
       group are not recomputed.  */
-  void setStateValues(const sensor_msgs::JointState& js);
+  void setVariableValues(const sensor_msgs::JointState& js);
   
   /** Compute transforms using current joint values */
   void updateLinkTransforms(void);
@@ -108,20 +120,17 @@ public:
   bool hasJointState(const std::string &joint) const;
   
   /** \brief Check if a link is updated by this group */
-  bool updatesLinkState(const std::string& joint) const;
+  bool updatesLinkState(const std::string &joint) const;
   
   /** \brief Get a joint state by its name */
   JointState* getJointState(const std::string &joint) const;
   
   /** \brief Get current joint values */
-  void getGroupStateValues(std::vector<double>& joint_state_values) const;
+  void getVariableValues(std::vector<double>& joint_state_values) const;
   
   /** \brief Get a map between variable names and joint state values */
-  void getGroupStateValues(std::map<std::string, double>& joint_state_values) const;
-  
-  /** \brief Copy the values from another joint state group */
-  void copyFrom(const JointStateGroup *other_jsg);
-  
+  void getVariableValues(std::map<std::string, double>& joint_state_values) const;
+    
   /** \brief Bring the group to a default state. All joints are
       at 0. If 0 is not within the bounds of the joint, the
       middle of the bounds is used. */
@@ -172,8 +181,6 @@ public:
    */    
   bool getJacobian(const std::string &link_name, const Eigen::Vector3d &reference_point_position, Eigen::MatrixXd& jacobian) const;
   
-  
-
   bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout);
   
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
@@ -185,26 +192,31 @@ public:
   bool setFromIK(const Eigen::Affine3d &pose, double timeout);
 
   bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout);
-      
+
+  JointStateGroup& operator=(const JointStateGroup &other);
+
 private:
-  
+
+  /** \brief Copy the values from another joint state group */
+  void copyFrom(const JointStateGroup &other_jsg);
+
   /** \brief The kinematic state this group is part of */
-  KinematicState                        *kinematic_state_;
+  KinematicState                         *kinematic_state_;
   
   /** \brief The model of the group that corresponds to this state */
-  const KinematicModel::JointModelGroup *joint_model_group_;
+  const kinematic_model::JointModelGroup *joint_model_group_;
   
   /** \brief Joint instances in the order they appear in the group state */
-  std::vector<JointState*>               joint_state_vector_;
+  std::vector<JointState*>                joint_state_vector_;
   
   /** \brief A map from joint names to their instances */
-  std::map<std::string, JointState*>     joint_state_map_;
+  std::map<std::string, JointState*>      joint_state_map_;
   
   /** \brief The list of joints that are roots in this group */
-  std::vector<JointState*>               joint_roots_;
+  std::vector<JointState*>                joint_roots_;
   
   /** \brief The list of links that are updated when computeTransforms() is called, in the order they are updated */
-  std::vector<LinkState*>                updated_links_;
+  std::vector<LinkState*>                 updated_links_;
   
   /** \brief For certain operations a group needs a random number generator. However, it may be slightly expensive
       to allocate the random number generator if many state instances are generated. For this reason, the generator
@@ -213,3 +225,6 @@ private:
   boost::scoped_ptr<random_numbers::RandomNumberGenerator> rng_;
 
 };
+}
+
+#endif

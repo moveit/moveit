@@ -34,12 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/attached_body.h>
 
-planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,
-                                                            const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes,
-                                                            const EigenSTL::vector_Affine3d &attach_trans,
-                                                            const std::vector<std::string> &touch_links) :
+kinematic_state::AttachedBody::AttachedBody(const kinematic_state::LinkState* parent_link_state,
+                                            const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes,
+                                            const EigenSTL::vector_Affine3d &attach_trans,
+                                            const std::vector<std::string> &touch_links) :
   parent_link_state_(parent_link_state), id_(id), shapes_(shapes), attach_trans_(attach_trans)
 {
   touch_links_.insert(touch_links.begin(), touch_links.end());
@@ -48,11 +48,11 @@ planning_models::KinematicState::AttachedBody::AttachedBody(const planning_model
     global_collision_body_transforms_[i].setIdentity();
 }
 
-planning_models::KinematicState::AttachedBody::~AttachedBody(void)
+kinematic_state::AttachedBody::~AttachedBody(void)
 {
 }
 
-void planning_models::KinematicState::AttachedBody::setScale(double scale)
+void kinematic_state::AttachedBody::setScale(double scale)
 {
   for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
   {
@@ -69,7 +69,7 @@ void planning_models::KinematicState::AttachedBody::setScale(double scale)
   }
 }
 
-void planning_models::KinematicState::AttachedBody::setPadding(double padding)
+void kinematic_state::AttachedBody::setPadding(double padding)
 {
   for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
   {
@@ -86,7 +86,7 @@ void planning_models::KinematicState::AttachedBody::setPadding(double padding)
   }
 }
 
-void planning_models::KinematicState::AttachedBody::computeTransform(void)
+void kinematic_state::AttachedBody::computeTransform(void)
 {
   for(std::size_t i = 0; i < global_collision_body_transforms_.size() ; ++i)
     global_collision_body_transforms_[i] = parent_link_state_->getGlobalLinkTransform() * attach_trans_[i];

@@ -34,14 +34,14 @@
 
 /* Author: Ioan Sucan, E. Gil Jones, Sachin Chitta */
 
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 #include <eigen_conversions/eigen_msg.h>
 
-planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_models::KinematicState *state,
-                                                                  const planning_models::KinematicModel::JointModelGroup *jmg) :
+kinematic_state::JointStateGroup::JointStateGroup(KinematicState *state,
+                                                  const kinematic_model::JointModelGroup *jmg) :
   kinematic_state_(state), joint_model_group_(jmg)
 {
-  const std::vector<const KinematicModel::JointModel*>& joint_model_vector = jmg->getJointModels();
+  const std::vector<const kinematic_model::JointModel*>& joint_model_vector = jmg->getJointModels();
   for (std::size_t i = 0; i < joint_model_vector.size() ; ++i)
   {
     if (!kinematic_state_->hasJointState(joint_model_vector[i]->getName()))
@@ -53,7 +53,7 @@ planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_model
     joint_state_vector_.push_back(js);
     joint_state_map_[joint_model_vector[i]->getName()] = js;
   }
-  const std::vector<const KinematicModel::LinkModel*>& link_model_vector = jmg->getUpdatedLinkModels();
+  const std::vector<const kinematic_model::LinkModel*>& link_model_vector = jmg->getUpdatedLinkModels();
   for (unsigned int i = 0; i < link_model_vector.size(); i++)
   {
     if (!kinematic_state_->hasLinkState(link_model_vector[i]->getName()))
@@ -65,7 +65,7 @@ planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_model
     updated_links_.push_back(ls);
   }
   
-  const std::vector<const KinematicModel::JointModel*>& joint_root_vector = jmg->getJointRoots();
+  const std::vector<const kinematic_model::JointModel*>& joint_root_vector = jmg->getJointRoots();
   for (std::size_t i = 0; i < joint_root_vector.size(); ++i)
   {
     JointState* js = kinematic_state_->getJointState(joint_root_vector[i]->getName());
@@ -74,23 +74,23 @@ planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_model
   }
 }
 
-planning_models::KinematicState::JointStateGroup::~JointStateGroup(void)
+kinematic_state::JointStateGroup::~JointStateGroup(void)
 {
 }
 
-random_numbers::RandomNumberGenerator& planning_models::KinematicState::JointStateGroup::getRandomNumberGenerator(void)
+random_numbers::RandomNumberGenerator& kinematic_state::JointStateGroup::getRandomNumberGenerator(void)
 {
   if (!rng_)
     rng_.reset(new random_numbers::RandomNumberGenerator());
   return *rng_;
 }
 
-bool planning_models::KinematicState::JointStateGroup::hasJointState(const std::string &joint) const
+bool kinematic_state::JointStateGroup::hasJointState(const std::string &joint) const
 {
   return joint_state_map_.find(joint) != joint_state_map_.end();
 }
 
-bool planning_models::KinematicState::JointStateGroup::updatesLinkState(const std::string& link) const
+bool kinematic_state::JointStateGroup::updatesLinkState(const std::string& link) const
 {
   for (std::size_t i = 0 ; i < updated_links_.size() ; ++i)
     if (updated_links_[i]->getName() == link)
@@ -98,7 +98,7 @@ bool planning_models::KinematicState::JointStateGroup::updatesLinkState(const st
   return false;
 }
 
-bool planning_models::KinematicState::JointStateGroup::setStateValues(const std::vector<double> &joint_state_values)
+bool kinematic_state::JointStateGroup::setVariableValues(const std::vector<double> &joint_state_values)
 {
   if (joint_state_values.size() != getVariableCount())
   {
@@ -121,61 +121,68 @@ bool planning_models::KinematicState::JointStateGroup::setStateValues(const std:
   return true;
 }
 
-void planning_models::KinematicState::JointStateGroup::setStateValues(const std::map<std::string, double>& joint_state_map)
+void kinematic_state::JointStateGroup::setVariableValues(const std::map<std::string, double>& joint_state_map)
 {
   for(unsigned int i = 0; i < joint_state_vector_.size(); ++i)
     joint_state_vector_[i]->setVariableValues(joint_state_map);
   updateLinkTransforms();
 }
 
-void planning_models::KinematicState::JointStateGroup::setStateValues(const sensor_msgs::JointState& js)
+void kinematic_state::JointStateGroup::setVariableValues(const sensor_msgs::JointState& js)
 {
   std::map<std::string, double> v;
   for (std::size_t i = 0 ; i < js.name.size() ; ++i)
     v[js.name[i]] = js.position[i];
-  setStateValues(v);
+  setVariableValues(v);
 }
                     
-void planning_models::KinematicState::JointStateGroup::updateLinkTransforms(void)
+void kinematic_state::JointStateGroup::updateLinkTransforms(void)
 {
   for(unsigned int i = 0; i < updated_links_.size(); ++i)
     updated_links_[i]->computeTransform();
 }
 
-void planning_models::KinematicState::JointStateGroup::copyFrom(const JointStateGroup *other_jsg)
+kinematic_state::JointStateGroup& kinematic_state::JointStateGroup::operator=(const JointStateGroup &other)
 {
-  const std::vector<JointState*> &ojsv = other_jsg->getJointStateVector();
+  if (this != &other)
+    copyFrom(other);
+  return *this;
+}
+
+void kinematic_state::JointStateGroup::copyFrom(const JointStateGroup &other_jsg)
+{
+  const std::vector<JointState*> &ojsv = other_jsg.getJointStateVector();
   for (std::size_t i = 0 ; i < ojsv.size() ; ++i)
     joint_state_vector_[i]->setVariableValues(ojsv[i]->getVariableValues());
   updateLinkTransforms();
 }
 
-void planning_models::KinematicState::JointStateGroup::setToDefaultValues(void)
+void kinematic_state::JointStateGroup::setToDefaultValues(void)
 {
   std::map<std::string, double> default_joint_values;
   for (std::size_t i = 0  ; i < joint_state_vector_.size() ; ++i)
-    joint_state_vector_[i]->getJointModel()->getDefaultValues(default_joint_values);
-  setStateValues(default_joint_values);
+    joint_state_vector_[i]->getJointModel()->getVariableDefaultValues(default_joint_values);
+  setVariableValues(default_joint_values);
 }
 
-bool planning_models::KinematicState::JointStateGroup::setToDefaultState(const std::string &name)
+bool kinematic_state::JointStateGroup::setToDefaultState(const std::string &name)
 {
   std::map<std::string, double> default_joint_values;
-  if (!joint_model_group_->getDefaultValues(name, default_joint_values))
+  if (!joint_model_group_->getVariableDefaultValues(name, default_joint_values))
     return false;
-  setStateValues(default_joint_values);
+  setVariableValues(default_joint_values);
   return true;
 }
 
-void planning_models::KinematicState::JointStateGroup::setToRandomValues(void)
+void kinematic_state::JointStateGroup::setToRandomValues(void)
 {
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
   std::vector<double> random_joint_states;
-  joint_model_group_->getRandomValues(rng, random_joint_states);
-  setStateValues(random_joint_states);
+  joint_model_group_->getVariableRandomValues(rng, random_joint_states);
+  setVariableValues(random_joint_states);
 }
 
-void planning_models::KinematicState::JointStateGroup::getGroupStateValues(std::vector<double>& joint_state_values) const
+void kinematic_state::JointStateGroup::getVariableValues(std::vector<double>& joint_state_values) const
 {
   joint_state_values.clear();
   for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
@@ -185,7 +192,7 @@ void planning_models::KinematicState::JointStateGroup::getGroupStateValues(std::
   }
 }
 
-bool planning_models::KinematicState::JointStateGroup::satisfiesBounds(void) const
+bool kinematic_state::JointStateGroup::satisfiesBounds(void) const
 {
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
     if (!joint_state_vector_[i]->satisfiesBounds())
@@ -193,14 +200,14 @@ bool planning_models::KinematicState::JointStateGroup::satisfiesBounds(void) con
   return true;
 }
 
-void planning_models::KinematicState::JointStateGroup::enforceBounds(void)
+void kinematic_state::JointStateGroup::enforceBounds(void)
 {
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
     joint_state_vector_[i]->enforceBounds();
   updateLinkTransforms();
 }
 
-double planning_models::KinematicState::JointStateGroup::distance(const JointStateGroup *other) const
+double kinematic_state::JointStateGroup::distance(const JointStateGroup *other) const
 {
   double d = 0.0;
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
@@ -208,14 +215,14 @@ double planning_models::KinematicState::JointStateGroup::distance(const JointSta
   return d;
 }
 
-void planning_models::KinematicState::JointStateGroup::interpolate(const JointStateGroup *to, const double t, JointStateGroup *dest) const
+void kinematic_state::JointStateGroup::interpolate(const JointStateGroup *to, const double t, JointStateGroup *dest) const
 {
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
     joint_state_vector_[i]->interpolate(to->joint_state_vector_[i], t, dest->joint_state_vector_[i]);
   dest->updateLinkTransforms();
 }
 
-void planning_models::KinematicState::JointStateGroup::getGroupStateValues(std::map<std::string,double>& joint_state_values) const
+void kinematic_state::JointStateGroup::getVariableValues(std::map<std::string, double>& joint_state_values) const
 {
   joint_state_values.clear();
   for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
@@ -227,7 +234,7 @@ void planning_models::KinematicState::JointStateGroup::getGroupStateValues(std::
   }
 }
 
-planning_models::KinematicState::JointState* planning_models::KinematicState::JointStateGroup::getJointState(const std::string &name) const
+kinematic_state::JointState* kinematic_state::JointStateGroup::getJointState(const std::string &name) const
 {
   std::map<std::string, JointState*>::const_iterator it = joint_state_map_.find(name);
   if (it == joint_state_map_.end())
@@ -239,7 +246,7 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::Jo
     return it->second;
 }
 
-bool planning_models::KinematicState::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, double timeout)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -247,14 +254,14 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const geometry_
   return setFromIK(pose, solver->getTipFrame(), timeout);
 }
 
-bool planning_models::KinematicState::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout)
 {
   Eigen::Affine3d mat;
   tf::poseMsgToEigen(pose, mat);
   return setFromIK(mat, tip, timeout);
 }
 
-bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, double timeout)
 { 
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -262,7 +269,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
   return setFromIK(pose, solver->getTipFrame(), timeout);
 }
 
-bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, double timeout)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -275,7 +282,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
   const std::string &ik_frame = solver->getBaseFrame();
   if (ik_frame != joint_model_group_->getParentModel()->getModelFrame())
   {
-    const LinkState *ls = getParentState()->getLinkState(ik_frame);
+    const LinkState *ls = kinematic_state_->getLinkState(ik_frame);
     if (!ls)
       return false;
     pose = ls->getGlobalLinkTransform().inverse() * pose;
@@ -285,9 +292,9 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
   const std::string &tip_frame = solver->getTipFrame();
   if (tip != tip_frame)
   {
-    if (getParentState()->hasAttachedBody(tip))
+    if (kinematic_state_->hasAttachedBody(tip))
     {
-      const AttachedBody *ab = getParentState()->getAttachedBody(tip);
+      const AttachedBody *ab = kinematic_state_->getAttachedBody(tip);
       const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
       if (ab_trans.size() != 1)
       {
@@ -299,11 +306,11 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
     }
     if (tip != tip_frame)
     {
-      const KinematicModel::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
+      const kinematic_model::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
       if (!lm)
         return false;
-      const KinematicModel::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-      for (std::map<const KinematicModel::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+      const kinematic_model::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+      for (std::map<const kinematic_model::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
         if (it->first->getName() == tip_frame)
         {
           tip = tip_frame;
@@ -341,7 +348,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
     {
       first_seed = false;
       std::vector<double> initial_values;
-      getGroupStateValues(initial_values);
+      getVariableValues(initial_values);
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         seed[bij[i]] = initial_values[i];
     }
@@ -350,7 +357,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
       // sample a random seed
       random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
       std::vector<double> random_values;
-      joint_model_group_->getRandomValues(rng, random_values);
+      joint_model_group_->getVariableRandomValues(rng, random_values);
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         seed[bij[i]] = random_values[i];
     }
@@ -364,47 +371,47 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         solution[i] = ik_sol[bij[i]];
-      setStateValues(solution);
+      setVariableValues(solution);
       return true;
     }
   }
   return false;
 }
 
-bool planning_models::KinematicState::JointStateGroup::getJacobian(const std::string &link_name,
-								   const Eigen::Vector3d &reference_point_position, 
-								   Eigen::MatrixXd& jacobian) const
+bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
+                                                   const Eigen::Vector3d &reference_point_position, 
+                                                   Eigen::MatrixXd& jacobian) const
 {
   if(!joint_model_group_->isChain())
   {
     logError("Will compute Jacobian only for a chain");
     return false;
   }
-  if(!joint_model_group_->isUpdatedLink(link_name))
+  if (!joint_model_group_->isLinkUpdated(link_name))
   {
     logError("Link name does not exist in this chain or is not a child for this chain");
     return false;
   }
-
-  const planning_models::KinematicModel::JointModel* root_joint_model = (joint_model_group_->getJointRoots())[0];
+  
+  const kinematic_model::JointModel* root_joint_model = (joint_model_group_->getJointRoots())[0];
   logDebug("ROOT_LINK ", root_joint_model->getParentLinkModel()->getName().c_str());
-  const planning_models::KinematicState::LinkState *root_link_state = kinematic_state_->getLinkState(root_joint_model->getParentLinkModel()->getName());
+  const kinematic_state::LinkState *root_link_state = kinematic_state_->getLinkState(root_joint_model->getParentLinkModel()->getName());
   Eigen::Affine3d reference_transform = root_link_state ? root_link_state->getGlobalLinkTransform() : kinematic_state_->getRootTransform();
   reference_transform = reference_transform.inverse();
   jacobian = Eigen::MatrixXd::Zero(6, joint_model_group_->getVariableCount());
-
-  const planning_models::KinematicState::LinkState *link_state = kinematic_state_->getLinkState(link_name);
+  
+  const kinematic_state::LinkState *link_state = kinematic_state_->getLinkState(link_name);
   Eigen::Affine3d link_transform = reference_transform*link_state->getGlobalLinkTransform();
   Eigen::Vector3d point_transform = link_transform*reference_point_position;
-
+  
   logDebug("Point from reference origin expressed in world coordinates: %f %f %f",
            point_transform.x(),
            point_transform.y(),
            point_transform.z());
-
+  
   Eigen::Vector3d joint_axis;
   Eigen::Affine3d joint_transform;
-
+  
   while(link_state)
   {
     logDebug("Link: %s, %f %f %f",link_state->getName().c_str(),
@@ -412,38 +419,38 @@ bool planning_models::KinematicState::JointStateGroup::getJacobian(const std::st
              link_state->getGlobalLinkTransform().translation().y(),
              link_state->getGlobalLinkTransform().translation().z());    
     logDebug("Joint: %s",link_state->getParentJointState()->getName().c_str());
-
+    
     if (joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
     {
-      if(link_state->getParentJointState()->getJointModel()->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
-	{
-	  unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
-	  joint_transform = reference_transform*link_state->getGlobalLinkTransform();
-	  joint_axis = joint_transform.rotation()*(dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
-	  jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
-	  jacobian.block<3,1>(3,joint_index) = joint_axis;
-	}
-      if(link_state->getParentJointState()->getJointModel()->getType() == planning_models::KinematicModel::JointModel::PRISMATIC)
-	{
-	  unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
-	  joint_transform = reference_transform*link_state->getGlobalLinkTransform();
-	  joint_axis = joint_transform*(dynamic_cast<const planning_models::KinematicModel::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
-	  jacobian.block<3,1>(0,joint_index) = joint_axis;
-	}
-      if(link_state->getParentJointState()->getJointModel()->getType() == planning_models::KinematicModel::JointModel::PLANAR)
-	{
-	  unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
-	  joint_transform = reference_transform*link_state->getGlobalLinkTransform();
-	  joint_axis = joint_transform*Eigen::Vector3d(1.0,0.0,0.0);
-	  jacobian.block<3,1>(0,joint_index) = joint_axis;
-	  joint_axis = joint_transform*Eigen::Vector3d(0.0,1.0,0.0);
-	  jacobian.block<3,1>(0,joint_index+1) = joint_axis;
-	  joint_axis = joint_transform*Eigen::Vector3d(0.0,0.0,1.0);
-	  jacobian.block<3,1>(0,joint_index+2) = joint_axis.cross(point_transform - joint_transform.translation());
-	  jacobian.block<3,1>(3,joint_index+2) = joint_axis;
-	}
+      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::REVOLUTE)
+      {
+        unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
+        joint_transform = reference_transform*link_state->getGlobalLinkTransform();
+        joint_axis = joint_transform.rotation()*(dynamic_cast<const kinematic_model::RevoluteJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
+        jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
+        jacobian.block<3,1>(3,joint_index) = joint_axis;
+      }
+      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PRISMATIC)
+      {
+        unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
+        joint_transform = reference_transform*link_state->getGlobalLinkTransform();
+        joint_axis = joint_transform*(dynamic_cast<const kinematic_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
+        jacobian.block<3,1>(0,joint_index) = joint_axis;
+      }
+      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)
+      {
+        unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
+        joint_transform = reference_transform*link_state->getGlobalLinkTransform();
+        joint_axis = joint_transform*Eigen::Vector3d(1.0,0.0,0.0);
+        jacobian.block<3,1>(0,joint_index) = joint_axis;
+        joint_axis = joint_transform*Eigen::Vector3d(0.0,1.0,0.0);
+        jacobian.block<3,1>(0,joint_index+1) = joint_axis;
+        joint_axis = joint_transform*Eigen::Vector3d(0.0,0.0,1.0);
+        jacobian.block<3,1>(0,joint_index+2) = joint_axis.cross(point_transform - joint_transform.translation());
+        jacobian.block<3,1>(3,joint_index+2) = joint_axis;
+      }
     }
-    if(link_state->getParentJointState()->getJointModel() == root_joint_model)
+    if (link_state->getParentJointState()->getJointModel() == root_joint_model)
       break;
     link_state = link_state->getParentLinkState();
   }

@@ -98,3 +98,19 @@ void kinematic_model::JointModel::computeDefaultVariableLimits(void)
   }
 }
 
+void kinematic_model::JointModel::setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
+{
+  user_specified_limits_.clear();
+  for (std::size_t j = 0; j < variable_names_.size(); ++j)
+    for (std::size_t i = 0 ; i < jlim.size() ; ++i)
+      if (jlim[i].joint_name == variable_names_[j])
+      {
+        user_specified_limits_.push_back(jlim[i]);
+        break;
+      }
+  if (user_specified_limits_.size() > 0 && user_specified_limits_.size() != variable_names_.size())
+  {
+    logError("Incorrect number of joint limits was specified!");
+    user_specified_limits_.clear();
+  }
+}

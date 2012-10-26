@@ -34,48 +34,49 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 #include <geometric_shapes/shape_operations.h>
-#include <moveit/planning_models/transforms.h>
+#include <eigen_conversions/eigen_msg.h>
 
-planning_models::KinematicState::KinematicState(const KinematicModelConstPtr &kinematic_model) : kinematic_model_(kinematic_model)
+kinematic_state::KinematicState::KinematicState(const kinematic_model::KinematicModelConstPtr &kinematic_model) :
+  kinematic_model_(kinematic_model)
 {
   root_transform_.setIdentity();
   buildState();
 }
 
-random_numbers::RandomNumberGenerator& planning_models::KinematicState::getRandomNumberGenerator(void)
+random_numbers::RandomNumberGenerator& kinematic_state::KinematicState::getRandomNumberGenerator(void)
 {
   if (!rng_)
     rng_.reset(new random_numbers::RandomNumberGenerator());
   return *rng_;
 }
 
-void planning_models::KinematicState::buildState(void)
+void kinematic_state::KinematicState::buildState(void)
 {
-  const std::vector<const KinematicModel::JointModel*>& joint_model_vector = kinematic_model_->getJointModels();
+  const std::vector<const kinematic_model::JointModel*>& joint_model_vector = kinematic_model_->getJointModels();
   joint_state_vector_.resize(joint_model_vector.size());
   
   // create joint states
-  for (unsigned int i = 0; i < joint_model_vector.size(); ++i)
+  for (std::size_t i = 0; i < joint_model_vector.size() ; ++i)
   {
     joint_state_vector_[i] = new JointState(joint_model_vector[i]);
     joint_state_map_[joint_state_vector_[i]->getName()] = joint_state_vector_[i];
   }
   
   // create link states
-  const std::vector<const KinematicModel::LinkModel*>& link_model_vector = kinematic_model_->getLinkModels();
+  const std::vector<const kinematic_model::LinkModel*>& link_model_vector = kinematic_model_->getLinkModels();
   link_state_vector_.resize(link_model_vector.size());
-  for (unsigned int i = 0; i < link_model_vector.size(); ++i)
+  for (std::size_t i = 0 ; i < link_model_vector.size() ; ++i)
   {
     link_state_vector_[i] = new LinkState(this, link_model_vector[i]);
     link_state_map_[link_state_vector_[i]->getName()] = link_state_vector_[i];
   }
   
   // now we need to figure out who are the link parents are
-  for(unsigned int i = 0; i < link_state_vector_.size(); ++i)
+  for (std::size_t i = 0; i < link_state_vector_.size(); ++i)
   {
-    const KinematicModel::JointModel* parent_joint_model = link_state_vector_[i]->getLinkModel()->getParentJointModel();
+    const kinematic_model::JointModel* parent_joint_model = link_state_vector_[i]->getLinkModel()->getParentJointModel();
     link_state_vector_[i]->parent_joint_state_ = joint_state_map_[parent_joint_model->getName()];
     if (parent_joint_model->getParentLinkModel() != NULL)
       link_state_vector_[i]->parent_link_state_ = link_state_map_[parent_joint_model->getParentLinkModel()->getName()];
@@ -84,35 +85,35 @@ void planning_models::KinematicState::buildState(void)
   // compute mimic joint state pointers
   for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
   {
-    const std::vector<const KinematicModel::JointModel*> &mr = joint_state_vector_[i]->joint_model_->getMimicRequests();
+    const std::vector<const kinematic_model::JointModel*> &mr = joint_state_vector_[i]->joint_model_->getMimicRequests();
     for (std::size_t j = 0 ; j < mr.size() ; ++j)
       joint_state_vector_[i]->mimic_requests_.push_back(joint_state_map_[mr[j]->getName()]);
   }
   
   // now make joint_state_groups
-  const std::map<std::string,KinematicModel::JointModelGroup*>& joint_model_group_map = kinematic_model_->getJointModelGroupMap();
-  for (std::map<std::string,KinematicModel::JointModelGroup*>::const_iterator it = joint_model_group_map.begin();
-       it != joint_model_group_map.end(); ++it)
+  const std::map<std::string, kinematic_model::JointModelGroup*>& joint_model_group_map = kinematic_model_->getJointModelGroupMap();
+  for (std::map<std::string, kinematic_model::JointModelGroup*>::const_iterator it = joint_model_group_map.begin() ;
+       it != joint_model_group_map.end() ; ++it)
     joint_state_group_map_[it->first] = new JointStateGroup(this, it->second);
 }
 
-planning_models::KinematicState::KinematicState(const KinematicState &ks)
+kinematic_state::KinematicState::KinematicState(const KinematicState &ks)
 {
   copyFrom(ks);
 }
 
-planning_models::KinematicState& planning_models::KinematicState::operator=(const KinematicState &other)
+kinematic_state::KinematicState& kinematic_state::KinematicState::operator=(const KinematicState &other)
 {
   copyFrom(other);
   return *this;
 }
 
-void planning_models::KinematicState::copyFrom(const KinematicState &ks)
+void kinematic_state::KinematicState::copyFrom(const KinematicState &ks)
 {
   //need to delete anything already in the state
-  for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
+  for (std::size_t i = 0; i < joint_state_vector_.size(); i++)
     delete joint_state_vector_[i];
-  for(unsigned int i = 0; i < link_state_vector_.size(); i++)
+  for (std::size_t i = 0; i < link_state_vector_.size(); i++)
     delete link_state_vector_[i];
   for (std::map<std::string, JointStateGroup*>::iterator it = joint_state_group_map_.begin();
        it != joint_state_group_map_.end(); ++it)
@@ -124,7 +125,7 @@ void planning_models::KinematicState::copyFrom(const KinematicState &ks)
   // construct state
   buildState();
   // copy attached bodies
-  for (unsigned int i = 0 ; i < ks.link_state_vector_.size() ; ++i)
+  for (std::size_t i = 0 ; i < ks.link_state_vector_.size() ; ++i)
   {
     std::vector<const AttachedBody*> ab;
     ks.link_state_vector_[i]->getAttachedBodies(ab);
@@ -141,18 +142,18 @@ void planning_models::KinematicState::copyFrom(const KinematicState &ks)
   setStateValues(current_joint_values);
 }
 
-planning_models::KinematicState::~KinematicState(void)
+kinematic_state::KinematicState::~KinematicState(void)
 {
-  for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
+  for (std::size_t i = 0; i < joint_state_vector_.size(); i++)
     delete joint_state_vector_[i];
-  for(unsigned int i = 0; i < link_state_vector_.size(); i++)
+  for (std::size_t i = 0; i < link_state_vector_.size(); i++)
     delete link_state_vector_[i];
   for (std::map<std::string, JointStateGroup*>::iterator it = joint_state_group_map_.begin();
        it != joint_state_group_map_.end(); ++it)
     delete it->second;
 }
 
-bool planning_models::KinematicState::setStateValues(const std::vector<double>& joint_state_values)
+bool kinematic_state::KinematicState::setStateValues(const std::vector<double>& joint_state_values)
 {
   if (joint_state_values.size() != getVariableCount())
   {
@@ -162,7 +163,7 @@ bool planning_models::KinematicState::setStateValues(const std::vector<double>& 
   }
   
   unsigned int value_counter = 0;
-  for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
+  for(std::size_t i = 0; i < joint_state_vector_.size(); i++)
   {
     unsigned int dim = joint_state_vector_[i]->getVariableCount();
     if (dim != 0 && joint_state_vector_[i]->getJointModel()->getMimic() == NULL)
@@ -175,34 +176,34 @@ bool planning_models::KinematicState::setStateValues(const std::vector<double>& 
   return true;
 }
 
-void planning_models::KinematicState::setStateValues(const std::map<std::string, double>& joint_state_map)
+void kinematic_state::KinematicState::setStateValues(const std::map<std::string, double>& joint_state_map)
 {
-  for (unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
     if (joint_state_vector_[i]->getJointModel()->getMimic() == NULL)
       joint_state_vector_[i]->setVariableValues(joint_state_map);
   updateLinkTransforms();
 }
 
-void planning_models::KinematicState::setStateValues(const std::map<std::string, double>& joint_state_map, std::vector<std::string>& missing)
+void kinematic_state::KinematicState::setStateValues(const std::map<std::string, double>& joint_state_map, std::vector<std::string>& missing)
 {
   missing.clear();
-  for(unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
     if (joint_state_vector_[i]->getJointModel()->getMimic() == NULL)
       joint_state_vector_[i]->setVariableValues(joint_state_map, missing);
   updateLinkTransforms();
 }
 
-void planning_models::KinematicState::setStateValues(const sensor_msgs::JointState& js)
+void kinematic_state::KinematicState::setStateValues(const sensor_msgs::JointState& js)
 {
   std::map<std::string, double> vals;
-  unsigned int position_size = js.position.size();
-  for(unsigned int i = 0 ; i < js.name.size() ; ++i)
+  std::size_t position_size = js.position.size();
+  for(std::size_t i = 0 ; i < js.name.size() ; ++i)
     if (i < position_size)
       vals[js.name[i]] = js.position[i];
   setStateValues(vals);
 }
 
-void planning_models::KinematicState::setStateValues(const std::vector<std::string>& joint_names,
+void kinematic_state::KinematicState::setStateValues(const std::vector<std::string>& joint_names,
                                                      const std::vector<double>& joint_values)
 {
   std::map<std::string, double> vals;
@@ -213,10 +214,10 @@ void planning_models::KinematicState::setStateValues(const std::vector<std::stri
   setStateValues(vals);
 }
 
-void planning_models::KinematicState::getStateValues(std::vector<double>& joint_state_values) const
+void kinematic_state::KinematicState::getStateValues(std::vector<double>& joint_state_values) const
 {
   joint_state_values.clear();
-  for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
+  for (std::size_t i = 0; i < joint_state_vector_.size(); i++)
     if (joint_state_vector_[i]->getJointModel()->getMimic() == NULL)
     {
       const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
@@ -224,7 +225,7 @@ void planning_models::KinematicState::getStateValues(std::vector<double>& joint_
     }
 }
 
-void planning_models::KinematicState::getStateValues(std::map<std::string,double>& joint_state_values) const
+void kinematic_state::KinematicState::getStateValues(std::map<std::string,double>& joint_state_values) const
 {
   joint_state_values.clear();
   for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
@@ -236,7 +237,7 @@ void planning_models::KinematicState::getStateValues(std::map<std::string,double
   }
 }
 
-void planning_models::KinematicState::getStateValues(sensor_msgs::JointState& js) const
+void kinematic_state::KinematicState::getStateValues(sensor_msgs::JointState& js) const
 {
   std::map<std::string, double> joint_state_values;
   getStateValues(joint_state_values);
@@ -251,68 +252,68 @@ void planning_models::KinematicState::getStateValues(sensor_msgs::JointState& js
   }
 }
 
-void planning_models::KinematicState::updateLinkTransforms(void)
+void kinematic_state::KinematicState::updateLinkTransforms(void)
 {
   for(unsigned int i = 0; i < link_state_vector_.size(); i++)
     link_state_vector_[i]->computeTransform();
 }
 
-bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform)
+bool kinematic_state::KinematicState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform)
 {
   if (!hasLinkState(link_name))
     return false;
   
   link_state_map_[link_name]->updateGivenGlobalLinkTransform(transform);
-  std::vector<const KinematicModel::LinkModel*> child_link_models;
+  std::vector<const kinematic_model::LinkModel*> child_link_models;
   kinematic_model_->getChildLinkModels(kinematic_model_->getLinkModel(link_name), child_link_models);
   // the zeroith link will be the link itself, which shouldn't be updated, so we start at 1
   for(unsigned int i = 1 ; i < child_link_models.size() ; ++i)
     link_state_map_[child_link_models[i]->getName()]->computeTransform();
   
-  const KinematicModel::LinkModel::AssociatedFixedTransformMap& assoc = kinematic_model_->getLinkModel(link_name)->getAssociatedFixedTransforms();
-  for (KinematicModel::LinkModel::AssociatedFixedTransformMap::const_iterator it = assoc.begin() ; it != assoc.end() ; ++it)
+  const kinematic_model::LinkModel::AssociatedFixedTransformMap& assoc = kinematic_model_->getLinkModel(link_name)->getAssociatedFixedTransforms();
+  for (kinematic_model::LinkModel::AssociatedFixedTransformMap::const_iterator it = assoc.begin() ; it != assoc.end() ; ++it)
     link_state_map_[it->first->getName()]->updateGivenGlobalLinkTransform(transform * it->second);
   
   return true;
 }
 
-const Eigen::Affine3d& planning_models::KinematicState::getRootTransform(void) const
+const Eigen::Affine3d& kinematic_state::KinematicState::getRootTransform(void) const
 {
   return root_transform_;
 }
 
-void planning_models::KinematicState::setRootTransform(const Eigen::Affine3d &transform)
+void kinematic_state::KinematicState::setRootTransform(const Eigen::Affine3d &transform)
 {
   root_transform_ = transform;
 }
 
-void planning_models::KinematicState::setToDefaultValues(void)
+void kinematic_state::KinematicState::setToDefaultValues(void)
 {
   std::vector<double> default_joint_states;
-  kinematic_model_->getDefaultValues(default_joint_states);
+  kinematic_model_->getVariableDefaultValues(default_joint_states);
   setStateValues(default_joint_states);
 }
 
-void planning_models::KinematicState::setToRandomValues(void)
+void kinematic_state::KinematicState::setToRandomValues(void)
 {
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
   std::vector<double> random_joint_states;
-  kinematic_model_->getRandomValues(rng, random_joint_states);
+  kinematic_model_->getVariableRandomValues(rng, random_joint_states);
   setStateValues(random_joint_states);
 }
 
-bool planning_models::KinematicState::satisfiesBounds(const std::string& joint) const
+bool kinematic_state::KinematicState::satisfiesBounds(const std::string& joint) const
 {
   std::vector<std::string> j(1, joint);
   return satisfiesBounds(j);
 }
 
-bool planning_models::KinematicState::satisfiesBounds(const std::vector<std::string>& joints) const
+bool kinematic_state::KinematicState::satisfiesBounds(const std::vector<std::string>& joints) const
 {
   for (std::vector<std::string>::const_iterator it = joints.begin(); it != joints.end(); ++it)
   {
     const JointState* joint_state = getJointState(*it);
-    if(joint_state == NULL)
+    if (joint_state == NULL)
     {
       logWarn("No joint with name '%s'", it->c_str());
       return false;
@@ -323,7 +324,7 @@ bool planning_models::KinematicState::satisfiesBounds(const std::vector<std::str
   return true;
 }
 
-bool planning_models::KinematicState::satisfiesBounds(void) const
+bool kinematic_state::KinematicState::satisfiesBounds(void) const
 {
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
     if (!joint_state_vector_[i]->satisfiesBounds())
@@ -331,50 +332,50 @@ bool planning_models::KinematicState::satisfiesBounds(void) const
   return true;
 }
 
-void planning_models::KinematicState::enforceBounds(void)
+void kinematic_state::KinematicState::enforceBounds(void)
 {
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
     joint_state_vector_[i]->enforceBounds();
   updateLinkTransforms();
 }
 
-const planning_models::KinematicState::JointStateGroup* planning_models::KinematicState::getJointStateGroup(const std::string &name) const
+const kinematic_state::JointStateGroup* kinematic_state::KinematicState::getJointStateGroup(const std::string &name) const
 {
-  if(joint_state_group_map_.find(name) == joint_state_group_map_.end()) return NULL;
+  if (joint_state_group_map_.find(name) == joint_state_group_map_.end())
+    return NULL;
   return joint_state_group_map_.find(name)->second;
 }
 
-planning_models::KinematicState::JointStateGroup* planning_models::KinematicState::getJointStateGroup(const std::string &name)
+kinematic_state::JointStateGroup* kinematic_state::KinematicState::getJointStateGroup(const std::string &name)
 {
-  if(joint_state_group_map_.find(name) == joint_state_group_map_.end()) return NULL;
+  if (joint_state_group_map_.find(name) == joint_state_group_map_.end())
+    return NULL;
   return joint_state_group_map_.find(name)->second;
 }
 
-bool planning_models::KinematicState::hasJointStateGroup(const std::string &name) const
+bool kinematic_state::KinematicState::hasJointStateGroup(const std::string &name) const
 {
   return joint_state_group_map_.find(name) != joint_state_group_map_.end();
 }
 
-void planning_models::KinematicState::getJointStateGroupNames(std::vector<std::string>& names) const
+void kinematic_state::KinematicState::getJointStateGroupNames(std::vector<std::string>& names) const
 {
-  for(std::map<std::string, JointStateGroup*>::const_iterator it = joint_state_group_map_.begin();
-      it != joint_state_group_map_.end();
-      it++) {
+  for (std::map<std::string, JointStateGroup*>::const_iterator it = joint_state_group_map_.begin();
+       it != joint_state_group_map_.end() ; ++it)
     names.push_back(it->first);
-  }
 }
 
-bool planning_models::KinematicState::hasJointState(const std::string &joint) const
+bool kinematic_state::KinematicState::hasJointState(const std::string &joint) const
 {
   return joint_state_map_.find(joint) != joint_state_map_.end();
 }
 
-bool planning_models::KinematicState::hasLinkState(const std::string& link) const
+bool kinematic_state::KinematicState::hasLinkState(const std::string& link) const
 {
   return link_state_map_.find(link) != link_state_map_.end();
 }
 
-planning_models::KinematicState::JointState* planning_models::KinematicState::getJointState(const std::string &name) const
+kinematic_state::JointState* kinematic_state::KinematicState::getJointState(const std::string &name) const
 {
   std::map<std::string, JointState*>::const_iterator it = joint_state_map_.find(name);
   if (it == joint_state_map_.end())
@@ -386,7 +387,7 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::ge
     return it->second;
 }
 
-planning_models::KinematicState::LinkState* planning_models::KinematicState::getLinkState(const std::string &name) const
+kinematic_state::LinkState* kinematic_state::KinematicState::getLinkState(const std::string &name) const
 {
   std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(name);
   if (it == link_state_map_.end())
@@ -398,12 +399,12 @@ planning_models::KinematicState::LinkState* planning_models::KinematicState::get
     return it->second;
 }
 
-bool planning_models::KinematicState::hasAttachedBody(const std::string &id) const
+bool kinematic_state::KinematicState::hasAttachedBody(const std::string &id) const
 {
   return attached_body_map_.find(id) != attached_body_map_.end();
 }
 
-const planning_models::KinematicState::AttachedBody* planning_models::KinematicState::getAttachedBody(const std::string &id) const
+const kinematic_state::AttachedBody* kinematic_state::KinematicState::getAttachedBody(const std::string &id) const
 {
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
   if (it == attached_body_map_.end())
@@ -415,7 +416,7 @@ const planning_models::KinematicState::AttachedBody* planning_models::KinematicS
     return it->second;
 }
 
-void planning_models::KinematicState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
+void kinematic_state::KinematicState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
 {
   attached_bodies.clear();
   attached_bodies.reserve(attached_body_map_.size());
@@ -423,14 +424,14 @@ void planning_models::KinematicState::getAttachedBodies(std::vector<const Attach
     attached_bodies.push_back(it->second);
 }
 
-void planning_models::KinematicState::clearAttachedBodies(void)
+void kinematic_state::KinematicState::clearAttachedBodies(void)
 {
   attached_body_map_.clear();
   for (std::size_t i = 0 ; i < link_state_vector_.size() ; ++i)
     link_state_vector_[i]->clearAttachedBodies();
 }
 
-namespace planning_models
+namespace kinematic_state
 {
 static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e, std::vector<double> &aabb)
 {
@@ -466,7 +467,7 @@ static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e
 }
 }
 
-void planning_models::KinematicState::computeAABB(std::vector<double> &aabb) const
+void kinematic_state::KinematicState::computeAABB(std::vector<double> &aabb) const
 {
   aabb.clear();
   for (std::size_t i = 0; i < link_state_vector_.size(); ++i)
@@ -489,7 +490,7 @@ void planning_models::KinematicState::computeAABB(std::vector<double> &aabb) con
     aabb.resize(6, 0.0);
 }
 
-double planning_models::KinematicState::distance(const KinematicState &state) const
+double kinematic_state::KinematicState::distance(const KinematicState &state) const
 {
   double d = 0.0;
   const std::vector<JointState*> &other = state.getJointStateVector();
@@ -498,14 +499,14 @@ double planning_models::KinematicState::distance(const KinematicState &state) co
   return d;
 }
 
-void planning_models::KinematicState::interpolate(const KinematicState &to, const double t, KinematicState &dest) const
+void kinematic_state::KinematicState::interpolate(const KinematicState &to, const double t, KinematicState &dest) const
 {
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
     joint_state_vector_[i]->interpolate(to.joint_state_vector_[i], t, dest.joint_state_vector_[i]);
   dest.updateLinkTransforms();
 }
 
-const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const std::string &id) const
+const Eigen::Affine3d* kinematic_state::KinematicState::getFrameTransform(const std::string &id) const
 {
   std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(id);
   if (it != link_state_map_.end())
@@ -528,7 +529,7 @@ const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const 
   return &(tf[0]);
 }
 
-bool planning_models::KinematicState::knowsFrameTransform(const std::string &id) const
+bool kinematic_state::KinematicState::knowsFrameTransform(const std::string &id) const
 { 
   if (hasLinkState(id))
     return true;
@@ -538,7 +539,7 @@ bool planning_models::KinematicState::knowsFrameTransform(const std::string &id)
 
 // ------ marker functions ------
 
-void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
+void kinematic_state::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
                                                       const std::string& ns,
                                                       const ros::Duration& dur,
                                                       visualization_msgs::MarkerArray& arr) const
@@ -546,12 +547,12 @@ void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA&
   getRobotMarkers(color, ns, dur, arr, kinematic_model_->getLinkModelNames());
 }
 
-void planning_models::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr) const
+void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr) const
 {
   getRobotMarkers(arr, kinematic_model_->getLinkModelNames());
 }
 
-void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
+void kinematic_state::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
                                                       const std::string& ns,
                                                       const ros::Duration& dur,
                                                       visualization_msgs::MarkerArray& arr,
@@ -569,7 +570,7 @@ void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA&
   }
 }
 
-void planning_models::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std::vector<std::string> &link_names) const
+void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std::vector<std::string> &link_names) const
 {
   for(std::size_t i = 0; i < link_names.size(); ++i)
   {
@@ -587,27 +588,26 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
         att_mark.header.frame_id = kinematic_model_->getModelFrame();
         att_mark.header.stamp = ros::Time::now();
         shapes::constructMarkerFromShape(attached_bodies[j]->getShapes()[0].get(), att_mark);
-        msgFromPose(attached_bodies[j]->getGlobalCollisionBodyTransforms()[0], att_mark.pose);
+        tf::poseEigenToMsg(attached_bodies[j]->getGlobalCollisionBodyTransforms()[0], att_mark.pose);
         arr.markers.push_back(att_mark);
       }
-    if(!ls->getLinkModel() || !ls->getLinkModel()->getShape())
+    if (!ls->getLinkModel() || !ls->getLinkModel()->getShape())
       continue;
     mark.header.frame_id = kinematic_model_->getModelFrame();
     mark.header.stamp = ros::Time::now();
-    msgFromPose(ls->getGlobalCollisionBodyTransform(), mark.pose);
-    if(ls->getLinkModel()->getFilename().empty())
+    tf::poseEigenToMsg(ls->getGlobalCollisionBodyTransform(), mark.pose);
+    if (ls->getLinkModel()->getMeshFilename().empty())
       shapes::constructMarkerFromShape(ls->getLinkModel()->getShape().get(), mark);
     else
     {
       mark.type = mark.MESH_RESOURCE;
-      if(!ls->getLinkModel()->getVisualFilename().empty())
+      if (!ls->getLinkModel()->getVisualMeshFilename().empty())
       {
         mark.mesh_use_embedded_materials = false;
-        mark.mesh_resource = ls->getLinkModel()->getVisualFilename();
+        mark.mesh_resource = ls->getLinkModel()->getVisualMeshFilename();
       } 
       else
-        mark.mesh_resource = ls->getLinkModel()->getFilename();
-      logDebug("Using filename '%s'", mark.mesh_resource.c_str());
+        mark.mesh_resource = ls->getLinkModel()->getMeshFilename();
       //TODO - deal with scale, potentially get visual markers
       mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
     }
@@ -617,7 +617,7 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
 
 // ------ printing transforms -----
 
-void planning_models::KinematicState::printStateInfo(std::ostream &out) const
+void kinematic_state::KinematicState::printStateInfo(std::ostream &out) const
 {
   std::map<std::string,double> val;
   getStateValues(val);
@@ -625,7 +625,7 @@ void planning_models::KinematicState::printStateInfo(std::ostream &out) const
     std::cout << it->first << " = " << it->second << std::endl;
 }
 
-void planning_models::KinematicState::printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out) const
+void kinematic_state::KinematicState::printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out) const
 {
   out << st << std::endl;
   const Eigen::Vector3d &v = t.translation();
@@ -634,7 +634,7 @@ void planning_models::KinematicState::printTransform(const std::string &st, cons
   out << "  quaternion: " << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w() << std::endl;
 }
 
-void planning_models::KinematicState::printTransforms(std::ostream &out) const
+void kinematic_state::KinematicState::printTransforms(std::ostream &out) const
 {
   out << "Joint transforms:" << std::endl;
   for (unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)

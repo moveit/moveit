@@ -34,31 +34,30 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#ifndef MOVEIT_PLANNING_MODELS_KINEMATIC_MODEL_
-#define MOVEIT_PLANNING_MODELS_KINEMATIC_MODEL_
+#ifndef MOVEIT_KINEMATIC_MODEL_KINEMATIC_MODEL_
+#define MOVEIT_KINEMATIC_MODEL_KINEMATIC_MODEL_
 
 #include <urdf_model/model.h>
 #include <srdfdom/model.h>
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_messages.h>
 #include <random_numbers/random_numbers.h>
-#include <moveit/kinematics_base/kinematics_base.h>
-
-#include <boost/function.hpp>
+#include <moveit/kinematic_model/joint_model_group.h>
+#include <moveit/kinematic_model/fixed_joint_model.h>
+#include <moveit/kinematic_model/floating_joint_model.h>
+#include <moveit/kinematic_model/planar_joint_model.h>
+#include <moveit/kinematic_model/revolute_joint_model.h>
+#include <moveit/kinematic_model/prismatic_joint_model.h>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
-#include <vector>
-#include <string>
-#include <map>
 #include <set>
-#include <moveit_msgs/JointLimits.h>
 
 #include <Eigen/Geometry>
 
 #include <console_bridge/console.h>
 
 /** \brief Main namespace for representing robot planning models */
-namespace planning_models
+namespace kinematic_model
 {
 
 /** \brief Definition of a kinematic model. This class is not thread
@@ -67,40 +66,10 @@ class KinematicModel
 {
 public:
   
-  /** \brief Forward definition of a joint */
-  class JointModel;
-  
-  /** \brief Forward definition of a link */
-  class LinkModel;
-  
-
-  /** \brief Forward definition of a joint group */
-  class JointModelGroup;
-  
-  /// function type that allocates a kinematics solver for a particular group
-  typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup*)> SolverAllocatorFn;
-  
-  /// function type that allocates a kinematics solvers for subgroups of a group
-  typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn;
-  
-// include the headers defining joints
-#include "moveit/planning_models/kinematic_model/joint_model-inc.h"
-#include "moveit/planning_models/kinematic_model/fixed_joint_model-inc.h"
-#include "moveit/planning_models/kinematic_model/floating_joint_model-inc.h"
-#include "moveit/planning_models/kinematic_model/planar_joint_model-inc.h"
-#include "moveit/planning_models/kinematic_model/prismatic_joint_model-inc.h"
-#include "moveit/planning_models/kinematic_model/revolute_joint_model-inc.h"
-  
-// include the header defining a link model
-#include "moveit/planning_models/kinematic_model/link_model-inc.h"
-
-// include the header defining a joint group model
-#include "moveit/planning_models/kinematic_model/joint_model_group-inc.h"
-
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
   KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model);
-
+  
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
   KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model,
@@ -110,8 +79,11 @@ public:
   virtual ~KinematicModel(void);
   
   /** \brief Get the model name **/
-  const std::string& getName(void) const;
-
+  const std::string& getName(void) const
+  {
+    return model_name_;
+  }
+  
   /** \brief Get the parsed URDF model*/
   const boost::shared_ptr<const urdf::ModelInterface>& getURDF(void) const
   {
@@ -123,18 +95,18 @@ public:
   {
     return srdf_;
   }
-
-  /** \brief Get a link by its name */
-  const LinkModel* getLinkModel(const std::string &link) const;
   
   /** \brief Check if a link exists */
   bool hasLinkModel(const std::string &name) const;
   
-  /** \brief Get a joint by its name */
-  const JointModel* getJointModel(const std::string &joint) const;
+  /** \brief Get a link by its name */
+  const LinkModel* getLinkModel(const std::string &link) const;
   
   /** \brief Check if a joint exists */
   bool hasJointModel(const std::string &name) const;
+  
+  /** \brief Get a joint by its name */
+  const JointModel* getJointModel(const std::string &joint) const;
   
   /** \brief Get the set of link models that follow a parent link in the kinematic chain */
   void getChildLinkModels(const LinkModel* parent, std::vector<const LinkModel*> &links) const;
@@ -166,7 +138,7 @@ public:
   {
     return joint_model_vector_const_;
   }
-
+  
   /** \brief Get the array of joints, in the order they appear
       in the robot state. */
   const std::vector<JointModel*>& getJointModels(void)
@@ -185,11 +157,17 @@ public:
   {
     return link_model_vector_const_;
   }
-
+  
   /** \brief Get the array of links  */
   const std::vector<LinkModel*>& getLinkModels(void)
   {
     return link_model_vector_;
+  }
+  
+  /** \brief Get the link names (of all links) */
+  const std::vector<std::string>& getLinkModelNames(void) const
+  {
+    return link_model_names_vector_;
   }
   
   /** \brief Get the link models that have some collision geometry associated to themselves */
@@ -204,34 +182,24 @@ public:
     return link_model_names_with_collision_geometry_vector_;
   }
   
-  /** \brief Get the link names (of all links) */
-  const std::vector<std::string>& getLinkModelNames(void) const
-  {
-    return link_model_names_vector_;
-  }
-  
   /** \brief Get the root joint. There will always be one root
       joint. This is either extracted from the SRDF, or a fixed
       joint is assumed, if no specification is given.  */
-  const JointModel* getRoot(void) const;
-  
-  const std::string& getRootJointName(void) const
+  const JointModel* getRoot(void) const
   {
-    return getRoot()->getName();
+    return root_joint_;
   }
   
-  /** \brief Get the physical root link of the robot. */
+  const std::string& getRootJointName(void) const;
   
+  /** \brief Get the physical root link of the robot. */
   const LinkModel* getRootLink(void) const
   {
     return root_link_;
   }
   
   /** \brief Get the name of the root link of the robot. */
-  const std::string& getRootLinkName(void) const
-  {
-    return getRootLink()->getName();
-  }
+  const std::string& getRootLinkName(void) const;
   
   /** \brief Get the frame in which the transforms for this
       model are computed (when using a planning_models::KinematicState). This frame depends on
@@ -243,26 +211,26 @@ public:
   }
   
   /** \brief Compute the random values for a KinematicState */
-  void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
-
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
+  
   /** \brief Compute the random values for a KinematicState */
-  void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const;
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const;
   
   /** \brief Compute the default values for a KinematicState */
-  void getDefaultValues(std::vector<double> &values) const;
-
+  void getVariableDefaultValues(std::vector<double> &values) const;
+  
   /** \brief Compute the default values for a KinematicState */
-  void getDefaultValues(std::map<std::string, double> &values) const;
+  void getVariableDefaultValues(std::map<std::string, double> &values) const;
   
   /** \brief Print information about the constructed model */
   void printModelInfo(std::ostream &out = std::cout) const;
   
   /** \brief Check if the JointModelGroup \e group exists */
   bool hasJointModelGroup(const std::string& group) const;
-    
+  
   /** \brief Get a joint group from this model (by name) */
   const JointModelGroup* getJointModelGroup(const std::string& name) const;
-
+  
   /** \brief Get a joint group from this model (by name) */
   JointModelGroup* getJointModelGroup(const std::string& name);
   
@@ -272,14 +240,17 @@ public:
     return joint_model_group_map_;
   }
   
+  /** \brief Get the names of all groups that are defined for this model */
+  const std::vector<std::string>& getJointModelGroupNames(void) const
+  {
+    return joint_model_group_names_;
+  }
+  
   /** \brief Get the map between joint group names and the SRDF group object */
   const std::map<std::string, srdf::Model::Group>& getJointModelGroupConfigMap(void) const
   {
     return joint_model_group_config_map_;
   }
-  
-  /** \brief Get the names of all groups that are defined for this model */
-  const std::vector<std::string>& getJointModelGroupNames(void) const;
   
   /** \brief Get the number of variables that describe this model */
   unsigned int getVariableCount(void) const
@@ -290,9 +261,9 @@ public:
   /** \brief Get the names of the variables that make up the joints that form this state. Only active joints (not
       fixed, not mimic) are included. Effectively, these are the names of the DOF for this group. The number of
       returned elements is always equal to getVariableCount() */
-  const std::vector<std::string>& getActiveDOFNames(void) const
+  const std::vector<std::string>& getVariableNames(void) const
   {
-    return active_dof_names_;
+    return active_variable_names_;
   }
   
   /** \brief Get bounds for all the variables in this model. Bounds are returned as a std::pair<lower,upper> */
@@ -309,84 +280,84 @@ public:
   {
     return joint_variables_index_map_;
   }
-
+  
   /// A map of known kinematics solvers (associated to their group name)
   void setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn> &allocators);
-
+  
 protected:
-
+  
   typedef std::map<LinkModel*, Eigen::Affine3d, std::less<LinkModel*>, 
                    Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > > LinkModelToAffine3dMap;
 
   void computeFixedTransforms(LinkModel *link, const Eigen::Affine3d &transform, LinkModelToAffine3dMap &associated_transforms);
-  
+
   /** \brief The name of the model */
-  std::string                               model_name_;
-  
+  std::string                                   model_name_;
+
   /** \brief The reference frame for this model */
-  std::string                               model_frame_;
-  
+  std::string                                   model_frame_;
+
   /** \brief A map from link names to their instances */
-  std::map<std::string, LinkModel*>         link_model_map_;
-  
+  std::map<std::string, LinkModel*>             link_model_map_;
+
   /** \brief The vector of links that are updated when computeTransforms() is called, in the order they are updated */
-  std::vector<LinkModel*>                   link_model_vector_;
-  
+  std::vector<LinkModel*>                       link_model_vector_;
+
   /** \brief The vector of links that are updated when computeTransforms() is called, in the order they are updated */
-  std::vector<const LinkModel*>             link_model_vector_const_;
-  
+  std::vector<const LinkModel*>                 link_model_vector_const_;
+
   /** \brief The vector of link names that corresponds to link_model_vector_ */
-  std::vector<std::string>                  link_model_names_vector_;
-  
+  std::vector<std::string>                      link_model_names_vector_;
+
   /** \brief Only links that have collision geometry specified */
-  std::vector<LinkModel*>                   link_models_with_collision_geometry_vector_;
-  
+  std::vector<LinkModel*>                       link_models_with_collision_geometry_vector_;
+
   /** \brief The vector of link names that corresponds to link_models_with_collision_geometry_vector_ */
-  std::vector<std::string>                  link_model_names_with_collision_geometry_vector_;
-  
+  std::vector<std::string>                      link_model_names_with_collision_geometry_vector_;
+
   /** \brief A map from joint names to their instances */
-  std::map<std::string, JointModel*>        joint_model_map_;
+  std::map<std::string, JointModel*>            joint_model_map_;
   
   /** \brief The vector of joints in the model, in the order they appear in the state vector */
-  std::vector<JointModel*>                  joint_model_vector_;
+  std::vector<JointModel*>                      joint_model_vector_;
 
   /** \brief The vector of joints in the model, in the order they appear in the state vector */
-  std::vector<const JointModel*>            joint_model_vector_const_;
+  std::vector<const JointModel*>                joint_model_vector_const_;
   
   /** \brief The vector of joint names that corresponds to joint_model_vector_ */
-  std::vector<std::string>                  joint_model_names_vector_;
+  std::vector<std::string>                      joint_model_names_vector_;
   
   /** \brief The names of the DOF that make up this state (this is just a sequence of joint variable names; not necessarily joint names!) */
-  std::vector<std::string>                  active_dof_names_;
+  std::vector<std::string>                      active_variable_names_;
   
   /** \brief Get the number of variables necessary to describe this model */
-  unsigned int                              variable_count_;
+  unsigned int                                  variable_count_;
   
   /** \brief The bounds for all the variables that make up the joints in this model */
   std::map<std::string,
-           std::pair<double, double> >      variable_bounds_;
+           std::pair<double, double> >          variable_bounds_;
   
   /** \brief The state includes all the joint variables that make up the joints the state consists of.
       This map gives the position in the state vector of the group for each of these variables.
       Additionaly, it includes the names of the joints and the index for the first variable of that joint. */
-  std::map<std::string, unsigned int>       joint_variables_index_map_;
+  std::map<std::string, unsigned int>           joint_variables_index_map_;
   
-  /** \brief The root joint */
-  JointModel                               *root_joint_;
+  /** \brief The root joint */ 
+  JointModel                                   *root_joint_;
   
   /** \brief The first physical link for the robot */
-  LinkModel                                *root_link_;
+  LinkModel                                    *root_link_;
   
   /** \brief A map from group names to joint groups */
-  std::map<std::string, JointModelGroup*>   joint_model_group_map_;
+  std::map<std::string, JointModelGroup*>       joint_model_group_map_;
   
   /** \brief A vector of all group names */
-  std::vector<std::string>                  joint_model_group_names_;
+  std::vector<std::string>                      joint_model_group_names_;
   
   /** \brief A vector of all group names */
-  std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
+  std::map<std::string, srdf::Model::Group>     joint_model_group_config_map_;
 
-  boost::shared_ptr<const srdf::Model>      srdf_;
+  boost::shared_ptr<const srdf::Model>          srdf_;
 
   boost::shared_ptr<const urdf::ModelInterface> urdf_;
 

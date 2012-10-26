@@ -32,9 +32,17 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/*------------------------------------------------------*/
-/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
-/*------------------------------------------------------*/
+#ifndef MOVEIT_KINEMATIC_STATE_ATTACHED_BODY_
+#define MOVEIT_KINEMATIC_STATE_ATTACHED_BODY_
+
+#include <moveit/kinematic_state/link_state.h>
+#include <eigen_stl_containers/eigen_stl_containers.h>
+#include <set>
+
+namespace kinematic_state
+{
+
+class LinkState;
 
 /** @brief Object defining bodies that can be attached to robot
  *  links. This is useful when handling objects picked up by
@@ -68,7 +76,7 @@ public:
   } 
 
   /** \brief Get the link this body is attached to */
-  const KinematicModel::LinkModel* getAttachedLink(void) const
+  const kinematic_model::LinkModel* getAttachedLink(void) const
   {
     return parent_link_state_->getLinkModel();
   }
@@ -128,3 +136,5 @@ private:
   EigenSTL::vector_Affine3d          global_collision_body_transforms_;
 };
 
+}
+#endif
