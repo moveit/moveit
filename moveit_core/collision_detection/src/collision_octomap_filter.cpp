@@ -50,7 +50,7 @@ bool findSurface(const octomap::point3d_list &cloud, const float &spacing, const
 bool sampleCloud(const octomap::point3d_list &cloud, const float &spacing, const octomath::Vector3 &position, float &intensity, octomath::Vector3 &gradient);
 
 
-void collision_detection::refineContactNormals(const boost::shared_ptr<collision_detection::CollisionWorld::Object>& object,
+void collision_detection::refineContactNormals(const CollisionWorld::ObjectConstPtr& object,
                                                CollisionResult &res, bool estimate_depth)
 {
   if(!object)
@@ -58,7 +58,7 @@ void collision_detection::refineContactNormals(const boost::shared_ptr<collision
     ROS_ERROR("No valid Object passed in, cannot refine Normals!");
     return;
   }
-  if(!res.contact_count)
+  if(res.contact_count < 1)
   {
     ROS_WARN("There do not appear to be any contacts, so there is nothing to refine!");
     return;

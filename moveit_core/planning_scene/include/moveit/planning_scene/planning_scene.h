@@ -56,10 +56,6 @@
 namespace planning_scene
 {
 
-static const std::string COLLISION_MAP_NS = "_1_collision_map";
-static const std::string OCTOMAP_NS = "_2_octomap";
-static const std::string DEFAULT_SCENE_NAME = "(noname)";
-
 class PlanningScene;
 typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
 typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
@@ -87,6 +83,10 @@ public:
   /** \brief Constructor. Allocate an empty planning scene. Before use, this instance needs to be configured
       by calling the configure() function. */
   PlanningScene(void);
+
+  static const std::string COLLISION_MAP_NS;
+  static const std::string OCTOMAP_NS;
+  static const std::string DEFAULT_SCENE_NAME;
   
 protected:
 
