@@ -586,7 +586,6 @@ void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::Marker
       {
         visualization_msgs::Marker att_mark;
         att_mark.header.frame_id = kinematic_model_->getModelFrame();
-        att_mark.header.stamp = ros::Time::now();
         shapes::constructMarkerFromShape(attached_bodies[j]->getShapes()[0].get(), att_mark);
         tf::poseEigenToMsg(attached_bodies[j]->getGlobalCollisionBodyTransforms()[0], att_mark.pose);
         arr.markers.push_back(att_mark);
@@ -594,7 +593,6 @@ void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::Marker
     if (!ls->getLinkModel() || !ls->getLinkModel()->getShape())
       continue;
     mark.header.frame_id = kinematic_model_->getModelFrame();
-    mark.header.stamp = ros::Time::now();
     tf::poseEigenToMsg(ls->getGlobalCollisionBodyTransform(), mark.pose);
     if (ls->getLinkModel()->getMeshFilename().empty())
       shapes::constructMarkerFromShape(ls->getLinkModel()->getShape().get(), mark);

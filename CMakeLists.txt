@@ -50,6 +50,7 @@ catkin_package(
     geometric_shapes
     shape_tools
     eigen_stl_containers
+    eigen_conversions
     random_numbers
     console_bridge
     moveit_msgs)

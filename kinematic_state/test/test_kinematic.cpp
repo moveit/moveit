@@ -34,8 +34,8 @@
 
 /** \author Ioan Sucan, E. Gil Jones */
 
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
+#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 #include <urdf_parser/urdf_parser.h>
 #include <gtest/gtest.h>
 #include <sstream>
@@ -90,13 +90,13 @@ TEST(Loading, SimpleRobot)
 
     EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
 
-    planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
-    planning_models::KinematicState state(model);
+    kinematic_model::KinematicModelPtr model(new kinematic_model::KinematicModel(urdfModel, srdfModel));
+    kinematic_state::KinematicState state(model);
 
     state.setToDefaultValues();
 
     //make sure that this copy constructor works
-    planning_models::KinematicState new_state(state);
+    kinematic_state::KinematicState new_state(state);
 
     //(0,0,0,0) isn't a valid quaternion, so the w should be 1
     std::map<std::string, double> state_values;
@@ -107,10 +107,10 @@ TEST(Loading, SimpleRobot)
     EXPECT_EQ(std::string("myrobot"), model->getName());
     EXPECT_EQ((unsigned int)7, new_state.getVariableCount());
 
-    const std::vector<planning_models::KinematicModel::LinkModel*>& links = model->getLinkModels();
+    const std::vector<kinematic_model::LinkModel*>& links = model->getLinkModels();
     EXPECT_EQ((unsigned int)1, links.size());
 
-    const std::vector<planning_models::KinematicModel::JointModel*>& joints = model->getJointModels();
+    const std::vector<kinematic_model::JointModel*>& joints = model->getJointModels();
     EXPECT_EQ((unsigned int)1, joints.size());
 
     const std::vector<std::string>& pgroups = model->getJointModelGroupNames();
@@ -172,14 +172,14 @@ TEST(LoadingAndFK, SimpleRobot)
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL1);
 
-    planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
-    planning_models::KinematicState state(model);
+    kinematic_model::KinematicModelPtr model(new kinematic_model::KinematicModel(urdfModel, srdfModel));
+    kinematic_state::KinematicState state(model);
 
     EXPECT_EQ((unsigned int)3, state.getVariableCount());
 
     state.setToDefaultValues();
 
-    const std::vector<planning_models::KinematicState::JointState*>& joint_states = state.getJointStateVector();
+    const std::vector<kinematic_state::JointState*>& joint_states = state.getJointStateVector();
     EXPECT_EQ((unsigned int)1, joint_states.size());
     EXPECT_EQ((unsigned int)3, joint_states[0]->getVariableValues().size());
 
@@ -208,7 +208,7 @@ TEST(LoadingAndFK, SimpleRobot)
     EXPECT_NEAR(0.0, state.getLinkState("base_link")->getGlobalLinkTransform().translation().z(), 1e-5);
 
     //making sure that values get copied
-    planning_models::KinematicState new_state(state);
+    kinematic_state::KinematicState new_state(state);
     EXPECT_NEAR(10.0, new_state.getLinkState("base_link")->getGlobalLinkTransform().translation().x(), 1e-5);
     EXPECT_NEAR(8.0, new_state.getLinkState("base_link")->getGlobalLinkTransform().translation().y(), 1e-5);
     EXPECT_NEAR(0.0, new_state.getLinkState("base_link")->getGlobalLinkTransform().translation().z(), 1e-5);
@@ -399,13 +399,13 @@ TEST(FK, OneRobot)
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL2);
 
-    planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
+    kinematic_model::KinematicModelPtr model(new kinematic_model::KinematicModel(urdfModel, srdfModel));
 
     //testing that the two planning groups are the same
-    const planning_models::KinematicModel::JointModelGroup* g_one = model->getJointModelGroup("base_from_joints");
-    const planning_models::KinematicModel::JointModelGroup* g_two = model->getJointModelGroup("base_from_base_to_tip");
-    const planning_models::KinematicModel::JointModelGroup* g_three = model->getJointModelGroup("base_with_subgroups");
-    const planning_models::KinematicModel::JointModelGroup* g_four = model->getJointModelGroup("base_with_bad_subgroups");
+    const kinematic_model::JointModelGroup* g_one = model->getJointModelGroup("base_from_joints");
+    const kinematic_model::JointModelGroup* g_two = model->getJointModelGroup("base_from_base_to_tip");
+    const kinematic_model::JointModelGroup* g_three = model->getJointModelGroup("base_with_subgroups");
+    const kinematic_model::JointModelGroup* g_four = model->getJointModelGroup("base_with_bad_subgroups");
 
     ASSERT_TRUE(g_one != NULL);
     ASSERT_TRUE(g_two != NULL);
@@ -460,7 +460,7 @@ TEST(FK, OneRobot)
 
     //bracketing so the state gets destroyed before we bring down the model
 
-    planning_models::KinematicState state(model);
+    kinematic_state::KinematicState state(model);
 
     EXPECT_EQ((unsigned int)5, state.getVariableCount());
 
@@ -472,7 +472,7 @@ TEST(FK, OneRobot)
     joint_values["base_joint/theta"]=0.5;
     joint_values["joint_a"] = -0.5;
     joint_values["joint_c"] = 0.1;
-    state.getJointStateGroup("base_from_joints")->setStateValues(joint_values);
+    state.getJointStateGroup("base_from_joints")->setVariableValues(joint_values);
 
     //double param[5] = { 1, 1, 0.5, -0.5, 0.1 };
     //model->getGroup("base")->computeTransforms(param);

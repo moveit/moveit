@@ -34,14 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_MODELS_CONVERSIONS_
-#define MOVEIT_PLANNING_MODELS_CONVERSIONS_
+#ifndef MOVEIT_KINEMATIC_STATE_CONVERSIONS_
+#define MOVEIT_KINEMATIC_STATE_CONVERSIONS_
 
-#include <moveit/planning_models/transforms.h>
+#include <moveit/kinematic_state/transforms.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/RobotTrajectory.h>
 
-namespace planning_models
+namespace kinematic_state
 {
 /**
  * @brief Convert a joint state to a kinematic state
@@ -49,7 +49,7 @@ namespace planning_models
  * @param state The resultant kinematic state
  * @return True if successful, false if failed for any reason
  */
-bool jointStateToKinematicState(const sensor_msgs::JointState &joint_state, planning_models::KinematicState& state);
+bool jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state);
 
 /**
  * @brief Convert a robot state (with accompanying extra transforms) to a kinematic state
