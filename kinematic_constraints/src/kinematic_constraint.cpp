@@ -37,7 +37,7 @@
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
-#include <moveit/planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <moveit/collision_detection_fcl/collision_robot.h>
 #include <moveit/collision_detection_fcl/collision_world.h>
 #include <boost/scoped_ptr.hpp>
@@ -59,7 +59,7 @@ static double normalizeAngle(double angle)
 }
 }
 
-kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
+kinematic_constraints::KinematicConstraint::KinematicConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
   type_(UNKNOWN_CONSTRAINT), kmodel_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
@@ -127,14 +127,14 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
     
     // check if we have to wrap angles when computing distances
     joint_is_continuous_ = false;
-    if (joint_model_->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
+    if (joint_model_->getType() == kinematic_model::JointModel::REVOLUTE)
     {
-      const planning_models::KinematicModel::RevoluteJointModel *rjoint = static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model_);
+      const kinematic_model::RevoluteJointModel *rjoint = static_cast<const kinematic_model::RevoluteJointModel*>(joint_model_);
       if (rjoint->isContinuous())
         joint_is_continuous_ = true;
     }
     else
-      if (joint_model_->getType() == planning_models::KinematicModel::JointModel::PLANAR)
+      if (joint_model_->getType() == kinematic_model::JointModel::PLANAR)
       {
         if (local_variable_name_ == "theta") 
           joint_is_continuous_ = true;
@@ -186,12 +186,12 @@ bool kinematic_constraints::JointConstraint::equal(const KinematicConstraint &ot
   return false;
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointConstraint::decide(const kinematic_state::KinematicState &state, bool verbose) const
 {
   if (!joint_model_)
     return ConstraintEvaluationResult(true, 0.0);
   
-  const planning_models::KinematicState::JointState *joint = state.getJointState(joint_model_->getName());
+  const kinematic_state::JointState *joint = state.getJointState(joint_model_->getName());
   
   if (!joint)
   {

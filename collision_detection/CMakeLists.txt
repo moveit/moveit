@@ -9,7 +9,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/allvalid/collision_world.cpp
 )
 
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_models ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_kinematic_state ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION lib)

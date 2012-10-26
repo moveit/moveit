@@ -48,12 +48,12 @@ namespace collision_detection
 
 struct CollisionGeometryData
 {
-  CollisionGeometryData(const planning_models::KinematicModel::LinkModel *link) : type(BodyTypes::ROBOT_LINK)
+  CollisionGeometryData(const kinematic_model::LinkModel *link) : type(BodyTypes::ROBOT_LINK)
   {
     ptr.link = link;
   }
   
-  CollisionGeometryData(const planning_models::KinematicState::AttachedBody *ab) : type(BodyTypes::ROBOT_ATTACHED)
+  CollisionGeometryData(const kinematic_state::AttachedBody *ab) : type(BodyTypes::ROBOT_ATTACHED)
   {
     ptr.ab = ab;
   }
@@ -94,10 +94,10 @@ struct CollisionGeometryData
   BodyType type;
   union
   {
-    const planning_models::KinematicModel::LinkModel    *link;
-    const planning_models::KinematicState::AttachedBody *ab;
-    const CollisionWorld::Object                        *obj;
-    const void                                          *raw;
+    const kinematic_model::LinkModel    *link;
+    const kinematic_state::AttachedBody *ab;
+    const CollisionWorld::Object        *obj;
+    const void                          *raw;
   } ptr;
 };
 
@@ -117,14 +117,14 @@ struct CollisionData
   }
 
   /// Compute \e active_components_only_ based on \e req_
-  void enableGroup(const planning_models::KinematicModelConstPtr &kmodel);
+  void enableGroup(const kinematic_model::KinematicModelConstPtr &kmodel);
   
   /// The collision request passed by the user
   const CollisionRequest       *req_;
 
   /// If the collision request includes a group name, this set contains the pointers to the link models that are considered for collision;
   /// If the pointer is NULL, all collisions are considered.
-  const std::set<const planning_models::KinematicModel::LinkModel*> 
+  const std::set<const kinematic_model::LinkModel*> 
                                *active_components_only_;
 
   /// The user specified response location
@@ -144,13 +144,13 @@ struct FCLGeometry
   {
   }
   
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const planning_models::KinematicModel::LinkModel *link) :
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const kinematic_model::LinkModel *link) :
     collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const planning_models::KinematicState::AttachedBody *ab) :
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const kinematic_state::AttachedBody *ab) :
     collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
@@ -200,16 +200,16 @@ bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void 
 bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *data, double& min_dist);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const planning_models::KinematicModel::LinkModel *link);
+                                            const kinematic_model::LinkModel *link);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const planning_models::KinematicState::AttachedBody *ab);
+                                            const kinematic_state::AttachedBody *ab);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const CollisionWorld::Object *obj);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const planning_models::KinematicModel::LinkModel *link);
+                                            const kinematic_model::LinkModel *link);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const planning_models::KinematicState::AttachedBody *ab);
+                                            const kinematic_state::AttachedBody *ab);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const CollisionWorld::Object *obj);
 
