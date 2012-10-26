@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** Author Adam Leeper */
+/* Author Adam Leeper */
 
 #ifndef COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
 #define COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
@@ -40,12 +40,12 @@
 #include "collision_detection/collision_common.h"
 #include "collision_detection/collision_world.h"
 
-namespace collision_detection {
+namespace collision_detection
+{
 
-void refineContactNormals(const boost::shared_ptr<collision_detection::CollisionWorld::Object>& object,
+void refineContactNormals(const CollisionWorld::ObjectConstPtr& object,
                           CollisionResult &res,
-                          bool estimate_depth = false
-                          );
+                          bool estimate_depth = false);
 
 }
 
