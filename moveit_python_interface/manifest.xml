@@ -17,10 +17,12 @@
   <depend package="geometry_msgs"/>
   <depend package="visualization_msgs"/>
   <depend package="tf"/>
+  <depend package="geometric_shapes"/>
   <!-- <depend package="arm_navigation_msgs"/> -->
   <depend package="pr2_controllers_msgs"/>
   <depend package="std_srvs"/>
-
+  <depend package="py_bindings_tools"/>
+  <depend package="shape_msgs"/>
 
 </package>
 
