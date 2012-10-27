@@ -61,9 +61,9 @@ class CollisionRobotDistanceField : public CollisionRobot
 
 public:
 
-  CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel);
+  CollisionRobotDistanceField(const kinematic_model::KinematicModelConstPtr& kmodel);
 
-  CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
+  CollisionRobotDistanceField(const kinematic_model::KinematicModelConstPtr& kmodel, 
                               const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                               double size_x = DEFAULT_SIZE_X, 
                               double size_y = DEFAULT_SIZE_Y,
@@ -88,36 +88,36 @@ public:
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const planning_models::KinematicState &state) const;
+                                  const kinematic_state::KinematicState &state) const;
 
   void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                           collision_detection::CollisionResult &res, 
-                          const planning_models::KinematicState &state,
+                          const kinematic_state::KinematicState &state,
                           boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const planning_models::KinematicState &state,
+                                  const kinematic_state::KinematicState &state,
                                   const collision_detection::AllowedCollisionMatrix &acm) const;
 
   void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                           collision_detection::CollisionResult &res, 
-                          const planning_models::KinematicState &state,
+                          const kinematic_state::KinematicState &state,
                           const collision_detection::AllowedCollisionMatrix &acm,
                           boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const planning_models::KinematicState &state1, 
-                                  const planning_models::KinematicState &state2) const
+                                  const kinematic_state::KinematicState &state1, 
+                                  const kinematic_state::KinematicState &state2) const
   {
     logWarn("Not implemented");
   };
   
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const planning_models::KinematicState &state1, 
-                                  const planning_models::KinematicState &state2, 
+                                  const kinematic_state::KinematicState &state1, 
+                                  const kinematic_state::KinematicState &state2, 
                                   const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
@@ -125,60 +125,60 @@ public:
   
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const planning_models::KinematicState &state,
+                                   const kinematic_state::KinematicState &state,
                                    const CollisionRobot &other_robot, 
-                                   const planning_models::KinematicState &other_state) const
+                                   const kinematic_state::KinematicState &other_state) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const planning_models::KinematicState &state,
+                                   const kinematic_state::KinematicState &state,
                                    const CollisionRobot &other_robot, 
-                                   const planning_models::KinematicState &other_state,
+                                   const kinematic_state::KinematicState &other_state,
                                    const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, collision_detection::CollisionResult &res, 
-                                   const planning_models::KinematicState &state1, 
-                                   const planning_models::KinematicState &state2,
+                                   const kinematic_state::KinematicState &state1, 
+                                   const kinematic_state::KinematicState &state2,
                                    const CollisionRobot &other_robot, 
-                                   const planning_models::KinematicState &other_state1, 
-                                   const planning_models::KinematicState &other_state2) const
+                                   const kinematic_state::KinematicState &other_state1, 
+                                   const kinematic_state::KinematicState &other_state2) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const planning_models::KinematicState &state1, 
-                                   const planning_models::KinematicState &state2,
+                                   const kinematic_state::KinematicState &state1, 
+                                   const kinematic_state::KinematicState &state2,
                                    const CollisionRobot &other_robot, 
-                                   const planning_models::KinematicState &other_state1, 
-                                   const planning_models::KinematicState &other_state2,
+                                   const kinematic_state::KinematicState &other_state1, 
+                                   const kinematic_state::KinematicState &other_state2,
                                    const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
   };
   
-  virtual double distanceSelf(const planning_models::KinematicState &state) const
+  virtual double distanceSelf(const kinematic_state::KinematicState &state) const
   {
     return 0.0;
   };
-  virtual double distanceSelf(const planning_models::KinematicState &state, const collision_detection::AllowedCollisionMatrix &acm) const
+  virtual double distanceSelf(const kinematic_state::KinematicState &state, const collision_detection::AllowedCollisionMatrix &acm) const
   {
     return 0.0;
   };
-  virtual double distanceOther(const planning_models::KinematicState &state,
-                               const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const
+  virtual double distanceOther(const kinematic_state::KinematicState &state,
+                               const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state) const
   {
     return 0.0;
   };
-  virtual double distanceOther(const planning_models::KinematicState &state, const CollisionRobot &other_robot,
-                               const planning_models::KinematicState &other_state, const collision_detection::AllowedCollisionMatrix &acm) const
+  virtual double distanceOther(const kinematic_state::KinematicState &state, const CollisionRobot &other_robot,
+                               const kinematic_state::KinematicState &other_state, const collision_detection::AllowedCollisionMatrix &acm) const
   {
     return 0.0;
   };
@@ -189,7 +189,7 @@ public:
 
   // void getSelfCollisionsGradients(const collision_detection::CollisionRequest &req, 
   //                                 collision_detection::CollisionResult &res, 
-  //                                 const planning_models::KinematicState &state, 
+  //                                 const kinematic_state::KinematicState &state, 
   //                                 const collision_detection::AllowedCollisionMatrix &acm) const;  
 protected:
 
@@ -207,28 +207,28 @@ protected:
 
   void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,
-                                const planning_models::KinematicState& state,
+                                const kinematic_state::KinematicState& state,
                                 const collision_detection::AllowedCollisionMatrix *acm,
                                 boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  void updateGroupStateRepresentationState(const planning_models::KinematicState& state,
+  void updateGroupStateRepresentationState(const kinematic_state::KinematicState& state,
                                            boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   void generateCollisionCheckingStructures(const std::string& group_name,
-                                           const planning_models::KinematicState& state,
+                                           const kinematic_state::KinematicState& state,
                                            const collision_detection::AllowedCollisionMatrix *acm,
                                            boost::shared_ptr<GroupStateRepresentation>& gsr,
                                            bool generate_distance_field) const;
 
   boost::shared_ptr<const DistanceFieldCacheEntry> 
   getDistanceFieldCacheEntry(const std::string& group_name,
-                             const planning_models::KinematicState& state,
+                             const kinematic_state::KinematicState& state,
                              const collision_detection::AllowedCollisionMatrix *acm) const;
   
 
   boost::shared_ptr<DistanceFieldCacheEntry> 
   generateDistanceFieldCacheEntry(const std::string& group_name,
-                                  const planning_models::KinematicState& state,
+                                  const kinematic_state::KinematicState& state,
                                   const collision_detection::AllowedCollisionMatrix *acm,
                                   bool generate_distance_field) const;
     
@@ -238,17 +238,17 @@ protected:
                                  const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions);
 
   PosedBodySphereDecompositionPtr 
-  getPosedLinkBodySphereDecomposition(const planning_models::KinematicState::LinkState* ls,
+  getPosedLinkBodySphereDecomposition(const kinematic_state::LinkState* ls,
                                       unsigned int ind) const;
 
-  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const planning_models::KinematicState::LinkState* ls) const;
+  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const kinematic_state::LinkState* ls) const;
 
   void getGroupStateRepresentation(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
-                                   const planning_models::KinematicState& state,
+                                   const kinematic_state::KinematicState& state,
                                    boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   bool compareCacheEntryToState(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
-                                const planning_models::KinematicState& state) const;
+                                const kinematic_state::KinematicState& state) const;
 
   bool compareCacheEntryToAllowedCollisionMatrix(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
                                                  const collision_detection::AllowedCollisionMatrix& acm) const;

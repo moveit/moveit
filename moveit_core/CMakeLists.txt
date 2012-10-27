@@ -29,7 +29,8 @@ find_package(catkin COMPONENTS
   eigen_conversions
   random_numbers
   console_bridge
-  visualization_msgs REQUIRED)
+  visualization_msgs
+  rostime REQUIRED)
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 

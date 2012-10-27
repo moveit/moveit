@@ -42,6 +42,7 @@
 #include <moveit/collision_detection_fcl/collision_world.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 #include <limits>
 
@@ -296,8 +297,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     {
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Affine3d t;
-      if (!planning_models::poseFromMsg(pc.constraint_region.primitive_poses[i], t))
-        logWarn("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
+      tf::poseMsgToEigen(pc.constraint_region.primitive_poses[i], t);
       constraint_region_pose_.push_back(t);
       if (mobile_frame_)
 	constraint_region_.back()->setPose(constraint_region_pose_.back());
@@ -317,8 +317,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     {
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Affine3d t;
-      if (!planning_models::poseFromMsg(pc.constraint_region.mesh_poses[i], t))
-        logWarn("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
+      tf::poseMsgToEigen(pc.constraint_region.mesh_poses[i], t);
       constraint_region_pose_.push_back(t);
       if (mobile_frame_)
 	constraint_region_.back()->setPose(constraint_region_pose_.back());
@@ -381,12 +380,12 @@ static inline kinematic_constraints::ConstraintEvaluationResult finishPositionCo
 }
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::PositionConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::PositionConstraint::decide(const kinematic_state::KinematicState &state, bool verbose) const
 {
   if (!link_model_ || constraint_region_.empty())
     return ConstraintEvaluationResult(true, 0.0);
   
-  const planning_models::KinematicState::LinkState *link_state = state.getLinkState(link_model_->getName());
+  const kinematic_state::LinkState *link_state = state.getLinkState(link_model_->getName());
   
   if (!link_state)
   {
@@ -444,9 +443,13 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
 {
   link_model_ = kmodel_->getLinkModel(oc.link_name);
   Eigen::Quaterniond q;
-  if (!planning_models::quatFromMsg(oc.orientation, q))
+  tf::quaternionMsgToEigen(oc.orientation, q);
+  if (fabs(q.norm() - 1.0) > 1e-3)
+  {
     logWarn("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc.link_name.c_str(),
             oc.orientation.x, oc.orientation.y, oc.orientation.z, oc.orientation.w);
+    q = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
+  }
   
   if (oc.header.frame_id.empty())
     logWarn("No frame specified for position constraint on link '%s'!", oc.link_name.c_str());
@@ -508,12 +511,12 @@ bool kinematic_constraints::OrientationConstraint::enabled(void) const
   return link_model_;
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::OrientationConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::OrientationConstraint::decide(const kinematic_state::KinematicState &state, bool verbose) const
 {
   if (!link_model_) 
     return ConstraintEvaluationResult(true, 0.0);
 
-  const planning_models::KinematicState::LinkState *link_state = state.getLinkState(link_model_->getName());
+  const kinematic_state::LinkState *link_state = state.getLinkState(link_model_->getName());
   
   if (!link_state)
   {
@@ -566,7 +569,7 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
     out << "No constraint" << std::endl;
 }
 
-kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
+kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
   KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotFCL(model))
 {
   type_ = VISIBILITY_CONSTRAINT;
@@ -603,8 +606,7 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
     points_.push_back(Eigen::Vector3d(x, y, 0.0));
   }
   
-  if (!planning_models::poseFromMsg(vc.target_pose.pose, target_pose_))
-    logWarn("Incorrect specification of orientation in target pose for visibility constraint. Assuming identity quaternion.");
+  tf::poseMsgToEigen(vc.target_pose.pose, target_pose_);
   
   if (tf_->isFixedFrame(vc.target_pose.header.frame_id))
   {
@@ -621,8 +623,7 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
     mobile_target_frame_ = true;
   }
   
-  if (!planning_models::poseFromMsg(vc.sensor_pose.pose, sensor_pose_))
-    logWarn("Incorrect specification of orientation in sensor pose for visibility constraint. Assuming identity quaternion.");
+  tf::poseMsgToEigen(vc.sensor_pose.pose, sensor_pose_);
   
   if (tf_->isFixedFrame(vc.sensor_pose.header.frame_id))
   {
@@ -680,7 +681,7 @@ bool kinematic_constraints::VisibilityConstraint::enabled(void) const
   return target_radius_ > std::numeric_limits<double>::epsilon();
 }
 
-shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const planning_models::KinematicState &state) const
+shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const kinematic_state::KinematicState &state) const
 {
   // the current pose of the sensor
   const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) * sensor_pose_ : sensor_pose_;
@@ -751,7 +752,7 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
   return m;
 }
 
-void kinematic_constraints::VisibilityConstraint::getMarkers(const planning_models::KinematicState &state, visualization_msgs::MarkerArray &markers) const
+void kinematic_constraints::VisibilityConstraint::getMarkers(const kinematic_state::KinematicState &state, visualization_msgs::MarkerArray &markers) const
 {
   shapes::Mesh *m = getVisibilityCone(state);
   visualization_msgs::Marker mk;
@@ -815,7 +816,7 @@ void kinematic_constraints::VisibilityConstraint::getMarkers(const planning_mode
   markers.markers.push_back(mka);
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::VisibilityConstraint::decide(const kinematic_state::KinematicState &state, bool verbose) const
 {
   if (target_radius_ <= std::numeric_limits<double>::epsilon())
     return ConstraintEvaluationResult(true, 0.0);
@@ -999,7 +1000,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const moveit_msgs::Const
   return j && p && o && v;
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(const kinematic_state::KinematicState &state, bool verbose) const
 {
   ConstraintEvaluationResult res(true, 0.0);
   for (unsigned int i = 0 ; i < kinematic_constraints_.size() ; ++i)
@@ -1012,7 +1013,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Kinemat
   return res;
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state,
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(const kinematic_state::KinematicState &state,
                                                                                                         std::vector<ConstraintEvaluationResult> &results, 
                                                                                                         bool verbose) const
 {

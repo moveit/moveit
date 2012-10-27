@@ -39,13 +39,13 @@
 namespace collision_detection 
 {
 
-CollisionRobotHybrid::CollisionRobotHybrid(const planning_models::KinematicModelConstPtr& kmodel) :
+CollisionRobotHybrid::CollisionRobotHybrid(const kinematic_model::KinematicModelConstPtr& kmodel) :
 CollisionRobotFCL(kmodel)
 {
   crobot_distance_.reset(new collision_detection::CollisionRobotDistanceField(kmodel));
 }
     
-CollisionRobotHybrid::CollisionRobotHybrid(const planning_models::KinematicModelConstPtr& kmodel, 
+CollisionRobotHybrid::CollisionRobotHybrid(const kinematic_model::KinematicModelConstPtr& kmodel, 
                                            const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                                            double size_x, 
                                            double size_y,
@@ -79,14 +79,14 @@ CollisionRobotHybrid::CollisionRobotHybrid(const CollisionRobotHybrid& other) :
 
 void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                                            collision_detection::CollisionResult &res, 
-                                                           const planning_models::KinematicState &state) const
+                                                           const kinematic_state::KinematicState &state) const
 {
   crobot_distance_->checkSelfCollision(req, res, state);
 }
 
 void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                                            collision_detection::CollisionResult &res, 
-                                                           const planning_models::KinematicState &state,
+                                                           const kinematic_state::KinematicState &state,
                                                            boost::shared_ptr<GroupStateRepresentation>& gsr) const
 {
   crobot_distance_->checkSelfCollision(req, res, state, gsr);
@@ -94,7 +94,7 @@ void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detec
 
 void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                                            collision_detection::CollisionResult &res, 
-                                                           const planning_models::KinematicState &state,
+                                                           const kinematic_state::KinematicState &state,
                                                            const collision_detection::AllowedCollisionMatrix &acm) const
 {
   crobot_distance_->checkSelfCollision(req, res, state, acm);
@@ -102,7 +102,7 @@ void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detec
 
 void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                                            collision_detection::CollisionResult &res, 
-                                                           const planning_models::KinematicState &state,
+                                                           const kinematic_state::KinematicState &state,
                                                            const collision_detection::AllowedCollisionMatrix &acm,
                                                            boost::shared_ptr<GroupStateRepresentation>& gsr) const
 {

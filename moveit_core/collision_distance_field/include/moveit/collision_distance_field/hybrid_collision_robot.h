@@ -52,9 +52,9 @@ class CollisionRobotHybrid : public collision_detection::CollisionRobotFCL
   
 public:
   
-  CollisionRobotHybrid(const planning_models::KinematicModelConstPtr& kmodel);
+  CollisionRobotHybrid(const kinematic_model::KinematicModelConstPtr& kmodel);
 
-  CollisionRobotHybrid(const planning_models::KinematicModelConstPtr& kmodel, 
+  CollisionRobotHybrid(const kinematic_model::KinematicModelConstPtr& kmodel, 
                        const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                        double size_x = 3.0, 
                        double size_y = 3.0,
@@ -82,21 +82,21 @@ public:
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                        collision_detection::CollisionResult &res, 
-                                       const planning_models::KinematicState &state) const;
+                                       const kinematic_state::KinematicState &state) const;
   
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                        collision_detection::CollisionResult &res, 
-                                       const planning_models::KinematicState &state,
+                                       const kinematic_state::KinematicState &state,
                                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                        collision_detection::CollisionResult &res, 
-                                       const planning_models::KinematicState &state,
+                                       const kinematic_state::KinematicState &state,
                                        const collision_detection::AllowedCollisionMatrix &acm) const;
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                        collision_detection::CollisionResult &res, 
-                                       const planning_models::KinematicState &state,
+                                       const kinematic_state::KinematicState &state,
                                        const collision_detection::AllowedCollisionMatrix &acm,
                                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
   const boost::shared_ptr<const collision_detection::CollisionRobotDistanceField> getCollisionRobotDistanceField() const {

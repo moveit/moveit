@@ -35,44 +35,45 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/planning_models/conversions.h>
-
+#include <moveit/kinematic_state/conversions.h>
+#include <eigen_conversions/eigen_msg.h>
+  
 namespace trajectory_processing
 {
 
-void convertToKinematicStates(std::vector<planning_models::KinematicStatePtr> &states,
+void convertToKinematicStates(std::vector<kinematic_state::KinematicStatePtr> &states,
                               const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
-                              const planning_models::KinematicState &reference_state, const planning_models::TransformsConstPtr &transforms)
+                              const kinematic_state::KinematicState &reference_state, const kinematic_state::TransformsConstPtr &transforms)
 {
   states.clear();
-  planning_models::KinematicState start(reference_state);
-  planning_models::robotStateToKinematicState(*transforms, start_state, start);
+  kinematic_state::KinematicState start(reference_state);
+  kinematic_state::robotStateToKinematicState(*transforms, start_state, start);
   std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
                                      trajectory.multi_dof_joint_trajectory.points.size());
   states.resize(state_count);
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
     moveit_msgs::RobotState rs;
-    planning_models::robotTrajectoryPointToRobotState(trajectory, i, rs);
-    planning_models::KinematicStatePtr st(new planning_models::KinematicState(start));
-    planning_models::robotStateToKinematicState(*transforms, rs, *st);
+    kinematic_state::robotTrajectoryPointToRobotState(trajectory, i, rs);
+    kinematic_state::KinematicStatePtr st(new kinematic_state::KinematicState(start));
+    kinematic_state::robotStateToKinematicState(*transforms, rs, *st);
     states[i] = st;
   }
 }
 
 void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
-                              const std::vector<planning_models::KinematicStateConstPtr> &states, 
+                              const std::vector<kinematic_state::KinematicStateConstPtr> &states, 
                               const std::vector<ros::Duration> &stamps, const std::string &group)
 {
   trajectory = moveit_msgs::RobotTrajectory();
   if (states.empty())
     return;
-  const planning_models::KinematicModel &kmodel = *states.front()->getKinematicModel();
-  const std::vector<const planning_models::KinematicModel::JointModel*> &jnt = 
+  const kinematic_model::KinematicModel &kmodel = *states.front()->getKinematicModel();
+  const std::vector<const kinematic_model::JointModel*> &jnt = 
     (!group.empty() && kmodel.hasJointModelGroup(group)) ? kmodel.getJointModelGroup(group)->getJointModels() : kmodel.getJointModels();
   
-  std::vector<const planning_models::KinematicModel::JointModel*> onedof;
-  std::vector<const planning_models::KinematicModel::JointModel*> mdof;
+  std::vector<const kinematic_model::JointModel*> onedof;
+  std::vector<const kinematic_model::JointModel*> mdof;
   trajectory.joint_trajectory.header.frame_id = kmodel.getModelFrame();
   trajectory.joint_trajectory.header.stamp = ros::Time::now();
   trajectory.joint_trajectory.joint_names.clear();
@@ -110,21 +111,21 @@ void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
       trajectory.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
       for (std::size_t j = 0 ; j < mdof.size() ; ++j)
       {
-	planning_models::msgFromPose(states[i]->getJointState(mdof[j]->getName())->getVariableTransform(),
-				     trajectory.multi_dof_joint_trajectory.points[i].poses[j]);
+	tf::poseEigenToMsg(states[i]->getJointState(mdof[j]->getName())->getVariableTransform(),
+                           trajectory.multi_dof_joint_trajectory.points[i].poses[j]);
       }
       trajectory.multi_dof_joint_trajectory.points[i].time_from_start = stamps.size() > i ? stamps[i] : zero_duration;
     }
   }
 }
 
-void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory, const std::vector<planning_models::KinematicStateConstPtr> &states, const std::string &group)
+void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory, const std::vector<kinematic_state::KinematicStateConstPtr> &states, const std::string &group)
 {
   convertToRobotTrajectory(trajectory, states, std::vector<ros::Duration>(), group);
 }
 
-void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
-                    double dt_offset, const planning_models::TransformsConstPtr &transforms)
+void addPrefixState(const kinematic_state::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
+                    double dt_offset, const kinematic_state::TransformsConstPtr &transforms)
 {
   ros::Duration dt(dt_offset);
   
@@ -134,7 +135,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
     std::vector<double> vals;
     for (std::size_t i = 0 ; i < trajectory.joint_trajectory.joint_names.size() ; ++i)
     {
-      const planning_models::KinematicState::JointState *js = prefix.getJointState(trajectory.joint_trajectory.joint_names[i]);
+      const kinematic_state::JointState *js = prefix.getJointState(trajectory.joint_trajectory.joint_names[i]);
       if (!js)
         break;
       if (js->getVariableValues().size() != 1)
@@ -166,7 +167,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
     EigenSTL::vector_Affine3d poses;
     for (std::size_t i = 0 ; i < trajectory.multi_dof_joint_trajectory.joint_names.size() ; ++i)
     {
-      const planning_models::KinematicState::JointState *js = prefix.getJointState(trajectory.multi_dof_joint_trajectory.joint_names[i]);
+      const kinematic_state::JointState *js = prefix.getJointState(trajectory.multi_dof_joint_trajectory.joint_names[i]);
       if (!js)
         break;
       if (trajectory.multi_dof_joint_trajectory.child_frame_ids.size() <= i ||
@@ -193,7 +194,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
     if (poses.size() == new_start.poses.size())
     {
       for (std::size_t i = 0 ; i < poses.size() ; ++i)
-        planning_models::msgFromPose(poses[i], new_start.poses[i]);
+        tf::poseEigenToMsg(poses[i], new_start.poses[i]);
       
       //insert extra point at the start of trajectory
       trajectory.multi_dof_joint_trajectory.points.insert(trajectory.multi_dof_joint_trajectory.points.begin(), new_start);

@@ -63,13 +63,13 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
   // find and keep the constraints that operate on the group we sample
   // also keep bounds for joints as convenient
   const std::map<std::string, unsigned int> &vim = jmg_->getJointVariablesIndexMap();
-  std::set<const planning_models::KinematicModel::JointModel*> bounded;
+  std::set<const kinematic_model::JointModel*> bounded;
   for (std::size_t i = 0 ; i < jc.size() ; ++i)
   {
     if (!jc[i].enabled())
       continue;
     
-    const planning_models::KinematicModel::JointModel *jm = jc[i].getJointModel();
+    const kinematic_model::JointModel *jm = jc[i].getJointModel();
     if (!jmg_->hasJointModel(jm->getName()))
       continue;
     
@@ -91,7 +91,7 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
   }
   
   // get a separate list of joints that are not bounded; we will sample these randomly
-  const std::vector<const planning_models::KinematicModel::JointModel*> &joints = jmg_->getJointModels();
+  const std::vector<const kinematic_model::JointModel*> &joints = jmg_->getJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
     if (bounded.find(joints[i]) == bounded.end())
     {
@@ -102,14 +102,14 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState & /* ks */,
+bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState & /* ks */,
                                                          unsigned int /* max_attempts */)
 {
   // sample the unbounded joints first (in case some joint variables are bounded)
   for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
   {
     std::vector<double> v;
-    unbounded_[i]->getRandomValues(random_number_generator_, v);
+    unbounded_[i]->getVariableRandomValues(random_number_generator_, v);
     for (std::size_t j = 0 ; j < v.size() ; ++j)
       values_[uindex_[i] + j] = v[j];
   }
@@ -118,7 +118,7 @@ bool constraint_samplers::JointConstraintSampler::sample(planning_models::Kinema
   for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
     values_[index_[i]] = random_number_generator_.uniformReal(bounds_[i].first, bounds_[i].second);
 
-  jsg->setStateValues(values_);
+  jsg->setVariableValues(values_);
 
 
   // we are always successful
@@ -266,7 +266,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
       logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a joint.", ik_jnames[i].c_str(), jmg_->getName().c_str());
       return false;
     }
-    const planning_models::KinematicModel::JointModel *jm = jmg_->getJointModel(ik_jnames[i]);
+    const kinematic_model::JointModel *jm = jmg_->getJointModel(ik_jnames[i]);
     for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
       ik_joint_bijection_.push_back(it->second + k);
   }
@@ -302,7 +302,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
 }
 
 bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat,
-                                                          const planning_models::KinematicState &ks,
+                                                          const kinematic_state::KinematicState &ks,
                                                           unsigned int max_attempts)
 {  
   if (sampling_pose_.position_constraint_)
@@ -333,15 +333,15 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the model
     if (sampling_pose_.position_constraint_->mobileReferenceFrame())
     {
-      const planning_models::KinematicState::LinkState *ls = ks.getLinkState(sampling_pose_.position_constraint_->getReferenceFrame());
+      const kinematic_state::LinkState *ls = ks.getLinkState(sampling_pose_.position_constraint_->getReferenceFrame());
       pos = ls->getGlobalLinkTransform() * pos;
     }
   }
   else
   {
     // do FK for rand state
-    planning_models::KinematicState tempState(ks);
-    planning_models::KinematicState::JointStateGroup *tmp = tempState.getJointStateGroup(jmg_->getName());
+    kinematic_state::KinematicState tempState(ks);
+    kinematic_state::JointStateGroup *tmp = tempState.getJointStateGroup(jmg_->getName());
     if (tmp)
     {
       tmp->setToRandomValues();
@@ -369,7 +369,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the model
     if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
-      const planning_models::KinematicState::LinkState *ls = ks.getLinkState(sampling_pose_.orientation_constraint_->getReferenceFrame());
+      const kinematic_state::LinkState *ls = ks.getLinkState(sampling_pose_.orientation_constraint_->getReferenceFrame());
       Eigen::Affine3d rt(ls->getGlobalLinkTransform().rotation() * quat.toRotationMatrix());
       quat = Eigen::Quaterniond(rt.rotation());
     }
@@ -395,7 +395,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     // both the planning frame and the frame for the IK are assumed to be robot links
     Eigen::Affine3d ikq(Eigen::Translation3d(pos) * quat.toRotationMatrix());
     
-    const planning_models::KinematicState::LinkState *ls = ks.getLinkState(ik_frame_);
+    const kinematic_state::LinkState *ls = ks.getLinkState(ik_frame_);
     ikq = ls->getGlobalLinkTransform().inverse() * ikq;
     
     pos = ikq.translation();
@@ -405,7 +405,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
   return true;
 }
 
-bool constraint_samplers::IKConstraintSampler::sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts)
+bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
 {
   // make sure we at least have a chance of sampling using IK; we need at least some kind of constraint
   if (!sampling_pose_.position_constraint_ && !sampling_pose_.orientation_constraint_)
@@ -441,11 +441,11 @@ bool constraint_samplers::IKConstraintSampler::sample(planning_models::Kinematic
   return false;
 }
 
-bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, planning_models::KinematicState::JointStateGroup *jsg)
+bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg)
 {
   // sample a seed value
   std::vector<double> vals;
-  jmg_->getRandomValues(random_number_generator_, vals);
+  jmg_->getVariableRandomValues(random_number_generator_, vals);
   assert(vals.size() == ik_joint_bijection_.size());
   std::vector<double> seed(ik_joint_bijection_.size(), 0.0);
   for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
@@ -460,7 +460,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
     std::vector<double> solution(ik_joint_bijection_.size());
     for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
       solution[i] = ik_sol[ik_joint_bijection_[i]];
-    jsg->setStateValues(solution);
+    jsg->setVariableValues(solution);
     assert((!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied) && 
 	   (!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied));
     return true;

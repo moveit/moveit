@@ -68,62 +68,62 @@ public:
   virtual void checkCollision(const CollisionRequest &req,
                               CollisionResult &res,
                               const CollisionRobot &robot,
-                              const planning_models::KinematicState &state) const;
+                              const kinematic_state::KinematicState &state) const;
 
   virtual void checkCollision(const CollisionRequest &req,
                               CollisionResult &res,
                               const CollisionRobot &robot,
-                              const planning_models::KinematicState &state,
+                              const kinematic_state::KinematicState &state,
                               boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkCollision(const CollisionRequest &req,
                               CollisionResult &res,
                               const CollisionRobot &robot,
-                              const planning_models::KinematicState &state,
+                              const kinematic_state::KinematicState &state,
                               const AllowedCollisionMatrix &acm) const;
 
   virtual void checkCollision(const CollisionRequest &req,
                               CollisionResult &res,
                               const CollisionRobot &robot,
-                              const planning_models::KinematicState &state,
+                              const kinematic_state::KinematicState &state,
                               const AllowedCollisionMatrix &acm,
                               boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkRobotCollision(const CollisionRequest &req, 
                                    CollisionResult &res, 
                                    const CollisionRobot &robot, 
-                                   const planning_models::KinematicState &state) const;
+                                   const kinematic_state::KinematicState &state) const;
   
   virtual void checkRobotCollision(const CollisionRequest &req, 
                                    CollisionResult &res, 
                                    const CollisionRobot &robot, 
-                                   const planning_models::KinematicState &state,
+                                   const kinematic_state::KinematicState &state,
                                    boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkRobotCollision(const CollisionRequest &req, 
                                    CollisionResult &res, 
                                    const CollisionRobot &robot, 
-                                   const planning_models::KinematicState &state, 
+                                   const kinematic_state::KinematicState &state, 
                                    const AllowedCollisionMatrix &acm) const;
 
   virtual void checkRobotCollision(const CollisionRequest &req, 
                                    CollisionResult &res, 
                                    const CollisionRobot &robot, 
-                                   const planning_models::KinematicState &state, 
+                                   const kinematic_state::KinematicState &state, 
                                    const AllowedCollisionMatrix &acm,
                                    boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkRobotCollision(const CollisionRequest &req, 
                                    CollisionResult &res, 
                                    const CollisionRobot &robot, 
-                                   const planning_models::KinematicState &state1, 
-                                   const planning_models::KinematicState &state2) const {}
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const {}
+                                   const kinematic_state::KinematicState &state1, 
+                                   const kinematic_state::KinematicState &state2) const {}
+  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2, const AllowedCollisionMatrix &acm) const {}
   virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const {}
   virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const {}
   
-  virtual double distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state) const {return 0.0;}
-  virtual double distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const {return 0.0;}
+  virtual double distanceRobot(const CollisionRobot &robot, const kinematic_state::KinematicState &state) const {return 0.0;}
+  virtual double distanceRobot(const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const {return 0.0;}
   virtual double distanceWorld(const CollisionWorld &world) const {return 0.0;}
   virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const {return 0.0;}
   
@@ -154,14 +154,14 @@ public:
   void getCollisionGradients(const CollisionRequest &req, 
                              CollisionResult &res, 
                              const CollisionRobot &robot, 
-                             const planning_models::KinematicState &state, 
+                             const kinematic_state::KinematicState &state, 
                              const AllowedCollisionMatrix* acm,
                              boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   void getAllCollisions(const CollisionRequest &req, 
                         CollisionResult &res, 
                         const CollisionRobot &robot, 
-                        const planning_models::KinematicState &state, 
+                        const kinematic_state::KinematicState &state, 
                         const AllowedCollisionMatrix* acm,
                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 

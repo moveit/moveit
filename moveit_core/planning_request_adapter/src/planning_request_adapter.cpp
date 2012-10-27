@@ -33,7 +33,6 @@
 *********************************************************************/
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/planning_models/conversions.h>
 #include <boost/bind.hpp>
 #include <algorithm>
 

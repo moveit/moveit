@@ -87,7 +87,7 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
   }
 }
 
-bool constraint_samplers::UnionConstraintSampler::sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts)
+bool constraint_samplers::UnionConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
 {
   jsg->setToRandomValues(); 
   
@@ -97,16 +97,16 @@ bool constraint_samplers::UnionConstraintSampler::sample(planning_models::Kinema
   
   if (samplers_.size() > 1)
   {
-    planning_models::KinematicState temp = ks;
-    temp.getJointStateGroup(jsg->getName())->copyFrom(jsg);
+    kinematic_state::KinematicState temp = ks;
+    *(temp.getJointStateGroup(jsg->getName())) = *jsg;
     
     for (std::size_t i = 1 ; i < samplers_.size() ; ++i)
     {
-      planning_models::KinematicState::JointStateGroup *x = jsg->getKinematicState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
+      kinematic_state::JointStateGroup *x = jsg->getKinematicState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
       if (samplers_[i]->sample(x, temp, max_attempts))
       {
         if (i + 1 < samplers_.size())
-          temp.getJointStateGroup(samplers_[i]->getJointModelGroup()->getName())->copyFrom(x);
+          *(temp.getJointStateGroup(samplers_[i]->getJointModelGroup()->getName())) = *x;
       }
       else
         return false;

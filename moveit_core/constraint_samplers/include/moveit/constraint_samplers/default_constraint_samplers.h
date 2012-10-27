@@ -57,7 +57,7 @@ public:
   
   bool setup(const std::vector<kinematic_constraints::JointConstraint> &jc);
 
-  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks,  unsigned int max_attempts);
+  virtual bool sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks,  unsigned int max_attempts);
   
   std::size_t getConstrainedJointCount(void) const
   {
@@ -71,13 +71,13 @@ public:
   
 protected:
 
-  random_numbers::RandomNumberGenerator                           random_number_generator_;  
-  std::vector<std::pair<double, double> >                         bounds_;
-  std::vector<unsigned int>                                       index_;
+  random_numbers::RandomNumberGenerator           random_number_generator_;  
+  std::vector<std::pair<double, double> >         bounds_;
+  std::vector<unsigned int>                       index_;
   
-  std::vector<const planning_models::KinematicModel::JointModel*> unbounded_;
-  std::vector<unsigned int>                                       uindex_;
-  std::vector<double>                                             values_;
+  std::vector<const kinematic_model::JointModel*> unbounded_;
+  std::vector<unsigned int>                       uindex_;
+  std::vector<double>                             values_;
 };
 
 
@@ -135,21 +135,21 @@ public:
   double getSamplingVolume(void) const;
   const std::string& getLinkName(void) const;
   
-  bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const planning_models::KinematicState &ks, unsigned int max_attempts);
-  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts);
+  bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const kinematic_state::KinematicState &ks, unsigned int max_attempts);
+  virtual bool sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts);
   
 protected:
   
-  bool callIK(const geometry_msgs::Pose &ik_query, double timeout, planning_models::KinematicState::JointStateGroup *jsg);
+  bool callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg);
 
-  random_numbers::RandomNumberGenerator              random_number_generator_;
-  planning_models::KinematicModel::SolverAllocatorFn ik_alloc_;
-  IKSamplingPose                                     sampling_pose_;
-  kinematics::KinematicsBasePtr                      kb_;
-  double                                             ik_timeout_;
-  std::vector<unsigned int>                          ik_joint_bijection_;
-  std::string                                        ik_frame_;
-  bool                                               transform_ik_;
+  random_numbers::RandomNumberGenerator random_number_generator_;
+  kinematic_model::SolverAllocatorFn    ik_alloc_;
+  IKSamplingPose                        sampling_pose_;
+  kinematics::KinematicsBasePtr         kb_;
+  double                                ik_timeout_;
+  std::vector<unsigned int>             ik_joint_bijection_;
+  std::string                           ik_frame_;
+  bool                                  transform_ik_;
 };
 
 
