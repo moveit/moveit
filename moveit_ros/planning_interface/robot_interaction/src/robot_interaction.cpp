@@ -62,13 +62,14 @@ void RobotInteraction::decideActiveComponents(const std::string &group)
 
 double RobotInteraction::computeGroupScale(const std::string &group)
 {
+  static const double DEFAULT_SCALE = 0.2;
   const planning_models::KinematicModel::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   if (!jmg)
     return 0.0;
   
   const std::vector<std::string> &links = jmg->getLinkModelNames();
   if (links.empty())
-    return 0.0;
+    return DEFAULT_SCALE;
   
   std::vector<double> scale(3, 0.0);
   std::vector<double> low(3, std::numeric_limits<double>::infinity());
@@ -100,7 +101,12 @@ double RobotInteraction::computeGroupScale(const std::string &group)
     scale[i] = hi[i] - low[i];
 
   static const double sqrt_3 = 1.732050808;
-  return std::max(std::max(scale[0], scale[1]), scale[2]) * sqrt_3;
+  double s = std::max(std::max(scale[0], scale[1]), scale[2]) * sqrt_3;
+  
+  // if the scale is less than 1mm, set it to default
+  if (s < 1e-3)
+    s = DEFAULT_SCALE;  
+  return s;
 }
 
 void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
