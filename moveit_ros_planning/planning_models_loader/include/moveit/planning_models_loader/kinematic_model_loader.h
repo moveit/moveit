@@ -37,7 +37,7 @@
 #ifndef MOVEIT_PLANNING_MODELS_LOADER_KINEMATIC_MODEL_LOADER_
 #define MOVEIT_PLANNING_MODELS_LOADER_KINEMATIC_MODEL_LOADER_
 
-#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/kinematic_model/kinematic_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/kinematics_plugin_loader/kinematics_plugin_loader.h>
 
@@ -73,7 +73,7 @@ public:
   KinematicModelLoader(const std::string &robot_description);
   
   /** @brief Get the constructed planning_models::KinematicModel */
-  const planning_models::KinematicModelPtr& getModel(void) const
+  const kinematic_model::KinematicModelPtr& getModel(void) const
   {
     return model_;
   }
@@ -119,7 +119,7 @@ private:
 
   void configure(const Options &opt);
 
-  planning_models::KinematicModelPtr model_;
+  kinematic_model::KinematicModelPtr model_;
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_; 
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
 

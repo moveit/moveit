@@ -38,16 +38,16 @@
 #include <tf_conversions/tf_eigen.h>
 #include <limits>
 
-planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf) :
+planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf) :
   tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(std::numeric_limits<double>::epsilon())
 {
 }
 
-planning_models::KinematicStatePtr planning_scene_monitor::CurrentStateMonitor::getCurrentState(void) const
+kinematic_state::KinematicStatePtr planning_scene_monitor::CurrentStateMonitor::getCurrentState(void) const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
-  planning_models::KinematicState *result = new planning_models::KinematicState(kstate_);
-  return planning_models::KinematicStatePtr(result);
+  kinematic_state::KinematicState *result = new kinematic_state::KinematicState(kstate_);
+  return kinematic_state::KinematicStatePtr(result);
 }
 
 ros::Time planning_scene_monitor::CurrentStateMonitor::getCurrentStateTime(void) const
@@ -56,11 +56,11 @@ ros::Time planning_scene_monitor::CurrentStateMonitor::getCurrentStateTime(void)
   return current_state_time_;
 }
 
-std::pair<planning_models::KinematicStatePtr, ros::Time> planning_scene_monitor::CurrentStateMonitor::getCurrentStateAndTime(void) const
+std::pair<kinematic_state::KinematicStatePtr, ros::Time> planning_scene_monitor::CurrentStateMonitor::getCurrentStateAndTime(void) const
 {  
   boost::mutex::scoped_lock slock(state_update_lock_);
-  planning_models::KinematicState *result = new planning_models::KinematicState(kstate_);
-  return std::make_pair(planning_models::KinematicStatePtr(result), current_state_time_);
+  kinematic_state::KinematicState *result = new kinematic_state::KinematicState(kstate_);
+  return std::make_pair(kinematic_state::KinematicStatePtr(result), current_state_time_);
 }
 
 std::map<std::string, double> planning_scene_monitor::CurrentStateMonitor::getCurrentStateValues(void) const
@@ -116,7 +116,7 @@ std::string planning_scene_monitor::CurrentStateMonitor::getMonitoredTopic(void)
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(void) const
 {
   bool result = true;
-  const std::vector<std::string> &dof = kmodel_->getActiveDOFNames();
+  const std::vector<std::string> &dof = kmodel_->getVariableNames();
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
     if (joint_time_.find(dof[i]) == joint_time_.end())
@@ -130,7 +130,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(void) const
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<std::string> &missing_states) const
 {
   bool result = true;
-  const std::vector<std::string> &dof = kmodel_->getActiveDOFNames();
+  const std::vector<std::string> &dof = kmodel_->getVariableNames();
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
     if (joint_time_.find(dof[i]) == joint_time_.end())
@@ -145,7 +145,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration &age) const
 {
   bool result = true;
-  const std::vector<std::string> &dof = kmodel_->getActiveDOFNames();
+  const std::vector<std::string> &dof = kmodel_->getVariableNames();
   ros::Time now = ros::Time::now();
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
@@ -172,7 +172,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
                                                                     std::vector<std::string> &missing_states) const
 {
   bool result = true;
-  const std::vector<std::string> &dof = kmodel_->getActiveDOFNames();
+  const std::vector<std::string> &dof = kmodel_->getVariableNames();
   ros::Time now = ros::Time::now();
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
@@ -215,9 +215,9 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
     joint_time_[joint_state->name[i]] = joint_state->header.stamp;
     
     // continuous joints wrap, so we don't modify them (even if they are outside bounds!)
-    const planning_models::KinematicModel::JointModel* jm = kmodel_->getJointModel(joint_state->name[i]);
-    if (jm && jm->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
-      if (static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(jm)->isContinuous())
+    const kinematic_model::JointModel* jm = kmodel_->getJointModel(joint_state->name[i]);
+    if (jm && jm->getType() == kinematic_model::JointModel::REVOLUTE)
+      if (static_cast<const kinematic_model::RevoluteJointModel*>(jm)->isContinuous())
         continue;
     
     std::map<std::string, std::pair<double, double> >::const_iterator bi = bounds.find(joint_state->name[i]);
@@ -234,8 +234,8 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
   bool set_map_values = true;
   
   // read root transform, if needed
-  if (tf_ && (root_->getType() == planning_models::KinematicModel::JointModel::PLANAR ||
-              root_->getType() == planning_models::KinematicModel::JointModel::FLOATING))
+  if (tf_ && (root_->getType() == kinematic_model::JointModel::PLANAR ||
+              root_->getType() == kinematic_model::JointModel::FLOATING))
   {
     const std::string &child_frame = root_->getJointModel()->getChildLinkModel()->getName();
     const std::string &parent_frame = kmodel_->getModelFrame();

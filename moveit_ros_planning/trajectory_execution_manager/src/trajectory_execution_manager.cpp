@@ -39,7 +39,7 @@
 namespace trajectory_execution_manager
 {
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel) : 
+TrajectoryExecutionManager::TrajectoryExecutionManager(const kinematic_model::KinematicModelConstPtr &kmodel) : 
   kinematic_model_(kmodel), node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
@@ -47,7 +47,7 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const planning_models::Ki
   initialize();
 }
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel, bool manage_controllers) :
+TrajectoryExecutionManager::TrajectoryExecutionManager(const kinematic_model::KinematicModelConstPtr &kmodel, bool manage_controllers) :
   kinematic_model_(kmodel), node_handle_("~"), manage_controllers_(manage_controllers)
 {
   initialize();
@@ -1172,7 +1172,7 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::getLastEx
 
 bool TrajectoryExecutionManager::ensureActiveControllersForGroup(const std::string &group)
 {
-  const planning_models::KinematicModel::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group);
+  const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group);
   if (joint_model_group)
     return ensureActiveControllersForJoints(joint_model_group->getJointModelNames());
   else

@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <pluginlib/class_list_macros.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <ros/ros.h>
@@ -63,8 +63,8 @@ public:
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
     // get the specified start state
-    planning_models::KinematicState start_state = planning_scene->getCurrentState();
-    planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+    kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
+    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
     
     // if the start state is otherwise valid but does not meet path constraints
     if (planning_scene->isStateValid(start_state) && 
@@ -88,9 +88,9 @@ public:
         assert(last_index > 0);
         // extract the last state of the computed motion plan and set it as the new start state
         moveit_msgs::RobotState new_start;
-        planning_models::robotTrajectoryPointToRobotState(res2.trajectory, last_index - 1, new_start);
-        planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), new_start, start_state);
-        planning_models::kinematicStateToRobotState(start_state, req3.motion_plan_request.start_state);
+        kinematic_state::robotTrajectoryPointToRobotState(res2.trajectory, last_index - 1, new_start);
+        kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), new_start, start_state);
+        kinematic_state::kinematicStateToRobotState(start_state, req3.motion_plan_request.start_state);
                 
         bool solved2 = planner(planning_scene, req3, res);
         if (solved2)
@@ -127,15 +127,15 @@ public:
             else
             {
               // paths do not have the same structure. We merge them in an inefficient but hopefuly safe way
-              planning_models::KinematicState st = planning_scene->getCurrentState();
-              planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), res2.trajectory_start, st);
+              kinematic_state::KinematicState st = planning_scene->getCurrentState();
+              kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), res2.trajectory_start, st);
               
               for (int i = last_index - 2 ; i >= 0 ; --i)
               {
                 // take states from the first path one by one, in reverse, and add them as prefix
                 moveit_msgs::RobotState temp;
-                planning_models::robotTrajectoryPointToRobotState(res2.trajectory, i, temp);
-                planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), temp, st);
+                kinematic_state::robotTrajectoryPointToRobotState(res2.trajectory, i, temp);
+                kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), temp, st);
                 double dt = ((int)res.trajectory.joint_trajectory.points.size() > i + 1) ?
                   (res.trajectory.joint_trajectory.points[i + 1].time_from_start - res.trajectory.joint_trajectory.points[i].time_from_start).toSec() : 
                   (res.trajectory.multi_dof_joint_trajectory.points[i + 1].time_from_start - res.trajectory.multi_dof_joint_trajectory.points[i].time_from_start).toSec();

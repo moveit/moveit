@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
@@ -97,8 +97,8 @@ public:
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
     // get the specified start state
-    planning_models::KinematicState start_state = planning_scene->getCurrentState();
-    planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+    kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
+    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
     
     collision_detection::CollisionRequest creq;
     creq.group_name = req.motion_plan_request.group_name;
@@ -110,10 +110,10 @@ public:
         ROS_INFO("Start state appears to be in collision");
       else
         ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
-      planning_models::KinematicState prefix_state = start_state;
+      kinematic_state::KinematicState prefix_state = start_state;
       random_numbers::RandomNumberGenerator rng;
 
-      const std::vector<planning_models::KinematicState::JointState*> &jstates = 
+      const std::vector<kinematic_state::JointState*> &jstates = 
         planning_scene->getKinematicModel()->hasJointModelGroup(req.motion_plan_request.group_name) ? 
         start_state.getJointStateGroup(req.motion_plan_request.group_name)->getJointStateVector() : 
         start_state.getJointStateVector(); 
@@ -124,8 +124,8 @@ public:
         {
           std::vector<double> sampled_variable_values;
           const std::vector<double> &original_values = prefix_state.getJointState(jstates[i]->getName())->getVariableValues();
-          jstates[i]->getJointModel()->getRandomValuesNearBy(rng, sampled_variable_values, jstates[i]->getVariableBounds(), original_values,
-                                                             jstates[i]->getJointModel()->getMaximumExtent() * jiggle_fraction_);
+          jstates[i]->getJointModel()->getVariableRandomValuesNearBy(rng, sampled_variable_values, jstates[i]->getVariableBounds(), original_values,
+                                                                     jstates[i]->getJointModel()->getMaximumExtent() * jiggle_fraction_);
           jstates[i]->setVariableValues(sampled_variable_values);
 	  start_state.updateLinkTransforms();
           collision_detection::CollisionResult cres;
@@ -141,9 +141,9 @@ public:
       if (found)
       {
         moveit_msgs::GetMotionPlan::Request req2 = req;
-        planning_models::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
+        kinematic_state::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
 	bool solved = planner(planning_scene, req2, res);
-        planning_models::kinematicStateToRobotState(prefix_state, res.trajectory_start);
+        kinematic_state::kinematicStateToRobotState(prefix_state, res.trajectory_start);
         if (solved)
         {        
           // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)

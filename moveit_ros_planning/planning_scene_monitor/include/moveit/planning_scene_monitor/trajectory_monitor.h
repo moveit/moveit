@@ -44,7 +44,7 @@
 namespace planning_scene_monitor
 {
 
-typedef boost::function<void(const planning_models::KinematicStateConstPtr &state, const ros::Time &stamp)> TrajectoryStateAddedCallback;
+typedef boost::function<void(const kinematic_state::KinematicStateConstPtr &state, const ros::Time &stamp)> TrajectoryStateAddedCallback;
 
 /** @class TrajectoryMonitor
     @brief Monitors the joint_states topic and tf to record the trajectory of the robot. */
@@ -74,7 +74,7 @@ public:
   void setSamplingFrequency(double sampling_frequency);
   
   /// Return the current maintained trajectory. This function is not thread safe (hence NOT const), because the trajectory could be modified.
-  const std::vector<planning_models::KinematicStateConstPtr>& getTrajectoryStates(void)
+  const std::vector<kinematic_state::KinematicStateConstPtr>& getTrajectoryStates(void)
   {
     return trajectory_states_;
   }
@@ -99,7 +99,7 @@ private:
   CurrentStateMonitorConstPtr current_state_monitor_;
   double sampling_frequency_;
 
-  std::vector<planning_models::KinematicStateConstPtr> trajectory_states_;
+  std::vector<kinematic_state::KinematicStateConstPtr> trajectory_states_;
   std::vector<ros::Time> trajectory_stamps_;
 
   boost::scoped_ptr<boost::thread> record_states_thread_;

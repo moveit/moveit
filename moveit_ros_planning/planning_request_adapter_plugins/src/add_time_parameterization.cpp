@@ -61,9 +61,13 @@ public:
     if (result)
     {  
       trajectory_msgs::JointTrajectory trajectory_out;
-      const std::vector<moveit_msgs::JointLimits> &jlim = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name)->getJointLimits();
-      smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim);
-      res.trajectory.joint_trajectory = trajectory_out;
+      const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name);
+      if (jmg)
+      {
+        const std::vector<moveit_msgs::JointLimits> &jlim = jmg->getVariableLimits();
+        smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim);
+        res.trajectory.joint_trajectory = trajectory_out;
+      }
     }
     
     return result;

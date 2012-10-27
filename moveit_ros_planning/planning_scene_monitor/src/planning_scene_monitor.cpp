@@ -233,11 +233,11 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
   while (have_diff && publish_planning_scene_);
 }
 
-const planning_models::KinematicModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getKinematicModel(void) const
+const kinematic_model::KinematicModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getKinematicModel(void) const
 {
   if (scene_)
     return scene_->getKinematicModel();
-  static const planning_models::KinematicModelConstPtr empty;
+  static const kinematic_model::KinematicModelConstPtr empty;
   return empty;
 }
 
@@ -572,7 +572,7 @@ void planning_scene_monitor::PlanningSceneMonitor::setPlanningScenePublishingFre
   ROS_DEBUG("Maximum frquency for publishing a planning scene is now %lf Hz", publish_planning_scene_frequency_);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(const planning_models::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms)
+void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(const kinematic_model::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms)
 {
   if (!tf_)
     return;

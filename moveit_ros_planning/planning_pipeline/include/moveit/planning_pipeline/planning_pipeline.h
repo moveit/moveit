@@ -49,11 +49,11 @@ class PlanningPipeline
 
 public:
   
-  PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
+  PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
                    const std::string &planning_plugin_param_name = "planning_plugin",
                    const std::string &adapter_plugins_param_name = "request_adapters");
   
-  PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
+  PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
                    const std::string &planning_plugin_name,
                    const std::vector<std::string> &adapter_plugin_names);
   
@@ -104,7 +104,7 @@ public:
   
 private:
   
-  void configure(const planning_models::KinematicModelConstPtr& model);
+  void configure(const kinematic_model::KinematicModelConstPtr& model);
   
   ros::NodeHandle nh_;
 

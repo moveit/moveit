@@ -83,7 +83,7 @@ public:
     moveit_msgs::RobotTrajectory planned_trajectory_;
     
     // The states that make up the planned trajectory are needed for various computation steps
-    std::vector<planning_models::KinematicStatePtr> planned_trajectory_states_;
+    std::vector<kinematic_state::KinematicStatePtr> planned_trajectory_states_;
     
     // The trace of the trajectory recorded during execution
     moveit_msgs::RobotTrajectory executed_trajectory_;
@@ -194,7 +194,7 @@ private:
   void executeAndMonitor(const planning_scene::PlanningSceneConstPtr &the_scene, const moveit_msgs::Constraints &path_constraints);
   
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  void newMonitoredStateCallback(const planning_models::KinematicStateConstPtr &state, const ros::Time &stamp);
+  void newMonitoredStateCallback(const kinematic_state::KinematicStateConstPtr &state, const ros::Time &stamp);
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus &status);
   
   ros::NodeHandle node_handle_;

@@ -36,7 +36,7 @@
 
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <boost/algorithm/string/join.hpp>
@@ -525,7 +525,7 @@ void plan_execution::PlanExecution::planningSceneUpdatedCallback(const planning_
     new_scene_update_ = true;
 }
 
-void plan_execution::PlanExecution::newMonitoredStateCallback(const planning_models::KinematicStateConstPtr &state, const ros::Time &stamp)
+void plan_execution::PlanExecution::newMonitoredStateCallback(const kinematic_state::KinematicStateConstPtr &state, const ros::Time &stamp)
 {           
   // find the index where the distance to the current state starts increasing (heuristic)
   double dist = result_.planned_trajectory_states_[currently_executed_trajectory_index_]->distance(*state);
