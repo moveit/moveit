@@ -37,7 +37,7 @@
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <boost/math/constants/constants.hpp>
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 
@@ -82,10 +82,10 @@ public:
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
     // get the specified start state
-    planning_models::KinematicState start_state = planning_scene->getCurrentState();
-    planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+    kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
+    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
 
-    const std::vector<planning_models::KinematicState::JointState*> &jstates = 
+    const std::vector<kinematic_state::JointState*> &jstates = 
       planning_scene->getKinematicModel()->hasJointModelGroup(req.motion_plan_request.group_name) ? 
       start_state.getJointStateGroup(req.motion_plan_request.group_name)->getJointStateVector() : 
       start_state.getJointStateVector(); 
@@ -100,10 +100,10 @@ public:
       // how many times the joint was wrapped. Because of this, we remember the offsets for continuous
       // joints, and we un-do them when the plan comes from the planner
       
-      const planning_models::KinematicModel::JointModel* jm = jstates[i]->getJointModel();
-      if (jm->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
+      const kinematic_model::JointModel* jm = jstates[i]->getJointModel();
+      if (jm->getType() == kinematic_model::JointModel::REVOLUTE)
       {
-        if (static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(jm)->isContinuous())
+        if (static_cast<const kinematic_model::RevoluteJointModel*>(jm)->isContinuous())
         {
           double initial = jstates[i]->getVariableValues()[0];
           jstates[i]->enforceBounds();
@@ -115,25 +115,25 @@ public:
       }
       else
         // Normalize yaw; no offset needs to be remembered
-        if (jm->getType() == planning_models::KinematicModel::JointModel::PLANAR)
+        if (jm->getType() == kinematic_model::JointModel::PLANAR)
         {   
           double initial = jstates[i]->getVariableValues()[2];
-          static_cast<const planning_models::KinematicModel::PlanarJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()); 
+          static_cast<const kinematic_model::PlanarJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()); 
           double after = jstates[i]->getVariableValues()[2];
           if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
             change_req = true;
         }
         else
           // Normalize quaternions
-          if (jm->getType() == planning_models::KinematicModel::JointModel::FLOATING)
+          if (jm->getType() == kinematic_model::JointModel::FLOATING)
           {
-            static_cast<const planning_models::KinematicModel::FloatingJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues());
+            static_cast<const kinematic_model::FloatingJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues());
             change_req = true;
           }
     }
     
     // pointer to a prefix state we could possibly add, if we detect we have to make changes
-    planning_models::KinematicStatePtr prefix_state;
+    kinematic_state::KinematicStatePtr prefix_state;
     for (std::size_t i = 0 ; i < jstates.size() ; ++i)
     {   
       if (!jstates[i]->satisfiesBounds())
@@ -141,7 +141,7 @@ public:
         if (jstates[i]->satisfiesBounds(bounds_dist_))
         {
           if (!prefix_state)
-            prefix_state.reset(new planning_models::KinematicState(start_state));
+            prefix_state.reset(new kinematic_state::KinematicState(start_state));
           jstates[i]->enforceBounds();
           change_req = true;
           ROS_INFO("Starting state is just outside bounds (joint '%s'). Assuming within bounds.", jstates[i]->getName().c_str());
@@ -169,7 +169,7 @@ public:
     if (change_req)
     {
       moveit_msgs::GetMotionPlan::Request req2 = req;
-      planning_models::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
+      kinematic_state::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
       solved = planner(planning_scene, req2, res);
     }
     else
@@ -178,7 +178,7 @@ public:
     // re-add the prefix state, if it was constructed
     if (prefix_state)
     {      
-      planning_models::kinematicStateToRobotState(*prefix_state, res.trajectory_start);
+      kinematic_state::kinematicStateToRobotState(*prefix_state, res.trajectory_start);
       if (solved)
       {
         // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)

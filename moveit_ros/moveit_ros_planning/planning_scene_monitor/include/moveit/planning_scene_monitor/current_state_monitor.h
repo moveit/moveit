@@ -39,7 +39,7 @@
 
 #include <ros/ros.h>
 #include <tf/tf.h>
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 #include <sensor_msgs/JointState.h>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -60,7 +60,7 @@ public:
    *  @param kmodel The current kinematic model to build on
    *  @param tf A pointer to the tf transformer to use
    */
-  CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
+  CurrentStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
   
   /** @brief Start monitoring joint states on a particular topic
    *  @param joint_states_topic The topic name for joint states (defaults to "joint_states")
@@ -103,14 +103,14 @@ public:
   
   /** @brief Get the current state
    *  @return Returns the current state */
-  planning_models::KinematicStatePtr getCurrentState(void) const;
+  kinematic_state::KinematicStatePtr getCurrentState(void) const;
   
   /** @brief Get the time stamp for the current state */
   ros::Time getCurrentStateTime(void) const;
 
   /** @brief Get the current state and its time stamp
    *  @return Returns a pair of the current state and its time stamp */
-  std::pair<planning_models::KinematicStatePtr, ros::Time> getCurrentStateAndTime(void) const;
+  std::pair<kinematic_state::KinematicStatePtr, ros::Time> getCurrentStateAndTime(void) const;
   
   /** @brief Get the current state values as a map from joint names to joint state values
    *  @return Returns the map from joint names to joint state values*/
@@ -143,9 +143,9 @@ private:
   
   ros::NodeHandle                              nh_;
   boost::shared_ptr<tf::Transformer>           tf_;
-  planning_models::KinematicModelConstPtr      kmodel_;
-  planning_models::KinematicState              kstate_;
-  planning_models::KinematicState::JointState *root_;
+  kinematic_model::KinematicModelConstPtr      kmodel_;
+  kinematic_state::KinematicState              kstate_;
+  kinematic_state::JointState                 *root_;
   std::map<std::string, ros::Time>             joint_time_;
   bool                                         state_monitor_started_;
   double                                       error_;

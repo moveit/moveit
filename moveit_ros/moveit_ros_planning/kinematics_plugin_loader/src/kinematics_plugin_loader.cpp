@@ -65,7 +65,7 @@ public:
     }
   }
   
-  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolver(const planning_models::KinematicModel::JointModelGroup *jmg)
+  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolver(const kinematic_model::JointModelGroup *jmg)
   {
     boost::shared_ptr<kinematics::KinematicsBase> result;
     if (!jmg)
@@ -91,7 +91,7 @@ public:
             result.reset(kinematics_loader_->createUnmanagedInstance(it->second[i]));
             if (result)
             {
-              const std::vector<const planning_models::KinematicModel::LinkModel*> &links = jmg->getLinkModels();
+              const std::vector<const kinematic_model::LinkModel*> &links = jmg->getLinkModels();
               if (!links.empty())
               {
                 const std::string &base = links.front()->getParentJointModel()->getParentLinkModel() ?
@@ -126,7 +126,7 @@ public:
     return result;
   }
 
-  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolverWithCache(const planning_models::KinematicModel::JointModelGroup *jmg)
+  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolverWithCache(const kinematic_model::JointModelGroup *jmg)
   {
     {
       boost::mutex::scoped_lock slock(lock_);
@@ -160,7 +160,7 @@ private:
   std::map<std::string, std::vector<std::string> >                       possible_kinematics_solvers_;
   std::map<std::string, std::vector<double> >                            search_res_;
   boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
-  std::map<const planning_models::KinematicModel::JointModelGroup*,
+  std::map<const kinematic_model::JointModelGroup*,
            std::vector<boost::shared_ptr<kinematics::KinematicsBase> > > instances_;
   boost::mutex                                                           lock_;
 };

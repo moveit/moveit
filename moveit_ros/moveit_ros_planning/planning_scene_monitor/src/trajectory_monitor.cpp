@@ -103,7 +103,7 @@ void planning_scene_monitor::TrajectoryMonitor::recordStates(void)
   while (record_states_thread_)
   {
     rate.sleep();
-    std::pair<planning_models::KinematicStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
+    std::pair<kinematic_state::KinematicStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
     trajectory_states_.push_back(state.first);
     trajectory_stamps_.push_back(state.second);
     if (state_add_callback_)

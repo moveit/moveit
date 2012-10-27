@@ -109,7 +109,7 @@ public:
     return kinematics_loader_;
   }
   
-  const planning_models::KinematicModelConstPtr& getKinematicModel(void) const;
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const;
   
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
@@ -267,7 +267,7 @@ protected:
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
   
-  void getUpdatedFrameTransforms(const planning_models::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
+  void getUpdatedFrameTransforms(const kinematic_model::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
   
   planning_scene::PlanningScenePtr      scene_;
   planning_scene::PlanningSceneConstPtr scene_const_;

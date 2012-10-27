@@ -56,9 +56,9 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
   {
     const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_->getSRDF() ? robot_model_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
     if (opt.root_link_.empty())
-      model_.reset(new planning_models::KinematicModel(robot_model_loader_->getURDF(), srdf));
+      model_.reset(new kinematic_model::KinematicModel(robot_model_loader_->getURDF(), srdf));
     else
-      model_.reset(new planning_models::KinematicModel(robot_model_loader_->getURDF(), srdf, opt.root_link_));
+      model_.reset(new kinematic_model::KinematicModel(robot_model_loader_->getURDF(), srdf, opt.root_link_));
   }
 
   if (model_)
@@ -93,11 +93,11 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
         if (nh.getParam(prefix + "has_acceleration_limits", has_acc_limits))
           jlim[j].has_acceleration_limits = has_acc_limits;
       }
-      model_->getJointModels()[i]->setLimits(jlim);
+      model_->getJointModels()[i]->setVariableLimits(jlim);
       individual_joint_limits_map[model_->getJointModels()[i]->getName()] = jlim;
     }
-    const std::map<std::string, planning_models::KinematicModel::JointModelGroup*> &jmgm = model_->getJointModelGroupMap();
-    for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin() ; it != jmgm.end() ; ++it) 
+    const std::map<std::string, kinematic_model::JointModelGroup*> &jmgm = model_->getJointModelGroupMap();
+    for (std::map<std::string, kinematic_model::JointModelGroup*>::const_iterator it = jmgm.begin() ; it != jmgm.end() ; ++it) 
     {
       std::vector<moveit_msgs::JointLimits> group_joint_limits;
       for(unsigned int i = 0; i < it->second->getJointModelNames().size(); i++)
@@ -106,7 +106,7 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
                                   individual_joint_limits_map[it->second->getJointModelNames()[i]].begin(),
                                   individual_joint_limits_map[it->second->getJointModelNames()[i]].end());
       }
-      it->second->setJointLimits(group_joint_limits);
+      it->second->setVariableLimits(group_joint_limits);
     }  
     if (opt.load_kinematics_solvers_)
       loadKinematicsSolvers();
@@ -122,7 +122,7 @@ void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
     kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader(robot_model_loader_->getRobotDescription()));
     kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction(robot_model_loader_->getSRDF());
     const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
-    std::map<std::string, planning_models::KinematicModel::SolverAllocatorFn> imap;
+    std::map<std::string, kinematic_model::SolverAllocatorFn> imap;
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
       imap[groups[i]] = kinematics_allocator;
     model_->setKinematicsAllocators(imap);
@@ -137,8 +137,8 @@ std::map<std::string, kinematics::KinematicsBasePtr> planning_models_loader::Kin
     const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
     {
-      const planning_models::KinematicModel::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
-      planning_models::KinematicModel::SolverAllocatorFn a = jmg->getSolverAllocators().first;
+      const kinematic_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
+      kinematic_model::SolverAllocatorFn a = jmg->getSolverAllocators().first;
       if (a)
         result[jmg->getName()] = a(jmg);
     }

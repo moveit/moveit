@@ -33,14 +33,14 @@
 *********************************************************************/
 
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <boost/tokenizer.hpp>
 #include <sstream>
 
-planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
+planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
                                                       const std::string &planner_plugin_param_name,
                                                       const std::string &adapter_plugins_param_name) :
   nh_("~")
@@ -61,7 +61,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::Kin
   configure(model);
 }
 
-planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
+planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
                                                       const std::string &planner_plugin_name,
                                                       const std::vector<std::string> &adapter_plugin_names) :
   nh_("~"), planner_plugin_name_(planner_plugin_name), adapter_plugin_names_(adapter_plugin_names)
@@ -69,7 +69,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::Kin
   configure(model);
 }
 
-void planning_pipeline::PlanningPipeline::configure(const planning_models::KinematicModelConstPtr& model)
+void planning_pipeline::PlanningPipeline::configure(const kinematic_model::KinematicModelConstPtr& model)
 {
   check_solution_paths_ = false;
   publish_received_requests_ = false;
@@ -276,15 +276,15 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s] out of %u", ss.str().c_str(), state_count);
             
             // call validity checks in verbose mode for the problematic states
-            planning_models::KinematicState kstate(planning_scene->getCurrentState());
-            planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), res.trajectory_start, kstate);
+            kinematic_state::KinematicState kstate(planning_scene->getCurrentState());
+            kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), res.trajectory_start, kstate);
             visualization_msgs::MarkerArray arr;
             for (std::size_t i = 0 ; i < index.size() ; ++i)
             {
               // compute the full kinematic state
               moveit_msgs::RobotState rs;
-              planning_models::robotTrajectoryPointToRobotState(res.trajectory, index[i], rs);
-              planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), rs, kstate);
+              kinematic_state::robotTrajectoryPointToRobotState(res.trajectory, index[i], rs);
+              kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), rs, kstate);
               // check validity with verbose on
               planning_scene->isStateValid(kstate, true);
               
