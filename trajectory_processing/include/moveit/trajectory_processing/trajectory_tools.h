@@ -37,29 +37,29 @@
 #ifndef MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
 #define MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
 
-#include <moveit/planning_models/kinematic_state.h>
-#include <moveit/planning_models/transforms.h>
+#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/kinematic_state/transforms.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
 
 namespace trajectory_processing
 {
 
-void convertToKinematicStates(std::vector<planning_models::KinematicStatePtr> &states,
+void convertToKinematicStates(std::vector<kinematic_state::KinematicStatePtr> &states,
                               const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
-                              const planning_models::KinematicState &reference_state, const planning_models::TransformsConstPtr &transforms);
+                              const kinematic_state::KinematicState &reference_state, const kinematic_state::TransformsConstPtr &transforms);
 
 void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
-                              const std::vector<planning_models::KinematicStateConstPtr> &states,
+                              const std::vector<kinematic_state::KinematicStateConstPtr> &states,
                               const std::vector<ros::Duration> &stamps = std::vector<ros::Duration>(),
                               const std::string &group = std::string());
 
 void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
-                              const std::vector<planning_models::KinematicStateConstPtr> &states, 
+                              const std::vector<kinematic_state::KinematicStateConstPtr> &states, 
                               const std::string &group);
 
-void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
-                    double dt_offset, const planning_models::TransformsConstPtr &transforms);
+void addPrefixState(const kinematic_state::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
+                    double dt_offset, const kinematic_state::TransformsConstPtr &transforms);
 
 bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory);
 

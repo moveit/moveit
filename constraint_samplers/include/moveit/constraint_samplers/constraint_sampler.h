@@ -64,7 +64,7 @@ public:
     return getJointModelGroup()->getName();
   }
   
-  const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
+  const kinematic_model::JointModelGroup* getJointModelGroup(void) const
   {
     return jmg_;
   }
@@ -80,18 +80,18 @@ public:
     return frame_depends_;
   }
   
-  bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &reference_state)
+  bool sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &reference_state)
   {
     return sample(jsg, reference_state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
   
-  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &reference_state, unsigned int max_attempts) = 0;
+  virtual bool sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &reference_state, unsigned int max_attempts) = 0;
   
 protected:
 
-  planning_scene::PlanningSceneConstPtr                   scene_;
-  const planning_models::KinematicModel::JointModelGroup *jmg_;
-  std::vector<std::string>                                frame_depends_;
+  planning_scene::PlanningSceneConstPtr   scene_;
+  const kinematic_model::JointModelGroup *jmg_;
+  std::vector<std::string>                frame_depends_;
 };
 
 typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;

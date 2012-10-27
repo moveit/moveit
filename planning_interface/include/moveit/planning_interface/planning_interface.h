@@ -67,7 +67,7 @@ public:
   virtual ~Planner() {};
   
   /// Subclass may implement methods below
-  virtual void init(const planning_models::KinematicModelConstPtr& model) {}
+  virtual void init(const kinematic_model::KinematicModelConstPtr& model) {}
   
   /// Get a short string that identifies the planning interface
   virtual std::string getDescription(void) const { return ""; }

@@ -90,7 +90,7 @@ PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const 
   return ret;
 }
 
-PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const planning_models::KinematicState::AttachedBody* att,
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const kinematic_state::AttachedBody* att,
                                                                          double resolution)
 {
   PosedBodySphereDecompositionVectorPtr ret(new PosedBodySphereDecompositionVector());
@@ -102,7 +102,7 @@ PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const p
   return ret;
 }
 
-PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const planning_models::KinematicState::AttachedBody* att,
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const kinematic_state::AttachedBody* att,
                                                                        double resolution)
 {
   PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());

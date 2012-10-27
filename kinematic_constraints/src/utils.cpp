@@ -103,19 +103,19 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
   return r;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const planning_models::KinematicState::JointStateGroup *jsg,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const kinematic_state::JointStateGroup *jsg,
                                                                          double tolerance)
 {
     return constructGoalConstraints(jsg, tolerance, tolerance);
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const planning_models::KinematicState::JointStateGroup *jsg,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const kinematic_state::JointStateGroup *jsg,
                                                                          double tolerance_below, double tolerance_above)
 {
     moveit_msgs::Constraints goal;
 
     std::map<std::string, double> vals;
-    jsg->getGroupStateValues(vals);
+    jsg->getVariableValues(vals);
 
     goal.joint_constraints.resize(vals.size());
     unsigned int i = 0;

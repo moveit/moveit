@@ -55,7 +55,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
                                                                                                               const std::string &group_name,
                                                                                                               const moveit_msgs::Constraints &constr)
 {
-  const planning_models::KinematicModel::JointModelGroup *jmg = scene->getKinematicModel()->getJointModelGroup(group_name);
+  const kinematic_model::JointModelGroup *jmg = scene->getKinematicModel()->getJointModelGroup(group_name);
   if (!jmg)
     return constraint_samplers::ConstraintSamplerPtr();
   std::stringstream ss; ss << constr;
@@ -88,9 +88,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   }
   
   // read the ik allocators, if any
-  planning_models::KinematicModel::SolverAllocatorFn ik_alloc = jmg->getSolverAllocators().first;
-  std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn> ik_subgroup_alloc = 
-    jmg->getSolverAllocators().second;
+  kinematic_model::SolverAllocatorFn ik_alloc = jmg->getSolverAllocators().first;
+  std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn> ik_subgroup_alloc = jmg->getSolverAllocators().second;
   
   // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints should be used
   if (ik_alloc)
@@ -214,7 +213,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     
     std::vector<ConstraintSamplerPtr> samplers;
     std::set<std::size_t> usedP, usedO;
-    for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
+    for (std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
     {
       // construct a sub-set of constraints that uperate on the sub-group for which we have an IK allocator
       moveit_msgs::Constraints sub_constr;

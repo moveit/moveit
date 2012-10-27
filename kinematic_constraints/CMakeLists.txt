@@ -4,7 +4,9 @@ add_library(${MOVEIT_LIB_NAME}
   src/kinematic_constraint.cpp
   src/utils.cpp)
 
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_models moveit_collision_detection_fcl ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME}
+  moveit_kinematic_model moveit_kinematic_state moveit_collision_detection_fcl
+  ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION lib)
