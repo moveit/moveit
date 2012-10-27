@@ -37,8 +37,8 @@
 #ifndef COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
 #define COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
 
-#include "collision_detection/collision_common.h"
-#include "collision_detection/collision_world.h"
+#include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection/collision_world.h>
 
 namespace collision_detection
 {
