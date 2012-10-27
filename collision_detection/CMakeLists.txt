@@ -1,4 +1,6 @@
 set(MOVEIT_LIB_NAME moveit_collision_detection)
+
+add_library(${MOVEIT_LIB_NAME}
   src/collision_world.cpp 
   src/collision_robot.cpp
   src/collision_matrix.cpp
