@@ -36,7 +36,8 @@ link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_package(
   LIBRARIES
-    moveit_planning_models
+    moveit_kinematic_model
+    moveit_kinematic_state
     moveit_collision_detection
     moveit_collision_detection_fcl
     moveit_kinematic_constraints
