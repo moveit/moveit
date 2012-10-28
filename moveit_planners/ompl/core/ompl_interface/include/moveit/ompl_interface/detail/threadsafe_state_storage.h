@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,30 +32,33 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_FACTORY_
+#ifndef MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
+#define MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
 
-#include "ompl_interface/parameterization/model_based_state_space_factory.h"
+#include <moveit/kinematic_state/kinematic_state.h>
+#include <boost/thread.hpp>
 
 namespace ompl_interface
 {
-class PoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
+
+class TSStateStorage
 {
 public:
   
-  PoseModelStateSpaceFactory(void);
+  TSStateStorage(const kinematic_model::KinematicModelPtr &kmodel);
+  TSStateStorage(const kinematic_state::KinematicState &start_state);
+  ~TSStateStorage(void);
   
-  virtual int canRepresentProblem(const std::string &group,
-                                  const moveit_msgs::MotionPlanRequest &req,
-                                  const planning_models::KinematicModelConstPtr &kmodel) const;
-    
-protected:
+  kinematic_state::KinematicState* getStateStorage(void) const;
   
-  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
-    
+private:
+  
+  kinematic_state::KinematicState                                       start_state_;
+  mutable std::map<boost::thread::id, kinematic_state::KinematicState*> thread_states_;
+  mutable boost::mutex                                                  lock_;
 };
-}
 
+}
 #endif

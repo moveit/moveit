@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/parameterization/model_based_state_space.h"
+#include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <boost/bind.hpp>
-#include <ros/console.h>
 
 ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedStateSpaceSpecification &spec) : ompl::base::CompoundStateSpace(), spec_(spec)
 {
@@ -44,14 +43,15 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
   setName(spec_.joint_model_group_->getName());
   
   // make sure we have bounds for every joint stored within the spec (use default bounds if not specified)
-  const std::vector<const planning_models::KinematicModel::JointModel*> &joint_model_vector = spec_.joint_model_group_->getJointModels();
+  const std::vector<const kinematic_model::JointModel*> &joint_model_vector = spec_.joint_model_group_->getJointModels();
   for (std::size_t i = 0 ; i < joint_model_vector.size() ; ++i)
     if (spec_.joints_bounds_.size() <= i)
       spec_.joints_bounds_.push_back(joint_model_vector[i]->getVariableBounds());
     else
       if (spec_.joints_bounds_[i].size() != joint_model_vector[i]->getVariableBounds().size())
       {
-        ROS_ERROR_STREAM("Joint " << joint_model_vector[i]->getName() << "  from group " << spec_.joint_model_group_->getName() << " has incorrect bounds specified. Using the default bounds instead.");
+        logError("Joint '%s' from group '%s' has incorrect bounds specified. Using the default bounds instead.",
+                 joint_model_vector[i]->getName().c_str(), spec_.joint_model_group_->getName().c_str());
         spec_.joints_bounds_[i] = joint_model_vector[i]->getVariableBounds();
       }
   
@@ -81,7 +81,7 @@ double ompl_interface::ModelBasedStateSpace::getTagSnapToSegment(void) const
 void ompl_interface::ModelBasedStateSpace::setTagSnapToSegment(double snap)
 {
   if (snap < 0.0 || snap > 1.0)
-    ROS_WARN("Snap to segment for tags is a ratio. It's value must be between 0.0 and 1.0. Value remains as previously set (%lf)", tag_snap_to_segment_);
+    logWarn("Snap to segment for tags is a ratio. It's value must be between 0.0 and 1.0. Value remains as previously set (%lf)", tag_snap_to_segment_);
   else
   {
     tag_snap_to_segment_ = snap;
@@ -221,17 +221,17 @@ void ompl_interface::ModelBasedStateSpace::setBounds(double minX, double maxX, d
     components_[i]->as<ModelBasedJointStateSpace>()->setBounds(minX, maxX, minY, maxY, minZ, maxZ);
 }
 
-void ompl_interface::ModelBasedStateSpace::copyToKinematicState(planning_models::KinematicState::JointStateGroup* jsg, const ompl::base::State *state) const
+void ompl_interface::ModelBasedStateSpace::copyToKinematicState(kinematic_state::JointStateGroup* jsg, const ompl::base::State *state) const
 {
-  const std::vector<planning_models::KinematicState::JointState*> &dest = jsg->getJointStateVector();
+  const std::vector<kinematic_state::JointState*> &dest = jsg->getJointStateVector();
   for (std::size_t i = 0 ; i < dest.size() ; ++i)
     *dest[i] = *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state;
   jsg->updateLinkTransforms();
 }
 
-void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const
+void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *state, const kinematic_state::JointStateGroup* jsg) const
 {
-  const std::vector<planning_models::KinematicState::JointState*> &src = jsg->getJointStateVector();
+  const std::vector<kinematic_state::JointState*> &src = jsg->getJointStateVector();
   for (std::size_t i = 0 ; i < src.size() ; ++i)
     *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state = *src[i];     
   state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();

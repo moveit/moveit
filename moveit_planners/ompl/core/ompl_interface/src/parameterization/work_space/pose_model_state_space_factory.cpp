@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/parameterization/work_space/pose_model_state_space_factory.h"
-#include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
+#include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
+#include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
 
 ompl_interface::PoseModelStateSpaceFactory::PoseModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
 {  
@@ -44,12 +44,12 @@ ompl_interface::PoseModelStateSpaceFactory::PoseModelStateSpaceFactory(void) : M
 
 int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::string &group,
                                                                     const moveit_msgs::MotionPlanRequest &req,
-                                                                    const planning_models::KinematicModelConstPtr &kmodel) const
+                                                                    const kinematic_model::KinematicModelConstPtr &kmodel) const
 {
-  const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
+  const kinematic_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
   if (jmg)
   {
-    const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn>& slv = jmg->getSolverAllocators();
+    const std::pair<kinematic_model::SolverAllocatorFn, kinematic_model::SolverAllocatorMapFn>& slv = jmg->getSolverAllocators();
     bool ik = false;
     // check that we have a direct means to compute IK
     if (slv.first)
@@ -59,7 +59,7 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::s
       {
         // or an IK solver for each of the subgroups
         unsigned int vc = 0;
-        for (planning_models::KinematicModel::SolverAllocatorMapFn::const_iterator jt = slv.second.begin() ; jt != slv.second.end() ; ++jt)
+        for (kinematic_model::SolverAllocatorMapFn::const_iterator jt = slv.second.begin() ; jt != slv.second.end() ; ++jt)
           if (jt->first)
             vc += jt->first->getVariableCount();
         if (vc == jmg->getVariableCount())

@@ -10,6 +10,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS
   moveit_core
+  eigen_conversions
   REQUIRED)
 
 find_package(PkgConfig REQUIRED)

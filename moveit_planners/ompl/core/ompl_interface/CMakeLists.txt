@@ -20,8 +20,7 @@ add_library(moveit_ompl_interface
   src/detail/constrained_goal_sampler.cpp
   src/detail/ompl_console.cpp
 )
-
-#rosbuild_add_openmp_flags(${PROJECT_NAME})
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 target_link_libraries(${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 catkin_add_gtest(test_state_space test/test_state_space.cpp)

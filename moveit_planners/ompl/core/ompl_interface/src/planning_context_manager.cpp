@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/planning_context_manager.h"
-
-#include <planning_models/conversions.h>
+#include <moveit/ompl_interface/planning_context_manager.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <algorithm>
 #include <set>
 
@@ -53,12 +52,11 @@
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/contrib/rrt_star/RRTstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
-#include <ros/console.h>
 
 #include <ompl/tools/debug/Profiler.h>
 
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h"
-#include "ompl_interface/parameterization/work_space/pose_model_state_space_factory.h"
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
+#include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
 
 namespace ompl_interface
 {
@@ -99,7 +97,7 @@ struct PlanningContextManager::CachedContexts
 
 }
 
-ompl_interface::PlanningContextManager::PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
+ompl_interface::PlanningContextManager::PlanningContextManager(const kinematic_model::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
   kmodel_(kmodel), constraint_sampler_manager_(csm),
   max_goal_samples_(10), max_state_sampling_attempts_(4), max_goal_sampling_attempts_(1000),
   max_planning_threads_(4), max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
@@ -150,7 +148,7 @@ ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManage
     return it->second;
   else
   {
-    ROS_ERROR("Unknown planner: '%s'", planner.c_str());
+    logError("Unknown planner: '%s'", planner.c_str());
     return ConfiguredPlannerAllocator();
   }
 }
@@ -189,8 +187,8 @@ void ompl_interface::PlanningContextManager::setPlanningConfigurations(const std
     planner_configs_[pconfig[i].name] = pconfig[i];
 
   // construct default configurations
-  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
-  for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
+  const std::map<std::string, kinematic_model::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
+  for (std::map<std::string, kinematic_model::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
     if (planner_configs_.find(it->first) == planner_configs_.end())
     {
       PlanningConfigurationSettings empty;
@@ -206,7 +204,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1, factory_type));
   else
   {
-    ROS_ERROR("Planning configuration '%s' was not found", config.c_str());
+    logError("Planning configuration '%s' was not found", config.c_str());
     return ModelBasedPlanningContextPtr();
   }
 }
@@ -226,7 +224,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       for (std::size_t i = 0 ; i < cc->second.size() ; ++i)
         if (cc->second[i].unique())
         {
-          ROS_DEBUG("Reusing cached planning context");
+          logDebug("Reusing cached planning context");
           context = cc->second[i];
           break;
         }
@@ -257,7 +255,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       }
     }
     
-    ROS_DEBUG("Creating new planning context");
+    logDebug("Creating new planning context");
     context.reset(new ModelBasedPlanningContext(config.name, context_spec));
     {
       boost::mutex::scoped_lock slock(cached_contexts_->lock_);
@@ -288,7 +286,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
     return f->second;
   else
   {
-    ROS_ERROR("Factory of type '%s' was not found", factory_type.c_str());
+    logError("Factory of type '%s' was not found", factory_type.c_str());
     static const ModelBasedStateSpaceFactoryPtr empty;
     return empty;
   }
@@ -312,13 +310,13 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   
   if (best == state_space_factories_.end())
   {
-    ROS_ERROR("There are no known state spaces that can represent the given planning problem");
+    logError("There are no known state spaces that can represent the given planning problem");
     static const ModelBasedStateSpaceFactoryPtr empty;
     return empty;
   }
   else
   {
-    ROS_DEBUG("Using '%s' parameterization for solving problem", best->first.c_str());
+    logDebug("Using '%s' parameterization for solving problem", best->first.c_str());
     return best->second;
   }
 }
@@ -327,7 +325,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 {
   if (req.group_name.empty())
   {
-    ROS_ERROR("No group specified to plan for");
+    logError("No group specified to plan for");
     return ModelBasedPlanningContextPtr();
   }
   
@@ -337,15 +335,15 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   {
     pc = planner_configs_.find(req.planner_id.find(req.group_name) == std::string::npos ? req.group_name + "[" + req.planner_id + "]" : req.planner_id);
     if (pc == planner_configs_.end())
-      ROS_WARN_STREAM("Cannot find planning configuration for group '" << req.group_name
-		      << "' using planner '" << req.planner_id << "'. Will use defaults instead.");
+      logWarn("Cannot find planning configuration for group '%s' using planner '%s'. Will use defaults instead.", 
+              req.group_name.c_str(), req.planner_id.c_str());
   }
   if (pc == planner_configs_.end())
   {
     pc = planner_configs_.find(req.group_name);
     if (pc == planner_configs_.end())
     {
-      ROS_ERROR_STREAM("Cannot find planning configuration for group '" << req.group_name << "'");
+      logError("Cannot find planning configuration for group '%s'", req.group_name.c_str());
       return ModelBasedPlanningContextPtr();
     }
   }

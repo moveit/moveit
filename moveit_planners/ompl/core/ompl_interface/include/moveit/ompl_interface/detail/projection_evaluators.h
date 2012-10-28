@@ -34,38 +34,53 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
+#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
+#define MOVEIT_OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
 
-#include <ompl/base/goals/GoalLazySamples.h>
-#include <kinematic_constraints/kinematic_constraint.h>
-#include <constraint_samplers/constraint_sampler.h>
+#include <ompl/base/ProjectionEvaluator.h>
+#include <moveit/ompl_interface/detail/threadsafe_state_storage.h>
 
 namespace ompl_interface
 {
 
 class ModelBasedPlanningContext;
 
-/** @class ConstrainedGoalSampler
- *  An interface to the OMPL goal lazy sampler*/
-class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
+/** @class ProjectionEvaluatorLinkPose
+    @brief */
+class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
 {
 public:
   
-  ConstrainedGoalSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                         const constraint_samplers::ConstraintSamplerPtr &cs = constraint_samplers::ConstraintSamplerPtr());
+  ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link);
+  
+  virtual unsigned int getDimension(void) const;
+  virtual void defaultCellSizes(void);
+  virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
   
 private:
   
-  bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
-  bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
-  
-  const ModelBasedPlanningContext                 *planning_context_;
-  kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
-  constraint_samplers::ConstraintSamplerPtr        constraint_sampler_;
-  planning_models::KinematicState                   work_state_;
-  planning_models::KinematicState::JointStateGroup *work_joint_group_state_;
+  const ModelBasedPlanningContext *planning_context_;
+  std::string                      group_name_;
+  std::string                      link_name_;
+  TSStateStorage                   tss_;
+};
 
+/** @class ProjectionEvaluatorJointValue
+    @brief */
+class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
+{
+public:
+  ProjectionEvaluatorJointValue(const ModelBasedPlanningContext *pc, const std::vector<std::pair<std::string, unsigned int> > &joints);
+  
+  virtual unsigned int getDimension(void) const;
+  virtual void defaultCellSizes(void);
+  virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
+  
+private:
+  
+  const ModelBasedPlanningContext                   *planning_context_;
+  unsigned int                                       dimension_;
+  std::vector<std::pair<std::string, unsigned int> > joints_;
 };
 }
 

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/detail/goal_union.h"
+#include <moveit/ompl_interface/detail/goal_union.h>
 
 static ompl::base::SpaceInformationPtr getGoalsSI(const std::vector<ompl::base::GoalPtr> &goals)
 {

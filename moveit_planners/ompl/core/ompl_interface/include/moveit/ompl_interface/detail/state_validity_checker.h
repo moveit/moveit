@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,48 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
+#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_STATE_VALIDITY_CHECKER_
+#define MOVEIT_OMPL_INTERFACE_DETAIL_STATE_VALIDITY_CHECKER_
 
-#include "ompl_interface/parameterization/model_based_state_space.h"
+#include <moveit/ompl_interface/detail/threadsafe_state_storage.h>
+#include <moveit/collision_detection/collision_common.h>
+#include <ompl/base/StateValidityChecker.h>
 
 namespace ompl_interface
 {
 
-class JointModelStateSpace : public ModelBasedStateSpace
+class ModelBasedPlanningContext;
+
+/** @class StateValidityChecker
+    @brief An interface for a OMPL state validity checker*/
+class StateValidityChecker : public ompl::base::StateValidityChecker
 {
 public:
+  
+  StateValidityChecker(const ModelBasedPlanningContext *planning_context);
+  
+  virtual bool isValid(const ompl::base::State *state) const;
+  virtual bool isValid(const ompl::base::State *state, double &dist) const;
+  virtual double cost(const ompl::base::State *state) const;
+  virtual double clearance(const ompl::base::State *state) const;
+  
+  void setVerbose(bool flag);
+  
+protected:
+  
+  bool isValidWithoutCache(const ompl::base::State *state) const;
+  bool isValidWithoutCache(const ompl::base::State *state, double &dist) const;
 
-  static const std::string PARAMETERIZATION_TYPE;
+  bool isValidWithCache(const ompl::base::State *state) const;
+  bool isValidWithCache(const ompl::base::State *state, double &dist) const;
   
-  JointModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
-  
+  const ModelBasedPlanningContext      *planning_context_;
+  std::string                           group_name_;
+  TSStateStorage                        tss_;
+  collision_detection::CollisionRequest collision_request_simple_;
+  collision_detection::CollisionRequest collision_request_with_distance_;
+  collision_detection::CollisionRequest collision_request_with_cost_;
+  bool                                  verbose_;
 };
 
 }

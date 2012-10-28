@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h"
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 
 ompl_interface::JointModelStateSpaceFactory::JointModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
 {
@@ -44,7 +44,7 @@ ompl_interface::JointModelStateSpaceFactory::JointModelStateSpaceFactory(void) :
 
 int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(const std::string &group,
                                                                      const moveit_msgs::MotionPlanRequest &req,
-								     const planning_models::KinematicModelConstPtr &kmodel) const
+								     const kinematic_model::KinematicModelConstPtr &kmodel) const
 {
   return 100;
 }

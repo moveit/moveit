@@ -38,8 +38,8 @@
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_JOINT_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
+#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 
 namespace ompl_interface
 {
@@ -51,12 +51,12 @@ public:
   class StateType : public ompl::base::State
   {
   public:
-    planning_models::KinematicState::JointState *joint_state;
+    kinematic_state::JointState *joint_state;
   };
   
-  ModelBasedJointStateSpace(const planning_models::KinematicModel::JointModel *joint_model);
-  ModelBasedJointStateSpace(const planning_models::KinematicModel::JointModel *joint_model,
-                            const planning_models::KinematicModel::JointModel::Bounds &joint_bounds);
+  ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model);
+  ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model,
+                            const kinematic_model::JointModel::Bounds &joint_bounds);
   
   virtual ~ModelBasedJointStateSpace(void);
   
@@ -82,7 +82,7 @@ public:
   
   virtual ompl::base::StateSamplerPtr allocDefaultStateSampler(void) const;  
   
-  const planning_models::KinematicModel::JointModel* getJointModel(void) const
+  const kinematic_model::JointModel* getJointModel(void) const
   {
     return joint_model_;
   }  
@@ -95,7 +95,7 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
-  const planning_models::KinematicModel::JointModel::Bounds& getJointBounds(void) const
+  const kinematic_model::JointModel::Bounds& getJointBounds(void) const
   {
     return joint_bounds_;
   }
@@ -104,8 +104,8 @@ protected:
 
   void propagateJointStateUpdate(ompl::base::State *state) const;
 
-  const planning_models::KinematicModel::JointModel *joint_model_;
-  planning_models::KinematicModel::JointModel::Bounds joint_bounds_;
+  const kinematic_model::JointModel *joint_model_;
+  kinematic_model::JointModel::Bounds joint_bounds_;
   
 };
 

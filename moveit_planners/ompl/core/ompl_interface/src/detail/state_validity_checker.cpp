@@ -34,10 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/detail/state_validity_checker.h"
-#include "ompl_interface/model_based_planning_context.h"
+#include <moveit/ompl_interface/detail/state_validity_checker.h>
+#include <moveit/ompl_interface/model_based_planning_context.h>
 #include <ompl/tools/debug/Profiler.h>
-#include <ros/console.h>
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
@@ -75,7 +74,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 
 double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state) const
 { 
-  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
 
   collision_detection::CollisionResult res;
@@ -89,7 +88,7 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state
 
 double ompl_interface::StateValidityChecker::clearance(const ompl::base::State *state) const
 {
-  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
 
   collision_detection::CollisionResult res;
@@ -102,11 +101,11 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   if (!si_->satisfiesBounds(state))
   {
     if (verbose_)
-      ROS_INFO("State outside bounds");   
+      logInform("State outside bounds");   
     return false;
   }
   
-  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
   
   // check path constraints
@@ -129,11 +128,11 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   if (!si_->satisfiesBounds(state))
   {
     if (verbose_)
-      ROS_INFO("State outside bounds");
+      logInform("State outside bounds");
     return false;
   }
 
-  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
   
   // check path constraints
@@ -170,12 +169,12 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   if (!si_->satisfiesBounds(state))
   {
     if (verbose_)
-      ROS_INFO("State outside bounds");   
+      logInform("State outside bounds");   
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
   
-  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
 
   // check path constraints
@@ -219,12 +218,12 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   if (!si_->satisfiesBounds(state))
   {
     if (verbose_)
-      ROS_INFO("State outside bounds");  
+      logInform("State outside bounds");  
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
     return false;
   }
 
-  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
   
   // check path constraints

@@ -37,9 +37,9 @@
 #ifndef MOVEIT_OMPL_INTERFACE_OMPL_INTERFACE_
 #define MOVEIT_OMPL_INTERFACE_OMPL_INTERFACE_
 
-#include "ompl_interface/planning_context_manager.h"
-#include "ompl_interface/constraints_library.h"
-#include <constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/ompl_interface/planning_context_manager.h>
+#include <moveit/ompl_interface/constraints_library.h>
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <string>
@@ -55,7 +55,7 @@ class OMPLInterface
 {
 public: 
   
-  OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel);
+  OMPLInterface(const kinematic_model::KinematicModelConstPtr &kmodel);
   virtual ~OMPLInterface(void);
   
   /** @brief Specify configurations for the planners.
@@ -85,7 +85,7 @@ public:
    *  @param timeout The amount of time to spend on planning
    */
   ob::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const std::string &config, const planning_models::KinematicState &start_state,
+                    const std::string &config, const kinematic_state::KinematicState &start_state,
                     const moveit_msgs::Constraints &goal_constraints, double timeout,
                     const std::string &factory_type = "") const;
   
@@ -97,7 +97,7 @@ public:
    *  @param timeout The amount of time to spend on planning
    */
   ob::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const std::string &config, const planning_models::KinematicState &start_state,
+                    const std::string &config, const kinematic_state::KinematicState &start_state,
                     const moveit_msgs::Constraints &goal_constraints,
                     const moveit_msgs::Constraints &path_constraints, double timeout,
                     const std::string &factory_type = "") const;
@@ -187,7 +187,7 @@ protected:
                                                unsigned int *attempts, double *timeout) const;
   
   /** \brief The kinematic model for which motion plans are computed */
-  planning_models::KinematicModelConstPtr kmodel_;
+  kinematic_model::KinematicModelConstPtr kmodel_;
   
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
   
