@@ -37,9 +37,9 @@
 #ifndef MOVEIT_OMPL_INTERFACE_PLANNING_CONTEXT_MANAGER_
 #define MOVEIT_OMPL_INTERFACE_PLANNING_CONTEXT_MANAGER_
 
-#include "ompl_interface/model_based_planning_context.h"
-#include "ompl_interface/parameterization/model_based_state_space_factory.h"
-#include <constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/ompl_interface/model_based_planning_context.h>
+#include <moveit/ompl_interface/parameterization/model_based_state_space_factory.h>
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <boost/shared_ptr.hpp>
 #include <vector>
@@ -62,7 +62,7 @@ class PlanningContextManager
 {
 public: 
   
-  PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm);
+  PlanningContextManager(const kinematic_model::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm);
   ~PlanningContextManager(void);
   
   /** @brief Specify configurations for the planners.
@@ -149,7 +149,7 @@ public:
     max_acceleration_ = ma;
   }
   
-  const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return kmodel_;
   }
@@ -199,7 +199,7 @@ protected:
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string &group_name, const moveit_msgs::MotionPlanRequest &req) const;
   
   /** \brief The kinematic model for which motion plans are computed */
-  planning_models::KinematicModelConstPtr               kmodel_;
+  kinematic_model::KinematicModelConstPtr               kmodel_;
   
   constraint_samplers::ConstraintSamplerManagerPtr      constraint_sampler_manager_;
   

@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/detail/constrained_goal_sampler.h"
-#include "ompl_interface/model_based_planning_context.h"
-#include <ros/console.h>
+#include <moveit/ompl_interface/detail/constrained_goal_sampler.h>
+#include <moveit/ompl_interface/model_based_planning_context.h>
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
                                                                const kinematic_constraints::KinematicConstraintSetPtr &ks,
@@ -45,7 +44,7 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedP
   planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()),
   work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName()))
 {
-  ROS_DEBUG("Constructed a ConstrainedGoalSampler instance at address %p", this);
+  logDebug("Constructed a ConstrainedGoalSampler instance at address %p", this);
   startSampling();
 }
 

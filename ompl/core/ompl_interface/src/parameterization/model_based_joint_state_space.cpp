@@ -34,11 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/parameterization/model_based_joint_state_space.h"
-#include <ros/console.h>
+#include <moveit/ompl_interface/parameterization/model_based_joint_state_space.h>
 
-ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const planning_models::KinematicModel::JointModel *joint_model,
-                                                                     const planning_models::KinematicModel::JointModel::Bounds &joint_bounds) :
+ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model,
+                                                                     const kinematic_model::JointModel::Bounds &joint_bounds) :
   ompl::base::StateSpace(), joint_model_(joint_model), joint_bounds_(joint_bounds)
 {
   // set the state space name
@@ -46,12 +45,12 @@ ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const plann
   
   if (joint_bounds_.size() != joint_model_->getVariableBounds().size())
   {
-    ROS_ERROR_STREAM("Joint " << joint_model_->getName() << "  from group has incorrect bounds specified. Using the default bounds instead.");
+    logError("Joint '%s' from group has incorrect bounds specified. Using the default bounds instead.",  joint_model_->getName().c_str());
     joint_bounds_ = joint_model_->getVariableBounds();
   }
 }
 
-ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const planning_models::KinematicModel::JointModel *joint_model) :
+ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model) :
   ompl::base::StateSpace(), joint_model_(joint_model)
 {
   // set the state space name
@@ -66,7 +65,7 @@ ompl_interface::ModelBasedJointStateSpace::~ModelBasedJointStateSpace(void)
 ompl::base::State* ompl_interface::ModelBasedJointStateSpace::allocState(void) const
 {
   StateType *st = new StateType();
-  st->joint_state = new planning_models::KinematicState::JointState(joint_model_);
+  st->joint_state = new kinematic_state::JointState(joint_model_);
   return st;
 }
 
@@ -134,7 +133,7 @@ void ompl_interface::ModelBasedJointStateSpace::deserialize(ompl::base::State *s
 
 void ompl_interface::ModelBasedJointStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
-  if (joint_model_->getType() == planning_models::KinematicModel::JointModel::PLANAR)
+  if (joint_model_->getType() == kinematic_model::JointModel::PLANAR)
   {
     joint_bounds_[0].first = minX;
     joint_bounds_[0].second = maxX;
@@ -142,7 +141,7 @@ void ompl_interface::ModelBasedJointStateSpace::setBounds(double minX, double ma
     joint_bounds_[1].second = maxY;
   }
   else
-    if (joint_model_->getType() == planning_models::KinematicModel::JointModel::FLOATING)
+    if (joint_model_->getType() == kinematic_model::JointModel::FLOATING)
     {
       joint_bounds_[0].first = minX;
       joint_bounds_[0].second = maxX;
@@ -199,7 +198,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedJointStateSpace::allocDefa
       values.clear(); // clear first since getRandomValues() does .push_back()
       
       // generate random values accorrding to JointModel
-      space_->as<ModelBasedJointStateSpace>()->getJointModel()->getRandomValues(moveit_rng_, values, space_->as<ModelBasedJointStateSpace>()->getJointBounds());
+      space_->as<ModelBasedJointStateSpace>()->getJointModel()->getVariableRandomValues(moveit_rng_, values, space_->as<ModelBasedJointStateSpace>()->getJointBounds());
       
       // propagate transforms
       space_->as<ModelBasedJointStateSpace>()->propagateJointStateUpdate(state);
@@ -211,9 +210,9 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedJointStateSpace::allocDefa
       values.clear(); // clear first since getRandomValues() does .push_back()
       
       // generate random values accorrding to JointModel
-      space_->as<ModelBasedJointStateSpace>()->getJointModel()->getRandomValuesNearBy(moveit_rng_, values, space_->as<ModelBasedJointStateSpace>()->getJointBounds(),
-                                                                                      near->as<ModelBasedJointStateSpace::StateType>()->joint_state->getVariableValues(),
-                                                                                      distance);
+      space_->as<ModelBasedJointStateSpace>()->getJointModel()->getVariableRandomValuesNearBy(moveit_rng_, values, space_->as<ModelBasedJointStateSpace>()->getJointBounds(),
+                                                                                              near->as<ModelBasedJointStateSpace::StateType>()->joint_state->getVariableValues(),
+                                                                                              distance);
       // propagate transforms
       space_->as<ModelBasedJointStateSpace>()->propagateJointStateUpdate(state);
     }

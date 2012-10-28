@@ -34,21 +34,21 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/model_based_planning_context.h"
-#include "ompl_interface/detail/state_validity_checker.h"
-#include "ompl_interface/detail/constrained_sampler.h"
-#include "ompl_interface/detail/constrained_goal_sampler.h"
-#include "ompl_interface/detail/goal_union.h"
-#include "ompl_interface/detail/projection_evaluators.h"
-#include "ompl_interface/constraints_library.h"
-#include <kinematic_constraints/utils.h>
+#include <moveit/ompl_interface/model_based_planning_context.h>
+#include <moveit/ompl_interface/detail/state_validity_checker.h>
+#include <moveit/ompl_interface/detail/constrained_sampler.h>
+#include <moveit/ompl_interface/detail/constrained_goal_sampler.h>
+#include <moveit/ompl_interface/detail/goal_union.h>
+#include <moveit/ompl_interface/detail/projection_evaluators.h>
+#include <moveit/ompl_interface/constraints_library.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <eigen_conversions/eigen_msg.h>
 
 #include <ompl/base/samplers/UniformValidStateSampler.h>
 #include <ompl/base/goals/GoalLazySamples.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
-#include <ros/console.h>
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec) :
   spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getKinematicModel()),
@@ -64,7 +64,7 @@ void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std
 {
   if (!spec_.state_space_)
   {
-    ROS_ERROR("No state space is configured yet");
+    logError("No state space is configured yet");
     return;
   }
   ob::ProjectionEvaluatorPtr pe = getProjectionEvaluator(peval);
@@ -80,7 +80,7 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
     if (getKinematicModel()->hasLinkModel(link_name))
       return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorLinkPose(this, link_name));
     else
-      ROS_ERROR("Attempted to set projection evaluator with respect to position of link '%s', but that link is not known to the kinematic model.", link_name.c_str());
+      logError("Attempted to set projection evaluator with respect to position of link '%s', but that link is not known to the kinematic model.", link_name.c_str());
   }
   else
     if (peval.find_first_of("joints(") == 0 && peval[peval.length() - 1] == ')')
@@ -98,27 +98,31 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
 	  if (vc > 0)
 	    j.push_back(std::make_pair(v, vc));
 	  else
-	    ROS_WARN("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
+	    logWarn("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
 	}
 	else
-	  ROS_ERROR("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the kinematic model.",
-		    name_.c_str(), v.c_str());
+	  logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the kinematic model.",
+                   name_.c_str(), v.c_str());
       }
       if (j.empty())
-	ROS_ERROR("%s: No valid joints specified for joint projection", name_.c_str());
+	logError("%s: No valid joints specified for joint projection", name_.c_str());
       else
 	return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j));
     }
     else
-      ROS_ERROR("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());  
+      logError("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());  
   return ob::ProjectionEvaluatorPtr();
 }
 
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
   if (spec_.state_space_.get() != ss)
-    ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
-  ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
+  {
+    logError("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
+    return ompl::base::StateSamplerPtr();
+  }
+  
+  logDebug("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
   
   if (path_constraints_)
   {
@@ -133,7 +137,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
           ompl::base::StateSamplerPtr res = c_ssa(ss);
           if (res)
           {
-            ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
+            logDebug("Using precomputed state sampler (approximated constraint space)");
             return res;
           }
         }
@@ -146,11 +150,11 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
     
     if (cs)
     {
-      ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());
+      logDebug("%s: Allocating specialized state sampler for state space", name_.c_str());
       return ob::StateSamplerPtr(new ConstrainedSampler(this, cs));
     }
   }
-  ROS_DEBUG("%s: Allocating default state sampler for state space", name_.c_str());
+  logDebug("%s: Allocating default state sampler for state space", name_.c_str());
   return ss->allocDefaultStateSampler();
 }
 
@@ -188,11 +192,11 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(void)
     try
     {
       max_velocity_ = boost::lexical_cast<double>(boost::trim_copy(it->second));
-      ROS_INFO("%s: Maximum velocity set to %lf", name_.c_str(), max_velocity_);
+      logInform("%s: Maximum velocity set to %lf", name_.c_str(), max_velocity_);
     }
     catch(boost::bad_lexical_cast &e)
     {
-      ROS_ERROR("%s: Unable to parse maximum velocity: %s", name_.c_str(), e.what());
+      logError("%s: Unable to parse maximum velocity: %s", name_.c_str(), e.what());
     }
     cfg.erase(it);
   }
@@ -203,11 +207,11 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(void)
     try
     {
       max_velocity_ = boost::lexical_cast<double>(boost::trim_copy(it->second));
-      ROS_INFO("%s: Maximum acceleration set to %lf", name_.c_str(), max_velocity_);
+      logInform("%s: Maximum acceleration set to %lf", name_.c_str(), max_velocity_);
     }
     catch(boost::bad_lexical_cast &e)
     {
-      ROS_ERROR("%s: Unable to parse maximum acceleration: %s", name_.c_str(), e.what());
+      logError("%s: Unable to parse maximum acceleration: %s", name_.c_str(), e.what());
     }
     cfg.erase(it);
   }
@@ -219,7 +223,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(void)
   if (it == cfg.end())
   {
     if (name_ != getJointModelGroupName())
-      ROS_WARN("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
+      logWarn("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
   }
   else
   {
@@ -228,8 +232,8 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(void)
     cfg.erase(it);
     ompl_simple_setup_.setPlannerAllocator(boost::bind(spec_.planner_selector_(type), _1,
 						       name_ != getJointModelGroupName() ? name_ : "", spec_));
-    ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
-	     name_.c_str(), type.c_str());
+    logInform("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
+              name_.c_str(), type.c_str());
   }
   
   // call the setParams() after setup(), so we know what the params are
@@ -244,10 +248,10 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   if (wparams.min_corner.x == wparams.max_corner.x && wparams.min_corner.x == 0.0 &&
       wparams.min_corner.y == wparams.max_corner.y && wparams.min_corner.y == 0.0 &&
       wparams.min_corner.z == wparams.max_corner.z && wparams.min_corner.z == 0.0)
-    ROS_WARN("It looks like the planning volume was not specified.");
+    logWarn("It looks like the planning volume was not specified.");
   
-  ROS_DEBUG("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]", name_.c_str(),
-	    wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
+  logDebug("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]", name_.c_str(),
+           wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
   
   spec_.state_space_->setBounds(wparams.min_corner.x, wparams.max_corner.x,
                                 wparams.min_corner.y, wparams.max_corner.y,
@@ -271,10 +275,10 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution(void)
 
 void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometric::PathGeometric &pg, moveit_msgs::RobotTrajectory &traj) const
 {
-  planning_models::KinematicState ks = complete_initial_robot_state_;
-  const std::vector<const planning_models::KinematicModel::JointModel*> &jnt = getJointModelGroup()->getJointModels();
-  std::vector<const planning_models::KinematicModel::JointModel*> onedof;
-  std::vector<const planning_models::KinematicModel::JointModel*> mdof;
+  kinematic_state::KinematicState ks = complete_initial_robot_state_;
+  const std::vector<const kinematic_model::JointModel*> &jnt = getJointModelGroup()->getJointModels();
+  std::vector<const kinematic_model::JointModel*> onedof;
+  std::vector<const kinematic_model::JointModel*> mdof;
   traj.joint_trajectory.header.frame_id = getPlanningScene()->getPlanningFrame();
   traj.joint_trajectory.joint_names.clear();
   traj.multi_dof_joint_trajectory.joint_names.clear();
@@ -312,8 +316,8 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
       traj.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
       for (std::size_t j = 0 ; j < mdof.size() ; ++j)
       {
-        planning_models::msgFromPose(ks.getJointState(mdof[j]->getName())->getVariableTransform(),
-                                     traj.multi_dof_joint_trajectory.points[i].poses[j]);
+        tf::poseEigenToMsg(ks.getJointState(mdof[j]->getName())->getVariableTransform(),
+                           traj.multi_dof_joint_trajectory.points[i].poses[j]);
       }
       traj.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
     }
@@ -354,7 +358,7 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
   if (!goals.empty())
     return goals.size() == 1 ? goals[0] : ompl::base::GoalPtr(new GoalSampleableRegionMux(goals));
   else
-    ROS_ERROR("Unable to construct goal representation");
+    logError("Unable to construct goal representation");
   
   return ob::GoalPtr();
 }
@@ -364,7 +368,7 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningScene(const planning_
   planning_scene_ = planning_scene;
 }
 
-void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(const planning_models::KinematicState &complete_initial_robot_state)
+void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(const kinematic_state::KinematicState &complete_initial_robot_state)
 {
   complete_initial_robot_state_ = complete_initial_robot_state;
 }
@@ -408,7 +412,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
 
   if (goal_constraints_.empty())
   {
-    ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
+    logWarn("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
     if (error)
       error->val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
@@ -465,7 +469,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   bool result = false;
   if (count <= 1)
   {
-    ROS_DEBUG("%s: Solving the planning problem once...", name_.c_str());
+    logDebug("%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
     registerTerminationCondition(ptc);
     result = ompl_simple_setup_.solve(ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
@@ -474,7 +478,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   }
   else
   {
-    ROS_DEBUG("%s: Solving the planning problem %u times...", name_.c_str(), count);
+    logDebug("%s: Solving the planning problem %u times...", name_.c_str(), count);
     ompl_parallel_plan_.clearHybridizationPaths();
     if (count <= max_planning_threads_)
     {
@@ -534,10 +538,10 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   
   int v = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getValidMotionCount();
   int iv = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
-  ROS_DEBUG("There were %d valid motions and %d invalid motions.", v, iv);
+  logDebug("There were %d valid motions and %d invalid motions.", v, iv);
   
   if (ompl_simple_setup_.getProblemDefinition()->hasApproximateSolution())
-    ROS_WARN("Computed solution is approximate");
+    logWarn("Computed solution is approximate");
   
   return result;
 }

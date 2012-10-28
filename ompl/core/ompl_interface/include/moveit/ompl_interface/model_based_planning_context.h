@@ -37,9 +37,9 @@
 #ifndef MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 #define MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 
-#include "ompl_interface/parameterization/model_based_state_space.h"
-#include <constraint_samplers/constraint_sampler_manager.h>
-#include <planning_scene/planning_scene.h>
+#include <moveit/ompl_interface/parameterization/model_based_state_space.h>
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/planning_scene/planning_scene.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/tools/benchmark/Benchmark.h>
@@ -95,12 +95,12 @@ public:
     return spec_;
   }
 
-  const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return spec_.state_space_->getKinematicModel();
   }
   
-  const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
+  const kinematic_model::JointModelGroup* getJointModelGroup(void) const
   {
     return spec_.state_space_->getJointModelGroup();
   }  
@@ -115,7 +115,7 @@ public:
     return planning_scene_;
   }
   
-  const planning_models::KinematicState& getCompleteInitialRobotState(void) const
+  const kinematic_state::KinematicState& getCompleteInitialRobotState(void) const
   {
     return complete_initial_robot_state_;
   }
@@ -247,7 +247,7 @@ public:
   void setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene);
   void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
-  void setCompleteInitialState(const planning_models::KinematicState &complete_initial_robot_state);
+  void setCompleteInitialState(const kinematic_state::KinematicState &complete_initial_robot_state);
   
   bool setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
 			  const moveit_msgs::Constraints &path_constraints,
@@ -328,7 +328,7 @@ protected:
   
   std::string name_;
   
-  planning_models::KinematicState complete_initial_robot_state_;
+  kinematic_state::KinematicState complete_initial_robot_state_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used

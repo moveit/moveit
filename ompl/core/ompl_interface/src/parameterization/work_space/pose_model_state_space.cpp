@@ -34,26 +34,25 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
+#include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
-#include <ros/console.h>
 #include <ompl/tools/debug/Profiler.h>
 
 const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "PoseModel";
 
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec) : ModelBasedStateSpace(spec)
 {
-  const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn>& slv = spec.joint_model_group_->getSolverAllocators();
+  const std::pair<kinematic_model::SolverAllocatorFn, kinematic_model::SolverAllocatorMapFn>& slv = spec.joint_model_group_->getSolverAllocators();
   if (slv.first)
     poses_.push_back(PoseComponent(spec.joint_model_group_));
   else
     if (!slv.second.empty())
     {
-      for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn>::const_iterator it = slv.second.begin() ; it != slv.second.end() ; ++it)
+      for (std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn>::const_iterator it = slv.second.begin() ; it != slv.second.end() ; ++it)
         poses_.push_back(PoseComponent(it->first));
     }
   if (poses_.empty())
-    ROS_FATAL("No kinematics solvers specified. Unable to construct a PoseModelStateSpace");
+    logError("No kinematics solvers specified. Unable to construct a PoseModelStateSpace");
   constructSpaceFromPoses();
 }
 
@@ -142,7 +141,7 @@ void ompl_interface::PoseModelStateSpace::setBounds(double minX, double maxX, do
     components_[i]->as<ompl::base::SE3StateSpace>()->setBounds(b);
 }
 
-ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const planning_models::KinematicModel::JointModelGroup *subgroup) :
+ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const kinematic_model::JointModelGroup *subgroup) :
   subgroup_(subgroup), kinematics_solver_(subgroup->getSolverAllocators().first(subgroup))
 {
   state_space_.reset(new ompl::base::SE3StateSpace());
@@ -282,7 +281,7 @@ void ompl_interface::PoseModelStateSpace::afterStateSample(ompl::base::State *sa
   std::cout << "---------- SAMPLE\n"; */
 }
 
-void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const
+void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State *state, const kinematic_state::JointStateGroup* jsg) const
 {
   ModelBasedStateSpace::copyToOMPLState(state, jsg);
   state->as<StateType>()->setJointsComputed(true);  

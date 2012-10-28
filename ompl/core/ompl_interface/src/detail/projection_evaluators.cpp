@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/detail/projection_evaluators.h"
-#include "ompl_interface/model_based_planning_context.h"
+#include <moveit/ompl_interface/detail/projection_evaluators.h>
+#include <moveit/ompl_interface/model_based_planning_context.h>
 
 ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link) :
   ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), planning_context_(pc),
@@ -59,11 +59,11 @@ void ompl_interface::ProjectionEvaluatorLinkPose::defaultCellSizes(void)
 
 void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
 {
-  planning_models::KinematicState *s = tss_.getStateStorage();
+  kinematic_state::KinematicState *s = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*s, state);
   s->getJointStateGroup(group_name_)->updateLinkTransforms();
   
-  const planning_models::KinematicState::LinkState *ls = s->getLinkState(link_name_);
+  const kinematic_state::LinkState *ls = s->getLinkState(link_name_);
   const Eigen::Vector3d &o = ls->getGlobalLinkTransform().translation();
   projection(0) = o.x();
   projection(1) = o.y();

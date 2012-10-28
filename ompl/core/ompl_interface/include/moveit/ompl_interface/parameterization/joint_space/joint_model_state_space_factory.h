@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,55 +32,29 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_FACTORY_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_FACTORY_
 
-#include <ompl/base/ProjectionEvaluator.h>
-#include "ompl_interface/detail/threadsafe_state_storage.h"
+#include <moveit/ompl_interface/parameterization/model_based_state_space_factory.h>
 
 namespace ompl_interface
 {
-
-class ModelBasedPlanningContext;
-
-/** @class ProjectionEvaluatorLinkPose
-    @brief */
-class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
+class JointModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
-  
-  ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link);
-  
-  virtual unsigned int getDimension(void) const;
-  virtual void defaultCellSizes(void);
-  virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
-  
-private:
-  
-  const ModelBasedPlanningContext *planning_context_;
-  std::string                      group_name_;
-  std::string                      link_name_;
-  TSStateStorage                   tss_;
-};
 
-/** @class ProjectionEvaluatorJointValue
-    @brief */
-class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
-{
-public:
-  ProjectionEvaluatorJointValue(const ModelBasedPlanningContext *pc, const std::vector<std::pair<std::string, unsigned int> > &joints);
+  JointModelStateSpaceFactory(void);
   
-  virtual unsigned int getDimension(void) const;
-  virtual void defaultCellSizes(void);
-  virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
+  virtual int canRepresentProblem(const std::string &group,
+                                  const moveit_msgs::MotionPlanRequest &req,
+				  const kinematic_model::KinematicModelConstPtr &kmodel) const;
+
+protected:
   
-private:
+  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
   
-  const ModelBasedPlanningContext                   *planning_context_;
-  unsigned int                                       dimension_;
-  std::vector<std::pair<std::string, unsigned int> > joints_;
 };
 }
 

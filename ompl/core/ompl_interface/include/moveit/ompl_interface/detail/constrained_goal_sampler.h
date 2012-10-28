@@ -34,31 +34,39 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
-#define MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
+#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
+#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
 
-#include <planning_models/kinematic_state.h>
-#include <boost/thread.hpp>
+#include <ompl/base/goals/GoalLazySamples.h>
+#include <moveit/kinematic_constraints/kinematic_constraint.h>
+#include <moveit/constraint_samplers/constraint_sampler.h>
 
 namespace ompl_interface
 {
 
-class TSStateStorage
+class ModelBasedPlanningContext;
+
+/** @class ConstrainedGoalSampler
+ *  An interface to the OMPL goal lazy sampler*/
+class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
 {
 public:
   
-  TSStateStorage(const planning_models::KinematicModelPtr &kmodel);
-  TSStateStorage(const planning_models::KinematicState &start_state);
-  ~TSStateStorage(void);
-  
-  planning_models::KinematicState* getStateStorage(void) const;
+  ConstrainedGoalSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
+                         const constraint_samplers::ConstraintSamplerPtr &cs = constraint_samplers::ConstraintSamplerPtr());
   
 private:
   
-  planning_models::KinematicState                                       start_state_;
-  mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
-  mutable boost::mutex                                                  lock_;
-};
+  bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
+  bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
+  
+  const ModelBasedPlanningContext                 *planning_context_;
+  kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
+  constraint_samplers::ConstraintSamplerPtr        constraint_sampler_;
+  kinematic_state::KinematicState                  work_state_;
+  kinematic_state::JointStateGroup                *work_joint_group_state_;
 
+};
 }
+
 #endif

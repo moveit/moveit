@@ -32,51 +32,30 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_FACTORY_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_FACTORY_
 
-#include "ompl_interface/parameterization/model_based_state_space.h"
-#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit/ompl_interface/parameterization/model_based_state_space_factory.h>
 
 namespace ompl_interface
 {
-
-class ModelBasedStateSpaceFactory;
-typedef boost::shared_ptr<ModelBasedStateSpaceFactory> ModelBasedStateSpaceFactoryPtr;
-
-class ModelBasedStateSpaceFactory
+class PoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
   
-  ModelBasedStateSpaceFactory(void)
-  {
-  }
+  PoseModelStateSpaceFactory(void);
   
-  virtual ~ModelBasedStateSpaceFactory(void)
-  {
-  }
-  
-  ModelBasedStateSpacePtr getNewStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
-
-  const std::string& getType(void) const
-  {
-    return type_;
-  }
-
-  /** \brief Decide whether the type of state space constructed by this factory could represent problems specified by the user
-      request \e req for group \e group. The group \e group must always be specified and takes precedence over \e req.group_name, which may be different */
   virtual int canRepresentProblem(const std::string &group,
                                   const moveit_msgs::MotionPlanRequest &req,
-				  const planning_models::KinematicModelConstPtr &kmodel) const = 0;
-
+                                  const kinematic_model::KinematicModelConstPtr &kmodel) const;
+    
 protected:
   
-  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const = 0;
-  std::string type_;
+  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
+    
 };
-
 }
 
 #endif

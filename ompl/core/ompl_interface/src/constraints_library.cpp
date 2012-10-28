@@ -34,13 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/constraints_library.h"
-#include "ompl_interface/detail/constrained_sampler.h"
+#include <moveit/ompl_interface/constraints_library.h>
+#include <moveit/ompl_interface/detail/constrained_sampler.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <fstream>
-#include <ros/console.h>
 
 namespace ompl_interface
 {
@@ -154,7 +153,7 @@ ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::S
 
 }
 
-ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model,
+ompl_interface::ConstraintApproximation::ConstraintApproximation(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                                                                  const std::string &group, const std::string &state_space_parameterization,
                                                                  const moveit_msgs::Constraints &msg, const std::string &filename,
                                                                  const ompl::base::StateStoragePtr &storage,
@@ -223,24 +222,24 @@ ompl::base::StateSamplerAllocator ompl_interface::ConstraintApproximation::getSt
     
     if (mini > maxi)
     {
-      ROS_DEBUG("Empty sampling range found for constraint: %u, %u", (unsigned int)mini, (unsigned int)maxi);
+      logDebug("Empty sampling range found for constraint: %u, %u", (unsigned int)mini, (unsigned int)maxi);
       return ompl::base::StateSamplerAllocator();
     }
     
     if ((above && above(state_storage_->getState(mini))) || (below && below(state_storage_->getState(maxi))))
     {
-      ROS_DEBUG("Empty sampling range found for constraint: %u, %u", (unsigned int)mini, (unsigned int)maxi);
+      logDebug("Empty sampling range found for constraint: %u, %u", (unsigned int)mini, (unsigned int)maxi);
       return ompl::base::StateSamplerAllocator();
     }
     
-    ROS_DEBUG("Stored states sampling range is [%u, %u]", (unsigned int)mini, (unsigned int)maxi);
+    logDebug("Stored states sampling range is [%u, %u]", (unsigned int)mini, (unsigned int)maxi);
   }
   return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_, mini, maxi);
 }
 
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const
 {
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
   
   ompl::RNG rng;
@@ -282,11 +281,11 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
   std::ifstream fin((path + "/manifest").c_str());
   if (!fin.good())
   {
-    ROS_DEBUG("Manifest not found in folder '%s'. Not loading constraint approximations.", path.c_str());
+    logDebug("Manifest not found in folder '%s'. Not loading constraint approximations.", path.c_str());
     return;
   }
   
-  ROS_INFO("Loading constrained space approximations from '%s'", path.c_str());
+  logInform("Loading constrained space approximations from '%s'", path.c_str());
   
   while (fin.good() && !fin.eof())
   {
@@ -318,13 +317,13 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
       if (cap)
       {
         if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
-          ROS_WARN("Overwriting constraint approximation named '%s'", cap->getName().c_str());
+          logWarn("Overwriting constraint approximation named '%s'", cap->getName().c_str());
         
         constraint_approximations_[cap->getName()] = cap;
         std::size_t sum = 0;
         for (std::size_t i = 0 ; i < cass->size() ; ++i)
           sum += cass->getMetadata(i).size();
-        ROS_INFO("Loaded %lu states and %lu connections (%0.1lf per state) from %s", cass->size(), sum, (double)sum / (double)cass->size(), filename.c_str());
+        logInform("Loaded %lu states and %lu connections (%0.1lf per state) from %s", cass->size(), sum, (double)sum / (double)cass->size(), filename.c_str());
       }
     }
   }
@@ -332,7 +331,7 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
 
 void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std::string &path)
 {
-  ROS_INFO("Saving %u constrained space approximations to '%s'", (unsigned int)constraint_approximations_.size(), path.c_str());
+  logInform("Saving %u constrained space approximations to '%s'", (unsigned int)constraint_approximations_.size(), path.c_str());
   try
   {
     boost::filesystem::create_directories(path);
@@ -355,7 +354,7 @@ void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std:
         it->second->getStateStorage()->store((path + "/" + it->second->getFilename()).c_str());
     }
   else
-    ROS_ERROR("Unable to save constraint approximation to '%s'", path.c_str());
+    logError("Unable to save constraint approximation to '%s'", path.c_str());
   fout.close();
 }
 
@@ -416,7 +415,7 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
     
     ros::WallTime start = ros::WallTime::now();
     ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, order, samples, edges_per_sample, res);
-    ROS_INFO("Spent %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
+    logInform("Spent %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
     if (ss)
     {
       ConstraintApproximationPtr ca;
@@ -429,13 +428,13 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
       if (ca)
       {
         if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
-          ROS_WARN("Overwriting constraint approximation named '%s'", ca->getName().c_str());
+          logWarn("Overwriting constraint approximation named '%s'", ca->getName().c_str());
         constraint_approximations_[ca->getName()] = ca;
         res.approx = ca;
       }
     }
     else
-      ROS_ERROR("Unable to construct constraint approximation for group '%s'", group.c_str());
+      logError("Unable to construct constraint approximation for group '%s'", group.c_str());
   }
   return res;
 }
@@ -452,10 +451,10 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   ob::StateStoragePtr sstor(cass);
   
   // construct a sampler for the sampling constraints
-  kinematic_constraints::KinematicConstraintSet kset(pcontext->getKinematicModel(), planning_models::TransformsConstPtr(new planning_models::Transforms(pcontext->getKinematicModel()->getModelFrame())));
+  kinematic_constraints::KinematicConstraintSet kset(pcontext->getKinematicModel(), kinematic_state::TransformsConstPtr(new kinematic_state::Transforms(pcontext->getKinematicModel()->getModelFrame())));
   kset.add(constr_hard);
 
-  const planning_models::KinematicState &default_state = pcontext->getCompleteInitialRobotState();
+  const kinematic_state::KinematicState &default_state = pcontext->getCompleteInitialRobotState();
   
   int nthreads = 0;
   unsigned int attempts = 0;
@@ -472,7 +471,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 	nthreads = omp_get_num_threads();    
     }
     
-    planning_models::KinematicState kstate(default_state);
+    kinematic_state::KinematicState kstate(default_state);
     const constraint_samplers::ConstraintSamplerManagerPtr &csmng = pcontext->getConstraintSamplerManager();
     ConstrainedSampler *csmp = NULL;
     if (csmng)
@@ -497,19 +496,19 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 	if (done != done_now)
 	{
 	  done = done_now;
-	  ROS_INFO("%d%% complete (kept %0.1lf%% sampled states)", done, 100.0 * (double)sstor->size() / (double)attempts);
+	  logInform("%d%% complete (kept %0.1lf%% sampled states)", done, 100.0 * (double)sstor->size() / (double)attempts);
 	}
 
 	if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
 	{
 	  slow_warn = true;
-	  ROS_WARN("Computation of valid state database is very slow...");
+	  logWarn("Computation of valid state database is very slow...");
 	}
       }
 
       if (attempts > samples && sstor->size() == 0)
       {
-	ROS_ERROR("Unable to generate any samples");
+	logError("Unable to generate any samples");
 	break;
       }
       
@@ -531,23 +530,23 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 #pragma omp master
     {
       result.state_sampling_time = ompl::time::seconds(ompl::time::now() - start);
-      ROS_INFO("Generated %u states in %lf seconds", (unsigned int)sstor->size(), result.state_sampling_time); 
+      logInform("Generated %u states in %lf seconds", (unsigned int)sstor->size(), result.state_sampling_time); 
       if (csmp)
       {
         result.sampling_success_rate = csmp->getConstrainedSamplingRate();
-        ROS_INFO("Constrained sampling rate: %lf", result.sampling_success_rate);
+        logInform("Constrained sampling rate: %lf", result.sampling_success_rate);
       }
     }
   }
   if (order)
   {
-    ROS_INFO("Sorting states...");
+    logInform("Sorting states...");
     sstor->sort(order);
   }
   
   if (edges_per_sample > 0)
   {
-    ROS_INFO("Computing graph connections (max %u edges per sample) ...", edges_per_sample);
+    logInform("Computing graph connections (max %u edges per sample) ...", edges_per_sample);
     
     ompl::tools::SelfConfig sc(pcontext->getOMPLSimpleSetup().getSpaceInformation());
     double range = 0.0;
@@ -555,7 +554,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     
     // construct connexions
     const ob::StateSpacePtr &space = pcontext->getOMPLSimpleSetup().getStateSpace();
-    std::vector<planning_models::KinematicState> kstates(nthreads, default_state);
+    std::vector<kinematic_state::KinematicState> kstates(nthreads, default_state);
     const std::vector<const ompl::base::State*> &states = sstor->getStates();
     std::vector<ompl::base::ScopedState<> > temps(nthreads, ompl::base::ScopedState<>(space));
     
@@ -567,14 +566,14 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     for (std::size_t j = 0 ; j < sstor->size() ; ++j)
     {
       int threadid = omp_get_thread_num();
-      planning_models::KinematicState &kstate = kstates[threadid];
-      planning_models::KinematicState::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
+      kinematic_state::KinematicState &kstate = kstates[threadid];
+      kinematic_state::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
       ompl::base::State *temp = temps[threadid].get();
       int done_now = 100 * j / sstor->size();
       if (done != done_now)
       {
 	done = done_now;
-	ROS_INFO("%d%% complete", done);
+        logInform("%d%% complete", done);
       }
       
       for (std::size_t i = j + 1 ; i < sstor->size() ; ++i)
@@ -613,7 +612,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       }
     }
     result.state_connection_time = ompl::time::seconds(ompl::time::now() - start);
-    ROS_INFO("Computed possible connexions in %lf seconds. Added %d connexions", result.state_connection_time, good);
+    logInform("Computed possible connexions in %lf seconds. Added %d connexions", result.state_connection_time, good);
   }
   
   return sstor;

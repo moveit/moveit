@@ -37,7 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_
 
-#include "ompl_interface/parameterization/model_based_state_space.h"
+#include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 
 namespace ompl_interface
 {
@@ -106,14 +106,14 @@ public:
   bool computeStateK(ompl::base::State *state) const;
 
   virtual void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
-  virtual void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const;
+  virtual void copyToOMPLState(ompl::base::State *state, const kinematic_state::JointStateGroup* jsg) const;
   virtual void sanityChecks(void) const;
   
 private:
 
   struct PoseComponent
   {
-    PoseComponent(const planning_models::KinematicModel::JointModelGroup *subgroup);
+    PoseComponent(const kinematic_model::JointModelGroup *subgroup);
     
     bool computeStateFK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state) const;
     bool computeStateIK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state) const;
@@ -123,7 +123,7 @@ private:
       return subgroup_->getName() < o.subgroup_->getName();
     }
     
-    const planning_models::KinematicModel::JointModelGroup *subgroup_;    
+    const kinematic_model::JointModelGroup *subgroup_;    
     boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
     ompl::base::StateSpacePtr state_space_;
     std::vector<std::string> fk_link_;

@@ -34,31 +34,31 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/detail/threadsafe_state_storage.h"
+#include <moveit/ompl_interface/detail/threadsafe_state_storage.h>
 
-ompl_interface::TSStateStorage::TSStateStorage(const planning_models::KinematicModelPtr &kmodel) : start_state_(kmodel)
+ompl_interface::TSStateStorage::TSStateStorage(const kinematic_model::KinematicModelPtr &kmodel) : start_state_(kmodel)
 {
   start_state_.setToDefaultValues();
 }
 
-ompl_interface::TSStateStorage::TSStateStorage(const planning_models::KinematicState &start_state) : start_state_(start_state)
+ompl_interface::TSStateStorage::TSStateStorage(const kinematic_state::KinematicState &start_state) : start_state_(start_state)
 {
 }
 
 ompl_interface::TSStateStorage::~TSStateStorage(void)
 {    
-  for (std::map<boost::thread::id, planning_models::KinematicState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
+  for (std::map<boost::thread::id, kinematic_state::KinematicState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
     delete it->second;
 }
 
-planning_models::KinematicState* ompl_interface::TSStateStorage::getStateStorage(void) const
+kinematic_state::KinematicState* ompl_interface::TSStateStorage::getStateStorage(void) const
 {
-  planning_models::KinematicState *st = NULL;
+  kinematic_state::KinematicState *st = NULL;
   boost::mutex::scoped_lock slock(lock_);/// \todo use Thread Local Storage?
-  std::map<boost::thread::id, planning_models::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
+  std::map<boost::thread::id, kinematic_state::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
   if (it == thread_states_.end())
   {
-    st = new planning_models::KinematicState(start_state_);
+    st = new kinematic_state::KinematicState(start_state_);
     thread_states_[boost::this_thread::get_id()] = st;
   }
   else

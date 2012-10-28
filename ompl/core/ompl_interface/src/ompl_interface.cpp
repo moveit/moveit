@@ -34,13 +34,12 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/ompl_interface.h"
-#include <planning_models/conversions.h>
+#include <moveit/ompl_interface/ompl_interface.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <fstream>
-#include <ros/console.h>
 
-ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
+ompl_interface::OMPLInterface::OMPLInterface(const kinematic_model::KinematicModelConstPtr &kmodel) :
   kmodel_(kmodel),
   constraint_sampler_manager_(new  constraint_samplers::ConstraintSamplerManager()),
   context_manager_(kmodel, constraint_sampler_manager_),
@@ -59,8 +58,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
                                                                                             unsigned int *attempts, double *timeout) const
 {
   ros::WallTime start = ros::WallTime::now();
-  planning_models::KinematicState start_state = planning_scene->getCurrentState();
-  planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
+  kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
+  kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
 
   ModelBasedPlanningContextPtr context = getPlanningContext(req);
   if (!context)
@@ -72,7 +71,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   *timeout = req.allowed_planning_time.toSec();
   if (*timeout <= 0.0)
   {
-    ROS_INFO("The timeout for planning must be positive (%lf specified). Assuming one second instead.", *timeout);
+    logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.", *timeout);
     *timeout = 1.0;
   }
   
@@ -81,7 +80,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
     *attempts = req.num_planning_attempts;
   else
     if (req.num_planning_attempts < 0)
-      ROS_ERROR("The number of desired planning attempts should be positive. Assuming one attempt.");
+      logError("The number of desired planning attempts should be positive. Assuming one attempt.");
   
   context->clear();
   
@@ -95,7 +94,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, error_code))
     return ModelBasedPlanningContextPtr();
   context->configure();
-  ROS_DEBUG("%s: New planning context is set.", context->getName().c_str());
+  logDebug("%s: New planning context is set.", context->getName().c_str());
   error_code->val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
   return context;
@@ -124,16 +123,16 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     context->interpolateSolution();
       
     // fill the response
-    ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
-	      context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-    planning_models::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
+    logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
+             context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
+    kinematic_state::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
     context->getSolutionPath(res.trajectory);
     res.planning_time = ros::Duration(ptime);
     return true;
   }
   else
   {
-    ROS_INFO("Unable to solve the planning problem");
+    logInform("Unable to solve the planning problem");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
@@ -155,7 +154,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (context->solve(timeout, attempts))
   {
     res.trajectory.reserve(3);
-    planning_models::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
+    kinematic_state::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
     
     // add info about planned solution
     double ptime = context->getLastPlanTime();
@@ -182,13 +181,13 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     context->getSolutionPath(res.trajectory.back());
     
     // fill the response
-    ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
-	      context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
+    logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
+             context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
     return true;
   }
   else
   {
-    ROS_INFO("Unable to solve the planning problem");
+    logInform("Unable to solve the planning problem");
     error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
@@ -208,7 +207,7 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
 }
 
 ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                         const std::string &config, const planning_models::KinematicState &start_state,
+                                                         const std::string &config, const kinematic_state::KinematicState &start_state,
                                                          const moveit_msgs::Constraints &goal_constraints, double timeout,
                                                          const std::string &factory_type) const
 {
@@ -217,7 +216,7 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
 }
 
 ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                         const std::string &config, const planning_models::KinematicState &start_state,
+                                                         const std::string &config, const kinematic_state::KinematicState &start_state,
                                                          const moveit_msgs::Constraints &goal_constraints,
                                                          const moveit_msgs::Constraints &path_constraints, double timeout,
                                                          const std::string &factory_type) const

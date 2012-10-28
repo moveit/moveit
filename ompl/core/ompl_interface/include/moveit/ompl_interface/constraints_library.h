@@ -37,8 +37,8 @@
 #ifndef MOVEIT_OMPL_INTERFACE_CONSTRAINTS_LIBRARY_
 #define MOVEIT_OMPL_INTERFACE_CONSTRAINTS_LIBRARY_
 
-#include "ompl_interface/planning_context_manager.h"
-#include <kinematic_constraints/kinematic_constraint.h>
+#include <moveit/ompl_interface/planning_context_manager.h>
+#include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <ompl/base/StateStorage.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <boost/function.hpp>
@@ -60,7 +60,7 @@ class ConstraintApproximation
 {
 public:
   
-  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &state_space_parameterization,
+  ConstraintApproximation(const kinematic_model::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &state_space_parameterization,
                           const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage, 
                           const ConstraintApproximationFactory *parent_factory = NULL);
   
@@ -109,7 +109,7 @@ public:
   
 protected:
   
-  planning_models::KinematicModelConstPtr          kmodel_;
+  kinematic_model::KinematicModelConstPtr          kmodel_;
   std::string                                      group_;
   std::string                                      state_space_parameterization_;
 
@@ -150,7 +150,7 @@ public:
     return ConstraintStateStorageDelimiterFn();
   }  
   
-  virtual ConstraintApproximationPtr allocApproximation(const planning_models::KinematicModelConstPtr &kinematic_model,
+  virtual ConstraintApproximationPtr allocApproximation(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                                                         const std::string &group, const std::string &state_space_parameterization,
                                                         const moveit_msgs::Constraints &msg, const std::string &filename,
                                                         const ompl::base::StateStoragePtr &storage) const = 0;
@@ -161,7 +161,7 @@ class SpecialConstraintApproximationFactory : public ConstraintApproximationFact
 {
 public:
   
-  virtual ConstraintApproximationPtr allocApproximation(const planning_models::KinematicModelConstPtr &kinematic_model,
+  virtual ConstraintApproximationPtr allocApproximation(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                                                         const std::string &group, const std::string &state_space_parameterization,
                                                         const moveit_msgs::Constraints &msg, std::string &filename,
                                                         const ompl::base::StateStoragePtr &storage) const
