@@ -34,10 +34,10 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef _MOVEIT_OMPL_INTERFACE_ROS_H_
-#define _MOVEIT_OMPL_INTERFACE_ROS_H_
+#ifndef MOVEIT_PLANNERS_OMPL_INTERFACE_ROS_
+#define MOVEIT_PLANNERS_OMPL_INTERFACE_ROS_
 
-#include <ompl_interface/ompl_interface.h>
+#include <moveit/ompl_interface/ompl_interface.h>
 #include <pluginlib/class_loader.h>
 #include <ros/ros.h>
 
@@ -49,7 +49,7 @@ namespace ompl_interface_ros
     public:
       /** @brief Constructor
        *  @param scene A pointer to the planning scene*/
-      OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel);
+      OMPLInterfaceROS(const kinematic_model::KinematicModelConstPtr &kmodel);
 
       /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint approximations to */
       bool saveConstraintApproximations(void);

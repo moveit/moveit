@@ -1,0 +1,8 @@
+find_package(OMPL REQUIRED)
+
+if (moveit_ompl_planners_core_LIBRARIES)
+  list(APPEND moveit_ompl_planners_core_LIBRARIES ${OMPL_LIBRARIES})
+endif()
+if (moveit_ompl_planners_core_INCLUDE_DIRS)
+  list(APPEND moveit_ompl_planners_core_INCLUDE_DIRS ${OMPL_INCLUDE_DIRS})
+endif()
