@@ -34,9 +34,9 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface_ros/ompl_interface_ros.h"
-#include "planning_scene_monitor/planning_scene_monitor.h"
-#include <planning_models/conversions.h>
+#include <moveit/ompl_interface_ros/ompl_interface_ros.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <tf/transform_listener.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <moveit_msgs/DisplayTrajectory.h>
@@ -103,7 +103,7 @@ public:
     {
       ompl::base::PlannerData pd(pc->getOMPLSimpleSetup().getSpaceInformation());
       pc->getOMPLSimpleSetup().getPlannerData(pd);
-      planning_models::KinematicState kstate = psm_.getPlanningScene()->getCurrentState();  
+      kinematic_state::KinematicState kstate = psm_.getPlanningScene()->getCurrentState();  
       visualization_msgs::MarkerArray arr; 
       std_msgs::ColorRGBA color;
       color.r = 1.0f;
@@ -146,7 +146,7 @@ public:
   bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
   {
     planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
-    planning_models::robotStateToKinematicState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentState());
+    kinematic_state::robotStateToKinematicState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentState());
     ompl_interface::ConstraintApproximationConstructionResults ca_res = 
       ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
                                                                          diff_scene, req.samples, req.edges_per_sample);

@@ -32,19 +32,19 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include "ompl_interface_ros/ompl_interface_ros.h"
-#include <planning_interface/planning_interface.h>
-#include <planning_scene/planning_scene.h>
-#include <planning_models/kinematic_model.h>
+#include <moveit/ompl_interface_ros/ompl_interface_ros.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <boost/shared_ptr.hpp>
 #include <pluginlib/class_list_macros.h>
 
 #include <dynamic_reconfigure/server.h>
-#include "ompl_interface_ros/OMPLDynamicReconfigureConfig.h"
+#include "moveit_ompl_planners_ros_plugin/OMPLDynamicReconfigureConfig.h"
 
 namespace ompl_interface_ros
 {
+using namespace moveit_ompl_planners_ros_plugin;
 
 class OMPLPlanner : public planning_interface::Planner
 {
@@ -57,17 +57,14 @@ public:
       dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
     }
 
-    void init(const planning_models::KinematicModelConstPtr& model) 
+    void init(const kinematic_model::KinematicModelConstPtr& model) 
     {
       ompl_interface_.reset(new OMPLInterfaceROS(model));
       pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
     }
 
-    bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
-                           planning_interface::PlannerCapability &capabilities) const
+    bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req) const
     {
-      // TODO: this is a dummy implementation
-	//      capabilities.dummy = false;
       return true;
     }
 
@@ -118,7 +115,7 @@ private:
       {
 	ompl::base::PlannerData pd(pc->getOMPLSimpleSetup().getSpaceInformation());
 	pc->getOMPLSimpleSetup().getPlannerData(pd);
-	planning_models::KinematicState kstate = planning_scene->getCurrentState();  
+	kinematic_state::KinematicState kstate = planning_scene->getCurrentState();  
 	visualization_msgs::MarkerArray arr; 
 	std_msgs::ColorRGBA color;
 	color.r = 1.0f;

@@ -25,3 +25,6 @@ target_link_libraries(${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} $
 
 catkin_add_gtest(test_state_space test/test_state_space.cpp)
 target_link_libraries(test_state_space ${MOVEIT_LIB_NAME})
+
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
+install(DIRECTORY include/ DESTINATION include)

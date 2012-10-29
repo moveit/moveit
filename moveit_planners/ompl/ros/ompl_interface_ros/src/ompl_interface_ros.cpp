@@ -34,11 +34,11 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface_ros/ompl_interface_ros.h"
+#include <moveit/ompl_interface_ros/ompl_interface_ros.h>
 #include <boost/thread/mutex.hpp>
 #include <boost/tokenizer.hpp>
 
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) :
+ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const kinematic_model::KinematicModelConstPtr &kmodel) :
   ompl_interface::OMPLInterface(kmodel), nh_("~")
 {
   loadParams();
