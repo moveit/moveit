@@ -84,7 +84,8 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->collision_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( collisionObjectNameChanged( QListWidgetItem * ) ));
   connect( ui_->path_constraints_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( pathConstraintsIndexChanged( int ) ));
 
-  ui_->tabWidget->setCurrentIndex(0);
+  ui_->tabWidget->setCurrentIndex(0); 
+  planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
 }
 
 moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
@@ -134,14 +135,9 @@ void moveit_rviz_plugin::PlanningFrame::publishSceneButtonClicked(void)
 {
   if (planning_display_->getPlanningSceneMonitor())
   {
-    std::string topic = planning_display_->subProp("Planning Scene")->subProp("Planning Scene Topic")->getValue().toString().toStdString();
-    if (!topic.empty())
-    {
-      planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>(topic, 1);
-      moveit_msgs::PlanningScene msg;
-      planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
-      planning_scene_publisher_.publish(msg);
-    }
+    moveit_msgs::PlanningScene msg;
+    planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
+    planning_scene_publisher_.publish(msg);
   }
 }
 
@@ -794,14 +790,7 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadSceneButtonClicked(void)
         std::string scene = s->text(0).toStdString();
         moveit_warehouse::PlanningSceneWithMetadata scene_m;
         if (planning_scene_storage_->getPlanningScene(scene_m, scene))
-        {
-          std::string topic = planning_display_->subProp("Planning Scene")->subProp("Planning Scene Topic")->getValue().toString().toStdString();
-          if (!topic.empty())
-          {
-            planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>(topic, 1);
-            planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
-          }
-        }
+          planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
       }
     }
   }
