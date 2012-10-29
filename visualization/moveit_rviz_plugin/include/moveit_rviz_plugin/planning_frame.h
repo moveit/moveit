@@ -55,7 +55,8 @@ class PlanningDisplay;
 
 class PlanningFrame : public QWidget
 {
-Q_OBJECT
+  friend class PlanningDisplay;
+  Q_OBJECT
 
 public:
   PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
@@ -65,7 +66,7 @@ public:
   void enable(void);
   void disable(void);
   void sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  
+
 protected:
 
   void constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq);
