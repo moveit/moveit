@@ -34,6 +34,7 @@
 
 #include <tf/transform_listener.h>
 #include <plan_execution/plan_execution.h>
+#include <kinematics_planner/kinematics_planner.h>
 #include <trajectory_processing/trajectory_tools.h>
 
 #include <moveit_msgs/PositionConstraint.h>
@@ -48,6 +49,7 @@ static const std::string END_EFFECTOR_LINK_NAME = "l_wrist_roll_link";
 static const ros::Duration ALLOWED_PLANNING_TIME(5.0);
 static const int NUM_PLANNING_ATTEMPTS = 1;
 static const ros::Duration WAIT_LOOP_DURATION(0.01);
+static const double INTERPOLATED_IK_PLANNING_TIME = 5.0;
 
 int main(int argc, char **argv)
 {
