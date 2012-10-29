@@ -42,7 +42,7 @@ import move_base_msgs.msg as mbm
 import actionlib as al
 import actionlib_msgs.msg as am
 import geometry_msgs.msg as gm
-import tf.transformations as trans
+import tf
 import moveit_python_interface.exceptions as ex
 import sensor_msgs.msg as sm
 #import arm_navigation_msgs.msg as anm
@@ -101,13 +101,23 @@ class Base():
         self._ac.wait_for_result()
 
         if self._ac.get_state() != am.GoalStatus.SUCCEEDED:
-            result = {'1':'1',
-                      '2':'2',
-                      '3':'3',
-                      '4':'ABORTED'}.get(str(self._ac.get_state()), str(self._ac.get_state()))
+            result = {'0':'Status: PENDING',
+                      '1':'Status: ACTIVE',
+                      '2':'Status: PREEMPTED',
+                      '3':'Status: SUCCEEDED',
+                      '4':'Status: ABORTED',
+                      '5':'Status: REJECTED',
+                      '6':'Status: PREEMPTING',
+                      '7':'Status: RECALLING',
+                      '8':'Status: RECALLED',
+                      '9':'Status: LOST'}.get(str(self._ac.get_state()), str(self._ac.get_state()))
             rospy.loginfo(result)
             #print "Error is " + str(self._ac.get_state())
-            raise ex.ActionFailedError()
+            #raise ex.ActionFailedError()
+            return False
+        else:
+            print "Success."
+            return True
 
     def get_current_pose_stamped(self):
         """
@@ -162,11 +172,11 @@ class Base():
             self._last_pose = m
 
 def _yaw(q):
-    e = trans.euler_from_quaternion([q.x, q.y, q.z, q.w])
+    e = tf.transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])
     return e[2]
 
 def _to_quaternion(yaw):
-    return gm.Quaternion(*trans.quaternion_from_euler(0, 0, yaw))
+    return gm.Quaternion(*tf.transformations.quaternion_from_euler(0, 0, yaw))
 
 def _to_pose(x, y, theta):
     return gm.Pose(gm.Point(x, y, 0), _to_quaternion(theta))
