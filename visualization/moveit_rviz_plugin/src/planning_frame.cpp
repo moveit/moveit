@@ -467,9 +467,14 @@ void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::Mo
 {
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
   mreq.num_planning_attempts = 1;
-  mreq.allowed_planning_time = ros::Duration(5.0);
+  mreq.allowed_planning_time = ros::Duration(ui_->planning_time->value());
   planning_models::kinematicStateToRobotState(*planning_display_->getQueryStartState(), mreq.start_state);
-  
+  mreq.workspace_parameters.min_corner.x = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
+  mreq.workspace_parameters.min_corner.y = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
+  mreq.workspace_parameters.min_corner.z = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;
+  mreq.workspace_parameters.max_corner.x = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
+  mreq.workspace_parameters.max_corner.y = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
+  mreq.workspace_parameters.max_corner.z = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
   const planning_models::KinematicState::JointStateGroup *jsg = planning_display_->getQueryGoalState()->getJointStateGroup(mreq.group_name);
   if (jsg)
   {

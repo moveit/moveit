@@ -186,6 +186,7 @@ private Q_SLOTS:
   void changedShowManipulabilityRegion();
   void changedShowJointTorques();
   void changedMetricsSetPayload();
+  void changedWorkspace();
   
 protected:
   // ******************************************************************************************
@@ -208,7 +209,8 @@ protected:
   void calculateOffsetPosition();
 
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  void renderPlanningScene();
+  void renderPlanningScene(void);
+  void renderWorkspaceBox(void);
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
   void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color);
@@ -228,7 +230,6 @@ protected:
 
   void publishInteractiveMarkers(void);
   
-
   // overrides from Display  
   virtual void onInitialize();
   virtual void onEnable();
@@ -258,6 +259,10 @@ protected:
 
   // render the planning scene
   boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
+  
+  // render the workspace box
+  boost::scoped_ptr<rviz::Shape> workspace_box_;
+  
   // robot interaction
   boost::scoped_ptr<robot_interaction::RobotInteraction> robot_interaction_;
 
@@ -329,7 +334,8 @@ protected:
   rviz::BoolProperty* show_manipulability_region_property_;
   rviz::BoolProperty* show_joint_torques_property_;
   rviz::FloatProperty* metrics_set_payload_property_;
-  
+  rviz::BoolProperty* show_workspace_property_;
+
   rviz::Display *int_marker_display_;
 };
 
