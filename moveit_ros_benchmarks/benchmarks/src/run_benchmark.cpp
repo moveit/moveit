@@ -39,7 +39,6 @@
 #include <moveit/planning_models_loader/kinematic_model_loader.h>
 #include <pluginlib/class_loader.h>
 #include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_models/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 
 #include <moveit_msgs/ComputePlanningBenchmark.h>
@@ -147,7 +146,7 @@ public:
         L = 0.0;
         clearance = 0.0;
         smoothness = 0.0;
-        std::vector<planning_models::KinematicStatePtr> p;
+        std::vector<kinematic_state::KinematicStatePtr> p;
         trajectory_processing::convertToKinematicStates(p, mp_res.trajectory_start, mp_res.trajectory[j],
                                                         scene_->getCurrentState(), scene_->getTransforms());
         
