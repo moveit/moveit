@@ -175,6 +175,12 @@ if __name__=='__main__':
             else:
                 arm_mover.forget_joint_values(cmd.split()[1])
 
+        if cmd.split()[0] == "rotate" or cmd.split()[0] == "r":
+            angle = float(cmd.split()[1])
+            current_joints = arm_mover.get_current_joint_values()
+            current_joints.position[len(current_joints.position) -1] = current_joints.position[len(current_joints.position) -1] + angle
+            arm_mover.move_arm(current_joints)
+
     print "Bye!"
                 
                 
