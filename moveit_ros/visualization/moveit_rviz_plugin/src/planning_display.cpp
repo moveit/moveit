@@ -49,6 +49,7 @@
 #include <rviz/ogre_helpers/movable_text.h>
 
 #include <OGRE/OgreSceneManager.h>
+#include <rviz/ogre_helpers/shape.h>
 
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
@@ -59,6 +60,7 @@
 #include <boost/format.hpp>
 
 #include "planning_link_updater.h"
+#include "ui_moveit_rviz_plugin_frame.h"
 
 namespace moveit_rviz_plugin
 {
@@ -228,7 +230,9 @@ PlanningDisplay::PlanningDisplay() :
   planning_group_property_ = new rviz::EditableEnumProperty("Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
                                                             plan_category_,
                                                             SLOT( changedPlanningGroup() ), this );
-
+  show_workspace_property_ = new rviz::BoolProperty( "Show Workspace", false, "Shows the axis-aligned bounding box for the workspace allowed for planning",
+                                                     plan_category_,
+                                                     SLOT( changedWorkspace() ), this );
   query_start_state_property_ = new rviz::BoolProperty( "Query Start State", true, "Shows the start state for the motion planning query",
                                                         plan_category_,
                                                         SLOT( changedQueryStartState() ), this );
@@ -656,9 +660,32 @@ void PlanningDisplay::changedRobotPathAlpha()
     trajectory_trail_[i]->setAlpha(robot_path_alpha_property_->getFloat());
 }
 
-// ******************************************************************************************
-// Scene Alpha
-// ******************************************************************************************
+void PlanningDisplay::renderWorkspaceBox(void)
+{
+  if (!frame_ || !show_workspace_property_->getBool())
+  {
+    if (workspace_box_)
+      workspace_box_.reset();
+    return;
+  }
+  
+  if (!workspace_box_)
+  {
+    workspace_box_.reset(new rviz::Shape(rviz::Shape::Cube,
+                                         context_->getSceneManager(), planning_scene_node_));
+    workspace_box_->setColor(0.0f, 0.0f, 0.6f, 0.3f);
+  }
+
+  Ogre::Vector3 center(frame_->ui_->wcenter_x->value(),
+                       frame_->ui_->wcenter_y->value(),
+                       frame_->ui_->wcenter_z->value());
+  Ogre::Vector3 extents(frame_->ui_->wsize_x->value(),
+                        frame_->ui_->wsize_y->value(),
+                        frame_->ui_->wsize_z->value());
+  workspace_box_->setScale(extents);
+  workspace_box_->setPosition(center);
+}
+
 void PlanningDisplay::renderPlanningScene(void)
 {
   if (planning_scene_render_ && planning_scene_needs_render_)
@@ -986,6 +1013,11 @@ void PlanningDisplay::changedPlanningGroup(void)
   frame_->changePlanningGroup();
 }
 
+void PlanningDisplay::changedWorkspace(void)
+{
+  renderWorkspaceBox();
+}
+
 std::string PlanningDisplay::getCurrentPlanningGroup(void) const
 {
   return planning_group_property_->getStdString();
@@ -1289,7 +1321,7 @@ void PlanningDisplay::onEnable()
 // Disable
 // ******************************************************************************************
 void PlanningDisplay::onDisable()
-{ 
+{
   robot_interaction_->clear();
   int_marker_display_->setEnabled(false);
   if (planning_scene_monitor_)
@@ -1409,6 +1441,8 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     renderPlanningScene();  
     current_scene_time_ = 0.0f;
   }
+
+  renderWorkspaceBox();
 }
 
 // ******************************************************************************************
