@@ -386,6 +386,7 @@ void moveit_rviz_plugin::PlanningFrame::populateConstraintsList(const std::vecto
 void moveit_rviz_plugin::PlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
 { 
   std::string group = planning_display_->getCurrentPlanningGroup();
+  ui_->planning_algorithm_combo_box->clear();  
 
   // set the label for the planning library
   ui_->library_label->setText(QString::fromStdString(desc.name));
@@ -410,6 +411,8 @@ void moveit_rviz_plugin::PlanningFrame::populatePlannersList(const moveit_msgs::
   if (ui_->planning_algorithm_combo_box->count() == 0 && !found_group)
     for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));  
+  ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
+  ui_->planning_algorithm_combo_box->setCurrentIndex(0);
 }
 
 void moveit_rviz_plugin::PlanningFrame::enable(void)
@@ -455,8 +458,13 @@ void moveit_rviz_plugin::PlanningFrame::pathConstraintsIndexChanged(int index)
 
 void moveit_rviz_plugin::PlanningFrame::planningAlgorithmIndexChanged(int index)
 {
-  if (move_group_ && index >= 0)
-    move_group_->setPlannerId(ui_->planning_algorithm_combo_box->itemText(index).toStdString());
+  if (move_group_)
+  {
+    if (index > 0)
+      move_group_->setPlannerId(ui_->planning_algorithm_combo_box->itemText(index).toStdString());
+    else
+      move_group_->setPlannerId("");
+  }
 }
 
 void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)
@@ -588,13 +596,24 @@ void moveit_rviz_plugin::PlanningFrame::planningSceneItemClicked(void)
   checkPlanningSceneTreeEnabledButtons();
 }
 
+void moveit_rviz_plugin::PlanningFrame::configureForPlanning(void)
+{
+  move_group_->setStartState(*planning_display_->getQueryStartState());
+  move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
+  move_group_->setPlanningTime(ui_->planning_time->value());
+  move_group_->setWorkspace(ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0,
+                            ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0,
+                            ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0,
+                            ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0,
+                            ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0,
+                            ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0);
+}
+
 void moveit_rviz_plugin::PlanningFrame::computePlanButtonClicked(void)
 {
   if (!move_group_)
     return;
-  
-  move_group_->setStartState(*planning_display_->getQueryStartState());
-  move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
+  configureForPlanning();
   current_plan_.reset(new move_group_interface::MoveGroup::Plan());
   if (move_group_->plan(*current_plan_))
     ui_->execute_button->setEnabled(true);
@@ -612,8 +631,7 @@ void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClicked(void)
 {    
   if (!move_group_)
     return;
-  move_group_->setStartState(*planning_display_->getQueryStartState());
-  move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
+  configureForPlanning();
   move_group_->move();
   ui_->plan_and_execute_button->setEnabled(true);
 }
