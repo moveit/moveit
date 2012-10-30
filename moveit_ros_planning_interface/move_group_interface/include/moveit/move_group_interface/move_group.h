@@ -37,7 +37,7 @@
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/PlannerInterfaceDescription.h>
@@ -67,7 +67,7 @@ public:
     std::string group_name_;
     std::string joint_state_topic_;
     std::string robot_description_;
-    planning_models::KinematicModelConstPtr kinematic_model_;
+    kinematic_model::KinematicModelConstPtr kinematic_model_;
   };
   
   struct Plan
@@ -113,7 +113,7 @@ public:
   void setPlannerId(const std::string &planner_id);
   
   /** \brief If a different start state should be considered instead of the current state of the robot, this function sets that state */
-  void setStartState(const planning_models::KinematicState &start_state);
+  void setStartState(const kinematic_state::KinematicState &start_state);
   
   void setStartStateToCurrentState(void);
   
@@ -121,11 +121,11 @@ public:
 
   void setJointValueTarget(const std::map<std::string, double> &variable_values);
 
-  void setJointValueTarget(const planning_models::KinematicState &kinematic_state);
+  void setJointValueTarget(const kinematic_state::KinematicState &kinematic_state);
 
-  void setJointValueTarget(const planning_models::KinematicState::JointStateGroup &joint_state_group);
+  void setJointValueTarget(const kinematic_state::JointStateGroup &joint_state_group);
   
-  void setJointValueTarget(const planning_models::KinematicState::JointState &joint_state);
+  void setJointValueTarget(const kinematic_state::JointState &joint_state);
 
   void setJointValueTarget(const std::string &joint_name, const std::vector<double> &values);
 
@@ -133,7 +133,7 @@ public:
   
   void setJointValueTarget(const sensor_msgs::JointState &state);
 
-  const planning_models::KinematicState::JointStateGroup& getJointValueTarget(void) const;
+  const kinematic_state::JointStateGroup& getJointValueTarget(void) const;
 
   void setPositionTarget(double x, double y, double z);
   
@@ -178,7 +178,7 @@ public:
 
   Eigen::Affine3d getCurrentPose(void);
 
-  planning_models::KinematicStatePtr getCurrentState(void);
+  kinematic_state::KinematicStatePtr getCurrentState(void);
 
   void forgetJointValues(const std::string &name);
   

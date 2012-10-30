@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "moveit/robot_interaction/interactive_marker_helpers.h"
+#include <moveit/robot_interaction/interactive_marker_helpers.h>
 
 namespace robot_interaction
 {

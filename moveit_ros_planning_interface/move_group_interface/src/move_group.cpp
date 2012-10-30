@@ -38,7 +38,7 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_models_loader/kinematic_model_loader.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
-#include <moveit/planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
@@ -65,7 +65,7 @@ static boost::shared_ptr<tf::Transformer> getSharedTF(void)
   return tf;
 }
 
-static planning_models::KinematicModelConstPtr getSharedKinematicModel(const std::string &robot_description)
+static kinematic_model::KinematicModelConstPtr getSharedKinematicModel(const std::string &robot_description)
 {
   static std::map<std::string, planning_models_loader::KinematicModelLoaderPtr> model_loaders;
   static boost::mutex lock;
@@ -82,7 +82,7 @@ static planning_models::KinematicModelConstPtr getSharedKinematicModel(const std
   }
 } 
 
-static planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
+static planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
 {
   static std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors;
   static boost::mutex lock;
@@ -120,7 +120,7 @@ public:
       throw std::runtime_error(error);
     }
     
-    joint_state_target_.reset(new planning_models::KinematicState(getKinematicModel()));
+    joint_state_target_.reset(new kinematic_state::KinematicState(getKinematicModel()));
     joint_state_target_->setToDefaultValues();
     use_joint_state_target_ = true;
     can_look_ = false;
@@ -128,7 +128,7 @@ public:
     
     goal_tolerance_ = 1e-4;
     
-    const planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
+    const kinematic_model::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
     {
       if (joint_model_group->isChain())
@@ -200,7 +200,7 @@ public:
     return opt_;
   }
   
-  const planning_models::KinematicModelConstPtr& getKinematicModel(void)
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void)
   {
     return kinematic_model_;
   }
@@ -223,14 +223,14 @@ public:
     planner_id_ = planner_id;
   }
   
-  planning_models::KinematicState::JointStateGroup* getJointStateTarget(void)
+  kinematic_state::JointStateGroup* getJointStateTarget(void)
   {
     return joint_state_target_->getJointStateGroup(opt_.group_name_);
   }
   
-  void setStartState(const planning_models::KinematicState &start_state)
+  void setStartState(const kinematic_state::KinematicState &start_state)
   {
-    considered_start_state_.reset(new planning_models::KinematicState(start_state));
+    considered_start_state_.reset(new kinematic_state::KinematicState(start_state));
   }
 
   void setStartStateToCurrentState(void)
@@ -288,7 +288,7 @@ public:
     can_replan_ = flag;
   }
   
-  std::pair<bool, bool> getCurrentState(planning_models::KinematicStatePtr &current_state, std::vector<double> &values, Eigen::Affine3d &pose)
+  std::pair<bool, bool> getCurrentState(kinematic_state::KinematicStatePtr &current_state, std::vector<double> &values, Eigen::Affine3d &pose)
   {
     if (!current_state_monitor_)
       return std::make_pair(false, false);
@@ -322,10 +322,10 @@ public:
     }
     
     current_state = current_state_monitor_->getCurrentState();
-    current_state->getJointStateGroup(opt_.group_name_)->getGroupStateValues(values);
+    current_state->getJointStateGroup(opt_.group_name_)->getVariableValues(values);
     if (!end_effector_.empty())
     {
-      const planning_models::KinematicState::LinkState *ls = current_state->getLinkState(end_effector_);
+      const kinematic_state::LinkState *ls = current_state->getLinkState(end_effector_);
       if (ls)
       {
         pose = ls->getGlobalLinkTransform();
@@ -436,7 +436,7 @@ public:
     goal.request.planner_id = planner_id_;
 
     if (considered_start_state_)
-      planning_models::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
+      kinematic_state::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
     
     if (use_joint_state_target_)
     {    
@@ -519,11 +519,11 @@ private:
   Options opt_;
   ros::NodeHandle node_handle_;
   boost::shared_ptr<tf::Transformer> tf_;
-  planning_models::KinematicModelConstPtr kinematic_model_;
+  kinematic_model::KinematicModelConstPtr kinematic_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > action_client_;
-  planning_models::KinematicStatePtr considered_start_state_;
-  planning_models::KinematicStatePtr joint_state_target_;
+  kinematic_state::KinematicStatePtr considered_start_state_;
+  kinematic_state::KinematicStatePtr joint_state_target_;
   boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
@@ -604,7 +604,7 @@ void MoveGroup::stop(void)
   impl_->stop();
 }
 
-void MoveGroup::setStartState(const planning_models::KinematicState &start_state)
+void MoveGroup::setStartState(const kinematic_state::KinematicState &start_state)
 {
   impl_->setStartState(start_state);
 }
@@ -641,29 +641,29 @@ bool MoveGroup::setNamedTarget(const std::string &name)
 
 void MoveGroup::setJointValueTarget(const std::vector<double> &joint_values)
 {
-  impl_->getJointStateTarget()->setStateValues(joint_values);
+  impl_->getJointStateTarget()->setVariableValues(joint_values);
   impl_->useJointStateTarget();
 }
 
 void MoveGroup::setJointValueTarget(const std::map<std::string, double> &joint_values)
 {
-  impl_->getJointStateTarget()->setStateValues(joint_values);
+  impl_->getJointStateTarget()->setVariableValues(joint_values);
   impl_->useJointStateTarget();
 }
 
-void MoveGroup::setJointValueTarget(const planning_models::KinematicState &kinematic_state)
+void MoveGroup::setJointValueTarget(const kinematic_state::KinematicState &kinematic_state)
 {
   setJointValueTarget(*kinematic_state.getJointStateGroup(impl_->getOptions().group_name_));
 }
 
-void MoveGroup::setJointValueTarget(const planning_models::KinematicState::JointStateGroup &joint_state_group)
+void MoveGroup::setJointValueTarget(const kinematic_state::JointStateGroup &joint_state_group)
 {  
   std::map<std::string, double> variable_values;
-  joint_state_group.getGroupStateValues(variable_values);
+  joint_state_group.getVariableValues(variable_values);
   setJointValueTarget(variable_values);
 }
 
-void MoveGroup::setJointValueTarget(const planning_models::KinematicState::JointState &joint_state)
+void MoveGroup::setJointValueTarget(const kinematic_state::JointState &joint_state)
 {
   setJointValueTarget(joint_state.getName(), joint_state.getVariableValues());
 }
@@ -676,7 +676,7 @@ void MoveGroup::setJointValueTarget(const std::string &joint_name, double value)
 
 void MoveGroup::setJointValueTarget(const std::string &joint_name, const std::vector<double> &values)
 { 
-  planning_models::KinematicState::JointState *joint_state = impl_->getJointStateTarget()->getJointState(joint_name);
+  kinematic_state::JointState *joint_state = impl_->getJointStateTarget()->getJointState(joint_name);
   if (joint_state)
     if (!joint_state->setVariableValues(values))
       ROS_ERROR("Unable to set target");
@@ -685,11 +685,11 @@ void MoveGroup::setJointValueTarget(const std::string &joint_name, const std::ve
 
 void MoveGroup::setJointValueTarget(const sensor_msgs::JointState &state)
 {
-  impl_->getJointStateTarget()->setStateValues(state); 
+  impl_->getJointStateTarget()->setVariableValues(state); 
   impl_->useJointStateTarget();
 }
 
-const planning_models::KinematicState::JointStateGroup& MoveGroup::getJointValueTarget(void) const
+const kinematic_state::JointStateGroup& MoveGroup::getJointValueTarget(void) const
 {
   return *impl_->getJointStateTarget();
 }
@@ -780,7 +780,7 @@ void MoveGroup::rememberJointValues(const std::string &name)
 
 std::vector<double> MoveGroup::getCurrentJointValues(void)
 { 
-  planning_models::KinematicStatePtr current_state;
+  kinematic_state::KinematicStatePtr current_state;
   std::vector<double> values;
   Eigen::Affine3d dummy;
   impl_->getCurrentState(current_state, values, dummy);
@@ -790,19 +790,19 @@ std::vector<double> MoveGroup::getCurrentJointValues(void)
 std::vector<double> MoveGroup::getRandomJointValues(void)
 {
   std::vector<double> backup;
-  impl_->getJointStateTarget()->getGroupStateValues(backup);
+  impl_->getJointStateTarget()->getVariableValues(backup);
   
   impl_->getJointStateTarget()->setToRandomValues();
   std::vector<double> r;
-  impl_->getJointStateTarget()->getGroupStateValues(r);
+  impl_->getJointStateTarget()->getVariableValues(r);
   
-  impl_->getJointStateTarget()->setStateValues(backup);
+  impl_->getJointStateTarget()->setVariableValues(backup);
   return r;
 }
 
 Eigen::Affine3d MoveGroup::getCurrentPose(void)
 {
-  planning_models::KinematicStatePtr current_state;
+  kinematic_state::KinematicStatePtr current_state;
   std::vector<double> dummy;
   Eigen::Affine3d pose;
   pose.setIdentity();
@@ -816,9 +816,9 @@ const std::vector<std::string>& MoveGroup::getJoints(void) const
   return impl_->getJointStateTarget()->getJointModelGroup()->getJointModelNames();
 }
 
-planning_models::KinematicStatePtr MoveGroup::getCurrentState(void)
+kinematic_state::KinematicStatePtr MoveGroup::getCurrentState(void)
 {
-  planning_models::KinematicStatePtr current_state;
+  kinematic_state::KinematicStatePtr current_state;
   std::vector<double> dummy1;
   Eigen::Affine3d dummy2;
   impl_->getCurrentState(current_state, dummy1, dummy2);
