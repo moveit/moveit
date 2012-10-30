@@ -155,6 +155,22 @@ class MoveGroupCommander:
     def set_constraints_database(self, host, port):
         self._g.set_constraints_database(host, port)
 
+    def set_planning_time(self, seconds):
+        self._g.set_planning_time(seconds)
+
+    def set_workspace(self, ws):
+        """ Set the workspace for the robot as either [], [minX, minY, maxX, maxY] or [minX, minY, minZ, maxX, maxY, maxZ] """
+        if len(ws) == 0:
+            self._g.set_workspace(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        else:
+            if len(ws) == 4:
+                self._g.set_workspace(ws[0], ws[1], 0.0, ws[2], ws[3], 0.0)
+            else:
+                if len(ws) == 6:
+                    self._g.set_workspace(ws[0], ws[1], ws[2], ws[3], ws[4], ws[5])
+                else:
+                    raise "Expected 0, 4 or 6 values in list specifying workspace"
+
     def go(self, joints = None, wait = True):
         """ Set the target of the group and then move the group to the specified target """
         if type(joints) is bool:
