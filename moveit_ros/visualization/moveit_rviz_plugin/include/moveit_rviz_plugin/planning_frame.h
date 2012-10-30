@@ -143,6 +143,7 @@ private:
   void objectPoseValueChanged(int index, double value);
   void populateConstraintsList(void);
   void populateConstraintsList(const std::vector<std::string> &constr);
+  void configureForPlanning(void);
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
