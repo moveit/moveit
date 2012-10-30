@@ -37,7 +37,6 @@
 #include <ros/ros.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <pluginlib/class_loader.h>
 #include <moveit/planning_interface/planning_interface.h>
 
 #include <moveit/warehouse/planning_scene_storage.h>
@@ -234,24 +233,16 @@ void runBenchmark(const moveit_warehouse::PlanningSceneStorage &pss, const Bench
   }
 }
 
+std::vector<std::string> benchmarkGetAvailablePluginNames(void);
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "call_planning_scene_benchmark", ros::init_options::AnonymousName);
   ros::AsyncSpinner spinner(1);
   spinner.start();
   
-  // load the planning plugins
-  boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader;
-  try
-  {
-    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::Planner>("planning_interface", "planning_interface::Planner"));
-  }
-  catch(pluginlib::PluginlibException& ex)
-  {
-    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
-  }
+  std::vector<std::string> plugins = benchmarkGetAvailablePluginNames();
   
-  const std::vector<std::string> &plugins = planner_plugin_loader->getDeclaredClasses();
   if (plugins.empty())
     ROS_ERROR("There are no plugins to benchmark.");
   else
