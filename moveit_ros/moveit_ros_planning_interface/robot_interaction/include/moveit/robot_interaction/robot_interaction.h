@@ -33,7 +33,7 @@
 #define MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 
 namespace interactive_markers
 {
@@ -85,7 +85,7 @@ public:
   typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
   typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
   
-  RobotInteraction(const planning_models::KinematicModelConstPtr &kmodel,
+  RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel,
                    const InteractionHandlerPtr &handler = InteractionHandlerPtr());
   ~RobotInteraction(void);
   
@@ -105,7 +105,7 @@ public:
   
   void clear(void);
   
-  void addInteractiveMarkers(const planning_models::KinematicState &state, int id);
+  void addInteractiveMarkers(const kinematic_state::KinematicState &state, int id);
   void publishInteractiveMarkers(void);
   void clearInteractiveMarkers(void);
   
@@ -119,8 +119,8 @@ public:
     return active_vj_;
   }
   
-  static bool updateState(planning_models::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose);
-  static bool updateState(planning_models::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose);
+  static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
   
 private:
   
@@ -128,7 +128,7 @@ private:
   double computeGroupScale(const std::string &group);    
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
   
-  planning_models::KinematicModelConstPtr kmodel_;
+  kinematic_model::KinematicModelConstPtr kmodel_;
   InteractionHandlerPtr handler_;
   
   std::vector<EndEffector> active_eef_;

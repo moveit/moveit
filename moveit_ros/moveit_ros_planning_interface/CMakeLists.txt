@@ -14,6 +14,8 @@ include_directories (${PYTHON_INCLUDE_DIRS})
 find_package(catkin COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
+  eigen_conversions
+  tf
   roscpp
   rospy
   rosconsole

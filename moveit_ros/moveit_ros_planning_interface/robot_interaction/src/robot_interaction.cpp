@@ -31,8 +31,9 @@
 
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
-#include <moveit/planning_models/transforms.h>
+#include <moveit/kinematic_state/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
+#include <eigen_conversions/eigen_msg.h>
 #include <boost/lexical_cast.hpp>
 #include <limits>
 
@@ -41,7 +42,7 @@ namespace robot_interaction
 
 const std::string RobotInteraction::INTERACTIVE_MARKER_TOPIC = "robot_interaction_interactive_marker_topic";
 
-RobotInteraction::RobotInteraction(const planning_models::KinematicModelConstPtr &kmodel,
+RobotInteraction::RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel,
                                    const InteractionHandlerPtr &handler) :
   kmodel_(kmodel), handler_(handler)
 {  
@@ -62,7 +63,7 @@ void RobotInteraction::decideActiveComponents(const std::string &group)
 
 double RobotInteraction::computeGroupScale(const std::string &group)
 {
-  const planning_models::KinematicModel::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const kinematic_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   if (!jmg)
     return 0.0;
   
@@ -73,12 +74,12 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   std::vector<double> scale(3, 0.0);
   std::vector<double> low(3, std::numeric_limits<double>::infinity());
   std::vector<double> hi(3, -std::numeric_limits<double>::infinity());
-  planning_models::KinematicState default_state(kmodel_);
+  kinematic_state::KinematicState default_state(kmodel_);
   default_state.setToDefaultValues();
   
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
-    planning_models::KinematicState::LinkState *ls = default_state.getLinkState(links[i]);
+    kinematic_state::LinkState *ls = default_state.getLinkState(links[i]);
     if (!ls)
       continue;
     const Eigen::Vector3d &ext = ls->getLinkModel()->getShapeExtentsAtOrigin();
@@ -111,7 +112,7 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
     return;
   
   const boost::shared_ptr<const srdf::Model> &srdf = kmodel_->getSRDF();
-  const planning_models::KinematicModel::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const kinematic_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   
   if (!jmg || !srdf)
     return;
@@ -119,7 +120,7 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
   if (!jmg->hasJointModel(kmodel_->getRootJointName()))
     return;
 
-  planning_models::KinematicState default_state(kmodel_);
+  kinematic_state::KinematicState default_state(kmodel_);
   default_state.setToDefaultValues();
   std::vector<double> aabb;
   default_state.computeAABB(aabb);
@@ -152,13 +153,13 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
     return;
   
   const boost::shared_ptr<const srdf::Model> &srdf = kmodel_->getSRDF();
-  const planning_models::KinematicModel::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const kinematic_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   
   if (!jmg || !srdf)
     return;
 
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
-  const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
+  const std::pair<kinematic_model::SolverAllocatorFn, kinematic_model::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
   
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)
@@ -178,7 +179,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   else
     if (!smap.second.empty())
     {
-      for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn>::const_iterator it = smap.second.begin() ; 
+      for (std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn>::const_iterator it = smap.second.begin() ; 
            it != smap.second.end() ; ++it)
       {
         for (std::size_t i = 0 ; i < eef.size() ; ++i)
@@ -215,7 +216,7 @@ void RobotInteraction::clearInteractiveMarkers(void)
   int_marker_server_->clear();
 }
 
-void RobotInteraction::addInteractiveMarkers(const planning_models::KinematicState &state, int id)
+void RobotInteraction::addInteractiveMarkers(const kinematic_state::KinematicState &state, int id)
 { 
   //  ros::WallTime start = ros::WallTime::now();
   
@@ -225,8 +226,8 @@ void RobotInteraction::addInteractiveMarkers(const planning_models::KinematicSta
     pose.header.frame_id = kmodel_->getModelFrame();
     pose.header.stamp = ros::Time::now();
     
-    const planning_models::KinematicState::LinkState *ls = state.getLinkState(active_eef_[i].tip_link);
-    planning_models::msgFromPose(ls->getGlobalLinkTransform(), pose.pose);
+    const kinematic_state::LinkState *ls = state.getLinkState(active_eef_[i].tip_link);
+    tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
     
     std::string marker_name = "IK" + boost::lexical_cast<std::string>(id) + "_" + active_eef_[i].tip_link;
     shown_markers_[marker_name] = i;
@@ -245,8 +246,8 @@ void RobotInteraction::addInteractiveMarkers(const planning_models::KinematicSta
       pose.header.frame_id = kmodel_->getModelFrame();
       pose.header.stamp = ros::Time::now();
       
-      const planning_models::KinematicState::LinkState *ls = state.getLinkState(active_vj_[i].connecting_link);
-      planning_models::msgFromPose(ls->getGlobalLinkTransform(), pose.pose);
+      const kinematic_state::LinkState *ls = state.getLinkState(active_vj_[i].connecting_link);
+      tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
       
       std::string marker_name = "XY" + boost::lexical_cast<std::string>(id) + "_" + active_vj_[i].connecting_link;
       shown_markers_[marker_name] = i;
@@ -265,11 +266,10 @@ void RobotInteraction::publishInteractiveMarkers(void)
   int_marker_server_->applyChanges();
 }
 
-bool RobotInteraction::updateState(planning_models::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose)
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose)
 {
   Eigen::Quaterniond q;
-  if (!planning_models::quatFromMsg(pose.orientation, q))
-    return false;
+  tf::quaternionMsgToEigen(pose.orientation, q);
   std::map<std::string, double> vals;
   vals[ vj.joint_name + "/x"] = pose.position.x;
   vals[ vj.joint_name + "/y"] = pose.position.y;
@@ -280,7 +280,7 @@ bool RobotInteraction::updateState(planning_models::KinematicState &state, const
   return true;
 }
 
-bool RobotInteraction::updateState(planning_models::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose)
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose)
 { 
   static const double IK_TIMEOUT = 0.1;
   return state.getJointStateGroup(eef.group)->setFromIK(pose, eef.tip_link, IK_TIMEOUT);
