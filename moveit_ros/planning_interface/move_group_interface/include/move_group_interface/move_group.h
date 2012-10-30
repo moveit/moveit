@@ -111,7 +111,9 @@ public:
   void allowReplanning(bool flag);
   
   void setPlannerId(const std::string &planner_id);
-  
+
+  void setPlanningTime(double seconds);
+
   /** \brief If a different start state should be considered instead of the current state of the robot, this function sets that state */
   void setStartState(const planning_models::KinematicState &start_state);
   
@@ -191,6 +193,8 @@ public:
   bool setPathConstraints(const std::string &constraint);
   void clearPathConstraints(void);
   void setConstraintsDatabase(const std::string &host, unsigned int port);
+  
+  void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz);
   
 private:
 

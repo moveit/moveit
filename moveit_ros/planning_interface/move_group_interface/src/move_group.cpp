@@ -127,6 +127,7 @@ public:
     can_replan_ = false;
     
     goal_tolerance_ = 1e-4;
+    planning_time_ = ros::Duration(5.0);
     
     const planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
@@ -428,13 +429,20 @@ public:
     goal_tolerance_ = tolerance;
   }
 
+  void setPlanningTime(double seconds)
+  {
+    if (seconds > 0.0)
+      planning_time_ = ros::Duration(seconds);
+  }
+  
   void constructGoal(moveit_msgs::MoveGroupGoal &goal)
   {
     goal.request.group_name = opt_.group_name_;
     goal.request.num_planning_attempts = 1;
-    goal.request.allowed_planning_time = ros::Duration(5.0);
+    goal.request.allowed_planning_time = planning_time_;
     goal.request.planner_id = planner_id_;
-
+    goal.request.workspace_parameters = workspace_parameters_;
+    
     if (considered_start_state_)
       planning_models::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
     
@@ -497,6 +505,17 @@ public:
     constraints_init_thread_.reset(new boost::thread(boost::bind(&MoveGroupImpl::initializeConstraintsStorageThread, this, host, port)));
   }
   
+  void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz)
+  {
+    // \todo Set the header of the msg too
+    workspace_parameters_.min_corner.x = minx;
+    workspace_parameters_.min_corner.y = miny;
+    workspace_parameters_.min_corner.z = minz;
+    workspace_parameters_.max_corner.x = maxx;
+    workspace_parameters_.max_corner.y = maxy;
+    workspace_parameters_.max_corner.z = maxz;    
+  }
+  
 private:
   
   void initializeConstraintsStorageThread(const std::string &host, unsigned int port)
@@ -525,6 +544,8 @@ private:
   planning_models::KinematicStatePtr considered_start_state_;
   planning_models::KinematicStatePtr joint_state_target_;
   boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
+  moveit_msgs::WorkspaceParameters workspace_parameters_;
+  ros::Duration planning_time_;
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_; 
@@ -863,6 +884,16 @@ void MoveGroup::clearPathConstraints(void)
 void MoveGroup::setConstraintsDatabase(const std::string &host, unsigned int port)
 {  
   impl_->initializeConstraintsStorage(host, port);
+}
+
+void MoveGroup::setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz)
+{
+  impl_->setWorkspace(minx, miny, minz, maxx, maxy, maxz);
+}
+
+void MoveGroup::setPlanningTime(double seconds)
+{
+  impl_->setPlanningTime(seconds);
 }
 
 }
