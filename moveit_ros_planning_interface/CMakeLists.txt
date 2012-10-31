@@ -15,6 +15,7 @@ find_package(catkin COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
   eigen_conversions
+  interactive_markers
   tf
   roscpp
   rospy
@@ -38,6 +39,6 @@ include_directories(robot_interaction/include)
 include_directories(move_group_interface/include)
 
 add_subdirectory(py_bindings_tools)
-#add_subdirectory(robot_interaction)
+add_subdirectory(robot_interaction)
 add_subdirectory(move_group_interface)
 add_subdirectory(moveit_commander)
