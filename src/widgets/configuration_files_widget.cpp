@@ -359,6 +359,11 @@ void ConfigurationFilesWidget::savePackage()
     displayAction( qnew_package_name,
                    "Package that contains all necessary configuration and launch files for MoveIt");
 
+
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /////////// To be replaced by package.xml in groovy
+
     // Copy manifest.xml ------------------------------------------------------------------
     file_name = "manifest.xml";
     template_path = config_data_->appendPaths( config_data_->template_package_path_, file_name );
@@ -374,6 +379,9 @@ void ConfigurationFilesWidget::savePackage()
     // Feedback
     displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
                    "Required ROS package meta data file.");
+
+
+    //////////////////////////////////////////////////////////////////////////////////////
 
   }
 
@@ -500,24 +508,6 @@ void ConfigurationFilesWidget::savePackage()
                  "Launches the move_group node that provides the MoveGroup action and other parameters <a href='http://moveit.ros.org/move_group.html'>MoveGroup action</a>");
 
 
-  // Create Ompl_Planner Launch File  -----------------------------------------------------
-  // Ioan told me to delete this launch file
-  /*
-    file_name = "ompl_planner.launch";
-    file_path = config_data_->appendPaths( launch_path, file_name );
-    template_path = config_data_->appendPaths( template_launch_path, file_name );
-    // Use generic template copy function
-    if ( !copyTemplate( template_path, file_path, new_package_name ) )
-    {
-    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
-    .append( " file at location " ).append( file_path.c_str() ) );
-    return;
-    }
-    // Feedback
-    displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-    "TODO" ); // TODO: description
-  */
-
   // Create Planning_Context Launch File  -----------------------------------------------------
   file_name = "planning_context.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
@@ -535,7 +525,7 @@ void ConfigurationFilesWidget::savePackage()
 
 
   // Create Moveit_Visualizer Launch File  -----------------------------------------------------
-  file_name = "moveit_visualizer.launch";
+  file_name = "moveit_rviz.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
   template_path = config_data_->appendPaths( template_launch_path,  file_name );
   // Use generic template copy function
@@ -581,7 +571,21 @@ void ConfigurationFilesWidget::savePackage()
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
                  "Helper launch file that can choose between different planning pipelines to be loaded.");
 
-
+  // Create Planning_Pipeline Launch File  -----------------------------------------------------
+  file_name = "sensor_manager.launch";
+  file_path = config_data_->appendPaths( launch_path, file_name );
+  template_path = config_data_->appendPaths( template_launch_path, file_name );
+  // Use generic template copy function
+  if ( !copyTemplate( template_path, file_path, new_package_name ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
+                           .append( " file at location " ).append( file_path.c_str() ) );
+    return;
+  }
+  // Feedback
+  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
+                 "Helper launch file that can choose between different sensor managers to be loaded.");
+  
   // Create Moveit_Controller_Manager Launch File  -----------------------------------------------------
   file_name = robot_name + "_moveit_controller_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
