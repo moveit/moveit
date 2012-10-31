@@ -208,6 +208,14 @@ QWidget* PlanningGroupsWidget::createContentsWidget()
   spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
   controls_layout->addWidget( spacer );
 
+  // Delete Selected Button
+  btn_delete_ = new QPushButton( "&Delete Selected", this );
+  btn_delete_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  btn_delete_->setMaximumWidth( 300 );
+  connect( btn_delete_, SIGNAL(clicked()), this, SLOT( deleteGroup() ) );
+  controls_layout->addWidget( btn_delete_ );
+  controls_layout->setAlignment(btn_delete_, Qt::AlignRight);
+
   //  Edit Selected Button
   btn_edit_ = new QPushButton( "&Edit Selected", this );
   btn_edit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
@@ -257,11 +265,17 @@ void PlanningGroupsWidget::loadGroupsTree()
   groups_tree_->setDisabled(false); // make sure we disable it so that the cellChanged event is not called
 
   // Show Edit button if there are things to edit
-  if( config_data_->srdf_->groups_.size() )
+  if( !config_data_->srdf_->groups_.empty() )
+  {
     btn_edit_->show();
+    btn_delete_->show();
+  }
   else
+  {
     btn_edit_->hide();
-
+    btn_delete_->hide();
+  }
+  
   alterTree( "expand" );
 }
 
@@ -429,6 +443,8 @@ void PlanningGroupsWidget::editSelected()
   // Check that something was actually selected
   if(item == NULL)
     return;
+
+  adding_new_group_ = false;
 
   // Get the user custom properties of the currently selected row
   PlanGroupType plan_group = item->data( 0, Qt::UserRole ).value<PlanGroupType>();
@@ -653,8 +669,25 @@ void PlanningGroupsWidget::loadGroupScreen( srdf::Model::Group *this_group )
 // ******************************************************************************************
 void PlanningGroupsWidget::deleteGroup()
 {
+  std::string group = current_edit_group_;
+  if (group.empty())
+  {
+    QTreeWidgetItem* item = groups_tree_->currentItem();    
+    // Check that something was actually selected
+    if(item == NULL)
+      return;
+    // Get the user custom properties of the currently selected row
+    PlanGroupType plan_group = item->data( 0, Qt::UserRole ).value<PlanGroupType>();
+    if (plan_group.group_)
+      group = plan_group.group_->name_;
+  }
+  else
+    current_edit_group_.clear();
+  if (group.empty())
+    return;
+  
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+  srdf::Model::Group *searched_group = findGroupByName( group );
 
   // Confirm user wants to delete group
   if( QMessageBox::question( this, "Confirm Group Deletion",
@@ -740,7 +773,7 @@ void PlanningGroupsWidget::deleteGroup()
        group_it != config_data_->srdf_->groups_.end(); ++group_it )
   {
     // check if this is the group we want to delete
-    if( group_it->name_ == current_edit_group_ ) // string match
+    if( group_it->name_ == group ) // string match
     {
       config_data_->srdf_->groups_.erase( group_it );
       break;
@@ -762,7 +795,7 @@ void PlanningGroupsWidget::deleteGroup()
            subgroup_it != group_it->subgroups_.end(); ++subgroup_it )
       {
         // Check if that subgroup references the deletion group. if so, delete it
-        if( subgroup_it->compare( current_edit_group_ ) == 0 ) // same name
+        if( subgroup_it->compare( group ) == 0 ) // same name
         {
           group_it->subgroups_.erase( subgroup_it ); // delete
           deleted_subgroup = true;
@@ -787,6 +820,8 @@ void PlanningGroupsWidget::deleteGroup()
 // ******************************************************************************************
 void PlanningGroupsWidget::addGroup()
 {
+  adding_new_group_ = true;
+  
   // Load the data
   loadGroupScreen( NULL ); // NULL indicates this is a new group, not an existing one
 
@@ -811,7 +846,7 @@ srdf::Model::Group *PlanningGroupsWidget::findGroupByName( const std::string &na
       break; // we are done searching
     }
   }
-
+  
   // Check if subgroup was found
   if( searched_group == NULL ) // not found
   {
@@ -1079,7 +1114,6 @@ bool PlanningGroupsWidget::saveGroupScreen()
   {
     // Find the group we are editing based on the goup name string
     searched_group = findGroupByName( current_edit_group_ );
-
   }
 
   // Check that the group name is unique
@@ -1107,12 +1141,15 @@ bool PlanningGroupsWidget::saveGroupScreen()
     return false;
   }
 
+  adding_new_group_ = false;
+
   // Save the new group name or create the new group
   if( searched_group == NULL ) // create new
   {
     srdf::Model::Group new_group;
     new_group.name_ = group_name;
     config_data_->srdf_->groups_.push_back( new_group );
+    adding_new_group_ = true; // remember this group is new
   }
   else
   {
@@ -1233,22 +1270,26 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
 // ******************************************************************************************
 // Call when edit screen is canceled
 // ******************************************************************************************
-void PlanningGroupsWidget::cancelEditing()
-{
-  srdf::Model::Group *editing = findGroupByName( current_edit_group_ );
-  if( editing && editing->joints_.empty() && editing->links_.empty() && 
-      editing->chains_.empty() && editing->subgroups_.empty())
+void PlanningGroupsWidget::cancelEditing(void)
+{ 
+  if (!current_edit_group_.empty() && adding_new_group_)
   {
-    config_data_->group_meta_data_.erase(editing->name_);
-    for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
-         group_it != config_data_->srdf_->groups_.end();  ++group_it )
-      if (&(*group_it) == editing)
-      {
-        config_data_->srdf_->groups_.erase(group_it);
-        break;
-      }
-    // Load the data to the tree
-    loadGroupsTree();
+    srdf::Model::Group *editing = findGroupByName( current_edit_group_ );
+    if( editing && editing->joints_.empty() && editing->links_.empty() && 
+        editing->chains_.empty() && editing->subgroups_.empty())
+    {
+      config_data_->group_meta_data_.erase(editing->name_);
+      for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
+           group_it != config_data_->srdf_->groups_.end();  ++group_it )
+        if (&(*group_it) == editing)
+        {
+          config_data_->srdf_->groups_.erase(group_it);
+          break;
+        }
+      current_edit_group_.clear();
+      // Load the data to the tree
+      loadGroupsTree();
+    }
   }
   
   // Switch to main screen

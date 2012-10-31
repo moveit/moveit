@@ -335,18 +335,18 @@ void SetupAssistantWidget::highlightLink( const std::string& link_name )
 void SetupAssistantWidget::highlightGroup( const std::string& group_name )
 {
   // Highlight the selected planning group by looping through the links
-
+  if (!config_data_->getKinematicModel()->hasJointModelGroup( group_name ))
+    return;
+  
   const planning_models::KinematicModel::JointModelGroup *joint_model_group =
     config_data_->getKinematicModel()->getJointModelGroup( group_name );
-  assert(joint_model_group);
-  
-  const std::vector<const planning_models::KinematicModel::LinkModel*> &link_models = joint_model_group->getLinkModels();
-
-  // Iterate through the links
-  for( std::vector<const planning_models::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
-       link_it < link_models.end(); ++link_it )
+  if (joint_model_group)
   {
-    highlightLink( (*link_it)->getName() );
+    const std::vector<const planning_models::KinematicModel::LinkModel*> &link_models = joint_model_group->getLinkModels();
+    // Iterate through the links
+    for( std::vector<const planning_models::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
+         link_it < link_models.end(); ++link_it )
+      highlightLink( (*link_it)->getName() );
   }
 }
 

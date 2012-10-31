@@ -147,6 +147,8 @@ private:
   /// Show and hide edit button
   QPushButton* btn_edit_;
 
+  QPushButton* btn_delete_;
+  
   // Stacked Layout SUBPAGES -------------------------------------------
 
   QWidget* groups_tree_widget_;
@@ -169,6 +171,9 @@ private:
   /// Remember what group element we are editing when an edit screen is being shown
   GroupType current_edit_element_;
 
+  /// Remember whethere we're editing a group or adding a new one
+  bool adding_new_group_;
+  
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
