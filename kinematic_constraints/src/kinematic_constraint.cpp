@@ -800,17 +800,20 @@ void kinematic_constraints::VisibilityConstraint::getMarkers(const planning_mode
   mk.pose.orientation.z = 0;
   mk.pose.orientation.w = 1;
   mk.lifetime = ros::Duration(60);
-  mk.color.a = 0.5;
+  // this scale necessary to make results look reasonable
+  mk.scale.x = .01;
+  mk.color.a = 1.0;
   mk.color.r = 1.0;
   mk.color.g = 0.0;
   mk.color.b = 0.0;
+  
   markers.markers.push_back(mk);
   
   const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) * sensor_pose_ : sensor_pose_;
   const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) * target_pose_ : target_pose_;
   
   visualization_msgs::Marker mka;
-  mka.type = visualization_msgs::Marker::LINE_STRIP;
+  mka.type = visualization_msgs::Marker::ARROW;
   mka.action = visualization_msgs::Marker::ADD;
   mka.color = mk.color;
   mka.pose = mk.pose;
@@ -819,12 +822,11 @@ void kinematic_constraints::VisibilityConstraint::getMarkers(const planning_mode
   mka.ns = mk.ns;
   mka.id = 2;
   mka.lifetime = mk.lifetime;
-  mka.scale.x = mka.scale.y = mka.scale.z = 0.05;
-  mka.colors.resize(2, mk.color);
-  mka.colors[1].g = 1.0;
-  mka.colors[1].r = 0.0;
+  mka.scale.x = 0.05;
+  mka.scale.y = .15;
+  mka.scale.z = 0.0;
   mka.points.resize(2);  
-  Eigen::Vector3d d = tp.translation() - tp.rotation().col(2) * 0.5;
+  Eigen::Vector3d d = tp.translation() + tp.rotation().col(2) * 0.5;
   mka.points[0].x = tp.translation().x();
   mka.points[0].y = tp.translation().y();
   mka.points[0].z = tp.translation().z();
@@ -834,7 +836,10 @@ void kinematic_constraints::VisibilityConstraint::getMarkers(const planning_mode
   markers.markers.push_back(mka);
   
   mka.id = 3;  
-  d = sp.translation() + sp.rotation().col(0) * 0.5; 
+  mka.color.b = 1.0;
+  mka.color.r = 0.0;
+
+  d = sp.translation() + sp.rotation().col(2-sensor_view_direction_) * 0.5; 
   mka.points[0].x = sp.translation().x();
   mka.points[0].y = sp.translation().y();
   mka.points[0].z = sp.translation().z();
@@ -854,19 +859,21 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
   {
     const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) * sensor_pose_ : sensor_pose_;
     const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) * target_pose_ : target_pose_;
-    const Eigen::Vector3d &normal2 = sp.rotation().col(sensor_view_direction_);
+    //neccessary to do subtraction as SENSOR_Z is 0 and SENSOR_X is 2
+    const Eigen::Vector3d &normal2 = sp.rotation().col(2-sensor_view_direction_);
 
     if (max_view_angle_ > 0.0)
     {
-      const Eigen::Vector3d &normal1 = tp.rotation().col(2); // along Z axis
+      const Eigen::Vector3d &normal1 = tp.rotation().col(2)*-1.0; // along Z axis and inverted
       double dp = normal2.dot(normal1);
+      double ang = acos(dp);
+      //ROS_INFO_STREAM("Ang is " << ang << " dp is " << dp);
       if (dp < 0.0)
       { 
         if (verbose)
 	    ROS_INFO("Visibility constraint is violated because the sensor is looking at the wrong side");
         return ConstraintEvaluationResult(false, 0.0);
       }
-      double ang = acos(dp);
       if (max_view_angle_ < ang)
       {
 	if (verbose)
@@ -892,6 +899,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
 	  ROS_INFO("Visibility constraint is violated because the range angle is %lf (above the maximum allowed of %lf)", ang, max_range_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }
+      ROS_INFO_STREAM("Max range angle " << ang);
     }
   }
   
@@ -923,19 +931,23 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
   return ConstraintEvaluationResult(!res.collision, res.collision ? res.contacts.begin()->second.front().depth : 0.0);
 }
 
-bool kinematic_constraints::VisibilityConstraint::decideContact(collision_detection::Contact &contact) const
+bool kinematic_constraints::VisibilityConstraint::decideContact(const collision_detection::Contact &contact) const
 {
     if (contact.body_type_1 == collision_detection::BodyTypes::ROBOT_ATTACHED ||
 	contact.body_type_2 == collision_detection::BodyTypes::ROBOT_ATTACHED)
 	return true;
     if (contact.body_type_1 == collision_detection::BodyTypes::ROBOT_LINK &&
 	contact.body_type_2 == collision_detection::BodyTypes::WORLD_OBJECT &&
-	(contact.body_name_1 == sensor_frame_id_ || contact.body_name_1 == target_frame_id_))
-	return true;
+	(contact.body_name_1 == sensor_frame_id_ || contact.body_name_1 == target_frame_id_)) {
+      ROS_DEBUG_STREAM("OK collision with either sensor or target");
+      return true;
+    }
     if (contact.body_type_2 == collision_detection::BodyTypes::ROBOT_LINK &&
 	contact.body_type_1 == collision_detection::BodyTypes::WORLD_OBJECT &&
-	(contact.body_name_2 == sensor_frame_id_ || contact.body_name_2 == target_frame_id_))
-	return true;    
+	(contact.body_name_2 == sensor_frame_id_ || contact.body_name_2 == target_frame_id_)) {
+      ROS_DEBUG_STREAM("OK collision with either sensor or target");
+      return true;    
+    }
     return false;
 }
 

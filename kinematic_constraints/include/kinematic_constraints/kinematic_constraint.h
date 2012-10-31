@@ -61,7 +61,7 @@ struct ConstraintEvaluationResult
    * \brief Constructor
    * 
    * @param [in] result_satisfied True if the constraint evaluated to true, otherwise false
-   * @param [in] dist The distance from 
+   * @param [in] dist The distance evaluated by the constraint
    * 
    * @return 
    */
@@ -69,8 +69,8 @@ struct ConstraintEvaluationResult
   {
   }
   
-  bool   satisfied;             /**< \brief Whether or not the constraint is satisfied */
-  double distance;              /**< \brief The distance from the constraint */
+  bool   satisfied;             /**< \brief Whether or not the constraint or constraints were satisfied */
+  double distance;              /**< \brief The distance evaluation from the constraint or constraints */
 };
 
 /// \brief Base class for representing a kinematic constraint
@@ -613,17 +613,163 @@ protected:
   const planning_models::KinematicModel::LinkModel *link_model_; /**< \brief The link model constraint subject */
 };
 
+/**
+ * \brief Class for constraints on the visibility relationship between
+ * a sensor and a target.
+ *
+ * Visibility constraints are the most complicated kinematic
+ * constraint type.  They are designed to test whether a visibility
+ * relationship is maintained in a given state.  For the visibility
+ * relationship to be maintained, a sensor must have an unimpeded view
+ * of a target - this is useful, for instance, if one wants to test
+ * whether a robot can see its hand with a given sensor in a given
+ * state.  The mechanism that is used to test the constraint is a
+ * combination of geometric checks, and then a collision check that
+ * tests whether a cone that connects the sensor and the target is
+ * entirely unobstructed by the robot's links.
+ * 
+ * The constraint consists of a sensor pose, a target pose, a few
+ * parameters that govern the shape of the target, and a few
+ * parameters that allow finer control over the geometry of the check.
+ * There are two general ways that this constraint can be used.  The
+ * first way to leave max_view_angle and max_range_angle in the
+ * VisibilityConstraint message as 0.0.  In this case, the only check
+ * that is performed is the collision check against the cone.  This
+ * check assumes that the sensor can see in all directions - the
+ * orientation of the sensor has no effect on the creation of the
+ * cone.  It is important to note that the sensor and the target poses
+ * must not result in collision - if they are associated with sensor
+ * frames or robot links they must be specified to be outside the
+ * robot's body or all states will violate the Visibility Constraint.
+ * For an example of a visualization of a visibility constraint
+ * (produced using the getMarkers member function), see this image:
+ *
+ * \image html fingertip_cone.png "Visibility constraint satisfied as cone volume is clear"
+ *
+ * The cone is shown in red, and the arrows show normals.  This
+ * visibility constraint uses a sensor pose (the narrow end of the
+ * cone ) of the PR2's narrow_stereo_optical_frame, except shifted
+ * along the Z axis such that the pose is outside of the robot's head
+ * and doesn't collide.  The cone is allowed to collide with the
+ * actual sensor associated with the header frame, just not with any
+ * other links.  The target pose is a 5 cm circle offset from the
+ * l_gripper_r_finger_tip_link, again so as not to collide - again,
+ * the cone can collide with the target link, but now with any other
+ * links.  In the indicated state the cone is collision free and thus
+ * satisfies the collision component of the visibility constraint.  In
+ * this image, however, the right arm intersects the cone, violating
+ * the visibility constraint:
+ *
+ * \image html fingertip_collision.png "Visibility constraint violated as right arm is within the cone"
+ *  
+ * Note that both the target and the sensor frame can change with the
+ * robot's state.
+ *
+ * The collision check essentially asks whether or not the volume
+ * between the sensor pose and the target pose are clear, but that's
+ * only one aspect of visibility we may care about. The visibility
+ * constraint also allows for some geometric reasoning about the
+ * relationship between the sensor or the target - this allows
+ * information such as approximate field of view of the sensor to be
+ * factored into the constraint.  To use this reasoning, the
+ * sensor_view_direction of the field should first be set - this
+ * specifies which axis of the sensor pose frame is actually pointing.
+ * The system assumes that the the sensor pose has been set up such
+ * that a single of the axes is pointing directly out of the sensor.
+ * Once this value is set correctly, one or both of the max_view_angle
+ * and the max_range_angle values can be set.  Setting a positive
+ * max_view_angle will constrain the sensor along the specified axis
+ * and the target along its Z axis to be pointing at each other.
+ * Practically speaking, this ensures that the sensor has sufficient
+ * visibility to the front of the target - if the target is pointing
+ * the opposite direction, or is too steeply perpindicular to the
+ * target, then the max_view_angle part of the constraint will be
+ * violated.  The getMarkers function can again help explain this -
+ * the view angle is the angular difference between the blue arrow
+ * associated with the sensor and the red arrow associated with the
+ * target.
+
+ * \image html exact_opposites.png "Max view angle is evaluated at 0.0" 
+ * \image html fourty_five.png "Max view angle evaluates around pi/4" 
+ * \image html perpindicular.png "Max view angle evaluates at pi/2, the maximum" 
+ * \image html other_side.png "Sensor pointed at wrong side of target, will violate constraint as long as max_view_angle > 0.0"
+ *
+ * If constraining the target to be within the field of view of the
+ * sensor is the goal, then the max_range_angle can be set.  The range
+ * angle is calculated as the angle between the origins of the sensor
+ * and the target frame - the orientations are unimportant.  In the
+ * above images, the range angle is always 0, as the target's center
+ * is directly lined up with the blue arrow.  In this image, however,
+ * the view angle is evaluated at 0.0, while the range angle is
+ * evaluated at .65.  
+ * 
+ * \image html range_angle.png "Range angle is high, so only sensors with wide fields of view would see the target" 
+ * 
+ * By limiting the max_range_angle, you can constrain the target to be
+ * within the field of view of the sensor.  Max_view_angle and
+ * max_range_angle can be used at once.
+ */
 class VisibilityConstraint : public KinematicConstraint
 {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
-  
+
+  /** 
+   * \brief Configure the constraint based on a
+   * moveit_msgs::VisibilityConstraint 
+   *
+   * For the configure command to be successful, the target radius
+   * must be non-zero (negative values will have the absolute value
+   * taken).  If cone sides are less than 3, a value of 3 will be used.  
+   * 
+   * @param [in] vc moveit_msgs::VisibilityConstraint for configuration
+   * 
+   * @return True if constraint can be configured from vc
+   */  
   bool configure(const moveit_msgs::VisibilityConstraint &vc);
+
+  /** 
+   * \brief Check if two constraints are the same.  
+   * 
+   * For visibility constraints this means that:
+   * \li The types are the same,
+   * \li The target frame ids are the same
+   * \li The sensor frame ids are the same
+   * \li The cone sides number is the same
+   * \li The sensor view directions are the same
+   * \li The max view angles and target radii are within the margin 
+   * \li The sensor and target poses are within the margin, as computed by taking the norm of the difference.  
+   * 
+   * @param [in] other The other constraint to test
+   * @param [in] margin The margin to apply to all values associated with constraint
+   * 
+   * @return True if equal, otherwise false
+   */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
+  
+  /** 
+   * \brief Gets a trimesh shape representing the visibility cone
+   * 
+   * @param [in] state The state from which to produce the cone
+   *  
+   * @return The shape associated with the cone
+   */
   shapes::Mesh* getVisibilityCone(const planning_models::KinematicState &state) const;
+  
+  /** 
+   * \brief Adds markers associated with the visibility cone, sensor
+   * and target to the visualization array
+   * 
+   * The visibility cone and two arrows - a blue array that issues
+   * from the sensor_view_direction of the sensor, and a red arrow the
+   * issues along the Z axis of the the target frame.
+   *
+   * @param [in] state The state from which to produce the markers
+   * @param [out] markers The marker array to which the markers will be added 
+   */
   void getMarkers(const planning_models::KinematicState &state, visualization_msgs::MarkerArray &markers) const;
 
   virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
@@ -632,21 +778,30 @@ public:
   
 protected:
 
-  bool decideContact(collision_detection::Contact &contact) const;
+  /** 
+   * \brief Function that gets passed into collision checking to allow some collisions.
+   * 
+   * The cone object is allowed to touch either the sensor or the header frame, but not anything else
+   *
+   * @param [in] contact The contact in question 
+   * 
+   * @return True if the collision is allowed, otherwise false
+   */
+  bool decideContact(const collision_detection::Contact &contact) const;
 
-  collision_detection::CollisionRobotPtr collision_robot_;
-  bool                                   mobile_sensor_frame_;
-  bool                                   mobile_target_frame_;
-  std::string                            target_frame_id_;
-  std::string                            sensor_frame_id_;
-  Eigen::Affine3d                        sensor_pose_;
-  int                                    sensor_view_direction_;
-  Eigen::Affine3d                        target_pose_;
-  unsigned int                           cone_sides_;
-  EigenSTL::vector_Vector3d              points_;
-  double                                 target_radius_;
-  double                                 max_view_angle_;
-  double                                 max_range_angle_;
+  collision_detection::CollisionRobotPtr collision_robot_; /**< \brief A copy of the collision robot maintained for collision checking the cone against robot links */
+  bool                                   mobile_sensor_frame_; /**< True if the sensor is a non-fixed frame relative to the transform frame */
+  bool                                   mobile_target_frame_; /**< True if the target is a non-fixed frame relative to the transform frame */
+  std::string                            target_frame_id_; /**< The target frame id */
+  std::string                            sensor_frame_id_; /**< The sensor frame id */
+  Eigen::Affine3d                        sensor_pose_; /**< The sensor pose transformed into the transform frame */
+  int                                    sensor_view_direction_; /**< Storage for the sensor view direction */
+  Eigen::Affine3d                        target_pose_; /**< The target pose transformed into the transform frame */
+  unsigned int                           cone_sides_; /**< Storage for the cone sides  */
+  EigenSTL::vector_Vector3d              points_; /**< A set of points along the base of the circle */
+  double                                 target_radius_; /**< Storage for the target radius */
+  double                                 max_view_angle_; /**< Storage for the max view angle */
+  double                                 max_range_angle_; /**< Storage for the max range angle */
 };
 
 /**

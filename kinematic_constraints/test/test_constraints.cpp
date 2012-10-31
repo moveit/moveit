@@ -517,34 +517,115 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
     EXPECT_FALSE(vc.configure(vcm));
 
     vcm.sensor_pose.header.frame_id = "base_footprint";
-    vcm.sensor_pose.pose.position.z = -.2;
-    vcm.sensor_pose.pose.orientation.y = .7071;
-    vcm.sensor_pose.pose.orientation.w = .7071;
+    vcm.sensor_pose.pose.position.z = -1.0;
+    vcm.sensor_pose.pose.orientation.y = 1.0;
     
     vcm.target_pose.header.frame_id = "base_footprint";
-    vcm.target_pose.pose.position.z = -.4;
+    vcm.target_pose.pose.position.z = -2.0;
+    vcm.target_pose.pose.orientation.y = 0.0;
     vcm.target_pose.pose.orientation.w = 1.0;
 
     vcm.target_radius = .2;
-    vcm.cone_sides = 4;
+    vcm.cone_sides = 10;
     vcm.max_view_angle = 0.0;
     vcm.max_range_angle = 0.0;
-    vcm.sensor_view_direction = moveit_msgs::VisibilityConstraint::SENSOR_X;
+    vcm.sensor_view_direction = moveit_msgs::VisibilityConstraint::SENSOR_Z;
     vcm.weight = 1.0;
 
     EXPECT_TRUE(vc.configure(vcm));
+    //sensor and target are perfectly lined up
     EXPECT_TRUE(vc.decide(ks, true).satisfied);
-    
-    //TODO - figure out what to do about this
-    // vcm.max_range_angle = .1;
 
-    // EXPECT_TRUE(vc.configure(vcm));
-    // EXPECT_TRUE(vc.decide(ks, true).satisfied);
+    vcm.max_view_angle = .1;
 
-    // vcm.max_range_angle = 0.0;
-    // vcm.max_view_angle = .01;
-    // EXPECT_TRUE(vc.configure(vcm));
-    // EXPECT_TRUE(vc.decide(ks, true).satisfied);
+    //true, even with view angle
+    EXPECT_TRUE(vc.configure(vcm));
+    EXPECT_TRUE(vc.decide(ks, true).satisfied);
+
+    //very slight angle, so still ok
+    vcm.target_pose.pose.orientation.y = 0.03;
+    vcm.target_pose.pose.orientation.w = .9995;
+    EXPECT_TRUE(vc.configure(vcm));
+    EXPECT_TRUE(vc.decide(ks, true).satisfied);
+
+    //a little bit more puts it over
+    vcm.target_pose.pose.orientation.y = 0.05;
+    vcm.target_pose.pose.orientation.w = .998;
+    EXPECT_TRUE(vc.configure(vcm));
+    EXPECT_FALSE(vc.decide(ks, true).satisfied);
+}
+
+TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
+{
+
+  planning_models::KinematicState ks(kmodel);
+  ks.setToDefaultValues();
+  planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
+  
+  kinematic_constraints::VisibilityConstraint vc(kmodel, tf);
+  moveit_msgs::VisibilityConstraint vcm;
+
+  vcm.sensor_pose.header.frame_id = "narrow_stereo_optical_frame";
+  vcm.sensor_pose.pose.position.z = 0.05;
+  vcm.sensor_pose.pose.orientation.w = 1.0;
+  
+  vcm.target_pose.header.frame_id = "l_gripper_r_finger_tip_link";
+  vcm.target_pose.pose.position.z = 0.03;
+  vcm.target_pose.pose.orientation.w = 1.0;
+
+  vcm.cone_sides = 10;
+  vcm.max_view_angle = 0.0;
+  vcm.max_range_angle = 0.0;
+  vcm.sensor_view_direction = moveit_msgs::VisibilityConstraint::SENSOR_Z;
+  vcm.weight = 1.0;
+
+  //false because target radius is 0.0
+  EXPECT_FALSE(vc.configure(vcm));
+
+
+  //this is all fine
+  vcm.target_radius = .05;
+  EXPECT_TRUE(vc.configure(vcm));
+  EXPECT_TRUE(vc.decide(ks, true).satisfied);  
+
+
+  //this moves into collision with the cone, and should register false
+  std::map<std::string, double> state_values;
+  state_values["l_shoulder_lift_joint"] = .5;
+  state_values["r_shoulder_pan_joint"] = .5;
+  state_values["r_elbow_flex_joint"] = -1.4;
+  ks.setStateValues(state_values);
+  EXPECT_FALSE(vc.decide(ks, true).satisfied);  
+
+  //this moves far enough away that it's fine
+  state_values["r_shoulder_pan_joint"] = .4;
+  ks.setStateValues(state_values);
+  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+
+  //this is in collision with the arm, but now the cone, and should be fine
+  state_values["l_shoulder_lift_joint"] = 0;
+  state_values["r_shoulder_pan_joint"] = .5;
+  state_values["r_elbow_flex_joint"] = -.6;
+  ks.setStateValues(state_values);
+  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+
+  //this shouldn't matter
+  vcm.sensor_view_direction = moveit_msgs::VisibilityConstraint::SENSOR_X;
+  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+
+  ks.setToDefaultValues();
+
+  //just hits finger tip
+  vcm.target_radius = .01;
+  vcm.target_pose.pose.position.z = 0.00;
+  vcm.target_pose.pose.position.x = 0.035;
+  EXPECT_TRUE(vc.configure(vcm));
+  EXPECT_TRUE(vc.decide(ks, true).satisfied);  
+ 
+  //larger target means it also hits finger
+  vcm.target_radius = .05;
+  EXPECT_TRUE(vc.configure(vcm));
+  EXPECT_FALSE(vc.decide(ks, true).satisfied);  
 }
 
 TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
