@@ -58,6 +58,9 @@
 #include <trajectory_processing/trajectory_tools.h>
 
 #include <boost/format.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "planning_link_updater.h"
 #include "ui_moveit_rviz_plugin_frame.h"
@@ -169,6 +172,16 @@ PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const mo
   start_state_.reset(new planning_models::KinematicState(scene->getCurrentState()));
   planning_models::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
   trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory, *start_state_, scene->getTransforms());
+
+  if (message->trajectory.joint_trajectory.points.size() > message->trajectory.multi_dof_joint_trajectory.points.size())
+    for (std::size_t i = 0 ; i < message->trajectory.joint_trajectory.points.size() ; ++i)
+      time_from_start_.push_back(message->trajectory.joint_trajectory.points[i].time_from_start.toSec());
+  else
+    for (std::size_t i = 0 ; i < message->trajectory.multi_dof_joint_trajectory.points.size() ; ++i)
+      time_from_start_.push_back(message->trajectory.multi_dof_joint_trajectory.points[i].time_from_start.toSec());
+
+  for (int i = (int)time_from_start_.size() - 1 ; i > 0 ; --i)
+    time_from_start_[i] -= time_from_start_[i - 1];
 }
 
 PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const planning_models::KinematicStatePtr &start_state,
@@ -236,6 +249,9 @@ PlanningDisplay::PlanningDisplay() :
   query_start_state_property_ = new rviz::BoolProperty( "Query Start State", true, "Shows the start state for the motion planning query",
                                                         plan_category_,
                                                         SLOT( changedQueryStartState() ), this );
+  query_goal_state_property_ = new rviz::BoolProperty( "Query Goal State", true, "Shows the goal state for the motion planning query",
+                                                       plan_category_,
+                                                       SLOT( changedQueryGoalState() ), this );
   
   query_start_color_property_ = new rviz::ColorProperty("Start State Color", QColor(0, 255, 0), "The highlight color for the start state",
                                                         plan_category_,
@@ -247,9 +263,6 @@ PlanningDisplay::PlanningDisplay() :
   query_start_alpha_property_->setMin( 0.0 );
   query_start_alpha_property_->setMax( 1.0 );
   
-  query_goal_state_property_ = new rviz::BoolProperty( "Query Goal State", true, "Shows the goal state for the motion planning query",
-                                                       plan_category_,
-                                                       SLOT( changedQueryGoalState() ), this );
   
   query_goal_color_property_ = new rviz::ColorProperty( "Goal State Color", QColor(250, 128, 0), "The highlight color for the goal state",
                                                        plan_category_,
@@ -326,6 +339,13 @@ PlanningDisplay::PlanningDisplay() :
 
   // Path category ----------------------------------------------------------------------------------------------------
 
+  trajectory_topic_property_ =
+    new rviz::RosTopicProperty( "Trajectory Topic", "",
+                                ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
+                                "The topic on which the moveit_msgs::DisplayTrajectory messages are received",
+                                path_category_,
+                                SLOT( changedTrajectoryTopic() ), this );
+
   display_path_visual_enabled_property_ =
     new rviz::BoolProperty( "Show Robot Visual", true, "Indicates whether the geometry of the robot as defined for visualisation purposes should be displayed",
                             path_category_,
@@ -343,12 +363,14 @@ PlanningDisplay::PlanningDisplay() :
   robot_path_alpha_property_->setMin( 0.0 );
   robot_path_alpha_property_->setMax( 1.0 );
 
-  state_display_time_property_ =
-    new rviz::FloatProperty( "State Display Time", 0.05f, "The amount of wall-time to wait in between displaying states along a received trajectory path",
-                             path_category_,
-                             SLOT( changedStateDisplayTime() ), this );
-  state_display_time_property_->setMin(0.0001);
-
+  state_display_time_property_ =  new rviz::EditableEnumProperty("State Display Time", "0.05 s", "The amount of wall-time to wait in between displaying states along a received trajectory path",
+                                                                 path_category_,
+                                                                 SLOT( changedStateDisplayTime() ), this );
+  state_display_time_property_->addOptionStd("REALTIME");
+  state_display_time_property_->addOptionStd("0.05 s");
+  state_display_time_property_->addOptionStd("0.1 s");
+  state_display_time_property_->addOptionStd("0.5 s");
+  
   loop_display_property_ =
     new rviz::BoolProperty( "Loop Animation", false, "Indicates whether the last received path is to be animated in a loop",
                             path_category_,
@@ -358,14 +380,6 @@ PlanningDisplay::PlanningDisplay() :
     new rviz::BoolProperty( "Show Trail", false, "Show a path trail",
                             path_category_,
                             SLOT( changedShowTrail() ), this );
-    
-  trajectory_topic_property_ =
-    new rviz::RosTopicProperty( "Trajectory Topic", "",
-                                ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
-                                "The topic on which the moveit_msgs::DisplayTrajectory messages are received",
-                                path_category_,
-                                SLOT( changedTrajectoryTopic() ), this );
-
 }
 
 // ******************************************************************************************
@@ -1382,6 +1396,28 @@ void PlanningDisplay::queueRenderSceneGeometry(void)
   planning_scene_needs_render_ = true;
 }
 
+float PlanningDisplay::getStateDisplayTime(void)
+{
+  std::string tm = state_display_time_property_->getStdString();
+  if (tm == "REALTIME")
+    return -1.0;
+  else
+  {
+    boost::replace_all(tm, "s", "");
+    boost::trim(tm);
+    float t = 0.05f;
+    try
+    {
+      t = boost::lexical_cast<float>(tm);
+    }
+    catch(const boost::bad_lexical_cast &ex)
+    {
+      state_display_time_property_->setStdString("0.05 s");
+    }
+    return t;
+  }
+}
+
 // ******************************************************************************************
 // Update
 // ******************************************************************************************
@@ -1400,7 +1436,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
   {
     animating_path_ = true;
     current_state_ = -1;
-    current_state_time_ = state_display_time_property_->getFloat() + 1.0f;
+    current_state_time_ = std::numeric_limits<float>::infinity();
   }
 
   if (!animating_path_ && trajectory_message_to_display_)
@@ -1411,14 +1447,22 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     trajectory_message_to_display_.reset();
     animating_path_ = true;
     current_state_ = -1;
-    current_state_time_ = state_display_time_property_->getFloat() + 1.0f;
+    current_state_time_ = std::numeric_limits<float>::infinity();
     PlanningLinkUpdater plu(displaying_trajectory_message_->start_state_);
     display_path_robot_->update(plu);
   }
 
   if (animating_path_)
   { 
-    if (current_state_time_ > state_display_time_property_->getFloat())
+    float tm = getStateDisplayTime();
+    if (tm < 0.0) // if we should use realtime
+    {
+      if ((std::size_t) (current_state_ + 1) < displaying_trajectory_message_->time_from_start_.size())
+        tm = displaying_trajectory_message_->time_from_start_[current_state_ + 1];
+      else
+        tm = 0.0f;
+    }
+    if (current_state_time_ > tm)
     {
       ++current_state_;
       if ((std::size_t) current_state_ < displaying_trajectory_message_->trajectory_.size())
