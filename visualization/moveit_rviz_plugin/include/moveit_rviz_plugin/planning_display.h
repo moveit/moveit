@@ -86,6 +86,7 @@ public:
     
     planning_models::KinematicStatePtr start_state_;
     std::vector<planning_models::KinematicStatePtr> trajectory_;
+    std::vector<double> time_from_start_;
   };
 
   /**
@@ -227,7 +228,8 @@ protected:
   void computeMetrics(bool start, const std::string &group, double payload);
   void computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &eef,
                               const planning_models::KinematicState &state, double payload);
-
+  float getStateDisplayTime(void);
+  
   void publishInteractiveMarkers(void);
   
   // overrides from Display  
@@ -318,7 +320,7 @@ protected:
   rviz::BoolProperty* display_path_collision_enabled_property_;
   rviz::BoolProperty* scene_enabled_property_;
   rviz::BoolProperty* scene_robot_enabled_property_;
-  rviz::FloatProperty* state_display_time_property_;
+  rviz::EditableEnumProperty* state_display_time_property_;
   rviz::FloatProperty* scene_display_time_property_;
   rviz::RosTopicProperty* trajectory_topic_property_;
   rviz::RosTopicProperty* planning_scene_topic_property_;
