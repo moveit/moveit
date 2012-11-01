@@ -35,15 +35,15 @@
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 
-#include "moveit_rviz_plugin/background_processing.h"
-#include "moveit_rviz_plugin/planning_frame.h"
-#include "moveit_rviz_plugin/planning_scene_render.h"
-#include "moveit/robot_interaction/robot_interaction.h"
+#include <moveit/rviz_plugin/background_processing.h>
+#include <moveit/rviz_plugin/planning_frame.h>
+#include <moveit/rviz_plugin/planning_scene_render.h>
+#include <moveit/robot_interaction/robot_interaction.h>
 
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <planning_scene_monitor/planning_scene_monitor.h>
-#include <kinematics_metrics/kinematics_metrics.h>
-#include <dynamics_solver/dynamics_solver.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/kinematics_metrics/kinematics_metrics.h>
+#include <moveit/dynamics_solver/dynamics_solver.h>
 #include <ros/ros.h>
 #include <QDockWidget>
 

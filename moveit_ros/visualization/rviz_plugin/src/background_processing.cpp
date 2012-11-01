@@ -29,7 +29,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "moveit_rviz_plugin/background_processing.h"
+#include <moveit/rviz_plugin/background_processing.h>
 #include <ros/console.h>
 
 moveit_rviz_plugin::BackgroundProcessing::BackgroundProcessing(void)

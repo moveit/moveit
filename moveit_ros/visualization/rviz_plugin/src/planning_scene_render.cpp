@@ -29,7 +29,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "moveit_rviz_plugin/planning_scene_render.h"
+#include <moveit/rviz_plugin/planning_scene_render.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
@@ -182,7 +182,7 @@ void moveit_rviz_plugin::PlanningSceneRender::renderPlanningScene(const planning
 
   clear();
   
-  planning_models::KinematicStateConstPtr ks(new planning_models::KinematicState(scene->getCurrentState()));
+  kinematic_state::KinematicStateConstPtr ks(new kinematic_state::KinematicState(scene->getCurrentState()));
   scene_robot_->update(PlanningLinkUpdater(ks));
   collision_detection::CollisionWorldConstPtr cworld = scene->getCollisionWorld();
   const std::vector<std::string> &ids = cworld->getObjectIds();
@@ -199,7 +199,7 @@ void moveit_rviz_plugin::PlanningSceneRender::renderPlanningScene(const planning
       renderShape(scene_node_, o->shapes_[j].get(), o->shape_poses_[j], color, scene_alpha);
   }
   
-  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
+  std::vector<const kinematic_state::AttachedBody*> attached_bodies;
   scene->getCurrentState().getAttachedBodies(attached_bodies);
   for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
   {
