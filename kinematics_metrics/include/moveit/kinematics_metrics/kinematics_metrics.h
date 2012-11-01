@@ -35,12 +35,11 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#ifndef KINEMATICS_METRICS_H_
-#define KINEMATICS_METRICS_H_
+#ifndef MOVEIT_KINEMATICS_METRICS_KINEMATICS_METRICS_
+#define MOVEIT_KINEMATICS_METRICS_KINEMATICS_METRICS_
 
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
-#include <planning_scene/planning_scene.h>
+#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace kinematics_metrics
 {
@@ -55,29 +54,32 @@ public:
   /** @class
    *  @brief Kinematics metrics
    */
-  KinematicsMetrics(const planning_models::KinematicModelConstPtr &kinematic_model):kinematic_model_(kinematic_model){};    
+  KinematicsMetrics(const kinematic_model::KinematicModelConstPtr &kinematic_model) : 
+    kinematic_model_(kinematic_model)
+  {
+  }
   
-  bool getManipulabilityIndex(const planning_models::KinematicState &kinematic_state, 
+  bool getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state, 
                               const std::string &group_name,
                               double &manipulability_index) const;
     
-  bool getManipulabilityEllipsoid(const planning_models::KinematicState &kinematic_state,
+  bool getManipulabilityEllipsoid(const kinematic_state::KinematicState &kinematic_state,
                                   const std::string &group_name,
                                   Eigen::MatrixXcd &eigen_values,
                                   Eigen::MatrixXcd &eigen_vectors) const;
   
-  bool getConditionNumber(const planning_models::KinematicState &kinematic_state,
+  bool getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
                           const std::string &group_name,
                           double &condition_number);
 
 protected:
   
-  planning_models::KinematicModelConstPtr kinematic_model_;
+  kinematic_model::KinematicModelConstPtr kinematic_model_;
   
-  bool checkState(const planning_models::KinematicState &kinematic_state,
+  bool checkState(const kinematic_state::KinematicState &kinematic_state,
                   const std::string &group_name) const;
   
-  Eigen::MatrixXd getJacobian(const planning_models::KinematicState &kinematic_state,
+  Eigen::MatrixXd getJacobian(const kinematic_state::KinematicState &kinematic_state,
                               const std::string &group_name) const;
   
 };
