@@ -36,6 +36,7 @@
 #include "ui_moveit_rviz_plugin_frame.h"
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/kinematic_state/conversions.h>
+#include <moveit/warehouse/planning_scene_storage.h>
 #include <geometric_shapes/shape_operations.h>
 #include <QFileDialog>
 
@@ -96,7 +97,7 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroupHelper(void)
 { 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
-  const planning_models::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
+  const kinematic_model::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   if (!group.empty() && kmodel)
   {
@@ -472,14 +473,14 @@ void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::Mo
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
   mreq.num_planning_attempts = 1;
   mreq.allowed_planning_time = ros::Duration(ui_->planning_time->value());
-  planning_models::kinematicStateToRobotState(*planning_display_->getQueryStartState(), mreq.start_state);
+  kinematic_state::kinematicStateToRobotState(*planning_display_->getQueryStartState(), mreq.start_state);
   mreq.workspace_parameters.min_corner.x = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
   mreq.workspace_parameters.min_corner.y = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
   mreq.workspace_parameters.min_corner.z = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;
   mreq.workspace_parameters.max_corner.x = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
   mreq.workspace_parameters.max_corner.y = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
   mreq.workspace_parameters.max_corner.z = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
-  const planning_models::KinematicState::JointStateGroup *jsg = planning_display_->getQueryGoalState()->getJointStateGroup(mreq.group_name);
+  const kinematic_state::JointStateGroup *jsg = planning_display_->getQueryGoalState()->getJointStateGroup(mreq.group_name);
   if (jsg)
   {
     mreq.goal_constraints.resize(1);
@@ -640,7 +641,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSetStartToCurrentButtonClicked(vo
 {  
   if (!move_group_)
     return;
-  planning_models::KinematicStatePtr s = move_group_->getCurrentState();
+  kinematic_state::KinematicStatePtr s = move_group_->getCurrentState();
   if (s)
     planning_display_->setQueryStartState(s);
 }
@@ -649,7 +650,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSetGoalToCurrentButtonClicked(voi
 { 
   if (!move_group_)
     return;
-  planning_models::KinematicStatePtr s = move_group_->getCurrentState();
+  kinematic_state::KinematicStatePtr s = move_group_->getCurrentState();
   if (s)
     planning_display_->setQueryGoalState(s);
 }
@@ -658,13 +659,13 @@ void moveit_rviz_plugin::PlanningFrame::computeRandomStatesButtonClicked(void)
 {
   std::string group_name = planning_display_->getCurrentPlanningGroup();
   
-  planning_models::KinematicStatePtr start(new planning_models::KinematicState(*planning_display_->getQueryStartState()));
+  kinematic_state::KinematicStatePtr start(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
   
-  planning_models::KinematicState::JointStateGroup *jsg = start->getJointStateGroup(group_name);
+  kinematic_state::JointStateGroup *jsg = start->getJointStateGroup(group_name);
   if (jsg)
     jsg->setToRandomValues();
   
-  planning_models::KinematicStatePtr goal(new planning_models::KinematicState(*planning_display_->getQueryGoalState()));
+  kinematic_state::KinematicStatePtr goal(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
   jsg = goal->getJointStateGroup(group_name);
   if (jsg)
     jsg->setToRandomValues();
@@ -829,12 +830,12 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadQueryButtonClicked(void)
         moveit_warehouse::MotionPlanRequestWithMetadata mp;
         if (planning_scene_storage_->getPlanningQuery(mp, scene, query_name))
         {
-          planning_models::KinematicStatePtr start_state(new planning_models::KinematicState(*planning_display_->getQueryStartState()));
-          planning_models::robotStateToKinematicState(*planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getTransforms(),
+          kinematic_state::KinematicStatePtr start_state(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
+          kinematic_state::robotStateToKinematicState(*planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getTransforms(),
                                                       mp->start_state, *start_state);
           planning_display_->setQueryStartState(start_state);
           
-          planning_models::KinematicStatePtr goal_state(new planning_models::KinematicState(*planning_display_->getQueryGoalState()));
+          kinematic_state::KinematicStatePtr goal_state(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
           for (std::size_t i = 0 ; i < mp->goal_constraints.size() ; ++i)
             if (mp->goal_constraints[i].joint_constraints.size() > 0)
             {

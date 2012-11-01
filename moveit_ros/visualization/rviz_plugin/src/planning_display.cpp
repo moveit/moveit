@@ -29,7 +29,7 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#include "moveit_rviz_plugin/planning_display.h"
+#include <moveit/rviz_plugin/planning_display.h>
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 #include <rviz/robot/robot_link.h>
@@ -54,8 +54,8 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
 
-#include <planning_models/conversions.h>
-#include <trajectory_processing/trajectory_tools.h>
+#include <moveit/kinematic_state/conversions.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -169,8 +169,8 @@ private:
 PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message,
                                                                         const planning_scene::PlanningScenePtr &scene)
 {
-  start_state_.reset(new planning_models::KinematicState(scene->getCurrentState()));
-  planning_models::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
+  start_state_.reset(new kinematic_state::KinematicState(scene->getCurrentState()));
+  kinematic_state::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
   trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory, *start_state_, scene->getTransforms());
 
   if (message->trajectory.joint_trajectory.points.size() > message->trajectory.multi_dof_joint_trajectory.points.size())
@@ -184,8 +184,8 @@ PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const mo
     time_from_start_[i] -= time_from_start_[i - 1];
 }
 
-PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const planning_models::KinematicStatePtr &start_state,
-                                                                        const std::vector<planning_models::KinematicStatePtr> &trajectory) :
+PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state,
+                                                                        const std::vector<kinematic_state::KinematicStatePtr> &trajectory) :
   start_state_(start_state), trajectory_(trajectory)
 {
 }
@@ -785,7 +785,7 @@ void PlanningDisplay::computeMetrics(bool start, const std::string &group, doubl
 }
 
 void PlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &ee,
-                                             const planning_models::KinematicState &state, double payload)
+                                             const kinematic_state::KinematicState &state, double payload)
 { 
   metrics.clear();
   dynamics_solver::DynamicsSolverPtr ds = getDynamicsSolver(ee.group);
@@ -796,7 +796,7 @@ void PlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metr
     double max_payload;
     unsigned int saturated_joint;
     std::vector<double> joint_values;
-    state.getJointStateGroup(ee.group)->getGroupStateValues(joint_values);
+    state.getJointStateGroup(ee.group)->getVariableValues(joint_values);
     if (ds->getMaxPayload(joint_values, max_payload, saturated_joint))
     {
       metrics["max_payload"] = max_payload;      
@@ -863,8 +863,8 @@ void PlanningDisplay::displayMetrics(bool start)
         }
       }
       
-      const planning_models::KinematicState::LinkState *ls = NULL;
-      const planning_models::KinematicModel::JointModelGroup *jmg = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(eef[i].group);
+      const kinematic_state::LinkState *ls = NULL;
+      const kinematic_model::JointModelGroup *jmg = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(eef[i].group);
       if (jmg)
         if (!jmg->getLinkModelNames().empty())
           ls = start ? query_start_state_->getLinkState(jmg->getLinkModelNames().back()) : query_goal_state_->getLinkState(jmg->getLinkModelNames().back());
@@ -984,7 +984,7 @@ void PlanningDisplay::updateQueryGoalState(void)
   context_->queueRender();
 }
 
-void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePtr &start)
+void PlanningDisplay::setQueryStartState(const kinematic_state::KinematicStatePtr &start)
 {
   query_start_state_ = start; 
   std::string group = planning_group_property_->getStdString();
@@ -993,7 +993,7 @@ void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePt
   updateQueryStartState();
 }
 
-void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr &goal)
+void PlanningDisplay::setQueryGoalState(const kinematic_state::KinematicStatePtr &goal)
 {
   query_goal_state_ = goal;
   std::string group = planning_group_property_->getStdString();
@@ -1065,8 +1065,8 @@ void PlanningDisplay::changedSceneEnabled()
   rendered_geometry_node_->setVisible( scene_enabled_property_->getBool() );
 }
 
-void PlanningDisplay::displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
-                                             const std::vector<planning_models::KinematicStatePtr> &trajectory)
+void PlanningDisplay::displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
+                                             const std::vector<kinematic_state::KinematicStatePtr> &trajectory)
 {  
   trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(start_state, trajectory));
 }
@@ -1114,7 +1114,7 @@ void PlanningDisplay::setGroupColor(rviz::Robot* robot, const std::string& group
 {
   if (planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
   {
-    const planning_models::KinematicModel::JointModelGroup *jmg = 
+    const kinematic_model::JointModelGroup *jmg = 
       planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name);
     if (jmg)
     {
@@ -1139,7 +1139,7 @@ void PlanningDisplay::unsetGroupColor(rviz::Robot* robot, const std::string& gro
 {
   if (planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
   {
-    const planning_models::KinematicModel::JointModelGroup *jmg = 
+    const kinematic_model::JointModelGroup *jmg = 
       planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name);
     if (jmg)
     {
@@ -1196,9 +1196,9 @@ void PlanningDisplay::loadRobotModel(void)
     planning_scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
-    planning_models::KinematicStatePtr ks(new planning_models::KinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState()));
+    kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState()));
     query_start_state_ = ks;
-    query_goal_state_.reset(new planning_models::KinematicState(*ks));
+    query_goal_state_.reset(new kinematic_state::KinematicState(*ks));
     
     const std::vector<std::string> &groups = planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupNames();
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
@@ -1267,26 +1267,26 @@ void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Plannin
   std::string group = planning_group_property_->getStdString();
   if (query_start_state_property_->getBool() && !group.empty())
   {
-    planning_models::KinematicState::JointStateGroup *jsg = query_start_state_->getJointStateGroup(group);
+    kinematic_state::JointStateGroup *jsg = query_start_state_->getJointStateGroup(group);
     if (jsg)
     {
       std::map<std::string, double> joint_state_values;
-      jsg->getGroupStateValues(joint_state_values);
+      jsg->getVariableValues(joint_state_values);
       *query_start_state_ = planning_scene_monitor_->getPlanningScene()->getCurrentState();
-      query_start_state_->getJointStateGroup(group)->setStateValues(joint_state_values);
+      query_start_state_->getJointStateGroup(group)->setVariableValues(joint_state_values);
       updateQueryStartState();
     }
   }
 
   if (query_goal_state_property_->getBool() && !group.empty())
   {
-    planning_models::KinematicState::JointStateGroup *jsg = query_goal_state_->getJointStateGroup(group);
+    kinematic_state::JointStateGroup *jsg = query_goal_state_->getJointStateGroup(group);
     if (jsg)
     {
       std::map<std::string, double> joint_state_values;
-      jsg->getGroupStateValues(joint_state_values);
+      jsg->getVariableValues(joint_state_values);
       *query_goal_state_ = planning_scene_monitor_->getPlanningScene()->getCurrentState();
-      query_goal_state_->getJointStateGroup(group)->setStateValues(joint_state_values);
+      query_goal_state_->getJointStateGroup(group)->setVariableValues(joint_state_values);
       updateQueryGoalState();
     }
   }
