@@ -1,7 +1,7 @@
 <package>
-  <name>moveit_ros_planning_interface</name>
-  <version>0.1.11</version>
-  <description>Components of MoveIt that offer simpler interfaces to planning and execution</description>
+  <name>moveit_ros_benchmarks</name>
+  <version>0.1.12</version>
+  <description>MoveIt tools for benchmarking</description>
 
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
@@ -13,25 +13,14 @@
   <url type="repository">https://github.com/ros-planning/moveit-ros</url>
 
   <build_depend>catkin</build_depend> 
-  <build_depend>python-catkin-pkg</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_ros_warehouse</build_depend>
-  <build_depend>roscpp</build_depend> 
-  <build_depend>rospy</build_depend>
+  <build_depend>roscpp</build_depend>
   <build_depend>rosconsole</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>eigen_conversions</build_depend>
-  <build_depend>python</build_depend>
-  <build_depend>interactive_markers</build_depend>
 
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_warehouse</run_depend>
   <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend>
   <run_depend>rosconsole</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>eigen_conversions</run_depend>
-  <run_depend>python</run_depend>
-  <run_depend>interactive_markers</run_depend>
 
 </package>
