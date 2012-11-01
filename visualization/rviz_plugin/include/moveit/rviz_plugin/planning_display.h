@@ -82,10 +82,10 @@ public:
   struct TrajectoryMessageToDisplay
   {
     TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene);
-    TrajectoryMessageToDisplay(const planning_models::KinematicStatePtr &start_state, const std::vector<planning_models::KinematicStatePtr> &trajectory);
+    TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
     
-    planning_models::KinematicStatePtr start_state_;
-    std::vector<planning_models::KinematicStatePtr> trajectory_;
+    kinematic_state::KinematicStatePtr start_state_;
+    std::vector<kinematic_state::KinematicStatePtr> trajectory_;
     std::vector<double> time_from_start_;
   };
 
@@ -123,18 +123,18 @@ public:
   void setLinkColor(const std::string& link_name, const QColor &color);
   void unsetLinkColor(const std::string& link_name);
 
-  const planning_models::KinematicStatePtr& getQueryStartState(void) const
+  const kinematic_state::KinematicStatePtr& getQueryStartState(void) const
   {
     return query_start_state_;
   }
 
-  const planning_models::KinematicStatePtr& getQueryGoalState(void) const
+  const kinematic_state::KinematicStatePtr& getQueryGoalState(void) const
   {
     return query_goal_state_;
   }
 
-  void setQueryStartState(const planning_models::KinematicStatePtr &start);
-  void setQueryGoalState(const planning_models::KinematicStatePtr &goal);  
+  void setQueryStartState(const kinematic_state::KinematicStatePtr &start);
+  void setQueryGoalState(const kinematic_state::KinematicStatePtr &goal);  
   
   void updateQueryStartState(void);
   void updateQueryGoalState(void);
@@ -149,8 +149,8 @@ public:
   void showPlanningFrame(bool show);
   void queueRenderSceneGeometry(void);
   
-  void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
-                              const std::vector<planning_models::KinematicStatePtr> &trajectory);
+  void displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
+                              const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
                                                                                                 
 private Q_SLOTS:
   // ******************************************************************************************
@@ -227,7 +227,7 @@ protected:
   void computeMetrics(double payload);
   void computeMetrics(bool start, const std::string &group, double payload);
   void computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &eef,
-                              const planning_models::KinematicState &state, double payload);
+                              const kinematic_state::KinematicState &state, double payload);
   float getStateDisplayTime(void);
   
   void publishInteractiveMarkers(void);
@@ -276,8 +276,8 @@ protected:
   QDockWidget *frame_dock_;
   bool show_planning_frame_;
   
-  planning_models::KinematicStatePtr query_start_state_;
-  planning_models::KinematicStatePtr query_goal_state_;
+  kinematic_state::KinematicStatePtr query_start_state_;
+  kinematic_state::KinematicStatePtr query_goal_state_;
   std::vector<std::string> collision_links_start_;
   std::vector<std::string> collision_links_goal_;
 

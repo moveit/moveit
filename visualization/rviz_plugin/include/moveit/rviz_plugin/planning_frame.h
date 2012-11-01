@@ -36,8 +36,8 @@
 #include <QTreeWidgetItem>
 #include <QListWidgetItem>
 #include <moveit/move_group_interface/move_group.h>
-#include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit_msgs/MotionPlanRequest.h>
 
 namespace rviz
 {
@@ -47,6 +47,11 @@ class DisplayContext;
 namespace Ui
 {
 class MotionPlanningFrame;
+}
+
+namespace moveit_warehouse
+{
+class PlanningSceneStorage;
 }
 
 namespace moveit_rviz_plugin

@@ -17,7 +17,7 @@ link_directories( ${OGRE_LIBRARY_DIRS} )
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(-DQT_NO_KEYWORDS)
-include_directories(${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_BINARY_DIR}/rviz_plugin)
 include_directories(${QT_INCLUDE_DIR})
 
 find_package(catkin COMPONENTS
