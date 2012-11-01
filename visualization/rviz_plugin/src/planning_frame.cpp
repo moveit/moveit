@@ -29,13 +29,13 @@
 
 /* Author: Ioan Sucan */
 
-#include "moveit_rviz_plugin/planning_frame.h"
-#include "moveit_rviz_plugin/planning_display.h"
+#include <moveit/rviz_plugin/planning_frame.h>
+#include <moveit/rviz_plugin/planning_display.h>
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
 #include "ui_moveit_rviz_plugin_frame.h"
-#include <kinematic_constraints/utils.h>
-#include <planning_models/conversions.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <geometric_shapes/shape_operations.h>
 #include <QFileDialog>
 
