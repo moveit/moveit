@@ -47,6 +47,8 @@ catkin_package(
     moveit_trajectory_processing
     moveit_distance_field
     moveit_collision_distance_field
+    moveit_kinematics_metrics
+    moveit_dynamics_solver
   DEPENDS
     Boost Eigen
     geometric_shapes
@@ -70,6 +72,8 @@ include_directories(planning_request_adapter/include)
 include_directories(trajectory_processing/include)
 include_directories(distance_field/include)
 include_directories(collision_distance_field/include)
+include_directories(kinematics_metrics/include)
+include_directories(dynamics_solver/include)
 
 add_subdirectory(kinematics_base)
 add_subdirectory(kinematic_model)
@@ -84,9 +88,10 @@ add_subdirectory(planning_request_adapter)
 add_subdirectory(trajectory_processing)
 add_subdirectory(distance_field)
 add_subdirectory(collision_distance_field)
+add_subdirectory(kinematics_metrics)
+add_subdirectory(dynamics_solver)
 
-#add_subdirectory(dynamics_solver)
 #add_subdirectory(kinematics_cache)
 #add_subdirectory(kinematics_constraint_aware)
-#add_subdirectory(kinematics_metrics)
+
 #add_subdirectory(kinematics_planner)

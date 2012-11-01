@@ -34,7 +34,7 @@
 
 /* Author: Sachin Chitta */
 
-#include <dynamics_solver/dynamics_solver.h>
+#include <moveit/dynamics_solver/dynamics_solver.h>
 
 // KDL
 #include <kdl/jntarray.hpp>
@@ -43,48 +43,50 @@
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainjnttojacsolver.hpp>
+#include <kdl/tree.hpp>
 
 namespace dynamics_solver
 {
-DynamicsSolver::DynamicsSolver()
+
+DynamicsSolver::DynamicsSolver(void)
 {
 }
 
-bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf_model,
+bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                 const boost::shared_ptr<const srdf::Model> &srdf_model,
                                 const std::string &group_name)
 {
   urdf_model_ = urdf_model;
   srdf_model_ = srdf_model;
   group_name_ = group_name;
-  kinematic_model_.reset(new planning_models::KinematicModel(urdf_model_,srdf_model_));
-  if(!kinematic_model_->hasJointModelGroup(group_name))
+  kinematic_model_.reset(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
+  if (!kinematic_model_->hasJointModelGroup(group_name))
   {
-    ROS_ERROR("Did not find the group %s in robot model",group_name.c_str());
+    logError("Did not find the group %s in robot model", group_name.c_str());
     return false;
   }  
   joint_model_group_ = kinematic_model_->getJointModelGroup(group_name);
   if(!joint_model_group_->isChain())
   {
-    ROS_ERROR("Group %s is not a chain. Will not initialize dynamics solver",group_name_.c_str());
+    logError("Group %s is not a chain. Will not initialize dynamics solver",group_name_.c_str());
     return false;    
   }
   base_name_ = joint_model_group_->getLinkModels().front()->getParentJointModel()->getParentLinkModel()->getName();
   tip_name_ = joint_model_group_->getLinkModelNames().back();
-  ROS_DEBUG("Base name: %s, Tip name: %s",base_name_.c_str(),tip_name_.c_str());
+  logDebug("Base name: %s, Tip name: %s",base_name_.c_str(),tip_name_.c_str());
   
   KDL::Tree tree;
   if (!kdl_parser::treeFromUrdfModel(*urdf_model_, tree)) 
   {
-    ROS_ERROR("Could not initialize tree object");
+    logError("Could not initialize tree object");
   }
   if (!tree.getChain(base_name_, tip_name_, kdl_chain_)) 
   {
-    ROS_ERROR("Could not initialize chain object");
+    logError("Could not initialize chain object");
   }
   num_joints_ = kdl_chain_.getNrOfJoints();
 
-  kinematic_state_.reset(new planning_models::KinematicState(kinematic_model_));  
+  kinematic_state_.reset(new kinematic_state::KinematicState(kinematic_model_));  
   joint_state_group_ = kinematic_state_->getJointStateGroup(joint_model_group_->getName());
 
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();
@@ -98,7 +100,7 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
   }
   
   KDL::Vector gravity(0.0,0.0,9.81);//Not sure if KDL expects the negative of this
-  chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_,gravity));
+  chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_, gravity));
   return true;
 }
 
@@ -110,27 +112,27 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
 {
   if(joint_angles.size() != num_joints_)
   {
-    ROS_ERROR("Joint angles vector should be size %d",num_joints_);
+    logError("Joint angles vector should be size %d",num_joints_);
     return false;
   }
   if(joint_velocities.size() != num_joints_)
   {
-    ROS_ERROR("Joint velocities vector should be size %d",num_joints_);
+    logError("Joint velocities vector should be size %d",num_joints_);
     return false;
   }
   if(joint_accelerations.size() != num_joints_)
   {
-    ROS_ERROR("Joint accelerations vector should be size %d",num_joints_);
+    logError("Joint accelerations vector should be size %d",num_joints_);
     return false;
   }
   if(wrenches.size() != num_joints_)
   {
-    ROS_ERROR("Wrenches vector should be size %d",num_joints_);
+    logError("Wrenches vector should be size %d",num_joints_);
     return false;
   }
   if(torques.size() != num_joints_)
   {
-    ROS_ERROR("Torques vector should be size %d",num_joints_);
+    logError("Torques vector should be size %d",num_joints_);
     return false;
   }
 
@@ -165,7 +167,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
 {
   if(joint_angles.size() != num_joints_)
   {
-    ROS_ERROR("Joint angles vector should be size %d",num_joints_);
+    logError("Joint angles vector should be size %d",num_joints_);
     return false;
   }
   std::vector<double> joint_velocities(num_joints_,0.0), joint_accelerations(num_joints_,0.0);
@@ -184,7 +186,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
     }    
   }
 
-  joint_state_group_->setStateValues(joint_angles);
+  joint_state_group_->setVariableValues(joint_angles);
   const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
   const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
   Eigen::Affine3d transform = tip_frame->inverse()*(*base_frame);  
@@ -192,7 +194,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   wrenches.back().force = transformVector(transform,wrenches.back().force);
   wrenches.back().torque = transformVector(transform,wrenches.back().torque);  
 
-  ROS_DEBUG("New wrench (local frame): %f %f %f",wrenches.back().force.x,wrenches.back().force.y,wrenches.back().force.z);
+  logDebug("New wrench (local frame): %f %f %f",wrenches.back().force.x,wrenches.back().force.y,wrenches.back().force.z);
   
 
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,torques))
@@ -202,8 +204,8 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   for(unsigned int i=0; i < num_joints_; ++i)
   {
     double payload_joint = std::max<double>((max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]),(-max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]));
-    ROS_DEBUG("Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f",i,torques[i],max_torques_[i],zero_torques[i]);
-    ROS_DEBUG("Joint: %d, Payload Allowed (N): %f",i,payload_joint);
+    logDebug("Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f",i,torques[i],max_torques_[i],zero_torques[i]);
+    logDebug("Joint: %d, Payload Allowed (N): %f",i,payload_joint);
     if(payload_joint < min_payload)
     {
       min_payload = payload_joint;
@@ -211,7 +213,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
     }    
   }  
   payload = min_payload/9.81;  
-  ROS_DEBUG("Max payload (kg): %f",payload);
+  logDebug("Max payload (kg): %f",payload);
   return true;
 }
 
@@ -221,18 +223,18 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
 {
   if(joint_angles.size() != num_joints_)
   {
-    ROS_ERROR("Joint angles vector should be size %d",num_joints_);
+    logError("Joint angles vector should be size %d",num_joints_);
     return false;
   }
   if(joint_torques.size() != num_joints_)
   {
-    ROS_ERROR("Joint torques vector should be size %d",num_joints_);
+    logError("Joint torques vector should be size %d",num_joints_);
     return false;
   }
   std::vector<double> joint_velocities(num_joints_,0.0), joint_accelerations(num_joints_,0.0);
   std::vector<geometry_msgs::Wrench> wrenches(num_joints_);
 
-  joint_state_group_->setStateValues(joint_angles);
+  joint_state_group_->setVariableValues(joint_angles);
   const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
   const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
   Eigen::Affine3d transform = tip_frame->inverse()*(*base_frame);  
@@ -240,7 +242,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
   wrenches.back().force = transformVector(transform,wrenches.back().force);
   wrenches.back().torque = transformVector(transform,wrenches.back().torque);  
 
-  ROS_DEBUG("New wrench (local frame): %f %f %f",wrenches.back().force.x,wrenches.back().force.y,wrenches.back().force.z);
+  logDebug("New wrench (local frame): %f %f %f",wrenches.back().force.x,wrenches.back().force.y,wrenches.back().force.z);
   
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,joint_torques))
     return false;

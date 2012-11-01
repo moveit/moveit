@@ -35,13 +35,13 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#include <kinematics_metrics/kinematics_metrics.h>
+#include <moveit/kinematics_metrics/kinematics_metrics.h>
 #include <Eigen/Eigenvalues>
 
 namespace kinematics_metrics
 {
 
-bool KinematicsMetrics::checkState(const planning_models::KinematicState &kinematic_state,
+bool KinematicsMetrics::checkState(const kinematic_state::KinematicState &kinematic_state,
                                    const std::string &group_name) const
 {
   if(!kinematic_state.hasJointStateGroup(group_name))
@@ -49,7 +49,7 @@ bool KinematicsMetrics::checkState(const planning_models::KinematicState &kinema
   return true;
 }
 
-Eigen::MatrixXd KinematicsMetrics::getJacobian(const planning_models::KinematicState &kinematic_state,
+Eigen::MatrixXd KinematicsMetrics::getJacobian(const kinematic_state::KinematicState &kinematic_state,
                                                const std::string &group_name) const
 {
   Eigen::MatrixXd jacobian;
@@ -59,7 +59,7 @@ Eigen::MatrixXd KinematicsMetrics::getJacobian(const planning_models::KinematicS
   return jacobian;
 }
 
-bool KinematicsMetrics::getManipulabilityIndex(const planning_models::KinematicState &kinematic_state, 
+bool KinematicsMetrics::getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state, 
                                                const std::string &group_name,
                                                double &manipulability_index) const
 {
@@ -72,7 +72,7 @@ bool KinematicsMetrics::getManipulabilityIndex(const planning_models::KinematicS
   return true;  
 }
 
-bool KinematicsMetrics::getManipulabilityEllipsoid(const planning_models::KinematicState &kinematic_state,
+bool KinematicsMetrics::getManipulabilityEllipsoid(const kinematic_state::KinematicState &kinematic_state,
                                                    const std::string &group_name,
                                                    Eigen::MatrixXcd &eigen_values,
                                                    Eigen::MatrixXcd &eigen_vectors) const
@@ -87,7 +87,7 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const planning_models::Kinema
   return true;  
 }
 
-bool KinematicsMetrics::getConditionNumber(const planning_models::KinematicState &kinematic_state,
+bool KinematicsMetrics::getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
                                            const std::string &group_name,
                                            double &condition_number)
 {
