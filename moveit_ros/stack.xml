@@ -13,4 +13,10 @@
   <depend stack="pr2_mechanism" />
   <depend stack="visualization" /> <!-- interactive_markers, rviz -->
 
+  <depend stack="common_msgs" /> <!-- geometry_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, visualization_msgs -->
+  <depend stack="common_rosdeps" /> <!-- common_rosdeps -->
+  <depend stack="robot_model" /> <!-- urdf, srdf, resource_retriever -->
+  <depend stack="sql_database" />
+  <depend stack="perception_pcl" />
+
 </stack>
