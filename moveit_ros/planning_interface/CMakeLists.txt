@@ -18,6 +18,7 @@ find_package(catkin COMPONENTS
   interactive_markers
   tf
   roscpp
+  actionlib
   rospy
   rosconsole
   REQUIRED)
