@@ -30,7 +30,3 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_library(${PROJECT_NAME} src/manipulation_group.cpp src/pick_place_planner.cpp)
-
-
-rosbuild_add_executable(pick_place_node src/pick_place_node.cpp)
-rosbuild_add_executable(test_kinematics_planner src/test_kinematics_planner.cpp)
