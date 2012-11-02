@@ -1,0 +1,21 @@
+<launch>
+
+    <node pkg="tabletop_object_detector" name="tabletop_object_recognition" 
+    type="tabletop_object_recognition" respawn="false" output="screen">
+	<!--operational parameters-->
+	<param name="fit_merge_threshold" value="0.05" />
+	<param name="min_marker_quality" value="0.003" />
+
+	<!--topic remapping-->
+        <remap from="object_recognition_srv" to="tabletop_object_recognition" />
+        <remap from="markers_out" to="tabletop_object_recognition_markers" />
+
+	<!--database parameters-->
+	<!--NOTE: this launch file does not start the database wrapper node-->
+	<!--that must be done externally-->
+        <param name="model_set" value="REDUCED_MODEL_SET" />
+        <param name="get_model_list_srv" value="/moveit_household_objects_database_node/get_model_list" />	
+        <param name="get_model_mesh_srv" value="/moveit_household_objects_database_node/get_model_mesh" />	
+    </node>
+
+</launch>

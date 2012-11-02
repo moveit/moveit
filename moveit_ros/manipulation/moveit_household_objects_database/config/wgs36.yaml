@@ -1,0 +1,6 @@
+household_objects_database:
+  database_host: wgs36
+  database_port: 5432
+  database_user: willow
+  database_pass: willow
+  database_name: household_objects

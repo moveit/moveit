@@ -1,0 +1,26 @@
+<launch>
+
+  <include file="$(find pr2_moveit_config)/launch/planning_context.launch" />
+
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="xterm -e gdb  --args" />
+
+  <arg name="allow_trajectory_execution" default="true"/>
+  <arg name="max_safe_path_cost" default="0.01"/>
+
+  <include ns="test_kinematics_planner" file="$(find pr2_moveit_config)/launch/trajectory_execution.launch">
+    <arg name="moveit_controller_manager" value="pr2" /> 
+    <arg name="moveit_manage_controllers" value="true" />
+  </include>
+
+  <include ns="test_kinematics_planner" file="$(find pr2_moveit_config)/launch/planning_pipeline.launch">
+    <arg name="pipeline" value="ompl" />
+  </include>
+  
+  <node name="test_kinematics_planner" launch-prefix="$(arg launch_prefix)" pkg="moveit_manipulation_testing" type="test_kinematics_planner" respawn="false" output="screen">
+    <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
+    <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
+  </node>
+  
+</launch>
