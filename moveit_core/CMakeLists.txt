@@ -23,6 +23,7 @@ find_package(catkin COMPONENTS
   resource_retriever
   urdfdom
   srdfdom
+  kdl_parser
   geometric_shapes
   shape_tools
   eigen_stl_containers 
