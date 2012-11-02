@@ -365,13 +365,11 @@ void RobotPosesWidget::showPose( srdf::Model::GroupState *pose )
 // ******************************************************************************************
 void RobotPosesWidget::showDefaultPose()
 {
-  namespace pm = planning_models;
-
   // Get list of all joints for the robot
-  std::vector<const pm::KinematicModel::JointModel*> joint_models = config_data_->getKinematicModel()->getJointModels();
+  std::vector<const kinematic_model::JointModel*> joint_models = config_data_->getKinematicModel()->getJointModels();
 
   // Iterate through the joints
-  for( std::vector<const pm::KinematicModel::JointModel*>::const_iterator joint_it = joint_models.begin();
+  for( std::vector<const kinematic_model::JointModel*>::const_iterator joint_it = joint_models.begin();
        joint_it < joint_models.end(); ++joint_it )
   {
 
@@ -382,7 +380,7 @@ void RobotPosesWidget::showDefaultPose()
 
       // get the first joint value in its vector
       std::vector<double> default_values;
-      (*joint_it)->getDefaultValues( default_values );
+      (*joint_it)->getVariableDefaultValues( default_values );
       init_value = default_values[0];
 
       // Change joint's value in joint_state_map to the default
@@ -529,17 +527,14 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
   joint_list_widget_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   joint_list_widget_->setMinimumSize( 50, 50 ); // w, h
 
-  // Load joints ---------------------------------------------------------
-  namespace pm = planning_models;
-
   // Get list of associated joints
-  const pm::KinematicModel::JointModelGroup *joint_model_group =
+  const kinematic_model::JointModelGroup *joint_model_group =
     config_data_->getKinematicModel()->getJointModelGroup( group_name );
   joint_models_ = joint_model_group->getJointModels();
 
   // Iterate through the joints
   int num_joints = 0;
-  for( std::vector<const pm::KinematicModel::JointModel*>::const_iterator joint_it = joint_models_.begin();
+  for( std::vector<const kinematic_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
        joint_it < joint_models_.end(); ++joint_it )
   {
 
@@ -555,7 +550,7 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
 
         // get the first joint value in its vector
         std::vector<double> default_values;
-        (*joint_it)->getDefaultValues( default_values );
+        (*joint_it)->getVariableDefaultValues( default_values );
         init_value = default_values[0];
 
       }
@@ -753,7 +748,7 @@ void RobotPosesWidget::doneEditing()
   searched_data->joint_values_.clear();
 
   // Iterate through the current group's joints and add to SRDF
-  for( std::vector<const planning_models::KinematicModel::JointModel*>::const_iterator joint_it = joint_models_.begin();
+  for( std::vector<const kinematic_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
        joint_it < joint_models_.end(); ++joint_it )
   {
     // Check that this joint only represents 1 variable.
@@ -916,7 +911,7 @@ void RobotPosesWidget::publishJoints()
 // ******************************************************************************************
 // Simple widget for adjusting joints of a robot
 // ******************************************************************************************
-SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicModel::JointModel *joint_model,
+SliderWidget::SliderWidget( QWidget *parent, const kinematic_model::JointModel *joint_model,
                             double init_value )
   : QWidget( parent ), joint_model_( joint_model )
 {
@@ -946,7 +941,7 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
   row2->addWidget( joint_value_ );
 
   // Joint Limits ----------------------------------------------------
-  std::vector<moveit_msgs::JointLimits> limits = joint_model_->getLimits();
+  const std::vector<moveit_msgs::JointLimits> &limits = joint_model_->getVariableLimits();
   if( limits.empty() )
   {
     QMessageBox::critical( this, "Error Loading", "An internal error has occured while loading the joints" );

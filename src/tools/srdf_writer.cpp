@@ -35,8 +35,8 @@
 /* Author: Dave Coleman */
 
 #include <tinyxml.h>
-#include "ros/ros.h"
-#include <moveit_setup_assistant/tools/srdf_writer.h>
+#include <ros/console.h>
+#include <moveit/setup_assistant/tools/srdf_writer.h>
 
 namespace moveit_setup_assistant
 {

@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_VIRTUAL_JOINTS_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_VIRTUAL_JOINTS_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_VIRTUAL_JOINTS_WIDGET_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_VIRTUAL_JOINTS_WIDGET_
 
 // Qt
 #include <QWidget>
@@ -48,7 +48,7 @@
 #include <QString>
 #include <QComboBox>
 // SA
-#include "moveit_setup_assistant/tools/moveit_config_data.h"
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 

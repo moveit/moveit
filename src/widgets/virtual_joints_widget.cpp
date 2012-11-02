@@ -359,16 +359,14 @@ void VirtualJointsWidget::loadJointTypesComboBox()
 // ******************************************************************************************
 void VirtualJointsWidget::loadChildLinksComboBox()
 {
-  namespace pm = planning_models;
-
   // Remove all old links
   child_link_field_->clear();
   
   // Get all links in robot model
-  std::vector<const pm::KinematicModel::LinkModel*> link_models = config_data_->getKinematicModel()->getLinkModels();
+  std::vector<const kinematic_model::LinkModel*> link_models = config_data_->getKinematicModel()->getLinkModels();
   
   // Add all links to combo box
-  for( std::vector<const pm::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
+  for( std::vector<const kinematic_model::LinkModel*>::const_iterator link_it = link_models.begin();
        link_it < link_models.end(); ++link_it )
   {
     child_link_field_->addItem( (*link_it)->getName().c_str() );

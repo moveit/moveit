@@ -45,7 +45,7 @@
 */
 // ******************************************************************************************
 
-#include "moveit_setup_assistant/tools/moveit_config_data.h"
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
 // Reading/Writing Files
 #include <iostream> // For writing yaml and launch files
 #include <fstream>
@@ -94,12 +94,12 @@ MoveItConfigData::~MoveItConfigData()
 // ******************************************************************************************
 // Provide a kinematic model. Load a new one if necessary
 // ******************************************************************************************
-planning_models::KinematicModelConstPtr MoveItConfigData::getKinematicModel()
+kinematic_model::KinematicModelConstPtr MoveItConfigData::getKinematicModel()
 {
   if( !kin_model_ )
   {
     // Initialize with a URDF Model Interface and a SRDF Model
-    kin_model_.reset( new planning_models::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
+    kin_model_.reset( new kinematic_model::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
   }
   
   return kin_model_;
@@ -116,7 +116,7 @@ void MoveItConfigData::updateKinematicModel()
   srdf_->updateSRDFModel( *urdf_model_ );
 
   // Create new kin model
-  kin_model_.reset( new planning_models::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
+  kin_model_.reset( new kinematic_model::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
 
   // Reset the planning scene
   planning_scene_.reset();
@@ -354,20 +354,18 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   // Union all the joints in groups 
   std::set<std::string> joints;
 
-  namespace pm = planning_models;
-
   // Loop through groups
   for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); 
        group_it != srdf_->groups_.end();  ++group_it )
   {  
     // Get list of associated joints  
-    const pm::KinematicModel::JointModelGroup *joint_model_group = 
+    const kinematic_model::JointModelGroup *joint_model_group = 
       getKinematicModel()->getJointModelGroup( group_it->name_ );
 
-    std::vector<const pm::KinematicModel::JointModel*> joint_models = joint_model_group->getJointModels();
+    std::vector<const kinematic_model::JointModel*> joint_models = joint_model_group->getJointModels();
   
     // Iterate through the joints
-    for( std::vector<const pm::KinematicModel::JointModel*>::const_iterator joint_it = joint_models.begin();
+    for( std::vector<const kinematic_model::JointModel*>::const_iterator joint_it = joint_models.begin();
          joint_it < joint_models.end(); ++joint_it )
     {
       // Check that this joint only represents 1 variable.

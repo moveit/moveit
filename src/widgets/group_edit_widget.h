@@ -42,7 +42,7 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QPushButton>
-#include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
 
 namespace moveit_setup_assistant
 {

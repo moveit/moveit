@@ -34,10 +34,10 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
 
-#include <planning_scene/planning_scene.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace moveit_setup_assistant
 {

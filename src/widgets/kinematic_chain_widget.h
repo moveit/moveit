@@ -34,15 +34,13 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_KINEMATIC_CHAIN_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_KINEMATIC_CHAIN_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_KINEMATIC_CHAIN_WIDGET_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_KINEMATIC_CHAIN_WIDGET_
 
 #include <QWidget>
 #include <QLabel>
 #include <QTreeWidget>
-#include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
-//#include <planning_scene/planning_scene.h> // for getting kinematic model
-//#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
 
 namespace moveit_setup_assistant
 {
@@ -69,12 +67,12 @@ class KinematicChainWidget : public QWidget
   void setSelected( const std::string &base_link, const std::string &tip_link );
 
 
-  void addLinktoTreeRecursive(const planning_models::KinematicModel::LinkModel* link,
-                              const planning_models::KinematicModel::LinkModel* parent);
+  void addLinktoTreeRecursive(const kinematic_model::LinkModel* link,
+                              const kinematic_model::LinkModel* parent);
 
 
   bool addLinkChildRecursive(QTreeWidgetItem* parent,
-                             const planning_models::KinematicModel::LinkModel* link,
+                             const kinematic_model::LinkModel* link,
                              const std::string& parent_name);
 
   // ******************************************************************************************

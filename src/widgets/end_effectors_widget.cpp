@@ -346,16 +346,14 @@ void EndEffectorsWidget::loadGroupsComboBox()
 // ******************************************************************************************
 void EndEffectorsWidget::loadParentComboBox()
 {
-  namespace pm = planning_models;
-
   // Remove all old groups
   parent_name_field_->clear();
   
   // Get all links in robot model
-  std::vector<const pm::KinematicModel::LinkModel*> link_models = config_data_->getKinematicModel()->getLinkModels();
-  
+  std::vector<const kinematic_model::LinkModel*> link_models = config_data_->getKinematicModel()->getLinkModels();
+
   // Add all links to combo box
-  for( std::vector<const pm::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
+  for( std::vector<const kinematic_model::LinkModel*>::const_iterator link_it = link_models.begin();
        link_it < link_models.end(); ++link_it )
   {
     parent_name_field_->addItem( (*link_it)->getName().c_str() );
@@ -516,7 +514,7 @@ void EndEffectorsWidget::doneEditing()
     return;    
   }
 
-  const planning_models::KinematicModel::JointModelGroup *jmg =
+  const kinematic_model::JointModelGroup *jmg =
     config_data_->getKinematicModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
   if (jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
   {  

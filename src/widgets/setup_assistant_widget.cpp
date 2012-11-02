@@ -53,7 +53,7 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/view_manager.h>
 #include <rviz/default_plugin/view_controllers/orbit_view_controller.h>
-#include <moveit_rviz_plugin/planning_display.h>
+#include <moveit/rviz_plugin/planning_display.h>
 
 namespace moveit_setup_assistant
 {
@@ -338,13 +338,13 @@ void SetupAssistantWidget::highlightGroup( const std::string& group_name )
   if (!config_data_->getKinematicModel()->hasJointModelGroup( group_name ))
     return;
   
-  const planning_models::KinematicModel::JointModelGroup *joint_model_group =
+  const kinematic_model::JointModelGroup *joint_model_group =
     config_data_->getKinematicModel()->getJointModelGroup( group_name );
   if (joint_model_group)
   {
-    const std::vector<const planning_models::KinematicModel::LinkModel*> &link_models = joint_model_group->getLinkModels();
+    const std::vector<const kinematic_model::LinkModel*> &link_models = joint_model_group->getLinkModels();
     // Iterate through the links
-    for( std::vector<const planning_models::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
+    for( std::vector<const kinematic_model::LinkModel*>::const_iterator link_it = link_models.begin();
          link_it < link_models.end(); ++link_it )
       highlightLink( (*link_it)->getName() );
   }

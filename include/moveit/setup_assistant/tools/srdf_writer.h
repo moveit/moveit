@@ -33,8 +33,8 @@
  *********************************************************************/
 
 /* Author: Dave Coleman */
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_SRDF_WRITER_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_SRDF_WRITER_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_SRDF_WRITER_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_SRDF_WRITER_
 
 
 #include <boost/shared_ptr.hpp>
