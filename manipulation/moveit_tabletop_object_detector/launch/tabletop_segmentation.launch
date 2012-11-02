@@ -1,0 +1,49 @@
+<launch>
+
+    <arg name="tabletop_segmentation_points_in" default="/kinect_rgb/rgb/points" />
+    <arg name="tabletop_segmentation_convert_to_base_link" default="true" />
+    <arg name="tabletop_segmentation_clustering_voxel_size" default="0.01" />
+    <arg name="flatten_table" default="false"/>
+
+    <node pkg="moveit_tabletop_object_detector" name="tabletop_segmentation" type="tabletop_segmentation" respawn="true" output="screen">
+	<!--topic remapping-->
+        <remap from="cloud_in" to="$(arg tabletop_segmentation_points_in)" />
+        <remap from="segmentation_srv" to="tabletop_segmentation" />
+        <remap from="markers_out" to="tabletop_segmentation_markers" />
+
+	<param name="clustering_voxel_size" value="$(arg tabletop_segmentation_clustering_voxel_size)" />
+	<param name="inlier_threshold" value="300" />
+	<param name="plane_detection_voxel_size" value="0.01" />
+	<param name="cluster_distance" value="0.03" />
+	<param name="min_cluster_size" value="100" />
+	<param name="flatten_table" value="$(arg flatten_table)" />
+
+	<!-- processing and filtering frame -->
+	<!-- all clouds converted to and processed in base link frame -->
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="processing_frame" value="odom_combined" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="up_direction" value="1.0" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="z_filter_min" value="0.35" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="z_filter_max" value="1.0" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="y_filter_min" value="-1.2" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="y_filter_max" value="1.2" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="x_filter_min" value="0.3" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="x_filter_max" value="2.0" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="table_z_filter_min" value="-0.5" />
+	<param if="$(arg tabletop_segmentation_convert_to_base_link)" name="table_z_filter_max" value="-0.01" />		
+
+	<!-- all clouds will be processed in the incoming frame, which is -->
+	<!-- assumed to the the camera's optical frame -->
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="processing_frame" value="" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="up_direction" value="-1.0" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="z_filter_min" value="0.4" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="z_filter_max" value="1.25" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="y_filter_min" value="-1.2" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="y_filter_max" value="1.2" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="x_filter_min" value="-1.2" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="x_filter_max" value="1.2" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="table_z_filter_min" value="0.01" />
+	<param unless="$(arg tabletop_segmentation_convert_to_base_link)" name="table_z_filter_max" value="0.5" />			
+
+    </node>
+
+</launch>

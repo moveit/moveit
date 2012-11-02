@@ -1,0 +1,14 @@
+# retrieves model id's from the database
+
+# optional: the name of a model set that the id's should belong to;
+# used to only retrieve a subset of models, pre-specified in the database
+# leave empty to get all available models
+string model_set
+
+---
+
+# the outcome of the query
+DatabaseReturnCode return_code
+
+# the actual model ids
+int32[] model_ids
