@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROBOT_POSES_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROBOT_POSES_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROBOT_POSES_WIDGET_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROBOT_POSES_WIDGET_
 
 // Qt
 #include <QWidget>
@@ -50,13 +50,10 @@
 #include <QString>
 #include <QComboBox>
 // SA
-#include "moveit_setup_assistant/tools/moveit_config_data.h"
-#include <planning_models/kinematic_model.h> // for joint models, etc
-#include <planning_models/kinematic_state.h>
-#include <planning_scene/planning_scene.h> // for collision stuff
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/planning_scene/planning_scene.h> // for collision stuff
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
-// ROS
 #include <ros/ros.h>
 
 namespace moveit_setup_assistant
@@ -158,7 +155,7 @@ private:
   std::map<std::string, double> joint_state_map_;
   
   /// The joints currently in the selected planning group
-  std::vector<const planning_models::KinematicModel::JointModel*> joint_models_;
+  std::vector<const kinematic_model::JointModel*> joint_models_;
 
   /// Remember the publisher for quick publishing later
   ros::Publisher pub_scene_;
@@ -248,7 +245,7 @@ class SliderWidget : public QWidget
    * @param parent - parent QWidget
    * @param joint_model_ - a ptr reference to the joint this widget represents
    */
-  SliderWidget( QWidget *parent, const planning_models::KinematicModel::JointModel *joint_model, 
+  SliderWidget( QWidget *parent, const kinematic_model::JointModel *joint_model, 
                 double init_value );
 
   /** 
@@ -292,7 +289,7 @@ private:
   // ******************************************************************************************
   
   // Ptr to the joint's data
-  const planning_models::KinematicModel::JointModel *joint_model_;
+  const kinematic_model::JointModel *joint_model_;
 
   // Max & min position
   double max_position_;

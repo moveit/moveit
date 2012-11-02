@@ -58,7 +58,7 @@
 #include "end_effectors_widget.h"
 #include "virtual_joints_widget.h"
 #include "configuration_files_widget.h"
-#include "moveit_setup_assistant/tools/moveit_config_data.h"
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
 // Other
 #include <ros/ros.h>
 #include <boost/program_options.hpp> // for parsing input arguments

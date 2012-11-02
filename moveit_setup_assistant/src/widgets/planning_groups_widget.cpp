@@ -504,7 +504,7 @@ void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
   if( joints_widget_->data_table_->rowCount() == 0 ) // we need to load the joints
   {
     // Retrieve pointer to the shared kinematic model
-    const planning_models::KinematicModelConstPtr model = config_data_->getKinematicModel();
+    const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
 
     // Get the names of the all joints
     const std::vector<std::string> joints = model->getJointModelNames();
@@ -540,7 +540,7 @@ void PlanningGroupsWidget::loadLinksScreen( srdf::Model::Group *this_group )
   if( links_widget_->data_table_->rowCount() == 0 ) // we need to load the links
   {
     // Retrieve pointer to the shared kinematic model
-    const planning_models::KinematicModelConstPtr model = config_data_->getKinematicModel();
+    const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
 
     // Get the names of the all links
     const std::vector<std::string> links = model->getLinkModelNames();
@@ -1362,7 +1362,7 @@ void PlanningGroupsWidget::previewClickedJoint( std::string name )
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  const planning_models::KinematicModel::JointModel *joint_model =
+  const kinematic_model::JointModel *joint_model =
     config_data_->getKinematicModel()->getJointModel( name );
 
   // Check that a joint model was found

@@ -34,15 +34,15 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 
 #include <boost/shared_ptr.hpp>
 #include <srdfdom/model.h> // use their struct datastructures
 #include <urdf/model.h> // to share throughout app
-#include <moveit_setup_assistant/tools/srdf_writer.h> // for writing srdf data
-#include <planning_scene/planning_scene.h> // for getting kinematic model
-#include <collision_detection/collision_matrix.h> // for figuring out if robot is in collision
+#include <moveit/setup_assistant/tools/srdf_writer.h> // for writing srdf data
+#include <moveit/planning_scene/planning_scene.h> // for getting kinematic model
+#include <moveit/collision_detection/collision_matrix.h> // for figuring out if robot is in collision
 
 namespace moveit_setup_assistant
 {
@@ -140,7 +140,7 @@ public:
   // ******************************************************************************************
 
   /// Provide a shared kinematic model loader
-  planning_models::KinematicModelConstPtr getKinematicModel();
+  kinematic_model::KinematicModelConstPtr getKinematicModel();
 
   /// Update the Kinematic Model with latest SRDF modifications
   void updateKinematicModel();
@@ -191,7 +191,7 @@ private:
   // ******************************************************************************************
 
   // Shared kinematic model
-  planning_models::KinematicModelConstPtr kin_model_;
+  kinematic_model::KinematicModelConstPtr kin_model_;
 
   // Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;

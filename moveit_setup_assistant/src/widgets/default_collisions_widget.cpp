@@ -44,6 +44,7 @@
 #include "default_collisions_widget.h"
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
+#include <ros/console.h>
 
 namespace moveit_setup_assistant
 {

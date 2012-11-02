@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET_
 
 #include <QWidget>
 #include <QLabel>
@@ -47,9 +47,8 @@
 #include <QProgressBar>
 #include <QCheckBox>
 #include <boost/thread.hpp>
-#include "ros/ros.h"
-#include "moveit_setup_assistant/tools/compute_default_collisions.h"
-#include "moveit_setup_assistant/tools/moveit_config_data.h"
+#include <moveit/setup_assistant/tools/compute_default_collisions.h>
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 

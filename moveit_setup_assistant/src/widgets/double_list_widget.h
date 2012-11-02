@@ -34,13 +34,13 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
 
 #include <QWidget>
 #include <QLabel>
 #include <QTableWidget>
-#include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
 
 namespace moveit_setup_assistant
 {

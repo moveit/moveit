@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
 
 // Qt
 #include <QWidget>
@@ -43,7 +43,7 @@
 #include <QSplitter>
 #include <QStackedLayout>
 // Setup Asst
-#include "moveit_setup_assistant/tools/moveit_config_data.h"
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
 #include "double_list_widget.h" // for joints, links and subgroups pages
 #include "kinematic_chain_widget.h" // for kinematic chain page
 #include "group_edit_widget.h" // for group rename page
