@@ -1,0 +1,12 @@
+# retrieves the mesh for a model id
+
+# the id of the model
+int32 model_id
+
+---
+
+# the outcome of the query
+DatabaseReturnCode return_code
+
+# the returned mesh
+shape_msgs/Mesh mesh
