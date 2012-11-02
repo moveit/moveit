@@ -33,9 +33,7 @@
 # Author: Ioan Sucan, Sarah Elliott
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
-import roslib
-roslib.load_manifest('move_group_interface')
-from move_group_interface import MoveGroup
+from _moveit_move_group_interface import *
 
 class MoveGroupCommander:
     """
