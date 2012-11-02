@@ -1,0 +1,22 @@
+<package>
+  <description brief="pick_place_planner">
+
+     pick_place_planner
+
+  </description>
+  <author>Sachin Chitta</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/pick_place_planner</url>
+  <depend package="planning_interface"/>
+  <depend package="kinematics_planner"/>
+  <depend package="planning_models"/>
+  <depend package="planning_scene"/>
+  <depend package="planning_pipeline"/>
+  <depend package="plan_execution"/>
+  <depend package="planning_request_adapter"/>
+  <depend package="moveit_manipulation_msgs"/>
+
+</package>
+
+

@@ -1,0 +1,16 @@
+# empty request, as the node listens for incoming point clouds on its own
+
+---
+
+# The information for the plane that has been detected
+Table table
+
+# The raw clusters detected in the scan 
+sensor_msgs/PointCloud[] clusters
+
+# Whether the detection has succeeded or failed
+int32 NO_CLOUD_RECEIVED = 1
+int32 NO_TABLE = 2
+int32 OTHER_ERROR = 3
+int32 SUCCESS = 4
+int32 result
