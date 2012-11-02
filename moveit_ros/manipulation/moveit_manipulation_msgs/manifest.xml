@@ -1,0 +1,18 @@
+<package>
+  <description brief="moveit_manipulation_msgs">
+
+     moveit_manipulation_msgs
+
+  </description>
+  <author>E. Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_manipulation_msgs</url>
+  <depend package="geometry_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="moveit_msgs"/>
+  <depend package="shape_msgs"/>
+
+</package>
+
+

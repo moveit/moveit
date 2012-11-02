@@ -1,0 +1,26 @@
+<package>
+  <description brief="moveit_manipulation_testing">
+
+     moveit_manipulation_testing
+
+  </description>
+  <author>Jonathan Binney</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_manipulation_testing</url>
+  <depend package="moveit_visualization_ros"/>
+  <depend package="grasp_place_evaluation"/>
+  <depend package="moveit_household_objects_database"/>
+  <depend package="moveit_tabletop_object_detector"/>
+  <depend package="interactive_markers"/>
+  <depend package="planning_scene_monitor"/>
+  <depend package="plan_execution"/>
+  <depend package="kinematics_planner"/>
+
+  <depend package="visualization_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="std_msgs"/>
+
+</package>
+
+

@@ -1,0 +1,23 @@
+<package>
+  <description brief="moveit_manipulation_visualization">
+
+     moveit_manipulation_visualization
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_manipulation_visualization</url>
+  <depend package="moveit_visualization_ros"/>
+  <depend package="grasp_place_evaluation"/>
+  <depend package="moveit_household_objects_database"/>
+  <depend package="moveit_tabletop_object_detector"/>
+  <depend package="pcl"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_manipulation_visualization"/>
+  </export>
+
+</package>
+
+
