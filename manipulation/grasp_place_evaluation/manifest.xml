@@ -1,0 +1,22 @@
+<package>
+  <description brief="grasp_place_evaluation">
+
+     grasp_place_evaluation
+
+  </description>
+  <author>E. Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/grasp_place_evaluation</url>
+  <depend package="moveit_manipulation_msgs"/>
+  <depend package="planning_scene"/>
+  <depend package="collision_detection"/>
+  <depend package="kinematics_constraint_aware"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lgrasp_place_evaluation"/>
+  </export>
+
+</package>
+
+
