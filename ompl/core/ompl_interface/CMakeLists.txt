@@ -20,11 +20,12 @@ add_library(moveit_ompl_interface
   src/detail/constrained_goal_sampler.cpp
   src/detail/ompl_console.cpp
 )
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+find_package(OpenMP)
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 target_link_libraries(${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 catkin_add_gtest(test_state_space test/test_state_space.cpp)
 target_link_libraries(test_state_space ${MOVEIT_LIB_NAME})
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
-install(DIRECTORY include/ DESTINATION include)
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+install(DIRECTORY include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
