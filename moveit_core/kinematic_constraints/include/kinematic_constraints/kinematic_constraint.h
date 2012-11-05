@@ -195,16 +195,29 @@ typedef boost::shared_ptr<const KinematicConstraint> KinematicConstraintConstPtr
  * This class handles single DOF constraints expressed as a tolerance
  * above and below a target position.  Multi-DOF joints can be
  * accomodated by using local name formulations - i.e. for a planar
- * joint specifying a constraint in terms of <planar_joint_name>/x.
+ * joint specifying a constraint in terms of "planar_joint_name"/x.
+ *
  * Continuous revolute single DOF joints will be evaluated based on
- * wrapping around 3.14 and -3.14.  Type will be
- * JOINT_CONSTRAINT. TODO - specify whether or not tolerances can be
- * negative.
+ * wrapping around 3.14 and -3.14.  Tolerances above and below will be
+ * evaluating over the wrap.  For instance, if the constraint value is
+ * 3.14 and the tolerance above is .04, a value of -3.14 is in bounds,
+ * as is a value of -3.12.  -3.1 is out of bounds.  Similarly, if the
+ * value of the constraint is -3.14, the tolerance above is .04, and
+ * the tolerance below is .02 then -3.1 is a valid value, as is 3.14;
+ * 3.1 is out of bounds.
+ *
+ * Type will be JOINT_CONSTRAINT. 
  */
 class JointConstraint : public KinematicConstraint
 {
 public:
 
+  /** 
+   * \brief Constructor
+   * 
+   * @param [in] model The kinematic model used for constraint evaluation
+   * @param [in] tf The transform set used for constraint evaluation
+   */
   JointConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), joint_model_(NULL)
   {
@@ -217,7 +230,7 @@ public:
    *
    * For the configure command to be successful, the joint must exist
    * in the kinematic model, the joint must not be a multi-DOF joint
-   * (for these joints, local variables should be used), and TODO the
+   * (for these joints, local variables should be used), and the
    * tolerance values must be positive.
    * 
    * @param [in] jc JointConstraint for configuration
@@ -339,10 +352,14 @@ protected:
  */
 class OrientationConstraint : public KinematicConstraint
 {
-public:
-
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
+public:
+  /** 
+   * \brief Constructor
+   * 
+   * @param [in] model The kinematic model used for constraint evaluation
+   * @param [in] tf The transform set used for constraint evaluation
+   */
   OrientationConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
@@ -354,7 +371,9 @@ public:
    * moveit_msgs::OrientationConstraint
    *
    * For the configure command to be successful, the link must exist
-   * in the kinematic model. TODO - more conditions
+   * in the kinematic model. Note that if the absolute tolerance
+   * values are left as 0.0 only values less than a very small epsilon
+   * will evaluate to satisfied.
    * 
    * @param [in] oc OrientationConstraint for configuration
    * 
@@ -368,10 +387,10 @@ public:
    * This means that the types are the same, the subject of the
    * constraint is the same, and all values associated with the
    * constraint are within a margin.  The other constraint must also
-   * be enabled.  For this to be true of orientation constraints, they
-   * must act on the same link, the rotations specified by the
-   * quaternions must be within the margin, and the tolerances must
-   * all be within the margin.
+   * be enabled.  For this to be true of orientation constraints:
+   * \li The link must be the same
+   * \li The rotations specified by the quaternions must be within the margin
+   * \li The tolerances must all be within the margin 
    * 
    * @param [in] other The other constraint to test
    * @param [in] margin The margin to apply to all values associated with constraint
@@ -468,6 +487,7 @@ protected:
   std::string                                       desired_rotation_frame_id_; /**< \brief The target frame of the transform tree */
   bool                                              mobile_frame_; /**< \brief Whether or not the header frame is mobile or fixed */
   double                                            absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
+
 };
 
 
@@ -488,8 +508,12 @@ class PositionConstraint : public KinematicConstraint
 {
 public:
 
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
+  /** 
+   * \brief Constructor
+   * 
+   * @param [in] model The kinematic model used for constraint evaluation
+   * @param [in] tf The transform set used for constraint evaluation
+   */
   PositionConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
@@ -503,8 +527,10 @@ public:
    * For the configure command to be successful, the link must be
    * specified in the model, and one or more constrained regions must
    * be correctly specified, which requires containing a valid shape
-   * and a pose for that shape.  If an invalid quaternion is passed
-   * for a shape, the identity quaternion will be substituted.
+   * and a pose for that shape.  If the header frame on the constraint
+   * is empty, the constraint will fail to configure.  If an invalid
+   * quaternion is passed for a shape, the identity quaternion will be
+   * substituted.
    * 
    * @param [in] pc moveit_msgs::PositionConstraint for configuration
    * 
@@ -514,12 +540,22 @@ public:
 
   /** 
    * \brief Check if two constraints are the same.  For position
-   * constraints this means that the types are the same, the link
-   * model is the same, the frame of the constraint is the same, the
-   * target offsets are no further than the margin apart, that the
-   * constraint region poses and volumes are within the margin, and
-   * that constrained regions are in the same order.
+   * constraints this means that:
+   * \li The types are the same
+   * \li The link model is the same
+   * \li The frame of the constraints are the same
+   * \li The target offsets are no more than the margin apart
+   * \li Each entry in the constraint region of this constraint matches a region in the other constraint
+   * \li Each entry in the other constraint region matches a region in the other constraint
    * 
+   * Two constraint regions matching each other means that:
+   * \li The poses match within the margin
+   * \li The types are the same
+   * \li The shape volumes are within the margin
+   *
+   * Note that the two shapes can have different numbers of regions as
+   * long as all regions are matched up to another.
+   *
    * @param [in] other The other constraint to test
    * @param [in] margin The margin to apply to all values associated with constraint
    * 
@@ -711,9 +747,15 @@ protected:
  */
 class VisibilityConstraint : public KinematicConstraint
 {
-public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+public:
+  /** 
+   * \brief Constructor
+   * 
+   * @param [in] model The kinematic model used for constraint evaluation
+   * @param [in] tf The transform set used for constraint evaluation
+   */
   VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
 
   /** 
@@ -790,18 +832,18 @@ protected:
   bool decideContact(const collision_detection::Contact &contact) const;
 
   collision_detection::CollisionRobotPtr collision_robot_; /**< \brief A copy of the collision robot maintained for collision checking the cone against robot links */
-  bool                                   mobile_sensor_frame_; /**< True if the sensor is a non-fixed frame relative to the transform frame */
-  bool                                   mobile_target_frame_; /**< True if the target is a non-fixed frame relative to the transform frame */
-  std::string                            target_frame_id_; /**< The target frame id */
-  std::string                            sensor_frame_id_; /**< The sensor frame id */
-  Eigen::Affine3d                        sensor_pose_; /**< The sensor pose transformed into the transform frame */
-  int                                    sensor_view_direction_; /**< Storage for the sensor view direction */
-  Eigen::Affine3d                        target_pose_; /**< The target pose transformed into the transform frame */
-  unsigned int                           cone_sides_; /**< Storage for the cone sides  */
-  EigenSTL::vector_Vector3d              points_; /**< A set of points along the base of the circle */
-  double                                 target_radius_; /**< Storage for the target radius */
-  double                                 max_view_angle_; /**< Storage for the max view angle */
-  double                                 max_range_angle_; /**< Storage for the max range angle */
+  bool                                   mobile_sensor_frame_; /**< \brief True if the sensor is a non-fixed frame relative to the transform frame */
+  bool                                   mobile_target_frame_; /**< \brief True if the target is a non-fixed frame relative to the transform frame */
+  std::string                            target_frame_id_; /**< \brief The target frame id */
+  std::string                            sensor_frame_id_; /**< \brief The sensor frame id */
+  Eigen::Affine3d                        sensor_pose_; /**< \brief The sensor pose transformed into the transform frame */
+  int                                    sensor_view_direction_; /**< \brief Storage for the sensor view direction */
+  Eigen::Affine3d                        target_pose_; /**< \brief The target pose transformed into the transform frame */
+  unsigned int                           cone_sides_; /**< \brief Storage for the cone sides  */
+  EigenSTL::vector_Vector3d              points_; /**< \brief A set of points along the base of the circle */
+  double                                 target_radius_; /**< \brief Storage for the target radius */
+  double                                 max_view_angle_; /**< \brief Storage for the max view angle */
+  double                                 max_range_angle_; /**< \brief Storage for the max range angle */
 };
 
 /**
@@ -814,6 +856,8 @@ protected:
  */
 class KinematicConstraintSet
 {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 public:
 
   /** 
@@ -872,7 +916,7 @@ public:
    * 
    * @return Will return true only if all constraints are valid, and false otherwise
    */
-  bool add(const std::vector<moveit_msgs::OrientationConstraint> &pc);
+  bool add(const std::vector<moveit_msgs::OrientationConstraint> &oc);
   
   /** 
    * \brief Add a vector of visibility constraints
@@ -881,7 +925,7 @@ public:
    * 
    * @return Will return true only if all constraints are valid, and false otherwise
    */
-  bool add(const std::vector<moveit_msgs::VisibilityConstraint> &pc);
+  bool add(const std::vector<moveit_msgs::VisibilityConstraint> &vc);
   
   /** 
    * \brief Determines whether all constraints are satisfied by state,
@@ -1018,7 +1062,7 @@ protected:
   std::vector<moveit_msgs::OrientationConstraint> orientation_constraints_;/**<  \brief Messages corresponding to all internal orientation constraints */
   std::vector<moveit_msgs::VisibilityConstraint>  visibility_constraints_;/**<  \brief Messages corresponding to all internal visibility constraints */
   moveit_msgs::Constraints                        all_constraints_; /**<  \brief Messages corresponding to all internal constraints */
-  
+
 };
 
 typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr; /**< \brief boost::shared_ptr to a KinematicConstraintSetPtr */
