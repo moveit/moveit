@@ -7,10 +7,10 @@ add_library(${MOVEIT_LIB_NAME}
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+  LIBRARY DESTINATION lib)
 
 install(DIRECTORY include/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+  DESTINATION include)
 
 catkin_add_gtest(test_voxel_grid test/test_voxel_grid.cpp)
 target_link_libraries(test_voxel_grid ${MOVEIT_LIB_NAME})
