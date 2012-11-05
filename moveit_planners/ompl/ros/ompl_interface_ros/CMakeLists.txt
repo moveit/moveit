@@ -10,6 +10,6 @@ add_library(moveit_ompl_planner_plugin src/ompl_plugin.cpp)
 target_link_libraries(moveit_ompl_planner_plugin ${MOVEIT_LIB_NAME})
 
 install(TARGETS ${MOVEIT_LIB_NAME} moveit_ompl_planner moveit_ompl_planner_plugin
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin)
-install(DIRECTORY include/ DESTINATION include)
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(DIRECTORY include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
