@@ -1,6 +1,6 @@
-#include <planning_scene_monitor/planning_scene_monitor.h>
-#include <kinematics_constraint_aware/inverse_kinematics_sanity_checker.h>
-#include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/kinematics_constraint_aware/inverse_kinematics_sanity_checker.h>
+#include <moveit/planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 
 static const std::string VIS_TOPIC_NAME = "inverse_kinematics_sanity_checker";
 

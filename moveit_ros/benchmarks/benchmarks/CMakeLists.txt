@@ -6,4 +6,4 @@ add_executable(moveit_call_benchmark src/call_benchmark.cpp src/plugin_loader.cp
 target_link_libraries(moveit_call_benchmark  ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS moveit_run_benchmark moveit_call_benchmark
-  RUNTIME DESTINATION bin)
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

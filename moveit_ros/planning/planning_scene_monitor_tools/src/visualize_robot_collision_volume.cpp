@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan  */
 
-#include "planning_scene_monitor/planning_scene_monitor.h"
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <cstdlib>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";

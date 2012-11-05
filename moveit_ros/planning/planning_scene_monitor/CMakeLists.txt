@@ -9,5 +9,5 @@ target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_models_loader ${catkin_
 add_executable(demo_scene demos/demo_scene.cpp)
 target_link_libraries(demo_scene ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
-install(DIRECTORY include/ DESTINATION include)
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+install(DIRECTORY include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
