@@ -1,14 +1,28 @@
 <package>
-  <description brief="[GENERATED_PACKAGE_NAME]">
 
+  <name>[GENERATED_PACKAGE_NAME]</name>
+  <version>0.1.0</version>
+  <description>
      [GENERATED_PACKAGE_NAME]
-
   </description>
-  <author>MoveIt Setup Assistant</author>
+  <author email="assistant@moveit.ros.org">MoveIt Setup Assistant</author>
+  <maintainer email="assistant@moveit.ros.org">MoveIt Setup Assistant</maintainer>
+
   <license>BSD</license>
-  <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/moveit_setup_assistant</url>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-setup-assistant/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-setup-assistant</url>
+
+  <build_depend>catkin</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros</build_depend>
+  <build_depend>moveit_planners</build_depend>
+  <build_depend>moveit_setup_assistant</build_depend>
+
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_ros</run_depend>
+  <run_depend>moveit_planners</run_depend>
+  <run_depend>moveit_setup_assistant</run_depend>
 
 </package>
-
-
