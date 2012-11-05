@@ -86,7 +86,10 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     jcm.position = 0.4;
     jcm.tolerance_above = 0.1;
     jcm.tolerance_below = 0.05;
-    jcm.weight = 1.0;
+
+    EXPECT_TRUE(jc.configure(jcm));
+    //weight should have been changed to 1.0
+    EXPECT_NEAR(jc.getConstraintWeight(), 1.0, .001);
 
     //tests that the default state is outside the bounds
     //given that the default state is at 0.0
@@ -103,6 +106,13 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
     EXPECT_TRUE(p2.satisfied);
     EXPECT_NEAR(p2.distance, 0.01, 1e-6);
+
+    //negative value makes configuration fail
+    jcm.tolerance_below = -0.05;
+    EXPECT_FALSE(jc.configure(jcm));
+
+    jcm.tolerance_below = 0.05;
+    EXPECT_TRUE(jc.configure(jcm));
 
     //still satisfied at a slightly different state
     jvals[jcm.joint_name] = 0.46;
@@ -174,7 +184,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
     moveit_msgs::JointConstraint jcm;
 
     jcm.joint_name = "l_wrist_roll_joint";
-    jcm.position = 3.14;
+    jcm.position = 0.0;
     jcm.tolerance_above = 0.04;
     jcm.tolerance_below = 0.02;
     jcm.weight = 1.0;
@@ -182,10 +192,37 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
     EXPECT_TRUE(jc.configure(jcm));
 
     std::map<std::string, double> jvals;
-    jvals[jcm.joint_name] = 3.17;
+
+    //state should have zeros, and work
+    EXPECT_TRUE(jc.decide(ks).satisfied);
+
+    // within the above tolerance
+    jvals[jcm.joint_name] = .03;
     ks.setStateValues(jvals);
+    EXPECT_TRUE(jc.decide(ks).satisfied);
+
+    //outside the above tolerance
+    jvals[jcm.joint_name] = .05;
+    ks.setStateValues(jvals);
+    EXPECT_FALSE(jc.decide(ks).satisfied);
+
+    //inside the below tolerance
+    jvals[jcm.joint_name] = -.01;
+    ks.setStateValues(jvals);
+    EXPECT_TRUE(jc.decide(ks).satisfied);
+
+    //ouside the below tolerance
+    jvals[jcm.joint_name] = -.03;
+    ks.setStateValues(jvals);
+    EXPECT_FALSE(jc.decide(ks).satisfied);
+
+    //now testing wrap around from positive to negative
+    jcm.position = 3.14;
+    EXPECT_TRUE(jc.configure(jcm));
 
     //testing that wrap works
+    jvals[jcm.joint_name] = 3.17;
+    ks.setStateValues(jvals);
     kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(ks);
     EXPECT_TRUE(p1.satisfied);
     EXPECT_NEAR(p1.distance, 0.03, 1e-6);
@@ -200,49 +237,70 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
     //over bound testing
     jvals[jcm.joint_name] = 3.19;
     ks.setStateValues(jvals);
-    kinematic_constraints::ConstraintEvaluationResult p3 = jc.decide(ks);
-    EXPECT_FALSE(p3.satisfied);   
+    EXPECT_FALSE(jc.decide(ks).satisfied);
 
+    //reverses to other direction
+    //but still tested using above tolerance
     jvals[jcm.joint_name] = -3.11;
     ks.setStateValues(jvals);
-    kinematic_constraints::ConstraintEvaluationResult p4 = jc.decide(ks);
-    EXPECT_TRUE(p4.satisfied);   
+    EXPECT_TRUE(jc.decide(ks).satisfied);
 
+    //outside of the bound given the wrap
     jvals[jcm.joint_name] = -3.09;
     ks.setStateValues(jvals);
-    kinematic_constraints::ConstraintEvaluationResult p5 = jc.decide(ks);
-    EXPECT_FALSE(p5.satisfied);   
+    EXPECT_FALSE(jc.decide(ks).satisfied);
 
-    //under bound testing
-    jvals[jcm.joint_name] = 3.11;
-    ks.setStateValues(jvals);
-    kinematic_constraints::ConstraintEvaluationResult p6 = jc.decide(ks);
-    EXPECT_FALSE(p6.satisfied);    
-
-    //testing the other direction
-    EXPECT_TRUE(jc.configure(jcm));
-    jcm.position = -3.14;
-    
-    jvals[jcm.joint_name] = -3.11;
-    ks.setStateValues(jvals);
-    kinematic_constraints::ConstraintEvaluationResult p7 = jc.decide(ks);
-    EXPECT_TRUE(p7.satisfied);    
-
-    jvals[jcm.joint_name] = -3.09;
-    ks.setStateValues(jvals);
-    kinematic_constraints::ConstraintEvaluationResult p8 = jc.decide(ks);
-    EXPECT_FALSE(p8.satisfied);    
-
+    //lower tolerance testing
+    //within bounds
     jvals[jcm.joint_name] = 3.13;
     ks.setStateValues(jvals);
-    kinematic_constraints::ConstraintEvaluationResult p9 = jc.decide(ks);
-    EXPECT_TRUE(p9.satisfied);    
+    EXPECT_TRUE(jc.decide(ks).satisfied);
 
+    //within outside
+    jvals[jcm.joint_name] = 3.11;
+    ks.setStateValues(jvals);
+    EXPECT_FALSE(jc.decide(ks).satisfied);
+
+    //testing the other direction
+    jcm.position = -3.14;
+    EXPECT_TRUE(jc.configure(jcm));
+
+    //should be governed by above tolerance
+    jvals[jcm.joint_name] = -3.11;
+    ks.setStateValues(jvals);
+    EXPECT_TRUE(jc.decide(ks).satisfied);
+
+    //outside upper bound
+    jvals[jcm.joint_name] = -3.09;
+    ks.setStateValues(jvals);
+    EXPECT_FALSE(jc.decide(ks).satisfied);
+
+    //governed by lower bound
+    jvals[jcm.joint_name] = 3.13;
+    ks.setStateValues(jvals);
+    EXPECT_TRUE(jc.decide(ks).satisfied);
+
+    //outside lower bound (but would be inside upper)
     jvals[jcm.joint_name] = 3.12;
     ks.setStateValues(jvals);
-    kinematic_constraints::ConstraintEvaluationResult p10 = jc.decide(ks);
-    EXPECT_FALSE(p10.satisfied);    
+    EXPECT_TRUE(jc.decide(ks).satisfied);
+
+    //testing wrap
+    jcm.position = 6.28;
+    EXPECT_TRUE(jc.configure(jcm));
+
+    //should wrap to zero
+    jvals[jcm.joint_name] = 0.0;
+    ks.setStateValues(jvals);
+    EXPECT_TRUE(jc.decide(ks).satisfied);
     
+    //should wrap to close and test to be near
+    moveit_msgs::JointConstraint jcm2 = jcm;    
+    jcm2.position = -6.28;
+    kinematic_constraints::JointConstraint jc2(kmodel, tf);
+    EXPECT_TRUE(jc.configure(jcm2));
+    jc.equal(jc2, .02);
+
 }
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
@@ -336,8 +394,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.weight = 1.0;
 
     //intentionally leaving header frame blank to test behavior
-    //TODO - this succeeds for now, but not clear that it should
-    EXPECT_TRUE(pc.configure(pcm));
+    EXPECT_FALSE(pc.configure(pcm));
 
     pcm.header.frame_id = kmodel->getModelFrame();
     EXPECT_TRUE(pc.configure(pcm));
@@ -445,6 +502,92 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1;
     EXPECT_TRUE(pc.configure(pcm));
     EXPECT_TRUE(pc.decide(ks, false).satisfied);
+}
+
+TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
+{
+    planning_models::KinematicState ks(kmodel);
+    ks.setToDefaultValues();
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
+
+    kinematic_constraints::PositionConstraint pc(kmodel, tf);
+    kinematic_constraints::PositionConstraint pc2(kmodel, tf);
+    moveit_msgs::PositionConstraint pcm;
+
+    pcm.link_name = "l_wrist_roll_link";
+    pcm.target_point_offset.x = 0;
+    pcm.target_point_offset.y = 0;
+    pcm.target_point_offset.z = 0;
+
+    pcm.constraint_region.primitives.resize(2);
+    pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+    pcm.constraint_region.primitives[0].dimensions.resize(1);
+    pcm.constraint_region.primitives[0].dimensions[0] = 0.38 * 2.0;
+    pcm.constraint_region.primitives[1].type = shape_msgs::SolidPrimitive::BOX;
+    pcm.constraint_region.primitives[1].dimensions.resize(3);
+    pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 2.0;
+    pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 2.0;
+    pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 2.0;
+    
+    pcm.header.frame_id = "r_wrist_roll_link"; 
+    pcm.constraint_region.primitive_poses.resize(2);
+    pcm.constraint_region.primitive_poses[0].position.x = 0.0;
+    pcm.constraint_region.primitive_poses[0].position.y = 0.6;
+    pcm.constraint_region.primitive_poses[0].position.z = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
+    pcm.constraint_region.primitive_poses[1].position.x = 2.0;
+    pcm.constraint_region.primitive_poses[1].position.y = 0.0;
+    pcm.constraint_region.primitive_poses[1].position.z = 0.0;
+    pcm.constraint_region.primitive_poses[1].orientation.w = 1.0;
+    pcm.weight = 1.0;
+
+    EXPECT_TRUE(pc.configure(pcm));
+    EXPECT_TRUE(pc2.configure(pcm));
+
+    EXPECT_TRUE(pc.equal(pc2, .001));
+    EXPECT_TRUE(pc2.equal(pc, .001));
+
+    //putting regions in different order
+    moveit_msgs::PositionConstraint pcm2 = pcm;
+    pcm2.constraint_region.primitives[0] = pcm.constraint_region.primitives[1];
+    pcm2.constraint_region.primitives[1] = pcm.constraint_region.primitives[0];
+
+    pcm2.constraint_region.primitive_poses[0] = pcm.constraint_region.primitive_poses[1];
+    pcm2.constraint_region.primitive_poses[1] = pcm.constraint_region.primitive_poses[0];
+
+    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_TRUE(pc.equal(pc2, .001));
+    EXPECT_TRUE(pc2.equal(pc, .001));
+
+    //messing with one value breaks it
+    pcm2.constraint_region.primitive_poses[0].position.z = .01;
+    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_FALSE(pc.equal(pc2, .001));
+    EXPECT_FALSE(pc2.equal(pc, .001));
+    EXPECT_TRUE(pc.equal(pc2, .1));
+    EXPECT_TRUE(pc2.equal(pc, .1));
+
+    //adding an identical third shape to the last one is ok
+    pcm2.constraint_region.primitive_poses[0].position.z = 0.0;
+    pcm2.constraint_region.primitives.resize(3);
+    pcm2.constraint_region.primitive_poses.resize(3);
+    pcm2.constraint_region.primitives[2] = pcm2.constraint_region.primitives[0];
+    pcm2.constraint_region.primitive_poses[2] = pcm2.constraint_region.primitive_poses[0];
+    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_TRUE(pc.equal(pc2, .001));
+    EXPECT_TRUE(pc2.equal(pc, .001));
+
+    //but if we change it, it's not
+    pcm2.constraint_region.primitives[2].dimensions[0] = 3.0;
+    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_FALSE(pc.equal(pc2, .001));
+    EXPECT_FALSE(pc2.equal(pc, .001));
+
+    //changing the shape also changes it
+    pcm2.constraint_region.primitives[2].dimensions[0] = pcm2.constraint_region.primitives[0].dimensions[0];
+    pcm2.constraint_region.primitives[2].type = shape_msgs::SolidPrimitive::SPHERE;
+    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_FALSE(pc.equal(pc2, .001));
 }
 
 
@@ -691,6 +834,88 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
   jvals["head_pan_joint"] = 0.51;
   ks.setStateValues(jvals);
   EXPECT_FALSE(kcs.decide(ks).satisfied);
+}
+
+TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSetEquality)
+{
+  planning_models::KinematicState ks(kmodel);
+  ks.setToDefaultValues();
+  planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
+
+  kinematic_constraints::KinematicConstraintSet kcs(kmodel, tf);
+  kinematic_constraints::KinematicConstraintSet kcs2(kmodel, tf);
+
+  moveit_msgs::JointConstraint jcm;
+  jcm.joint_name = "head_pan_joint";
+  jcm.position = 0.4;
+  jcm.tolerance_above = 0.1;
+  jcm.tolerance_below = 0.05;
+  jcm.weight = 1.0;
+
+  moveit_msgs::PositionConstraint pcm;
+  pcm.link_name = "l_wrist_roll_link";
+  pcm.target_point_offset.x = 0;
+  pcm.target_point_offset.y = 0;
+  pcm.target_point_offset.z = 0;
+  pcm.constraint_region.primitives.resize(1);
+  pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+  pcm.constraint_region.primitives[0].dimensions.resize(1);
+  pcm.constraint_region.primitives[0].dimensions[0] = 0.2;
+  
+  pcm.constraint_region.primitive_poses.resize(1);
+  pcm.constraint_region.primitive_poses[0].position.x = 0.55;
+  pcm.constraint_region.primitive_poses[0].position.y = 0.2;
+  pcm.constraint_region.primitive_poses[0].position.z = 1.25;
+  pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
+  pcm.weight = 1.0;
+  
+  pcm.header.frame_id = kmodel->getModelFrame();
+
+  
+  //this is a valid constraint
+  std::vector<moveit_msgs::JointConstraint> jcv;
+  jcv.push_back(jcm);
+  EXPECT_TRUE(kcs.add(jcv));
+
+  std::vector<moveit_msgs::PositionConstraint> pcv;
+  pcv.push_back(pcm);
+  EXPECT_TRUE(kcs.add(pcv));
+
+  //now adding in reverse order
+  EXPECT_TRUE(kcs2.add(pcv));
+  EXPECT_TRUE(kcs2.add(jcv));
+
+  //should be true
+  EXPECT_TRUE(kcs.equal(kcs2, .001));
+  EXPECT_TRUE(kcs2.equal(kcs, .001));
+  
+  //adding another copy of one of the constraints doesn't change anything
+  jcv.push_back(jcm);
+  EXPECT_TRUE(kcs2.add(jcv));
+
+  EXPECT_TRUE(kcs.equal(kcs2, .001));
+  EXPECT_TRUE(kcs2.equal(kcs, .001));
+
+  jcm.joint_name = "head_pan_joint";
+  jcm.position = 0.35;
+  jcm.tolerance_above = 0.1;
+  jcm.tolerance_below = 0.05;
+  jcm.weight = 1.0;
+  
+  jcv.push_back(jcm);
+  EXPECT_TRUE(kcs2.add(jcv));
+
+  EXPECT_FALSE(kcs.equal(kcs2, .001));
+  EXPECT_FALSE(kcs2.equal(kcs, .001));
+  
+  //but they are within this margin
+  EXPECT_TRUE(kcs.equal(kcs2, .1));
+  EXPECT_TRUE(kcs2.equal(kcs, .1));
+
+  
 }
 
 int main(int argc, char **argv)
