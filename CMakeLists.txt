@@ -80,7 +80,6 @@ set( sources
   src/setup_assistant_main.cpp
 )
 
-
 # Link libraries
 add_executable(${PROJECT_NAME} ${sources} ${headers} ${moc_sources})
 target_link_libraries(${PROJECT_NAME} 
@@ -88,6 +87,6 @@ target_link_libraries(${PROJECT_NAME}
   ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin)
-install(DIRECTORY include/ DESTINATION include)
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(DIRECTORY include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
