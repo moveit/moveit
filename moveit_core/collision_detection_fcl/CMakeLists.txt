@@ -9,9 +9,9 @@ add_library(${MOVEIT_LIB_NAME}
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_collision_detection ${catkin_LIBRARIES} ${FCL_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
-  LIBRARY DESTINATION lib)
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 install(DIRECTORY include/
-  DESTINATION include)
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
 catkin_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
 target_link_libraries(test_fcl_collision_detection  ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
