@@ -359,16 +359,11 @@ void ConfigurationFilesWidget::savePackage()
     displayAction( qnew_package_name,
                    "Package that contains all necessary configuration and launch files for MoveIt");
 
-
-
-    //////////////////////////////////////////////////////////////////////////////////////
-    /////////// To be replaced by package.xml in groovy
-
-    // Copy manifest.xml ------------------------------------------------------------------
-    file_name = "manifest.xml";
+    // Copy package.xml ------------------------------------------------------------------
+    file_name = "package.xml";
     template_path = config_data_->appendPaths( config_data_->template_package_path_, file_name );
     file_path = config_data_->appendPaths( new_package_path, file_name );
-
+    
     // Use generic template copy function
     if( !copyTemplate( template_path, file_path, new_package_name ) )
     {
@@ -379,12 +374,8 @@ void ConfigurationFilesWidget::savePackage()
     // Feedback
     displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
                    "Required ROS package meta data file.");
-
-
-    //////////////////////////////////////////////////////////////////////////////////////
-
   }
-
+  
   // Create config folder ---------------------------------------------------------------
   const std::string config_path = config_data_->appendPaths( new_package_path, "config" );
   QString qconfig_path = QString("config/").prepend( qnew_package_name );
@@ -570,6 +561,37 @@ void ConfigurationFilesWidget::savePackage()
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
                  "Helper launch file that can choose between different planning pipelines to be loaded.");
+
+  // Create warehouse_settings Launch File  -----------------------------------------------------
+  file_name = "warehouse_settings.launch";
+  file_path = config_data_->appendPaths( launch_path, file_name );
+  template_path = config_data_->appendPaths( template_launch_path, file_name );
+  // Use generic template copy function
+  if ( !copyTemplate( template_path, file_path, new_package_name ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
+                           .append( " file at location " ).append( file_path.c_str() ) );
+    return;
+  }
+  // Feedback
+  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
+                 "Helper launch file that specifies default settings for MongoDB.");
+
+
+  // Create warehouse Launch File  -----------------------------------------------------
+  file_name = "warehouse.launch";
+  file_path = config_data_->appendPaths( launch_path, file_name );
+  template_path = config_data_->appendPaths( template_launch_path, file_name );
+  // Use generic template copy function
+  if ( !copyTemplate( template_path, file_path, new_package_name ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
+                           .append( " file at location " ).append( file_path.c_str() ) );
+    return;
+  }
+  // Feedback
+  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
+                 "Launch file for starting MongoDB.");
 
   // Create Planning_Pipeline Launch File  -----------------------------------------------------
   file_name = "sensor_manager.launch";
