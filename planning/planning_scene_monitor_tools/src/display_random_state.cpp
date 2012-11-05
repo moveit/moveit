@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 int main(int argc, char **argv)
 {
@@ -138,10 +138,10 @@ int main(int argc, char **argv)
       // r0
       double v[7] = { 2.09642, 0.90423, -0.420767, -0.195229, 2.32139 ,-1.5101, -1.02677 };
       std::vector<double> vv; vv.insert(vv.end(), v, v+7);
-      psm.getPlanningScene()->getCurrentState().getJointStateGroup("left_arm")->setStateValues(vv);
+      psm.getPlanningScene()->getCurrentState().getJointStateGroup("left_arm")->setVariableValues(vv);
       double q[7] = {-1.3675, 0.224576 ,-1.81731, -1.37681, 2.778 ,-0.983775, -1.19062 } ;
       std::vector<double> qq; qq.insert(qq.end(), q, q+7);
-      psm.getPlanningScene()->getCurrentState().getJointStateGroup("right_arm")->setStateValues(qq);
+      psm.getPlanningScene()->getCurrentState().getJointStateGroup("right_arm")->setVariableValues(qq);
             
 
       /*

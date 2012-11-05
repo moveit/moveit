@@ -34,64 +34,64 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include <planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <tf/transform_listener.h>
 
 class EnvironmentServer
 {
 public:
-    EnvironmentServer(void) : 
-      tf_(new tf::TransformListener()),
-      planning_scene_monitor_("robot_description", tf_)
+  EnvironmentServer(void) : 
+    tf_(new tf::TransformListener()),
+    planning_scene_monitor_("robot_description", tf_)
   {
-      pub_diff_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene_diff", 128);
-      parent_scene_ = planning_scene_monitor_.getPlanningScene();
-      // this will create a new planning scene whose parent is the current planning scene
-      planning_scene_monitor_.monitorDiffs(true);
-      planning_scene_monitor_.addUpdateCallback(boost::bind(&EnvironmentServer::onSceneUpdate, this));
-      planning_scene_monitor_.startWorldGeometryMonitor();
-      planning_scene_monitor_.startStateMonitor();
-    }
-
+    pub_diff_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene_diff", 128);
+    parent_scene_ = planning_scene_monitor_.getPlanningScene();
+    // this will create a new planning scene whose parent is the current planning scene
+    planning_scene_monitor_.monitorDiffs(true);
+    planning_scene_monitor_.addUpdateCallback(boost::bind(&EnvironmentServer::onSceneUpdate, this));
+    planning_scene_monitor_.startWorldGeometryMonitor();
+    planning_scene_monitor_.startStateMonitor();
+  }
+  
 private:
-    ros::NodeHandle nh_;
+  ros::NodeHandle nh_;
   boost::shared_ptr<tf::TransformListener> tf_;
-    planning_scene_monitor::PlanningSceneMonitor planning_scene_monitor_;
-    planning_scene::PlanningScenePtr parent_scene_;
-    ros::Publisher pub_diff_;
-
-    void onSceneUpdate(void)
+  planning_scene_monitor::PlanningSceneMonitor planning_scene_monitor_;
+  planning_scene::PlanningScenePtr parent_scene_;
+  ros::Publisher pub_diff_;
+  
+  void onSceneUpdate(void)
+  {
+    moveit_msgs::PlanningScene diff;
+    
+    planning_scene_monitor_.lockScene();
+    try
     {
-      moveit_msgs::PlanningScene diff;
-
-      planning_scene_monitor_.lockScene();
-      try
-      {
-        planning_scene_monitor_.getPlanningScene()->getPlanningSceneDiffMsg(diff);
-        planning_scene_monitor_.getPlanningScene()->pushDiffs(parent_scene_);
-        planning_scene_monitor_.getPlanningScene()->clearDiffs();
-      }
-      catch(...)
-      {
-        planning_scene_monitor_.unlockScene();
-        throw;
-      }
-      planning_scene_monitor_.unlockScene();
-      pub_diff_.publish(diff);
-      ROS_DEBUG("Published scene update");
+      planning_scene_monitor_.getPlanningScene()->getPlanningSceneDiffMsg(diff);
+      planning_scene_monitor_.getPlanningScene()->pushDiffs(parent_scene_);
+      planning_scene_monitor_.getPlanningScene()->clearDiffs();
     }
+    catch(...)
+    {
+      planning_scene_monitor_.unlockScene();
+      throw;
+    }
+    planning_scene_monitor_.unlockScene();
+    pub_diff_.publish(diff);
+    ROS_DEBUG("Published scene update");
+  }
 };
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "environment_server");
-
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-
-    EnvironmentServer es;
-
-    ros::waitForShutdown();
-
-    return 0;
+  ros::init(argc, argv, "environment_server");
+  
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+  
+  EnvironmentServer es;
+  
+  ros::waitForShutdown();
+  
+  return 0;
 }
