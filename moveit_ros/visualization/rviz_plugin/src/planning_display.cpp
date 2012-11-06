@@ -89,16 +89,24 @@ public:
     if (start)
     {
       if (!robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryStartState(), eef, tpose.pose))
+      {
         if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
           error_state_.insert(std::make_pair(eef.group, id));
+      }
+      else
+        error_state_.erase(std::make_pair(eef.group, id));
       planning_display_->getQueryStartState()->updateLinkTransforms();
       planning_display_->updateQueryStartState();
     }
     else
     {
       if (!robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryGoalState(), eef, tpose.pose))
+      {
         if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
           error_state_.insert(std::make_pair(eef.group, id));
+      }
+      else
+        error_state_.erase(std::make_pair(eef.group, id));
       planning_display_->getQueryGoalState()->updateLinkTransforms();
       planning_display_->updateQueryGoalState();
     }
