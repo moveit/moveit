@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, E. Gil Jones */
 
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <gtest/gtest.h>
