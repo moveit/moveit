@@ -853,12 +853,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
     crobot_->setPadding(scene.link_padding);
     crobot_->setScale(scene.link_scale);
   }
-  
-  for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
-    processCollisionObjectMsg(scene.world.collision_objects[i]);
-  
-  processOctomapMsg(scene.world.octomap);
-  processCollisionMapMsg(scene.world.collision_map);
+  processPlanningSceneWorldMsg(scene.world);
 }
 
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
@@ -909,13 +904,17 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix));
   crobot_->setPadding(scene.link_padding);
   crobot_->setScale(scene.link_scale);
-  cworld_->clearObjects(); 
   colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
-  for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
-    processCollisionObjectMsg(scene.world.collision_objects[i]);
-  
-  processOctomapMsg(scene.world.octomap);
-  processCollisionMapMsg(scene.world.collision_map);
+  cworld_->clearObjects();
+  processPlanningSceneWorldMsg(scene.world);
+}
+
+void planning_scene::PlanningScene::processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld &world)
+{ 
+  for (std::size_t i = 0 ; i < world.collision_objects.size() ; ++i)
+    processCollisionObjectMsg(world.collision_objects[i]);
+  processOctomapMsg(world.octomap);
+  processCollisionMapMsg(world.collision_map);
 }
 
 void planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene &scene)

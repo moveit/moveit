@@ -322,6 +322,8 @@ public:
   bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
   bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
 
+  void processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld &world);
+
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
   void processOctomapMsg(const octomap_msgs::OctomapWithPose &map);
   void processOctomapMsg(const octomap_msgs::Octomap &map);
