@@ -34,9 +34,9 @@
 
 /** \author Ioan Sucan */
 
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
-#include <planning_models/transforms.h>
+#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/kinematic_state/transforms.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -86,13 +86,13 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   ASSERT_TRUE(urdf_ok_);
   ASSERT_EQ(urdf_model_->getName(), "pr2_test");
 
-  planning_models::KinematicModelPtr kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));
-  planning_models::KinematicState ks(kmodel);
+  kinematic_model::KinematicModelPtr kmodel(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
+  kinematic_state::KinematicState ks(kmodel);
   ks.setToRandomValues();
   ks.setToDefaultValues();
 
 
-  planning_models::Transforms tf(kmodel->getModelFrame());
+  kinematic_state::Transforms tf(kmodel->getModelFrame());
 
   Eigen::Affine3d t1;
   t1.setIdentity();

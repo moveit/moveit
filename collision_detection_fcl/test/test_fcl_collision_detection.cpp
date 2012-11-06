@@ -34,19 +34,19 @@
 
 /** \author E. Gil Jones */
 
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
+#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/kinematic_state/transforms.h>
+#include <moveit/collision_detection_fcl/collision_world.h>
+#include <moveit/collision_detection_fcl/collision_robot.h>
+
+#include <urdf_parser/urdf_parser.h>
+#include <geometric_shapes/shape_operations.h>
+
 #include <gtest/gtest.h>
 #include <sstream>
 #include <algorithm>
 #include <ctype.h>
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
-#include <planning_models/transforms.h>
-#include <collision_detection_fcl/collision_world.h>
-#include <collision_detection_fcl/collision_robot.h>
-#include <geometric_shapes/shape_operations.h>
-#include <urdf_parser/urdf_parser.h>
 #include <fstream>
 
 #include <boost/filesystem.hpp>
@@ -79,7 +79,7 @@ protected:
       urdf_ok_ = false;
     srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../planning_models/test/srdf/robot.xml");
 
-    kmodel_.reset(new planning_models::KinematicModel(urdf_model_, srdf_model_));
+    kmodel_.reset(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true));
 
@@ -100,10 +100,10 @@ protected:
   boost::shared_ptr<urdf::ModelInterface>  urdf_model_;
   boost::shared_ptr<srdf::Model>           srdf_model_;
   
-  planning_models::KinematicModelPtr             kmodel_;
+  kinematic_model::KinematicModelPtr             kmodel_;
   
-  planning_models::TransformsPtr                 ftf_;
-  planning_models::TransformsConstPtr            ftf_const_;
+  kinematic_state::TransformsPtr                 ftf_;
+  kinematic_state::TransformsConstPtr            ftf_const_;
   
   boost::shared_ptr<collision_detection::CollisionRobot>        crobot_;
   boost::shared_ptr<collision_detection::CollisionWorld>        cworld_;
@@ -121,7 +121,7 @@ TEST_F(FclCollisionDetectionTester, InitOK)
 
 TEST_F(FclCollisionDetectionTester, DefaultNotInCollision)
 {
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   collision_detection::CollisionRequest req;
@@ -140,7 +140,7 @@ TEST_F(FclCollisionDetectionTester, LinksInCollision)
   //req.contacts = true;
   //req.max_contacts = 100;
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
@@ -172,7 +172,7 @@ TEST_F(FclCollisionDetectionTester, ContactReporting)
   req.contacts = true;
   req.max_contacts = 1;
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
@@ -220,7 +220,7 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
   req.contacts = true;
   req.max_contacts = 1;
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
@@ -279,7 +279,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
 
   acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true)); 
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
@@ -337,7 +337,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
 
 TEST_F(FclCollisionDetectionTester, DiffSceneTester)
 {
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   collision_detection::CollisionRequest req;
@@ -354,8 +354,6 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
 
   EXPECT_LT(fabs(first_check-second_check), .05);
   
-  ROS_INFO_STREAM("Diff " << first_check-second_check << " first " << first_check << " second " << second_check);
-
   std::vector<shapes::ShapeConstPtr> shapes;
   shapes.resize(1);
 
@@ -379,8 +377,6 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
   //the first check is going to take a while, as data must be constructed
   EXPECT_LT(second_check, .1);
 
-  ROS_INFO_STREAM("Attached diff " << first_check-second_check << " first " << first_check << " second " << second_check);
-  
   collision_detection::CollisionRobotFCL other_new_crobot(*(dynamic_cast<collision_detection::CollisionRobotFCL*>(crobot_.get())));
   before = ros::WallTime::now();
   new_crobot.checkSelfCollision(req,res,kstate);
@@ -391,7 +387,6 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
 
   EXPECT_LT(fabs(first_check-second_check), .05);
 
-  ROS_INFO_STREAM("Attached robot second diff " << first_check-second_check << " first " << first_check << " second " << second_check);
 }
 
 TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
@@ -407,7 +402,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
 
   cworld_->addToObject("kinect", shape, pos1);
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
   
   ros::WallTime before = ros::WallTime::now();
@@ -419,13 +414,11 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
 
   EXPECT_LT(second_check, .05);
 
-  ROS_INFO_STREAM("Check diff " << first_check-second_check << " first " << first_check << " second " << second_check);
-  
   collision_detection::CollisionWorld::ObjectPtr object = cworld_->getObject("kinect");
   cworld_->removeObject("kinect");
   
-  planning_models::KinematicState kstate1(kmodel_);
-  planning_models::KinematicState kstate2(kmodel_);
+  kinematic_state::KinematicState kstate1(kmodel_);
+  kinematic_state::KinematicState kstate2(kmodel_);
   kstate1.setToDefaultValues();
   kstate2.setToDefaultValues();
   
@@ -453,8 +446,6 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   crobot_->checkSelfCollision(req,res,kstate2, *acm_);
   second_check = (ros::WallTime::now()-before).toSec();
 
-  ROS_INFO_STREAM("Check diff " << first_check-second_check << " first " << first_check << " second " << second_check);
-  
   EXPECT_LT(first_check, .05);
   EXPECT_LT(fabs(first_check-second_check), .1);
 }
@@ -475,20 +466,20 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
   EXPECT_GE(1.0, t);
   // this is not really a failure; it is just that slow; 
   // looking into doing collision checking with a voxel grid.
-  ROS_INFO_STREAM("Adding boxes Took " << t);
+  logInform("Adding boxes took %g", t);
 }
 
 
 TEST_F(FclCollisionDetectionTester, MoveMesh) 
 {
-  planning_models::KinematicState kstate1(kmodel_);
+  kinematic_state::KinematicState kstate1(kmodel_);
   kstate1.setToDefaultValues();
   
   Eigen::Affine3d kinect_pose;
   kinect_pose.setIdentity();
   shapes::ShapePtr kinect_shape;
   boost::filesystem::path path(boost::filesystem::current_path());  
-  kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/../planning_models/test/kinect.dae"));
+  kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/../kinematic_state/test/kinect.dae"));
 
   cworld_->addToObject("kinect", kinect_shape, kinect_pose);
 
@@ -507,7 +498,7 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
 
 TEST_F(FclCollisionDetectionTester, TestChangingShapeSize) 
 {
-  planning_models::KinematicState kstate1(kmodel_);
+  kinematic_state::KinematicState kstate1(kmodel_);
   kstate1.setToDefaultValues();
    
   collision_detection::CollisionRequest req1;
