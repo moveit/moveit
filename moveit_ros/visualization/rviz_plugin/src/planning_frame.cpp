@@ -89,6 +89,7 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
 
   ui_->tabWidget->setCurrentIndex(0); 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+  planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
 
 moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
@@ -852,7 +853,20 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadSceneButtonClicked(void)
         if (planning_scene_storage_->getPlanningScene(scene_m, scene))
         {
           ROS_DEBUG("Loaded scene '%s'", scene.c_str());
-          planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
+          if (planning_display_->getPlanningSceneMonitor())
+          {
+            if (scene_m->robot_model_name != planning_display_->getPlanningSceneMonitor()->getKinematicModel()->getName())
+            {
+              ROS_INFO("Scene '%s' was saved for robot '%s' but we are using robot '%s'. Using scene geometry only",
+                       scene.c_str(), scene_m->robot_model_name.c_str(),
+                       planning_display_->getPlanningSceneMonitor()->getKinematicModel()->getName().c_str());
+              planning_scene_world_publisher_.publish(scene_m->world);
+            }
+            else
+              planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
+          }
+          else
+            planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
         }
         else
           ROS_WARN("Failed to load scene '%s'. Has the message format changed since the scene was saved?", scene.c_str());
