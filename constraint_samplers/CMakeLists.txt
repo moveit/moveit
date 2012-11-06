@@ -28,3 +28,6 @@ rosbuild_add_library(${PROJECT_NAME}
   src/constraint_sampler_manager.cpp
   src/constraint_sampler_tools.cpp
 )
+
+rosbuild_add_gtest(test_constraint_samplers test/test_constraint_samplers.cpp)
+target_link_libraries(test_constraint_samplers ${PROJECT_NAME})

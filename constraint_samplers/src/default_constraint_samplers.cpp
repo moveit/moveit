@@ -64,7 +64,7 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
   // find and keep the constraints that operate on the group we sample
   // also keep bounds for joints as convenient
   const std::map<std::string, unsigned int> &vim = jmg_->getJointVariablesIndexMap();
-  std::set<const planning_models::KinematicModel::JointModel*> bounded;
+  std::set<std::string> bounded;
   for (std::size_t i = 0 ; i < jc.size() ; ++i)
   {
     if (!jc[i].enabled())
@@ -86,7 +86,7 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
       continue;
     }
     if (jm->getVariableCount() == 1)
-      bounded.insert(jm);
+      bounded.insert(jm->getName());
     bounds_.push_back(bounds);
     index_.push_back(vim.find(jc[i].getJointVariableName())->second);
   }
@@ -94,7 +94,7 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
   // get a separate list of joints that are not bounded; we will sample these randomly
   const std::vector<const planning_models::KinematicModel::JointModel*> &joints = jmg_->getJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
-    if (bounded.find(joints[i]) == bounded.end())
+    if (bounded.find(joints[i]->getName()) == bounded.end())
     {
       unbounded_.push_back(joints[i]);
       uindex_.push_back(vim.find(joints[i]->getName())->second);
