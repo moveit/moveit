@@ -99,7 +99,7 @@ void PropagationDistanceField::print(const VoxelSet & set)
   for( it=set.begin(); it!=set.end(); ++it)
   {
     int3 loc1 = *it;
-    logDebug( "%s, %s, %s ", loc1.x(), loc1.y(), loc1.z() );
+    logDebug( "%d, %d, %d ", loc1.x(), loc1.y(), loc1.z() );
   }
   logDebug( "] size=%u\n", (unsigned int)set.size());
 }
@@ -111,7 +111,7 @@ void PropagationDistanceField::print(const EigenSTL::vector_Vector3d& points)
   for( it=points.begin(); it!=points.end(); ++it)
   {
     Eigen::Vector3d loc1 = *it;  
-    logDebug( "%s, %s, %s ", loc1.x(), loc1.y(), loc1.z() );
+    logDebug( "%g, %g, %g ", loc1.x(), loc1.y(), loc1.z() );
   }  
   logDebug( "] size=%u\n", (unsigned int)points.size());
 }
@@ -140,7 +140,7 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
                                 voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
       if( valid )
       {
-        logDebug( " checking for %s, %s, %s\n", voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+        logDebug( " checking for %d, %d, %d\n", voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
         bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
         if( !already_obstacle_voxel )
         {
