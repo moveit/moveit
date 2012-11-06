@@ -46,10 +46,9 @@
 
 namespace planning_scene
 {
-
-static const std::string COLLISION_MAP_NS = "_1_collision_map";
-static const std::string OCTOMAP_NS = "_2_octomap";
-static const std::string DEFAULT_SCENE_NAME = "(noname)";
+const std::string PlanningScene::COLLISION_MAP_NS = "_1_collision_map";
+const std::string PlanningScene::OCTOMAP_NS = "_2_octomap";
+const std::string PlanningScene::DEFAULT_SCENE_NAME = "(noname)";
 }
 
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene &msg)
