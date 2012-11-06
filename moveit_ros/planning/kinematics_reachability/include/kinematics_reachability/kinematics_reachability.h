@@ -56,6 +56,8 @@
 #include <kinematics_planner_ros/kinematics_solver_ros.h>
 #include <kinematics_cache/kinematics_cache.h>
 
+#include <planning_models/kinematic_state.h>
+#include <Eigen/Eigenvalues>
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
 
@@ -200,8 +202,7 @@ private:
   void getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                   const std::string &marker_namespace,
                   const std::vector<unsigned int> &points,
-                  std::vector<visualization_msgs::Marker> &markers);
-  
+                  std::vector<visualization_msgs::Marker> &markers);  
   
   std::vector<visualization_msgs::Marker> getSphereMarker(const kinematics_reachability::WorkspacePoints &workspace,
                                                           const std::string &marker_namespace,
@@ -246,7 +247,7 @@ private:
   bool isEqual(const geometry_msgs::Quaternion &orientation_1, 
                const geometry_msgs::Quaternion &orientation_2);
 
-  ros::Publisher visualization_success_publisher_, visualization_fail_publisher_, visualization_evaluating_publisher_, workspace_publisher_, boundary_publisher_, robot_trajectory_publisher_, progress_publisher_;
+  ros::Publisher visualization_success_publisher_, visualization_fail_publisher_, visualization_evaluating_publisher_, visualization_manipulability_publisher_, workspace_publisher_, boundary_publisher_, robot_trajectory_publisher_, progress_publisher_;
 
   void getPositionIndex(const kinematics_reachability::WorkspacePoints &workspace,
 			std::vector<unsigned int> &reachable_workspace,
@@ -266,7 +267,7 @@ private:
   kinematics_cache::KinematicsCachePtr kinematics_cache_;
   kinematics_planner_ros::KinematicsSolverROS kinematics_solver_;
   kinematics_cache::KinematicsCache::Options default_cache_options_;
-  std_msgs::ColorRGBA reachable_color_, unreachable_color_, evaluating_color_;
+  std_msgs::ColorRGBA reachable_color_, unreachable_color_, evaluating_color_, default_manipulability_color_;
   
   void initializeColor(const std::string &color_name,
                        std_msgs::ColorRGBA &color_msg,
@@ -282,6 +283,22 @@ private:
   void animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace,
                         unsigned int index);
 
+  std_msgs::ColorRGBA  getColorFromManipulability(double manipulability_index, double highest);
+
+  bool getManipulabilityIndex(const planning_models::KinematicState &kinematic_state,
+                                               const std::string &group_name,
+                                               double &manipulability_index) const;
+
+  bool checkState(const planning_models::KinematicState &kinematic_state,
+                                   const std::string &group_name) const;  
+
+  Eigen::MatrixXd getJacobian(const planning_models::KinematicState &kinematic_state,
+                                               const std::string &group_name) const;  
+
+  void getManipulabilityMarkers(const kinematics_reachability::WorkspacePoints &workspace,
+                                visualization_msgs::Marker &marker, double max_manipulability);
+
+  std::map<int,double> manipulability_map_;  
 };
 
 }
