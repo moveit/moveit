@@ -14,3 +14,6 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 
 install(DIRECTORY include/
   DESTINATION include)
+
+catkin_add_gtest(test_constraint_samplers test/test_constraint_samplers.cpp)
+target_link_libraries(test_constraint_samplers ${MOVEIT_LIB_NAME})

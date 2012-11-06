@@ -41,7 +41,6 @@
 #include <octomap/math/Utils.h>
 #include <octomap/octomap.h>
 
-
 static const float ISO_VALUE = 0.5; // TODO magic number! (though, probably a good one).
 
 // forward declarations
@@ -98,10 +97,9 @@ void collision_detection::refineContactNormals(const CollisionWorld::ObjectConst
           octomath::Vector3 bbx_min = contact_point - diagonal*cell_size; // TODO should this be a bit larger? (or smaller?)
           octomath::Vector3 bbx_max = contact_point + diagonal*cell_size;
           octomap::point3d_list node_centers;
-
           //          octree->octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
           logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
-          
+
           octomath::Vector3 n;
           float depth;
           if(getMetaballSurfaceProperties(node_centers, cell_size, contact_point, n, depth, estimate_depth))
