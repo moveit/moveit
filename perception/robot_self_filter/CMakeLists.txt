@@ -9,5 +9,5 @@ target_link_libraries(test_filter ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost
 #add_executable(self_filter src/self_filter.cpp)
 #target_link_libraries(self_filter ${MOVEIT_LIB_NAME})
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-install(DIRECTORY include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
+install(DIRECTORY include/ DESTINATION include)

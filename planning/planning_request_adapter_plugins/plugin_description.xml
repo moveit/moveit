@@ -1,4 +1,4 @@
-<library path="lib/libdefault_planning_request_adapters">
+<library path="lib/libmoveit_default_planning_request_adapter_plugins">
 
   <class name="default_planner_request_adapters/Empty" type="default_planner_request_adapters::Empty" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>

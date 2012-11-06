@@ -18,6 +18,6 @@ target_link_libraries(moveit_save_to_warehouse ${catkin_LIBRARIES} ${MOVEIT_LIB_
 
 install(TARGETS ${MOVEIT_LIB_NAME} moveit_save_to_warehouse moveit_warehouse_broadcast
   LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin)
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION include)
 

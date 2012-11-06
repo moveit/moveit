@@ -12,8 +12,8 @@ add_library(${MOVEIT_LIB_NAME}
   )
 target_link_libraries(${MOVEIT_LIB_NAME} ${OCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} moveit_robot_self_filter)
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-install(DIRECTORY include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
+install(DIRECTORY include/ DESTINATION include)
 
 add_executable(moveit_occupancy_map_server src/occupancy_map_server.cpp)
 target_link_libraries(moveit_occupancy_map_server ${MOVEIT_LIB_NAME}
