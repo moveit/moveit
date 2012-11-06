@@ -34,14 +34,15 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_scene/planning_scene.h>
-#include <kinematic_constraints/kinematic_constraint.h>
-#include <constraint_samplers/default_constraint_samplers.h>
-#include <constraint_samplers/constraint_sampler_manager.h>
-#include <constraint_samplers/constraint_sampler_tools.h>
-#include <geometric_shapes/shape_operations.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/kinematic_constraints/kinematic_constraint.h>
+#include <moveit/constraint_samplers/default_constraint_samplers.h>
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/constraint_samplers/constraint_sampler_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <planning_models/conversions.h>
+#include <moveit/kinematic_state/conversions.h>
+
+#include <geometric_shapes/shape_operations.h>
 #include <visualization_msgs/MarkerArray.h>
 
 #include <gtest/gtest.h>
@@ -56,7 +57,7 @@ protected:
   {
     srdf_model.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file("../planning_models/test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file("../kinematic_state/test/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -68,8 +69,8 @@ protected:
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, "../planning_models/test/srdf/robot.xml");
-    kmodel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
+    srdf_model->initFile(*urdf_model, "../kinematic_state/test/srdf/robot.xml");
+    kmodel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
     ps.reset(new planning_scene::PlanningScene());
     ps->configure(urdf_model, srdf_model);
   };
@@ -82,15 +83,15 @@ protected:
   
   boost::shared_ptr<urdf::ModelInterface>     urdf_model;
   boost::shared_ptr<srdf::Model>     srdf_model;
-  planning_models::KinematicModelPtr kmodel;
+  kinematic_model::KinematicModelPtr kmodel;
   planning_scene::PlanningScenePtr ps;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 {
-  planning_models::KinematicState ks(kmodel);
+  kinematic_state::KinematicState ks(kmodel);
   ks.setToDefaultValues();
-  planning_models::TransformsPtr tf = ps->getTransforms();
+  kinematic_state::TransformsPtr tf = ps->getTransforms();
   
   kinematic_constraints::JointConstraint jc1(kmodel, tf);
   moveit_msgs::JointConstraint jcm1;
@@ -144,9 +145,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerComplex)
 {
-  planning_models::KinematicState ks(kmodel);
+  kinematic_state::KinematicState ks(kmodel);
   ks.setToDefaultValues();
-  planning_models::TransformsPtr tf = ps->getTransforms();
+  kinematic_state::TransformsPtr tf = ps->getTransforms();
   
   kinematic_constraints::JointConstraint jc1(kmodel, tf);
   moveit_msgs::JointConstraint jcm1;
