@@ -90,6 +90,7 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   ui_->tabWidget->setCurrentIndex(0); 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
+  interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_scene"));
 }
 
 moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
@@ -172,6 +173,43 @@ void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
   ui_->collision_objects_list->setUpdatesEnabled(true);
 }
 
+/* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
+void  moveit_rviz_plugin::PlanningFrame::imProcessFeedback(
+    const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
+{
+  ui_->object_x->setValue(feedback->pose.position.x);
+  ui_->object_y->setValue(feedback->pose.position.y);
+  ui_->object_z->setValue(feedback->pose.position.z);
+  tf::Quaternion q(feedback->pose.orientation.x, feedback->pose.orientation.y, feedback->pose.orientation.z, feedback->pose.orientation.w);
+
+  double yaw, pitch, roll;
+  tf::Matrix3x3(q).getEulerYPR(yaw,pitch,roll);
+  ui_->object_rx->setValue(roll);
+  ui_->object_ry->setValue(pitch);
+  ui_->object_rz->setValue(yaw);
+
+  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+  if (sel.empty())
+      return;
+  if (planning_display_->getPlanningSceneMonitor())
+  {
+	  collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+	  collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
+
+	  Eigen::Affine3d p;
+
+	  p = Eigen::Translation3d(feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z)*
+		  Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()) *
+	      Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY()) *
+	      Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX());
+
+	  scene_markers_[sel[0]->text().toStdString()].pose=feedback->pose;
+	  world->moveShapeInObject(obj->id_, obj->shapes_[0], p);
+	  planning_display_->queueRenderSceneGeometry();
+
+  }
+}
+
 void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
 { 
   std::string path = QFileDialog::getOpenFileName(this, "Import Scene").toStdString();
@@ -241,6 +279,55 @@ void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
       }
     }
   }
+
+  // create an interactive marker for moving the shape in the world
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.header.frame_id = context_->getFrameManager()->getFixedFrame();
+  int_marker.name = std::string("marker_")+name;
+  int_marker.description = name;
+
+  visualization_msgs::InteractiveMarkerControl control;
+  control.orientation.w = 1;
+  control.orientation.x = 1;
+  control.orientation.y = 0;
+  control.orientation.z = 0;
+  control.name = "rotate_x";
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+  control.name = "move_x";
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 1;
+  control.orientation.z = 0;
+  control.name = "rotate_z";
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+  control.name = "move_z";
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 0;
+  control.orientation.z = 1;
+  control.name = "rotate_y";
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+  control.name = "move_y";
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+
+  visualization_msgs::InteractiveMarkerControl menu_control;
+  menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MENU;
+  menu_control.name = "Hide";
+  int_marker.controls.push_back(menu_control);
+
+  //Store the interactive marker in a map, access through the name on the shape
+  scene_markers_.insert(std::pair<std::string, visualization_msgs::InteractiveMarker>(name, int_marker));
+  interactive_marker_server_->applyChanges();
 }
 
 void moveit_rviz_plugin::PlanningFrame::addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
@@ -310,6 +397,12 @@ void moveit_rviz_plugin::PlanningFrame::selectedCollisionObjectChanged(void)
         ui_->object_rx->setValue(xyz[0]);
         ui_->object_ry->setValue(xyz[1]);
         ui_->object_rz->setValue(xyz[2]);
+
+        //Show the corresponding interactive marker
+        interactive_marker_server_->clear();
+        interactive_marker_server_->applyChanges();
+        interactive_marker_server_->insert(scene_markers_[sel[0]->text().toStdString()], boost::bind( &moveit_rviz_plugin::PlanningFrame::imProcessFeedback, this, _1 ));
+        interactive_marker_server_->applyChanges();
       }
     }
   }
@@ -373,10 +466,11 @@ void moveit_rviz_plugin::PlanningFrame::objectPoseValueChanged(int index, double
       {
         Eigen::Vector3d xyz = obj->shape_poses_[0].rotation().eulerAngles(0, 1, 2);
         xyz[index - 3] = value;
-        p = Eigen::Translation3d(p.translation()) * 
-          Eigen::AngleAxisd(xyz[0], Eigen::Vector3d::UnitX()) * 
-          Eigen::AngleAxisd(xyz[1], Eigen::Vector3d::UnitY()) * 
-          Eigen::AngleAxisd(xyz[2], Eigen::Vector3d::UnitZ());
+
+        p = Eigen::Translation3d(p.translation()) *
+                Eigen::AngleAxisd(xyz[0], Eigen::Vector3d::UnitX()) *
+                Eigen::AngleAxisd(xyz[1], Eigen::Vector3d::UnitY()) *
+                Eigen::AngleAxisd(xyz[2], Eigen::Vector3d::UnitZ());
       }
       world->moveShapeInObject(obj->id_, obj->shapes_[0], p);  
       planning_display_->queueRenderSceneGeometry(); 
