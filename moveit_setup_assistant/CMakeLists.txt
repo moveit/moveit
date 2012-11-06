@@ -80,6 +80,14 @@ set( sources
   src/setup_assistant_main.cpp
 )
 
+catkin_package(
+  LIBRARIES
+    ${PROJECT_NAME}_tools 
+  DEPENDS
+    moveit_ros_planning
+    moveit_ros_visualization
+    )
+
 # Link libraries
 add_executable(${PROJECT_NAME} ${sources} ${headers} ${moc_sources})
 target_link_libraries(${PROJECT_NAME} 
