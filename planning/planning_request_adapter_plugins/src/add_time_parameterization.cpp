@@ -56,10 +56,11 @@ public:
                             const moveit_msgs::GetMotionPlan::Request &req, 
                             moveit_msgs::GetMotionPlan::Response &res,
                             std::vector<std::size_t> &added_path_index) const
-  {
+  { 
     bool result = planner(planning_scene, req, res);
     if (result)
     {  
+      ROS_DEBUG("Running '%s'", getDescription().c_str());
       trajectory_msgs::JointTrajectory trajectory_out;
       const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name);
       if (jmg)
