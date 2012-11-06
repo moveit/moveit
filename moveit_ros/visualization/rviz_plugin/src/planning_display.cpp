@@ -292,14 +292,14 @@ PlanningDisplay::PlanningDisplay() :
     new rviz::StringProperty( "Scene Name", "(noname)", "Shows the name of the planning scene",
                               scene_category_,
                               SLOT( changedSceneName() ), this );
-
-
+  scene_name_property_->setShouldBeSaved(false);
+  
   root_link_name_property_ =
     new rviz::StringProperty( "Robot Root Link", "", "Shows the name of the root link for the robot model",
                               scene_category_,
                               SLOT( changedRootLinkName() ), this );
-
-
+  root_link_name_property_->setReadOnly(true);
+  
   scene_enabled_property_ =
     new rviz::BoolProperty( "Show Scene Geometry", true, "Indicates whether planning scenes should be displayed",
                             scene_category_,
@@ -1201,7 +1201,7 @@ void PlanningDisplay::loadRobotModel(void)
     query_robot_start_->load(*planning_scene_monitor_->getKinematicModel()->getURDF());
     query_robot_goal_->load(*planning_scene_monitor_->getKinematicModel()->getURDF());
 
-    planning_scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
+    scene_name_property_->setStdString(planning_scene_monitor_->getPlanningScene()->getName());
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
     kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState()));
