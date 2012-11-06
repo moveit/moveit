@@ -200,7 +200,7 @@ private:
   void getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                   const std::string &marker_namespace,
                   const std::vector<unsigned int> &points,
-                  visualization_msgs::MarkerArray &marker_array);
+                  std::vector<visualization_msgs::Marker> &markers);
   
   
   std::vector<visualization_msgs::Marker> getSphereMarker(const kinematics_reachability::WorkspacePoints &workspace,
@@ -215,7 +215,7 @@ private:
   void getArrowMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                        const std::string &marker_namespace,
                        const std::vector<unsigned int> &points,
-                       visualization_msgs::MarkerArray &marker_array);
+                       std::vector<visualization_msgs::Marker> &markers);
   
   void setToolFrameOffset(const geometry_msgs::Pose &pose);
 
@@ -246,7 +246,7 @@ private:
   bool isEqual(const geometry_msgs::Quaternion &orientation_1, 
                const geometry_msgs::Quaternion &orientation_2);
 
-  ros::Publisher visualization_publisher_, workspace_publisher_, boundary_publisher_, robot_trajectory_publisher_, progress_publisher_;
+  ros::Publisher visualization_success_publisher_, visualization_fail_publisher_, visualization_evaluating_publisher_, workspace_publisher_, boundary_publisher_, robot_trajectory_publisher_, progress_publisher_;
 
   void getPositionIndex(const kinematics_reachability::WorkspacePoints &workspace,
 			std::vector<unsigned int> &reachable_workspace,
