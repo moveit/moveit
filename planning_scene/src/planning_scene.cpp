@@ -115,7 +115,17 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
       if (root_link.empty())
         newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
       else
-        newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model, root_link));
+      {   
+        const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
+        if (root_link_ptr)
+          newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model, root_link));
+        else
+        {
+          logError("Link '%s' (to be used as root) was not found in model '%s'. Attempting to construct model with default root link instead.",
+                   root_link.c_str(), urdf_model->getName().c_str());
+          newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
+        }
+      }
       return configure(urdf_model, srdf_model, newModel);
     }
   }
