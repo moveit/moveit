@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -409,7 +409,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_10">
           <item>
-           <widget class="QFrame" name="frame_13">
+           <widget class="QFrame" name="frame_132">
             <layout class="QHBoxLayout" name="horizontalLayout_11">
              <item>
               <widget class="QLabel" name="label_9">
@@ -500,9 +500,6 @@
         </widget>
        </item>
       </layout>
-      <zorder>groupBox_10</zorder>
-      <zorder>verticalLayoutWidget</zorder>
-      <zorder>groupBox_9</zorder>
      </widget>
      <widget class="QWidget" name="stored_plans">
       <attribute name="title">
@@ -522,7 +519,16 @@
               <property name="cursor" stdset="0">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
+              <property name="editTriggers">
+               <set>QAbstractItemView::AllEditTriggers</set>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
               <property name="headerHidden">
+               <bool>true</bool>
+              </property>
+              <property name="expandsOnDoubleClick">
                <bool>true</bool>
               </property>
               <property name="columnCount">
@@ -594,10 +600,20 @@
          <item>
           <widget class="QGroupBox" name="groupBox_2">
            <property name="title">
-            <string>Current Scenes</string>
+            <string>Current Scene</string>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
+           <layout class="QGridLayout" name="gridLayout_2">
+            <item row="0" column="1">
+             <widget class="QPushButton" name="save_scene_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Save Scene</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
              <widget class="QPushButton" name="save_query_button">
               <property name="enabled">
                <bool>false</bool>
@@ -607,15 +623,18 @@
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QPushButton" name="save_scene_button">
-              <property name="enabled">
-               <bool>false</bool>
+            <item row="1" column="0" colspan="2">
+             <spacer name="verticalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
               </property>
-              <property name="text">
-               <string>Save Scene</string>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
               </property>
-             </widget>
+             </spacer>
             </item>
            </layout>
           </widget>
