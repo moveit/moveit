@@ -47,7 +47,9 @@ class JointConstraintSampler : public ConstraintSampler
 {
 public:
 
-  JointConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const std::vector<kinematic_constraints::JointConstraint> &jc) :
+  JointConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, 
+                         const std::string &group_name, 
+                         const std::vector<kinematic_constraints::JointConstraint> &jc) :
     ConstraintSampler(scene, group_name)
   {
     setup(jc);
@@ -86,11 +88,13 @@ struct IKSamplingPose
   IKSamplingPose(void);
   IKSamplingPose(const kinematic_constraints::PositionConstraint &pc);
   IKSamplingPose(const kinematic_constraints::OrientationConstraint &oc);
-  IKSamplingPose(const kinematic_constraints::PositionConstraint &pc, const kinematic_constraints::OrientationConstraint &oc);
+  IKSamplingPose(const kinematic_constraints::PositionConstraint &pc, 
+                 const kinematic_constraints::OrientationConstraint &oc);
   
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc);
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
-  IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
+  IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, 
+                 const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
   
   boost::shared_ptr<kinematic_constraints::PositionConstraint>    position_constraint_;
   boost::shared_ptr<kinematic_constraints::OrientationConstraint> orientation_constraint_;
@@ -100,7 +104,9 @@ class IKConstraintSampler : public ConstraintSampler
 {
 public:
 
-  IKConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const IKSamplingPose &sp) :
+  IKConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, 
+                      const std::string &group_name, 
+                      const IKSamplingPose &sp) :
     ConstraintSampler(scene, group_name)
   {
     setup(sp);
