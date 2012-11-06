@@ -84,6 +84,10 @@ public:
   /** \brief Constructor. Allocate an empty planning scene. Before use, this instance needs to be configured
       by calling the configure() function. */
   PlanningScene(void);
+
+  static const std::string COLLISION_MAP_NS;
+  static const std::string OCTOMAP_NS;
+  static const std::string DEFAULT_SCENE_NAME;
   
 protected:
 
