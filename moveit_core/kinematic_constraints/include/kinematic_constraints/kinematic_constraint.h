@@ -352,7 +352,9 @@ protected:
  */
 class OrientationConstraint : public KinematicConstraint
 {
+public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 public:
   /** 
    * \brief Constructor
@@ -747,6 +749,7 @@ protected:
  */
 class VisibilityConstraint : public KinematicConstraint
 {
+public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 public:
@@ -856,6 +859,7 @@ protected:
  */
 class KinematicConstraintSet
 {
+public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 public:
