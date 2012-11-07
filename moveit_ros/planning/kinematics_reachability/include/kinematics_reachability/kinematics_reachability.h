@@ -51,6 +51,7 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <std_msgs/ColorRGBA.h>
 #include <kinematics_reachability/Progress.h>
+#include <geometry_msgs/Point.h>
 
 // MoveIt!
 #include <kinematics_planner_ros/kinematics_solver_ros.h>
@@ -247,7 +248,7 @@ private:
   bool isEqual(const geometry_msgs::Quaternion &orientation_1, 
                const geometry_msgs::Quaternion &orientation_2);
 
-  ros::Publisher visualization_success_publisher_, visualization_fail_publisher_, visualization_evaluating_publisher_, visualization_manipulability_publisher_, workspace_publisher_, boundary_publisher_, robot_trajectory_publisher_, progress_publisher_;
+  ros::Publisher visualization_success_publisher_, visualization_fail_publisher_, visualization_evaluating_publisher_, visualization_manipulability_publisher_, visualization_orientation_success_publisher_, workspace_publisher_, boundary_publisher_, robot_trajectory_publisher_, progress_publisher_;
 
   void getPositionIndex(const kinematics_reachability::WorkspacePoints &workspace,
 			std::vector<unsigned int> &reachable_workspace,
@@ -298,7 +299,13 @@ private:
   void getManipulabilityMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                 visualization_msgs::Marker &marker, double max_manipulability);
 
-  std::map<int,double> manipulability_map_;  
+  std::map<int,double> manipulability_map_; 
+
+  std::map <std::vector<double>, std::vector<bool> > point_map_; 
+
+  void getOrientationSuccessMarkers(const kinematics_reachability::WorkspacePoints &workspace, visualization_msgs::Marker &marker);
+
+  std_msgs::ColorRGBA  getColorFromSuccessList(std::vector<bool> successes);
 };
 
 }
