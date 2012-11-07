@@ -58,12 +58,21 @@ public:
 private:
   
   void dynamicReconfigureCallback(PlanningSceneMonitorDynamicReconfigureConfig &config, uint32_t level)
-  {
+  {   
+    PlanningSceneMonitor::SceneUpdateType event = PlanningSceneMonitor::UPDATE_NONE;
+    if (config.publish_geometry_updates)
+      event = (PlanningSceneMonitor::SceneUpdateType) ((int)event | (int)PlanningSceneMonitor::UPDATE_GEOMETRY);
+    if (config.publish_state_updates)
+      event = (PlanningSceneMonitor::SceneUpdateType) ((int)event | (int)PlanningSceneMonitor::UPDATE_STATE);
+    if (config.publish_transforms_updates)   
+      event = (PlanningSceneMonitor::SceneUpdateType) ((int)event | (int)PlanningSceneMonitor::UPDATE_TRANSFORMS);
     if (config.publish_planning_scene)
-      owner_->startPublishingPlanningScene();
+    {
+      owner_->setPlanningScenePublishingFrequency(config.publish_planning_scene_hz);
+      owner_->startPublishingPlanningScene(event);
+    }
     else
       owner_->stopPublishingPlanningScene();
-    owner_->setPlanningScenePublishingFrequency(config.publish_planning_scene_hz);
   }
   
   PlanningSceneMonitor *owner_;
@@ -137,7 +146,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   }
   
   publish_planning_scene_frequency_ = 2.0;
-  new_scene_update_ = false;
+  new_scene_update_ = UPDATE_NONE;
   
   last_update_time_ = ros::Time::now();
   last_state_update_ = ros::WallTime::now();
@@ -150,20 +159,36 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
 {
   if (scene_)
   {
-    boost::mutex::scoped_lock slock(scene_update_mutex_);
-    scene_->decoupleParent();
     if (flag)
     {
-      parent_scene_ = scene_;
-      scene_ = parent_scene_->diff();
+      boost::mutex::scoped_lock slock(scene_update_mutex_);
+      if (scene_)
+      {
+        scene_->decoupleParent();
+        parent_scene_ = scene_;
+        scene_ = parent_scene_->diff();
+      }
     }
     else
     { 
-      parent_scene_.reset();
       if (publish_planning_scene_)
       {
         ROS_WARN("Diff monitoring was stopped while publishing planning scene diffs. Stopping planning scene diff publisher");
         stopPublishingPlanningScene();
+      }
+      {
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        if (scene_)
+        {
+          scene_->decoupleParent();
+          parent_scene_.reset();
+          // remove the '+' added by .diff() at the end of the scene name
+          if (!scene_->getName().empty())
+          {
+            if (scene_->getName()[scene_->getName().length() - 1] == '+')
+              scene_->setName(scene_->getName().substr(0, scene_->getName().length() - 1));
+          }
+        }
       }
     }
   }
@@ -183,8 +208,9 @@ void planning_scene_monitor::PlanningSceneMonitor::stopPublishingPlanningScene(v
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(const std::string &planning_scene_topic)
+void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(SceneUpdateType update_type, const std::string &planning_scene_topic)
 {
+  publish_update_types_ = update_type;
   if (!publish_planning_scene_)
   {
     planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>(planning_scene_topic, 100, false);
@@ -202,35 +228,56 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
   moveit_msgs::PlanningScene msg;
   scene_->getPlanningSceneMsg(msg);
   planning_scene_publisher_.publish(msg);
-  ROS_DEBUG("Published the full planning scene");
+  ROS_DEBUG("Published the full planning scene: '%s'", msg.name.c_str());
   
   bool have_diff = false;
+  bool have_full = false;
   do 
   {
     have_diff = false;
+    have_full = false;
     ros::Rate rate(publish_planning_scene_frequency_);
     {
       boost::unique_lock<boost::mutex> ulock(scene_update_mutex_);
-      while (!new_scene_update_ && publish_planning_scene_)
+      while (new_scene_update_ == UPDATE_NONE && publish_planning_scene_)
         new_scene_update_condition_.wait(ulock);
-      if (new_scene_update_)
+      if (new_scene_update_ != UPDATE_NONE)
       {
-        rate.reset();
-        scene_->getPlanningSceneDiffMsg(msg);  
-        scene_->pushDiffs(parent_scene_);
-        scene_->clearDiffs();
-        
-        new_scene_update_ = false;
-        have_diff = true;
+        if (new_scene_update_ == UPDATE_SCENE)
+        {
+          rate.reset();
+          scene_->pushDiffs(parent_scene_);
+          scene_->clearDiffs();
+          scene_->getPlanningSceneMsg(msg);
+          have_full = true;
+        }
+        else
+          if (publish_update_types_ & new_scene_update_)
+          {
+            rate.reset();
+            scene_->getPlanningSceneDiffMsg(msg);  
+            scene_->pushDiffs(parent_scene_);
+            scene_->clearDiffs();
+            have_diff = true;
+          }
+        new_scene_update_ = UPDATE_NONE;
       }
     }
     if (have_diff)
     {
-      planning_scene_publisher_.publish(msg); 
+      planning_scene_publisher_.publish(msg);
+      ROS_DEBUG("Published planning scene diff: '%s'", msg.name.c_str());
       rate.sleep(); 
-    }
+    } 
+    else
+      if (have_full)
+      {
+        planning_scene_publisher_.publish(msg);
+        ROS_DEBUG("Published complete planning scene: '%s'", msg.name.c_str());
+        rate.sleep(); 
+      }
   }
-  while (have_diff && publish_planning_scene_);
+  while (publish_planning_scene_);
 }
 
 const kinematic_model::KinematicModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getKinematicModel(void) const
@@ -264,7 +311,7 @@ void planning_scene_monitor::PlanningSceneMonitor::processSceneUpdateEvent(Scene
 {
   for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)
     update_callbacks_[i](update_type);
-  new_scene_update_ = true;
+  new_scene_update_ = (SceneUpdateType) ((int)new_scene_update_ | (int)update_type);
   new_scene_update_condition_.notify_all();
 }
 
@@ -288,12 +335,11 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
     updateFrameTransforms();
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
-      last_update_time_ = ros::Time::now();
-      scene_->processCollisionMapMsg(world->collision_map);
-      for (std::size_t i = 0 ; i < world->collision_objects.size() ; ++i)
-        scene_->processCollisionObjectMsg(world->collision_objects[i]);
+      last_update_time_ = ros::Time::now();  
+      scene_->getCollisionWorld()->clearObjects();
+      scene_->processPlanningSceneWorldMsg(*world);
     }  
-    processSceneUpdateEvent(UPDATE_GEOMETRY);
+    processSceneUpdateEvent(UPDATE_SCENE);
   }
 }
 
