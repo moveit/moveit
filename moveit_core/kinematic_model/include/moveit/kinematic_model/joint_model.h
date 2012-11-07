@@ -308,8 +308,13 @@ public:
   virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const = 0;
   
   /** \brief Get the extent of the state space (the maximum value distance() can ever report) */
-  virtual double getMaximumExtent(void) const = 0;
-  
+  virtual double getMaximumExtent(const Bounds &other_bounds) const = 0;
+
+  double getMaximumExtent(void) const
+  {
+    return getMaximumExtent(variable_bounds_);
+  }
+    
   /** @name Computing transforms 
       @{ */
   
