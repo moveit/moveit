@@ -17,3 +17,4 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 
 install(DIRECTORY include/
   DESTINATION include)
+

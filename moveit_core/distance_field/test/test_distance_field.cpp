@@ -36,9 +36,9 @@
 
 #include <gtest/gtest.h>
 
-#include <distance_field/voxel_grid.h>
-#include <distance_field/propagation_distance_field.h>
-#include <ros/ros.h>
+#include <moveit/distance_field/voxel_grid.h>
+#include <moveit/distance_field/propagation_distance_field.h>
+#include <console_bridge/console.h>
 
 using namespace distance_field;
 
@@ -78,7 +78,7 @@ void print( PropagationDistanceField& pdf, int numX, int numY, int numZ)
 }
 
 
-void check_distance_field(const PropagationDistanceField & df, const std::vector<Eigen::Vector3d>& points, int numX, int numY, int numZ)
+void check_distance_field(const PropagationDistanceField & df, const EigenSTL::vector_Vector3d& points, int numX, int numY, int numZ)
 {
   // Check after adding point(s)
   // Fairly heavy computation.  Try to keep voxel grid small when doing this test
@@ -121,11 +121,11 @@ TEST(TestPropagationDistanceField, TestAddPoints)
   //EXPECT_EQ( df.getCell(0,0,0).distance_square_, max_dist_sq_in_voxels );
 
   // Add points to the grid
-  std::vector<Eigen::Vector3d> points;
+  EigenSTL::vector_Vector3d points;
   points.push_back(point1);
   points.push_back(point2);
   df.reset();
-  ROS_INFO_STREAM("Adding " << points.size() << " points");
+  logInform("Adding %u points", points.size());
   df.addPointsToField(points);
   print(df, numX, numY, numZ);
 
