@@ -82,7 +82,7 @@ unsigned int ompl_interface::ModelBasedJointStateSpace::getDimension(void) const
 
 double ompl_interface::ModelBasedJointStateSpace::getMaximumExtent(void) const
 {  
-  return joint_model_->getMaximumExtent();
+  return joint_model_->getMaximumExtent(joint_bounds_);
 }
 
 void ompl_interface::ModelBasedJointStateSpace::enforceBounds(ompl::base::State *state) const
