@@ -39,6 +39,7 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <interactive_markers/interactive_marker_server.h>
+#include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 #include <map>
 
 namespace rviz
@@ -78,6 +79,8 @@ protected:
 
   void constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq);
   
+  void updateSceneMarkers(float wall_dt, float ros_dt);
+
   PlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
   Ui::MotionPlanningFrame *ui_;
@@ -88,8 +91,7 @@ protected:
   boost::shared_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
 
-  boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
-  std::map<std::string, visualization_msgs::InteractiveMarker> scene_markers_;
+  rviz::InteractiveMarker* scene_marker_;
 
 private Q_SLOTS:
 
@@ -117,15 +119,12 @@ private Q_SLOTS:
   void sceneScaleEndChange(void);
   void removeObjectButtonClicked(void);
   void selectedCollisionObjectChanged(void);
-  void objectXValueChanged(double v);
-  void objectYValueChanged(double v);
-  void objectZValueChanged(double v);
-  void objectRXValueChanged(double v);
-  void objectRYValueChanged(double v);
-  void objectRZValueChanged(double v);
+  void objectPoseValueChanged(double value);
   void publishSceneButtonClicked(void);
   void collisionObjectNameChanged(QListWidgetItem *item);
   void pathConstraintsIndexChanged(int index);
+  void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void tabChanged(int index);
 
 private:
 
@@ -150,14 +149,12 @@ private:
   void populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc);
   void changePlanningGroupHelper(void);
   void populateCollisionObjectsList(void);
-  void objectPoseValueChanged(int index, double value);
   void populateConstraintsList(void);
   void populateConstraintsList(const std::vector<std::string> &constr);
   void configureForPlanning(void);
   void addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
                  const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-  
-  void imProcessFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+  void createSceneInteractiveMarker(void);
 
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
