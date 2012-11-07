@@ -53,6 +53,7 @@ bool KinematicsReachability::initialize()
   visualization_fail_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("workspace_markers/unreachable",0,true);
   visualization_evaluating_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("workspace_markers/evaluating",0,true);
   visualization_manipulability_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("workspace_markers/manipulability",0,true);
+  visualization_orientation_success_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("workspace_markers/orientation_percentage",0,true); 
   workspace_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace",0,true);
   boundary_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace_boundary",0,true);
   robot_trajectory_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>("display_state",0,true);
@@ -315,15 +316,24 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     findIK(workspace.group_name,ik_pose,error_code,solution);
     workspace.points[i].solution_code = error_code;
 
+    std::vector<double> xyz;
+
+    xyz.push_back(workspace.points[i].pose.position.x);
+    xyz.push_back(workspace.points[i].pose.position.y);
+    xyz.push_back(workspace.points[i].pose.position.z); 
+
     if(error_code.val == error_code.SUCCESS)
     {      
       ROS_DEBUG("Solution   : Point %d of %d",(int) i,(int) workspace.points.size());
       workspace.points[i].robot_state = solution;
-      kinematics_cache_->addToCache(workspace.points[i].pose,solution.joint_state.position,true);    
+      kinematics_cache_->addToCache(workspace.points[i].pose,solution.joint_state.position,true);
+      point_map_[xyz].push_back(true);
+
     }
     else
     {
       ROS_ERROR("No Solution: Point %d of %d",(int) i,(int) workspace.points.size());
+      point_map_[xyz].push_back(false);
     }
 
     if(visualize_workspace)
@@ -367,6 +377,12 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
   visualization_manipulability_publisher_.publish(marker);
   getManipulabilityMarkers(workspace, marker, max_manipulability);
   visualization_manipulability_publisher_.publish(marker);
+
+  marker.id = 4;
+  marker.action = 1;
+  visualization_orientation_success_publisher_.publish(marker);
+  getOrientationSuccessMarkers(workspace, marker);
+  visualization_orientation_success_publisher_.publish(marker);
 
   if(!kinematics_cache_->writeToFile(cache_filename_))
   {
@@ -659,26 +675,85 @@ void KinematicsReachability::getMarkers(const kinematics_reachability::Workspace
     //marker_array.markers.push_back(markers[i]);  
 }
 
+void KinematicsReachability::getOrientationSuccessMarkers(const kinematics_reachability::WorkspacePoints &workspace, visualization_msgs::Marker &marker)
+{
+
+  geometry_msgs::Point point;
+  marker.type = marker.SPHERE_LIST;
+  marker.action = 0;
+  marker.pose.orientation.w = 1.0;
+  //marker.ns = marker_namespace;
+  marker.header = workspace.header;
+  marker.scale = sphere_marker_scale_;
+  marker.id = 4;
+  marker.color = default_manipulability_color_;
+
+
+  for (std::map<std::vector<double>, std::vector<bool> >::iterator it = point_map_.begin(); it!=point_map_.end(); ++it)
+  {
+    marker.colors.push_back(getColorFromSuccessList(it->second));
+    point.x = it->first[0];
+    point.y = it->first[1];
+    point.z = it->first[2];
+    marker.points.push_back(point);
+  }
+
+}
+
+std_msgs::ColorRGBA  KinematicsReachability::getColorFromSuccessList(std::vector<bool> successes)
+{
+  std_msgs::ColorRGBA color_msg;
+  int success = 0;
+  for (std::vector<bool>::iterator it = successes.begin(); it!=successes.end(); ++it)
+  {
+    if (*it == true)
+    {
+      success++;
+    }  
+  }
+
+  double r, g, b;
+  b = 0.0;
+  r = 1.0 - ((double) success / (double) successes.size());
+  g = (double) success / (double) successes.size();
+
+  //ROS_INFO("Success: %d, Total: %d", success, successes.size());
+  //ROS_INFO("Green: %f, Red: %f", g, r);
+  initializeColor("orientation_color", color_msg, r, g, b);
+  /*double color;
+  std::string color_name = "orientation_color";
+  node_handle_.param(color_name+"/r", color, r);
+  color_msg.r = color;
+  node_handle_.param(color_name+"/g", color, g);
+  color_msg.g = color;
+  node_handle_.param(color_name+"/b", color, b);
+  color_msg.b = color;
+  color_msg.a = 1.0;*/
+
+  return color_msg;
+}
+
+
 void KinematicsReachability::getManipulabilityMarkers(const kinematics_reachability::WorkspacePoints &workspace, visualization_msgs::Marker &marker, double max_manipulability)
 {
-    marker.type = marker.SPHERE_LIST;
-    marker.action = 0;
-    marker.pose.orientation.w = 1.0;
-    //marker.ns = marker_namespace;
-    marker.header = workspace.header;
-    marker.scale = sphere_marker_scale_;
-    marker.id = 3;
-    marker.color = default_manipulability_color_;
+  marker.type = marker.SPHERE_LIST;
+  marker.action = 0;
+  marker.pose.orientation.w = 1.0;
+  //marker.ns = marker_namespace;
+  marker.header = workspace.header;
+  marker.scale = sphere_marker_scale_;
+  marker.id = 3;
+  marker.color = default_manipulability_color_;
 
-    for (std::map<int,double>::iterator it = manipulability_map_.begin(); it!=manipulability_map_.end(); ++it)
+  for (std::map<int,double>::iterator it = manipulability_map_.begin(); it!=manipulability_map_.end(); ++it)
+  {
+    geometry_msgs::Point point = workspace.points[it->first].pose.position;
+    if (workspace.points[it->first].solution_code.val == 1)
     {
-      geometry_msgs::Point point = workspace.points[it->first].pose.position;
-      if (workspace.points[it->first].solution_code.val == 1)
-      {
-        marker.colors.push_back(getColorFromManipulability(it->second, max_manipulability));
-        marker.points.push_back(point);
-      }
+      marker.colors.push_back(getColorFromManipulability(it->second, max_manipulability));
+      marker.points.push_back(point);
     }
+  }
 
 }
 
@@ -699,7 +774,6 @@ std_msgs::ColorRGBA  KinematicsReachability::getColorFromManipulability(double m
   node_handle_.param(color_name+"/b", color, b);
   color_msg.b = color;
   color_msg.a = 1.0;
-
 
   return color_msg;
 }
@@ -788,6 +862,26 @@ std_msgs::ColorRGBA KinematicsReachability::getMarkerColor(const kinematics_reac
     return evaluating_color_;    
   }    
 }
+
+/*void KinematicsReachability::getOrientationSuccessMarkers(const kinematics_reachability::WorkspacePoints &workspace,
+                                             visualization_msgs::Marker &marker)
+{
+  marker.type = marker.SPHERE_LIST;
+  marker.action = 0;
+  //marker.ns = marker_namespace;
+  marker.id = 4;
+  marker.header = workspace.header;
+  marker.scale = sphere_marker_scale_;
+  
+
+  for(unsigned int i=0; i < workspace.points.size(); ++i)
+  {
+    marker.pose = workspace.points[i].pose;
+    marker.color = getMarkerColor(workspace.points[i]);
+    markers.push_back(marker);
+  } 
+
+}*/
 
 void KinematicsReachability::getArrowMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                              const std::string &marker_namespace,
