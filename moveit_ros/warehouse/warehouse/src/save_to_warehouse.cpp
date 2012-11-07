@@ -98,9 +98,7 @@ void onMotionPlanRequest(const moveit_msgs::MotionPlanRequestConstPtr &req,
 }
 
 int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "save_to_warehouse", ros::init_options::AnonymousName);
-  
+{ 
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
@@ -117,6 +115,8 @@ int main(int argc, char **argv)
     std::cout << desc << std::endl;
     return 1;
   }
+
+  ros::init(argc, argv, "save_to_warehouse", ros::init_options::AnonymousName);
   
   if (vm.count("allow-duplicate-scene-names"))
   {

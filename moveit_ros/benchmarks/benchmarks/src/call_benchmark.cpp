@@ -236,7 +236,23 @@ void runBenchmark(const moveit_warehouse::PlanningSceneStorage &pss, const Bench
 std::vector<std::string> benchmarkGetAvailablePluginNames(void);
 
 int main(int argc, char **argv)
-{
+{  
+  boost::program_options::options_description desc;
+  desc.add_options()
+    ("help", "Show help message")
+    ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
+    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
+  
+  boost::program_options::variables_map vm;
+  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+  boost::program_options::notify(vm);
+  
+  if (vm.count("help"))
+  {
+    std::cout << desc << std::endl;
+    return 1;
+  }
+
   ros::init(argc, argv, "call_planning_scene_benchmark", ros::init_options::AnonymousName);
   ros::AsyncSpinner spinner(1);
   spinner.start();
@@ -248,7 +264,8 @@ int main(int argc, char **argv)
   else
   { 
     unsigned int proc = 0;
-    moveit_warehouse::PlanningSceneStorage pss;
+    moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                               vm.count("port") ? vm["port"].as<std::size_t>() : 0);
     for (int i = 1 ; i < argc ; ++i)
     {
       BenchmarkOptions opt;
