@@ -197,10 +197,23 @@ void moveit_rviz_plugin::PlanningFrame::createSceneInteractiveMarker() {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
       return;
-  if (scene_marker_==NULL)
+
+  collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+  collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
+  if (scene_marker_==NULL && obj && obj->shapes_.size() == 1)
   {
+    Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
+    geometry_msgs::PoseStamped shape_pose;
+    shape_pose.pose.position.x=obj->shape_poses_[0].translation()[0];
+    shape_pose.pose.position.y=obj->shape_poses_[0].translation()[1];
+    shape_pose.pose.position.z=obj->shape_poses_[0].translation()[2];
+    shape_pose.pose.orientation.x=eq.x();
+    shape_pose.pose.orientation.y=eq.y();
+    shape_pose.pose.orientation.z=eq.z();
+    shape_pose.pose.orientation.w=eq.w();
+
     // create an interactive marker for moving the shape in the world
-    visualization_msgs::InteractiveMarker int_marker=robot_interaction::make6DOFMarker(std::string("marker_")+sel[0]->text().toStdString(), geometry_msgs::PoseStamped(), 1.0);
+    visualization_msgs::InteractiveMarker int_marker=robot_interaction::make6DOFMarker(std::string("marker_")+sel[0]->text().toStdString(), shape_pose, 1.0);
     int_marker.header.frame_id = context_->getFrameManager()->getFixedFrame();
     int_marker.description = sel[0]->text().toStdString();
 
@@ -354,14 +367,14 @@ void moveit_rviz_plugin::PlanningFrame::selectedCollisionObjectChanged(void)
         ui_->object_rx->setValue(xyz[0]);
         ui_->object_ry->setValue(xyz[1]);
         ui_->object_rz->setValue(xyz[2]);
-      }
 
-      if (!scene_marker_) createSceneInteractiveMarker();
-      if (scene_marker_) {
-        Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
-        //Update the IM pose to match the current selected object
-        scene_marker_->setPose(Ogre::Vector3(obj->shape_poses_[0].translation()[0], obj->shape_poses_[0].translation()[1], obj->shape_poses_[0].translation()[2]),
-                               Ogre::Quaternion(eq.w(), eq.x(), eq.y(), eq.z()), "");
+        if (!scene_marker_) createSceneInteractiveMarker();
+        if (scene_marker_) {
+          Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
+          //Update the IM pose to match the current selected object
+          scene_marker_->setPose(Ogre::Vector3(obj->shape_poses_[0].translation()[0], obj->shape_poses_[0].translation()[1], obj->shape_poses_[0].translation()[2]),
+                                 Ogre::Quaternion(eq.w(), eq.x(), eq.y(), eq.z()), "");
+        }
       }
     }
   }
@@ -545,9 +558,11 @@ void moveit_rviz_plugin::PlanningFrame::pathConstraintsIndexChanged(int index)
 
 void moveit_rviz_plugin::PlanningFrame::tabChanged(int index)
 {
-  if(scene_marker_!=NULL) {
+  if(scene_marker_!=NULL && index!=3) {
     delete scene_marker_;
     scene_marker_=NULL;
+  } else if (index==3){
+    createSceneInteractiveMarker();
   }
 }
 
