@@ -265,7 +265,7 @@ void kinematic_model::KinematicModel::buildGroupInfo(const boost::shared_ptr<con
         // if it is, mark it as such
         it->second->is_end_effector_ = true;
         
-        // check to see if there is one unique group that contains the parent link of this end effector.
+        // check to see if there are groups that contain the parent link of this end effector.
         // record this information if found
         std::vector<JointModelGroup*> possible_parent_groups;
         for (std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
@@ -274,10 +274,16 @@ void kinematic_model::KinematicModel::buildGroupInfo(const boost::shared_ptr<con
             if (jt->second->hasLinkModel(eefs[k].parent_link_))
               possible_parent_groups.push_back(jt->second);
           }
-        if (possible_parent_groups.size() == 1)
+        if (!possible_parent_groups.empty())
         {
-          possible_parent_groups[0]->attached_end_effector_group_name_ = it->first;
-          it->second->end_effector_parent_.first = possible_parent_groups[0]->getName();
+          // if there are multiple options for the group that contains this end-effector, 
+          // we pick the group with fewest joints.
+          std::size_t best = 0;
+          for (std::size_t g = 1 ; g < possible_parent_groups.size() ; ++g)
+            if (possible_parent_groups[g]->getJointModels().size() < possible_parent_groups[best]->getJointModels().size())
+              best = g;
+          possible_parent_groups[best]->attached_end_effector_group_name_ = it->first;
+          it->second->end_effector_parent_.first = possible_parent_groups[best]->getName();
           it->second->end_effector_parent_.second = eefs[k].parent_link_;
         }
         break;
