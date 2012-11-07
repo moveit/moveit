@@ -1552,7 +1552,17 @@ void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajec
 // ******************************************************************************************
 void PlanningDisplay::fixedFrameChanged(void)
 {
-  Display::fixedFrameChanged();
+  Display::fixedFrameChanged(); 
+  if (int_marker_display_)
+  {
+    // we should just call fixedFrameChanged() instead of reconstructing the display
+    delete int_marker_display_;
+    int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
+    int_marker_display_->initialize(context_);
+    int_marker_display_->subProp("Update Topic")->setValue(QString::fromStdString(robot_interaction::RobotInteraction::INTERACTIVE_MARKER_TOPIC + "/update"));
+    if (isEnabled())
+      int_marker_display_->setEnabled(true);
+  }
   calculateOffsetPosition();  
   changedPlanningGroup();
 }
