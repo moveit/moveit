@@ -52,9 +52,9 @@ unsigned int kinematic_model::RevoluteJointModel::getStateSpaceDimension(void) c
   return 1;
 }
 
-double kinematic_model::RevoluteJointModel::getMaximumExtent(void) const
-{  
-  return variable_bounds_[0].second - variable_bounds_[0].first;
+double kinematic_model::RevoluteJointModel::getMaximumExtent(const Bounds &other_bounds) const
+{
+  return other_bounds[0].second - other_bounds[0].first;
 }
 
 void kinematic_model::RevoluteJointModel::getVariableDefaultValues(std::vector<double> &values, const Bounds &bounds) const

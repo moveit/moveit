@@ -57,7 +57,7 @@ public:
   virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const;
   
   virtual unsigned int getStateSpaceDimension(void) const;
-  virtual double getMaximumExtent(void) const;
+  virtual double getMaximumExtent(const Bounds &other_bounds) const;
   virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
   virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
   
