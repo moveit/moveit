@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include <planning_scene/planning_scene.h>
+#include <moveit/planning_scene/planning_scene.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 

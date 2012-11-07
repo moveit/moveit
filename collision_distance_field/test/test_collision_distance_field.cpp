@@ -34,22 +34,21 @@
 
 /** \author E. Gil Jones */
 
-#include <moveit/planning_models/kinematic_model.h>
-#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/kinematic_state/transforms.h>
+#include <moveit/collision_distance_field/collision_distance_field_types.h>
+#include <moveit/collision_distance_field/collision_robot_distance_field.h>
+#include <moveit/collision_distance_field/collision_world_distance_field.h>
+
+#include <geometric_shapes/shape_operations.h>
+#include <urdf_parser/urdf_parser.h>
+
+#include <fstream>
 #include <gtest/gtest.h>
 #include <sstream>
 #include <algorithm>
 #include <ctype.h>
-#include <moveit/planning_models/kinematic_model.h>
-#include <moveit/planning_models/kinematic_state.h>
-#include <moveit/planning_models/transforms.h>
-#include <moveit/collision_distance_field/collision_distance_field_types.h>
-#include <moveit/collision_distance_field/collision_robot_distance_field.h>
-#include <moveit/collision_distance_field/collision_world_distance_field.h>
-#include <geometric_shapes/shape_operations.h>
-#include <urdf_parser/urdf_parser.h>
-#include <fstream>
-
 #include <boost/filesystem.hpp>
 
 typedef collision_detection::CollisionWorldDistanceField DefaultCWorldType;
@@ -63,7 +62,7 @@ protected:
   {
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file("../planning_models/test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file("../kinematic_state/test/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -78,9 +77,9 @@ protected:
     }
     else
       urdf_ok_ = false;
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../planning_models/test/srdf/robot.xml");
+    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../kinematic_state/test/srdf/robot.xml");
 
-    kmodel_.reset(new planning_models::KinematicModel(urdf_model_, srdf_model_));
+    kmodel_.reset(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true));
 
@@ -102,10 +101,10 @@ protected:
   boost::shared_ptr<urdf::ModelInterface>           urdf_model_;
   boost::shared_ptr<srdf::Model>           srdf_model_;
   
-  planning_models::KinematicModelPtr             kmodel_;
+  kinematic_model::KinematicModelPtr             kmodel_;
   
-  planning_models::TransformsPtr                 ftf_;
-  planning_models::TransformsConstPtr            ftf_const_;
+  kinematic_state::TransformsPtr                 ftf_;
+  kinematic_state::TransformsConstPtr            ftf_const_;
   
   boost::shared_ptr<collision_detection::CollisionRobot>        crobot_;
   boost::shared_ptr<collision_detection::CollisionWorld>        cworld_;
@@ -116,7 +115,7 @@ protected:
 
 TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
 {
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   collision_detection::CollisionRequest req;
@@ -127,7 +126,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
 }
 
 TEST_F(DistanceFieldCollisionDetectionTester, ChangeTorsoPosition) {
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
   
   collision_detection::CollisionRequest req;
@@ -153,7 +152,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, LinksInCollision)
   //req.max_contacts = 100;
   req.group_name = "whole_body";
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
@@ -185,7 +184,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
   req.max_contacts = 1;
   req.group_name = "whole_body";
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
@@ -234,7 +233,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
   req.max_contacts = 1;
   req.group_name = "whole_body";
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
@@ -274,7 +273,6 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
   for(collision_detection::CollisionResult::ContactMap::const_iterator it = res2.contacts.begin();
       it != res2.contacts.end();
       it++) {
-    ROS_INFO_STREAM("Col x is " << it->second[0].pos.x());
     EXPECT_NEAR(it->second[0].pos.x(), 3.0, 0.33);
   }
 
@@ -296,7 +294,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
 
   acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true)); 
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
@@ -318,7 +316,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
 
   shape = new shapes::Box(.25,.25,.25);
   std::vector<shapes::ShapeConstPtr> shapes;
-  std::vector<Eigen::Affine3d> poses;
+  EigenSTL::vector_Affine3d poses;
   shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());
   std::vector<std::string> touch_links;
