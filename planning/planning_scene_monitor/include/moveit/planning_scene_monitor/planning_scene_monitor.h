@@ -58,6 +58,9 @@ public:
   
   enum SceneUpdateType
     {
+      /** \brief No update */
+      UPDATE_NONE = 0,
+
       /** \brief The state in the monitored scene was updated */
       UPDATE_STATE = 1,
 
@@ -138,8 +141,9 @@ public:
       publishing planning scenes. */
   void monitorDiffs(bool flag);
 
-  /** \brief Start publishing the maintained planning scene. The first message set out is a complete planning scene. Diffs are sent afterwards. */
-  void startPublishingPlanningScene(const std::string &planning_scene_topic = "monitored_planning_scene");
+  /** \brief Start publishing the maintained planning scene. The first message set out is a complete planning scene. 
+      Diffs are sent afterwards on updates specified by the \e event bitmask. For UPDATE_SCENE, the full scene is always sent. */
+  void startPublishingPlanningScene(SceneUpdateType event, const std::string &planning_scene_topic = "monitored_planning_scene");
 
   /** \brief Stop publishing the maintained planning scene. */
   void stopPublishingPlanningScene(void);
@@ -292,7 +296,8 @@ protected:
   ros::Publisher                        planning_scene_publisher_;
   boost::scoped_ptr<boost::thread>      publish_planning_scene_;
   double                                publish_planning_scene_frequency_;
-  bool                                  new_scene_update_;
+  SceneUpdateType                       publish_update_types_;
+  SceneUpdateType                       new_scene_update_;
   boost::condition_variable             new_scene_update_condition_;
   
   // subscribe to various sources of data
