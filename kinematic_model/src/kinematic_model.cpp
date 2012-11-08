@@ -174,7 +174,7 @@ void kinematic_model::KinematicModel::buildModel(const boost::shared_ptr<const u
       std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map;
       computeTreeStructure(urdf_model, root_link, parent_map, child_map);
       
-      root_joint_ = buildRecursive(NULL, root_link_ptr, parent_map, child_map, srdf_model->getVirtualJoints());    
+      root_joint_ = buildRecursive(NULL, root_link_ptr, parent_map, child_map, *srdf_model);    
       root_link_ = link_model_map_[root_link];
       buildMimic(urdf_model);      
       buildJointInfo();
@@ -624,12 +624,12 @@ bool kinematic_model::KinematicModel::addJointModelGroup(const srdf::Model::Grou
 }
 
 kinematic_model::JointModel* kinematic_model::KinematicModel::buildRecursive(LinkModel *parent, const urdf::Link *link,
-                                                                                             const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
-                                                                                             const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
-                                                                                             const std::vector<srdf::Model::VirtualJoint> &vjoints)
+                                                                             const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
+                                                                             const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
+                                                                             const srdf::Model &srdf_model)
 {      
   std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >::const_iterator pmi = parent_map.find(link);
-  JointModel *joint = (pmi != parent_map.end()) ? constructJointModel(pmi->second.second, link, vjoints) : constructJointModel(NULL, link, vjoints);
+  JointModel *joint = (pmi != parent_map.end()) ? constructJointModel(pmi->second.second, link, srdf_model) : constructJointModel(NULL, link, srdf_model);
   if (joint == NULL)
     return NULL;
   joint_model_map_[joint->name_] = joint;
@@ -654,7 +654,7 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::buildRecursive(Lin
   if (cmi != child_map.end())
     for (unsigned int i = 0 ; i < cmi->second.size() ; ++i)
     {
-      JointModel* jm = buildRecursive(joint->child_link_model_, cmi->second[i], parent_map, child_map, vjoints);
+      JointModel* jm = buildRecursive(joint->child_link_model_, cmi->second[i], parent_map, child_map, srdf_model);
       if (jm)
         joint->child_link_model_->child_joint_models_.push_back(jm);
     }
@@ -662,7 +662,7 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::buildRecursive(Lin
 }
 
 kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointModel(const urdf::Joint *urdf_joint, const urdf::Link *child_link,
-                                                                                                  const std::vector<srdf::Model::VirtualJoint> &vjoints)
+                                                                                  const srdf::Model &srdf_model)
 {
   JointModel* result = NULL;
 
@@ -753,6 +753,7 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointMode
   }
   else
   {
+    const std::vector<srdf::Model::VirtualJoint> &vjoints = srdf_model.getVirtualJoints();
     for (std::size_t i = 0 ; i < vjoints.size() ; ++i)
       if (vjoints[i].child_link_ == child_link->name)
       {
@@ -780,6 +781,14 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointMode
     for (std::size_t i = 0 ; i < result->variable_names_.size() ; ++i)
       result->variable_index_[result->variable_names_[i]] = i;
     result->setDistanceFactor(result->getStateSpaceDimension());
+
+    const std::vector<std::string> &pjoints = srdf_model.getPassiveJoints();
+    for (std::size_t i = 0 ; i < pjoints.size() ; ++i)
+      if (result->getName() == pjoints[i])
+      {
+        result->passive_ = true;
+        break;
+      }
   }
   return result;
 }
@@ -1159,6 +1168,8 @@ void kinematic_model::KinematicModel::printModelInfo(std::ostream &out) const
       out << "]";
       if (joint_model_vector_[i]->mimic_)
         out << " *";
+      if (joint_model_vector_[i]->passive_)
+        out << " +";
       out << std::endl;
     }
   }

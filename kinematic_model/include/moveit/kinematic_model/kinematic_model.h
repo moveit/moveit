@@ -391,14 +391,14 @@ protected:
   JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link,
                              const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
                              const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
-                             const std::vector<srdf::Model::VirtualJoint> &vjoints);
+                             const srdf::Model &srdf_model);
 
   /** \brief Construct a JointModelGroup given a SRDF description \e group */
   bool addJointModelGroup(const srdf::Model::Group& group);
   
   /** \brief Given a urdf joint model, a child link and a set of virtual joints,
       build up the corresponding JointModel object*/
-  JointModel* constructJointModel(const urdf::Joint *urdf_joint_model, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
+  JointModel* constructJointModel(const urdf::Joint *urdf_joint_model, const urdf::Link *child_link, const srdf::Model &srdf_model);
   
   /** \brief Given a urdf link, build the corresponding LinkModel object*/
   LinkModel* constructLinkModel(const urdf::Link *urdf_link, const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map);

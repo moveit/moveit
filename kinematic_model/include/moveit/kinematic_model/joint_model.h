@@ -295,6 +295,12 @@ public:
   {
     return mimic_requests_;
   }
+
+  /** \brief Check if this joint is passive */
+  bool isPassive(void) const
+  {
+    return passive_;
+  }
   
   /** \brief Get the maximum velocity of this joint. If the result is zero, the value is assumed not to be specified. */
   double getMaximumVelocity(void) const
@@ -371,6 +377,9 @@ protected:
   
   /** \brief The set of joints that should get a value copied to them when this joint changes */
   std::vector<const JointModel*>                    mimic_requests_;
+  
+  /** \brief Specify whether this joint is marked as passive in the SRDF */
+  bool                                              passive_;
   
   /** \brief The factor applied to the distance between two joint states */
   double                                            distance_factor_;

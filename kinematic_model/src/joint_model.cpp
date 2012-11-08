@@ -39,7 +39,7 @@
 
 kinematic_model::JointModel::JointModel(const std::string& name) :
   name_(name), type_(UNKNOWN), max_velocity_(0.0), parent_link_model_(NULL), child_link_model_(NULL),
-  mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), distance_factor_(1.0), tree_index_(-1)
+  mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), passive_(false), distance_factor_(1.0), tree_index_(-1)
 {
 }
 
