@@ -17,3 +17,4 @@ target_link_libraries(moveit_list_request_adapter_plugins ${catkin_LIBRARIES} ${
 install(TARGETS ${MOVEIT_LIB_NAME} moveit_list_request_adapter_plugins
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+

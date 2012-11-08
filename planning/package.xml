@@ -27,7 +27,7 @@
   <run_depend>dynamic_reconfigure</run_depend>
 
   <export>
-    <planning_request_adapter plugin="${prefix}/planning_request_adapter_plugins/plugin_description.xml"/>
+    <planning_request_adapter plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>
   </export>
 
 </package>
