@@ -268,7 +268,7 @@ private:
   kinematics_cache::KinematicsCachePtr kinematics_cache_;
   kinematics_planner_ros::KinematicsSolverROS kinematics_solver_;
   kinematics_cache::KinematicsCache::Options default_cache_options_;
-  std_msgs::ColorRGBA reachable_color_, unreachable_color_, evaluating_color_, default_manipulability_color_;
+  std_msgs::ColorRGBA reachable_color_, unreachable_color_, evaluating_color_, default_manipulability_color_, default_orientation_color_;
   
   void initializeColor(const std::string &color_name,
                        std_msgs::ColorRGBA &color_msg,
@@ -284,7 +284,7 @@ private:
   void animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace,
                         unsigned int index);
 
-  std_msgs::ColorRGBA  getColorFromManipulability(double manipulability_index, double highest);
+  void  getColorFromManipulability(double manipulability_index, double highest);
 
   bool getManipulabilityIndex(const planning_models::KinematicState &kinematic_state,
                                                const std::string &group_name,
@@ -305,7 +305,7 @@ private:
 
   void getOrientationSuccessMarkers(const kinematics_reachability::WorkspacePoints &workspace, visualization_msgs::Marker &marker);
 
-  std_msgs::ColorRGBA  getColorFromSuccessList(std::vector<bool> successes);
+  void  getColorFromSuccessList(std::vector<bool> successes);
 };
 
 }
