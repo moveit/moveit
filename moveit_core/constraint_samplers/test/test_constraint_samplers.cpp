@@ -105,16 +105,18 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   std::vector<kinematic_constraints::JointConstraint> js;
   js.push_back(jc1);
 
-  constraint_samplers::JointConstraintSampler jcs(ps, "right_arm", js);
+  constraint_samplers::JointConstraintSampler jcs(ps, "right_arm");
+  jcs.configure(js);
   //we have no bounded variables
   EXPECT_EQ(jcs.getUnconstrainedJointCount(), 7);
   EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));  
 
+  //testing that this does the right thing
   jcm1.joint_name = "r_shoulder_pan_joint";
   EXPECT_TRUE(jc1.configure(jcm1));
   js.push_back(jc1);
-  EXPECT_TRUE(jcs.setup(js));
-  //EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6); TODO
+  EXPECT_TRUE(jcs.configure(js));
+  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6);
   EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));  
 
   for (int t = 0 ; t < 100 ; ++t)
@@ -122,6 +124,10 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
     EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
     EXPECT_TRUE(jc1.decide(ks).satisfied);
   }  
+
+  //redoing the configure leads to 6 unconstrained variables as well
+  EXPECT_TRUE(jcs.configure(js));
+  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6);
 
   kinematic_constraints::JointConstraint jc2(kmodel, tf);
 
@@ -134,16 +140,92 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   EXPECT_TRUE(jc2.configure(jcm2));
   js.push_back(jc2);
 
-  EXPECT_TRUE(jcs.setup(js));
-  EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
-  EXPECT_TRUE(jc2.decide(ks).satisfied);
-  EXPECT_FALSE(jc1.decide(ks).satisfied);
+  //creating a constraint that conflicts with the other (leaves no sampleable region)
+  EXPECT_FALSE(jcs.configure(js));
+  EXPECT_FALSE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
 
-  constraint_samplers::JointConstraintSampler jcs2(ps, "arms", js);
-  EXPECT_TRUE(jcs2.sample(ks.getJointStateGroup("right_arm"), ks, 1));  
+  //we can't sample for a different group
+  constraint_samplers::JointConstraintSampler jcs2(ps, "arms");
+  jcs2.configure(js);
+  EXPECT_FALSE(jcs2.sample(ks.getJointStateGroup("right_arm"), ks, 1));  
+
+  //testing that the most restrictive bounds are used
+  js.clear();
+
+  jcm1.position = .4;
+  jcm1.tolerance_above = .05;
+  jcm1.tolerance_below = .05;
+  jcm2.position = .4;
+  jcm2.tolerance_above = .1;
+  jcm2.tolerance_below = .1;
+  EXPECT_TRUE(jc1.configure(jcm1));
+  EXPECT_TRUE(jc2.configure(jcm2));
+  js.push_back(jc1);
+  js.push_back(jc2);
+
+  EXPECT_TRUE(jcs.configure(js));
+
+  //should always be within narrower constraints
+  for (int t = 0 ; t < 100 ; ++t)
+  {
+    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+    EXPECT_TRUE(jc1.decide(ks).satisfied);
+  }  
+
+  //too narrow range outside of joint limits
+  js.clear();
+
+  jcm1.position = -3.1;
+  jcm1.tolerance_above = .05;
+  jcm1.tolerance_below = .05;
+  
+  //the joint configuration corrects this
+  EXPECT_TRUE(jc1.configure(jcm1));
+  js.push_back(jc1);
+  EXPECT_TRUE(jcs.configure(js));
+
+  //partially overlapping regions will also work
+  js.clear();
+  jcm1.position = .35;
+  jcm1.tolerance_above = .05;
+  jcm1.tolerance_below = .05;
+  jcm2.position = .45;
+  jcm2.tolerance_above = .05;
+  jcm2.tolerance_below = .05;
+  EXPECT_TRUE(jc1.configure(jcm1));
+  EXPECT_TRUE(jc2.configure(jcm2));
+  js.push_back(jc1);
+  js.push_back(jc2);
+
+  //leads to a min and max of .4, so all samples should be exactly .4
+  EXPECT_TRUE(jcs.configure(js));
+  for (int t = 0 ; t < 100 ; ++t)
+  {
+    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+    std::map<std::string, double> var_values;
+    ks.getJointStateGroup("right_arm")->getVariableValues(var_values);
+    EXPECT_NEAR(var_values["r_shoulder_pan_joint"], .4, std::numeric_limits<double>::epsilon());
+    EXPECT_TRUE(jc1.decide(ks).satisfied);
+    EXPECT_TRUE(jc2.decide(ks).satisfied);
+  }  
+
+  //this leads to a larger sampleable region
+  jcm1.position = .38;
+  jcm2.position = .42;
+  EXPECT_TRUE(jc1.configure(jcm1));
+  EXPECT_TRUE(jc2.configure(jcm2));
+  js.push_back(jc1);
+  js.push_back(jc2);
+  EXPECT_TRUE(jcs.configure(js));
+  for (int t = 0 ; t < 100 ; ++t)
+  {
+    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+    EXPECT_TRUE(jc1.decide(ks).satisfied);
+    EXPECT_TRUE(jc2.decide(ks).satisfied);
+  }  
 }
 
-TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerComplex)
+TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerManager)
 {
   kinematic_state::KinematicState ks(kmodel);
   ks.setToDefaultValues();
@@ -191,7 +273,8 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerComplex)
   js.push_back(jc3);
   js.push_back(jc4);
   
-  constraint_samplers::JointConstraintSampler jcs(ps, "arms", js);
+  constraint_samplers::JointConstraintSampler jcs(ps, "arms");
+  jcs.configure(js);
   EXPECT_EQ(jcs.getConstrainedJointCount(), 2);
   EXPECT_EQ(jcs.getUnconstrainedJointCount(), 12);
 

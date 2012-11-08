@@ -90,7 +90,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 
     EXPECT_TRUE(jc.configure(jcm));
     //weight should have been changed to 1.0
-    EXPECT_NEAR(jc.getConstraintWeight(), 1.0, .001);
+    EXPECT_NEAR(jc.getConstraintWeight(), 1.0, std::numeric_limits<double>::epsilon());
 
     //tests that the default state is outside the bounds
     //given that the default state is at 0.0
@@ -107,6 +107,21 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
     EXPECT_TRUE(p2.satisfied);
     EXPECT_NEAR(p2.distance, 0.01, 1e-6);
+
+    //exactly equal to the low bound is fine too 
+    jvals[jcm.joint_name] = 0.35;
+    ks.setStateValues(jvals);
+    EXPECT_TRUE(jc.decide(ks).satisfied);
+
+    //and so is less than epsilon when there's no other source of error
+    jvals[jcm.joint_name] = 0.35-std::numeric_limits<double>::epsilon();
+    ks.setStateValues(jvals);
+    EXPECT_TRUE(jc.decide(ks).satisfied);
+
+    //but this is too much
+    jvals[jcm.joint_name] = 0.35-3*std::numeric_limits<double>::epsilon();
+    ks.setStateValues(jvals);
+    EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //negative value makes configuration fail
     jcm.tolerance_below = -0.05;
@@ -693,8 +708,8 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
     EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
     //a little bit more puts it over
-    vcm.target_pose.pose.orientation.y = 0.05;
-    vcm.target_pose.pose.orientation.w = .998;
+    vcm.target_pose.pose.orientation.y = 0.06;
+    vcm.target_pose.pose.orientation.w = .9981;
     EXPECT_TRUE(vc.configure(vcm));
     EXPECT_FALSE(vc.decide(ks, true).satisfied);
 }
