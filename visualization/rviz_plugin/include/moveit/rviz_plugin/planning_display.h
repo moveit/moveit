@@ -99,15 +99,10 @@ public:
    */
   virtual ~PlanningDisplay();
 
+  virtual void load( const rviz::Config& config );
+  virtual void save( rviz::Config config ) const;
 
-  /**
-   * \brief Overrides from Display
-   */
   virtual void update(float wall_dt, float ros_dt);
-
-  /**
-   * \brief Called to reset plugin
-   */
   virtual void reset();
   
   // pass the execution of this function call to a separate thread that runs in the background

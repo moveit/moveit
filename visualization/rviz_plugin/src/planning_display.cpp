@@ -1497,6 +1497,37 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
   renderWorkspaceBox();
 }
 
+void PlanningDisplay::load( const rviz::Config& config )
+{
+  Display::load(config);
+  if (frame_)
+  { 
+    QString host;
+    if (config.mapGetString( "MoveIt_Warehouse_Host", &host))
+      frame_->ui_->database_host->setText(host);
+    int port;
+    if (config.mapGetInt( "MoveIt_Warehouse_Port", &port))
+      frame_->ui_->database_port->setValue(port);
+    float d;
+    if (config.mapGetFloat( "MoveIt_Planning_Time", &d))
+      frame_->ui_->planning_time->setValue(d);
+    if (config.mapGetFloat( "MoveIt_Goal_Tolerance", &d))
+      frame_->ui_->goal_tolerance->setValue(d);
+  }
+}
+
+void PlanningDisplay::save( rviz::Config config ) const
+{
+  Display::save(config);
+  if (frame_)
+  {
+    config.mapSetValue( "MoveIt_Warehouse_Host", frame_->ui_->database_host->text());
+    config.mapSetValue( "MoveIt_Warehouse_Port", frame_->ui_->database_port->value());
+    config.mapSetValue( "MoveIt_Planning_Time", frame_->ui_->planning_time->value());
+    config.mapSetValue( "MoveIt_Goal_Tolerance", frame_->ui_->goal_tolerance->value());
+  }
+}
+
 // ******************************************************************************************
 // Calculate Offset Position
 // ******************************************************************************************
