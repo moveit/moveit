@@ -43,3 +43,5 @@ catkin_package(
 include_directories(rviz_plugin/include)
 
 add_subdirectory(rviz_plugin)
+
+install(FILES moveit_rviz_plugin_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

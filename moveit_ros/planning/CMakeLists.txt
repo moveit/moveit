@@ -66,6 +66,7 @@ add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
 add_subdirectory(move_group)
 
+install(FILES planning_request_adapters_plugin_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #collision_distance_field_ros
 #kdl_kinematics_plugin
