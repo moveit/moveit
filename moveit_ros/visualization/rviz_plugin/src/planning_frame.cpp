@@ -187,7 +187,14 @@ void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
       Eigen::Affine3d pose;
       pose.setIdentity();
       collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
-      world->removeObject(name);
+
+      //If the object already exist, create it with another name
+      if (world->hasObject(name)) {
+        std::stringstream ss;
+        ss << name << "-" << world->getObjectsCount();
+        name=ss.str();
+      }
+
       world->addToObject(name, shape, pose);
       populateCollisionObjectsList();
       planning_display_->queueRenderSceneGeometry();
