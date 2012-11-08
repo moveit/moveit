@@ -43,24 +43,57 @@
 namespace constraint_samplers
 {
 
+struct JointInfo
+{
+  JointInfo() 
+  {
+    min_bound_ = -std::numeric_limits<double>::max();
+    max_bound_ = std::numeric_limits<double>::max();
+  }
+
+  void potentiallyAdjustMinMaxBounds(double min, double max) 
+  {
+    min_bound_ = std::max(min, min_bound_);
+    max_bound_ = std::min(max, max_bound_);
+  }
+
+  double min_bound_;
+  double max_bound_;
+  std::size_t index_;
+};
+
+/**
+ * \brief JointConstraintSampler is a class that allows the sampling
+ * of joints in a particular group of the robot.  It further allows a
+ * set of constraints to be associated with the group that will reduce
+ * the allowable bounds used in the sampling.  Unconstrained values
+ * will be sampled within their limits.
+ *
+ */
 class JointConstraintSampler : public ConstraintSampler
 {
 public:
 
+  /** 
+   * Constructor
+   * 
+   * @param scene The planning scene used to check the constraint 
+   * @param group_name The group name associated with the constraint
+   * 
+   * @return 
+   */
   JointConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, 
-                         const std::string &group_name, 
-                         const std::vector<kinematic_constraints::JointConstraint> &jc) :
-    ConstraintSampler(scene, group_name)
+                         const std::string &group_name) :
+    ConstraintSampler(scene, group_name),
+    is_valid_(false)
   {
-    setup(jc);
   }
   
   virtual bool configure(const moveit_msgs::Constraints &constr);
-  
-  bool setup(const std::vector<kinematic_constraints::JointConstraint> &jc);
-
   virtual bool sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks,  unsigned int max_attempts);
   
+  bool configure(const std::vector<kinematic_constraints::JointConstraint> &jc);
+
   std::size_t getConstrainedJointCount(void) const
   {
     return bounds_.size();
@@ -72,11 +105,14 @@ public:
   }
   
 protected:
+  
+  void clear();
+  bool is_valid_;
+  std::string joint_state_group_name_;
 
   random_numbers::RandomNumberGenerator           random_number_generator_;  
-  std::vector<std::pair<double, double> >         bounds_;
-  std::vector<unsigned int>                       index_;
-  
+  std::vector<JointInfo> bounds_;
+
   std::vector<const kinematic_model::JointModel*> unbounded_;
   std::vector<unsigned int>                       uindex_;
   std::vector<double>                             values_;

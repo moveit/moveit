@@ -49,21 +49,23 @@ bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::C
       jc.push_back(j);
   }
   
-  return jc.empty() ? false : setup(jc);
+  return jc.empty() ? false : configure(jc);
 }
 
-bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinematic_constraints::JointConstraint> &jc)
+bool constraint_samplers::JointConstraintSampler::configure(const std::vector<kinematic_constraints::JointConstraint> &jc)
 {
   if (!jmg_)
   {
     logError("NULL group specified for constraint sampler");
     return false;
   }
-  
+
+  clear();
+
   // find and keep the constraints that operate on the group we sample
   // also keep bounds for joints as convenient
   const std::map<std::string, unsigned int> &vim = jmg_->getJointVariablesIndexMap();
-  std::set<std::string> bounded;
+  std::map<std::string, JointInfo> bound_data;
   for (std::size_t i = 0 ; i < jc.size() ; ++i)
   {
     if (!jc[i].enabled())
@@ -73,38 +75,74 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
     if (!jmg_->hasJointModel(jm->getName()))
       continue;
     
-    std::pair<double, double> bounds;
-    jm->getVariableBounds(jc[i].getJointVariableName(), bounds);
+    std::pair<double, double> joint_bounds;
+    jm->getVariableBounds(jc[i].getJointVariableName(), joint_bounds);
+    
+    JointInfo ji;
+    ji.index_ = vim.find(jc[i].getJointVariableName())->second;
+    std::map<std::string, JointInfo>::iterator it = bound_data.find(jc[i].getJointVariableName());
+    if(it != bound_data.end()) {
+      ji = it->second;
+    }
 
-    bounds.first = std::max(bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow());
-    bounds.second = std::min(bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
-    if (bounds.first > bounds.second)
+    ji.potentiallyAdjustMinMaxBounds(std::max(joint_bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow()),
+                                     std::min(joint_bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
+    
+    logDebug("Vals %g %g %g %g",
+             joint_bounds.first, 
+             jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow(),
+             joint_bounds.second, 
+             jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
+    logDebug("Bounds for %s are %g %g",jc[i].getJointVariableName().c_str(),ji.min_bound_,ji.max_bound_);
+
+    if (ji.min_bound_ > ji.max_bound_+std::numeric_limits<double>::epsilon())
     {
       std::stringstream cs; jc[i].print(cs);
-      logWarn("The constraints for joint '%s' are such that there are no possible values for this joint. Ignoring constraint: %s\n", jm->getName().c_str(), cs.str().c_str());
-      continue;
+      logError("The constraints for joint '%s' are such that there are no possible values for the joint - min_bound: %g, max_bound: %g. Failing.\n", jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
+      clear();
+      return false;
     }
-    if (jm->getVariableCount() == 1)
-      bounded.insert(jm->getName());
-    bounds_.push_back(bounds);
-    index_.push_back(vim.find(jc[i].getJointVariableName())->second);
+    if (jm->getVariableCount() == 1) {
+      bound_data[jc[i].getJointVariableName()] = ji;      
+    }
+  }
+
+  for(std::map<std::string, JointInfo>::iterator it = bound_data.begin();
+      it != bound_data.end();
+      it++) {
+    bounds_.push_back(it->second);
   }
   
   // get a separate list of joints that are not bounded; we will sample these randomly
   const std::vector<const kinematic_model::JointModel*> &joints = jmg_->getJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
-    if (bounded.find(joints[i]->getName()) == bounded.end())
+    if (bound_data.find(joints[i]->getName()) == bound_data.end())
     {
       unbounded_.push_back(joints[i]);
       uindex_.push_back(vim.find(joints[i]->getName())->second);
     } 
   values_.resize(jmg_->getVariableCount());
+  is_valid_ = true;
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState & /* ks */,
+bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, 
+                                                         const kinematic_state::KinematicState & /* ks */,
                                                          unsigned int /* max_attempts */)
 {
+  if(!is_valid_) 
+  {
+    logWarn("JointConstraintSampler not configured, won't sample");
+    return false;
+  }
+
+  if(jsg->getName() != getGroupName()) 
+  {
+    logWarn("JointConstraintSampler sample function called with name %s which is not the group %s for which it was configured",
+            jsg->getName().c_str(), getGroupName().c_str());
+    return false;
+  }
+
   // sample the unbounded joints first (in case some joint variables are bounded)
   for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
   {
@@ -116,13 +154,22 @@ bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointS
 
   // enforce the constraints for the constrained components (could be all of them)
   for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
-    values_[index_[i]] = random_number_generator_.uniformReal(bounds_[i].first, bounds_[i].second);
+    values_[bounds_[i].index_] = random_number_generator_.uniformReal(bounds_[i].min_bound_, bounds_[i].max_bound_);
 
   jsg->setVariableValues(values_);
 
 
   // we are always successful
   return true;
+}
+ 
+void constraint_samplers::JointConstraintSampler::clear()
+{
+  is_valid_ = false;
+  bounds_.clear();
+  unbounded_.clear();
+  uindex_.clear();
+  values_.clear();
 }
 
 constraint_samplers::IKSamplingPose::IKSamplingPose(void)

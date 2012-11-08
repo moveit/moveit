@@ -44,13 +44,22 @@
 
 namespace constraint_samplers
 {
-
+/**
+ * \brief ConstraintSampler is an abstract base class that allows the
+ * sampling of a kinematic state for a particular group of a robot.
+ */
 class ConstraintSampler
 {
 public:
   
-  static const unsigned int DEFAULT_MAX_SAMPLING_ATTEMPTS = 2;
+  static const unsigned int DEFAULT_MAX_SAMPLING_ATTEMPTS = 2; /**< \brief The default value associated with a sampling request.  By default if a valid sample cannot be produced in this many attempts, it returns with no sample */
   
+  /** 
+   * Constructor
+   * 
+   * @param [in] scene The planning scene that will be used for constraint checking 
+   * @param [in] group_name The group name of the associated group.  Will be invalid if no group name is passed in
+   */
   ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
 
   virtual ~ConstraintSampler(void)
@@ -89,9 +98,9 @@ public:
   
 protected:
 
-  planning_scene::PlanningSceneConstPtr   scene_;
+  planning_scene::PlanningSceneConstPtr                   scene_;
   const kinematic_model::JointModelGroup *jmg_;
-  std::vector<std::string>                frame_depends_;
+  std::vector<std::string>                                frame_depends_;
 };
 
 typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;

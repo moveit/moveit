@@ -80,13 +80,18 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     if (jc.size() == jmg->getJointModels().size())
     {
       logDebug("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
-      return ConstraintSamplerPtr(new JointConstraintSampler(scene, jmg->getName(), jc));
+      boost::shared_ptr<JointConstraintSampler> sampler(new JointConstraintSampler(scene, jmg->getName()));
+      sampler->configure(jc);
+      return sampler;
     }
     // if a smaller set of joints has been specified, keep the constraint sampler around, but use it only if no IK sampler has been specified.
-    if (!jc.empty())
-      joint_sampler.reset(new JointConstraintSampler(scene, jmg->getName(), jc));
+    if (!jc.empty()) {
+      boost::shared_ptr<JointConstraintSampler> sampler(new JointConstraintSampler(scene, jmg->getName()));
+      sampler->configure(jc);
+      joint_sampler = sampler;
+    }
   }
-  
+    
   // read the ik allocators, if any
   kinematic_model::SolverAllocatorFn ik_alloc = jmg->getSolverAllocators().first;
   std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn> ik_subgroup_alloc = jmg->getSolverAllocators().second;
