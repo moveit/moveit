@@ -39,8 +39,9 @@
 #include <limits>
 
 planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf) :
-  tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(std::numeric_limits<double>::epsilon())
+  tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(std::numeric_limits<float>::epsilon())
 {
+  kstate_.setToDefaultValues();
 }
 
 kinematic_state::KinematicStatePtr planning_scene_monitor::CurrentStateMonitor::getCurrentState(void) const
@@ -120,10 +121,11 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(void) const
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
     if (joint_time_.find(dof[i]) == joint_time_.end())
-    {
-      ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
-      result = false;
-    }
+      if (!kmodel_->getJointModel(dof[i])->isPassive())
+      {
+        ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
+        result = false;
+      }
   return result;
 }
 
@@ -134,11 +136,12 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
     if (joint_time_.find(dof[i]) == joint_time_.end())
-    {
-      ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
-      missing_states.push_back(dof[i]);
-      result = false;
-    }
+      if (!kmodel_->getJointModel(dof[i])->isPassive())
+      {
+        ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
+        missing_states.push_back(dof[i]);
+        result = false;
+      }
   return result;
 }
 
