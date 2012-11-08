@@ -763,7 +763,7 @@ void KinematicsReachability::getManipulabilityMarkers(const kinematics_reachabil
     geometry_msgs::Point point = workspace.points[it->first].pose.position;
     if (workspace.points[it->first].solution_code.val == 1)
     {
-      getColorFromManipulability((it->second, max_manipulability);
+      getColorFromManipulability(it->second, max_manipulability);
       marker.colors.push_back(default_manipulability_color_);
       marker.points.push_back(point);
     }
