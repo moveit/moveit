@@ -59,6 +59,18 @@ bool kinematic_model::JointModel::getVariableBounds(const std::string& variable,
   return true;
 }
 
+bool kinematic_model::JointModel::setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds)
+{ 
+  std::map<std::string, unsigned int>::const_iterator it = variable_index_.find(variable);
+  if (it == variable_index_.end())
+  {   
+    logWarn("Could not find variable '%s' to set bounds for within joint '%s'", variable.c_str(), name_.c_str());
+    return false;
+  }
+  variable_bounds_[it->second] = bounds;
+  return true;
+}
+
 void kinematic_model::JointModel::getVariableDefaultValues(std::map<std::string, double> &values, const Bounds &bounds) const
 {
   std::vector<double> defv;
