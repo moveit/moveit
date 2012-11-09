@@ -48,6 +48,23 @@ planning_models_loader::KinematicModelLoader::KinematicModelLoader(const Options
   configure(opt);
 }
 
+static bool canSpecifyPosition(const planning_models::KinematicModel::JointModel *jmodel, const unsigned int index)
+{  
+  bool ok = false;
+  if (jmodel->getType() == planning_models::KinematicModel::JointModel::PLANAR && index == 2)
+    ROS_ERROR("Cannot specify position limits for orientation of planar joints");
+  else
+  if (jmodel->getType() == planning_models::KinematicModel::JointModel::FLOATING && index > 2)
+    ROS_ERROR("Cannot specify position limits for orientation of floating joints");
+  else
+  if (jmodel->getType() == planning_models::KinematicModel::JointModel::REVOLUTE &&
+      static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(jmodel)->isContinuous())
+    ROS_ERROR("Cannot specify position limits for continuous joints");
+  else
+    ok = true;
+  return ok;
+}
+
 void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
 {
   ros::WallTime start = ros::WallTime::now();
@@ -69,10 +86,46 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
     
     for (unsigned int i = 0; i < model_->getJointModels().size() ; ++i)
     {
-      std::vector<moveit_msgs::JointLimits> jlim = model_->getJointModels()[i]->getVariableLimits();
+      planning_models::KinematicModel::JointModel *jmodel = model_->getJointModels()[i];
+      std::vector<moveit_msgs::JointLimits> jlim = jmodel->getVariableLimits();
       for(unsigned int j = 0; j < jlim.size(); ++j)
       {
         std::string prefix = robot_model_loader_->getRobotDescription() + "_planning/joint_limits/" + jlim[j].joint_name + "/";
+        
+        double max_position;
+        if (nh.getParam(prefix + "max_position", max_position))
+        {
+          if (canSpecifyPosition(jmodel, j))
+          {
+            jlim[j].has_position_limits = true;
+            jlim[j].max_position = max_position;
+
+            // also update the model
+            std::pair<double, double> bounds;
+            if (jmodel->getVariableBounds(jlim[j].joint_name, bounds))
+            {
+              bounds.second = max_position;
+              jmodel->setVariableBounds(jlim[j].joint_name, bounds);
+            }
+          }
+        }
+        double min_position;
+        if (nh.getParam(prefix + "min_position", min_position))
+        {
+          if (canSpecifyPosition(jmodel, j))
+          {
+            jlim[j].has_position_limits = true;
+            jlim[j].min_position = min_position;
+
+            // also update the model
+            std::pair<double, double> bounds;
+            if (jmodel->getVariableBounds(jlim[j].joint_name, bounds))
+            {
+              bounds.first = min_position;
+              jmodel->setVariableBounds(jlim[j].joint_name, bounds);
+            }
+          }
+        }
         double max_velocity;
         if (nh.getParam(prefix + "max_velocity", max_velocity))
         {
@@ -93,8 +146,8 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
         if (nh.getParam(prefix + "has_acceleration_limits", has_acc_limits))
           jlim[j].has_acceleration_limits = has_acc_limits;
       }
-      model_->getJointModels()[i]->setVariableLimits(jlim);
-      individual_joint_limits_map[model_->getJointModels()[i]->getName()] = jlim;
+      jmodel->setVariableLimits(jlim);
+      individual_joint_limits_map[jmodel->getName()] = jlim;
     }
     const std::map<std::string, kinematic_model::JointModelGroup*> &jmgm = model_->getJointModelGroupMap();
     for (std::map<std::string, kinematic_model::JointModelGroup*>::const_iterator it = jmgm.begin() ; it != jmgm.end() ; ++it) 
