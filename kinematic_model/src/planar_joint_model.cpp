@@ -215,3 +215,10 @@ void kinematic_model::PlanarJointModel::computeJointStateValues(const Eigen::Aff
     joint_values[2] = (acos(q.w())*2.0f)*(q.z()*s);
   }
 }
+
+std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::PlanarJointModel::getVariableLimits(void) const
+{
+  std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getVariableLimits();
+  ret_vec[2].has_position_limits = false;
+  return ret_vec;
+}
