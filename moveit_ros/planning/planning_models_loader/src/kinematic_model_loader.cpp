@@ -48,18 +48,18 @@ planning_models_loader::KinematicModelLoader::KinematicModelLoader(const Options
   configure(opt);
 }
 
-static bool canSpecifyPosition(const planning_models::KinematicModel::JointModel *jmodel, const unsigned int index)
+static bool canSpecifyPosition(const kinematic_model::JointModel *jmodel, const unsigned int index)
 {  
   bool ok = false;
-  if (jmodel->getType() == planning_models::KinematicModel::JointModel::PLANAR && index == 2)
-    ROS_ERROR("Cannot specify position limits for orientation of planar joints");
+  if (jmodel->getType() == kinematic_model::JointModel::PLANAR && index == 2)
+    ROS_ERROR("Cannot specify position limits for orientation of planar joint '%s'", jmodel->getName().c_str());
   else
-  if (jmodel->getType() == planning_models::KinematicModel::JointModel::FLOATING && index > 2)
-    ROS_ERROR("Cannot specify position limits for orientation of floating joints");
+  if (jmodel->getType() == kinematic_model::JointModel::FLOATING && index > 2)
+    ROS_ERROR("Cannot specify position limits for orientation of floating joint '%s'", jmodel->getName().c_str());
   else
-  if (jmodel->getType() == planning_models::KinematicModel::JointModel::REVOLUTE &&
-      static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(jmodel)->isContinuous())
-    ROS_ERROR("Cannot specify position limits for continuous joints");
+  if (jmodel->getType() == kinematic_model::JointModel::REVOLUTE &&
+      static_cast<const kinematic_model::RevoluteJointModel*>(jmodel)->isContinuous())
+    ROS_ERROR("Cannot specify position limits for continuous joint '%s'", jmodel->getName().c_str());
   else
     ok = true;
   return ok;
@@ -86,7 +86,7 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
     
     for (unsigned int i = 0; i < model_->getJointModels().size() ; ++i)
     {
-      planning_models::KinematicModel::JointModel *jmodel = model_->getJointModels()[i];
+      kinematic_model::JointModel *jmodel = model_->getJointModels()[i];
       std::vector<moveit_msgs::JointLimits> jlim = jmodel->getVariableLimits();
       for(unsigned int j = 0; j < jlim.size(); ++j)
       {
