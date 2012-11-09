@@ -234,7 +234,10 @@ public:
   {
     return variable_bounds_;
   }
-  
+
+  /** \brief Set the lower and upper bounds for a variable. Return false if the variable was not found */
+  bool setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds);
+
   /** \brief Get variable limits as a message type */
   const std::vector<moveit_msgs::JointLimits>& getVariableDefaultLimits(void) const
   {
