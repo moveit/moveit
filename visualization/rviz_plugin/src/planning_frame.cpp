@@ -175,6 +175,8 @@ void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
 void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
 { 
   std::string path = QFileDialog::getOpenFileName(this, "Import Scene").toStdString();
+  std::string name;
+
   if (!path.empty() && planning_display_->getPlanningSceneMonitor())
   {
     path = "file://" + path;
@@ -182,24 +184,59 @@ void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
     if (mesh)
     {
       std::size_t slash = path.find_last_of("/");
-      std::string name = path.substr(slash + 1);
+      name = path.substr(slash + 1);
       shapes::ShapeConstPtr shape(mesh);
       Eigen::Affine3d pose;
       pose.setIdentity();
       collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
 
-      //If the object already exist, create it with another name
+      //If the object already exist, ask the user whether to overwrite or rename
       if (world->hasObject(name)) {
-        std::stringstream ss;
-        ss << name << "-" << world->getObjectsCount();
-        name=ss.str();
-      }
+        QMessageBox msgBox;
+        msgBox.setText("There exists another object with the same name.");
+        msgBox.setInformativeText("Do you want to overwrite it?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::No);
+        int ret = msgBox.exec();
 
-      world->addToObject(name, shape, pose);
-      populateCollisionObjectsList();
-      planning_display_->queueRenderSceneGeometry();
+        switch (ret) {
+          case QMessageBox::Yes:
+            // Overwrite was clicked
+            world->removeObject(name);
+            addObject(world, name, shape, pose);
+            break;
+          case QMessageBox::No:
+          {
+            // Don't overwrite was clicked. Ask for another name
+            std::stringstream ss;
+            ss << name << "-" << world->getObjectsCount();
+
+            bool ok;
+            QString text = QInputDialog::getText(this, tr("Choose a new name"),
+                                                 tr("New object name:"), QLineEdit::Normal,
+                                                 QString(ss.str().c_str()), &ok);
+            if (ok && !text.isEmpty()) {
+              name=text.toStdString();
+              addObject(world, name, shape, pose);
+            }
+            break;
+          }
+          default:
+            //Pressed cancel, do nothing
+            break;
+        }
+      } else {
+        addObject(world, name, shape, pose);
+      }
     }
   }
+}
+
+void moveit_rviz_plugin::PlanningFrame::addObject(collision_detection::CollisionWorldPtr world, const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
+{
+  world->addToObject(id, shape, pose);
+  populateCollisionObjectsList();
+  planning_display_->queueRenderSceneGeometry();
 }
 
 void moveit_rviz_plugin::PlanningFrame::removeObjectButtonClicked(void)
