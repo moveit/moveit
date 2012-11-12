@@ -12,8 +12,7 @@ qt4_wrap_ui(UIC_FILES
   src/ui/moveit_rviz_plugin_frame.ui
 )
 
-# build is where the UI file outputs (ui_*.h) go.
-#include_directories(build)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Plugin Source
 set(SOURCE_FILES 
