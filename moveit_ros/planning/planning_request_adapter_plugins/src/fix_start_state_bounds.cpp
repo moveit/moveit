@@ -38,7 +38,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_state/conversions.h>
-#include <pluginlib/class_list_macros.h>
+#include <class_loader/class_loader.h>
 #include <ros/ros.h>
 
 namespace default_planner_request_adapters
@@ -244,6 +244,5 @@ const std::string FixStartStateBounds::DT_PARAM_NAME = "start_state_max_dt";
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStateBounds,
-                        default_planner_request_adapters::FixStartStateBounds,
-                        planning_request_adapter::PlanningRequestAdapter);
+CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::FixStartStateBounds,
+                            planning_request_adapter::PlanningRequestAdapter);

@@ -36,7 +36,7 @@
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <moveit/kinematic_state/conversions.h>
-#include <pluginlib/class_list_macros.h>
+#include <class_loader/class_loader.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <ros/ros.h>
 
@@ -165,6 +165,5 @@ public:
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStatePathConstraints,
-                        default_planner_request_adapters::FixStartStatePathConstraints,
-                        planning_request_adapter::PlanningRequestAdapter);
+CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::FixStartStatePathConstraints,
+                            planning_request_adapter::PlanningRequestAdapter);

@@ -36,7 +36,7 @@
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <moveit/trajectory_processing/iterative_smoother.h>
-#include <pluginlib/class_list_macros.h>
+#include <class_loader/class_loader.h>
 #include <ros/console.h>
 
 namespace default_planner_request_adapters
@@ -82,6 +82,5 @@ private:
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, AddTimeParameterization,
-                        default_planner_request_adapters::AddTimeParameterization,
-                        planning_request_adapter::PlanningRequestAdapter);
+CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::AddTimeParameterization,
+                            planning_request_adapter::PlanningRequestAdapter);
