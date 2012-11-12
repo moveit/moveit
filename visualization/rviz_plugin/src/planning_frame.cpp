@@ -190,16 +190,18 @@ void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
       pose.setIdentity();
       collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
 
-      //If the object already exist, ask the user whether to overwrite or rename
-      if (world->hasObject(name)) {
+      //If the object already exists, ask the user whether to overwrite or rename
+      if (world->hasObject(name))
+      {
         QMessageBox msgBox;
         msgBox.setText("There exists another object with the same name.");
-        msgBox.setInformativeText("Do you want to overwrite it?");
+        msgBox.setInformativeText("Would you like to overwrite it?");
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
         msgBox.setDefaultButton(QMessageBox::No);
         int ret = msgBox.exec();
 
-        switch (ret) {
+        switch (ret)
+        {
           case QMessageBox::Yes:
             // Overwrite was clicked
             world->removeObject(name);
@@ -208,16 +210,23 @@ void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
           case QMessageBox::No:
           {
             // Don't overwrite was clicked. Ask for another name
-            std::stringstream ss;
-            ss << name << "-" << world->getObjectsCount();
-
             bool ok;
             QString text = QInputDialog::getText(this, tr("Choose a new name"),
                                                  tr("New object name:"), QLineEdit::Normal,
-                                                 QString(ss.str().c_str()), &ok);
-            if (ok && !text.isEmpty()) {
-              name=text.toStdString();
-              addObject(world, name, shape, pose);
+                                                 QString::fromStdString(name + "-" + boost::lexical_cast<std::string>(world->getObjectsCount())), &ok);
+            if (ok)
+            {
+              if (!text.isEmpty())
+              {
+                name = text.toStdString();
+                if (world->hasObject(name))
+                  QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
+                                       append("' already exists. Not importing object."));
+                else
+                  addObject(world, name, shape, pose);
+              }
+              else
+                QMessageBox::warning(this, "Object not imported", "Cannot use an empty name for an imported object");
             }
             break;
           }
@@ -225,14 +234,17 @@ void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
             //Pressed cancel, do nothing
             break;
         }
-      } else {
+      }
+      else
+      {
         addObject(world, name, shape, pose);
       }
     }
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::addObject(collision_detection::CollisionWorldPtr world, const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
+void moveit_rviz_plugin::PlanningFrame::addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
+                                                  const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   world->addToObject(id, shape, pose);
   populateCollisionObjectsList();
