@@ -1599,6 +1599,3 @@ void PlanningDisplay::fixedFrameChanged(void)
 
 
 } // namespace moveit_rviz_plugin
-
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_DECLARE_CLASS( moveit_rviz_plugin, MotionPlanning, moveit_rviz_plugin::PlanningDisplay, rviz::Display )

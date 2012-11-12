@@ -36,6 +36,8 @@ include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_package(
+  LIBRARIES
+    moveit_rviz_plugin_core
   DEPENDS
     moveit_ros_planning_interface
     )

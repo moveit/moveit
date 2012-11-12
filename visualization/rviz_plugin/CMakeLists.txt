@@ -25,8 +25,13 @@ set(SOURCE_FILES
 )
 
 set(MOVEIT_LIB_NAME moveit_rviz_plugin)
-add_library(${MOVEIT_LIB_NAME} ${SOURCE_FILES} ${MOC_SOURCES} ${UIC_FILES})
-target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${OGRE_LIBRARIES} ${QT_LIBRARIES} ${Boost_LIBRARIES})
+add_library(${MOVEIT_LIB_NAME}_core ${SOURCE_FILES} ${MOC_SOURCES} ${UIC_FILES})
+target_link_libraries(${MOVEIT_LIB_NAME}_core ${catkin_LIBRARIES} ${OGRE_LIBRARIES} ${QT_LIBRARIES} ${Boost_LIBRARIES})
+
+add_library(${MOVEIT_LIB_NAME} src/plugin_init.cpp)
+target_link_libraries(${MOVEIT_LIB_NAME} ${MOVEIT_LIB_NAME}_core ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+install(TARGETS ${MOVEIT_LIB_NAME}_core LIBRARY DESTINATION lib)
+install(DIRECTORY include/ DESTINATION include)
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-install(DIRECTORY include/ DESTINATION include)
