@@ -755,20 +755,24 @@ void moveit_rviz_plugin::PlanningFrame::computeSetGoalToCurrentButtonClicked(voi
 void moveit_rviz_plugin::PlanningFrame::computeRandomStatesButtonClicked(void)
 {
   std::string group_name = planning_display_->getCurrentPlanningGroup();
-  
-  kinematic_state::KinematicStatePtr start(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
-  
-  kinematic_state::JointStateGroup *jsg = start->getJointStateGroup(group_name);
-  if (jsg)
-    jsg->setToRandomValues();
-  
-  kinematic_state::KinematicStatePtr goal(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
-  jsg = goal->getJointStateGroup(group_name);
-  if (jsg)
-    jsg->setToRandomValues();
-  
-  planning_display_->setQueryStartState(start);
-  planning_display_->setQueryGoalState(goal);
+
+  if (planning_display_->getQueryStartState())
+  {
+    kinematic_state::KinematicStatePtr start(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
+    kinematic_state::JointStateGroup *jsg = start->getJointStateGroup(group_name);
+    if (jsg)
+      jsg->setToRandomValues();
+    planning_display_->setQueryStartState(start);
+  }
+
+  if (planning_display_->getQueryGoalState())
+  {
+    kinematic_state::KinematicStatePtr goal(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
+    kinematic_state::JointStateGroup *jsg = goal->getJointStateGroup(group_name);
+    if (jsg)
+      jsg->setToRandomValues();
+    planning_display_->setQueryGoalState(goal);
+  }
 }
 
 void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
