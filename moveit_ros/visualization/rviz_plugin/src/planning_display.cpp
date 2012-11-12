@@ -842,6 +842,9 @@ static void copyItemIfExists(const std::map<std::string, double> &source, std::m
 
 void PlanningDisplay::displayMetrics(bool start)
 {    
+  if (!robot_interaction_)
+    return;
+  
   static const Ogre::Quaternion orientation( 1.0, 0.0, 0.0, 0.0 );
   const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
   
@@ -920,12 +923,15 @@ void PlanningDisplay::changedQueryStartState(void)
 
 void PlanningDisplay::publishInteractiveMarkers(void)
 {
-  robot_interaction_->clearInteractiveMarkers();
-  if (query_start_state_property_->getBool())
-    robot_interaction_->addInteractiveMarkers(*query_start_state_, 0);
-  if (query_goal_state_property_->getBool())
-    robot_interaction_->addInteractiveMarkers(*query_goal_state_, 1);
-  robot_interaction_->publishInteractiveMarkers();
+  if (robot_interaction_)
+  {
+    robot_interaction_->clearInteractiveMarkers();
+    if (query_start_state_property_->getBool())
+      robot_interaction_->addInteractiveMarkers(*query_start_state_, 0);
+    if (query_goal_state_property_->getBool())
+      robot_interaction_->addInteractiveMarkers(*query_goal_state_, 1);
+    robot_interaction_->publishInteractiveMarkers();
+  }
 }
 
 void PlanningDisplay::changedQueryStartColor(void)
@@ -1028,7 +1034,8 @@ void PlanningDisplay::updateLinkColors(void)
 
 void PlanningDisplay::changedPlanningGroup(void)
 {
-  robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
+  if (robot_interaction_)
+    robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
   computeMetrics(metrics_set_payload_property_->getFloat());
   updateLinkColors();
   addBackgroundJob(boost::bind(&PlanningDisplay::publishInteractiveMarkers, this));
@@ -1192,7 +1199,7 @@ void PlanningDisplay::loadRobotModel(void)
   robot_interaction_.reset();
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
                                                                                  context_->getFrameManager()->getTFClientPtr()));
-  if (planning_scene_monitor_->getPlanningScene())
+  if (planning_scene_monitor_->getPlanningScene() && planning_scene_monitor_->getPlanningScene()->isConfigured())
   {   
     robot_interaction::RobotInteraction::InteractionHandlerPtr ihandler(new RvizRobotInteractionHandler(this, context_));
     robot_interaction_.reset(new robot_interaction::RobotInteraction(planning_scene_monitor_->getKinematicModel(), ihandler));
