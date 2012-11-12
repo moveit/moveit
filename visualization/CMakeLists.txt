@@ -26,6 +26,7 @@ find_package(catkin COMPONENTS
   eigen_conversions
   geometric_shapes
   interactive_markers
+  class_loader
   rviz
   tf
   roscpp

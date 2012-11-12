@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <pluginlib/class_list_macros.h>
+#include <class_loader/class_loader.h>
 #include <ros/ros.h>
 
 namespace default_planner_request_adapters
@@ -93,6 +93,5 @@ const std::string FixWorkspaceBounds::WBOUNDS_PARAM_NAME = "default_workspace_bo
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixWorkspaceBounds,
-                        default_planner_request_adapters::FixWorkspaceBounds,
-                        planning_request_adapter::PlanningRequestAdapter);
+CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::FixWorkspaceBounds,
+                            planning_request_adapter::PlanningRequestAdapter);

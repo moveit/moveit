@@ -29,7 +29,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit_rviz_plugin/planning_display.h>
-#include <pluginlib/class_list_macros.h>
+#include <class_loader/class_loader.h> 
+#include <moveit/rviz_plugin/planning_display.h>
 
-PLUGINLIB_DECLARE_CLASS( moveit_rviz_plugin, MotionPlanning, moveit_rviz_plugin::PlanningDisplay, rviz::Display )
+CLASS_LOADER_REGISTER_CLASS( rviz_plugin::PlanningDisplay, rviz::Display )
