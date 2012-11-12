@@ -106,7 +106,13 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                               const boost::shared_ptr<const srdf::Model> &srdf_model,
                                               const std::string &root_link)
-{ 
+{   
+  if (!urdf_model || !srdf_model)
+  {
+    configured_ = false;
+    return false;
+  }
+
   if (!parent_)
   {
     bool same = configured_ && kmodel_->getURDF() == urdf_model && kmodel_->getSRDF() == srdf_model;
@@ -139,6 +145,12 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
                                               const boost::shared_ptr<const srdf::Model> &srdf_model,
                                               const kinematic_model::KinematicModelPtr &kmodel)
 {
+  if (!urdf_model || !srdf_model || (!kmodel && !parent_))
+  {
+    configured_ = false;
+    return false;
+  }
+  
   if (!parent_)
   {
     // nothing other than perhaps the root link has changed since the last call to configure()
