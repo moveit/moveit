@@ -216,7 +216,7 @@ void kinematic_model::PlanarJointModel::computeJointStateValues(const Eigen::Aff
   }
 }
 
-std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::PlanarJointModel::getVariableLimits(void) const
+std::vector<moveit_msgs::JointLimits> kinematic_model::PlanarJointModel::getVariableLimits(void) const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getVariableLimits();
   ret_vec[2].has_position_limits = false;
