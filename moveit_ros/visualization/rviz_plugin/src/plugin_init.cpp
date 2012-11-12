@@ -32,4 +32,4 @@
 #include <class_loader/class_loader.h> 
 #include <moveit/rviz_plugin/planning_display.h>
 
-CLASS_LOADER_REGISTER_CLASS( rviz_plugin::PlanningDisplay, rviz::Display )
+CLASS_LOADER_REGISTER_CLASS( moveit_rviz_plugin::PlanningDisplay, rviz::Display )
