@@ -36,6 +36,22 @@ include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_package(
+  INCLUDE_DIRS
+    kinematics_base/include
+    kinematic_model/include
+    kinematic_state/include
+    collision_detection/include
+    collision_detection_fcl/include
+    kinematic_constraints/include
+    planning_scene/include
+    constraint_samplers/include
+    planning_interface/include
+    planning_request_adapter/include
+    trajectory_processing/include
+    distance_field/include
+    collision_distance_field/include
+    kinematics_metrics/include
+    dynamics_solver/include
   LIBRARIES
     moveit_kinematic_model
     moveit_kinematic_state
