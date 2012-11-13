@@ -1,2 +1,0 @@
-install(DIRECTORY src/moveit_commander DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
-install(PROGRAMS scripts/moveit_commander_cmdline.py DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
