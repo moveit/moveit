@@ -305,6 +305,11 @@ void moveit_rviz_plugin::PlanningFrame::addObject(const collision_detection::Col
 {
   world->addToObject(id, shape, pose);
   populateCollisionObjectsList();
+
+  //Automatically select the inserted object so that its IM is displayed
+  if (ui_->collision_objects_list->findItems(QString(id.c_str()), Qt::MatchExactly).size()>0)
+    ui_->collision_objects_list->setItemSelected(ui_->collision_objects_list->findItems(QString(id.c_str()), Qt::MatchExactly)[0], true);
+
   planning_display_->queueRenderSceneGeometry();
 }
 
