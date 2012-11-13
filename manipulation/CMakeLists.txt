@@ -7,6 +7,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS
   moveit_core
+  moveit_msgs
+  moveit_manipulation_msgs
   moveit_ros_planning
   moveit_ros_warehouse
   roscpp
@@ -21,6 +23,8 @@ catkin_package(
   LIBRARIES  
   DEPENDS
     moveit_core
+    moveit_msgs
+    moveit_manipulation_msgs
     moveit_ros_planning
     moveit_ros_warehouse)
 
