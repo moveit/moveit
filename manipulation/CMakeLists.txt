@@ -6,6 +6,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS
+  moveit_core
   moveit_ros_planning
   moveit_ros_warehouse
   roscpp
@@ -19,7 +20,10 @@ link_directories(${catkin_LIBRARY_DIRS})
 catkin_package(
   LIBRARIES  
   DEPENDS
+    moveit_core
     moveit_ros_planning
     moveit_ros_warehouse)
 
-# add subdirectories ...
+include_directories(pick_place_planner/include)
+
+add_subdirectory(pick_place_planner)

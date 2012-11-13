@@ -40,9 +40,10 @@
 
 // System
 #include <boost/shared_ptr.hpp>
+#include <ros/ros.h>
 
 // ROS msgs
-#include <planning_models/kinematic_model.h>
+#include <moveit/kinematic_model/kinematic_model.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
 
 namespace pick_place_planner
@@ -53,7 +54,7 @@ class ManipulationGroup
 
 public:
   
-  ManipulationGroup(const planning_models::KinematicModelConstPtr &kinematic_model,
+  ManipulationGroup(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                     const std::string &group_name);
 
   moveit_msgs::AttachedCollisionObject getAttachedBodyMsg(const std::string &body_name, const std::string &arm_name) const;
@@ -74,7 +75,7 @@ private:
 
   std::vector<std::string> end_effector_link_names_;
   
-  planning_models::KinematicModelConstPtr kinematic_model_;  
+  kinematic_model::KinematicModelConstPtr kinematic_model_;
 
 };
 

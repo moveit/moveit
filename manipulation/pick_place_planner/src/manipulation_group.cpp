@@ -40,7 +40,7 @@
 namespace pick_place_planner
 {
 
-ManipulationGroup::ManipulationGroup(const planning_models::KinematicModelConstPtr &kinematic_model,
+ManipulationGroup::ManipulationGroup(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                                      const std::string &group_name)
 {
   group_name_ = group_name;
