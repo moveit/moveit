@@ -36,7 +36,7 @@
 *********************************************************************/
 
 #include <pick_place_planner/pick_place_planner.h>
-#include <collision_detection/collision_matrix.h>
+#include <moveit/collision_detection/collision_matrix.h>
 #include <moveit_manipulation_msgs/PickupGoal.h>
 #include <moveit_manipulation_msgs/PlaceGoal.h>
 
@@ -44,7 +44,7 @@ namespace pick_place_planner
 {
 
 PickPlacePlanner::PickPlacePlanner(
-    const planning_models::KinematicModelConstPtr& kinematic_model,
+    const kinematic_model::KinematicModelConstPtr& kinematic_model,
     const std::string &freespace_planning_plugin_name,
     const std::string &contact_planning_plugin_name)
 {
@@ -176,7 +176,7 @@ void PickPlacePlanner::PickGoal::computeGoalsForGrasp(unsigned int grasp_i)
   for(unsigned int i=0; i < group_names_.size(); ++i)
   {
     Eigen::Affine3d grasp_pose;
-    planning_models::poseFromMsg(grasps_[grasp_i].grasp_poses[i], grasp_pose);
+    kinematic_model::poseFromMsg(grasps_[grasp_i].grasp_poses[i], grasp_pose);
     planning_scene_->getTransforms()->transformPose(planning_scene_->getCurrentState(),
                                                     reference_frame_id_,
                                                     grasp_pose,

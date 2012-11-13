@@ -1,1 +1,0 @@
-DatabaseModelPose[] model_list

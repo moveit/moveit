@@ -40,10 +40,11 @@
 
 // System
 #include <boost/shared_ptr.hpp>
+#include <ros/ros.h>
 
 #include <pick_place_planner/manipulation_group.h>
-#include <planning_scene/planning_scene.h>
-#include <planning_pipeline/planning_pipeline.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 
 
 // ROS msgs
@@ -140,7 +141,7 @@ class PickPlacePlanner
   };
   
     
-  PickPlacePlanner(const planning_models::KinematicModelConstPtr &kinematic_model_,
+  PickPlacePlanner(const kinematic_model::KinematicModelConstPtr &kinematic_model_,
                    const std::string &freespace_planning_plugin_name,
                    const std::string &contact_planning_plugin_name);
 
@@ -162,7 +163,7 @@ class PickPlacePlanner
                                     Plan &plan);
 
 private:
-  planning_models::KinematicModelConstPtr kinematic_model_;
+  kinematic_model::KinematicModelConstPtr kinematic_model_;
   
   std::string freespace_planner_;
   boost::shared_ptr<planning_pipeline::PlanningPipeline> freespace_planning_pipeline_;
