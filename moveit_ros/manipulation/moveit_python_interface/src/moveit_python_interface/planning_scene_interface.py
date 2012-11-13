@@ -67,12 +67,20 @@ import _planning_scene
 
 class PlanningScene:
     @staticmethod
-    def add_simple_object(id_name, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions):
-        _planning_scene.add_simple_object(id_name, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
+    def add_simple_object(id_name, frame_id, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions):
+        _planning_scene.add_simple_object(id_name, frame_id, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
 
     @staticmethod
-    def remove_simple_object(id_name):
-        _planning_scene.remove_simple_object(id_name)
+    def remove_simple_object(id_name, frame_id):
+        _planning_scene.remove_simple_object(id_name, frame_id)
+
+    @staticmethod
+    def attach_simple_object_to_gripper(id_name, frame_id, type_name, link_name, touch_links, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions):
+        _planning_scene.attach_simple_object_to_gripper(id_name, frame_id, type_name, link_name, touch_links, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
+
+    @staticmethod
+    def remove_simple_attached_object(id_name, frame_id, link_name):
+        _planning_scene.remove_simple_attached_object(id_name, frame_id, link_name)
 
 
     #def add_simple_object(self, filepath):
