@@ -215,7 +215,7 @@ void PointCloudOccupancyMapUpdater::processCloud(const OccMapTreePtr &tree, cons
         if(range < max_range_)
         {
           octomap::OcTreeKey key;
-          if (tree->genKey(point, key))
+          if (tree->coordToKeyChecked(point, key))
             occupied_cells.insert(key);
         }
       }
