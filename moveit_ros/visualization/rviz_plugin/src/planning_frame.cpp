@@ -323,6 +323,8 @@ void moveit_rviz_plugin::PlanningFrame::removeObjectButtonClicked(void)
     collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
     for (int i = 0 ; i < sel.count() ; ++i)
       world->removeObject(sel[i]->text().toStdString());
+    delete scene_marker_;
+    scene_marker_=NULL;
     populateCollisionObjectsList();
     planning_display_->queueRenderSceneGeometry(); 
   }
