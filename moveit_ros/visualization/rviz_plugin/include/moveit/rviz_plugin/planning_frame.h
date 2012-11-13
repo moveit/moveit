@@ -91,7 +91,7 @@ protected:
   boost::shared_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
 
-  rviz::InteractiveMarker* scene_marker_;
+  boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
 
 private Q_SLOTS:
 
