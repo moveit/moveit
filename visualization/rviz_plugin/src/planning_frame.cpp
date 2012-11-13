@@ -49,8 +49,7 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   QWidget(parent),
   planning_display_(pdisplay),
   context_(context),
-  ui_(new Ui::MotionPlanningFrame()),
-  scene_marker_(NULL)
+  ui_(new Ui::MotionPlanningFrame())
 {
   // set up the GUI
   ui_->setupUi(this);
@@ -193,14 +192,15 @@ void  moveit_rviz_plugin::PlanningFrame::imProcessFeedback(
   ui_->object_rz->setValue(yaw);
 }
 
-void moveit_rviz_plugin::PlanningFrame::createSceneInteractiveMarker() {
+void moveit_rviz_plugin::PlanningFrame::createSceneInteractiveMarker()
+{
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
       return;
 
   collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
   collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
-  if (scene_marker_==NULL && obj && obj->shapes_.size() == 1)
+  if (!scene_marker_ && obj && obj->shapes_.size() == 1)
   {
     Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
     geometry_msgs::PoseStamped shape_pose;
@@ -222,7 +222,7 @@ void moveit_rviz_plugin::PlanningFrame::createSceneInteractiveMarker() {
     interactive_markers::autoComplete(int_marker);
     imarker->processMessage(int_marker);
     imarker->setShowAxes(false);
-    scene_marker_=imarker;
+    scene_marker_.reset(imarker);
 
     //Connect signals
     connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
@@ -323,8 +323,7 @@ void moveit_rviz_plugin::PlanningFrame::removeObjectButtonClicked(void)
     collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
     for (int i = 0 ; i < sel.count() ; ++i)
       world->removeObject(sel[i]->text().toStdString());
-    delete scene_marker_;
-    scene_marker_=NULL;
+    scene_marker_.reset();
     populateCollisionObjectsList();
     planning_display_->queueRenderSceneGeometry(); 
   }
@@ -376,7 +375,8 @@ void moveit_rviz_plugin::PlanningFrame::selectedCollisionObjectChanged(void)
         ui_->object_rz->setValue(xyz[2]);
 
         if (!scene_marker_) createSceneInteractiveMarker();
-        if (scene_marker_) {
+        if (scene_marker_)
+        {
           Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
           //Update the IM pose to match the current selected object
           scene_marker_->setPose(Ogre::Vector3(obj->shape_poses_[0].translation()[0], obj->shape_poses_[0].translation()[1], obj->shape_poses_[0].translation()[2]),
@@ -422,7 +422,8 @@ void moveit_rviz_plugin::PlanningFrame::objectPoseValueChanged(double value)
       planning_display_->queueRenderSceneGeometry(); 
 
       //Update the interactive marker pose to match the manually introduced one
-      if (scene_marker_) {
+      if (scene_marker_)
+      {
         Eigen::Quaterniond eq(p.rotation());
         scene_marker_->setPose(Ogre::Vector3(ui_->object_x->value(), ui_->object_y->value(), ui_->object_z->value()),
                                Ogre::Quaternion(eq.w(), eq.x(), eq.y(), eq.z()), "");
@@ -565,12 +566,10 @@ void moveit_rviz_plugin::PlanningFrame::pathConstraintsIndexChanged(int index)
 
 void moveit_rviz_plugin::PlanningFrame::tabChanged(int index)
 {
-  if(scene_marker_!=NULL && index!=3) {
-    delete scene_marker_;
-    scene_marker_=NULL;
-  } else if (index==3){
+  if(scene_marker_ && index!=3)
+    scene_marker_.reset();
+  else if (index==3)
     createSceneInteractiveMarker();
-  }
 }
 
 void moveit_rviz_plugin::PlanningFrame::planningAlgorithmIndexChanged(int index)
@@ -766,7 +765,7 @@ void moveit_rviz_plugin::PlanningFrame::configureForPlanning(void)
 
 void moveit_rviz_plugin::PlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
 {
-  if (scene_marker_!=NULL)
+  if (scene_marker_)
     scene_marker_->update(wall_dt);
 }
 
