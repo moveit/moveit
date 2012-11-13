@@ -42,4 +42,4 @@ include_directories(move_group_interface/include)
 add_subdirectory(py_bindings_tools)
 add_subdirectory(robot_interaction)
 add_subdirectory(move_group_interface)
-add_subdirectory(moveit_commander)
+
