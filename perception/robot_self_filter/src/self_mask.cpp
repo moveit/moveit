@@ -39,16 +39,6 @@
 #include <sstream>
 #include <climits>
 
-#if defined(IS_ASSIMP3)
-#include <assimp/scene.h>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#else
-#include <assimp/aiScene.h>
-#include <assimp/assimp.hpp>
-#include <assimp/aiPostProcess.h>
-#endif
-
 void robot_self_filter::SelfMask::freeMemory (void)
 {
   for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
