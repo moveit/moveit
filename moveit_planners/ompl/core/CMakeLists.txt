@@ -21,6 +21,8 @@ link_directories(${catkin_LIBRARY_DIRS})
 catkin_package(
   LIBRARIES
     moveit_ompl_interface
+  INCLUDE_DIRS
+    ompl_interface/include
   DEPENDS
     moveit_core
   CFG_EXTRAS
