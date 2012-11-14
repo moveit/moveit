@@ -66,15 +66,20 @@ catkin_package(
     moveit_collision_distance_field
     moveit_kinematics_metrics
     moveit_dynamics_solver
-  DEPENDS
-    Boost Eigen
+  CATKIN_DEPENDS
     geometric_shapes
     shape_tools
     eigen_stl_containers
     eigen_conversions
     random_numbers
     console_bridge
-    moveit_msgs)
+    moveit_msgs
+    srdfdom
+  DEPENDS
+    Boost
+    Eigen
+    urdfdom
+    )
 
 include_directories(kinematics_base/include)
 include_directories(kinematic_model/include)
