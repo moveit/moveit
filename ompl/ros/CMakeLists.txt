@@ -21,6 +21,9 @@ link_directories(${catkin_LIBRARY_DIRS})
 catkin_package(
   LIBRARIES
     moveit_ompl_interface_ros
+  INCLUDE_DIRS
+    cfg/cpp
+    ompl_interface_ros/include
   DEPENDS 
     moveit_ompl_planners_core
     moveit_ros_planning
