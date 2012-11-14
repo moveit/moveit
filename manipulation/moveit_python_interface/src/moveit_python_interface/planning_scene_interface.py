@@ -61,26 +61,26 @@ from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJo
 #from pr2_python.exceptions import ArmNavError, ActionFailedError
 
 roslib.load_manifest('move_group_interface')
-import _planning_scene
+from _planning_scene_interface import PlanningSceneInterface
 
 #DEFAULT_PLANNER_SERVICE_NAME = 'ompl_planning/plan_kinematic_path'
 
 class PlanningScene:
     @staticmethod
     def add_simple_object(id_name, frame_id, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions):
-        _planning_scene.add_simple_object(id_name, frame_id, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
+        PlanningSceneInterface.add_simple_object(id_name, frame_id, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
 
     @staticmethod
     def remove_simple_object(id_name, frame_id):
-        _planning_scene.remove_simple_object(id_name, frame_id)
+        PlanningSceneInterface.remove_simple_object(id_name, frame_id)
 
     @staticmethod
-    def attach_simple_object_to_gripper(id_name, frame_id, type_name, link_name, touch_links, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions):
-        _planning_scene.attach_simple_object_to_gripper(id_name, frame_id, type_name, link_name, touch_links, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
+    def attach_simple_collision_object(id_name, frame_id, type_name, link_name, touch_links, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions):
+        PlanningSceneInterface.attach_simple_collision_object(id_name, frame_id, type_name, link_name, touch_links, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
 
     @staticmethod
     def remove_simple_attached_object(id_name, frame_id, link_name):
-        _planning_scene.remove_simple_attached_object(id_name, frame_id, link_name)
+        PlanningSceneInterface.remove_simple_attached_object(id_name, frame_id, link_name)
 
 
     #def add_simple_object(self, filepath):
