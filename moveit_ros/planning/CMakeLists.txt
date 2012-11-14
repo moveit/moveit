@@ -36,7 +36,6 @@ catkin_package(
     moveit_plan_execution
     moveit_planning_scene_monitor
   INCLUDE_DIRS
-    cfg/cpp
     robot_model_loader/include
     kinematics_plugin_loader/include
     planning_models_loader/include
