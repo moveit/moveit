@@ -30,6 +30,10 @@ catkin_package(
   LIBRARIES  
     moveit_robot_interaction
     moveit_move_group_interface
+  INCLUDE_DIRS
+    py_bindings_tools/include
+    robot_interaction/include
+    move_group_interface/include
   DEPENDS
     moveit_ros_planning
     moveit_ros_warehouse
