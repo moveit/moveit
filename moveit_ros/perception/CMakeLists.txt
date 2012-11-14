@@ -26,6 +26,9 @@ catkin_package(
   LIBRARIES  
     moveit_robot_self_filter
     moveit_occupancy_map_monitor
+  INCLUDE_DIRS
+    robot_self_filter/include
+    occupancy_map_monitor/include
   DEPENDS
     moveit_core)
 

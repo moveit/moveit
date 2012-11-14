@@ -35,9 +35,21 @@ catkin_package(
     moveit_trajectory_execution_manager
     moveit_plan_execution
     moveit_planning_scene_monitor
+  INCLUDE_DIRS
+    cfg/cpp
+    robot_model_loader/include
+    kinematics_plugin_loader/include
+    planning_models_loader/include
+    controller_manager/include
+    sensor_manager/include
+    planning_pipeline/include
+    planning_scene_monitor/include
+    trajectory_execution_manager/include
+    plan_execution/include
   DEPENDS
     pluginlib
-    moveit_core)
+    moveit_core
+    moveit_ros_perception)
 
 generate_dynamic_reconfigure_options("planning_scene_monitor/cfg/PublishSceneDR.cfg")
 generate_dynamic_reconfigure_options("plan_execution/cfg/PlanExecutionParamsDR.cfg")
