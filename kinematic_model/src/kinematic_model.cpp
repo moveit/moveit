@@ -782,9 +782,9 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointMode
       result->variable_index_[result->variable_names_[i]] = i;
     result->setDistanceFactor(result->getStateSpaceDimension());
 
-    const std::vector<std::string> &pjoints = srdf_model.getPassiveJoints();
+    const std::vector<srdf::Model::PassiveJoint> &pjoints = srdf_model.getPassiveJoints();
     for (std::size_t i = 0 ; i < pjoints.size() ; ++i)
-      if (result->getName() == pjoints[i])
+      if (result->getName() == pjoints[i].name_)
       {
         result->passive_ = true;
         break;
