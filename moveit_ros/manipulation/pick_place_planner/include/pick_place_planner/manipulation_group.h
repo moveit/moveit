@@ -40,7 +40,6 @@
 
 // System
 #include <boost/shared_ptr.hpp>
-#include <ros/ros.h>
 
 // ROS msgs
 #include <moveit/kinematic_model/kinematic_model.h>
@@ -57,24 +56,24 @@ public:
   ManipulationGroup(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                     const std::string &group_name);
 
-  moveit_msgs::AttachedCollisionObject getAttachedBodyMsg(const std::string &body_name, const std::string &arm_name) const;
+  moveit_msgs::AttachedCollisionObject getAttachedBodyMsg(const std::string &body_name, const std::string &end_effector_name) const;
 
   moveit_msgs::AttachedCollisionObject getAttachedBodyMsg(const std::string &body_name) const;
+
+  const std::string &getGroupName(void) const
+    {return group_name_;}
+
+  const std::vector<std::string> &getEndEffectorNames(void) const
+    {return end_effector_names_;}
   
 private:  
 
+  /* group used for planning (all joints in this group will be used for planning) */
   std::string group_name_;
-  
-  std::vector<std::string> arm_names_;
-  
-  std::map<std::string, std::vector<std::string> > arm_link_names_map_;
 
-  std::map<std::string,std::string> end_effector_names_map_;
+  /* end effectors which are part of this group or its subgroups */
+  std::vector<std::string> end_effector_names_;
 
-  std::map<std::string, std::vector<std::string> > end_effector_link_names_map_;
-
-  std::vector<std::string> end_effector_link_names_;
-  
   kinematic_model::KinematicModelConstPtr kinematic_model_;
 
 };
