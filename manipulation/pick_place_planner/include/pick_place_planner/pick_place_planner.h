@@ -40,7 +40,6 @@
 
 // System
 #include <boost/shared_ptr.hpp>
-#include <ros/ros.h>
 
 #include <pick_place_planner/manipulation_group.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -90,11 +89,11 @@ class PickPlacePlanner
     void initializeForPlace(const moveit_manipulation_msgs::PlaceGoal &place_goal,
                        const planning_scene::PlanningSceneConstPtr &planning_scene);
 
-    std::map<std::string,std::vector<moveit_msgs::RobotTrajectory> > robot_trajectories_;
+    std::vector<moveit_msgs::RobotTrajectory>robot_trajectories_;
 
-    std::map<std::string,std::vector<TrajectoryType> > trajectory_types_;
+    std::vector<TrajectoryType> trajectory_types_;
     
-    std::map<std::string,std::vector<ControlMode> > control_modes_;
+    std::vector<ControlMode> control_modes_;
     
     bool success_;    
   };
@@ -119,24 +118,38 @@ class PickPlacePlanner
 
     /* total number of grasps. each of the following vectors should have this size */
     unsigned int num_grasps_;
-    
-    /* grasp pose for each grasp */
-    std::vector<std::vector<Eigen::Affine3d> > grasp_pose_;
 
-    /* pre-grasp pose for each grasp */
+    /* transform from grasp pose to lift pose */
+    Eigen::Affine3d lift_transform_;
+
+    std::string reference_frame_id_;
+
+    planning_scene::PlanningScenePtr planning_scene_diff_;
+    planning_scene::PlanningScenePtr attached_object_diff_;
+    collision_detection::AllowedCollisionMatrix grasp_acm_;
+    collision_detection::AllowedCollisionMatrix lift_acm_;
+    bool allow_gripper_support_collision_;
+
+    /* for each grasp, map of poses for each end effector */
+    std::vector<std::map<std::string, Eigen::Affine3d> > grasp_pose_;
+
+    /* for each pre-grasp, map of poses for each end effector */
     std::vector<std::vector<Eigen::Affine3d> > pre_grasp_pose_;
 
-    /* lift pose for each grasp */
+    /* for each lift, map of poses for each end effector */
     std::vector<std::vector<Eigen::Affine3d> > lift_pose_;
 
-    /* grasp posture for each grasp */
+    /* for each grasp, map of postures (joint-states) for each end effector */
     std::vector<std::map<std::string, std::vector<double> > > grasp_posture_;
 
-    /* pre-grasp posture for each grasp */
+    /* for each grasp, map of postures (joint-states) for each end effector */
     std::vector<std::map<std::string, std::vector<double> > > pre_grasp_posture_;
     
     /* original pickup goal */
     moveit_manipulation_msgs::PickupGoal pickup_goal_;
+
+    planning_scene::PlanningSceneConstPtr planning_scene_;
+    pick_place_planner::ManipulationGroupConstPtr manipulation_group_;
         
   };
   
@@ -144,6 +157,9 @@ class PickPlacePlanner
   PickPlacePlanner(const kinematic_model::KinematicModelConstPtr &kinematic_model_,
                    const std::string &freespace_planning_plugin_name,
                    const std::string &contact_planning_plugin_name);
+
+  /* add a manipulation group that can be used by the planner */
+  bool addManipulationGroup(const std::string &arm_name, const std::string &end_effector_name);
 
   virtual bool planPick(const moveit_manipulation_msgs::PickupGoal &pickup_goal,
                         const planning_scene::PlanningSceneConstPtr &planning_scene,
@@ -155,12 +171,9 @@ class PickPlacePlanner
                          std::vector<PickPlacePlanner::Plan> &place_plans,
                          bool return_on_first_solution) const;
 
-  /* check whether a valid IK exists for the pre-grasp, grasp, and lift poses */
-  virtual void checkPoses(int grasp_i);
-
   bool checkPoses(PickGoal &pick_goal,
-                                    unsigned int index,
-                                    Plan &plan);
+                  unsigned int index,
+                  Plan &plan);
 
 private:
   kinematic_model::KinematicModelConstPtr kinematic_model_;
