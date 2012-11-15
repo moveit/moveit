@@ -120,12 +120,12 @@ public:
 
   const kinematic_state::KinematicStatePtr& getQueryStartState(void) const
   {
-    return query_start_state_;
+    return query_start_state_->getState();
   }
 
   const kinematic_state::KinematicStatePtr& getQueryGoalState(void) const
   {
-    return query_goal_state_;
+    return query_goal_state_->getState();
   }
 
   void setQueryStartState(const kinematic_state::KinematicStatePtr &start);
@@ -185,10 +185,7 @@ private Q_SLOTS:
   void changedWorkspace();
   
 protected:
-  // ******************************************************************************************
-  // Protected
-  // ******************************************************************************************
-  
+
   /**
    * \brief Loads a URDF from our #description_param_
    */
@@ -213,19 +210,26 @@ protected:
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name);
   void unsetAllColors(rviz::Robot* robot);
   void displayTable(const std::map<std::string, double> &values,
-                    const Ogre::ColourValue &color, const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
+                    const Ogre::ColourValue &color,
+                    const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
   void displayMetrics(bool start);
   void updateLinkColors(void);
   void executeMainLoopJobs(void);
   void clearTrajectoryTrail();  
+  void publishInteractiveMarkers(void);
+  void updateQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+  void updateQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+
   const dynamics_solver::DynamicsSolverPtr& getDynamicsSolver(const std::string &group);
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void);
+  const planning_scene::PlanningScenePtr& getPlanningScene(void);
+  
   void computeMetrics(double payload);
   void computeMetrics(bool start, const std::string &group, double payload);
-  void computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &eef,
+  void computeMetricsInternal(std::map<std::string, double> &metrics,
+                              const robot_interaction::RobotInteraction::EndEffector &eef,
                               const kinematic_state::KinematicState &state, double payload);
   float getStateDisplayTime(void);
-  
-  void publishInteractiveMarkers(void);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -260,19 +264,17 @@ protected:
   // render the workspace box
   boost::scoped_ptr<rviz::Shape> workspace_box_;
   
-  // robot interaction
-  boost::scoped_ptr<robot_interaction::RobotInteraction> robot_interaction_;
-
   rviz::MovableText *text_to_display_;
-  rviz::CollObjectHandle text_coll_object_;
     
   // the planning frame
   PlanningFrame *frame_;
   QDockWidget *frame_dock_;
   bool show_planning_frame_;
   
-  kinematic_state::KinematicStatePtr query_start_state_;
-  kinematic_state::KinematicStatePtr query_goal_state_;
+  // robot interaction
+  robot_interaction::RobotInteractionPtr robot_interaction_;
+  robot_interaction::RobotInteraction::InteractionHandlerPtr query_start_state_;
+  robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
   std::vector<std::string> collision_links_start_;
   std::vector<std::string> collision_links_goal_;
 
