@@ -35,16 +35,19 @@
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 
+#ifndef Q_MOC_RUN
 #include <moveit/rviz_plugin/background_processing.h>
 #include <moveit/rviz_plugin/planning_frame.h>
 #include <moveit/rviz_plugin/planning_scene_render.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 
-#include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/kinematics_metrics/kinematics_metrics.h>
 #include <moveit/dynamics_solver/dynamics_solver.h>
 #include <ros/ros.h>
+#endif
+
+#include <moveit_msgs/DisplayTrajectory.h>
 #include <QDockWidget>
 
 namespace Ogre
@@ -69,10 +72,6 @@ class MovableText;
 namespace moveit_rviz_plugin
 {
 
-/**
- * \class PlanningDisplay
- * \brief
- */
 class PlanningDisplay : public rviz::Display
 {
   Q_OBJECT
