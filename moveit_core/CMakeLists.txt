@@ -67,6 +67,7 @@ catkin_package(
     moveit_collision_distance_field
     moveit_kinematics_metrics
     moveit_dynamics_solver
+    moveit_kinematics_planner
   CATKIN_DEPENDS
     geometric_shapes
     shape_tools
