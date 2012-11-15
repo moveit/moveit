@@ -182,12 +182,6 @@ bool ConfigurationFilesWidget::checkDependencies()
     dependencies << "No self-collisions have been disabled";
   }
 
-  // Check that there is at least 1 robot pose
-  if( ! config_data_->srdf_->group_states_.size() )
-  {
-    dependencies << "No robot poses have been added";
-  }
-
   // Check that there is at least 1 end effector added
   if( ! config_data_->srdf_->end_effectors_.size() )
   {

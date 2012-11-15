@@ -138,7 +138,14 @@ public:
    * @param root  - TinyXML root element to attach sub elements to
    */
   void createVirtualJointsXML( TiXmlElement *root );
-
+  
+  /** 
+   * Generate XML for SRDF passive joints
+   * 
+   * @param root  - TinyXML root element to attach sub elements to
+   */
+  void createPassiveJointsXML( TiXmlElement *root );
+  
   // ******************************************************************************************
   // Group Datastructures
   // ******************************************************************************************
@@ -148,9 +155,10 @@ public:
   std::vector<srdf::Model::VirtualJoint>      virtual_joints_;
   std::vector<srdf::Model::EndEffector>       end_effectors_;
   std::vector<srdf::Model::DisabledCollision> disabled_collisions_;
+  std::vector<srdf::Model::PassiveJoint>      passive_joints_;
 
   // Store the SRDF Model for updating the kinematic_model
-  boost::shared_ptr<srdf::Model> srdf_model_;
+  boost::shared_ptr<srdf::Model>              srdf_model_;
 
   // Robot name
   std::string robot_name_;

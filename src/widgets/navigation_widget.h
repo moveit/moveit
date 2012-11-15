@@ -57,10 +57,10 @@ namespace moveit_setup_assistant
 class NavigationWidget : public QListView
 {
   Q_OBJECT
-  public:
+public:
   explicit NavigationWidget(QWidget *parent = 0);
 
-  void setNavs(QList<QString> &navs);
+  void setNavs(const QList<QString> &navs);
   void setEnabled( const int &index, bool enabled );
   void setSelected( const int &index );
 

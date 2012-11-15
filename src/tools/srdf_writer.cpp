@@ -74,6 +74,7 @@ bool SRDFWriter::initString( const urdf::ModelInterface &robot_model, const std:
   virtual_joints_ = srdf_model_->getVirtualJoints();
   end_effectors_ = srdf_model_->getEndEffectors();
   group_states_ = srdf_model_->getGroupStates();
+  passive_joints_ = srdf_model_->getPassiveJoints();
 
   // Copy the robot name b/c the root xml element requires this attribute
   robot_name_ = robot_model.getName();
@@ -155,6 +156,9 @@ TiXmlDocument SRDFWriter::generateSRDF()
 
   // Add Virtual Joints
   createVirtualJointsXML( robot_root );  
+
+  // Add Passive Joints
+  createPassiveJointsXML( robot_root );  
 
   // Add Disabled Collisions
   createDisabledCollisionsXML( robot_root );
@@ -346,6 +350,24 @@ void SRDFWriter::createVirtualJointsXML( TiXmlElement *root )
     virtual_joint->SetAttribute("child_link", virtual_it->child_link_ );
 
     root->LinkEndChild( virtual_joint );
+  }
+}
+
+void SRDFWriter::createPassiveJointsXML( TiXmlElement *root )
+{
+  if ( passive_joints_.size() )
+  {
+    TiXmlComment *comment = new TiXmlComment();
+    comment->SetValue( "PASSIVE JOINT: Purpose: this element is used to mark joints that are not actuated" );
+    root->LinkEndChild( comment );  
+  }
+  for ( std::vector<srdf::Model::PassiveJoint>::const_iterator p_it = passive_joints_.begin();
+        p_it != passive_joints_.end() ; ++p_it)
+  {
+    // Create new element for each link pair
+    TiXmlElement *p_joint = new TiXmlElement("passive_joint");
+    p_joint->SetAttribute("name", p_it->name_ );
+    root->LinkEndChild( p_joint );
   }
 }
 

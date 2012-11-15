@@ -34,95 +34,56 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PASSIVE_JOINTS_WIDGET_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PASSIVE_JOINTS_WIDGET_
 
+// Qt
 #include <QWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
 #include <QTableWidget>
+#include <QStackedLayout>
+#include <QString>
+#include <QComboBox>
+// SA
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include "header_widget.h"
+#include "double_list_widget.h"
+#include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {
 
-class DoubleListWidget : public QWidget
+class PassiveJointsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-// ******************************************************************************************
-// Reusable double list widget for selecting and deselecting a subset from a set
-// ******************************************************************************************
-public:
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  /// Constructor
-  DoubleListWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data, 
-                    QString long_name, QString short_name , bool add_ok_cancel = true );
+  PassiveJointsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
-  /// Loads the availble data list
-  void setAvailable( const std::vector<std::string> &items );
+  /// Recieved when this widget is chosen from the navigation menu
+  virtual void focusGiven();
 
-  /// Set the right box
-  void setSelected( const std::vector<std::string> &items );
-
-  /// Convenience function for reusing set table code
-  void setTable( const std::vector<std::string> &items, QTableWidget *table );
-
-  /// Set the names of the two columns in the widget 
-  void setColumnNames( const QString &col1, const QString &col2);
-  
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  
-  QTableWidget *data_table_;
-  QTableWidget *selected_data_table_;
-  QLabel *title_; // specify the title from the parent widget
-  QLabel *column1_label_;
-  QLabel *column2_label_;
-  
-  /// Name of datatype
-  QString long_name_;
-  QString short_name_;
 
+  DoubleListWidget *joints_widget_;
+                                                                                              
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-
-  /// Move selected data right
-  void selectDataButtonClicked();
-
-  /// Move selected data left
-  void deselectDataButtonClicked();
-
-  /// Event when data table is clicked
-  void previewClickedData( int row, int column );
-  void previewClickedSelected( int row, int column );
-
-Q_SIGNALS:
-
-  // ******************************************************************************************
-  // Emitted Signals
-  // ******************************************************************************************
-
-  /// Event sent when this widget is done making data changes and parent widget can save
-  void doneEditing();
-
-  /// Event sent when user presses cancel button
-  void cancelEditing();
-
-  /// Highlight part of robot
-  void previewClicked( std::string name );
-
-  /// When the set of selected items has changed
-  void selectionUpdated();
+  void selectionUpdated(void);
   
 private:
-
 
   // ******************************************************************************************
   // Variables
@@ -130,14 +91,17 @@ private:
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
-
-  // ******************************************************************************************
-  // Private Functions
-  // ******************************************************************************************
   
+  /// Orignal name of vjoint currently being edited. This is used to find the element in the vector
+  std::string current_edit_vjoint_;
+
+
 };
 
-} //namespace moveit_setup_assistant
+
+
+} //namespace
+
 
 #endif
 
