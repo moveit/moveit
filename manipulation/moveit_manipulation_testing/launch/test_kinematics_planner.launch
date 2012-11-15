@@ -18,9 +18,7 @@
     <arg name="pipeline" value="ompl" />
   </include>
   
-  <node name="test_kinematics_planner" launch-prefix="$(arg launch_prefix)" pkg="moveit_manipulation_testing" type="test_kinematics_planner" respawn="false" output="screen">
-    <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
-    <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
+  <node name="test_kinematics_planner" launch-prefix="$(arg launch_prefix)" pkg="moveit_ros_manipulation" type="test_kinematics_planner" respawn="false" output="screen">
   </node>
   
 </launch>
