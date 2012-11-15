@@ -94,7 +94,7 @@ catkin_package(
 add_executable(${PROJECT_NAME} ${sources} ${headers} ${moc_sources})
 target_link_libraries(${PROJECT_NAME} 
   ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools 
-  ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx)
+  ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
   LIBRARY DESTINATION lib
