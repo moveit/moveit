@@ -54,7 +54,14 @@ class KinematicsPlanner : public kinematics_planner::KinematicsSolver
 {
   public:
 
-  KinematicsPlanner():KinematicsSolver(){}
+  KinematicsPlanner() : KinematicsSolver() {};
+
+  /** @brief Initiliaze data structures
+    * @param group_names Groups which will be planned for
+    * @param model Kinematic model of the robot
+    * @return False if initilization fails
+    */
+  bool initialize(const std::vector<std::string> &group_names, const kinematic_model::KinematicModelConstPtr &model);
 
   /** @brief Solve the planning problem
    * @param start_request A map from group names to desired start poses
@@ -111,6 +118,8 @@ class KinematicsPlanner : public kinematics_planner::KinematicsSolver
     discretization_translation = discretization_translation_;
     discretization_rotation = discretization_rotation_;    
   }
+
+  bool checkRequest(const std::map<std::string,geometry_msgs::PoseStamped> &request) const;
         
 private:
 
@@ -125,13 +134,14 @@ private:
                                                         const geometry_msgs::Pose &goal,
                                                         const unsigned int num_segments) const;
     
-  moveit_msgs::RobotTrajectory getRobotTrajectory(const  kinematics_planner::SolutionTrajectoryMap &solutions,
-                                                  unsigned int num_poses) const;
+  void getRobotTrajectory(const  kinematics_planner::SolutionTrajectoryMap &solutions,
+                          unsigned int num_poses,
+                          moveit_msgs::RobotTrajectory &robot_trajectory) const;
   
-  unsigned int num_poses_;
 
   double discretization_translation_, discretization_rotation_;
-  
+
+  KinematicsSolverConstPtr kinematics_solver_;
 };
 
 }

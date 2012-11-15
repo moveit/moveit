@@ -40,6 +40,7 @@ catkin_package(
     kinematics_base/include
     kinematic_model/include
     kinematic_state/include
+    kinematics_planner/include
     collision_detection/include
     collision_detection_fcl/include
     kinematic_constraints/include
@@ -79,6 +80,7 @@ catkin_package(
 include_directories(kinematics_base/include)
 include_directories(kinematic_model/include)
 include_directories(kinematic_state/include)
+include_directories(kinematics_planner/include)
 include_directories(collision_detection/include)
 include_directories(collision_detection_fcl/include)
 include_directories(kinematic_constraints/include)
@@ -107,8 +109,9 @@ add_subdirectory(distance_field)
 add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
+add_subdirectory(kinematics_planner)
 
 #add_subdirectory(kinematics_cache)
 #add_subdirectory(kinematics_constraint_aware)
 
-#add_subdirectory(kinematics_planner)
+
