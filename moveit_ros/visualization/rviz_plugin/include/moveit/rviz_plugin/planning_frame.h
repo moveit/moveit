@@ -35,11 +35,15 @@
 #include <QWidget>
 #include <QTreeWidgetItem>
 #include <QListWidgetItem>
+
+#ifndef Q_MOC_RUN
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit_msgs/MotionPlanRequest.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
+#endif
+
+#include <moveit_msgs/MotionPlanRequest.h>
 #include <map>
 
 namespace rviz

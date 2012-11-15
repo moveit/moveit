@@ -135,6 +135,12 @@ public:
     return robot_description_;
   }
 
+  /** @brief Get the instance of the TF client that was passed to the constructor of this class. */
+  const boost::shared_ptr<tf::Transformer>& getTFClient(void) const
+  {
+    return tf_;
+  }
+  
   /** \brief By default, the maintained planning scene does not reason about diffs. When the flag passed in is true, the maintained
       scene starts counting diffs. Future updates to the planning scene will be stored as diffs and can be retrieved as
       such. Setting the flag to false restores the default behaviour. Maintaining diffs is automatically enabled when

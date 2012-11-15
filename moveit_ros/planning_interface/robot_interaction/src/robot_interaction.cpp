@@ -35,6 +35,7 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/lexical_cast.hpp>
+#include <algorithm>
 #include <limits>
 
 namespace robot_interaction
@@ -42,9 +43,104 @@ namespace robot_interaction
 
 const std::string RobotInteraction::INTERACTIVE_MARKER_TOPIC = "robot_interaction_interactive_marker_topic";
 
-RobotInteraction::RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel,
-                                   const InteractionHandlerPtr &handler) :
-  kmodel_(kmodel), handler_(handler)
+RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name,
+                                                         const kinematic_state::KinematicState &kstate,
+                                                         const boost::shared_ptr<tf::Transformer> &tf) :
+  name_(name),
+  kstate_(new kinematic_state::KinematicState(kstate)),
+  tf_(tf)
+{
+  setup();
+}
+
+RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name,
+                                                         const kinematic_model::KinematicModelConstPtr &kmodel,
+                                                         const boost::shared_ptr<tf::Transformer> &tf) :
+  name_(name),
+  kstate_(new kinematic_state::KinematicState(kmodel)),
+  tf_(tf)
+{
+  setup();
+}
+
+void RobotInteraction::InteractionHandler::setup(void)
+{
+  std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name  
+}
+
+void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
+                                                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{ 
+  if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+    error_state_.clear();
+  
+  geometry_msgs::PoseStamped tpose;
+  if (!transformFeedbackPose(feedback, tpose))
+    return;
+  
+  if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose))
+  {
+    if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+      error_state_.insert(eef.parent_group);
+  }
+  else
+    error_state_.erase(eef.parent_group);
+  if (update_callback_)
+    update_callback_(this);
+}
+
+void RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint& vj,
+                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+  geometry_msgs::PoseStamped tpose;
+  if (!transformFeedbackPose(feedback, tpose))
+    return;
+  robot_interaction::RobotInteraction::updateState(*kstate_, vj, tpose.pose);
+  if (update_callback_)
+    update_callback_(this);
+}
+
+bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::EndEffector& eef)
+{
+  return error_state_.find(eef.parent_group) != error_state_.end();
+}
+
+bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::VirtualJoint& vj)
+{
+  return false;
+}
+
+bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose)
+{
+  std::string planning_frame = kstate_->getKinematicModel()->getModelFrame();
+  tpose.header = feedback->header;
+  tpose.pose = feedback->pose;
+  if (feedback->header.frame_id != planning_frame)
+  {
+    if (tf_)
+      try
+      {
+        tf::Stamped<tf::Pose> spose;
+        tf::poseStampedMsgToTF(tpose, spose);
+        tf_->transformPose(planning_frame, spose, spose);
+        tf::poseStampedTFToMsg(spose, tpose);
+      }
+      catch (tf::TransformException& e)
+      {
+        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
+        return false;
+      }
+    else
+    {   
+      ROS_ERROR("Cannot transform from frame '%s' to frame '%s' (no TF instance provided)", tpose.header.frame_id.c_str(), planning_frame.c_str());
+      return false;
+    }
+  }
+  return true;
+}
+
+RobotInteraction::RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel) :
+  kmodel_(kmodel)
 {  
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(INTERACTIVE_MARKER_TOPIC);
 }
@@ -145,7 +241,7 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
         else
           v.dof = 6;
         // take the max of the X extent and the Y extent
-        v.scale = std::max(aabb[1] - aabb[0], aabb[3] - aabb[2]);
+        v.size = std::max(aabb[1] - aabb[0], aabb[3] - aabb[2]);
         active_vj_.push_back(v);
       }
     }
@@ -175,8 +271,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
       {
         // we found an end-effector for the selected group
         EndEffector ee;
-        ee.group = group;
-        ee.tip_link = eef[i].parent_link_;
+        ee.parent_group = group;
+        ee.parent_link = eef[i].parent_link_;
         ee.eef_group = eef[i].component_group_;
         active_eef_.push_back(ee);
         break;
@@ -193,8 +289,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
           {
             // we found an end-effector for the selected group;
             EndEffector ee;
-            ee.group = it->first->getName();
-            ee.tip_link = eef[i].parent_link_;
+            ee.parent_group = it->first->getName();
+            ee.parent_link = eef[i].parent_link_;
             ee.eef_group = eef[i].component_group_;
             active_eef_.push_back(ee);
             break;
@@ -203,8 +299,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
     }
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
-    active_eef_[i].scale = computeGroupScale(active_eef_[i].eef_group);
-    ROS_DEBUG("Found active end-effector '%s', of scale %lf", active_eef_[i].eef_group.c_str(), active_eef_[i].scale);
+    active_eef_[i].size = computeGroupScale(active_eef_[i].eef_group);
+    ROS_DEBUG("Found active end-effector '%s', of scale %lf", active_eef_[i].eef_group.c_str(), active_eef_[i].size);
   }
 }
 
@@ -218,11 +314,12 @@ void RobotInteraction::clear(void)
 
 void RobotInteraction::clearInteractiveMarkers(void)
 {
+  handlers_.clear();
   shown_markers_.clear();
   int_marker_server_->clear();
 }
 
-void RobotInteraction::addInteractiveMarkers(const kinematic_state::KinematicState &state, int id)
+void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler)
 { 
   //  ros::WallTime start = ros::WallTime::now();
   
@@ -231,18 +328,16 @@ void RobotInteraction::addInteractiveMarkers(const kinematic_state::KinematicSta
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = kmodel_->getModelFrame();
     pose.header.stamp = ros::Time::now();
-    
-    const kinematic_state::LinkState *ls = state.getLinkState(active_eef_[i].tip_link);
+    const kinematic_state::LinkState *ls = handler->getState()->getLinkState(active_eef_[i].parent_link);
     tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
-    
-    std::string marker_name = "IK" + boost::lexical_cast<std::string>(id) + "_" + active_eef_[i].tip_link;
+    std::string marker_name = "EE:" + handler->getName() + "_" + active_eef_[i].parent_link;
     shown_markers_[marker_name] = i;
-    visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, active_eef_[i].scale);
-    if (handler_ && handler_->inError(active_eef_[i], id))
+    visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, active_eef_[i].size);
+    if (handler && handler->inError(active_eef_[i]))
       addErrorMarker(im);
     int_marker_server_->insert(im);
     int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-    ROS_DEBUG("Publishing interactive marker %s (scale = %lf)", marker_name.c_str(), active_eef_[i].scale);
+    ROS_DEBUG("Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_eef_[i].size);
   }
   
   for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
@@ -251,18 +346,17 @@ void RobotInteraction::addInteractiveMarkers(const kinematic_state::KinematicSta
       geometry_msgs::PoseStamped pose;
       pose.header.frame_id = kmodel_->getModelFrame();
       pose.header.stamp = ros::Time::now();
-      
-      const kinematic_state::LinkState *ls = state.getLinkState(active_vj_[i].connecting_link);
+      const kinematic_state::LinkState *ls = handler->getState()->getLinkState(active_vj_[i].connecting_link);
       tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
-      
-      std::string marker_name = "XY" + boost::lexical_cast<std::string>(id) + "_" + active_vj_[i].connecting_link;
+      std::string marker_name = "VJ:" + handler->getName() + "_" + active_vj_[i].connecting_link;
       shown_markers_[marker_name] = i;
-      visualization_msgs::InteractiveMarker im = make3DOFMarker(marker_name, pose, active_vj_[i].scale);
+      visualization_msgs::InteractiveMarker im = make3DOFMarker(marker_name, pose, active_vj_[i].size);
       
       int_marker_server_->insert(im);
       int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-      ROS_DEBUG("Publishing interactive marker %s (scale = %lf)", marker_name.c_str(), active_vj_[i].scale);
+      ROS_DEBUG("Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_vj_[i].size);
     }
+  handlers_[handler->getName()] = handler;
   
   //  ROS_INFO("Spent %0.5lf s to publish markers", (ros::WallTime::now() - start).toSec());
 }
@@ -282,21 +376,17 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
   Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
   vals[ vj.joint_name + "/theta"] = xyz[2];
   state.getJointState(vj.joint_name)->setVariableValues(vals);
-  state.updateLinkTransforms();  
+  state.updateLinkTransforms();
   return true;
 }
 
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose)
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, double ik_timeout)
 { 
-  static const double IK_TIMEOUT = 0.1;
-  return state.getJointStateGroup(eef.group)->setFromIK(pose, eef.tip_link, IK_TIMEOUT);
+  return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, ik_timeout);
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
-  if (!handler_)
-    return;
-  
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
   {
@@ -305,30 +395,26 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
   }
   
   std::size_t u = feedback->marker_name.find_first_of("_");
-  if (u == std::string::npos || u < 3)
+  if (u == std::string::npos || u < 4)
   {
     ROS_ERROR("Invalid marker name: '%s'",  feedback->marker_name.c_str());
     return;
   }
   
   std::string marker_class = feedback->marker_name.substr(0, 2);
-  int marker_id = 0; 
-
-  try
+  std::string handler_name = feedback->marker_name.substr(3, u - 3); // skip the ":"
+  std::map<std::string, InteractionHandlerPtr>::const_iterator jt = handlers_.find(handler_name);
+  if (jt == handlers_.end())
   {
-    marker_id = boost::lexical_cast<int>(feedback->marker_name.substr(2, u - 2));
-  }
-  catch(boost::bad_lexical_cast &ex)
-  {
-    ROS_ERROR("Invalid marker name ('%s') : %s", feedback->marker_name.c_str(), ex.what());
+    ROS_ERROR("Interactive Marker Handler '%s' is not known.", handler_name.c_str());
     return;
   }
   
-  if (marker_class == "IK")
-    handler_->handleEndEffector(active_eef_[it->second], marker_id, feedback);
+  if (marker_class == "EE")
+    jt->second->handleEndEffector(active_eef_[it->second], feedback);
   else
-    if (marker_class == "XY")
-      handler_->handleVirtualJoint(active_vj_[it->second], marker_id, feedback);
+    if (marker_class == "VJ")
+      jt->second->handleVirtualJoint(active_vj_[it->second], feedback);
     else
       ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());  
 }
