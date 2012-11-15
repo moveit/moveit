@@ -1,0 +1,20 @@
+<package>
+  <description brief="planning_scene_interface">
+
+     planning_scene_interface
+
+  </description>
+  <author>Sarah Elliott</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planning_scene_interface</url>
+
+  <depend package="moveit_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="geometric_shapes"/>
+  <!-- <depend package="arm_navigation_msgs"/> -->
+  <depend package="shape_msgs"/>
+
+</package>
+
+

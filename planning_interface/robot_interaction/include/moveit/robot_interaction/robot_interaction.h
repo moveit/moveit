@@ -34,6 +34,8 @@
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <moveit/kinematic_state/kinematic_state.h>
+#include <boost/function.hpp>
+#include <tf/tf.h>
 
 namespace interactive_markers
 {
@@ -47,57 +49,98 @@ class RobotInteraction
 {
 public:
   
+  /// The topic name on which the internal Interactive Marker Server operates
   static const std::string INTERACTIVE_MARKER_TOPIC;
   
   struct EndEffector
   {
-    std::string group;
+    /// The name of the group that sustains the end-effector (usually an arm)
+    std::string parent_group;
+
+    /// The name of the link in the parent group that connects to the end-effector
+    std::string parent_link;
+
+    /// The name of the group that defines the group joints
     std::string eef_group;
-    std::string tip_link;
-    double scale;
+    
+    /// The size of the end effector group (diameter of enclosing sphere)
+    double size;
   };
 
   struct VirtualJoint
   { 
+    /// The link in the robot model this joint connects to
     std::string connecting_link;
+    
+    /// The name of the virtual joint
     std::string joint_name;
+
+    /// The number of DOF this virtual joint has
     unsigned int dof;
-    double scale;
+
+    /// The size of the connectig link  (diameter of enclosing sphere)
+    double size;
   };
   
   class InteractionHandler
   {
   public:
-    InteractionHandler(void)
-    {
-    }
+    InteractionHandler(const std::string &name,
+                       const kinematic_state::KinematicState &kstate,
+                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+    InteractionHandler(const std::string &name,
+                       const kinematic_model::KinematicModelConstPtr &kmodel,
+                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
     
     virtual ~InteractionHandler(void)
     {
     }
     
-    virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, int id, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback) = 0;
-    virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, int id, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback) = 0;
-    virtual bool inError(const RobotInteraction::EndEffector& eef, int id) = 0;
-    virtual bool inError(const RobotInteraction::VirtualJoint& vj, int id) = 0;
+    const std::string& getName(void) const
+    {
+      return name_;
+    }
+    
+    const kinematic_state::KinematicStatePtr& getState(void) const
+    {
+      return kstate_;
+    }
+    
+    void setState(const kinematic_state::KinematicState& kstate)
+    {
+      *kstate_ = kstate;
+    }    
+    
+    void setUpdateCallback(const boost::function<void(InteractionHandler*)> &callback)
+    {
+      update_callback_ = callback;
+    }
+    
+    virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    virtual bool inError(const RobotInteraction::EndEffector& eef);
+    virtual bool inError(const RobotInteraction::VirtualJoint& vj);
+    
+  protected:
+
+    bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose);
+
+    std::string name_;
+    kinematic_state::KinematicStatePtr kstate_;
+    boost::shared_ptr<tf::Transformer> tf_;
+    std::set<std::string> error_state_;
+    boost::function<void(InteractionHandler*)> update_callback_;
+    
+  private:
+    
+    void setup(void);
   };
 
   typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
   typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
   
-  RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel,
-                   const InteractionHandlerPtr &handler = InteractionHandlerPtr());
+  RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel);
   ~RobotInteraction(void);
-  
-  void setInteractionHandler(const InteractionHandlerPtr &handler)
-  {
-    handler_ = handler;
-  }
-
-  const InteractionHandlerPtr& getInteractionHandler(void) const
-  {
-    return handler_;
-  }
   
   void decideActiveComponents(const std::string &group);
   void decideActiveEndEffectors(const std::string &group);
@@ -105,7 +148,8 @@ public:
   
   void clear(void);
   
-  void addInteractiveMarkers(const kinematic_state::KinematicState &state, int id);
+  void addInteractiveMarkers(const InteractionHandlerPtr &handler);
+
   void publishInteractiveMarkers(void);
   void clearInteractiveMarkers(void);
   
@@ -119,9 +163,9 @@ public:
     return active_vj_;
   }
   
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose);
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, double ik_timeout = 0.1);
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
-  
+
 private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
@@ -129,16 +173,19 @@ private:
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
   
   kinematic_model::KinematicModelConstPtr kmodel_;
-  InteractionHandlerPtr handler_;
   
   std::vector<EndEffector> active_eef_;
   std::vector<VirtualJoint> active_vj_;
-
+  
+  std::map<std::string, InteractionHandlerPtr> handlers_;
   std::map<std::string, std::size_t> shown_markers_;
+  
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
 };
 
-  
+typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;
+typedef boost::shared_ptr<const RobotInteraction> RobotInteractionConstPtr;
+
 }
 
 #endif
