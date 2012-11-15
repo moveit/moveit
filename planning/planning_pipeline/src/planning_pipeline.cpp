@@ -243,7 +243,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     if (check_solution_paths_)
     {
       std::vector<std::size_t> index;
-      if (!planning_scene->isPathValid(res.trajectory_start, res.trajectory, req.motion_plan_request.path_constraints, false, &index))
+      if (!planning_scene->isPathValid(res.trajectory_start, res.trajectory, req.motion_plan_request.path_constraints,
+                                       req.motion_plan_request.group_name, false, &index))
       {
         // check to see if there is any problem with the states that are found to be invalid
         // they are considered ok if they were added by a planning request adapter
@@ -286,7 +287,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
               kinematic_state::robotTrajectoryPointToRobotState(res.trajectory, index[i], rs);
               kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), rs, kstate);
               // check validity with verbose on
-              planning_scene->isStateValid(kstate, true);
+              planning_scene->isStateValid(kstate, req.motion_plan_request.group_name, true);
               
               // compute the contacts if any
               collision_detection::CollisionRequest c_req;
