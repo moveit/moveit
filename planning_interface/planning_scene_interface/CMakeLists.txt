@@ -104,13 +104,12 @@ find_package(PythonLibs REQUIRED)
 #    )
 #endmacro()
 
-#rosbuild_add_library(${PROJECT_NAME} src/planning_scene.cpp)
 
-rosbuild_add_library(${PROJECT_NAME} src/planning_scene.cpp)
+rosbuild_add_library(${PROJECT_NAME} src/planning_scene_interface.cpp)
 
 find_package(PythonLibs)
 include_directories (${PYTHON_INCLUDE_DIRS})
-rosbuild_add_library(${PROJECT_NAME}_python src/planning_scene.cpp)
+rosbuild_add_library(${PROJECT_NAME}_python src/planning_scene_interface.cpp)
 target_link_libraries(${PROJECT_NAME}_python ${PROJECT_NAME} ${PYTHON_LIBRARIES})
 set_target_properties(${PROJECT_NAME}_python PROPERTIES OUTPUT_NAME _planning_scene_interface PREFIX "")
 rosbuild_link_boost(${PROJECT_NAME}_python thread python)

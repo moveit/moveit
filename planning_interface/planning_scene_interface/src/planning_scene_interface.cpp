@@ -51,8 +51,6 @@
 #include <ros/ros.h>
 #include <boost/thread.hpp>
 
-#include <moveit/py_bindings_tools/roscpp_initializer.h>
-
 namespace bp = boost::python;
 
 namespace moveit_python_interface
