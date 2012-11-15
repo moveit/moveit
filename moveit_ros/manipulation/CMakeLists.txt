@@ -31,3 +31,4 @@ catkin_package(
 include_directories(pick_place_planner/include)
 
 add_subdirectory(pick_place_planner)
+add_subdirectory(moveit_manipulation_testing)

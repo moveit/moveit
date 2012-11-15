@@ -32,9 +32,9 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <tf/transform_listener.h>
-#include <plan_execution/plan_execution.h>
+#include <moveit/plan_execution/plan_execution.h>
 #include <kinematics_planner/kinematics_planner.h>
-#include <trajectory_processing/trajectory_tools.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 #include <moveit_msgs/PositionConstraint.h>
 #include <shape_msgs/SolidPrimitive.h>
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 
     /* get the current gripper pose */
     planning_scene_monitor->updateFrameTransforms();
-    planning_models::KinematicState kinematic_state = planning_scene_monitor->getPlanningScene()->getCurrentState();
+    kinematic_state::KinematicState kinematic_state = planning_scene_monitor->getPlanningScene()->getCurrentState();
     const Eigen::Affine3d *gripper_pose = kinematic_state.getFrameTransform(END_EFFECTOR_LINK_NAME);
     ROS_INFO_STREAM("Current gripper pose:" << (gripper_pose->matrix()));
 
