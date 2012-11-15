@@ -43,43 +43,39 @@ namespace pick_place_planner
 ManipulationGroup::ManipulationGroup(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                                      const std::string &group_name)
 {
-  group_name_ = group_name;
-  arm_names_ = kinematic_model->getJointModelGroup(group_name)->getSubgroupNames();
-  if(arm_names_.empty())
-  {
-    arm_names_.push_back(group_name_);
-  }
-  
-  for(unsigned int i=0; i < arm_names_.size(); ++i)
-  {    
-    arm_link_names_map_[arm_names_[i]] = kinematic_model->getJointModelGroup(arm_names_[i])->getLinkModelNames();
-    end_effector_names_map_[arm_names_[i]] = kinematic_model->getJointModelGroup(arm_names_[i])->getAttachedEndEffectorGroupName();    
-    end_effector_link_names_map_[arm_names_[i]] = kinematic_model->getJointModelGroup(end_effector_names_map_[arm_names_[i]])->getLinkModelNames();        
-    end_effector_link_names_.insert(end_effector_link_names_.end(),end_effector_link_names_map_.find(arm_names_[i])->second.begin(),end_effector_link_names_map_.find(arm_names_[i])->second.end());    
-  }  
-  kinematic_model_ = kinematic_model;  
+    kinematic_model_ = kinematic_model;
+    group_name_ = group_name;
+
+    /* assume that group_name is either an arm or a group which contains arms */
+    std::vector<std::string> arm_names = kinematic_model->getJointModelGroup(group_name)->getSubgroupNames();
+    if(arm_names.empty())
+    {
+        arm_names.push_back(group_name_);
+    }
+
+    end_effector_names_.resize(arm_names.size());
+    for(unsigned int arm_i = 0; arm_i < arm_names.size(); ++arm_i)
+    {
+        end_effector_names_[arm_i] = kinematic_model->getJointModelGroup(arm_names[arm_i])->getAttachedEndEffectorGroupName();
+    }
 }
 
 moveit_msgs::AttachedCollisionObject ManipulationGroup::getAttachedBodyMsg(const std::string &body_name) const
 {
-  moveit_msgs::AttachedCollisionObject attached_object = getAttachedBodyMsg(body_name, arm_names_.front());
-  return attached_object;
+    moveit_msgs::AttachedCollisionObject attached_object = getAttachedBodyMsg(body_name, end_effector_names_.front());
+    return attached_object;
 }
 
 moveit_msgs::AttachedCollisionObject ManipulationGroup::getAttachedBodyMsg(const std::string &body_name, 
-                                                                           const std::string &arm_name) const
+                                                                           const std::string &end_effector_name) const
 {
-  moveit_msgs::AttachedCollisionObject attached_object;
-  if(arm_link_names_map_.find(arm_name) == arm_link_names_map_.end())
-  {
-    ROS_ERROR("Could not find %s in arm link names map",arm_name.c_str());
-    return attached_object;    
-  }  
-  attached_object.link_name = arm_link_names_map_.find(arm_name)->second.back();
-  attached_object.object.operation = moveit_msgs::CollisionObject::ADD;
-  attached_object.object.id = body_name;
-  attached_object.touch_links = end_effector_link_names_;  
-  return attached_object;  
+    moveit_msgs::AttachedCollisionObject attached_object;
+    attached_object.link_name = kinematic_model_->getJointModelGroup(end_effector_name)->getEndEffectorParentGroup().second;
+
+    attached_object.object.operation = moveit_msgs::CollisionObject::ADD;
+    attached_object.object.id = body_name;
+    attached_object.touch_links = kinematic_model_->getJointModelGroup(end_effector_name)->getLinkModelNames();
+    return attached_object;
 }
 
 
