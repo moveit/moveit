@@ -42,6 +42,7 @@
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QString>
+#include <QHeaderView>
 #include "double_list_widget.h"
 
 namespace moveit_setup_assistant
@@ -51,7 +52,7 @@ namespace moveit_setup_assistant
 //
 // ******************************************************************************************
 DoubleListWidget::DoubleListWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data,
-                                    QString long_name, QString short_name )
+                                    QString long_name, QString short_name , bool add_ok_cancel)
   :  QWidget( parent ), long_name_( long_name ), short_name_( short_name ), config_data_( config_data )
 {
   // Basic widget container
@@ -70,8 +71,8 @@ DoubleListWidget::DoubleListWidget( QWidget *parent, moveit_setup_assistant::Mov
   QVBoxLayout *column1 = new QVBoxLayout();
 
   // Label
-  QLabel *column1_label = new QLabel( QString("Available ").append( short_name_ ).append( 's' ), this );
-  column1->addWidget( column1_label );
+  column1_label_ = new QLabel( QString("Available ").append( short_name_ ).append( 's' ), this );
+  column1->addWidget( column1_label_ );
 
   // Table
   data_table_ = new QTableWidget( this );
@@ -84,7 +85,8 @@ DoubleListWidget::DoubleListWidget( QWidget *parent, moveit_setup_assistant::Mov
   QStringList data_header_list;
   data_header_list.append( QString( " Names" ).prepend( short_name_ ));
   data_table_->setHorizontalHeaderLabels( data_header_list );
-
+  data_table_->horizontalHeader()->setDefaultAlignment(Qt::AlignHCenter);
+  
   // Add layouts
   hlayout->addLayout( column1 );
 
@@ -111,8 +113,8 @@ DoubleListWidget::DoubleListWidget( QWidget *parent, moveit_setup_assistant::Mov
   QVBoxLayout *column3 = new QVBoxLayout();
 
   // Label
-  QLabel *column3_label = new QLabel( QString("Selected ").append( short_name_ ).append( "s" ), this );
-  column3->addWidget( column3_label );
+  column2_label_ = new QLabel( QString("Selected ").append( short_name_ ).append( "s" ), this );
+  column3->addWidget( column2_label_ );
 
   // Table
   selected_data_table_ = new QTableWidget( this );
@@ -130,33 +132,35 @@ DoubleListWidget::DoubleListWidget( QWidget *parent, moveit_setup_assistant::Mov
   // End Double Selection List ---------------------------------
   layout->addLayout( hlayout );
 
-
-  // Button controls -------------------------------------------
-  QHBoxLayout *controls_layout = new QHBoxLayout();
-  controls_layout->setContentsMargins( 0, 25, 0, 15 );
-
-  // Spacer
-  QWidget *spacer = new QWidget( this );
-  spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
-  controls_layout->addWidget( spacer );
-
-  // Save
-  QPushButton *btn_save = new QPushButton( "&Save", this );
-  //btn_save->setMaximumWidth( 200 );
-  connect( btn_save, SIGNAL(clicked()), this, SIGNAL( doneEditing() ) );
-  controls_layout->addWidget( btn_save );
-  controls_layout->setAlignment(btn_save, Qt::AlignRight);
-
-  // Cancel
-  QPushButton *btn_cancel = new QPushButton( "&Cancel", this );
-  //btn_cancel->setMaximumWidth( 200 );
-  connect( btn_cancel, SIGNAL(clicked()), this, SIGNAL( cancelEditing() ) );
-  controls_layout->addWidget( btn_cancel );
-  controls_layout->setAlignment(btn_cancel, Qt::AlignRight);
-
-  // Add layout
-  layout->addLayout( controls_layout );
-
+  if (add_ok_cancel)
+  {    
+    // Button controls -------------------------------------------
+    QHBoxLayout *controls_layout = new QHBoxLayout();
+    controls_layout->setContentsMargins( 0, 25, 0, 15 );
+    
+    // Spacer
+    QWidget *spacer = new QWidget( this );
+    spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+    controls_layout->addWidget( spacer );
+    
+    // Save
+    QPushButton *btn_save = new QPushButton( "&Save", this );
+    //btn_save->setMaximumWidth( 200 );
+    connect( btn_save, SIGNAL(clicked()), this, SIGNAL( doneEditing() ) );
+    controls_layout->addWidget( btn_save );
+    controls_layout->setAlignment(btn_save, Qt::AlignRight);
+    
+    // Cancel
+    QPushButton *btn_cancel = new QPushButton( "&Cancel", this );
+    //btn_cancel->setMaximumWidth( 200 );
+    connect( btn_cancel, SIGNAL(clicked()), this, SIGNAL( cancelEditing() ) );
+    controls_layout->addWidget( btn_cancel );
+    controls_layout->setAlignment(btn_cancel, Qt::AlignRight);
+    
+    // Add layout
+    layout->addLayout( controls_layout );
+  }
+  
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
 }
@@ -179,6 +183,12 @@ void DoubleListWidget::setAvailable( const std::vector<std::string> &items )
 void DoubleListWidget::setSelected( const std::vector<std::string> &items )
 {
   setTable( items, selected_data_table_ );
+}
+
+void DoubleListWidget::setColumnNames( const QString &col1, const QString &col2)
+{
+  column1_label_->setText(col1);
+  column2_label_->setText(col2);
 }
 
 // ******************************************************************************************
@@ -265,7 +275,7 @@ void DoubleListWidget::selectDataButtonClicked()
     first_data_field_->setText("has");
     }
   */
-
+  Q_EMIT( selectionUpdated() );
 }
 
 // ******************************************************************************************
@@ -288,6 +298,8 @@ void DoubleListWidget::deselectDataButtonClicked()
     first_data_field_->clear();
     }
   */
+
+  Q_EMIT( selectionUpdated() );
 }
 
 // ******************************************************************************************

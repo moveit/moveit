@@ -507,7 +507,7 @@ void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
     const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
 
     // Get the names of the all joints
-    const std::vector<std::string> joints = model->getJointModelNames();
+    const std::vector<std::string> &joints = model->getJointModelNames();
 
     if( joints.size() == 0 )
     {
@@ -543,7 +543,7 @@ void PlanningGroupsWidget::loadLinksScreen( srdf::Model::Group *this_group )
     const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
 
     // Get the names of the all links
-    const std::vector<std::string> links = model->getLinkModelNames();
+    const std::vector<std::string> &links = model->getLinkModelNames();
 
     if( links.size() == 0 )
     {

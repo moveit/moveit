@@ -41,6 +41,7 @@ set( headers
   src/widgets/robot_poses_widget.h
   src/widgets/end_effectors_widget.h
   src/widgets/virtual_joints_widget.h
+  src/widgets/passive_joints_widget.h
   src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
 )
@@ -67,6 +68,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/robot_poses_widget.cpp
   src/widgets/end_effectors_widget.cpp
   src/widgets/virtual_joints_widget.cpp
+  src/widgets/passive_joints_widget.cpp
   src/widgets/configuration_files_widget.cpp
   src/widgets/navigation_widget.cpp
   src/widgets/header_widget.cpp
@@ -92,7 +94,7 @@ catkin_package(
 add_executable(${PROJECT_NAME} ${sources} ${headers} ${moc_sources})
 target_link_libraries(${PROJECT_NAME} 
   ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools 
-  ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+  ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx)
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
   LIBRARY DESTINATION lib

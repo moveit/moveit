@@ -116,6 +116,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   nav_name_list_ << "Robot Poses";
   nav_name_list_ << "End Effectors";
   nav_name_list_ << "Virtual Joints";
+  nav_name_list_ << "Passive Joints";
   nav_name_list_ << "Configuration Files";
 
   // Navigation Left Pane --------------------------------------------------
@@ -247,6 +248,14 @@ void SetupAssistantWidget::progressPastStartScreen()
   connect( vjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
   connect( vjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( vjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
+
+  // Virtual Joints
+  pjw_ = new PassiveJointsWidget( this, config_data_ );
+  main_content_->addWidget(pjw_);
+  connect( pjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
+  connect( pjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( pjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
+  connect( pjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
   // Configuration Files
   cfw_ = new ConfigurationFilesWidget( this, config_data_ );

@@ -71,7 +71,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) :
   setModel(model_);
 }
 
-void NavigationWidget::setNavs(QList<QString> &navs)
+void NavigationWidget::setNavs(const QList<QString> &navs)
 {
   setModel(NULL);
   model_->clear();

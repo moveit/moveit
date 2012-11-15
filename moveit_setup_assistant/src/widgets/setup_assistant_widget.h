@@ -57,6 +57,7 @@
 #include "robot_poses_widget.h"
 #include "end_effectors_widget.h"
 #include "virtual_joints_widget.h"
+#include "passive_joints_widget.h"
 #include "configuration_files_widget.h"
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 // Other
@@ -213,7 +214,8 @@ private:
   PlanningGroupsWidget *pgw_;
   RobotPosesWidget *rpw_;
   EndEffectorsWidget *efw_;
-  VirtualJointsWidget *vjw_;
+  VirtualJointsWidget *vjw_; 
+  PassiveJointsWidget *pjw_;
   ConfigurationFilesWidget *cfw_;
   
   /// Contains all the configuration data for the setup assistant
