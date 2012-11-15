@@ -191,7 +191,7 @@ private:
   void planOnly(const moveit_msgs::MotionPlanRequest &mreq, const planning_scene::PlanningSceneConstPtr &the_scene);
   bool computePlan(const planning_scene::PlanningSceneConstPtr &scene, const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
   bool lookAt(const std::set<collision_detection::CostSource> &cost_sources);
-  void executeAndMonitor(const planning_scene::PlanningSceneConstPtr &the_scene, const moveit_msgs::Constraints &path_constraints);
+  void executeAndMonitor(const planning_scene::PlanningSceneConstPtr &the_scene, const moveit_msgs::MotionPlanRequest &req);
   
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void newMonitoredStateCallback(const kinematic_state::KinematicStateConstPtr &state, const ros::Time &stamp);

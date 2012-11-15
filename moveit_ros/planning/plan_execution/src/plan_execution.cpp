@@ -360,7 +360,7 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
       if (opt.beforeExecutionCallback_)
         opt.beforeExecutionCallback_();
       // execute the trajectory, and monitor its execution
-      executeAndMonitor(the_scene, mreq.motion_plan_request.path_constraints);
+      executeAndMonitor(the_scene, mreq.motion_plan_request);
     }
     
     // if we are done, then we exit the loop
@@ -402,7 +402,7 @@ bool plan_execution::PlanExecution::computePlan(const planning_scene::PlanningSc
 }
 
 void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::PlanningSceneConstPtr &the_scene,
-                                                      const moveit_msgs::Constraints &path_constraints)
+                                                      const moveit_msgs::MotionPlanRequest &req)
 {
   // try to execute the trajectory
   execution_complete_ = false;
@@ -421,7 +421,7 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
     {    
       LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while getTransforms() is called
       path_constraints_set.reset(new kinematic_constraints::KinematicConstraintSet(the_scene->getKinematicModel(), the_scene->getTransforms()));
-      path_constraints_set->add(path_constraints);
+      path_constraints_set->add(req.path_constraints);
     }
     
     while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid)
@@ -433,9 +433,9 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
         LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
         new_scene_update_ = false;
         for (std::size_t i = currently_executed_trajectory_index_ ; i < result_.planned_trajectory_states_.size() ; ++i)
-          if (!the_scene->isStateValid(*result_.planned_trajectory_states_[i], *path_constraints_set, false))
+          if (!the_scene->isStateValid(*result_.planned_trajectory_states_[i], *path_constraints_set, req.group_name, false))
           {
-            the_scene->isStateValid(*result_.planned_trajectory_states_[i], *path_constraints_set, true);
+            the_scene->isStateValid(*result_.planned_trajectory_states_[i], *path_constraints_set, req.group_name, true);
             path_became_invalid = true;
             break;
           }
