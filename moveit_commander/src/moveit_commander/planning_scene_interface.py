@@ -35,7 +35,7 @@
 import time, copy, threading
 import numpy as np
 import roslib
-roslib.load_manifest('moveit_python_interface')
+roslib.load_manifest('moveit_commander')
 import rospy
 import actionlib
 import actionlib_msgs.msg
