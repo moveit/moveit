@@ -33,7 +33,7 @@
 #include <Eigen/Geometry>
 #include <tf/transform_listener.h>
 #include <moveit/plan_execution/plan_execution.h>
-#include <kinematics_planner/kinematics_planner.h>
+#include <moveit/kinematics_planner/kinematics_planner.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 
 #include <moveit_msgs/PositionConstraint.h>
