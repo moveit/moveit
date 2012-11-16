@@ -36,7 +36,7 @@
 *********************************************************************/
 
 // // ROS msgs
-#include <kinematics_planner/kinematics_solver.h>
+#include <moveit/kinematics_planner/kinematics_solver.h>
 #include <moveit/kinematic_model/kinematic_model.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <eigen_conversions/eigen_msg.h>

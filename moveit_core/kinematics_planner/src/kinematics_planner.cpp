@@ -36,8 +36,8 @@
 *********************************************************************/
 
 // ROS msgs
-#include <kinematics_planner/kinematics_planner.h>
-#include <kinematics_planner/kinematics_solver.h>
+#include <moveit/kinematics_planner/kinematics_planner.h>
+#include <moveit/kinematics_planner/kinematics_solver.h>
 #include <moveit/kinematic_model/kinematic_model.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/shared_ptr.hpp>
