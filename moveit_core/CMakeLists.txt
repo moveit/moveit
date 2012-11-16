@@ -116,8 +116,3 @@ add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 add_subdirectory(kinematics_planner)
-
-#add_subdirectory(kinematics_cache)
-#add_subdirectory(kinematics_constraint_aware)
-
-
