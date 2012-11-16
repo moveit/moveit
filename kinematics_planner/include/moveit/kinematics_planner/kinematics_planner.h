@@ -35,11 +35,11 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#ifndef KINEMATICS_PLANNER_H_
-#define KINEMATICS_PLANNER_H_
+#ifndef MOVEIT_KINEMATICS_PLANNER_KINEMATICS_PLANNER_
+#define MOVEIT_KINEMATICS_PLANNER_KINEMATICS_PLANNER_
 
 // MoveIt!
-#include <kinematics_planner/kinematics_solver.h>
+#include <moveit/kinematics_planner/kinematics_solver.h>
 #include <moveit_msgs/RobotTrajectory.h>
 
 namespace kinematics_planner
