@@ -57,7 +57,7 @@ public:
   {
     try
     {
-      kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
+      kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("moveit_core", "kinematics::KinematicsBase"));
     }
     catch(pluginlib::PluginlibException& e)
     {
