@@ -78,7 +78,7 @@ void planning_pipeline::PlanningPipeline::configure(const kinematic_model::Kinem
   // load the planning plugin
   try
   {
-    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("planning_interface", "planning_interface::Planner"));
+    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
   }
   catch(pluginlib::PluginlibException& ex)
   {
@@ -117,7 +117,7 @@ void planning_pipeline::PlanningPipeline::configure(const kinematic_model::Kinem
     std::vector<planning_request_adapter::PlanningRequestAdapterConstPtr> ads;
     try
     {
-      adapter_plugin_loader_.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("planning_request_adapter", "planning_request_adapter::PlanningRequestAdapter"));
+      adapter_plugin_loader_.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("moveit_core", "planning_request_adapter::PlanningRequestAdapter"));
     }
     catch(pluginlib::PluginlibException& ex)
     {
