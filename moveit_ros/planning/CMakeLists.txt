@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_planning)
 
+include_directories(robot_model_loader/include)
+include_directories(kinematics_plugin_loader/include)
+include_directories(planning_models_loader/include)
+include_directories(controller_manager/include)
+include_directories(sensor_manager/include)
+include_directories(planning_pipeline/include)
+include_directories(planning_scene_monitor/include)
+include_directories(trajectory_execution_manager/include)
+include_directories(plan_execution/include)
+
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
@@ -54,15 +64,6 @@ generate_dynamic_reconfigure_options("planning_scene_monitor/cfg/PublishSceneDR.
 generate_dynamic_reconfigure_options("plan_execution/cfg/PlanExecutionParamsDR.cfg")
 
 include_directories(cfg/cpp)
-include_directories(robot_model_loader/include)
-include_directories(kinematics_plugin_loader/include)
-include_directories(planning_models_loader/include)
-include_directories(controller_manager/include)
-include_directories(sensor_manager/include)
-include_directories(planning_pipeline/include)
-include_directories(planning_scene_monitor/include)
-include_directories(trajectory_execution_manager/include)
-include_directories(plan_execution/include)
 
 add_subdirectory(robot_model_loader)
 add_subdirectory(kinematics_plugin_loader)

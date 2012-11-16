@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_visualization)
 
+include_directories(rviz_plugin/include)
+
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
@@ -43,8 +45,6 @@ catkin_package(
   DEPENDS
     moveit_ros_planning_interface
     )
-
-include_directories(rviz_plugin/include)
 
 add_subdirectory(rviz_plugin)
 
