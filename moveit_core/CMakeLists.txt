@@ -1,6 +1,22 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_core)
 
+include_directories(kinematics_base/include)
+include_directories(kinematic_model/include)
+include_directories(kinematic_state/include)
+include_directories(collision_detection/include)
+include_directories(collision_detection_fcl/include)
+include_directories(kinematic_constraints/include)
+include_directories(planning_scene/include)
+include_directories(constraint_samplers/include)
+include_directories(planning_interface/include)
+include_directories(planning_request_adapter/include)
+include_directories(trajectory_processing/include)
+include_directories(distance_field/include)
+include_directories(collision_distance_field/include)
+include_directories(kinematics_metrics/include)
+include_directories(dynamics_solver/include)
+
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
@@ -80,22 +96,6 @@ catkin_package(
     Eigen
     urdfdom
     )
-
-include_directories(kinematics_base/include)
-include_directories(kinematic_model/include)
-include_directories(kinematic_state/include)
-include_directories(collision_detection/include)
-include_directories(collision_detection_fcl/include)
-include_directories(kinematic_constraints/include)
-include_directories(planning_scene/include)
-include_directories(constraint_samplers/include)
-include_directories(planning_interface/include)
-include_directories(planning_request_adapter/include)
-include_directories(trajectory_processing/include)
-include_directories(distance_field/include)
-include_directories(collision_distance_field/include)
-include_directories(kinematics_metrics/include)
-include_directories(dynamics_solver/include)
 
 add_subdirectory(kinematics_base)
 add_subdirectory(kinematic_model)
