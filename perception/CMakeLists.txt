@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_perception)
 
+include_directories(robot_self_filter/include)
+include_directories(occupancy_map_monitor/include)
+
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
@@ -31,9 +34,6 @@ catkin_package(
     occupancy_map_monitor/include
   DEPENDS
     moveit_core)
-
-include_directories(robot_self_filter/include)
-include_directories(occupancy_map_monitor/include)
 
 add_subdirectory(robot_self_filter)
 add_subdirectory(occupancy_map_monitor)

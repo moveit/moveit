@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_planning_interface)
 
+include_directories(py_bindings_tools/include)
+include_directories(robot_interaction/include)
+include_directories(move_group_interface/include)
+
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
@@ -38,10 +42,6 @@ catkin_package(
     moveit_ros_planning
     moveit_ros_warehouse
     )
-
-include_directories(py_bindings_tools/include)
-include_directories(robot_interaction/include)
-include_directories(move_group_interface/include)
 
 add_subdirectory(py_bindings_tools)
 add_subdirectory(robot_interaction)
