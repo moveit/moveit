@@ -520,7 +520,7 @@
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="editTriggers">
-               <set>QAbstractItemView::AllEditTriggers</set>
+               <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
               </property>
               <property name="selectionMode">
                <enum>QAbstractItemView::SingleSelection</enum>

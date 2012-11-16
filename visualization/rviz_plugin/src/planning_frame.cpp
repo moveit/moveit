@@ -42,8 +42,13 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
-
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
+
+namespace moveit_rviz_plugin
+{
+static const int ITEM_TYPE_SCENE = 1;
+static const int ITEM_TYPE_QUERY = 2;
+}
 
 moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
   QWidget(parent),
@@ -89,6 +94,8 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->collision_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedCollisionObjectChanged() ));
   connect( ui_->collision_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( collisionObjectNameChanged( QListWidgetItem * ) ));
   connect( ui_->path_constraints_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( pathConstraintsIndexChanged( int ) ));
+  connect( ui_->planning_scene_tree, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( warehouseItemNameChanged( QTreeWidgetItem *, int ) ));
+
   connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
 
   ui_->tabWidget->setCurrentIndex(0); 
@@ -104,7 +111,7 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroupHelper(void)
 { 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
-  const kinematic_model::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
+  const kinematic_model::KinematicModelConstPtr &kmodel = planning_display_->getKinematicModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   if (!group.empty() && kmodel)
   {
@@ -144,7 +151,7 @@ void moveit_rviz_plugin::PlanningFrame::publishSceneButtonClicked(void)
   if (planning_display_->getPlanningSceneMonitor())
   {
     moveit_msgs::PlanningScene msg;
-    planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
+    planning_display_->getPlanningScene()->getPlanningSceneMsg(msg);
     planning_scene_publisher_.publish(msg);
   }
 }
@@ -157,28 +164,34 @@ void moveit_rviz_plugin::PlanningFrame::sceneUpdate(planning_scene_monitor::Plan
 
 void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
 {
-  ui_->collision_objects_list->setUpdatesEnabled(false);
+  ui_->collision_objects_list->setUpdatesEnabled(false); 
+  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+  std::set<std::string> to_select;
+  for (int i = 0 ; i < sel.size() ; ++i)
+    to_select.insert(sel[i]->text().toStdString());
   ui_->collision_objects_list->clear();
   collision_object_names_.clear();
   
   if (planning_display_->getPlanningSceneMonitor())
   {
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
     collision_object_names_ = world->getObjectIds();
     for (std::size_t i = 0 ; i < collision_object_names_.size() ; ++i)
     {
       QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(collision_object_names_[i]),
                                                   ui_->collision_objects_list, (int)i);
       item->setFlags(item->flags() | Qt::ItemIsEditable);
+      item->setCheckState(Qt::Unchecked);
+      if (to_select.find(collision_object_names_[i]) != to_select.end())
+        item->setSelected(true);
       ui_->collision_objects_list->addItem(item);
-    }
+    }  
   }
   ui_->collision_objects_list->setUpdatesEnabled(true);
 }
 
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
-void  moveit_rviz_plugin::PlanningFrame::imProcessFeedback(
-    visualization_msgs::InteractiveMarkerFeedback &feedback )
+void  moveit_rviz_plugin::PlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
   ui_->object_x->setValue(feedback.pose.position.x);
   ui_->object_y->setValue(feedback.pose.position.y);
@@ -192,33 +205,33 @@ void  moveit_rviz_plugin::PlanningFrame::imProcessFeedback(
   ui_->object_rz->setValue(yaw);
 }
 
-void moveit_rviz_plugin::PlanningFrame::createSceneInteractiveMarker()
+void moveit_rviz_plugin::PlanningFrame::createSceneInteractiveMarker(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
       return;
 
-  collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+  collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
   collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
   if (!scene_marker_ && obj && obj->shapes_.size() == 1)
   {
     Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
     geometry_msgs::PoseStamped shape_pose;
-    shape_pose.pose.position.x=obj->shape_poses_[0].translation()[0];
-    shape_pose.pose.position.y=obj->shape_poses_[0].translation()[1];
-    shape_pose.pose.position.z=obj->shape_poses_[0].translation()[2];
-    shape_pose.pose.orientation.x=eq.x();
-    shape_pose.pose.orientation.y=eq.y();
-    shape_pose.pose.orientation.z=eq.z();
-    shape_pose.pose.orientation.w=eq.w();
+    shape_pose.pose.position.x = obj->shape_poses_[0].translation()[0];
+    shape_pose.pose.position.y = obj->shape_poses_[0].translation()[1];
+    shape_pose.pose.position.z = obj->shape_poses_[0].translation()[2];
+    shape_pose.pose.orientation.x = eq.x();
+    shape_pose.pose.orientation.y = eq.y();
+    shape_pose.pose.orientation.z = eq.z();
+    shape_pose.pose.orientation.w = eq.w();
 
     // create an interactive marker for moving the shape in the world
-    visualization_msgs::InteractiveMarker int_marker=robot_interaction::make6DOFMarker(std::string("marker_")+sel[0]->text().toStdString(), shape_pose, 1.0);
+    visualization_msgs::InteractiveMarker int_marker = robot_interaction::make6DOFMarker(std::string("marker_") + sel[0]->text().toStdString(), shape_pose, 1.0);
     int_marker.header.frame_id = context_->getFrameManager()->getFixedFrame();
     int_marker.description = sel[0]->text().toStdString();
 
     //Store the interactive marker in a map, access through the name on the shape
-    rviz::InteractiveMarker* imarker=new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
+    rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
     interactive_markers::autoComplete(int_marker);
     imarker->processMessage(int_marker);
     imarker->setShowAxes(false);
@@ -245,7 +258,7 @@ void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
       shapes::ShapeConstPtr shape(mesh);
       Eigen::Affine3d pose;
       pose.setIdentity();
-      collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+      collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
 
       //If the object already exists, ask the user whether to overwrite or rename
       if (world->hasObject(name))
@@ -320,12 +333,57 @@ void moveit_rviz_plugin::PlanningFrame::removeObjectButtonClicked(void)
     return;
   if (planning_display_->getPlanningSceneMonitor())
   {    
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
     for (int i = 0 ; i < sel.count() ; ++i)
       world->removeObject(sel[i]->text().toStdString());
     scene_marker_.reset();
     populateCollisionObjectsList();
     planning_display_->queueRenderSceneGeometry(); 
+  }
+} 
+
+void moveit_rviz_plugin::PlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
+{
+  if (item->text(column) == item->toolTip(column) || item->toolTip(column).length() == 0)
+    return;
+  boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
+  if (!planning_scene_storage)
+    return;
+  
+  if (item->type() == ITEM_TYPE_SCENE)
+  {
+    std::string new_name = item->text(column).toStdString();
+
+    if (planning_scene_storage->hasPlanningScene(new_name))
+    {
+      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
+      QMessageBox::warning(this, "Scene not renamed", QString("The scene name '").append(item->text(column)).append("' already exists"));
+      return;
+    }
+    else
+    {
+      std::string old_name = item->toolTip(column).toStdString();
+      planning_scene_storage->renamePlanningScene(old_name, new_name);
+      item->setToolTip(column, item->text(column));
+    }
+  }
+  else
+  {     
+    std::string scene = item->parent()->text(0).toStdString();
+    std::string new_name = item->text(column).toStdString();
+    if (planning_scene_storage->hasPlanningQuery(scene, new_name))
+    {
+      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
+      QMessageBox::warning(this, "Query not renamed", QString("The query name '").append(item->text(column)).
+                           append("' already exists for scene ").append(item->parent()->text(0)));
+      return;
+    }
+    else
+    {
+      std::string old_name = item->toolTip(column).toStdString();
+      planning_scene_storage->renamePlanningQuery(scene, old_name, new_name);
+      item->setToolTip(column, item->text(column));
+    }
   }
 }
 
@@ -335,7 +393,22 @@ void moveit_rviz_plugin::PlanningFrame::collisionObjectNameChanged(QListWidgetIt
       collision_object_names_[item->type()] != item->text().toStdString() && 
       planning_display_->getPlanningSceneMonitor())
   {  
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    if (item->text().isEmpty())
+    {
+      QMessageBox::warning(this, "Invalid object name", "Cannot set an empty object name.");
+      item->setText(QString::fromStdString(collision_object_names_[item->type()]));
+      return;
+    }
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
+
+    if (world->hasObject(item->text().toStdString()))
+    {
+      QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
+                           append("' already exists. Not renaming object ").append((collision_object_names_[item->type()].c_str())));
+      item->setText(QString::fromStdString(collision_object_names_[item->type()]));
+      return;
+    }
+    
     collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(collision_object_names_[item->type()]);
     if (obj)
     {
@@ -362,7 +435,7 @@ void moveit_rviz_plugin::PlanningFrame::selectedCollisionObjectChanged(void)
   {
     if (planning_display_->getPlanningSceneMonitor())
     {    
-      collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+      collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
       collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
       if (obj && obj->shapes_.size() == 1)
       {
@@ -391,7 +464,7 @@ void moveit_rviz_plugin::PlanningFrame::clearSceneButtonClicked(void)
 {    
   if (planning_display_->getPlanningSceneMonitor())
   {
-    planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld()->clearObjects(); 
+    planning_display_->getPlanningScene()->getCollisionWorld()->clearObjects(); 
     populateCollisionObjectsList();
     planning_display_->queueRenderSceneGeometry(); 
   }
@@ -404,7 +477,7 @@ void moveit_rviz_plugin::PlanningFrame::objectPoseValueChanged(double value)
     return;
   if (planning_display_->getPlanningSceneMonitor())
   {
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
     collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
     if (obj && obj->shapes_.size() == 1)
     {
@@ -439,7 +512,7 @@ void moveit_rviz_plugin::PlanningFrame::sceneScaleStartChange(void)
     return;
   if (planning_display_->getPlanningSceneMonitor())
   {
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
     scaled_object_ = world->getObject(sel[0]->text().toStdString());
   }
 }
@@ -454,7 +527,7 @@ void moveit_rviz_plugin::PlanningFrame::sceneScaleChanged(int value)
 {
   if (scaled_object_ && planning_display_->getPlanningSceneMonitor())
   {
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
     if (world->hasObject(scaled_object_->id_))
     {
       world->removeObject(scaled_object_->id_);
@@ -645,7 +718,7 @@ void moveit_rviz_plugin::PlanningFrame::saveSceneButtonClicked(void)
 { 
   if (planning_scene_storage_)
   {
-    const std::string &name = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getName();
+    const std::string &name = planning_display_->getPlanningScene()->getName();
     if (name.empty() || planning_scene_storage_->hasPlanningScene(name))
     {
       boost::scoped_ptr<QMessageBox> q;
@@ -670,7 +743,7 @@ void moveit_rviz_plugin::PlanningFrame::saveSceneButtonClicked(void)
           QString new_name = QInputDialog::getText(this, "Rename Planning Scene", "New name for the planning scene:", QLineEdit::Normal, QString::fromStdString(name), &ok);
           if (ok)
           {
-            planning_display_->getPlanningSceneMonitor()->getPlanningScene()->setName(new_name.toStdString());
+            planning_display_->getPlanningScene()->setName(new_name.toStdString());
             planning_display_->subProp("Planning Scene")->subProp("Scene Name")->setValue(new_name);
             saveSceneButtonClicked();
           }
@@ -696,7 +769,62 @@ void moveit_rviz_plugin::PlanningFrame::loadQueryButtonClicked(void)
 
 void moveit_rviz_plugin::PlanningFrame::saveQueryButtonClicked(void)
 {   
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSaveQueryButtonClicked, this));
+  if (planning_scene_storage_)
+  {
+    QList<QTreeWidgetItem *> sel = ui_->planning_scene_tree->selectedItems();
+    if (!sel.empty())
+    {
+      QTreeWidgetItem *s = sel.front();
+      
+      // if we have selected a PlanningScene, add the query as a new one, under that planning scene
+      if (s->type() == ITEM_TYPE_SCENE)
+      {
+        std::string scene = s->text(0).toStdString();
+        planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSaveQueryButtonClicked, this, scene, ""));
+      }
+      else
+      {
+        // if we selected a query name, then we overwrite that query
+        std::string scene = s->parent()->text(0).toStdString();
+        std::string query_name = s->text(0).toStdString();
+        
+        while (query_name.empty() || planning_scene_storage_->hasPlanningQuery(scene, query_name))
+        {
+          boost::scoped_ptr<QMessageBox> q;
+          if (query_name.empty())
+            q.reset(new QMessageBox(QMessageBox::Question, "Change Planning Query Name",
+                                    QString("The name for the planning query should not be empty. Would you like to rename the planning query?'"),
+                                    QMessageBox::Cancel,
+                                    this));
+          else
+            q.reset(new QMessageBox(QMessageBox::Question, "Confirm Planning Query Overwrite",
+                                    QString("A planning query named '")
+                                    .append( query_name.c_str() )
+                                    .append( "' already exists. Do you wish to overwrite that query?"),
+                                    QMessageBox::Yes | QMessageBox::No,
+                                    this));
+          boost::scoped_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole)); 
+          if (q->exec() == QMessageBox::Yes)
+            break;
+          else
+          {
+            if (q->clickedButton() == rename.get())
+            {
+              bool ok = false;
+              QString new_name = QInputDialog::getText(this, "Rename Planning Query", "New name for the planning query:", QLineEdit::Normal, QString::fromStdString(query_name), &ok);
+              if (ok)
+                query_name = new_name.toStdString();
+              else
+                return;
+            }
+            else
+              return;
+          }
+        }
+        planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSaveQueryButtonClicked, this, scene, query_name));
+      }
+    }
+  }
 }
 
 void moveit_rviz_plugin::PlanningFrame::deleteSceneButtonClicked(void)
@@ -726,7 +854,7 @@ void moveit_rviz_plugin::PlanningFrame::checkPlanningSceneTreeEnabledButtons(voi
     QTreeWidgetItem *s = sel.front();
     
     // if the item is a PlanningScene
-    if (s->type() == 1)
+    if (s->type() == ITEM_TYPE_SCENE)
     {
       ui_->load_scene_button->setEnabled(true);
       ui_->load_query_button->setEnabled(false);
@@ -863,9 +991,17 @@ void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
     std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
     std::vector<std::string> query_names;
     planning_scene_storage->getPlanningQueries(planning_queries, query_names, names[i]);
-    QTreeWidgetItem *item = new QTreeWidgetItem(ui_->planning_scene_tree, QStringList(QString::fromStdString(names[i])), 1);
+    QTreeWidgetItem *item = new QTreeWidgetItem(ui_->planning_scene_tree, QStringList(QString::fromStdString(names[i])), ITEM_TYPE_SCENE);
+    item->setFlags(item->flags() | Qt::ItemIsEditable);
+    item->setToolTip(0, item->text(0)); // we use the tool tip as a backup of the old name when renaming
     for (std::size_t j = 0 ; j < query_names.size() ; ++j)
-      item->addChild(new QTreeWidgetItem(item, QStringList(QString::fromStdString(query_names[j])), 2));
+    {
+      QTreeWidgetItem *subitem = new QTreeWidgetItem(item, QStringList(QString::fromStdString(query_names[j])), ITEM_TYPE_QUERY);
+      subitem->setFlags(subitem->flags() | Qt::ItemIsEditable);
+      subitem->setToolTip(0, subitem->text(0));
+      item->addChild(subitem);
+    }
+    
     ui_->planning_scene_tree->insertTopLevelItem(ui_->planning_scene_tree->topLevelItemCount(), item);
     if (expanded.find(names[i]) != expanded.end())
       ui_->planning_scene_tree->expandItem(item);
@@ -952,7 +1088,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSaveSceneButtonClicked(void)
   if (planning_scene_storage_)
   {
     moveit_msgs::PlanningScene msg;
-    planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
+    planning_display_->getPlanningScene()->getPlanningSceneMsg(msg);
     planning_scene_storage_->removePlanningScene(msg.name);
     planning_scene_storage_->addPlanningScene(msg);
     planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
@@ -967,7 +1103,7 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadSceneButtonClicked(void)
     if (!sel.empty())
     {
       QTreeWidgetItem *s = sel.front();
-      if (s->type() == 1)
+      if (s->type() == ITEM_TYPE_SCENE)
       {
         std::string scene = s->text(0).toStdString();
         ROS_DEBUG("Attempting to load scene '%s'", scene.c_str());
@@ -981,7 +1117,7 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadSceneButtonClicked(void)
             {
               ROS_INFO("Scene '%s' was saved for robot '%s' but we are using robot '%s'. Using scene geometry only",
                        scene.c_str(), scene_m->robot_model_name.c_str(),
-                       planning_display_->getPlanningSceneMonitor()->getKinematicModel()->getName().c_str());
+                       planning_display_->getKinematicModel()->getName().c_str());
               planning_scene_world_publisher_.publish(scene_m->world);
             }
             else
@@ -1005,7 +1141,7 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadQueryButtonClicked(void)
     if (!sel.empty())
     {
       QTreeWidgetItem *s = sel.front();
-      if (s->type() == 2)
+      if (s->type() == ITEM_TYPE_QUERY)
       {
         std::string scene = s->parent()->text(0).toStdString();
         std::string query_name = s->text(0).toStdString();
@@ -1013,8 +1149,7 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadQueryButtonClicked(void)
         if (planning_scene_storage_->getPlanningQuery(mp, scene, query_name))
         {
           kinematic_state::KinematicStatePtr start_state(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
-          kinematic_state::robotStateToKinematicState(*planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getTransforms(),
-                                                      mp->start_state, *start_state);
+          kinematic_state::robotStateToKinematicState(*planning_display_->getPlanningScene()->getTransforms(), mp->start_state, *start_state);
           planning_display_->setQueryStartState(start_state);
           
           kinematic_state::KinematicStatePtr goal_state(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
@@ -1034,32 +1169,16 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadQueryButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeSaveQueryButtonClicked(void)
+void moveit_rviz_plugin::PlanningFrame::computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name)
 {
+  moveit_msgs::MotionPlanRequest mreq;
+  constructPlanningRequest(mreq);
   if (planning_scene_storage_)
   {
-    QList<QTreeWidgetItem *> sel = ui_->planning_scene_tree->selectedItems();
-    if (!sel.empty())
-    {
-      QTreeWidgetItem *s = sel.front();
-      moveit_msgs::MotionPlanRequest mreq;
-      constructPlanningRequest(mreq);
-
-      // if we have selected a PlanningScene, add the query as a new one, under that planning scene
-      if (s->type() == 1)
-      {
-        std::string scene = s->text(0).toStdString();
-        planning_scene_storage_->addPlanningRequest(mreq, scene);
-      }
-      else
-      {
-        // if we selected a query name, then we overwrite that query
-        std::string scene = s->parent()->text(0).toStdString();
-        std::string query_name = s->text(0).toStdString();
-        planning_scene_storage_->addPlanningRequest(mreq, scene, query_name);
-      }
-      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
-    }
+    if (!query_name.empty())
+      planning_scene_storage_->removePlanningQuery(scene, query_name);
+    planning_scene_storage_->addPlanningQuery(mreq, scene, query_name);
+    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
   }
 }
 
@@ -1071,7 +1190,7 @@ void moveit_rviz_plugin::PlanningFrame::computeDeleteSceneButtonClicked(void)
     if (!sel.empty())
     {
       QTreeWidgetItem *s = sel.front();
-      if (s->type() == 1)
+      if (s->type() == ITEM_TYPE_SCENE)
       {
         std::string scene = s->text(0).toStdString();
         planning_scene_storage_->removePlanningScene(scene);
@@ -1102,7 +1221,7 @@ void moveit_rviz_plugin::PlanningFrame::computeDeleteQueryButtonClicked(void)
     if (!sel.empty())
     {
       QTreeWidgetItem *s = sel.front();
-      if (s->type() == 2)
+      if (s->type() == ITEM_TYPE_QUERY)
       {
         std::string scene = s->parent()->text(0).toStdString();
         std::string query_name = s->text(0).toStdString();
