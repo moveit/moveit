@@ -403,18 +403,6 @@ const planning_scene::PlanningScenePtr& PlanningDisplay::getPlanningScene(void)
   }
 }
 
-const dynamics_solver::DynamicsSolverPtr& PlanningDisplay::getDynamicsSolver(const std::string &group)
-{
-  std::map<std::string, dynamics_solver::DynamicsSolverPtr>::const_iterator it = dynamics_solver_.find(group);
-  if (it == dynamics_solver_.end())
-  { 
-    static dynamics_solver::DynamicsSolverPtr empty;
-    return empty;
-  }
-  else
-    return it->second;
-}
-
 void PlanningDisplay::changedAttachedBodyColor(void)
 {
   queueRenderSceneGeometry();
@@ -703,8 +691,11 @@ void PlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metr
                                              const kinematic_state::KinematicState &state, double payload)
 { 
   metrics.clear();
-  dynamics_solver::DynamicsSolverPtr ds = getDynamicsSolver(ee.parent_group);
-  
+  dynamics_solver::DynamicsSolverPtr ds;
+  std::map<std::string, dynamics_solver::DynamicsSolverPtr>::const_iterator it = dynamics_solver_.find(ee.parent_group);
+  if (it != dynamics_solver_.end())
+    ds = it->second;
+
   // Max payload
   if (ds)
   {

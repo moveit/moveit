@@ -100,6 +100,18 @@ bool moveit_warehouse::ConstraintsStorage::getConstraints(ConstraintsWithMetadat
   }
 }
 
+void moveit_warehouse::ConstraintsStorage::renameConstraints(const std::string &old_name, const std::string &new_name, const std::string &robot, const std::string &group)
+{
+  mongo_ros::Query q(CONSTRAINTS_ID_NAME, old_name);
+  if (!robot.empty())
+    q.append(CONSTRAINTS_ROBOT_NAME, robot);
+  if (!group.empty())
+    q.append(CONSTRAINTS_GROUP_NAME, group);
+  mongo_ros::Metadata m(CONSTRAINTS_GROUP_NAME, new_name);
+  constraints_collection_->modifyMetadata(q, m);  
+  ROS_DEBUG("Renamed constraints from '%s' to '%s'", old_name.c_str(), new_name.c_str());
+}
+
 void moveit_warehouse::ConstraintsStorage::removeConstraints(const std::string &name, const std::string &robot, const std::string &group)
 {
   mongo_ros::Query q(CONSTRAINTS_ID_NAME, name);

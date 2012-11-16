@@ -65,7 +65,7 @@ public:
   PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
   
   void addPlanningScene(const moveit_msgs::PlanningScene &scene);
-  void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
+  void addPlanningQuery(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
   void addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query, const moveit_msgs::RobotTrajectory &result, const std::string &scene_name);
   
   bool hasPlanningScene(const std::string &name) const;
@@ -81,13 +81,17 @@ public:
   bool getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name, const ros::Time& time, double margin = 1.0) const;
   bool getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name) const;
 
+  bool hasPlanningQuery(const std::string &scene_name, const std::string &query_name) const;
   bool getPlanningQuery(MotionPlanRequestWithMetadata &query_m, const std::string &scene_name, const std::string &query_name);
   void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;  
   void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const;
 
-  void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
-  void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &query_name, const std::string &scene_name) const;
-  
+  void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &scene_name, const moveit_msgs::MotionPlanRequest &planning_query) const;
+  void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &scene_name, const std::string &query_name) const;
+
+  void renamePlanningScene(const std::string &old_scene_name, const std::string &new_scene_name);
+  void renamePlanningQuery(const std::string &scene_name, const std::string &old_query_name, const std::string &new_query_name);
+
   void removePlanningScene(const std::string &scene_name);
   void removePlanningQuery(const std::string &scene_name, const std::string &query_name);
   void removePlanningQueries(const std::string &scene_name);
