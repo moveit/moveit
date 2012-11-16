@@ -82,6 +82,5 @@ install(FILES planning_request_adapters_plugin_description.xml DESTINATION ${CAT
 
 #collision_distance_field_ros
 #kdl_kinematics_plugin
-#kinematics_cache_ros
 #kinematics_planner_ros
 #kinematics_reachability
