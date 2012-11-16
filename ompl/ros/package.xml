@@ -12,6 +12,7 @@
   <url type="repository">https://github.com/ros-planning/moveit-planners</url>
 
   <build_depend>catkin</build_depend> 
+  <build_depend>moveit_core</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_ompl_planners_core</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
@@ -19,6 +20,7 @@
   <build_depend>tf</build_depend>
   <build_depend>pluginlib</build_depend>
 
+  <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ompl_planners_core</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
@@ -27,7 +29,7 @@
   <run_depend>pluginlib</run_depend>
 
   <export>
-    <planning_interface plugin="${prefix}/ompl_interface_ros/plugin_description.xml"/>
+    <moveit_core plugin="${prefix}/ompl_interface_ros/plugin_description.xml"/>
   </export>
 
 </package>
