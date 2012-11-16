@@ -164,7 +164,11 @@ void moveit_rviz_plugin::PlanningFrame::sceneUpdate(planning_scene_monitor::Plan
 
 void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
 {
-  ui_->collision_objects_list->setUpdatesEnabled(false);
+  ui_->collision_objects_list->setUpdatesEnabled(false); 
+  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+  std::set<std::string> to_select;
+  for (int i = 0 ; i < sel.size() ; ++i)
+    to_select.insert(sel[i]->text().toStdString());
   ui_->collision_objects_list->clear();
   collision_object_names_.clear();
   
@@ -177,8 +181,11 @@ void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
       QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(collision_object_names_[i]),
                                                   ui_->collision_objects_list, (int)i);
       item->setFlags(item->flags() | Qt::ItemIsEditable);
+      item->setCheckState(Qt::Unchecked);
+      if (to_select.find(collision_object_names_[i]) != to_select.end())
+        item->setSelected(true);
       ui_->collision_objects_list->addItem(item);
-    }
+    }  
   }
   ui_->collision_objects_list->setUpdatesEnabled(true);
 }
@@ -386,7 +393,22 @@ void moveit_rviz_plugin::PlanningFrame::collisionObjectNameChanged(QListWidgetIt
       collision_object_names_[item->type()] != item->text().toStdString() && 
       planning_display_->getPlanningSceneMonitor())
   {  
+    if (item->text().isEmpty())
+    {
+      QMessageBox::warning(this, "Invalid object name", "Cannot set an empty object name.");
+      item->setText(QString::fromStdString(collision_object_names_[item->type()]));
+      return;
+    }
     collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
+
+    if (world->hasObject(item->text().toStdString()))
+    {
+      QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
+                           append("' already exists. Not renaming object ").append((collision_object_names_[item->type()].c_str())));
+      item->setText(QString::fromStdString(collision_object_names_[item->type()]));
+      return;
+    }
+    
     collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(collision_object_names_[item->type()]);
     if (obj)
     {
