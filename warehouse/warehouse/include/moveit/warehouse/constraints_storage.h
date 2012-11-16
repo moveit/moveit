@@ -63,7 +63,9 @@ public:
   
   /** \brief Get the constraints named \e name. Return false on failure. */
   bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name, const std::string &robot = "", const std::string &group = "") const;
-  
+
+  void renameConstraints(const std::string &old_name, const std::string &new_name, const std::string &robot = "", const std::string &group = "");
+
   void removeConstraints(const std::string &scene_name, const std::string &robot = "", const std::string &group = "");
   
 private:
