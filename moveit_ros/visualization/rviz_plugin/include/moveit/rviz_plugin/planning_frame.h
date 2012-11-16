@@ -128,6 +128,7 @@ private Q_SLOTS:
   void collisionObjectNameChanged(QListWidgetItem *item);
   void pathConstraintsIndexChanged(int index);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
   void tabChanged(int index);
 
 private:
@@ -143,7 +144,7 @@ private:
   void computeDatabaseConnectButtonClicked(void);
   void computeDatabaseConnectButtonClickedHelper(int mode);
   void computeSaveSceneButtonClicked(void);
-  void computeSaveQueryButtonClicked(void);
+  void computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name);
   void computeDeleteSceneButtonClicked(void);
   void computeDeleteQueryButtonClicked(void);
   void computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s);

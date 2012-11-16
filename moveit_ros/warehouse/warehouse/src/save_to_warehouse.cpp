@@ -94,7 +94,7 @@ void onMotionPlanRequest(const moveit_msgs::MotionPlanRequestConstPtr &req,
     ROS_INFO("Scene name is empty. Not saving planning request.");
     return;
   }
-  pss->addPlanningRequest(*req, psm->getPlanningScene()->getName());
+  pss->addPlanningQuery(*req, psm->getPlanningScene()->getName());
 }
 
 int main(int argc, char **argv)
