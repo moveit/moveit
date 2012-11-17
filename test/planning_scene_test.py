@@ -11,9 +11,10 @@ from moveit_commander import ArmMover
 # initialize
 rospy.init_node('test_arm_control', anonymous=True)
 arm_mover = ArmMover("arm")
+planning_scene = PlanningScene();
 
-PlanningScene.add_simple_object("box", "base_link", SolidPrimitive.BOX, 0.5, 0, 0.15, 0.0, 0.0, 0.0, 1.0, [0.3, 0.6, 0.3])
-PlanningScene.attach_simple_collision_object("cup6", "low_cost_gripper_palm_link", SolidPrimitive.CYLINDER, "low_cost_gripper_palm_link", ["low_cost_gripper_r_finger_tip_link", "low_cost_gripper_r_finger_link", "low_cost_gripper_l_finger_tip_link", "low_cost_gripper_l_finger_link", "wrist_roll_link", "low_cost_gripper_palm_link"], 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, [0.1, 0.04])
+#PlanningScene.add_simple_object("box", "base_link", SolidPrimitive.BOX, 0.5, 0, 0.15, 0.0, 0.0, 0.0, 1.0, [0.3, 0.6, 0.3])
+planning_scene.attach_simple_collision_object("cup6", "low_cost_gripper_palm_link", SolidPrimitive.CYLINDER, "low_cost_gripper_palm_link", ["low_cost_gripper_r_finger_tip_link", "low_cost_gripper_r_finger_link", "low_cost_gripper_l_finger_tip_link", "low_cost_gripper_l_finger_link", "wrist_roll_link", "low_cost_gripper_palm_link"], 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, [0.1, 0.04])
 
 
 #arm_mover.add_simple_object("/u/selliott/workspace_temp/cob_environments/cob_gazebo_objects/Media/models/milk.dae")
@@ -41,8 +42,10 @@ PlanningScene.attach_simple_collision_object("cup6", "low_cost_gripper_palm_link
 #else: 
 #    print 'Goal not reached.'   
 
-rospy.sleep(3.0)
+#rospy.sleep(3.0)
 
-PlanningScene.remove_simple_object("box", "base_link")
-PlanningScene.remove_simple_attached_object("cup6", "low_cost_gripper_palm_link", "low_cost_gripper_palm_link")
-PlanningScene.remove_simple_object("cup6", "low_cost_gripper_palm_link")
+#PlanningScene.remove_simple_object("box", "base_link")
+planning_scene.remove_simple_attached_object("cup6", "low_cost_gripper_palm_link", "low_cost_gripper_palm_link")
+planning_scene.remove_simple_object("cup6", "low_cost_gripper_palm_link")
+#PlanningScene.remove_simple_attached_object("cup6", "low_cost_gripper_palm_link", "low_cost_gripper_palm_link")
+#PlanningScene.remove_simple_object("cup6", "low_cost_gripper_palm_link")
