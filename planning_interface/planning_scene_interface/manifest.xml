@@ -14,7 +14,7 @@
   <depend package="geometric_shapes"/>
   <!-- <depend package="arm_navigation_msgs"/> -->
   <depend package="shape_msgs"/>
-
+  <depend package="py_bindings_tools"/>
 </package>
 
 

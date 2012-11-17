@@ -34,12 +34,15 @@
 
 /* Author: Sarah Elliott */
 
+#include <planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <geometric_shapes/shape_operations.h>
 #include <shape_msgs/SolidPrimitive.h>
 #include <geometry_msgs/Pose.h>
-#include <boost/function.hpp>
+
+
+/*#include <boost/function.hpp>
 #include <boost/python.hpp>
 #include <boost/python/return_value_policy.hpp>
 #include <boost/python/stl_iterator.hpp>
@@ -50,27 +53,31 @@
 #include <Python.h>
 #include <ros/ros.h>
 #include <boost/thread.hpp>
+*/
 
 namespace bp = boost::python;
 
-namespace moveit_python_interface
+namespace planning_scene_interface
 
 {
 
-class PlanningSceneInterface //: protected moveit_py_bindings_tools::ROScppInitializer
-{
+//class PlanningSceneInterface : protected moveit_py_bindings_tools::ROScppInitializer
+//{
 
-public:
+//public:
 
-  static void addSimpleObjectToPlanningScene(std::string id, std::string frame_id, int type, double pos_x, 
+  // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
+  PlanningSceneInterface::PlanningSceneInterface() : moveit_py_bindings_tools::ROScppInitializer()
+  {
+    collision_object_pub_ = nh_.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
+    attached_collision_object_pub_ = nh_.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
+  }
+
+
+  void PlanningSceneInterface::addSimpleObjectToPlanningScene(std::string id, std::string frame_id, int type, double pos_x, 
                                       double pos_y, double pos_z, double or_x, double or_y, double or_z, 
                                       double or_w, std::vector<double> dimensions)
   {
-    ros::Publisher object_in_map_pub;
-    ros::NodeHandle nh;
-
-    //ros::Publisher object_in_map_pub_;
-    object_in_map_pub  = nh.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
 
     ros::Duration(2.0).sleep();// This delay is so critical, otherwise the first published object may not be added in the collision_space by the environment_server
 
@@ -100,12 +107,12 @@ public:
     pose.orientation.z = or_z;
     pose.orientation.w = or_w;
     cylinder_object.primitive_poses.push_back(pose);
-    object_in_map_pub.publish(cylinder_object);
+    collision_object_pub_.publish(cylinder_object);
 
     ROS_INFO("Should have published");
   }
 
-  static void addSimpleObjectToPlanningScenePython(std::string id, std::string frame_id, int type, double pos_x, 
+  void PlanningSceneInterface::addSimpleObjectToPlanningScenePython(std::string id, std::string frame_id, int type, double pos_x, 
                                             double pos_y, double pos_z, double or_x, double or_y, double or_z,
                                             double or_w, bp::list &values)
   {
@@ -113,39 +120,24 @@ public:
                                    doubleFromList(values));
   }
 
-  static void removeSimpleObjectFromPlanningScene(std::string id, std::string frame_id) 
+  void PlanningSceneInterface::removeSimpleObjectFromPlanningScene(std::string id, std::string frame_id) 
   {
-    ros::Publisher object_in_map_pub;
-    ros::NodeHandle nh;
-
-    //ros::Publisher object_in_map_pub_;
-    object_in_map_pub  = nh.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
-
-    ros::Duration(2.0).sleep();
-
     moveit_msgs::CollisionObject object_to_remove;
     object_to_remove.id = id;
     object_to_remove.operation = moveit_msgs::CollisionObject::REMOVE;
     object_to_remove.header.frame_id = frame_id;
     object_to_remove.header.stamp = ros::Time::now();
 
-    object_in_map_pub.publish(object_to_remove);
+    collision_object_pub_.publish(object_to_remove);
 
     ROS_INFO("Should have published");
   }
   
-  static void attachSimpleCollisionObject(std::string id, std::string frame_id, int type, std::string link_name, 
+  void PlanningSceneInterface::attachSimpleCollisionObject(std::string id, std::string frame_id, int type, std::string link_name, 
                                    std::vector<std::string> touch_links, double pos_x, double pos_y, 
                                    double pos_z, double or_x, double or_y, double or_z, double or_w, 
                                    std::vector<double> dimensions)
   {
-    ros::Publisher object_in_map_pub;
-    ros::NodeHandle nh;
-
-    object_in_map_pub  = nh.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
-
-    ros::Duration(2.0).sleep();// This delay is so critical, otherwise the first published object may not be added in the collision_space by the environment_server
-
     //add the cylinder into the collision space
     moveit_msgs::AttachedCollisionObject gripper_object;
     gripper_object.object.id = id;
@@ -178,28 +170,20 @@ public:
     pose.orientation.z = or_z;
     pose.orientation.w = or_w;
     gripper_object.object.primitive_poses.push_back(pose);
-    object_in_map_pub.publish(gripper_object);
+    attached_collision_object_pub_.publish(gripper_object);
 
     ROS_INFO("Should have published");
   }
 
-  static void attachSimpleCollisionObjectPython(std::string id, std::string frame_id, int type, std::string link_name, 
+  void PlanningSceneInterface::attachSimpleCollisionObjectPython(std::string id, std::string frame_id, int type, std::string link_name, 
                                          bp::list &touch_links, double pos_x, double pos_y, double pos_z, 
                                          double or_x, double or_y, double or_z, double or_w, bp::list &values)
   {
     attachSimpleCollisionObject(id, frame_id, type, link_name, stringFromList(touch_links), pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, doubleFromList(values));
   }
 
-  static void removeSimpleAttachedObject(std::string id, std::string frame_id, std::string link_name)
+  void PlanningSceneInterface::removeSimpleAttachedObject(std::string id, std::string frame_id, std::string link_name)
   {
-    ros::Publisher object_in_map_pub;
-    ros::NodeHandle nh;
-
-    //ros::Publisher object_in_map_pub_;
-    object_in_map_pub  = nh.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
-
-    ros::Duration(2.0).sleep();
-
     moveit_msgs::AttachedCollisionObject object_to_remove;
     object_to_remove.link_name = link_name;
     object_to_remove.object.id = id;
@@ -207,14 +191,13 @@ public:
     object_to_remove.object.header.frame_id = frame_id;
     object_to_remove.object.header.stamp = ros::Time::now();
 
-    object_in_map_pub.publish(object_to_remove);
+    attached_collision_object_pub_.publish(object_to_remove);
 
     ROS_INFO("Should have published");
   }
 
-private:
 
-  static std::vector<double> doubleFromList(bp::list &values)
+  std::vector<double> PlanningSceneInterface::doubleFromList(bp::list &values)
   {
     int l = bp::len(values);
     std::vector<double> v(l);
@@ -224,7 +207,7 @@ private:
   }
 
 
-  static std::vector<std::string> stringFromList(bp::list &values)
+  std::vector<std::string> PlanningSceneInterface::stringFromList(bp::list &values)
   {
     int l = bp::len(values);
     std::vector<std::string> v(l);
@@ -233,28 +216,28 @@ private:
     return v;
   }
 
-};
+//};
 
 void wrapPlanningSceneInterface()
 {
   bp::class_<PlanningSceneInterface> PlanningSceneInterfaceClass("PlanningSceneInterface");
   PlanningSceneInterfaceClass.def("add_simple_object", 
-                                  &PlanningSceneInterface::addSimpleObjectToPlanningScenePython)
-                                  .staticmethod("add_simple_object");
+                                  &PlanningSceneInterface::addSimpleObjectToPlanningScenePython);
+                                  //.staticmethod("add_simple_object");
   PlanningSceneInterfaceClass.def("remove_simple_object", 
-                                  &PlanningSceneInterface::removeSimpleObjectFromPlanningScene)
-                                  .staticmethod("remove_simple_object");
+                                  &PlanningSceneInterface::removeSimpleObjectFromPlanningScene);
+                                  //.staticmethod("remove_simple_object");
   PlanningSceneInterfaceClass.def("attach_simple_collision_object", 
-                                  &PlanningSceneInterface::attachSimpleCollisionObjectPython)
-                                  .staticmethod("attach_simple_collision_object");
+                                  &PlanningSceneInterface::attachSimpleCollisionObjectPython);
+                                  //.staticmethod("attach_simple_collision_object");
   PlanningSceneInterfaceClass.def("remove_simple_attached_object", 
-                                  &PlanningSceneInterface::removeSimpleAttachedObject)
-                                  .staticmethod("remove_simple_attached_object");
+                                  &PlanningSceneInterface::removeSimpleAttachedObject);
+                                  //.staticmethod("remove_simple_attached_object");
 }
 
 BOOST_PYTHON_MODULE(_planning_scene_interface)
 {
-  using namespace moveit_python_interface;
+  using namespace planning_scene_interface;
   wrapPlanningSceneInterface();  
   //bp::def("add_simple_object", addSimpleObjectToPlanningScenePython);
   //bp::def("remove_simple_object", removeSimpleObjectFromPlanningScene);
