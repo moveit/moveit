@@ -216,6 +216,9 @@ bool constraint_samplers::IKConstraintSampler::setup(const IKSamplingPose &sp)
   if (sampling_pose_.orientation_constraint_ && sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     frame_depends_.push_back(sampling_pose_.orientation_constraint_->getReferenceFrame());
   ik_alloc_ = jmg_->getSolverAllocators().first;
+  if(!ik_alloc_) {
+    logWarn("No ik alloc in setup");
+  } 
   return true;
 }
 

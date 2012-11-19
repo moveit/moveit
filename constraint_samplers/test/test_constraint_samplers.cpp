@@ -49,9 +49,25 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 
+#include "pr2_arm_kinematics_plugin.h"
+
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
+
+  boost::shared_ptr<kinematics::KinematicsBase> getKinematicsSolverRightArm(const kinematic_model::JointModelGroup *jmg)
+  {
+    {
+      return pr2_kinematics_plugin_right_arm_;
+    }
+  }
+
+  boost::shared_ptr<kinematics::KinematicsBase> getKinematicsSolverLeftArm(const kinematic_model::JointModelGroup *jmg)
+  {
+    {
+      return pr2_kinematics_plugin_left_arm_;
+    }
+  }
   
   virtual void SetUp()
   {
@@ -71,8 +87,35 @@ protected:
     }
     srdf_model->initFile(*urdf_model, "../kinematic_state/test/srdf/robot.xml");
     kmodel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
+
+    pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
+
+    pr2_kinematics_plugin_right_arm_->setRobotModel(urdf_model);
+    pr2_kinematics_plugin_right_arm_->initialize("right_arm",
+                                                 "torso_lift_link",
+                                                 "r_wrist_roll_link",
+                                                 .01);
+
+    pr2_kinematics_plugin_left_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
+
+    pr2_kinematics_plugin_left_arm_->setRobotModel(urdf_model);
+    pr2_kinematics_plugin_left_arm_->initialize("left_arm",
+                                                "torso_lift_link",
+                                                "l_wrist_roll_link",
+                                                .01);
+    
+    func_right_arm.reset(new kinematic_model::SolverAllocatorFn(boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1)));
+    func_left_arm.reset(new kinematic_model::SolverAllocatorFn(boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1)));
+    
+    std::map<std::string, kinematic_model::SolverAllocatorFn> allocators;
+    allocators["right_arm"] = *func_right_arm;
+    allocators["left_arm"] = *func_left_arm;
+    
+    kmodel->setKinematicsAllocators(allocators);
+    
     ps.reset(new planning_scene::PlanningScene());
-    ps->configure(urdf_model, srdf_model);
+    ps->configure(urdf_model, srdf_model, kmodel);
+    
   };
   
   virtual void TearDown()
@@ -85,6 +128,10 @@ protected:
   boost::shared_ptr<srdf::Model>     srdf_model;
   kinematic_model::KinematicModelPtr kmodel;
   planning_scene::PlanningScenePtr ps;
+  boost::shared_ptr<pr2_arm_kinematics::PR2ArmKinematicsPlugin> pr2_kinematics_plugin_right_arm_;
+  boost::shared_ptr<pr2_arm_kinematics::PR2ArmKinematicsPlugin> pr2_kinematics_plugin_left_arm_;
+  boost::shared_ptr<kinematic_model::SolverAllocatorFn> func_right_arm;
+  boost::shared_ptr<kinematic_model::SolverAllocatorFn> func_left_arm;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
@@ -310,291 +357,210 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerManager)
   }
 }
 
-// TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
-// {
-//   planning_models::KinematicState ks(kmodel);
-//   ks.setToDefaultValues();
-//   planning_models::TransformsPtr tf = ps->getTransforms();
-  
-//   kinematic_constraints::OrientationConstraint oc(kmodel, tf);
-//   moveit_msgs::OrientationConstraint ocm;
-  
-//   ocm.link_name = "r_wrist_roll_link";
-//   ocm.header.frame_id = ocm.link_name; 
-//   ocm.orientation.x = 0.5;
-//   ocm.orientation.y = 0.5;
-//   ocm.orientation.z = 0.5;
-//   ocm.orientation.w = 0.5;
-//   ocm.absolute_x_axis_tolerance = 0.01;
-//   ocm.absolute_y_axis_tolerance = 0.01;
-//   ocm.absolute_z_axis_tolerance = 0.01;
-//   ocm.weight = 1.0;
-  
-//   EXPECT_TRUE(oc.configure(ocm));
-  
-//   bool p1 = oc.decide(ks).satisfied;
-//   EXPECT_FALSE(p1);
-  
-//   ocm.header.frame_id = kmodel->getModelFrame();
-//   EXPECT_TRUE(oc.configure(ocm));
-  
-//   constraint_samplers::IKConstraintSampler iks(ps, "right_arm", constraint_samplers::IKSamplingPose(oc));
-//   for (int t = 0 ; t < 100 ; ++t)
-//   {
-//     EXPECT_TRUE(iks.sample(ks.getJointStateGroup("right_arm"), ks, 100));
-//     EXPECT_TRUE(oc.decide(ks).satisfied);
-//   }
-  
-// }
-
-// TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
-// {
-//   planning_models::KinematicState ks(kmodel);
-//   ks.setToDefaultValues();
-//   planning_models::TransformsPtr tf = ps->getTransforms();
-  
-//   kinematic_constraints::PositionConstraint pc(kmodel, tf);
-//   moveit_msgs::PositionConstraint pcm;
-  
-//   pcm.link_name = "l_wrist_roll_link";
-//   pcm.target_point_offset.x = 0;
-//   pcm.target_point_offset.y = 0;
-//   pcm.target_point_offset.z = 0;
-//   pcm.constraint_region.primitives.resize(1);
-//   pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
-//   pcm.constraint_region.primitives[0].dimensions.resize(1);
-//   pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
-  
-//   pcm.header.frame_id = kmodel->getModelFrame();
-
-//   pcm.constraint_region.primitive_poses.resize(1);
-//   pcm.constraint_region.primitive_poses[0].position.x = 0.55;
-//   pcm.constraint_region.primitive_poses[0].position.y = 0.2;
-//   pcm.constraint_region.primitive_poses[0].position.z = 1.25;
-//   pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
-//   pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
-//   pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
-//   pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
-//   pcm.weight = 1.0;
-  
-//   EXPECT_TRUE(pc.configure(pcm));
-  
-//   kinematic_constraints::OrientationConstraint oc(kmodel, tf);
-//   moveit_msgs::OrientationConstraint ocm;
-  
-//   ocm.link_name = "l_wrist_roll_link";
-//   ocm.header.frame_id = kmodel->getModelFrame();
-//   ocm.orientation.x = 0.0;
-//   ocm.orientation.y = 0.0;
-//   ocm.orientation.z = 0.0;
-//   ocm.orientation.w = 1.0;
-//   ocm.absolute_x_axis_tolerance = 0.2;
-//   ocm.absolute_y_axis_tolerance = 0.1;
-//   ocm.absolute_z_axis_tolerance = 0.4;
-//   ocm.weight = 1.0;
-  
-//   EXPECT_TRUE(oc.configure(ocm));
-
-//   constraint_samplers::IKConstraintSampler iks1(ps, "left_arm", constraint_samplers::IKSamplingPose(pc, oc));
-//   for (int t = 0 ; t < 100 ; ++t)
-//   {
-//     EXPECT_TRUE(iks1.sample(ks.getJointStateGroup("left_arm"), ks, 100));
-//     EXPECT_TRUE(pc.decide(ks).satisfied);
-//     EXPECT_TRUE(oc.decide(ks).satisfied);
-//   }
-  
-//   constraint_samplers::IKConstraintSampler iks2(ps, "left_arm", constraint_samplers::IKSamplingPose(pc));
-//   for (int t = 0 ; t < 100 ; ++t)
-//   {
-//     EXPECT_TRUE(iks2.sample(ks.getJointStateGroup("left_arm"), ks, 100));
-//     EXPECT_TRUE(pc.decide(ks).satisfied);
-//   }
-  
-//   constraint_samplers::IKConstraintSampler iks3(ps, "left_arm", constraint_samplers::IKSamplingPose(oc));
-//   for (int t = 0 ; t < 100 ; ++t)
-//   {
-//     EXPECT_TRUE(iks3.sample(ks.getJointStateGroup("left_arm"), ks, 100));
-//     EXPECT_TRUE(oc.decide(ks).satisfied);
-//   }
-  
-  
-//   // test the automatic construction of constraint sampler
-//   moveit_msgs::Constraints c;
-//   c.position_constraints.push_back(pcm);
-//   c.orientation_constraints.push_back(ocm);
-  
-//   constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", c);
-//   EXPECT_TRUE(s.get() != NULL);
-//   static const int NT = 1000;
-//   int succ = 0;
-//   for (int t = 0 ; t < NT ; ++t)
-//   {
-//     EXPECT_TRUE(s->sample(ks.getJointStateGroup("left_arm"), ks, 100));
-//     EXPECT_TRUE(pc.decide(ks).satisfied);
-//     EXPECT_TRUE(oc.decide(ks).satisfied);
-//     if (s->sample(ks.getJointStateGroup("left_arm"), ks, 1))
-//       succ++;
-//   }
-//   ROS_INFO("Success rate for IK Constraint Sampler with position & orientation constraints for one arm: %lf", (double)succ / (double)NT);
-// }
-
-// TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
-// {
-//   moveit_msgs::Constraints c;
-  
-//   moveit_msgs::PositionConstraint pcm;
-//   pcm.link_name = "l_wrist_roll_link";
-//   pcm.target_point_offset.x = 0;
-//   pcm.target_point_offset.y = 0;
-//   pcm.target_point_offset.z = 0;
-
-//   pcm.constraint_region.primitives.resize(1);
-//   pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
-//   pcm.constraint_region.primitives[0].dimensions.resize(1);
-//   pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
-  
-//   pcm.header.frame_id = kmodel->getModelFrame();
-
-//   pcm.constraint_region.primitive_poses.resize(1);
-//   pcm.constraint_region.primitive_poses[0].position.x = 0.55;
-//   pcm.constraint_region.primitive_poses[0].position.y = 0.2;
-//   pcm.constraint_region.primitive_poses[0].position.z = 1.25;
-//   pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
-//   pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
-//   pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
-//   pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
-//   pcm.weight = 1.0;
-//   c.position_constraints.push_back(pcm);
-  
-//   moveit_msgs::OrientationConstraint ocm;
-//   ocm.link_name = "l_wrist_roll_link";
-//   ocm.header.frame_id = kmodel->getModelFrame();
-//   ocm.orientation.x = 0.0;
-//   ocm.orientation.y = 0.0;
-//   ocm.orientation.z = 0.0;
-//   ocm.orientation.w = 1.0;
-//   ocm.absolute_x_axis_tolerance = 0.2;
-//   ocm.absolute_y_axis_tolerance = 0.1;
-//   ocm.absolute_z_axis_tolerance = 0.4;
-//   ocm.weight = 1.0;
-//   c.orientation_constraints.push_back(ocm);
-  
-//   ocm.link_name = "r_wrist_roll_link";
-//   ocm.header.frame_id = kmodel->getModelFrame();
-//   ocm.orientation.x = 0.0;
-//   ocm.orientation.y = 0.0;
-//   ocm.orientation.z = 0.0;
-//   ocm.orientation.w = 1.0;
-//   ocm.absolute_x_axis_tolerance = 0.01;
-//   ocm.absolute_y_axis_tolerance = 0.01;
-//   ocm.absolute_z_axis_tolerance = 0.01;
-//   ocm.weight = 1.0;
-//   c.orientation_constraints.push_back(ocm);
-  
-//   planning_models::TransformsPtr tf = ps->getTransforms();
-//   constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
-//   EXPECT_TRUE(s.get() != NULL);
-  
-//   kinematic_constraints::KinematicConstraintSet kset(kmodel, tf);
-//   kset.add(c);
-  
-//   planning_models::KinematicState ks(kmodel);
-//   ks.setToDefaultValues();  
-//   static const int NT = 1000;
-//   int succ = 0;
-//   for (int t = 0 ; t < 1000 ; ++t)
-//   {
-//     EXPECT_TRUE(s->sample(ks.getJointStateGroup("arms"), ks, 1000));
-//     EXPECT_TRUE(kset.decide(ks).satisfied);
-//     if (s->sample(ks.getJointStateGroup("arms"), ks, 1))
-//       succ++;
-//   } 
-//   ROS_INFO("Success rate for IK Constraint Sampler with position & orientation constraints for both arms: %lf", (double)succ / (double)NT);
-// }
-
-/*
-TEST_F(ConstraintSamplerTestBase, VisibilityConstraint)
+TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
-  moveit_msgs::AttachedCollisionObject aco;
-  aco.link_name = "r_wrist_roll_link";
-  aco.touch_links.push_back("r_wrist_roll_link");
+  kinematic_state::KinematicState ks(kmodel);
+  ks.setToDefaultValues();
+  kinematic_state::TransformsPtr tf = ps->getTransforms();
   
-  moveit_msgs::CollisionObject &co = aco.object;
-  co.id = "attached";
-  co.header.stamp = ros::Time::now();
-  co.header.frame_id = aco.link_name;
-  co.operation = moveit_msgs::CollisionObject::ADD;
-  co.shapes.resize(1);
-  co.shapes[0].type = shape_msgs::Shape::BOX;
-  co.shapes[0].dimensions.push_back(0.3);
-  co.shapes[0].dimensions.push_back(0.01);
-  co.shapes[0].dimensions.push_back(0.3);
-  co.poses.resize(1);
-  co.poses[0].position.x = 0.28;
-  co.poses[0].position.y = 0;
-  co.poses[0].position.z = 0;
-  co.poses[0].orientation.w = 1.0;
-  psm_->getPlanningScene()->processAttachedCollisionObjectMsg(aco);
-
-  ros::NodeHandle nh;
-  planning_models::TransformsPtr tf = psm_->getPlanningScene()->getTransforms();
+  kinematic_constraints::OrientationConstraint oc(kmodel, tf);
+  moveit_msgs::OrientationConstraint ocm;
   
-  kinematic_constraints::VisibilityConstraint vc(kmodel, tf);
-  moveit_msgs::VisibilityConstraint vcm;
-  vcm.target_radius = 0.1;
-  vcm.cone_sides = 12;
-  vcm.max_view_angle = 0.35;
-  vcm.max_range_angle = 0.35;
-
-  vcm.target_pose.header.frame_id = aco.object.id;
-  vcm.target.primitive_poses[0].position.x = 0;
-  vcm.target.primitive_poses[0].position.y = 0.05;
-  vcm.target.primitive_poses[0].position.z = 0;
-  vcm.target.primitive_poses[0].orientation.x = sqrt(2.0)/2.0;
-  vcm.target.primitive_poses[0].orientation.y = 0.0;
-  vcm.target.primitive_poses[0].orientation.z = 0.0;
-  vcm.target.primitive_poses[0].orientation.w = sqrt(2.0)/2.0;
+  ocm.link_name = "r_wrist_roll_link";
+  ocm.header.frame_id = ocm.link_name; 
+  ocm.orientation.x = 0.5;
+  ocm.orientation.y = 0.5;
+  ocm.orientation.z = 0.5;
+  ocm.orientation.w = 0.5;
+  ocm.absolute_x_axis_tolerance = 0.01;
+  ocm.absolute_y_axis_tolerance = 0.01;
+  ocm.absolute_z_axis_tolerance = 0.01;
+  ocm.weight = 1.0;
   
-  vcm.sensor_pose.header.frame_id = "double_stereo_link";
-  vcm.sensor.primitive_poses[0].position.x = 0.1;
-  vcm.sensor.primitive_poses[0].position.y = 0;
-  vcm.sensor.primitive_poses[0].position.z = 0;
-  vcm.sensor.primitive_poses[0].orientation.x = 0;
-  vcm.sensor.primitive_poses[0].orientation.y = 0;
-  vcm.sensor.primitive_poses[0].orientation.z = 0;
-  vcm.sensor.primitive_poses[0].orientation.w = 1;
-  vcm.weight = 1.0;
+  EXPECT_TRUE(oc.configure(ocm));
   
-  planning_models::KinematicState &ks = psm_->getPlanningScene()->getCurrentState();
+  bool p1 = oc.decide(ks).satisfied;
+  EXPECT_FALSE(p1);
   
-  double distance;
-  EXPECT_TRUE(vc.configure(vcm));
-  ros::Publisher pub = nh.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 10);
-  ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("/planning_scene", 20);
-  ros::WallDuration(0.5).sleep();
-
-  for (int i = 0 ; i < 100 ; ++i)
-  {   
-      do
-      {
-	  ks.setToRandomValues();
-      }
-      while (!vc.decide(ks, distance));
-      //      ROS_INFO("Found");
-      visualization_msgs::MarkerArray markers;
-      vc.getMarkers(ks, markers);
-      pub.publish(markers);
-      moveit_msgs::PlanningScene ps;
-      psm_->getPlanningScene()->getPlanningSceneMsg(ps);
-      pub_scene.publish(ps);
-      
-      ros::WallDuration(.01).sleep();
-  }  
+  ocm.header.frame_id = kmodel->getModelFrame();
+  EXPECT_TRUE(oc.configure(ocm));
+  
+  constraint_samplers::IKConstraintSampler iks(ps, "right_arm", constraint_samplers::IKSamplingPose(oc));
+  for (int t = 0 ; t < 100; ++t)
+  {
+    EXPECT_TRUE(iks.sample(ks.getJointStateGroup("right_arm"), ks, 100));
+    EXPECT_TRUE(oc.decide(ks).satisfied);
+  }
 }
-*/
+
+TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
+{
+  kinematic_state::KinematicState ks(kmodel);
+  ks.setToDefaultValues();
+  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  
+  kinematic_constraints::PositionConstraint pc(kmodel, tf);
+  moveit_msgs::PositionConstraint pcm;
+  
+  pcm.link_name = "l_wrist_roll_link";
+  pcm.target_point_offset.x = 0;
+  pcm.target_point_offset.y = 0;
+  pcm.target_point_offset.z = 0;
+  pcm.constraint_region.primitives.resize(1);
+  pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+  pcm.constraint_region.primitives[0].dimensions.resize(1);
+  pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
+  
+  pcm.header.frame_id = kmodel->getModelFrame();
+
+  pcm.constraint_region.primitive_poses.resize(1);
+  pcm.constraint_region.primitive_poses[0].position.x = 0.55;
+  pcm.constraint_region.primitive_poses[0].position.y = 0.2;
+  pcm.constraint_region.primitive_poses[0].position.z = 1.25;
+  pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
+  pcm.weight = 1.0;
+  
+  EXPECT_TRUE(pc.configure(pcm));
+  
+  kinematic_constraints::OrientationConstraint oc(kmodel, tf);
+  moveit_msgs::OrientationConstraint ocm;
+  
+  ocm.link_name = "l_wrist_roll_link";
+  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.orientation.x = 0.0;
+  ocm.orientation.y = 0.0;
+  ocm.orientation.z = 0.0;
+  ocm.orientation.w = 1.0;
+  ocm.absolute_x_axis_tolerance = 0.2;
+  ocm.absolute_y_axis_tolerance = 0.1;
+  ocm.absolute_z_axis_tolerance = 0.4;
+  ocm.weight = 1.0;
+  
+  EXPECT_TRUE(oc.configure(ocm));
+
+  constraint_samplers::IKConstraintSampler iks1(ps, "left_arm", constraint_samplers::IKSamplingPose(pc, oc));
+  for (int t = 0 ; t < 100 ; ++t)
+  {
+    EXPECT_TRUE(iks1.sample(ks.getJointStateGroup("left_arm"), ks, 100));
+    EXPECT_TRUE(pc.decide(ks).satisfied);
+    EXPECT_TRUE(oc.decide(ks).satisfied);
+  }
+  
+  constraint_samplers::IKConstraintSampler iks2(ps, "left_arm", constraint_samplers::IKSamplingPose(pc));
+  for (int t = 0 ; t < 100 ; ++t)
+  {
+    EXPECT_TRUE(iks2.sample(ks.getJointStateGroup("left_arm"), ks, 100));
+    EXPECT_TRUE(pc.decide(ks).satisfied);
+  }
+  
+  constraint_samplers::IKConstraintSampler iks3(ps, "left_arm", constraint_samplers::IKSamplingPose(oc));
+  for (int t = 0 ; t < 100 ; ++t)
+  {
+    EXPECT_TRUE(iks3.sample(ks.getJointStateGroup("left_arm"), ks, 100));
+    EXPECT_TRUE(oc.decide(ks).satisfied);
+  }
+  
+  
+  // test the automatic construction of constraint sampler
+  moveit_msgs::Constraints c;
+  c.position_constraints.push_back(pcm);
+  c.orientation_constraints.push_back(ocm);
+  
+  constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", c);
+  EXPECT_TRUE(s.get() != NULL);
+  static const int NT = 1000;
+  int succ = 0;
+  for (int t = 0 ; t < NT ; ++t)
+  {
+    EXPECT_TRUE(s->sample(ks.getJointStateGroup("left_arm"), ks, 100));
+    EXPECT_TRUE(pc.decide(ks).satisfied);
+    EXPECT_TRUE(oc.decide(ks).satisfied);
+    if (s->sample(ks.getJointStateGroup("left_arm"), ks, 1))
+      succ++;
+  }
+  ROS_INFO("Success rate for IK Constraint Sampler with position & orientation constraints for one arm: %lf", (double)succ / (double)NT);
+}
+
+TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
+{
+  moveit_msgs::Constraints c;
+  
+  moveit_msgs::PositionConstraint pcm;
+  pcm.link_name = "l_wrist_roll_link";
+  pcm.target_point_offset.x = 0;
+  pcm.target_point_offset.y = 0;
+  pcm.target_point_offset.z = 0;
+
+  pcm.constraint_region.primitives.resize(1);
+  pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+  pcm.constraint_region.primitives[0].dimensions.resize(1);
+  pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
+  
+  pcm.header.frame_id = kmodel->getModelFrame();
+
+  pcm.constraint_region.primitive_poses.resize(1);
+  pcm.constraint_region.primitive_poses[0].position.x = 0.55;
+  pcm.constraint_region.primitive_poses[0].position.y = 0.2;
+  pcm.constraint_region.primitive_poses[0].position.z = 1.25;
+  pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
+  pcm.weight = 1.0;
+  c.position_constraints.push_back(pcm);
+  
+  moveit_msgs::OrientationConstraint ocm;
+  ocm.link_name = "l_wrist_roll_link";
+  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.orientation.x = 0.0;
+  ocm.orientation.y = 0.0;
+  ocm.orientation.z = 0.0;
+  ocm.orientation.w = 1.0;
+  ocm.absolute_x_axis_tolerance = 0.2;
+  ocm.absolute_y_axis_tolerance = 0.1;
+  ocm.absolute_z_axis_tolerance = 0.4;
+  ocm.weight = 1.0;
+  c.orientation_constraints.push_back(ocm);
+  
+  ocm.link_name = "r_wrist_roll_link";
+  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.orientation.x = 0.0;
+  ocm.orientation.y = 0.0;
+  ocm.orientation.z = 0.0;
+  ocm.orientation.w = 1.0;
+  ocm.absolute_x_axis_tolerance = 0.01;
+  ocm.absolute_y_axis_tolerance = 0.01;
+  ocm.absolute_z_axis_tolerance = 0.01;
+  ocm.weight = 1.0;
+  c.orientation_constraints.push_back(ocm);
+  
+  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
+  EXPECT_TRUE(s.get() != NULL);
+  
+  kinematic_constraints::KinematicConstraintSet kset(kmodel, tf);
+  kset.add(c);
+  
+  kinematic_state::KinematicState ks(kmodel);
+  ks.setToDefaultValues();  
+  static const int NT = 1000;
+  int succ = 0;
+  for (int t = 0 ; t < 1000 ; ++t)
+  {
+    EXPECT_TRUE(s->sample(ks.getJointStateGroup("arms"), ks, 1000));
+    EXPECT_TRUE(kset.decide(ks).satisfied);
+    if (s->sample(ks.getJointStateGroup("arms"), ks, 1))
+      succ++;
+  } 
+  logInform("Success rate for IK Constraint Sampler with position & orientation constraints for both arms: %lf", (double)succ / (double)NT);
+}
 
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
+  ros::Time::init();
   return RUN_ALL_TESTS();
 }
