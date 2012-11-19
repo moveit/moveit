@@ -329,15 +329,6 @@ public:
   void processOctomapMsg(const octomap_msgs::Octomap &map);
   void processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t);
 
-  /** \brief This function is not consistent with the rest of the functions in this file. It will be removed */
-  __attribute__((deprecated)) bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
-
-  /** \brief Is this really needed? Shapes can be converted to markers;  */
-  __attribute__((deprecated))  void getCollisionObjectMarkers(visualization_msgs::MarkerArray& arr,
-                                                              const std_msgs::ColorRGBA& default_color,
-                                                              const std::string& ns=std::string(""),
-                                                              const ros::Duration& lifetime = ros::Duration(0.0)) const;
-  
   /** \brief Set the current robot state to be \e state. If not
       all joint values are specified, the previously maintained
       joint values are kept. */
