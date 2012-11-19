@@ -1136,30 +1136,11 @@ void PlanningDisplay::loadRobotModel(void)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
     computeMetrics(metrics_set_payload_property_->getFloat());
     
-    ///////// should not need this
-    std::string content;
-    if (!update_nh_.getParam(robot_description_property_->getStdString(), content))
-    {
-      std::string loc;
-      if (update_nh_.searchParam(robot_description_property_->getStdString(), loc))
-        update_nh_.getParam(loc, content);
-    }
-    TiXmlDocument doc;
-    doc.Parse(content.c_str());
-    urdf::Model descr;
-    descr.initXml(doc.RootElement());
-    boost::shared_ptr<urdf::Model> urdf_model;
-    urdf_model.reset(new urdf::Model());  
-    urdf_model->initXml(doc.RootElement());
-    /// \todo Use ModelInterface when new kdl_parser is available
-    ///////// 
-    
-    
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
       if (getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
       {
         dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver());
-        if (!dynamics_solver_[groups[i]]->initialize(urdf_model,
+        if (!dynamics_solver_[groups[i]]->initialize(getKinematicModel()->getURDF(),
                                                      getKinematicModel()->getSRDF(),
                                                      groups[i]))
         {
