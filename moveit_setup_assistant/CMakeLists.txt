@@ -94,9 +94,12 @@ catkin_package(
 add_executable(${PROJECT_NAME} ${sources} ${headers} ${moc_sources})
 target_link_libraries(${PROJECT_NAME} 
   ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools 
-  ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+  ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx)
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION include)
+
+install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
