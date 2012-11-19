@@ -258,9 +258,6 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
 
   if(verbose)
   {
-    //scene.getAllowedCollisions().print(std::cout);
-    //ROS_INFO_STREAM("Allowed Collision Matrix Size: " << scene.getAllowedCollisionMatrix().getSize() );
-
     // Calculate number of disabled links:
     unsigned int num_disabled = 0;
     for ( LinkPairMap::const_iterator pair_it = link_pairs.begin() ; pair_it != link_pairs.end() ; ++pair_it)
@@ -269,26 +266,25 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
         ++num_disabled;
     }
 
-    std::cout << "-------------------------------------------------------------------------------\n";
-    std::cout << "Statistics: \n";
+    ROS_INFO("-------------------------------------------------------------------------------");
+    ROS_INFO("Statistics:");
     unsigned int num_links = int(link_graph.size());
     double num_possible = boost::math::binomial_coefficient<double>(num_links, 2); // n choose 2
     unsigned int num_sometimes = num_possible - num_disabled;
 
-    printf("%6d : %s\n",   num_links, "Total Links");
-    printf("%6.0f : %s\n", num_possible, "Total possible collisions");
-    printf("%6d : %s\n",   num_always, "Always in collision");
-    printf("%6d : %s\n",   num_never, "Never in collision");
-    printf("%6d : %s\n",   num_default, "Default in collision");
-    printf("%6d : %s\n",   num_adjacent, "Adjacent links disabled");
-    printf("%6d : %s\n",   num_sometimes, "Sometimes in collision");
-    printf("%6d : %s\n",   num_disabled, "TOTAL DISABLED");
+    ROS_INFO("%6d : %s\n",   num_links, "Total Links");
+    ROS_INFO("%6.0f : %s\n", num_possible, "Total possible collisions");
+    ROS_INFO("%6d : %s\n",   num_always, "Always in collision");
+    ROS_INFO("%6d : %s\n",   num_never, "Never in collision");
+    ROS_INFO("%6d : %s\n",   num_default, "Default in collision");
+    ROS_INFO("%6d : %s\n",   num_adjacent, "Adjacent links disabled");
+    ROS_INFO("%6d : %s\n",   num_sometimes, "Sometimes in collision");
+    ROS_INFO("%6d : %s\n",   num_disabled, "TOTAL DISABLED");
 
-    std::cout << "Copy to Spreadsheet:\n";
-    std::cout << num_links << "\t" << num_possible << "\t" << num_always << "\t" << num_never 
-              << "\t" << num_default << "\t" << num_adjacent << "\t" << num_sometimes 
-              << "\t" << num_disabled << std::endl;
-
+    ROS_INFO("Copy to Spreadsheet:");
+    ROS_INFO_STREAM(num_links << "\t" << num_possible << "\t" << num_always << "\t" << num_never 
+                    << "\t" << num_default << "\t" << num_adjacent << "\t" << num_sometimes 
+                    << "\t" << num_disabled);
   }
 
   *progress = 100; // end the status bar
@@ -544,10 +540,6 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Link
     for (std::map<std::pair<std::string, std::string>, unsigned int>::const_iterator it = collision_count.begin() ; 
          it != collision_count.end() ; ++it)
     {      
-      /*std::cout << it->first.first;
-        std::cout << std::setw(50) << it->first.second;
-        std::cout << std::setw(50) << it->second << "\n";*/
-
       // Disable these two links permanently      
       if (it->second > small_trial_limit)
       {
@@ -591,7 +583,6 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
   {
     ThreadComputation tc(scene, req, i, num_trials/num_threads, &links_seen_colliding, &lock, progress);
     bgroup.create_thread( boost::bind( &disableNeverInCollisionThread, tc ) );
-    //std::cout << "Created thread " << i << std::endl;
   }
 
   bgroup.join_all(); // wait for all threads to finish
@@ -661,8 +652,6 @@ void disableNeverInCollisionThread(ThreadComputation tc)
 
     }
   }
-  //  std::cout << std::cout << "Thread: " << tc.thread_id_ << " finished" << std::endl;
-
 }
 
 // ******************************************************************************************
@@ -686,7 +675,6 @@ DisabledReason disabledReasonFromString( const std::string& reason )
   catch( std::out_of_range )
   {
     r = USER;
-    std::cout << "This reason is default '" << disabledReasonToString( r ) << "' because originally it was " << reason << std::endl;
   }
 
   return r;
