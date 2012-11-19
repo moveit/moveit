@@ -1,8 +1,8 @@
 #include <ros/ros.h>
-#include <kinematics_base/kinematics_base.h>
+#include <moveit/kinematics_base/kinematics_base.h>
 #include <urdf/model.h>
-#include <moveit_setup_assistant/ik_fast_solver.h>
-#include <planning_models/transforms.h>
+#include <moveit/setup_assistant/ik_fast_solver.h>
+#include <eigen_conversions/eigen_msg.h>
 
 namespace _ROBOT_NAME___GROUP_NAME__kinematics
 {
@@ -182,7 +182,7 @@ public:
     }
 
     Eigen::Affine3d frame;
-    planning_models::poseFromMsg(ik_pose, frame);
+    tf::poseMsgToEigen(ik_pose, frame);
 
     int numsol = ik_solver_->solve(frame,vfree);
 		
@@ -220,7 +220,7 @@ public:
     }
 
     Eigen::Affine3d frame;
-    planning_models::poseFromMsg(ik_pose, frame);
+    tf::poseMsgToEigen(ik_pose, frame);
 
     std::vector<double> vfree(free_params_.size());
 
@@ -317,7 +317,7 @@ public:
     }
 
     Eigen::Affine3d frame;
-    planning_models::poseFromMsg(ik_pose, frame);
+    tf::poseMsgToEigen(ik_pose, frame);
 
     std::vector<double> vfree(free_params_.size());
 
@@ -429,7 +429,7 @@ public:
     }
 
     Eigen::Affine3d frame;
-    planning_models::poseFromMsg(ik_pose, frame);
+    tf::poseMsgToEigen(ik_pose, frame);
 
     std::vector<double> vfree(free_params_.size());
 
@@ -540,7 +540,7 @@ public:
     }
 
     Eigen::Affine3d frame;
-    planning_models::poseFromMsg(ik_pose, frame);
+    tf::poseMsgToEigen(ik_pose, frame);
 
     std::vector<double> vfree(free_params_.size());
 
@@ -647,7 +647,7 @@ public:
     out_mat(2,2) = eerot[8];
 
     poses.resize(1);
-    planning_models::msgFromPose(out_mat, poses[0]);
+    tf::poseEigenToMsg(out_mat, poses[0]);
     
     return valid;
   }      
