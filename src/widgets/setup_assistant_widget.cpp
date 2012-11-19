@@ -53,7 +53,7 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/view_manager.h>
 #include <rviz/default_plugin/view_controllers/orbit_view_controller.h>
-#include <moveit/rviz_plugin/planning_display.h>
+#include <moveit/motion_planning_rviz_plugin/planning_display.h>
 
 namespace moveit_setup_assistant
 {
@@ -301,7 +301,7 @@ void SetupAssistantWidget::loadRviz()
   rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getPlanningScene()->getPlanningFrame() ) );
 
   // Create the MoveIt Rviz Plugin and attach to display
-  planning_display_ = new moveit_rviz_plugin::PlanningDisplay();
+  planning_display_ = new motion_planning_rviz_plugin::PlanningDisplay();
   planning_display_->setName( "Motion Planning" );  
   planning_display_->showPlanningFrame(false);
 
