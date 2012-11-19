@@ -577,69 +577,6 @@ private:
 };
 }
 
-bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& co) const 
-{
-  co = moveit_msgs::CollisionObject();
-  co.header.frame_id = getPlanningFrame();
-  co.id = ns;
-  co.operation = moveit_msgs::CollisionObject::ADD;
-  collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns);
-  if (!obj) 
-    return false;  
-  ShapeVisitorAddToCollisionObject sv(&co);
-  for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
-  {
-    shapes::ShapeMsg sm;
-    if (constructMsgFromShape(obj->shapes_[j].get(), sm))
-    {
-      geometry_msgs::Pose p;
-      tf::poseEigenToMsg(obj->shape_poses_[j], p);
-      sv.setPoseMessage(&p);
-      boost::apply_visitor(sv, sm);
-    }
-  }
-  return true;
-}
-
-void planning_scene::PlanningScene::getCollisionObjectMarkers(visualization_msgs::MarkerArray& arr,
-                                                              const std_msgs::ColorRGBA& default_color,
-                                                              const std::string& ns,
-                                                              const ros::Duration& lifetime) const
-{
-  const std::vector<std::string> &ids = getCollisionWorld()->getObjectIds();
-  for (std::size_t i = 0 ; i < ids.size() ; ++i)
-  {
-    collision_detection::CollisionWorld::ObjectConstPtr o = getCollisionWorld()->getObject(ids[i]);
-    std_msgs::ColorRGBA color = default_color;
-    if (hasColor(ids[i]))
-      color = getColor(ids[i]);
-    
-    unsigned int tot_count = 0;
-    for(std::size_t j = 0; j < o->shapes_.size() ; ++j, ++tot_count)
-    {
-      visualization_msgs::Marker mk;
-      shapes::constructMarkerFromShape(o->shapes_[j].get(), mk, true);
-      mk.header.frame_id = getPlanningFrame();
-      mk.header.stamp = ros::Time::now();
-      mk.color = color;
-      if (ns.empty())
-      {
-        mk.ns = ids[i];
-        mk.id = j;
-      } 
-      else
-      {
-        mk.ns = ns;
-        mk.id = tot_count;
-      }
-      mk.action = visualization_msgs::Marker::ADD;
-      tf::poseEigenToMsg(o->shape_poses_[j], mk.pose);
-      mk.lifetime = lifetime;
-      arr.markers.push_back(mk);
-    }
-  }
-}
-
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
 { 
   moveit_msgs::CollisionObject co;
