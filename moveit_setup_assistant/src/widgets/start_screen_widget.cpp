@@ -594,27 +594,19 @@ bool StartScreenWidget::extractPackageNameFromPath()
   std::string package_name; // result
 
   // Paths for testing if files exist
-  fs::path manifest_path;
-  fs::path stack_path;
-
-  // Remember which folder index we find the xml file at
-  int segment_length;
+  fs::path package_path;
 
   std::vector<std::string> path_parts; // holds each folder name in vector
 
   // Copy path into vector of parts
   for (fs::path::iterator it = urdf_directory.begin(); it != urdf_directory.end(); ++it)
-  {
     path_parts.push_back( it->native() );
-  }
 
   bool packageFound = false;
 
   // reduce the generated directoy path's folder count by 1 each loop
-  for( segment_length = path_parts.size(); segment_length > 0; --segment_length )
+  for( int segment_length = path_parts.size(); segment_length > 0; --segment_length )
   {
-    std::cout << segment_length << std::endl;
-
     // Reset the sub_path
     sub_path.clear();
 
@@ -630,27 +622,17 @@ bool StartScreenWidget::extractPackageNameFromPath()
       }
     }
 
-    // check if this directory has a manifest.xml or stack.xml
-    std::cout << "   " << sub_path.make_preferred().native() << std::endl;
-
-    // Create the paths for files to check for
-    manifest_path = sub_path;
-    manifest_path /= "manifest.xml";
-    stack_path = sub_path;
-    stack_path /= "stack.xml";
-
-    std::cout << "   " << manifest_path.make_preferred().native() << std::endl;
-
+    // check if this directory has a package.xml 
+    package_path = sub_path;
+    package_path /= "package.xml";
+    ROS_INFO_STREAM("Checking for " << package_path.make_preferred().native());
+    
     // Check if the files exist
-    if( fs::is_regular_file( manifest_path ) || fs::is_regular_file( stack_path ) )
+    if( fs::is_regular_file( package_path ) )
     {
-      // this is the package/stack name
-
       // now generate the relative path
       for( size_t relative_count = segment_length; relative_count < path_parts.size(); ++relative_count )
-      {
         relative_path /= path_parts[ segment_length ];
-      }
 
       // add the URDF filename at end of relative path
       relative_path /= urdf_path.filename();
@@ -658,12 +640,10 @@ bool StartScreenWidget::extractPackageNameFromPath()
       // end the search
       segment_length = 0;
       packageFound = true;
-      std::cout << "Done searching" << std::endl;
       break;
     }
 
   }
-  std::cout << "ZEBRA " << package_name << std::endl;
 
   // Assign data to moveit_config_data
   if( !packageFound )
@@ -671,9 +651,9 @@ bool StartScreenWidget::extractPackageNameFromPath()
 
     // Warn the user
     if( QMessageBox::warning( this, "URDF File Location",
-                              QString("Warning: the chosen URDF file appears to be outside of a ROS package/stack. As a result the Setup Assistant will generate a MoveIt configuration package with an absolute path that only works on this computer. Are you sure you want to confinue?" ),
-                              QMessageBox::Ok | QMessageBox::Cancel)
-        == QMessageBox::Cancel )
+                              QString("Warning: the chosen URDF file appears to be outside of a ROS package/stack. As a result the Setup Assistant will generate a MoveIt configuration package with an absolute path that only works on this computer. Are you sure you want to continue?" ),
+                              QMessageBox::Yes | QMessageBox::No)
+        == QMessageBox::No )
     {
       return false;
     }
@@ -681,8 +661,6 @@ bool StartScreenWidget::extractPackageNameFromPath()
     // No package name found, we must be outside ROS
     config_data_->urdf_pkg_name_ = "";
     config_data_->urdf_pkg_relative_path_ = config_data_->urdf_path_; // just the absolute path
-
-    std::cout << "RELATIVE " << config_data_->urdf_pkg_relative_path_ << std::endl;
   }
   else
   {

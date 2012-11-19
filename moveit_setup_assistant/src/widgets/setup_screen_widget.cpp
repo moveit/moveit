@@ -40,6 +40,4 @@
 
 void SetupScreenWidget::focusGiven()
 {
-  //std::cout << "focusGiven not yet implemented" << std::endl;
 }
-
