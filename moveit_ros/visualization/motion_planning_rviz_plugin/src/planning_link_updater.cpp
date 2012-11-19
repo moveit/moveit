@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,39 +29,27 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_RVIZ_PLUGIN_BACKGROUND_PROCESSING_
-#define MOVEIT_RVIZ_PLUGIN_BACKGROUND_PROCESSING_
+#include "planning_link_updater.h"
+#include <OGRE/OgreQuaternion.h>
+#include <OGRE/OgreVector3.h>
 
-#include <deque>
-#include <boost/thread.hpp>
-#include <boost/function.hpp>
-#include <boost/scoped_ptr.hpp>
-
-namespace moveit_rviz_plugin
+bool motion_planning_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
+                                                                         Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
 {
-
-class BackgroundProcessing
-{
-public:
-  BackgroundProcessing(void);
-  ~BackgroundProcessing(void);
-
-  void addJob(const boost::function<void(void)> &job);
-  void clear(void);
+  const kinematic_state::LinkState* link_state = kinematic_state_->getLinkState( link_name );
   
-private:
+  if ( !link_state )
+  {
+    return false;
+  }
   
-  boost::scoped_ptr<boost::thread> processing_thread_;
-  bool run_processing_thread_;
+  const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
+  Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
+  visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
+  visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
+  collision_position = visual_position;
+  collision_orientation = visual_orientation;
   
-  boost::mutex action_lock_;
-  boost::condition_variable new_action_condition_;
-  std::deque<boost::function<void(void)> > actions_;
-  
-  void processingThread(void);
-};
-
+  return true;
 }
-
-#endif
 

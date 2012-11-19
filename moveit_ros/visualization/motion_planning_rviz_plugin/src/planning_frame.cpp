@@ -29,28 +29,33 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/rviz_plugin/planning_frame.h>
-#include <moveit/rviz_plugin/planning_display.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include "ui_moveit_rviz_plugin_frame.h"
+#include <moveit/motion_planning_rviz_plugin/planning_frame.h>
+#include <moveit/motion_planning_rviz_plugin/planning_display.h>
+
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/robot_interaction/interactive_marker_helpers.h>
+
 #include <geometric_shapes/shape_operations.h>
 #include <interactive_markers/tools.h>
+
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
-#include <moveit/robot_interaction/interactive_marker_helpers.h>
 
-namespace moveit_rviz_plugin
+#include "ui_motion_planning_rviz_plugin_frame.h"
+
+namespace motion_planning_rviz_plugin
 {
+
 static const int ITEM_TYPE_SCENE = 1;
 static const int ITEM_TYPE_QUERY = 2;
-}
 
-moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
+PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
   QWidget(parent),
   planning_display_(pdisplay),
   context_(context),
@@ -103,11 +108,11 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
 
-moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
+PlanningFrame::~PlanningFrame(void)
 {
 }
 
-void moveit_rviz_plugin::PlanningFrame::changePlanningGroupHelper(void)
+void PlanningFrame::changePlanningGroupHelper(void)
 { 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
@@ -141,12 +146,12 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroupHelper(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
+void PlanningFrame::changePlanningGroup(void)
 {
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::changePlanningGroupHelper, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::publishSceneButtonClicked(void)
+void PlanningFrame::publishSceneButtonClicked(void)
 {
   if (planning_display_->getPlanningSceneMonitor())
   {
@@ -156,13 +161,13 @@ void moveit_rviz_plugin::PlanningFrame::publishSceneButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+void PlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   if (update_type & planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY)
     planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populateCollisionObjectsList, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
+void PlanningFrame::populateCollisionObjectsList(void)
 {
   ui_->collision_objects_list->setUpdatesEnabled(false); 
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
@@ -191,7 +196,7 @@ void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
 }
 
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
-void  moveit_rviz_plugin::PlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void  PlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
   ui_->object_x->setValue(feedback.pose.position.x);
   ui_->object_y->setValue(feedback.pose.position.y);
@@ -205,7 +210,7 @@ void  moveit_rviz_plugin::PlanningFrame::imProcessFeedback(visualization_msgs::I
   ui_->object_rz->setValue(yaw);
 }
 
-void moveit_rviz_plugin::PlanningFrame::createSceneInteractiveMarker(void)
+void PlanningFrame::createSceneInteractiveMarker(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -242,7 +247,7 @@ void moveit_rviz_plugin::PlanningFrame::createSceneInteractiveMarker(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
+void PlanningFrame::importSceneButtonClicked(void)
 {
   std::string path = QFileDialog::getOpenFileName(this, "Import Scene").toStdString();
   std::string name;
@@ -313,8 +318,8 @@ void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
-                                                  const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
+void PlanningFrame::addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
+                              const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   world->addToObject(id, shape, pose);
   populateCollisionObjectsList();
@@ -326,7 +331,7 @@ void moveit_rviz_plugin::PlanningFrame::addObject(const collision_detection::Col
   planning_display_->queueRenderSceneGeometry();
 }
 
-void moveit_rviz_plugin::PlanningFrame::removeObjectButtonClicked(void)
+void PlanningFrame::removeObjectButtonClicked(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -342,7 +347,7 @@ void moveit_rviz_plugin::PlanningFrame::removeObjectButtonClicked(void)
   }
 } 
 
-void moveit_rviz_plugin::PlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
+void PlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
 {
   if (item->text(column) == item->toolTip(column) || item->toolTip(column).length() == 0)
     return;
@@ -387,7 +392,7 @@ void moveit_rviz_plugin::PlanningFrame::warehouseItemNameChanged(QTreeWidgetItem
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::collisionObjectNameChanged(QListWidgetItem *item)
+void PlanningFrame::collisionObjectNameChanged(QListWidgetItem *item)
 {
   if (item->type() < (int)collision_object_names_.size() && 
       collision_object_names_[item->type()] != item->text().toStdString() && 
@@ -419,7 +424,7 @@ void moveit_rviz_plugin::PlanningFrame::collisionObjectNameChanged(QListWidgetIt
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::selectedCollisionObjectChanged(void)
+void PlanningFrame::selectedCollisionObjectChanged(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -460,7 +465,7 @@ void moveit_rviz_plugin::PlanningFrame::selectedCollisionObjectChanged(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::clearSceneButtonClicked(void)
+void PlanningFrame::clearSceneButtonClicked(void)
 {    
   if (planning_display_->getPlanningSceneMonitor())
   {
@@ -470,7 +475,7 @@ void moveit_rviz_plugin::PlanningFrame::clearSceneButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::objectPoseValueChanged(double value)
+void PlanningFrame::objectPoseValueChanged(double value)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -505,7 +510,7 @@ void moveit_rviz_plugin::PlanningFrame::objectPoseValueChanged(double value)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::sceneScaleStartChange(void)
+void PlanningFrame::sceneScaleStartChange(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -517,13 +522,13 @@ void moveit_rviz_plugin::PlanningFrame::sceneScaleStartChange(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::sceneScaleEndChange(void)
+void PlanningFrame::sceneScaleEndChange(void)
 {
   scaled_object_.reset();
   ui_->scene_scale->setSliderPosition(100);
 }
 
-void moveit_rviz_plugin::PlanningFrame::sceneScaleChanged(int value)
+void PlanningFrame::sceneScaleChanged(int value)
 {
   if (scaled_object_ && planning_display_->getPlanningSceneMonitor())
   {
@@ -544,7 +549,7 @@ void moveit_rviz_plugin::PlanningFrame::sceneScaleChanged(int value)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::populateConstraintsList(void)
+void PlanningFrame::populateConstraintsList(void)
 {
   if (move_group_)
   {
@@ -556,7 +561,7 @@ void moveit_rviz_plugin::PlanningFrame::populateConstraintsList(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::populateConstraintsList(const std::vector<std::string> &constr)
+void PlanningFrame::populateConstraintsList(const std::vector<std::string> &constr)
 {
   ui_->path_constraints_combo_box->clear();     
   ui_->path_constraints_combo_box->addItem("None");
@@ -564,7 +569,7 @@ void moveit_rviz_plugin::PlanningFrame::populateConstraintsList(const std::vecto
     ui_->path_constraints_combo_box->addItem(QString::fromStdString(constr[i]));
 }
 
-void moveit_rviz_plugin::PlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
+void PlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
 { 
   std::string group = planning_display_->getCurrentPlanningGroup();
   ui_->planning_algorithm_combo_box->clear();  
@@ -596,7 +601,7 @@ void moveit_rviz_plugin::PlanningFrame::populatePlannersList(const moveit_msgs::
   ui_->planning_algorithm_combo_box->setCurrentIndex(0);
 }
 
-void moveit_rviz_plugin::PlanningFrame::enable(void)
+void PlanningFrame::enable(void)
 {
   ui_->planning_algorithm_combo_box->clear();  
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
@@ -608,25 +613,25 @@ void moveit_rviz_plugin::PlanningFrame::enable(void)
   show();
 }
 
-void moveit_rviz_plugin::PlanningFrame::disable(void)
+void PlanningFrame::disable(void)
 {
   move_group_.reset();
   hide();
 }
 
-void moveit_rviz_plugin::PlanningFrame::allowLookingToggled(bool checked)
+void PlanningFrame::allowLookingToggled(bool checked)
 {
   if (move_group_)
     move_group_->allowLooking(checked);
 }
 
-void moveit_rviz_plugin::PlanningFrame::allowReplanningToggled(bool checked)
+void PlanningFrame::allowReplanningToggled(bool checked)
 {
   if (move_group_)
     move_group_->allowReplanning(checked);
 }
 
-void moveit_rviz_plugin::PlanningFrame::pathConstraintsIndexChanged(int index)
+void PlanningFrame::pathConstraintsIndexChanged(int index)
 {
   if (move_group_)
   {
@@ -637,7 +642,7 @@ void moveit_rviz_plugin::PlanningFrame::pathConstraintsIndexChanged(int index)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::tabChanged(int index)
+void PlanningFrame::tabChanged(int index)
 {
   if(scene_marker_ && index!=3)
     scene_marker_.reset();
@@ -645,7 +650,7 @@ void moveit_rviz_plugin::PlanningFrame::tabChanged(int index)
     createSceneInteractiveMarker();
 }
 
-void moveit_rviz_plugin::PlanningFrame::planningAlgorithmIndexChanged(int index)
+void PlanningFrame::planningAlgorithmIndexChanged(int index)
 {
   if (move_group_)
   {
@@ -656,7 +661,7 @@ void moveit_rviz_plugin::PlanningFrame::planningAlgorithmIndexChanged(int index)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)
+void PlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)
 {
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
   mreq.num_planning_attempts = 1;
@@ -676,45 +681,45 @@ void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::Mo
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::planButtonClicked(void)
+void PlanningFrame::planButtonClicked(void)
 {
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computePlanButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::executeButtonClicked(void)
+void PlanningFrame::executeButtonClicked(void)
 {
   ui_->execute_button->setEnabled(false);
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeExecuteButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::planAndExecuteButtonClicked(void)
+void PlanningFrame::planAndExecuteButtonClicked(void)
 {
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computePlanAndExecuteButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::randomStatesButtonClicked(void)
+void PlanningFrame::randomStatesButtonClicked(void)
 {
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeRandomStatesButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::setStartToCurrentButtonClicked(void)
+void PlanningFrame::setStartToCurrentButtonClicked(void)
 { 
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSetStartToCurrentButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::setGoalToCurrentButtonClicked(void)
+void PlanningFrame::setGoalToCurrentButtonClicked(void)
 {
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSetGoalToCurrentButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::databaseConnectButtonClicked(void)
+void PlanningFrame::databaseConnectButtonClicked(void)
 {   
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::saveSceneButtonClicked(void)
+void PlanningFrame::saveSceneButtonClicked(void)
 { 
   if (planning_scene_storage_)
   {
@@ -757,17 +762,17 @@ void moveit_rviz_plugin::PlanningFrame::saveSceneButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::loadSceneButtonClicked(void)
+void PlanningFrame::loadSceneButtonClicked(void)
 {   
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeLoadSceneButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::loadQueryButtonClicked(void)
+void PlanningFrame::loadQueryButtonClicked(void)
 {   
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeLoadQueryButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::saveQueryButtonClicked(void)
+void PlanningFrame::saveQueryButtonClicked(void)
 {   
   if (planning_scene_storage_)
   {
@@ -827,17 +832,17 @@ void moveit_rviz_plugin::PlanningFrame::saveQueryButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::deleteSceneButtonClicked(void)
+void PlanningFrame::deleteSceneButtonClicked(void)
 {   
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeDeleteSceneButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::deleteQueryButtonClicked(void)
+void PlanningFrame::deleteQueryButtonClicked(void)
 {   
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeDeleteQueryButtonClicked, this));
 }
 
-void moveit_rviz_plugin::PlanningFrame::checkPlanningSceneTreeEnabledButtons(void)
+void PlanningFrame::checkPlanningSceneTreeEnabledButtons(void)
 {
   QList<QTreeWidgetItem *> sel = ui_->planning_scene_tree->selectedItems();
   if (sel.empty())
@@ -873,12 +878,12 @@ void moveit_rviz_plugin::PlanningFrame::checkPlanningSceneTreeEnabledButtons(voi
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::planningSceneItemClicked(void)
+void PlanningFrame::planningSceneItemClicked(void)
 {
   checkPlanningSceneTreeEnabledButtons();
 }
 
-void moveit_rviz_plugin::PlanningFrame::configureForPlanning(void)
+void PlanningFrame::configureForPlanning(void)
 {
   move_group_->setStartState(*planning_display_->getQueryStartState());
   move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
@@ -891,13 +896,13 @@ void moveit_rviz_plugin::PlanningFrame::configureForPlanning(void)
                             ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0);
 }
 
-void moveit_rviz_plugin::PlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
+void PlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
 {
   if (scene_marker_)
     scene_marker_->update(wall_dt);
 }
 
-void moveit_rviz_plugin::PlanningFrame::computePlanButtonClicked(void)
+void PlanningFrame::computePlanButtonClicked(void)
 {
   if (!move_group_)
     return;
@@ -909,13 +914,13 @@ void moveit_rviz_plugin::PlanningFrame::computePlanButtonClicked(void)
     current_plan_.reset();
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeExecuteButtonClicked(void)
+void PlanningFrame::computeExecuteButtonClicked(void)
 {
   if (move_group_ && current_plan_)
     move_group_->execute(*current_plan_);
 }
 
-void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClicked(void)
+void PlanningFrame::computePlanAndExecuteButtonClicked(void)
 {    
   if (!move_group_)
     return;
@@ -924,7 +929,7 @@ void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClicked(void)
   ui_->plan_and_execute_button->setEnabled(true);
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeSetStartToCurrentButtonClicked(void)
+void PlanningFrame::computeSetStartToCurrentButtonClicked(void)
 {  
   if (!move_group_)
     return;
@@ -933,7 +938,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSetStartToCurrentButtonClicked(vo
     planning_display_->setQueryStartState(s);
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeSetGoalToCurrentButtonClicked(void)
+void PlanningFrame::computeSetGoalToCurrentButtonClicked(void)
 { 
   if (!move_group_)
     return;
@@ -942,7 +947,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSetGoalToCurrentButtonClicked(voi
     planning_display_->setQueryGoalState(s);
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeRandomStatesButtonClicked(void)
+void PlanningFrame::computeRandomStatesButtonClicked(void)
 {
   std::string group_name = planning_display_->getCurrentPlanningGroup();
 
@@ -965,7 +970,7 @@ void moveit_rviz_plugin::PlanningFrame::computeRandomStatesButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
+void PlanningFrame::populatePlanningSceneTreeView(void)
 {  
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
   if (!planning_scene_storage)
@@ -1011,7 +1016,7 @@ void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
   checkPlanningSceneTreeEnabledButtons();
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
+void PlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
 {  
   if (mode == 1)
   {
@@ -1058,7 +1063,7 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClickedHelpe
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void)
+void PlanningFrame::computeDatabaseConnectButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
@@ -1083,7 +1088,7 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeSaveSceneButtonClicked(void)
+void PlanningFrame::computeSaveSceneButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
@@ -1095,7 +1100,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSaveSceneButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeLoadSceneButtonClicked(void)
+void PlanningFrame::computeLoadSceneButtonClicked(void)
 {
   if (planning_scene_storage_)
   { 
@@ -1133,7 +1138,7 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadSceneButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeLoadQueryButtonClicked(void)
+void PlanningFrame::computeLoadQueryButtonClicked(void)
 {
   if (planning_scene_storage_)
   { 
@@ -1169,7 +1174,7 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadQueryButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name)
+void PlanningFrame::computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name)
 {
   moveit_msgs::MotionPlanRequest mreq;
   constructPlanningRequest(mreq);
@@ -1182,7 +1187,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSaveQueryButtonClicked(const std:
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeDeleteSceneButtonClicked(void)
+void PlanningFrame::computeDeleteSceneButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
@@ -1206,14 +1211,14 @@ void moveit_rviz_plugin::PlanningFrame::computeDeleteSceneButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s)
+void PlanningFrame::computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s)
 {     
   ui_->planning_scene_tree->setUpdatesEnabled(false);
   s->parent()->removeChild(s);  
   ui_->planning_scene_tree->setUpdatesEnabled(true);
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeDeleteQueryButtonClicked(void)
+void PlanningFrame::computeDeleteQueryButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
@@ -1231,3 +1236,5 @@ void moveit_rviz_plugin::PlanningFrame::computeDeleteQueryButtonClicked(void)
     }
   }
 }
+
+} // namespace

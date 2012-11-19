@@ -29,7 +29,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/rviz_plugin/planning_scene_render.h>
+#include <moveit/motion_planning_rviz_plugin/planning_scene_render.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
@@ -42,12 +42,15 @@
 
 #include "planning_link_updater.h"
 
-moveit_rviz_plugin::PlanningSceneRender::PlanningSceneRender(rviz::DisplayContext *context, Ogre::SceneNode *node, rviz::Robot *robot) :
+namespace motion_planning_rviz_plugin
+{
+
+PlanningSceneRender::PlanningSceneRender(rviz::DisplayContext *context, Ogre::SceneNode *node, rviz::Robot *robot) :
   context_(context), scene_node_(node), scene_robot_(robot)
 {
 }
 
-void moveit_rviz_plugin::PlanningSceneRender::clear(void)
+void PlanningSceneRender::clear(void)
 {
   scene_shapes_.clear();
   for (std::size_t i = 0 ; i < manual_objects_.size() ; ++i)
@@ -62,7 +65,7 @@ void moveit_rviz_plugin::PlanningSceneRender::clear(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningSceneRender::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha)
+void PlanningSceneRender::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha)
 {
   rviz::Shape* ogre_shape = NULL;
   switch (s->type)
@@ -173,9 +176,9 @@ void moveit_rviz_plugin::PlanningSceneRender::renderShape(Ogre::SceneNode *node,
 // ******************************************************************************************
 // Render Planning Scene
 // ******************************************************************************************
-void moveit_rviz_plugin::PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
-                                                                  const rviz::Color &env_color, rviz::Color &attached_color,
-                                                                  float scene_alpha, float robot_alpha)
+void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
+                                              const rviz::Color &env_color, rviz::Color &attached_color,
+                                              float scene_alpha, float robot_alpha)
 {
   if (!scene)
     return;
@@ -217,4 +220,6 @@ void moveit_rviz_plugin::PlanningSceneRender::renderPlanningScene(const planning
       renderShape(scene_robot_->getCollisionNode(), ab_shapes[j].get(), ab_t[j], color, robot_alpha);
     }
   }
+}
+
 }
