@@ -224,7 +224,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   boost::scoped_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > loader;
   try
   {
-    loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
+    loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("moveit_core", "kinematics::KinematicsBase"));
   }
   catch(pluginlib::PluginlibException& ex)
   { 
