@@ -57,6 +57,8 @@ link_directories(${catkin_LIBRARY_DIRS})
 catkin_package(
   INCLUDE_DIRS
     kinematics_base/include
+    controller_manager/include
+    sensor_manager/include
     kinematic_model/include
     kinematic_state/include
     kinematics_planner/include
