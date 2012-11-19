@@ -29,7 +29,7 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#include <moveit/rviz_plugin/planning_display.h>
+#include <moveit/motion_planning_rviz_plugin/planning_display.h>
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 #include <rviz/robot/robot_link.h>
@@ -52,7 +52,6 @@
 #include <rviz/ogre_helpers/shape.h>
 
 #include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
 
 #include <moveit/kinematic_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
@@ -63,9 +62,9 @@
 #include <boost/lexical_cast.hpp>
 
 #include "planning_link_updater.h"
-#include "ui_moveit_rviz_plugin_frame.h"
+#include "ui_motion_planning_rviz_plugin_frame.h"
 
-namespace moveit_rviz_plugin
+namespace motion_planning_rviz_plugin
 {
 
 PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message,
@@ -1508,4 +1507,4 @@ void PlanningDisplay::fixedFrameChanged(void)
 }
 
 
-} // namespace moveit_rviz_plugin
+} // namespace motion_planning_rviz_plugin

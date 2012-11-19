@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,57 +29,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
-#define MOVEIT_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
+#include <class_loader/class_loader.h> 
+#include <moveit/motion_planning_rviz_plugin/planning_display.h>
 
-#include <moveit/planning_scene/planning_scene.h>
-#include <rviz/helpers/color.h>
-#include <OGRE/OgreMaterial.h>
-
-namespace Ogre
-{
-class Entity;
-class SceneNode;
-class ManualObject;
-}
-
-namespace rviz
-{
-class DisplayContext;
-class Shape;
-class Robot;
-}
-
-namespace moveit_rviz_plugin
-{
-
-class PlanningSceneRender
-{
-public:
-  PlanningSceneRender(rviz::DisplayContext *context, Ogre::SceneNode *node, rviz::Robot *robot);
- 
-  void renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
-                           const rviz::Color &env_color, rviz::Color &attached_color,
-                           float scene_alpha, float robot_alpha);
-  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
-  void clear(void);
-  
-protected:
-  
-  rviz::DisplayContext *context_;
-  
-  Ogre::SceneNode *scene_node_;
-  rviz::Robot *scene_robot_;
-  
-  std::vector<boost::shared_ptr<rviz::Shape> > scene_shapes_;
-  std::vector<Ogre::ManualObject*> manual_objects_;
-  Ogre::MaterialPtr material_;
-  std::string material_name_;
-  
-};
-
-  
-}
-
-#endif
-
+CLASS_LOADER_REGISTER_CLASS( motion_planning_rviz_plugin::PlanningDisplay, rviz::Display )

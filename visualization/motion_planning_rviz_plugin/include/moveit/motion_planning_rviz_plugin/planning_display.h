@@ -29,16 +29,16 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_
-#define MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_
+#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_DISPLAY_
+#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_DISPLAY_
 
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 
 #ifndef Q_MOC_RUN
-#include <moveit/rviz_plugin/background_processing.h>
-#include <moveit/rviz_plugin/planning_frame.h>
-#include <moveit/rviz_plugin/planning_scene_render.h>
+#include <moveit/motion_planning_rviz_plugin/background_processing.h>
+#include <moveit/motion_planning_rviz_plugin/planning_frame.h>
+#include <moveit/motion_planning_rviz_plugin/planning_scene_render.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -69,7 +69,7 @@ class ColorProperty;
 class MovableText;
 }
 
-namespace moveit_rviz_plugin
+namespace motion_planning_rviz_plugin
 {
 
 class PlanningDisplay : public rviz::Display
@@ -334,6 +334,6 @@ protected:
   rviz::Display *int_marker_display_;
 };
 
-} // namespace moveit_rviz_plugin
+} // namespace motion_planning_rviz_plugin
 
 #endif

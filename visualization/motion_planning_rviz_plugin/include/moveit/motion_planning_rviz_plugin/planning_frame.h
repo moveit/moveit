@@ -29,8 +29,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_FRAME_
-#define MOVEIT_RVIZ_PLUGIN_PLANNING_FRAME_
+#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_FRAME_
+#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_FRAME_
 
 #include <QWidget>
 #include <QTreeWidgetItem>
@@ -61,7 +61,7 @@ namespace moveit_warehouse
 class PlanningSceneStorage;
 }
 
-namespace moveit_rviz_plugin
+namespace motion_planning_rviz_plugin
 {
 class PlanningDisplay;
 

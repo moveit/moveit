@@ -29,24 +29,24 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/rviz_plugin/background_processing.h>
+#include <moveit/motion_planning_rviz_plugin/background_processing.h>
 #include <ros/console.h>
 
-moveit_rviz_plugin::BackgroundProcessing::BackgroundProcessing(void)
+motion_planning_rviz_plugin::BackgroundProcessing::BackgroundProcessing(void)
 {
   // spin a thread that will process user events
   run_processing_thread_ = true;
   processing_thread_.reset(new boost::thread(boost::bind(&BackgroundProcessing::processingThread, this)));
 }
 
-moveit_rviz_plugin::BackgroundProcessing::~BackgroundProcessing(void)
+motion_planning_rviz_plugin::BackgroundProcessing::~BackgroundProcessing(void)
 {
   run_processing_thread_ = false; 
   new_action_condition_.notify_all();
   processing_thread_->join();
 }
 
-void moveit_rviz_plugin::BackgroundProcessing::processingThread(void)
+void motion_planning_rviz_plugin::BackgroundProcessing::processingThread(void)
 {
   boost::unique_lock<boost::mutex> ulock(action_lock_);
 
@@ -79,14 +79,14 @@ void moveit_rviz_plugin::BackgroundProcessing::processingThread(void)
   }
 }
 
-void moveit_rviz_plugin::BackgroundProcessing::addJob(const boost::function<void(void)> &job)
+void motion_planning_rviz_plugin::BackgroundProcessing::addJob(const boost::function<void(void)> &job)
 {
   boost::mutex::scoped_lock slock(action_lock_);
   actions_.push_back(job);
   new_action_condition_.notify_all();
 }
 
-void moveit_rviz_plugin::BackgroundProcessing::clear(void)
+void motion_planning_rviz_plugin::BackgroundProcessing::clear(void)
 {
   boost::mutex::scoped_lock slock(action_lock_);
   actions_.clear();
