@@ -49,3 +49,4 @@ catkin_package(
 add_subdirectory(motion_planning_rviz_plugin)
 
 install(FILES motion_planning_rviz_plugin_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
