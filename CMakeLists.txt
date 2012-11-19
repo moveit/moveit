@@ -17,6 +17,8 @@ include_directories(distance_field/include)
 include_directories(collision_distance_field/include)
 include_directories(kinematics_metrics/include)
 include_directories(dynamics_solver/include)
+include_directories(controller_manager/include)
+include_directories(sensor_manager/include)
 
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
@@ -101,6 +103,8 @@ catkin_package(
     )
 
 add_subdirectory(kinematics_base)
+add_subdirectory(controller_manager)
+add_subdirectory(sensor_manager)
 add_subdirectory(kinematic_model)
 add_subdirectory(kinematic_state)
 add_subdirectory(collision_detection)
