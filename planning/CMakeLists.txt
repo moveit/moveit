@@ -4,8 +4,6 @@ project(moveit_ros_planning)
 include_directories(robot_model_loader/include)
 include_directories(kinematics_plugin_loader/include)
 include_directories(planning_models_loader/include)
-include_directories(controller_manager/include)
-include_directories(sensor_manager/include)
 include_directories(planning_pipeline/include)
 include_directories(planning_scene_monitor/include)
 include_directories(trajectory_execution_manager/include)
@@ -49,8 +47,6 @@ catkin_package(
     robot_model_loader/include
     kinematics_plugin_loader/include
     planning_models_loader/include
-    controller_manager/include
-    sensor_manager/include
     planning_pipeline/include
     planning_scene_monitor/include
     trajectory_execution_manager/include
@@ -68,8 +64,6 @@ include_directories(cfg/cpp)
 add_subdirectory(robot_model_loader)
 add_subdirectory(kinematics_plugin_loader)
 add_subdirectory(planning_models_loader)
-add_subdirectory(controller_manager)
-add_subdirectory(sensor_manager)
 add_subdirectory(planning_pipeline)
 add_subdirectory(planning_request_adapter_plugins)
 add_subdirectory(planning_scene_monitor)
