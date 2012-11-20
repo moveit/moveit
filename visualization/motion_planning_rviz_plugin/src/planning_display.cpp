@@ -894,12 +894,18 @@ void PlanningDisplay::changedQueryCollidingLinkColor(void)
 }
 
 void PlanningDisplay::updateQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *)
-{
+{ 
+  std::string group = planning_group_property_->getStdString();
+  if (!group.empty())
+    computeMetrics(true, group, metrics_set_payload_property_->getFloat());
   updateQueryStartState();
 }
 
 void PlanningDisplay::updateQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *)
 {
+  std::string group = planning_group_property_->getStdString();
+  if (!group.empty())
+    computeMetrics(false, group, metrics_set_payload_property_->getFloat());
   updateQueryGoalState();
 }
 
