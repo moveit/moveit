@@ -500,25 +500,21 @@ void PlanningGroupsWidget::editSelected()
 // ******************************************************************************************
 void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
 {
-  // Only load the available joints once, to save time
-  if( joints_widget_->data_table_->rowCount() == 0 ) // we need to load the joints
+  // Retrieve pointer to the shared kinematic model
+  const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
+  
+  // Get the names of the all joints
+  const std::vector<std::string> &joints = model->getJointModelNames();
+  
+  if( joints.size() == 0 )
   {
-    // Retrieve pointer to the shared kinematic model
-    const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
-
-    // Get the names of the all joints
-    const std::vector<std::string> &joints = model->getJointModelNames();
-
-    if( joints.size() == 0 )
-    {
-      QMessageBox::critical( this, "Error Loading", "No joints found for robot model");
-      return;
-    }
-
-    // Set the available joints (left box)
-    joints_widget_->setAvailable( joints );
+    QMessageBox::critical( this, "Error Loading", "No joints found for robot model");
+    return;
   }
-
+  
+  // Set the available joints (left box)
+  joints_widget_->setAvailable( joints );
+  
   // Set the selected joints (right box)
   joints_widget_->setSelected( this_group->joints_ );
 
@@ -536,25 +532,21 @@ void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
 // ******************************************************************************************
 void PlanningGroupsWidget::loadLinksScreen( srdf::Model::Group *this_group )
 {
-  // Only load the available links once, to save time
-  if( links_widget_->data_table_->rowCount() == 0 ) // we need to load the links
+  // Retrieve pointer to the shared kinematic model
+  const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
+  
+  // Get the names of the all links
+  const std::vector<std::string> &links = model->getLinkModelNames();
+  
+  if( links.size() == 0 )
   {
-    // Retrieve pointer to the shared kinematic model
-    const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
-
-    // Get the names of the all links
-    const std::vector<std::string> &links = model->getLinkModelNames();
-
-    if( links.size() == 0 )
-    {
-      QMessageBox::critical( this, "Error Loading", "No links found for robot model");
-      return;
-    }
-
-    // Set the available links (left box)
-    links_widget_->setAvailable( links );
+    QMessageBox::critical( this, "Error Loading", "No links found for robot model");
+    return;
   }
-
+  
+  // Set the available links (left box)
+  links_widget_->setAvailable( links );
+  
   // Set the selected links (right box)
   links_widget_->setSelected( this_group->links_ );
 

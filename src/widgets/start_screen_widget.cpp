@@ -648,16 +648,6 @@ bool StartScreenWidget::extractPackageNameFromPath()
   // Assign data to moveit_config_data
   if( !packageFound )
   {
-
-    // Warn the user
-    if( QMessageBox::warning( this, "URDF File Location",
-                              QString("Warning: the chosen URDF file appears to be outside of a ROS package/stack. As a result the Setup Assistant will generate a MoveIt configuration package with an absolute path that only works on this computer. Are you sure you want to continue?" ),
-                              QMessageBox::Yes | QMessageBox::No)
-        == QMessageBox::No )
-    {
-      return false;
-    }
-
     // No package name found, we must be outside ROS
     config_data_->urdf_pkg_name_ = "";
     config_data_->urdf_pkg_relative_path_ = config_data_->urdf_path_; // just the absolute path

@@ -185,6 +185,12 @@ void DoubleListWidget::setSelected( const std::vector<std::string> &items )
   setTable( items, selected_data_table_ );
 }
 
+void DoubleListWidget::clearContents(void)
+{
+  selected_data_table_->clearContents();
+  data_table_->clearContents();
+}
+
 void DoubleListWidget::setColumnNames( const QString &col1, const QString &col2)
 {
   column1_label_->setText(col1);
