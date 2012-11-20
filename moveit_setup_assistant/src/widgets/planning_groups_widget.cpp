@@ -679,7 +679,7 @@ void PlanningGroupsWidget::deleteGroup()
     return;
   
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = findGroupByName( group );
+  srdf::Model::Group *searched_group = config_data_->findGroupByName( group );
 
   // Confirm user wants to delete group
   if( QMessageBox::question( this, "Confirm Group Deletion",
@@ -821,33 +821,6 @@ void PlanningGroupsWidget::addGroup()
   changeScreen( 5 );
 }
 
-// ******************************************************************************************
-// Find a group by pointer using its string name
-// ******************************************************************************************
-srdf::Model::Group *PlanningGroupsWidget::findGroupByName( const std::string &name )
-{
-  // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = NULL; // used for holding our search results
-
-  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
-       group_it != config_data_->srdf_->groups_.end(); ++group_it )
-  {
-    if( group_it->name_ == name ) // string match
-    {
-      searched_group = &(*group_it);  // convert to pointer from iterator
-      break; // we are done searching
-    }
-  }
-  
-  // Check if subgroup was found
-  if( searched_group == NULL ) // not found
-  {
-    QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
-    QApplication::quit();
-  }
-
-  return searched_group;
-}
 
 // ******************************************************************************************
 // Call when joints edit sceen is done and needs to be saved
@@ -855,7 +828,7 @@ srdf::Model::Group *PlanningGroupsWidget::findGroupByName( const std::string &na
 void PlanningGroupsWidget::saveJointsScreen()
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+  srdf::Model::Group *searched_group = config_data_->findGroupByName( current_edit_group_ );
 
   // clear the old data
   searched_group->joints_.clear();
@@ -882,7 +855,7 @@ void PlanningGroupsWidget::saveJointsScreen()
 void PlanningGroupsWidget::saveLinksScreen()
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+  srdf::Model::Group *searched_group = config_data_->findGroupByName( current_edit_group_ );
 
   // Find the group we are editing based on the goup name string
   // clear the old data
@@ -910,7 +883,7 @@ void PlanningGroupsWidget::saveLinksScreen()
 void PlanningGroupsWidget::saveChainScreen()
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+  srdf::Model::Group *searched_group = config_data_->findGroupByName( current_edit_group_ );
 
   // Get a reference to the supplied strings
   const std::string &tip = chain_widget_->tip_link_field_->text().toStdString();
@@ -985,7 +958,7 @@ void PlanningGroupsWidget::saveChainScreen()
 void PlanningGroupsWidget::saveSubgroupsScreen()
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+  srdf::Model::Group *searched_group = config_data_->findGroupByName( current_edit_group_ );
 
   // Check for cycles -------------------------------
 
@@ -1105,7 +1078,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   if( !current_edit_group_.empty() )
   {
     // Find the group we are editing based on the goup name string
-    searched_group = findGroupByName( current_edit_group_ );
+    searched_group = config_data_->findGroupByName( current_edit_group_ );
   }
 
   // Check that the group name is unique
@@ -1205,7 +1178,7 @@ void PlanningGroupsWidget::saveGroupScreenJoints()
     return;
 
   // Find the group we are editing based on the goup name string
-  loadJointsScreen( findGroupByName( current_edit_group_ ) );
+  loadJointsScreen( config_data_->findGroupByName( current_edit_group_ ) );
 
   // Switch to screen
   changeScreen( 1 ); // 1 is index of joints
@@ -1221,7 +1194,7 @@ void PlanningGroupsWidget::saveGroupScreenLinks()
     return;
 
   // Find the group we are editing based on the goup name string
-  loadLinksScreen( findGroupByName( current_edit_group_ ) );
+  loadLinksScreen( config_data_->findGroupByName( current_edit_group_ ) );
 
   // Switch to screen
   changeScreen( 2 ); // 2 is index of links
@@ -1237,7 +1210,7 @@ void PlanningGroupsWidget::saveGroupScreenChain()
     return;
 
   // Find the group we are editing based on the goup name string
-  loadChainScreen( findGroupByName( current_edit_group_ ) );
+  loadChainScreen( config_data_->findGroupByName( current_edit_group_ ) );
 
   // Switch to screen
   changeScreen( 3 );
@@ -1253,7 +1226,7 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
     return;
 
   // Find the group we are editing based on the goup name string
-  loadSubgroupsScreen( findGroupByName( current_edit_group_ ) );
+  loadSubgroupsScreen( config_data_->findGroupByName( current_edit_group_ ) );
 
   // Switch to screen
   changeScreen( 4 );
@@ -1266,7 +1239,7 @@ void PlanningGroupsWidget::cancelEditing(void)
 { 
   if (!current_edit_group_.empty() && adding_new_group_)
   {
-    srdf::Model::Group *editing = findGroupByName( current_edit_group_ );
+    srdf::Model::Group *editing = config_data_->findGroupByName( current_edit_group_ );
     if( editing && editing->joints_.empty() && editing->links_.empty() && 
         editing->chains_.empty() && editing->subgroups_.empty())
     {

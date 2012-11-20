@@ -175,14 +175,6 @@ private:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
-  srdf::Model::Group *findGroupByName( const std::string &name );
-
-  /** 
-   * Find the associated data by name
-   * 
-   * @param name - name of data to find in datastructure
-   * @return pointer to data in datastructure
-   */
   srdf::Model::GroupState *findPoseByName( const std::string &name );
 
   /** 

@@ -53,7 +53,7 @@
 #include <boost/filesystem.hpp>  // for creating folders/files
 #include <boost/algorithm/string.hpp> // for string find and replace in templates
 // ROS
-#include <ros/ros.h>
+#include <ros/console.h>
 #include <ros/package.h> // for getting file path for loading images
 
 namespace moveit_setup_assistant
@@ -97,10 +97,11 @@ kinematic_model::KinematicModelConstPtr MoveItConfigData::getKinematicModel()
   if( !kin_model_ )
   {
     // Initialize with a URDF Model Interface and a SRDF Model
-    kin_model_.reset( new kinematic_model::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
+    kin_model_.reset( new kinematic_model::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );
+    kin_model_const_ = kin_model_;
   }
   
-  return kin_model_;
+  return kin_model_const_;
 }
 
 // ******************************************************************************************
@@ -115,7 +116,8 @@ void MoveItConfigData::updateKinematicModel()
 
   // Create new kin model
   kin_model_.reset( new kinematic_model::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
-
+  kin_model_const_ = kin_model_;
+  
   // Reset the planning scene
   planning_scene_.reset();
 }
@@ -131,7 +133,7 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
     planning_scene_.reset(new planning_scene::PlanningScene( ));
 
     // Configure planning scene
-    planning_scene_->configure( urdf_model_, srdf_->srdf_model_ );
+    planning_scene_->configure( urdf_model_, srdf_->srdf_model_, kin_model_);
   }
   return planning_scene_;
 }
@@ -548,6 +550,27 @@ std::string MoveItConfigData::appendPaths( const std::string &path1, const std::
   return result.make_preferred().native().c_str();
 }
 
+srdf::Model::Group* MoveItConfigData::findGroupByName( const std::string &name )
+{
+  // Find the group we are editing based on the goup name string
+  srdf::Model::Group *searched_group = NULL; // used for holding our search results
+
+  for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
+       group_it != srdf_->groups_.end(); ++group_it )
+  {
+    if( group_it->name_ == name ) // string match
+    {
+      searched_group = &(*group_it);  // convert to pointer from iterator
+      break; // we are done searching
+    }
+  }
+
+  // Check if subgroup was found
+  if( searched_group == NULL ) // not found
+    ROS_FATAL_STREAM("An internal error has occured while searching for groups. Group '" << name << "' was not found in the SRDF.");
+  
+  return searched_group;
+}
 
 
 

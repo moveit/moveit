@@ -186,7 +186,10 @@ private Q_SLOTS:
    * Unhighlight all links of a robot
    */
   void unhighlightAll();
-
+  
+  // received when virtual joints that change the reference frame are added
+  void virtualJointReferenceFrameChanged();
+  
 private:
 
 

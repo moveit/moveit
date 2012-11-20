@@ -91,10 +91,10 @@ void SRDFWriter::updateSRDFModel( const urdf::ModelInterface &robot_model )
   const std::string srdf_string = getSRDFString();
 
   // Error check
-  if( !srdf_model_->initString( robot_model, srdf_string ) )  // TODO: can I initstring twice?
+  if( !srdf_model_->initString( robot_model, srdf_string ) )
   {
     ROS_ERROR( "Unable to update the SRDF Model" );
-    exit(0);
+    exit(1);
   }
 }
 

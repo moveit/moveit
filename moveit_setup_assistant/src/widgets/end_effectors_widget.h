@@ -82,6 +82,7 @@ class EndEffectorsWidget : public SetupScreenWidget
   QStackedLayout *stacked_layout_;
   QLineEdit *effector_name_field_;
   QComboBox *parent_name_field_;
+  QComboBox *parent_group_name_field_;
   QComboBox *group_name_field_;
   QWidget *effector_list_widget_;
   QWidget *effector_edit_widget_;
@@ -128,14 +129,6 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-
-  /** 
-   * Find the associated data by name
-   * 
-   * @param name - name of data to find in datastructure
-   * @return pointer to data in datastructure
-   */
-  srdf::Model::Group *findGroupByName( const std::string &name );
 
   /** 
    * Find the associated data by name

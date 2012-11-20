@@ -34,6 +34,12 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <boost/program_options.hpp>
+#include <signal.h>
+
+static void siginthandler(int param)
+{
+  QApplication::quit();
+}
 
 int main(int argc, char **argv)
 { 
@@ -60,7 +66,7 @@ int main(int argc, char **argv)
   }
 
   // Start ROS Node
-  ros::init(argc, argv, "moveit_setup_assistant");
+  ros::init(argc, argv, "moveit_setup_assistant", ros::init_options::NoSigintHandler);
 
   // ROS Spin
   ros::AsyncSpinner spinner(1);
@@ -78,6 +84,8 @@ int main(int argc, char **argv)
   //  saw.setWindowState( Qt::WindowMaximized );
 
   saw.show();
+
+  signal(SIGINT, siginthandler);
 
   // Wait here until Qt App is finished
   const int result = qtApp.exec();

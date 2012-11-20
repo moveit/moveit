@@ -166,6 +166,15 @@ SetupAssistantWidget::~SetupAssistantWidget()
     delete rviz_manager_;
 }
 
+void SetupAssistantWidget::virtualJointReferenceFrameChanged()
+{
+  if (rviz_manager_ && planning_display_)
+  {
+    rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getKinematicModel()->getModelFrame() ) );
+    planning_display_->reset();
+  }
+}
+
 // ******************************************************************************************
 // Change screens of Setup Assistant
 // ******************************************************************************************
@@ -224,6 +233,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   connect( vjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
   connect( vjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( vjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
+  connect( vjw_, SIGNAL( referenceFrameChanged() ), this, SLOT( virtualJointReferenceFrameChanged() ) );
 
   // Planning Groups
   pgw_ = new PlanningGroupsWidget( this, config_data_ );
@@ -298,7 +308,7 @@ void SetupAssistantWidget::loadRviz()
   rviz_manager_->startUpdate();
 
   // Set the fixed and target frame
-  rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getPlanningScene()->getPlanningFrame() ) );
+  rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getKinematicModel()->getModelFrame() ) );
 
   // Create the MoveIt Rviz Plugin and attach to display
   planning_display_ = new motion_planning_rviz_plugin::PlanningDisplay();
@@ -334,8 +344,10 @@ void SetupAssistantWidget::loadRviz()
 // Highlight a robot link
 // ******************************************************************************************
 void SetupAssistantWidget::highlightLink( const std::string& link_name )
-{
-  planning_display_->setLinkColor( link_name, QColor(255, 0, 0) );
+{  
+  const kinematic_model::LinkModel *lm = config_data_->getKinematicModel()->getLinkModel(link_name);
+  if (lm->getShape()) // skip links with no geometry
+    planning_display_->setLinkColor( link_name, QColor(255, 0, 0) );
 }
 
 // ******************************************************************************************
