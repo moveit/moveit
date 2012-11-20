@@ -59,7 +59,7 @@ static const unsigned int PICK_NUM_PHASES = 3;
 static const unsigned int PLACE_NUM_PHASES = 3;
 
 /**
- * @class A general pick place planning class
+ * @brief A general pick place planning class
  */
 class PickPlacePlanner
 {
