@@ -129,9 +129,12 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 {
   if( !planning_scene_ )
   {
+    // make sure kinematic model exists
+    getKinematicModel(); 
+
     // Allocate an empty planning scene
     planning_scene_.reset(new planning_scene::PlanningScene( ));
-
+    
     // Configure planning scene
     planning_scene_->configure( urdf_model_, srdf_->srdf_model_, kin_model_);
   }

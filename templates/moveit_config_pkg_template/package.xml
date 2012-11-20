@@ -15,14 +15,7 @@
   <url type="repository">https://github.com/ros-planning/moveit-setup-assistant</url>
 
   <build_depend>catkin</build_depend>
-  <build_depend>moveit_core</build_depend>
-  <build_depend>moveit_ros</build_depend>
-  <build_depend>moveit_planners</build_depend>
-  <build_depend>moveit_setup_assistant</build_depend>
-
-  <run_depend>moveit_core</run_depend>
-  <run_depend>moveit_ros</run_depend>
-  <run_depend>moveit_planners</run_depend>
-  <run_depend>moveit_setup_assistant</run_depend>
+  
+  <run_depend>moveit_ros_planning</run_depend>
 
 </package>
