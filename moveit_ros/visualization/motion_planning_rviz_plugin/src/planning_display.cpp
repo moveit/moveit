@@ -353,20 +353,29 @@ void PlanningDisplay::reset(void)
   clearTrajectoryTrail();
   planning_scene_render_.reset();
   text_to_display_->setVisible(false);
+  trajectory_message_to_display_.reset();
+  displaying_trajectory_message_.reset();
+  animating_path_ = false;
   
   display_path_robot_->clear();
   planning_scene_robot_->clear();
   query_robot_start_->clear();
   query_robot_goal_->clear();
-
+  
   loadRobotModel();
+  
   frame_->disable();
   if (show_planning_frame_)
     frame_->enable();
-  trajectory_message_to_display_.reset();
-  displaying_trajectory_message_.reset();
-  animating_path_ = false;
+  
   Display::reset();
+  
+  query_robot_start_->setVisible( query_start_state_property_->getBool() );
+  query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
+  planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
+  display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
+  display_path_robot_->setVisible(false); 
 }
 
 void PlanningDisplay::addBackgroundJob(const boost::function<void(void)> &job)
