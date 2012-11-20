@@ -368,6 +368,22 @@ void ConfigurationFilesWidget::savePackage()
     // Feedback
     displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
                    "Required ROS package meta data file.");
+
+    // Copy CMakeLists.txt ------------------------------------------------------------------
+    file_name = "CMakeLists.txt";
+    template_path = config_data_->appendPaths( config_data_->template_package_path_, file_name );
+    file_path = config_data_->appendPaths( new_package_path, file_name );
+    
+    // Use generic template copy function
+    if( !copyTemplate( template_path, file_path, new_package_name ) )
+    {
+      QMessageBox::critical( this, "Error Generating File",
+                             QString("Failed to generate file ").append( file_path.c_str() ));
+      return;
+    }
+    // Feedback
+    displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
+                   "CMake build system.");
   }
   
   // Create config folder ---------------------------------------------------------------
