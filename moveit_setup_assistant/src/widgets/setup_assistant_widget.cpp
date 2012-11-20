@@ -112,10 +112,10 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   // Add Navigation Buttons (but do not load widgets yet except start screen)
   nav_name_list_ << "Start";
   nav_name_list_ << "Self-Collisions";
+  nav_name_list_ << "Virtual Joints";
   nav_name_list_ << "Planning Groups";
   nav_name_list_ << "Robot Poses";
   nav_name_list_ << "End Effectors";
-  nav_name_list_ << "Virtual Joints";
   nav_name_list_ << "Passive Joints";
   nav_name_list_ << "Configuration Files";
 
@@ -217,6 +217,14 @@ void SetupAssistantWidget::progressPastStartScreen()
   connect( dcw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( dcw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
+  // Virtual Joints
+  vjw_ = new VirtualJointsWidget( this, config_data_ );
+  main_content_->addWidget(vjw_);
+  connect( vjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
+  connect( vjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( vjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
+  connect( vjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
+
   // Planning Groups
   pgw_ = new PlanningGroupsWidget( this, config_data_ );
   main_content_->addWidget(pgw_);
@@ -240,14 +248,6 @@ void SetupAssistantWidget::progressPastStartScreen()
   connect( efw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
   connect( efw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( efw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
-
-  // Virtual Joints
-  vjw_ = new VirtualJointsWidget( this, config_data_ );
-  main_content_->addWidget(vjw_);
-  connect( vjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( vjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
-  connect( vjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
-  connect( vjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
   // Virtual Joints
   pjw_ = new PassiveJointsWidget( this, config_data_ );

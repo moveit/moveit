@@ -67,6 +67,8 @@ public:
   /// Set the right box
   void setSelected( const std::vector<std::string> &items );
 
+  void clearContents( void );
+
   /// Convenience function for reusing set table code
   void setTable( const std::vector<std::string> &items, QTableWidget *table );
 

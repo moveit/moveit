@@ -791,8 +791,16 @@ bool ConfigurationFilesWidget::copyTemplate( const std::string& template_path, c
 
   // Replace keywords in string ------------------------------------------------------------
   boost::replace_all( template_string, "[GENERATED_PACKAGE_NAME]", new_package_name );
-  boost::replace_all( template_string, "[URDF_PACKAGE_NAME]", config_data_->urdf_pkg_name_ );
-  boost::replace_all( template_string, "[URDF_RELATIVE_PATH]", config_data_->urdf_pkg_relative_path_ );
+
+  if (config_data_->urdf_pkg_name_.empty())
+  {
+    boost::replace_all( template_string, "[URDF_LOCATION]", config_data_->urdf_path_ );
+  }
+  else
+  {
+    boost::replace_all( template_string, "[URDF_LOCATION]", "$(find " + config_data_->urdf_pkg_name_ + ")/" + config_data_->urdf_pkg_relative_path_);
+  }
+  
   boost::replace_all( template_string, "[ROBOT_NAME]", config_data_->srdf_->robot_name_ );
 
   // Save string to new location -----------------------------------------------------------

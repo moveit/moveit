@@ -78,9 +78,7 @@ MoveItConfigData::MoveItConfigData()
   setup_assistant_path_ = ros::package::getPath("moveit_setup_assistant");
   if( setup_assistant_path_.empty() )
   {
-    // use cout b/c we don't know ROS's status...
-    std::cout << "Unable to get MoveIt Setup Assistant package path " << std::endl;
-    exit(0);
+    setup_assistant_path_ = ".";
   }
 }
 
