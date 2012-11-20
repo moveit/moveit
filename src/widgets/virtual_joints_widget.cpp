@@ -39,6 +39,7 @@
 // Qt
 #include <QFormLayout>
 #include <QMessageBox>
+#include <QApplication>
 
 namespace moveit_setup_assistant
 {
@@ -375,35 +376,6 @@ void VirtualJointsWidget::loadChildLinksComboBox()
 }
 
 // ******************************************************************************************
-// Find a group by pointer using its string name
-// ******************************************************************************************
-/*srdf::Model::Group *VirtualJointsWidget::findGroupByName( const std::string &name )
-{
-  // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = NULL; // used for holding our search results
-
-  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
-       group_it != config_data_->srdf_->groups_.end(); ++group_it )
-  {
-    if( group_it->name_ == name ) // string match
-    {
-      searched_group = &(*group_it);  // convert to pointer from iterator
-      break; // we are done searching
-    }
-  }  
-
-  // Check if subgroup was found
-  if( searched_group == NULL ) // not found
-  {
-    QMessageBox::critical( this, "Error Loading", "An internal error has occured while searching for groups");
-    exit(0); 
-  }
-  
-  return searched_group;
-}
-*/
-
-// ******************************************************************************************
 // Find the associated data by name
 // ******************************************************************************************
 srdf::Model::VirtualJoint *VirtualJointsWidget::findVJointByName( const std::string &name )
@@ -425,7 +397,7 @@ srdf::Model::VirtualJoint *VirtualJointsWidget::findVJointByName( const std::str
   if( searched_group == NULL ) // not found
   {
     QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
-    exit(0); 
+    QApplication::quit();
   }
   
   return searched_group;
@@ -522,22 +494,6 @@ void VirtualJointsWidget::doneEditing()
     }
   }
 
-  // Check that the parent frame name is unique 
-  // Ioan said this is not necessary
-  /*  for( std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin(); 
-       data_it != config_data_->srdf_->virtual_joints_.end();  ++data_it )
-  {
-    if( data_it->parent_frame_.compare( parent_name ) == 0 ) // the names are the same
-    {
-      // is this our existing vjoint? check if vjoint pointers are same
-      if( &(*data_it) != searched_data )
-      {
-        QMessageBox::warning( this, "Error Saving", "A virtual joint already exists that has the same parent frame name as this one!" );
-        return;
-      }
-    }
-    }*/
-
   // Check that a joint type was selected
   if( joint_type_field_->currentText().isEmpty() )
   {
@@ -568,10 +524,15 @@ void VirtualJointsWidget::doneEditing()
   searched_data->child_link_ = child_link_field_->currentText().toStdString();
   searched_data->type_ = joint_type_field_->currentText().toStdString();
 
+  bool emit_frame_notice = false;
+  
   // Insert new vjoints into group state vector --------------------------
   if( isNew )
   {
-    config_data_->srdf_->virtual_joints_.push_back( *searched_data );
+    if (searched_data->child_link_ == config_data_->getKinematicModel()->getRootLinkName())
+      emit_frame_notice = true;
+    config_data_->srdf_->virtual_joints_.push_back( *searched_data ); 
+    config_data_->updateKinematicModel();
   }
 
   // Finish up ------------------------------------------------------
@@ -584,6 +545,12 @@ void VirtualJointsWidget::doneEditing()
 
   // Announce that this widget is not in modal mode
   Q_EMIT isModal( false );
+  
+  // if the root frame changed for the robot, emit the signal
+  if (emit_frame_notice)
+  {
+    Q_EMIT referenceFrameChanged();
+  }  
 }
 
 // ******************************************************************************************

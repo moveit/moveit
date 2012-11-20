@@ -112,6 +112,15 @@ private Q_SLOTS:
   /// Cancel changes
   void cancelEditing();
 
+Q_SIGNALS:
+
+  // ******************************************************************************************
+  // Emitted Signals
+  // ******************************************************************************************
+
+  /// Event sent when this widget updated the root joint, which changes the frame of reference for the model
+  void referenceFrameChanged();
+
 private:
 
   // ******************************************************************************************
@@ -127,14 +136,6 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-
-  /** 
-   * Find the associated data by name
-   * 
-   * @param name - name of data to find in datastructure
-   * @return pointer to data in datastructure
-   */
-  //srdf::Model::Group *findGroupByName( const std::string &name );
 
   /** 
    * Find the associated data by name

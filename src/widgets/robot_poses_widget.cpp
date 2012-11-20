@@ -583,34 +583,6 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
 }
 
 // ******************************************************************************************
-// Find a group by pointer using its string name
-// ******************************************************************************************
-srdf::Model::Group *RobotPosesWidget::findGroupByName( const std::string &name )
-{
-  // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = NULL; // used for holding our search results
-
-  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
-       group_it != config_data_->srdf_->groups_.end(); ++group_it )
-  {
-    if( group_it->name_ == name ) // string match
-    {
-      searched_group = &(*group_it);  // convert to pointer from iterator
-      break; // we are done searching
-    }
-  }
-
-  // Check if subgroup was found
-  if( searched_group == NULL ) // not found
-  {
-    QMessageBox::critical( this, "Error Loading", "An internal error has occured while searching for groups");
-    exit(0); // TODO: is this the ROS way?
-  }
-
-  return searched_group;
-}
-
-// ******************************************************************************************
 // Find the associated data by name
 // ******************************************************************************************
 srdf::Model::GroupState *RobotPosesWidget::findPoseByName( const std::string &name )
@@ -632,7 +604,7 @@ srdf::Model::GroupState *RobotPosesWidget::findPoseByName( const std::string &na
   if( searched_group == NULL ) // not found
   {
     QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
-    exit(0); // TODO: is this the ROS way?
+    QApplication::quit();
   }
 
   return searched_group;

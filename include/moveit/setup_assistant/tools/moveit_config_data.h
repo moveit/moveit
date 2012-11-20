@@ -147,7 +147,15 @@ public:
 
   /// Provide a shared planning scene
   planning_scene::PlanningScenePtr getPlanningScene();
-
+  
+  /** 
+   * Find the associated group by name
+   * 
+   * @param name - name of data to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  srdf::Model::Group* findGroupByName( const std::string &name );
+  
   /// Load the allowed collision matrix from the SRDF's list of link pairs
   void loadAllowedCollisionMatrix();
 
@@ -191,7 +199,8 @@ private:
   // ******************************************************************************************
 
   // Shared kinematic model
-  kinematic_model::KinematicModelConstPtr kin_model_;
+  kinematic_model::KinematicModelPtr kin_model_;
+  kinematic_model::KinematicModelConstPtr kin_model_const_;
 
   // Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;
