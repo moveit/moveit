@@ -33,3 +33,6 @@ generate_dynamic_reconfigure_options("ompl_interface_ros/cfg/OMPLParamsDR.cfg")
 include_directories(cfg/cpp)
 include_directories(ompl_interface_ros/include)
 add_subdirectory(ompl_interface_ros)
+
+install(FILES ompl_interface_ros_plugin_description.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
