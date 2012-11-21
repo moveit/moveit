@@ -109,7 +109,7 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   {
     try
     {
-      sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>("moveit_sensor_manager", "moveit_sensor_manager::MoveItSensorManager"));
+      sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>("moveit_core", "moveit_sensor_manager::MoveItSensorManager"));
     }
     catch(pluginlib::PluginlibException& ex)
     {

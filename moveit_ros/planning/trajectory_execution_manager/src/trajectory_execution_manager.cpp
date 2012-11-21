@@ -71,7 +71,7 @@ void TrajectoryExecutionManager::initialize(void)
   // load the controller manager plugin
   try
   {
-    controller_manager_loader_.reset(new pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager>("moveit_planning_ros", "moveit_controller_manager::MoveItControllerManager"));
+    controller_manager_loader_.reset(new pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager>("moveit_core", "moveit_controller_manager::MoveItControllerManager"));
   }
   catch(pluginlib::PluginlibException& ex)
   {
