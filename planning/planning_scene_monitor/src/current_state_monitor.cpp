@@ -114,6 +114,28 @@ std::string planning_scene_monitor::CurrentStateMonitor::getMonitoredTopic(void)
     return "";
 }
 
+bool planning_scene_monitor::CurrentStateMonitor::isPassiveDOF(const std::string &dof) const
+{     
+  if (kmodel_->hasJointModel(dof))
+  {
+    if (kmodel_->getJointModel(dof)->isPassive())
+      return true;
+  }
+  else
+  {
+    // check if this DOF is part of a multi-dof passive joint
+    std::size_t slash = dof.find_last_of("/");
+    if (slash != std::string::npos)
+    {
+      std::string joint_name = dof.substr(0, slash);
+      if (kmodel_->hasJointModel(joint_name))
+        if (kmodel_->getJointModel(joint_name)->isPassive())
+          return true;
+    }
+  }
+  return false;
+}
+
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(void) const
 {
   bool result = true;
@@ -121,11 +143,13 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(void) const
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
     if (joint_time_.find(dof[i]) == joint_time_.end())
-      if (!kmodel_->getJointModel(dof[i])->isPassive())
+    {
+      if (!isPassiveDOF(dof[i]))
       {
         ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
         result = false;
       }
+    }
   return result;
 }
 
@@ -135,8 +159,8 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
   const std::vector<std::string> &dof = kmodel_->getVariableNames();
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
-    if (joint_time_.find(dof[i]) == joint_time_.end())
-      if (!kmodel_->getJointModel(dof[i])->isPassive())
+    if (joint_time_.find(dof[i]) == joint_time_.end())   
+      if (!isPassiveDOF(dof[i]))
       {
         ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
         missing_states.push_back(dof[i]);
@@ -154,7 +178,9 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
   {
-    std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(dof[i]);
+    if (isPassiveDOF(dof[i]))
+      continue;
+    std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(dof[i]);    
     if (it == joint_time_.end())
     {
       ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
@@ -180,7 +206,9 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
-  {
+  {  
+    if (isPassiveDOF(dof[i]))
+      continue;
     std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(dof[i]);
     if (it == joint_time_.end())
     {
