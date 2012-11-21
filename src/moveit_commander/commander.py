@@ -64,12 +64,24 @@ class MoveGroupCommander:
         """ Get the name of the link that is considered to be an end effector """
         return self._g.get_end_effector_link()
 
+    def set_end_effector_link(self, link_name):
+        """ Set the name of the link to be considered as an end effector """
+        self._g.set_end_effector_link(link_name)
+
+    def get_pose_reference_frame(self):
+        """ Get the reference frame assumed for poses of end-effectors """
+        return self._g.get_pose_reference_frame()
+
+    def set_pose_reference_frame(self, reference_frame):
+        """ Set the reference frame to assume for poses of end-effectors """
+        self._g.set_pose_reference_frame(reference_frame)
+
     def get_current_joint_values(self):
         return self._g.get_current_joint_values()
     
-    def get_current_pose(self):
+    def get_current_pose(self, end_effector_link = ""):
         if self.has_end_effector_link():
-            return self._g.get_current_pose()
+            return self._g.get_current_pose(end_effector_link)
         else:
             raise "There is no end effector to get the pose of"
         
@@ -83,31 +95,39 @@ class MoveGroupCommander:
         else:
             self._g.set_joint_value_target(name, value)
 
-    def set_orientation_target(self, xyz):
+    def set_orientation_target(self, xyz, end_effector_link = ""):
         if self.has_end_effector_link():
-            return self._g.set_orientation_target(xyz[0], xyz[1], xyz[2])
+            return self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], end_effector_link)
         else:
-            raise "There is no end effector to get the pose of"
+            raise "There is no end effector to set the pose for"
 
-    def set_position_target(self, xyz):
+    def set_position_target(self, xyz, end_effector_link = ""):
         if self.has_end_effector_link():
-            return self._g.set_position_target(xyz[0], xyz[1], xyz[2])
+            return self._g.set_position_target(xyz[0], xyz[1], xyz[2], end_effector_link)
         else:
-            raise "There is no end effector to get the pose of"
+            raise "There is no end effector to set the pose for"
 
-    def set_pose_target(self, pose):
+    def set_pose_target(self, pose, end_effector_link = ""):
         """ Set the pose of the end-effector, if one is available. The expected input is a list of 6 floats: [x, y, z, rot_x, rot_y, rot_z]"""
         if self.has_end_effector_link():
-            return self._g.set_pose_target(pose)
+            return self._g.set_pose_target(pose, end_effector_link)
         else:
             raise "There is no end effector to get the pose of"
 
-    def shift_pose_target(self, axis, value):
+    def shift_pose_target(self, axis, value, end_effector_link = ""):
         """ Get the current pose of the end effector, add value to the corresponding axis and set the new pose as the pose target """
-        pose = self.get_current_pose()
+        pose = self.get_current_pose(end_effector_link)
         pose[axis] = pose[axis] + value
-        self.set_pose_target(pose)
-    
+        self.set_pose_target(pose, end_effector_link)
+
+    def clear_pose_target(self, end_effector_link):
+        """ Clear the pose target for a particular end-effector """
+        self._g.clear_pose_target(end_effector_link)
+        
+    def clear_pose_targets(self):
+        """ Clear all known pose targets """
+        self._g.clear_pose_targets()
+
     def set_random_target(self):
         self._g.set_random_target()
 
