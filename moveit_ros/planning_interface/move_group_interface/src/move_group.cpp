@@ -101,8 +101,6 @@ class MoveGroup::MoveGroupImpl
 {
 public: 
   
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server) : opt_(opt), tf_(tf)
   {
     kinematic_model_ = opt.kinematic_model_ ? opt.kinematic_model_ : getSharedKinematicModel(opt.robot_description_);
@@ -133,8 +131,10 @@ public:
     if (joint_model_group)
     {
       if (joint_model_group->isChain())
+      {
         end_effector_ = joint_model_group->getLinkModelNames().back();
-      pose_target_.setIdentity();
+        pose_target_[end_effector_].setIdentity();
+      }      
       pose_reference_frame_ = getKinematicModel()->getModelFrame();
       
       trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
@@ -242,6 +242,23 @@ public:
   void setEndEffector(const std::string &end_effector)
   {
     end_effector_ = end_effector;
+    if (pose_target_.find(end_effector_) == pose_target_.end())
+      pose_target_[end_effector_].setIdentity();
+  }
+
+  void clearPoseTarget(const std::string &end_effector_link)
+  {
+    if (end_effector_link == end_effector_)
+      pose_target_[end_effector_].setIdentity();
+    else
+      pose_target_.erase(end_effector_link);
+  }
+
+  void clearPoseTargets(void)
+  {
+    pose_target_.clear();
+    if (!end_effector_.empty())
+      pose_target_[end_effector_].setIdentity();
   }
   
   const std::string &getEndEffector(void) const
@@ -249,14 +266,27 @@ public:
     return end_effector_;
   }
   
-  void setPoseTarget(const Eigen::Affine3d &eef_pose)
+  void setPoseTarget(const Eigen::Affine3d &eef_pose, const std::string &end_effector_link)
   {
-    pose_target_ = eef_pose;
+    const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link;
+    if (eef.empty())
+      ROS_ERROR("No end-effector to set the pose for");
+    else
+      pose_target_[eef] = eef_pose;
   }
   
-  const Eigen::Affine3d& getPoseTarget(void) const
-  {
-    return pose_target_;
+  const Eigen::Affine3d& getPoseTarget(const std::string &end_effector_link) const
+  {    
+    const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link;
+    EigenSTL::map_string_Affine3d::const_iterator it = pose_target_.find(eef);
+    if (it != pose_target_.end())
+      return it->second;
+    else
+    {
+      static const Eigen::Affine3d id(Eigen::Affine3d::Identity());
+      ROS_ERROR("Pose for end effector '%s' not known. Assuming identity.", eef.c_str());
+      return id;
+    }
   }
   
   void setPoseReferenceFrame(const std::string &pose_reference_frame)
@@ -289,11 +319,14 @@ public:
     can_replan_ = flag;
   }
   
-  std::pair<bool, bool> getCurrentState(kinematic_state::KinematicStatePtr &current_state, std::vector<double> &values, Eigen::Affine3d &pose)
+  bool getCurrentState(kinematic_state::KinematicStatePtr &current_state)
   {
     if (!current_state_monitor_)
-      return std::make_pair(false, false);
-    
+    {
+      ROS_ERROR("Unable to get current robot state");
+      return false;
+    }
+        
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
     {
@@ -323,17 +356,7 @@ public:
     }
     
     current_state = current_state_monitor_->getCurrentState();
-    current_state->getJointStateGroup(opt_.group_name_)->getVariableValues(values);
-    if (!end_effector_.empty())
-    {
-      const kinematic_state::LinkState *ls = current_state->getLinkState(end_effector_);
-      if (ls)
-      {
-        pose = ls->getGlobalLinkTransform();
-        return std::make_pair(true, true);
-      }
-    }
-    return std::make_pair(true, false);
+    return true;
   }
   
   bool plan(Plan &plan)
@@ -453,18 +476,22 @@ public:
     }
     else
     {
-      geometry_msgs::PoseStamped pose;
-      tf::poseEigenToMsg(pose_target_, pose.pose);
-      pose.header.frame_id = pose_reference_frame_;
-      pose.header.stamp = ros::Time::now();
-      goal.request.goal_constraints.resize(1);
-      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(end_effector_, pose, goal_tolerance_);
+      goal.request.goal_constraints.clear();
+      ros::Time t = ros::Time::now();
+      for (EigenSTL::map_string_Affine3d::const_iterator it = pose_target_.begin() ; it != pose_target_.end() ; ++it)
+      {
+        geometry_msgs::PoseStamped pose;
+        tf::poseEigenToMsg(it->second, pose.pose);
+        pose.header.frame_id = pose_reference_frame_;
+        pose.header.stamp = t;
+        goal.request.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(it->first, pose, goal_tolerance_));
+      }
     }
-
+    
     if (path_constraints_)
       goal.request.path_constraints = *path_constraints_;
   }
-
+  
   bool setPathConstraints(const std::string &constraint)
   {
     if (constraints_storage_)
@@ -546,7 +573,7 @@ private:
   boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   ros::Duration planning_time_;
-  Eigen::Affine3d pose_target_;
+  EigenSTL::map_string_Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_; 
   std::string planner_id_;
@@ -674,7 +701,7 @@ void MoveGroup::setJointValueTarget(const std::map<std::string, double> &joint_v
 
 void MoveGroup::setJointValueTarget(const kinematic_state::KinematicState &kinematic_state)
 {
-  setJointValueTarget(*kinematic_state.getJointStateGroup(impl_->getOptions().group_name_));
+  setJointValueTarget(*kinematic_state.getJointStateGroup(getName()));
 }
 
 void MoveGroup::setJointValueTarget(const kinematic_state::JointStateGroup &joint_state_group)
@@ -715,9 +742,9 @@ const kinematic_state::JointStateGroup& MoveGroup::getJointValueTarget(void) con
   return *impl_->getJointStateTarget();
 }
 
-void MoveGroup::setPoseTarget(const Eigen::Affine3d &pose)
+void MoveGroup::setPoseTarget(const Eigen::Affine3d &pose, const std::string &end_effector_link)
 {
-  impl_->setPoseTarget(pose);
+  impl_->setPoseTarget(pose, end_effector_link);
   impl_->usePoseTarget();
 }
 
@@ -732,14 +759,24 @@ void MoveGroup::setEndEffectorLink(const std::string &link_name)
   impl_->usePoseTarget();
 }
 
-void MoveGroup::setPoseTarget(const geometry_msgs::Pose &target)
+void MoveGroup::clearPoseTarget(const std::string &end_effector_link)
+{
+  impl_->clearPoseTarget(end_effector_link);
+}
+
+void MoveGroup::clearPoseTargets(void)
+{
+  impl_->clearPoseTargets();
+}
+
+void MoveGroup::setPoseTarget(const geometry_msgs::Pose &target, const std::string &end_effector_link)
 {
   Eigen::Affine3d m;
   tf::poseMsgToEigen(target, m);
-  setPoseTarget(m);
+  setPoseTarget(m, end_effector_link);
 }
 
-void MoveGroup::setPoseTarget(const geometry_msgs::PoseStamped &target)
+void MoveGroup::setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link)
 {
   // avoid using the TransformListener API, since out pointer is for the base class only;
   tf::Pose pose;
@@ -750,28 +787,28 @@ void MoveGroup::setPoseTarget(const geometry_msgs::PoseStamped &target)
   
   geometry_msgs::Pose pose_out;
   tf::poseTFToMsg(stamped_pose_out, pose_out);
-  setPoseTarget(pose_out);
+  setPoseTarget(pose_out, end_effector_link);
 }
 
-const Eigen::Affine3d& MoveGroup::getPoseTarget(void) const
+const Eigen::Affine3d& MoveGroup::getPoseTarget(const std::string &end_effector_link) const
 {
-  return impl_->getPoseTarget();
+  return impl_->getPoseTarget(end_effector_link);
 }
 
-void MoveGroup::setPositionTarget(double x, double y, double z)
+void MoveGroup::setPositionTarget(double x, double y, double z, const std::string &end_effector_link)
 {
-  Eigen::Affine3d target = getPoseTarget();
+  Eigen::Affine3d target = getPoseTarget(end_effector_link);
   target.translation() = Eigen::Vector3d(x,y,z);
-  setPoseTarget(target);
+  setPoseTarget(target, end_effector_link);
 }
 
-void MoveGroup::setOrientationTarget(double x, double y, double z)
+void MoveGroup::setOrientationTarget(double x, double y, double z, const std::string &end_effector_link)
 { 
   Eigen::Affine3d target(Eigen::AngleAxisd(x, Eigen::Vector3d::UnitX())
                          * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY())
                          * Eigen::AngleAxisd(z, Eigen::Vector3d::UnitZ()));
-  target.translation() = getPoseTarget().translation();
-  setPoseTarget(target);
+  target.translation() = getPoseTarget(end_effector_link).translation();
+  setPoseTarget(target, end_effector_link);
 }
 
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
@@ -803,8 +840,8 @@ std::vector<double> MoveGroup::getCurrentJointValues(void)
 { 
   kinematic_state::KinematicStatePtr current_state;
   std::vector<double> values;
-  Eigen::Affine3d dummy;
-  impl_->getCurrentState(current_state, values, dummy);
+  if (impl_->getCurrentState(current_state))
+    current_state->getJointStateGroup(getName())->getVariableValues(values);
   return values;
 }
 
@@ -821,14 +858,23 @@ std::vector<double> MoveGroup::getRandomJointValues(void)
   return r;
 }
 
-Eigen::Affine3d MoveGroup::getCurrentPose(void)
+Eigen::Affine3d MoveGroup::getCurrentPose(const std::string &end_effector_link)
 {
-  kinematic_state::KinematicStatePtr current_state;
-  std::vector<double> dummy;
+  const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
   Eigen::Affine3d pose;
   pose.setIdentity();
-  if (!impl_->getCurrentState(current_state, dummy, pose).second)
-    ROS_ERROR("Unable to get current pose");
+  if (eef.empty())
+    ROS_ERROR("No end-effector specified");
+  else
+  {
+    kinematic_state::KinematicStatePtr current_state;
+    if (impl_->getCurrentState(current_state))
+    {
+      const kinematic_state::LinkState *ls = current_state->getLinkState(eef);
+      if (ls)
+        pose = ls->getGlobalLinkTransform();
+    }
+  }  
   return pose;
 }
 
@@ -840,9 +886,7 @@ const std::vector<std::string>& MoveGroup::getJoints(void) const
 kinematic_state::KinematicStatePtr MoveGroup::getCurrentState(void)
 {
   kinematic_state::KinematicStatePtr current_state;
-  std::vector<double> dummy1;
-  Eigen::Affine3d dummy2;
-  impl_->getCurrentState(current_state, dummy1, dummy2);
+  impl_->getCurrentState(current_state);
   return current_state;
 }
 

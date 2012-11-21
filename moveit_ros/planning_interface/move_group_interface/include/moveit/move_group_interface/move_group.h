@@ -49,14 +49,18 @@
 namespace move_group_interface
 {
 
-/** \brief Client class for the MoveGroup action */
+/** \brief Client class for the MoveGroup action. This class includes many default settings to make things easy to use. */
 class MoveGroup
 {
 public:
   
+  /** \brief Default ROS parameter name from where to read the robot's URDF. Set to 'robot_description' */
   static const std::string ROBOT_DESCRIPTION;
+  
+  /** \brief Default ROS topic from where to read the robot's joint states. Set to 'joint_states' */
   static const std::string JOINT_STATE_TOPIC;
 
+  /** \brief Specification of options to use when constructing the MoveGroup client class */
   struct Options
   {
     Options(const std::string &group_name) : group_name_(group_name),
@@ -64,25 +68,51 @@ public:
                                              robot_description_(ROBOT_DESCRIPTION)
     {
     }
+
+    /// The group to construct the class instance for
     std::string group_name_;
+
+    /// The joint states topic (if different from default)
     std::string joint_state_topic_;
+
+    /// The robot description parameter name (if different from default)
     std::string robot_description_;
+
+    /// Optionally, an instance of the KinematicModel to use can be also specified
     kinematic_model::KinematicModelConstPtr kinematic_model_;
   };
-  
+
+  /// The representation of a motion plan (as ROS messasges)
   struct Plan
   {
+    /// The full starting state used for planning
     moveit_msgs::RobotState start_state_;
+
+    /// The trajectory of the robot (may not contain joints that are the same as for the start_state_)
     moveit_msgs::RobotTrajectory trajectory_;
   };
   
-  MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(), const ros::Duration &wait_for_server = ros::Duration(0, 0)); 
-  MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(), const ros::Duration &wait_for_server = ros::Duration(0, 0));
+  /** \brief Construct a client for the MoveGroup action using a specified set of options \e opt. Optionally, specify a TF instance to use. 
+      If not specified, one will be constructed internally. A timeout for connecting to the action server can also be specified. If it is not specified, 
+      the wait time is unlimited. */
+  MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+            const ros::Duration &wait_for_server = ros::Duration(0, 0)); 
 
+  /** \brief Construct a client for the MoveGroup action for a particular \e group. Optionally, specify a TF instance to use. 
+      If not specified, one will be constructed internally. A timeout for connecting to the action server can also be specified. If it is not specified, 
+      the wait time is unlimited. */
+  MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+            const ros::Duration &wait_for_server = ros::Duration(0, 0));
+  
   ~MoveGroup(void);
   
+  /** \brief Get the name of the group this instance operates on */
   const std::string& getName(void) const;
+  
+  /** \brief Get the joints this instance operates on */
+  const std::vector<std::string>& getJoints(void) const;
 
+  /** \brief Get the description of the planning plugin loaded by the action server */
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc);
   
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
@@ -97,8 +127,10 @@ public:
       target. No execution is performed. The resulting plan is stored in \e plan*/
   bool plan(Plan &plan);
   
+  /** \brief Given a \e plan, execute it without waiting for completion. Return true on success. */
   bool asyncExecute(const Plan &plan);
   
+  /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
   bool execute(const Plan &plan);
 
   /** \brief Stop any trajectory execution, if one is active */
@@ -110,92 +142,188 @@ public:
   /** \brief Specify whether the robot is allowed to replan if it detects changes in the environment */
   void allowReplanning(bool flag);
   
+  /** \brief Specify a planner name to be used for further planning */
   void setPlannerId(const std::string &planner_id);
 
+  /** \brief Specify the maximum amount of time to use when planning */
   void setPlanningTime(double seconds);
 
+  /** \brief Get the tolerance that is used for reaching the goal. For
+      joint state goals, this will be distance for each joint, in the
+      configuration space. For pose goals this will be the side of a
+      cube where the end-effector must reach.*/
+  double getGoalTolerance(void) const;
+  
+  /** \brief Set the tolerance that is used for reaching the goal. For
+      joint state goals, this will be distance for each joint, in the
+      configuration space. For pose goals this will be the side of a
+      cube where the end-effector must reach.*/
+  void setGoalTolerance(double tolerance);
+
+  /** \brief Specify the workspace bounding box */
+  void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz);
+  
   /** \brief If a different start state should be considered instead of the current state of the robot, this function sets that state */
   void setStartState(const kinematic_state::KinematicState &start_state);
   
+  /** \brief Set the starting state for planning to be that reported by the robot's joint state publication */
   void setStartStateToCurrentState(void);
-  
+
+  /**
+   * \defgroup set_joint_goal Setting a joint state goal
+   */
+  /**@{*/
+
+  /** \brief Given a vector of real values in the same order as expected by the group, set those as the joint state goal */
   void setJointValueTarget(const std::vector<double> &group_variable_values);
 
+  /** \brief Given a map of joint names to real values, set those as the joint state goal */
   void setJointValueTarget(const std::map<std::string, double> &variable_values);
 
+  /** \brief Set the joint state goal from corresponding joint values from the specified state */
   void setJointValueTarget(const kinematic_state::KinematicState &kinematic_state);
 
+  /** \brief Set the joint state goal from corresponding joint values from the specified state */
   void setJointValueTarget(const kinematic_state::JointStateGroup &joint_state_group);
   
+  /** \brief Set the joint state goal for a particula joint */
   void setJointValueTarget(const kinematic_state::JointState &joint_state);
 
+  /** \brief Set the joint state goal for a particular joint */
   void setJointValueTarget(const std::string &joint_name, const std::vector<double> &values);
 
+  /** \brief Set the joint state goal for a particular joint */
   void setJointValueTarget(const std::string &joint_name, double value);
   
+  /** \brief Set the joint state goal for a particular joint */
   void setJointValueTarget(const sensor_msgs::JointState &state);
 
-  const kinematic_state::JointStateGroup& getJointValueTarget(void) const;
-
-  void setPositionTarget(double x, double y, double z);
-  
-  void setOrientationTarget(double x, double y, double z);
-
-  void setPoseTarget(const Eigen::Affine3d &end_effector_pose);
-  
-  void setPoseTarget(const geometry_msgs::Pose &target);
-
-  void setPoseTarget(const geometry_msgs::PoseStamped &target);
-
-  void setPoseReferenceFrame(const std::string &pose_reference_frame);
-
-  const Eigen::Affine3d& getPoseTarget(void) const;
-
-  const std::string& getPoseReferenceFrame(void) const;
-
-  void setEndEffectorLink(const std::string &link_name);
-
-  const std::string& getEndEffectorLink(void) const;
-
-  const std::vector<std::string>& getJoints(void) const;
-
-  double getGoalTolerance(void) const;
-  
-  void setGoalTolerance(double tolerance);
-
+  /** \brief Set the joint state goal to a random joint configuration */
   void setRandomTarget(void);
   
-  /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found, that are specified in the SRDF under the name \e name */
+  /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found,
+      that are specified in the SRDF under the name \e name as a group state*/
   bool setNamedTarget(const std::string &name);
+
+  /// Get the currently set joint state goal
+  const kinematic_state::JointStateGroup& getJointValueTarget(void) const;
+
+  /**@}*/
+
+
+  /**
+   * \defgroup set_pose_goal Setting a pose goal
+   */
+  /**@{*/
+
+  /** \brief Set the goal position of the end-effector \e end_effector_link to be (\e x, \e y, \e z). If \e end_effector_link
+      is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  void setPositionTarget(double x, double y, double z, const std::string &end_effector_link = "");
   
+  /** \brief Set the goal orientation of the end-effector \e end_effector_link to be (\e x,\e y,\e z) radians about the (X,
+      Y, Z) axes. If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setOrientationTarget(double x, double y, double z, const std::string &end_effector_link = "");
+
+  /** \brief Set the goal pose of the end-effector \e end_effector_link.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setPoseTarget(const Eigen::Affine3d &end_effector_pose, const std::string &end_effector_link = "");
+  
+  /** \brief Set the goal pose of the end-effector \e end_effector_link.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setPoseTarget(const geometry_msgs::Pose &target, const std::string &end_effector_link = "");
+
+  /** \brief Set the goal pose of the end-effector \e end_effector_link.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link = "");
+
+  /// Specify which reference frame to assume for poses specified without a reference frame.
+  void setPoseReferenceFrame(const std::string &pose_reference_frame);
+
+  /// Specify what the current end-effector should be
+  void setEndEffectorLink(const std::string &link_name);
+
+  /// Forget pose specified for the end-effector \e end_effector_link
+  void clearPoseTarget(const std::string &end_effector_link = "");
+
+  /// Forget any poses specified for any end-effector
+  void clearPoseTargets(void);
+
+  /** Get the currently set pose goal for the end-effector \e end_effector_link.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  const Eigen::Affine3d& getPoseTarget(const std::string &end_effector_link = "") const;
+  
+  /** \brief Get the current end-effector link. This returns the value set by setEndEffectorLink().
+      If setEndEffectorLink() was not called, this function reports the link name that serves as parent
+      of an end-effector attached to this group. If there are multiple end-effectors, one of them is returned.
+      If no such link is known, the empty string is returned. */
+  const std::string& getEndEffectorLink(void) const;
+  
+  /** \brief Get the reference frame set by setPoseReferenceFrame(). By default this is the reference frame of the kinematic model */
+  const std::string& getPoseReferenceFrame(void) const;
+
+  /**@}*/
+
+  /**
+   * \defgroup query_robot_state Query current robot state
+   */
+  /**@{*/
+  
+  /** \brief Get the current joint values for the joints planned for by this instance (see getJoints()) */
+  std::vector<double> getCurrentJointValues(void);
+  
+  /** \brief Get the current state of the robot */
+  kinematic_state::KinematicStatePtr getCurrentState(void);
+
+  /** \brief Get the pose for the end-effector \e end_effector_link. 
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  Eigen::Affine3d getCurrentPose(const std::string &end_effector_link = "");
+
+  /** \brief Get random joint values for the joints planned for by this instance (see getJoints()) */
+  std::vector<double> getRandomJointValues(void);
+  
+  /**@}*/
+  
+  /**
+   * \defgroup named_joint_goals Manage named joint configurations
+   */
+  /**@{*/
+
   /** \brief Remember the current joint values (of the robot being monitored) under \e name. These can be used by setNamedTarget() */
   void rememberJointValues(const std::string &name);
 
   /** \brief Remember the specified joint values  under \e name. These can be used by setNamedTarget() */
   void rememberJointValues(const std::string &name, const std::vector<double> &values);
 
-  std::vector<double> getCurrentJointValues(void);
-
-  std::vector<double> getRandomJointValues(void);
-
-  Eigen::Affine3d getCurrentPose(void);
-
-  kinematic_state::KinematicStatePtr getCurrentState(void);
-
-  void forgetJointValues(const std::string &name);
-  
+  /** \brief Get the currently remembered map of names to joint values */
   const std::map<std::string, std::vector<double> >& getRememberedJointValues(void) const
   {
     return remembered_joint_values_;
   }
   
-  std::vector<std::string> getKnownConstraints(void) const;
-  bool setPathConstraints(const std::string &constraint);
-  void clearPathConstraints(void);
+  /** \brief Forget the joint values remebered under \e name */
+  void forgetJointValues(const std::string &name);
+  
+  /**@}*/
+
+  /**
+   * \defgroup move_group_interface_constraints_management Manage planning constraints
+   */
+  /**@{*/
+  
+  /** \brief Specify where the MongoDB server that holds known constraints resides */
   void setConstraintsDatabase(const std::string &host, unsigned int port);
   
-  void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz);
+  /** \brief Get the names of the constraints known (as read from the warehouse, if a connection was achieved) */
+  std::vector<std::string> getKnownConstraints(void) const;
   
+  /** \brief Specify a set of path constraints to use */
+  bool setPathConstraints(const std::string &constraint);
+
+  /** \brief Specify that no path constraints are to be used */
+  void clearPathConstraints(void);
+
+  /**@}*/
+
 private:
 
   std::map<std::string, std::vector<double> > remembered_joint_values_;

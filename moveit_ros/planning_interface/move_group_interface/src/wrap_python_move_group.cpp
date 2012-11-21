@@ -113,9 +113,9 @@ public:
     return d;
   }
   
-  bp::list getCurrentPosePython(void)
+  bp::list getCurrentPosePython(const std::string &end_effector_link)
   {
-    Eigen::Affine3d pose = getCurrentPose();
+    Eigen::Affine3d pose = getCurrentPose(end_effector_link);
     std::vector<double> v(6);
     v[0] = pose.translation().x();
     v[1] = pose.translation().y();
@@ -133,15 +133,15 @@ public:
     return listFromString(getKnownConstraints());
   }
   
-  void setPoseTargetPython(bp::list &pose)
+  void setPoseTargetPython(bp::list &pose, const std::string &end_effector_link)
   {
     std::vector<double> v = doubleFromList(pose);
     if (v.size() != 6)
       ROS_ERROR("Pose description expected to consist of 6 values");
     else
     {
-      setPositionTarget(v[0], v[1], v[2]);
-      setOrientationTarget(v[3], v[4], v[5]);
+      setPositionTarget(v[0], v[1], v[2], end_effector_link);
+      setOrientationTarget(v[3], v[4], v[5], end_effector_link);
     }
   }
   
@@ -266,10 +266,10 @@ void wrap_move_group_interface()
   MoveGroupClass.def("get_end_effector_link", &MoveGroupWrapper::getEndEffectorLinkCStr);
   MoveGroupClass.def("get_pose_reference_frame", &MoveGroupWrapper::getPoseReferenceFrameCStr);
   
-  void (MoveGroupWrapper::*setPoseTarget_1)(const geometry_msgs::PoseStamped &) = &MoveGroupWrapper::setPoseTarget;
+  void (MoveGroupWrapper::*setPoseTarget_1)(const geometry_msgs::PoseStamped &, const std::string&) = &MoveGroupWrapper::setPoseTarget;
   MoveGroupClass.def("set_pose_target", setPoseTarget_1);
 
-  void (MoveGroupWrapper::*setPoseTarget_2)(const geometry_msgs::Pose &) = &MoveGroupWrapper::setPoseTarget;
+  void (MoveGroupWrapper::*setPoseTarget_2)(const geometry_msgs::Pose &, const std::string&) = &MoveGroupWrapper::setPoseTarget;
   MoveGroupClass.def("set_pose_target", setPoseTarget_2);
 
   MoveGroupClass.def("set_position_target", &MoveGroupWrapper::setPositionTarget);
@@ -277,6 +277,9 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_pose_target", &MoveGroupWrapper::setPoseTargetPython);
 
   MoveGroupClass.def("get_current_pose", &MoveGroupWrapper::getCurrentPosePython);
+
+  MoveGroupClass.def("clear_pose_target", &MoveGroupWrapper::clearPoseTarget);
+  MoveGroupClass.def("clear_pose_targets", &MoveGroupWrapper::clearPoseTargets);
 
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonList);
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
