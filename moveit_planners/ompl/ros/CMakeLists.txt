@@ -30,7 +30,11 @@ catkin_package(
 
 generate_dynamic_reconfigure_options("ompl_interface_ros/cfg/OMPLParamsDR.cfg")
 
+# for buildspace as a single package
 include_directories(cfg/cpp)
+# for buildspace in a workspace
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/stamps/${PROJECT_NAME}/cfg/cpp)
+
 include_directories(ompl_interface_ros/include)
 add_subdirectory(ompl_interface_ros)
 
