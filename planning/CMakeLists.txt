@@ -59,7 +59,10 @@ catkin_package(
 generate_dynamic_reconfigure_options("planning_scene_monitor/cfg/PublishSceneDR.cfg")
 generate_dynamic_reconfigure_options("plan_execution/cfg/PlanExecutionParamsDR.cfg")
 
+# for buildspace as a single package
 include_directories(cfg/cpp)
+# for buildspace in a workspace
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/stamps/${PROJECT_NAME}/cfg/cpp)
 
 add_subdirectory(robot_model_loader)
 add_subdirectory(kinematics_plugin_loader)
