@@ -45,7 +45,7 @@ int main(int argc, char **argv)
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > loader;
   try
   {
-    loader.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("planning_request_adapter", "planning_request_adapter::PlanningRequestAdapter"));
+    loader.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("moveit_core", "planning_request_adapter::PlanningRequestAdapter"));
   }
   catch(pluginlib::PluginlibException& ex)
   {
