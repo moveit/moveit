@@ -101,8 +101,8 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
 	    logWarn("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
 	}
 	else
-	  logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the kinematic model.",
-                   name_.c_str(), v.c_str());
+	  logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the group '%s'.",
+                   name_.c_str(), v.c_str(), getJointModelGroup()->getName().c_str());
       }
       if (j.empty())
 	logError("%s: No valid joints specified for joint projection", name_.c_str());
