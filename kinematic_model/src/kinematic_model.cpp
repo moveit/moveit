@@ -784,11 +784,14 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointMode
 
     const std::vector<srdf::Model::PassiveJoint> &pjoints = srdf_model.getPassiveJoints();
     for (std::size_t i = 0 ; i < pjoints.size() ; ++i)
+    {
       if (result->getName() == pjoints[i].name_)
       {
         result->passive_ = true;
         break;
       }
+    }
+    result->computeDefaultVariableLimits();
   }
   return result;
 }
