@@ -60,21 +60,22 @@ public:
     };
   
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : 
-    node_handle_("~"), planning_scene_monitor_(psm), plan_execution_(psm),
+    node_handle_("~"), planning_scene_monitor_(psm),
     allow_trajectory_execution_(true), state_(IDLE)
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
-    
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution_, true);
-
+    
+    plan_execution_.reset(new plan_execution::PlanExecution(psm, !allow_trajectory_execution_));
+    
     // configure the planning pipeline
-    plan_execution_.getPlanningPipeline().displayComputedMotionPlans(true);
-    plan_execution_.getPlanningPipeline().checkSolutionPaths(true);
+    plan_execution_->getPlanningPipeline().displayComputedMotionPlans(true);
+    plan_execution_->getPlanningPipeline().checkSolutionPaths(true);
 
     if (debug)
     {
-      plan_execution_.displayCostSources(true);
-      plan_execution_.getPlanningPipeline().publishReceivedRequests(true);
+      plan_execution_->displayCostSources(true);
+      plan_execution_->getPlanningPipeline().publishReceivedRequests(true);
     }
     
     // start the action server
@@ -99,18 +100,18 @@ public:
   
   void status(void)
   {
-    const planning_interface::PlannerPtr &planner_interface = plan_execution_.getPlanningPipeline().getPlannerInterface();
+    const planning_interface::PlannerPtr &planner_interface = plan_execution_->getPlanningPipeline().getPlannerInterface();
     if (planner_interface)
-      ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
+      ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_->getPlanningPipeline().getPlannerPluginName());
     else
-      ROS_WARN_STREAM("MoveGroup action running was unable to load " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
+      ROS_WARN_STREAM("MoveGroup action running was unable to load " << plan_execution_->getPlanningPipeline().getPlannerPluginName());
   }
   
 private:
   
   void preemptCallback(void)
   {
-    plan_execution_.stop();
+    plan_execution_->stop();
   }
   
   void startPlanningCallback(void)
@@ -137,7 +138,7 @@ private:
     {
       if (!goal->plan_only)
         ROS_WARN("This instance of MoveGroup is now allowed to execute trajectories but the goal request has plan_only set to false. Only a motion plan will be computed anyway.");
-      plan_execution_.planOnly(goal->request, goal->planning_scene_diff);
+      plan_execution_->planOnly(goal->request, goal->planning_scene_diff);
     }
     else
     {
@@ -149,10 +150,10 @@ private:
       opt.beforePlanCallback_ = boost::bind(&MoveGroupAction::startPlanningCallback, this);
       opt.beforeExecutionCallback_ = boost::bind(&MoveGroupAction::startExecutionCallback, this);
       opt.beforeLookCallback_ = boost::bind(&MoveGroupAction::startLookCallback, this);
-      plan_execution_.planAndExecute(goal->request, goal->planning_scene_diff, opt);  
+      plan_execution_->planAndExecute(goal->request, goal->planning_scene_diff, opt);  
     }
     
-    const plan_execution::PlanExecution::Result &res = plan_execution_.getLastResult();
+    const plan_execution::PlanExecution::Result &res = plan_execution_->getLastResult();
     moveit_msgs::MoveGroupResult action_res;
     action_res.trajectory_start = res.trajectory_start_;
     action_res.planned_trajectory = res.planned_trajectory_;
@@ -235,7 +236,7 @@ private:
     
     try
     {
-      solved = plan_execution_.getPlanningPipeline().generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
+      solved = plan_execution_->getPlanningPipeline().generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
     }
     catch(std::runtime_error &ex)
     {
@@ -253,13 +254,20 @@ private:
   bool executeTrajectoryService(moveit_msgs::ExecuteKnownTrajectory::Request &req, moveit_msgs::ExecuteKnownTrajectory::Response &res)
   {
     ROS_INFO("Received new trajectory execution service request...");
-    plan_execution_.getTrajectoryExecutionManager().clear();
-    if (plan_execution_.getTrajectoryExecutionManager().push(req.trajectory))
+    if (!plan_execution_->getTrajectoryExecutionManager())
     {
-      plan_execution_.getTrajectoryExecutionManager().execute();
+      ROS_ERROR("Cannot execute trajectory since ~allow_thajectory_execution was set to false");
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+      return false;
+    }
+    
+    plan_execution_->getTrajectoryExecutionManager()->clear();
+    if (plan_execution_->getTrajectoryExecutionManager()->push(req.trajectory))
+    {
+      plan_execution_->getTrajectoryExecutionManager()->execute();
       if (req.wait_for_execution)
       {
-        moveit_controller_manager::ExecutionStatus es = plan_execution_.getTrajectoryExecutionManager().waitForExecution();
+        moveit_controller_manager::ExecutionStatus es = plan_execution_->getTrajectoryExecutionManager()->waitForExecution();
         if (es == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
           res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
         else
@@ -284,7 +292,7 @@ private:
 
   bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
   {    
-    const planning_interface::PlannerPtr &planner_interface = plan_execution_.getPlanningPipeline().getPlannerInterface();
+    const planning_interface::PlannerPtr &planner_interface = plan_execution_->getPlanningPipeline().getPlannerInterface();
     if (planner_interface)
     {
       std::vector<std::string> algs;
@@ -300,7 +308,7 @@ private:
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  plan_execution::PlanExecution plan_execution_;
+  plan_execution::PlanExecutionPtr plan_execution_;
   bool allow_trajectory_execution_;
   
   boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;

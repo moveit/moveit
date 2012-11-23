@@ -262,6 +262,9 @@ private:
   bool verbose_;
 };
 
+typedef boost::shared_ptr<TrajectoryExecutionManager> TrajectoryExecutionManagerPtr;
+typedef boost::shared_ptr<const TrajectoryExecutionManager> TrajectoryExecutionManagerConstPtr;
+
 }
 
 #endif

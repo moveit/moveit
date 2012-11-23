@@ -92,7 +92,7 @@ public:
     moveit_msgs::MoveItErrorCodes error_code_;
   };
 
-  PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor);
+  PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, bool plan_only = false);
   ~PlanExecution(void);
 
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void) const
@@ -105,7 +105,7 @@ public:
     return planning_pipeline_;
   }
   
-  trajectory_execution_manager::TrajectoryExecutionManager& getTrajectoryExecutionManager(void)
+  trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager(void)
   {
     return trajectory_execution_manager_;
   }
@@ -122,12 +122,12 @@ public:
   
   double getTrajectoryStateRecordingFrequency(void) const
   {
-    return trajectory_monitor_.getSamplingFrequency();
+    return trajectory_monitor_->getSamplingFrequency();
   }
   
   void setTrajectoryStateRecordingFrequency(double freq)
   {
-    trajectory_monitor_.setSamplingFrequency(freq);
+    trajectory_monitor_->setSamplingFrequency(freq);
   }
 
   void setMaxReplanAttempts(unsigned int attempts)
@@ -200,18 +200,20 @@ private:
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_pipeline::PlanningPipeline planning_pipeline_;
-  trajectory_execution_manager::TrajectoryExecutionManager trajectory_execution_manager_;
-  planning_scene_monitor::TrajectoryMonitor trajectory_monitor_;
+  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
+  planning_scene_monitor::TrajectoryMonitorPtr trajectory_monitor_;
 
   boost::scoped_ptr<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager> > sensor_manager_loader_;
   moveit_sensor_manager::MoveItSensorManagerPtr sensor_manager_;
   unsigned int default_max_look_attempts_;
   double default_max_safe_path_cost_;
 
+  bool plan_only_;
+  
   unsigned int default_max_replan_attempts_;
   double discard_overlapping_cost_sources_;
   unsigned int max_cost_sources_;
-  
+
   bool display_cost_sources_;
   ros::Publisher cost_sources_publisher_;
   
@@ -226,6 +228,9 @@ private:
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;
 };
+
+typedef boost::shared_ptr<PlanExecution> PlanExecutionPtr;
+typedef boost::shared_ptr<const PlanExecution> PlanExecutionConstPtr;
 
 }
 #endif
