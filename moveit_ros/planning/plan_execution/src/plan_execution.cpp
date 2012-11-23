@@ -89,15 +89,19 @@ private:
 
 }
 
-plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor) :
+plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, bool plan_only) :
   node_handle_("~"), planning_scene_monitor_(planning_scene_monitor),
   planning_pipeline_(planning_scene_monitor_->getKinematicModel()),
-  trajectory_execution_manager_(planning_scene_monitor_->getKinematicModel()),
-  trajectory_monitor_(planning_scene_monitor_->getStateMonitor()),
-  default_max_look_attempts_(3), default_max_safe_path_cost_(0.5),
+  default_max_look_attempts_(3), default_max_safe_path_cost_(0.5), plan_only_(plan_only),
   default_max_replan_attempts_(5), discard_overlapping_cost_sources_(0.8),
   max_cost_sources_(100), preempt_requested_(false), new_scene_update_(false)
 {
+  if (!plan_only_)
+  {
+    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getKinematicModel()));
+    trajectory_monitor_.reset(new planning_scene_monitor::TrajectoryMonitor(planning_scene_monitor_->getStateMonitor()));
+  }
+  
   // we want to be notified when new information is available
   planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanExecution::planningSceneUpdatedCallback, this, _1));
   
@@ -105,7 +109,7 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   display_cost_sources_ = false;
   
   // load the sensor manager plugin, if needed
-  if (node_handle_.hasParam("moveit_sensor_manager"))
+  if (!plan_only_ && node_handle_.hasParam("moveit_sensor_manager"))
   {
     try
     {
@@ -137,7 +141,8 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   }
   
   // when monitoring trajectories, every added state is passed to this callback
-  trajectory_monitor_.setOnStateAddCallback(boost::bind(&PlanExecution::newMonitoredStateCallback, this, _1, _2));
+  if (trajectory_monitor_)
+    trajectory_monitor_->setOnStateAddCallback(boost::bind(&PlanExecution::newMonitoredStateCallback, this, _1, _2));
 
   // start the dynamic-reconfigure server
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
@@ -406,13 +411,21 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
 {
   // try to execute the trajectory
   execution_complete_ = false;
-  if (trajectory_execution_manager_.push(result_.planned_trajectory_))
+  
+  if (!trajectory_execution_manager_)
+  {
+    ROS_ERROR("No trajectory execution manager");
+    result_.error_code_.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+    return;
+  }
+
+  if (trajectory_execution_manager_->push(result_.planned_trajectory_))
   {
     currently_executed_trajectory_index_ = 0;
-    trajectory_monitor_.startTrajectoryMonitor();
+    trajectory_monitor_->startTrajectoryMonitor();
     
     // start a trajectory execution thread
-    trajectory_execution_manager_.execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1));
+    trajectory_execution_manager_->execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1));
     
     // wait for path to be done, while checking that the path does not become invalid
     static const ros::WallDuration d(0.01);
@@ -445,27 +458,27 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
     if (preempt_requested_)
     {
       ROS_INFO("Stopping execution due to preempt request");
-      trajectory_execution_manager_.stopExecution();
+      trajectory_execution_manager_->stopExecution();
     }
     else
       if (path_became_invalid)
       {
         ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
-        trajectory_execution_manager_.stopExecution();
+        trajectory_execution_manager_->stopExecution();
       }
       else
         if (!execution_complete_)
         {    
           ROS_WARN("Stopping execution due to unknown reason. Possibly the node is about to shut down.");
-          trajectory_execution_manager_.stopExecution();
+          trajectory_execution_manager_->stopExecution();
         }
     
     // because of the way the trajectory monitor works, when this call completes, it is certain that no more calls
     // are made to the callback associated to the trajectory monitor
-    trajectory_monitor_.stopTrajectoryMonitor();
-    trajectory_monitor_.getTrajectory(result_.executed_trajectory_);
+    trajectory_monitor_->stopTrajectoryMonitor();
+    trajectory_monitor_->getTrajectory(result_.executed_trajectory_);
     
-    if (trajectory_execution_manager_.getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
+    if (trajectory_execution_manager_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
       result_.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     else
     {
@@ -479,7 +492,7 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
         }
         else
         {
-          if (trajectory_execution_manager_.getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
+          if (trajectory_execution_manager_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
             result_.error_code_.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
           else
             result_.error_code_.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
@@ -511,7 +524,7 @@ bool plan_execution::PlanExecution::lookAt(const std::set<collision_detection::C
       if (sensor_manager_->pointSensorTo(names[i], point, sensor_trajectory))
       {
         if (!trajectory_processing::isTrajectoryEmpty(sensor_trajectory))
-          return trajectory_execution_manager_.push(sensor_trajectory) && trajectory_execution_manager_.executeAndWait();
+          return trajectory_execution_manager_->push(sensor_trajectory) && trajectory_execution_manager_->executeAndWait();
         else
           return true;
       }
@@ -540,7 +553,7 @@ void plan_execution::PlanExecution::newMonitoredStateCallback(const kinematic_st
     else
       dist = d;
   }
-  std::pair<int, int> expected = trajectory_execution_manager_.getCurrentExpectedTrajectoryIndex();
+  std::pair<int, int> expected = trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex();
   
   ROS_DEBUG("Controller seems to be at state %lu of %lu. Trajectory execution manager expects the index to be %d.",
             currently_executed_trajectory_index_ + 1, result_.planned_trajectory_states_.size(), expected.second);
