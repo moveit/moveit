@@ -92,9 +92,9 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
       while (ss.good() && !ss.eof())
       {
 	std::string v; ss >> v >> std::ws;
-	if (getKinematicModel()->hasJointModel(v))
+	if (getJointModelGroup()->hasJointModel(v))
 	{
-	  unsigned int vc = getKinematicModel()->getJointModel(v)->getVariableCount();
+	  unsigned int vc = getJointModelGroup()->getJointModel(v)->getVariableCount();
 	  if (vc > 0)
 	    j.push_back(std::make_pair(v, vc));
 	  else
