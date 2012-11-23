@@ -180,13 +180,13 @@ int main(int argc, char **argv)
 
     /* execute the planned trajectory */
     ROS_INFO("Executing trajectory");
-    plan_execution.getTrajectoryExecutionManager().clear();
-    if(plan_execution.getTrajectoryExecutionManager().push(robot_trajectory))
+    plan_execution.getTrajectoryExecutionManager()->clear();
+    if(plan_execution.getTrajectoryExecutionManager()->push(robot_trajectory))
     {
-      plan_execution.getTrajectoryExecutionManager().execute();
+      plan_execution.getTrajectoryExecutionManager()->execute();
 
       /* wait for the trajectory to complete */
-      moveit_controller_manager::ExecutionStatus es = plan_execution.getTrajectoryExecutionManager().waitForExecution();
+      moveit_controller_manager::ExecutionStatus es = plan_execution.getTrajectoryExecutionManager()->waitForExecution();
       if (es == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
         ROS_INFO("Trajectory execution succeeded");
       else
