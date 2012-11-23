@@ -122,12 +122,16 @@ public:
   
   double getTrajectoryStateRecordingFrequency(void) const
   {
-    return trajectory_monitor_->getSamplingFrequency();
+    if (trajectory_monitor_)
+      return trajectory_monitor_->getSamplingFrequency();
+    else
+      return 0.0;
   }
   
   void setTrajectoryStateRecordingFrequency(double freq)
   {
-    trajectory_monitor_->setSamplingFrequency(freq);
+    if (trajectory_monitor_)
+      trajectory_monitor_->setSamplingFrequency(freq);
   }
 
   void setMaxReplanAttempts(unsigned int attempts)
