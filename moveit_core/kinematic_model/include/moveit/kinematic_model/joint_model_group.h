@@ -260,7 +260,7 @@ public:
   /** \brief Get the joint limits as read from the URDF */
   std::vector<moveit_msgs::JointLimits> getVariableDefaultLimits(void) const;
 
-  /** \brief Get the joint limits specified by the user with setJointLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
+  /** \brief Get the joint limits specified by the user with setJointLimits() or the default joint limits using getVariableDefaultLimits(), if no joint limits were specified. */
   std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
   
   /** \brief Override joint limits */
