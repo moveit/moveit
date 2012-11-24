@@ -321,7 +321,8 @@ void kinematic_model::KinematicModel::buildGroupInfo(const boost::shared_ptr<con
         it->second->end_effector_parent_.second = eefs[k].parent_link_;
         break;
       }
-    // check to see if the group is a chain
+    // if the group happens to be a sequence of joints that follow each other in a depth-first fashion,
+    // then we consider the group to be a chain
     const std::vector<const LinkModel*> &lmods = it->second->getLinkModels();
     bool chain = lmods.size() > 1;
     for (std::size_t k = 1 ; chain && k < lmods.size() ; ++k)
@@ -452,7 +453,7 @@ void kinematic_model::KinematicModel::buildGroups(const std::vector<srdf::Model:
 
     //going to make passes until we can't do anything else
     for(unsigned int i = 0 ; i < group_configs.size() ; ++i)
-      if(!processed[i])
+      if (!processed[i])
       {
         //if we haven't processed, check and see if the dependencies are met yet
         bool all_subgroups_added = true;
@@ -464,13 +465,9 @@ void kinematic_model::KinematicModel::buildGroups(const std::vector<srdf::Model:
           }
         if (all_subgroups_added)
         {
-          //only get one chance to do it right
-          if (addJointModelGroup(group_configs[i]))
-          {
-            processed[i] = true;
-            added = true;
-          }
-          else
+          added = true;
+          processed[i] = true;
+          if (!addJointModelGroup(group_configs[i]))
             logWarn("Failed to add group '%s'", group_configs[i].name_.c_str());
         }
       }
@@ -619,6 +616,11 @@ bool kinematic_model::KinematicModel::addJointModelGroup(const srdf::Model::Grou
   joint_model_group_map_[gc.name_] = jmg;
   joint_model_group_config_map_[gc.name_] = gc;
   joint_model_group_names_.push_back(gc.name_);
+  
+  // if the group is defined as a single chain, then we mark is as a chain aleady
+  // (this is for the case where the chain does not consist of consecutive joints and would not be detected as a chain later)
+  if (gc.chains_.size() == 1 && gc.joints_.empty() && gc.links_.empty() && gc.subgroups_.empty())
+    jmg->is_chain_ = true;
   
   return true;
 }
