@@ -43,28 +43,74 @@
 namespace constraint_samplers
 {
 
+/**
+ * \brief This class assists in the generation of a ConstraintSampler for a
+ * particular group from a moveit_msgs::Constraints.  
+ * 
+ * It contains logic that will generate either a
+ * JointConstraintSampler, an IKConstraintSampler, or a
+ * UnionConstraintSampler depending on the contents of the Constraints
+ * message and the group in question.
+ * 
+ */
 class ConstraintSamplerManager
 {
 public:
+  /** 
+   * \brief Empty constructor
+   * 
+   */
   ConstraintSamplerManager(void)
   {
   }
-
+  /** 
+   * \brief Allows the user to specify an alternate ConstraintSamplerAllocation
+   * 
+   * @param sa The constraint sampler allocator that will be used
+   */
   void registerSamplerAllocator(const ConstraintSamplerAllocatorPtr &sa)
   {
     sampler_alloc_.push_back(sa);
   }
-  
+  /** 
+   * \brief Selects among the potential sampler allocators.  
+   * 
+   * This function will iterate through the constraint sampler
+   * allocators, trying to find one that can service the constraints.
+   * The first one that can service the request will be called.  If no
+   * allocators can service the Constraints, or there are no
+   * allocators, the selectDefaultSampler will be called.
+   * 
+   * @param scene The planning scene that will be passed into the constraint sampler
+   * @param group_name The group name for which to allocate the constraint sampler
+   * @param constr The constraints
+   * 
+   * @return A boost::shared_ptr to the ConstraintSampler that is
+   * allocated, or an empty pointer if none could be allocated
+   */
   ConstraintSamplerPtr selectSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr) const;
+
+  /** 
+   * \brief Default logic to select a ConstraintSampler given a
+   * constraints message.
+   *
+   * 
+   * 
+   * @param scene 
+   * @param group_name 
+   * @param constr 
+   * 
+   * @return 
+   */
   static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr);
   
 private:
 
-  std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_;
+  std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_; /**< \brief Holds the constraint sampler allocators, which will be tested in order  */
 };
 
-typedef boost::shared_ptr<ConstraintSamplerManager> ConstraintSamplerManagerPtr;
-typedef boost::shared_ptr<const ConstraintSamplerManager> ConstraintSamplerManagerConstPtr;
+typedef boost::shared_ptr<ConstraintSamplerManager> ConstraintSamplerManagerPtr; /**< \brief boost::shared_ptr to a ConstraintSamplerManager */
+typedef boost::shared_ptr<const ConstraintSamplerManager> ConstraintSamplerManagerConstPtr; /**< \brief boost::shared_ptr to a const ConstraintSamplerManager */
 
 }
 

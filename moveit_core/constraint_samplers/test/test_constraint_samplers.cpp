@@ -37,6 +37,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/constraint_samplers/default_constraint_samplers.h>
+#include <moveit/constraint_samplers/union_constraint_sampler.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/constraint_samplers/constraint_sampler_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
@@ -381,7 +382,161 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
   }
 }
 
-TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
+TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager) 
+{
+  kinematic_state::KinematicState ks(kmodel);
+  ks.setToDefaultValues();
+
+  moveit_msgs::Constraints con;
+  con.joint_constraints.resize(1);
+  
+  con.joint_constraints[0].joint_name = "l_shoulder_pan_joint";
+  con.joint_constraints[0].position = 0.54;
+  con.joint_constraints[0].tolerance_above = 0.01;
+  con.joint_constraints[0].tolerance_below = 0.01;
+  con.joint_constraints[0].weight = 1.0;
+
+  constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "right_arm", con);  
+  EXPECT_FALSE(s);
+  s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);  
+  EXPECT_TRUE(s);
+
+  con.joint_constraints.resize(7);
+
+  con.joint_constraints[1].joint_name = "l_shoulder_lift_joint";
+  con.joint_constraints[1].position = 0.54;
+  con.joint_constraints[1].tolerance_above = 0.01;
+  con.joint_constraints[1].tolerance_below = 0.01;
+  con.joint_constraints[1].weight = 1.0;
+
+  con.joint_constraints[2].joint_name = "l_upper_arm_roll_joint";
+  con.joint_constraints[2].position = 0.54;
+  con.joint_constraints[2].tolerance_above = 0.01;
+  con.joint_constraints[2].tolerance_below = 0.01;
+  con.joint_constraints[2].weight = 1.0;
+
+  con.joint_constraints[3].joint_name = "l_elbow_flex_joint";
+  con.joint_constraints[3].position = 0.54;
+  con.joint_constraints[3].tolerance_above = 0.01;
+  con.joint_constraints[3].tolerance_below = 0.01;
+  con.joint_constraints[3].weight = 1.0;
+
+  con.joint_constraints[4].joint_name = "l_forearm_roll_joint";
+  con.joint_constraints[4].position = 0.54;
+  con.joint_constraints[4].tolerance_above = 0.01;
+  con.joint_constraints[4].tolerance_below = 0.01;
+  con.joint_constraints[4].weight = 1.0;
+
+  con.joint_constraints[5].joint_name = "l_wrist_flex_joint";
+  con.joint_constraints[5].position = -0.54;
+  con.joint_constraints[5].tolerance_above = 0.05;
+  con.joint_constraints[5].tolerance_below = 0.05;
+  con.joint_constraints[5].weight = 1.0;
+
+  //an extra constraint on one link, but this shouldn't change anything
+  con.joint_constraints[6].joint_name = "l_wrist_flex_joint";
+  con.joint_constraints[6].position = -0.56;
+  con.joint_constraints[6].tolerance_above = 0.01;
+  con.joint_constraints[6].tolerance_below = 0.01;
+  con.joint_constraints[6].weight = 1.0;
+
+  s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);  
+  EXPECT_TRUE(s);
+
+  con.position_constraints.resize(1);
+
+  //intentionally making wrong wrist
+  con.position_constraints[0].link_name = "r_wrist_roll_link";
+  con.position_constraints[0].target_point_offset.x = 0;
+  con.position_constraints[0].target_point_offset.y = 0;
+  con.position_constraints[0].target_point_offset.z = 0;
+  con.position_constraints[0].constraint_region.primitives.resize(1);
+  con.position_constraints[0].constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+  con.position_constraints[0].constraint_region.primitives[0].dimensions.resize(1);
+  con.position_constraints[0].constraint_region.primitives[0].dimensions[0] = 0.001;
+  
+  con.position_constraints[0].header.frame_id = kmodel->getModelFrame();
+
+  con.position_constraints[0].constraint_region.primitive_poses.resize(1);
+  con.position_constraints[0].constraint_region.primitive_poses[0].position.x = 0.55;
+  con.position_constraints[0].constraint_region.primitive_poses[0].position.y = 0.2;
+  con.position_constraints[0].constraint_region.primitive_poses[0].position.z = 1.25;
+  con.position_constraints[0].constraint_region.primitive_poses[0].orientation.x = 0.0;
+  con.position_constraints[0].constraint_region.primitive_poses[0].orientation.y = 0.0;
+  con.position_constraints[0].constraint_region.primitive_poses[0].orientation.z = 0.0;
+  con.position_constraints[0].constraint_region.primitive_poses[0].orientation.w = 1.0;
+  con.position_constraints[0].weight = 1.0;
+
+  //this still works, but we should get a JointConstraintSampler
+  s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);  
+  EXPECT_TRUE(s);
+  constraint_samplers::JointConstraintSampler* jcs = dynamic_cast<constraint_samplers::JointConstraintSampler*>(s.get());
+  EXPECT_TRUE(jcs);
+
+  con.position_constraints[0].link_name = "l_wrist_roll_link";
+  s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);  
+  EXPECT_TRUE(s);
+  jcs = dynamic_cast<constraint_samplers::JointConstraintSampler*>(s.get());
+  EXPECT_FALSE(jcs);
+  constraint_samplers::IKConstraintSampler* iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
+  EXPECT_TRUE(iks);  
+
+  con.orientation_constraints.resize(1);
+
+  //again, screwing this up intentionally
+  con.orientation_constraints[0].link_name = "r_wrist_roll_link";
+  con.orientation_constraints[0].header.frame_id = kmodel->getModelFrame();
+  con.orientation_constraints[0].orientation.x = 0.0;
+  con.orientation_constraints[0].orientation.y = 0.0;
+  con.orientation_constraints[0].orientation.z = 0.0;
+  con.orientation_constraints[0].orientation.w = 1.0;
+  con.orientation_constraints[0].absolute_x_axis_tolerance = 0.2;
+  con.orientation_constraints[0].absolute_y_axis_tolerance = 0.1;
+  con.orientation_constraints[0].absolute_z_axis_tolerance = 0.4;
+  con.orientation_constraints[0].weight = 1.0;
+
+  //we still get an IK sampler with just the position constraint
+  s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);  
+  EXPECT_TRUE(s);
+  iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
+  EXPECT_TRUE(iks);  
+  EXPECT_TRUE(iks->getPositionConstraint());
+  EXPECT_FALSE(iks->getOrientationConstraint());
+
+  con.orientation_constraints[0].link_name = "l_wrist_roll_link";
+
+  //now they both are good
+  s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);  
+  EXPECT_TRUE(s);
+  iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
+  EXPECT_TRUE(iks);  
+  EXPECT_TRUE(iks->getPositionConstraint());
+  EXPECT_TRUE(iks->getOrientationConstraint());
+  
+  //now just the orientation constraint is good
+  con.position_constraints[0].link_name = "r_wrist_roll_link";
+  s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);  
+  EXPECT_TRUE(s);
+  iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
+  EXPECT_TRUE(iks);  
+  EXPECT_FALSE(iks->getPositionConstraint());
+  EXPECT_TRUE(iks->getOrientationConstraint());
+
+  //now if we constraint all the joints, we get a joint constraint sampler
+  con.joint_constraints.resize(8);
+  con.joint_constraints[7].joint_name = "l_wrist_roll_joint";
+  con.joint_constraints[7].position = 0.54;
+  con.joint_constraints[7].tolerance_above = 0.01;
+  con.joint_constraints[7].tolerance_below = 0.01;
+  con.joint_constraints[7].weight = 1.0;
+
+  s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);  
+  EXPECT_TRUE(s);
+  jcs = dynamic_cast<constraint_samplers::JointConstraintSampler*>(s.get());
+  EXPECT_TRUE(jcs);
+}
+
+TEST_F(LoadPlanningModelsPr2, PoseConstraintsSamplerManager)
 {
   kinematic_state::KinematicState ks(kmodel);
   ks.setToDefaultValues();
@@ -462,7 +617,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
   
   constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", c);
   EXPECT_TRUE(s.get() != NULL);
-  static const int NT = 1000;
+  static const int NT = 100;
   int succ = 0;
   for (int t = 0 ; t < NT ; ++t)
   {
@@ -475,7 +630,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
   ROS_INFO("Success rate for IK Constraint Sampler with position & orientation constraints for one arm: %lf", (double)succ / (double)NT);
 }
 
-TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerManager)
+TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 {
   kinematic_state::KinematicState ks(kmodel);
   ks.setToDefaultValues();
@@ -560,7 +715,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerManager)
   }
 }
 
-TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
+TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
 {
   moveit_msgs::Constraints c;
   
@@ -615,14 +770,16 @@ TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
   
   kinematic_state::TransformsPtr tf = ps->getTransforms();
   constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
-  EXPECT_TRUE(s.get() != NULL);
+  EXPECT_TRUE(s);
+  constraint_samplers::UnionConstraintSampler* ucs = dynamic_cast<constraint_samplers::UnionConstraintSampler*>(s.get());
+  EXPECT_TRUE(ucs);
   
   kinematic_constraints::KinematicConstraintSet kset(kmodel, tf);
   kset.add(c);
   
   kinematic_state::KinematicState ks(kmodel);
   ks.setToDefaultValues();  
-  static const int NT = 1000;
+  static const int NT = 100;
   int succ = 0;
   for (int t = 0 ; t < NT ; ++t)
   {
