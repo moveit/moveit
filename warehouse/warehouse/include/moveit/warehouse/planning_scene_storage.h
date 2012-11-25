@@ -56,6 +56,13 @@ typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotTraject
 class PlanningSceneStorage : public MoveItMessageStorage
 {
 public:
+
+  static const std::string DATABASE_NAME;
+  
+  static const std::string PLANNING_SCENE_ID_NAME;
+  static const std::string PLANNING_SCENE_TIME_NAME;
+  static const std::string MOTION_PLAN_REQUEST_ID_NAME;
+
   /** \brief Initialize the planning scene storage to connect to a specified \e host and \e port for the MongoDB. 
       If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying 
       which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.

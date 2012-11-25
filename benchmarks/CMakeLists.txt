@@ -18,6 +18,10 @@ include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_package(
+  INCLUDE_DIRS
+    benchmarks/include  
+  LIBRARIES
+    moveit_benchmarks_config
   DEPENDS
     moveit_ros_planning
     moveit_ros_warehouse

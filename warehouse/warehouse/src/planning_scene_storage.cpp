@@ -36,11 +36,11 @@
 
 #include "moveit/warehouse/planning_scene_storage.h"
 
-static const std::string DATABASE_NAME = "moveit_planning_scenes";
+const std::string moveit_warehouse::PlanningSceneStorage::DATABASE_NAME = "moveit_planning_scenes";
 
-static const std::string PLANNING_SCENE_ID_NAME = "planning_scene_id";
-static const std::string PLANNING_SCENE_TIME_NAME = "planning_scene_time";
-static const std::string MOTION_PLAN_REQUEST_ID_NAME = "motion_request_id";
+const std::string moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_ID_NAME = "planning_scene_id";
+const std::string moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_TIME_NAME = "planning_scene_time";
+const std::string moveit_warehouse::PlanningSceneStorage::MOTION_PLAN_REQUEST_ID_NAME = "motion_request_id";
 
 moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &host, const unsigned int port, double wait_seconds) :
   MoveItMessageStorage(host, port, wait_seconds)
