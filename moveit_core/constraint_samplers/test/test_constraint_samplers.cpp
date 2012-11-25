@@ -110,6 +110,8 @@ protected:
     std::map<std::string, kinematic_model::SolverAllocatorFn> allocators;
     allocators["right_arm"] = *func_right_arm;
     allocators["left_arm"] = *func_left_arm;
+    allocators["whole_body"] = *func_right_arm;
+    allocators["base"] = *func_left_arm;
     
     kmodel->setKinematicsAllocators(allocators);
     
@@ -153,16 +155,15 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   js.push_back(jc1);
 
   constraint_samplers::JointConstraintSampler jcs(ps, "right_arm");
-  jcs.configure(js);
-  //we have no bounded variables
-  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 7);
-  EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));  
+  //no valid constraints
+  EXPECT_FALSE(jcs.configure(js));
 
   //testing that this does the right thing
   jcm1.joint_name = "r_shoulder_pan_joint";
   EXPECT_TRUE(jc1.configure(jcm1));
   js.push_back(jc1);
   EXPECT_TRUE(jcs.configure(js));
+  EXPECT_EQ(jcs.getConstrainedJointCount(), 1);
   EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6);
   EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));  
 
@@ -195,6 +196,10 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   constraint_samplers::JointConstraintSampler jcs2(ps, "arms");
   jcs2.configure(js);
   EXPECT_FALSE(jcs2.sample(ks.getJointStateGroup("right_arm"), ks, 1));  
+
+  //not ok to not have any references to joints in this group in the constraints
+  constraint_samplers::JointConstraintSampler jcs3(ps, "left_arm");
+  EXPECT_FALSE(jcs3.configure(js));
 
   //testing that the most restrictive bounds are used
   js.clear();
@@ -272,90 +277,72 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   }  
 }
 
-TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerManager)
+TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 {
   kinematic_state::KinematicState ks(kmodel);
   ks.setToDefaultValues();
   kinematic_state::TransformsPtr tf = ps->getTransforms();
   
-  kinematic_constraints::JointConstraint jc1(kmodel, tf);
-  moveit_msgs::JointConstraint jcm1;
-  jcm1.joint_name = "head_pan_joint";
-  jcm1.position = 0.42;
-  jcm1.tolerance_above = 0.01;
-  jcm1.tolerance_below = 0.05;
-  jcm1.weight = 1.0;
-  EXPECT_TRUE(jc1.configure(jcm1));
+  kinematic_constraints::PositionConstraint pc(kmodel, tf);
+  moveit_msgs::PositionConstraint pcm;
+  
+  pcm.link_name = "l_wrist_roll_link";
+  pcm.target_point_offset.x = 0;
+  pcm.target_point_offset.y = 0;
+  pcm.target_point_offset.z = 0;
+  pcm.constraint_region.primitives.resize(1);
+  pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+  pcm.constraint_region.primitives[0].dimensions.resize(1);
+  pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
+  
+  pcm.constraint_region.primitive_poses.resize(1);
+  pcm.constraint_region.primitive_poses[0].position.x = 0.55;
+  pcm.constraint_region.primitive_poses[0].position.y = 0.2;
+  pcm.constraint_region.primitive_poses[0].position.z = 1.25;
+  pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
+  pcm.weight = 1.0;
+  
+  EXPECT_FALSE(pc.configure(pcm));
 
-  kinematic_constraints::JointConstraint jc2(kmodel, tf);
-  moveit_msgs::JointConstraint jcm2;
-  jcm2.joint_name = "l_shoulder_pan_joint";
-  jcm2.position = 0.9;
-  jcm2.tolerance_above = 0.1;
-  jcm2.tolerance_below = 0.05;
-  jcm2.weight = 1.0;
-  EXPECT_TRUE(jc2.configure(jcm2));
+  constraint_samplers::IKConstraintSampler ik_bad(ps, "l_arm");
+  EXPECT_FALSE(ik_bad.isValid());
   
-  kinematic_constraints::JointConstraint jc3(kmodel, tf);
-  moveit_msgs::JointConstraint jcm3;
-  jcm3.joint_name = "r_wrist_roll_joint";
-  jcm3.position = 0.7;
-  jcm3.tolerance_above = 0.14;
-  jcm3.tolerance_below = 0.005;
-  jcm3.weight = 1.0;
-  EXPECT_TRUE(jc3.configure(jcm3));
-  
-  kinematic_constraints::JointConstraint jc4(kmodel, tf);
-  moveit_msgs::JointConstraint jcm4;
-  jcm4.joint_name = "torso_lift_joint";
-  jcm4.position = 0.2;
-  jcm4.tolerance_above = 0.09;
-  jcm4.tolerance_below = 0.01;
-  jcm4.weight = 1.0;
-  EXPECT_TRUE(jc4.configure(jcm4));
+  constraint_samplers::IKConstraintSampler iks(ps, "left_arm");
+  EXPECT_TRUE(iks.isValid());
 
-  std::vector<kinematic_constraints::JointConstraint> js;
-  js.push_back(jc1);
-  js.push_back(jc2);
-  js.push_back(jc3);
-  js.push_back(jc4);
-  
-  constraint_samplers::JointConstraintSampler jcs(ps, "arms");
-  jcs.configure(js);
-  EXPECT_EQ(jcs.getConstrainedJointCount(), 2);
-  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 12);
+  EXPECT_FALSE(iks.configure(constraint_samplers::IKSamplingPose()));
 
-  for (int t = 0 ; t < 1000 ; ++t)
-  {
-    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("arms"), ks, 1));
-    EXPECT_TRUE(jc2.decide(ks).satisfied);
-    EXPECT_TRUE(jc3.decide(ks).satisfied);
-  }
+  EXPECT_FALSE(iks.configure(constraint_samplers::IKSamplingPose(pc)));
 
-  // test the automatic construction of constraint sampler
-  moveit_msgs::Constraints c;
-  
-  // no constraints should give no sampler
-  constraint_samplers::ConstraintSamplerPtr s0 = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
-  EXPECT_TRUE(s0.get() == NULL);
+  pcm.header.frame_id = kmodel->getModelFrame();
+  EXPECT_TRUE(pc.configure(pcm));
+  EXPECT_TRUE(iks.configure(constraint_samplers::IKSamplingPose(pc)));
 
-  // add the constraints
-  c.joint_constraints.push_back(jcm1);
-  c.joint_constraints.push_back(jcm2);
-  c.joint_constraints.push_back(jcm3);
-  c.joint_constraints.push_back(jcm4);
-  
-  constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
-  EXPECT_TRUE(s.get() != NULL);
-  
-  // test the generated sampler
-  for (int t = 0 ; t < 1000 ; ++t)
-  {
-    EXPECT_TRUE(s->sample(ks.getJointStateGroup("arms"), ks, 1));
-    EXPECT_TRUE(jc2.decide(ks).satisfied);
-    EXPECT_TRUE(jc3.decide(ks).satisfied);
-  }
+  //ik link not in this group
+  constraint_samplers::IKConstraintSampler ik_bad_2(ps, "right_arm");
+  EXPECT_TRUE(ik_bad_2.isValid());
+  EXPECT_FALSE(ik_bad_2.configure(constraint_samplers::IKSamplingPose(pc)));
+
+  //not the ik link
+  pcm.link_name = "l_shoulder_pan_link";
+  EXPECT_TRUE(pc.configure(pcm));
+  EXPECT_FALSE(iks.configure(constraint_samplers::IKSamplingPose(pc)));
+
+  //solver for base doesn't cover group
+  constraint_samplers::IKConstraintSampler ik_base(ps, "base");
+  EXPECT_TRUE(ik_base.isValid());
+  pcm.link_name = "l_wrist_roll_link";
+  EXPECT_TRUE(pc.configure(pcm));
+  EXPECT_FALSE(ik_base.configure(constraint_samplers::IKSamplingPose(pc)));
+
+  //shouldn't work as no direct constraint solver
+  constraint_samplers::IKConstraintSampler ik_arms(ps, "arms");
+  EXPECT_FALSE(iks.isValid());
 }
+
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
@@ -385,7 +372,8 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
   ocm.header.frame_id = kmodel->getModelFrame();
   EXPECT_TRUE(oc.configure(ocm));
   
-  constraint_samplers::IKConstraintSampler iks(ps, "right_arm", constraint_samplers::IKSamplingPose(oc));
+  constraint_samplers::IKConstraintSampler iks(ps, "right_arm");
+  EXPECT_TRUE(iks.configure(constraint_samplers::IKSamplingPose(oc)));
   for (int t = 0 ; t < 100; ++t)
   {
     EXPECT_TRUE(iks.sample(ks.getJointStateGroup("right_arm"), ks, 100));
@@ -441,7 +429,8 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
   
   EXPECT_TRUE(oc.configure(ocm));
 
-  constraint_samplers::IKConstraintSampler iks1(ps, "left_arm", constraint_samplers::IKSamplingPose(pc, oc));
+  constraint_samplers::IKConstraintSampler iks1(ps, "left_arm");
+  EXPECT_TRUE(iks1.configure(constraint_samplers::IKSamplingPose(pc, oc)));
   for (int t = 0 ; t < 100 ; ++t)
   {
     EXPECT_TRUE(iks1.sample(ks.getJointStateGroup("left_arm"), ks, 100));
@@ -449,14 +438,16 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
     EXPECT_TRUE(oc.decide(ks).satisfied);
   }
   
-  constraint_samplers::IKConstraintSampler iks2(ps, "left_arm", constraint_samplers::IKSamplingPose(pc));
+  constraint_samplers::IKConstraintSampler iks2(ps, "left_arm");
+  EXPECT_TRUE(iks2.configure(constraint_samplers::IKSamplingPose(pc)));
   for (int t = 0 ; t < 100 ; ++t)
   {
     EXPECT_TRUE(iks2.sample(ks.getJointStateGroup("left_arm"), ks, 100));
     EXPECT_TRUE(pc.decide(ks).satisfied);
   }
   
-  constraint_samplers::IKConstraintSampler iks3(ps, "left_arm", constraint_samplers::IKSamplingPose(oc));
+  constraint_samplers::IKConstraintSampler iks3(ps, "left_arm");
+  EXPECT_TRUE(iks3.configure(constraint_samplers::IKSamplingPose(oc)));
   for (int t = 0 ; t < 100 ; ++t)
   {
     EXPECT_TRUE(iks3.sample(ks.getJointStateGroup("left_arm"), ks, 100));
@@ -482,6 +473,91 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
       succ++;
   }
   ROS_INFO("Success rate for IK Constraint Sampler with position & orientation constraints for one arm: %lf", (double)succ / (double)NT);
+}
+
+TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerManager)
+{
+  kinematic_state::KinematicState ks(kmodel);
+  ks.setToDefaultValues();
+  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  
+  kinematic_constraints::JointConstraint jc1(kmodel, tf);
+  moveit_msgs::JointConstraint jcm1;
+  jcm1.joint_name = "head_pan_joint";
+  jcm1.position = 0.42;
+  jcm1.tolerance_above = 0.01;
+  jcm1.tolerance_below = 0.05;
+  jcm1.weight = 1.0;
+  EXPECT_TRUE(jc1.configure(jcm1));
+
+  kinematic_constraints::JointConstraint jc2(kmodel, tf);
+  moveit_msgs::JointConstraint jcm2;
+  jcm2.joint_name = "l_shoulder_pan_joint";
+  jcm2.position = 0.9;
+  jcm2.tolerance_above = 0.1;
+  jcm2.tolerance_below = 0.05;
+  jcm2.weight = 1.0;
+  EXPECT_TRUE(jc2.configure(jcm2));
+  
+  kinematic_constraints::JointConstraint jc3(kmodel, tf);
+  moveit_msgs::JointConstraint jcm3;
+  jcm3.joint_name = "r_wrist_roll_joint";
+  jcm3.position = 0.7;
+  jcm3.tolerance_above = 0.14;
+  jcm3.tolerance_below = 0.005;
+  jcm3.weight = 1.0;
+  EXPECT_TRUE(jc3.configure(jcm3));
+  
+  kinematic_constraints::JointConstraint jc4(kmodel, tf);
+  moveit_msgs::JointConstraint jcm4;
+  jcm4.joint_name = "torso_lift_joint";
+  jcm4.position = 0.2;
+  jcm4.tolerance_above = 0.09;
+  jcm4.tolerance_below = 0.01;
+  jcm4.weight = 1.0;
+  EXPECT_TRUE(jc4.configure(jcm4));
+
+  std::vector<kinematic_constraints::JointConstraint> js;
+  js.push_back(jc1);
+  js.push_back(jc2);
+  js.push_back(jc3);
+  js.push_back(jc4);
+  
+  constraint_samplers::JointConstraintSampler jcs(ps, "arms");
+  jcs.configure(js);
+  EXPECT_EQ(jcs.getConstrainedJointCount(), 2);
+  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 12);
+
+  for (int t = 0 ; t < 10 ; ++t)
+  {
+    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("arms"), ks, 1));
+    EXPECT_TRUE(jc2.decide(ks).satisfied);
+    EXPECT_TRUE(jc3.decide(ks).satisfied);
+  }
+
+  // test the automatic construction of constraint sampler
+  moveit_msgs::Constraints c;
+  
+  // no constraints should give no sampler
+  constraint_samplers::ConstraintSamplerPtr s0 = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
+  EXPECT_TRUE(s0.get() == NULL);
+
+  // add the constraints
+  c.joint_constraints.push_back(jcm1);
+  c.joint_constraints.push_back(jcm2);
+  c.joint_constraints.push_back(jcm3);
+  c.joint_constraints.push_back(jcm4);
+  
+  constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
+  EXPECT_TRUE(s.get() != NULL);
+  
+  // test the generated sampler
+  for (int t = 0 ; t < 1000 ; ++t)
+  {
+    EXPECT_TRUE(s->sample(ks.getJointStateGroup("arms"), ks, 1));
+    EXPECT_TRUE(jc2.decide(ks).satisfied);
+    EXPECT_TRUE(jc3.decide(ks).satisfied);
+  }
 }
 
 TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
@@ -548,7 +624,7 @@ TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
   ks.setToDefaultValues();  
   static const int NT = 1000;
   int succ = 0;
-  for (int t = 0 ; t < 1000 ; ++t)
+  for (int t = 0 ; t < NT ; ++t)
   {
     EXPECT_TRUE(s->sample(ks.getJointStateGroup("arms"), ks, 1000));
     EXPECT_TRUE(kset.decide(ks).satisfied);
