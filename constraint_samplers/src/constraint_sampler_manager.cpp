@@ -91,7 +91,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       joint_sampler = sampler;
     }
   }
-    
+  
   // read the ik allocators, if any
   kinematic_model::SolverAllocatorFn ik_alloc = jmg->getSolverAllocators().first;
   std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn> ik_subgroup_alloc = jmg->getSolverAllocators().second;
@@ -116,9 +116,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getKinematicModel(), scene->getTransforms()));
           if (pc->configure(constr.position_constraints[p]) && oc->configure(constr.orientation_constraints[o]))
           {        
-            boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName(), IKSamplingPose(pc, oc)));
-            if (iks->loadIKSolver())
-            {        
+            boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+            if(iks->configure(IKSamplingPose(pc, oc))) {
               bool use = true;
               if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
                 if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
@@ -145,8 +144,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getKinematicModel(), scene->getTransforms()));
       if (pc->configure(constr.position_constraints[p]))
       {
-        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName(), IKSamplingPose(pc)));
-        if (iks->loadIKSolver())
+        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+        if(iks->configure(IKSamplingPose(pc))) 
         {
           bool use = true;
           if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
@@ -171,8 +170,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getKinematicModel(), scene->getTransforms()));
       if (oc->configure(constr.orientation_constraints[o]))
       {
-        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName(), IKSamplingPose(oc)));
-        if (iks->loadIKSolver())
+        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+        if(iks->configure(IKSamplingPose(oc))) 
         {
           bool use = true;
           if (usedL.find(constr.orientation_constraints[o].link_name) != usedL.end())
@@ -209,7 +208,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       return iks;
     }
   }
-  
+    
   // if we got to this point, we have not decided on a sampler.
   // we now check to see if we can use samplers from subgroups
   if (!ik_subgroup_alloc.empty())
