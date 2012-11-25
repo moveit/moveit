@@ -275,7 +275,6 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_position_target", &MoveGroupWrapper::setPositionTarget);
   MoveGroupClass.def("set_orientation_target", &MoveGroupWrapper::setOrientationTarget);
   MoveGroupClass.def("set_pose_target", &MoveGroupWrapper::setPoseTargetPython);
-  MoveGroupClass.def("set_pose_targets", &MoveGroupWrapper::setPoseTargetsPython);
 
   MoveGroupClass.def("get_current_pose", &MoveGroupWrapper::getCurrentPosePython);
 
