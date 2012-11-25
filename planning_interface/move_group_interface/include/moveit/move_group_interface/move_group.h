@@ -236,6 +236,18 @@ public:
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
   void setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link = "");
 
+  /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setPoseTargets(const EigenSTL::vector_Affine3d &end_effector_pose, const std::string &end_effector_link = "");
+  
+  /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setPoseTargets(const std::vector<geometry_msgs::Pose> &target, const std::string &end_effector_link = "");
+
+  /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &target, const std::string &end_effector_link = "");
+
   /// Specify which reference frame to assume for poses specified without a reference frame.
   void setPoseReferenceFrame(const std::string &pose_reference_frame);
 
@@ -251,6 +263,11 @@ public:
   /** Get the currently set pose goal for the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
   const Eigen::Affine3d& getPoseTarget(const std::string &end_effector_link = "") const;
+
+  /** Get the currently set pose goal for the end-effector \e end_effector_link. The pose goal can consist of multiple poses,
+      if corresponding setPoseTarget() calls were made. Otherwise, only one pose is returned in the vector.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void getPoseTargets(EigenSTL::vector_Affine3d &poses, const std::string &end_effector_link = "") const;
   
   /** \brief Get the current end-effector link. This returns the value set by setEndEffectorLink().
       If setEndEffectorLink() was not called, this function reports the link name that serves as parent
