@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_benchmarks)
 
+include_directories(benchmarks/include)
+
 find_package(Boost REQUIRED thread system filesystem date_time program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})

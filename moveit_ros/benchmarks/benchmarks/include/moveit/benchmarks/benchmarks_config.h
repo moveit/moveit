@@ -34,29 +34,60 @@
 
 /* Author: Ioan Sucan */
 
-#include <pluginlib/class_loader.h>
-#include <moveit/planning_interface/planning_interface.h>
-#include <ros/console.h>
+#ifndef MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
+#define MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
+
+#include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/constraints_storage.h>
 
 namespace moveit_benchmarks
 {
 
-// keep this function in a separate file so we don't have the class_loader and mongoDB in the same namespace
-// as that couses boost::filesystem version issues (redefinition of symbols)
-std::vector<std::string> benchmarkGetAvailablePluginNames(void)
+struct BenchmarkOptions
 {
-  // load the planning plugins
-  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader;
-  try
+  std::string scene;
+  std::string output;
+  std::string query_regex;
+  std::string goal_regex;
+  std::size_t default_run_count;
+  
+  struct PluginOptions
   {
-    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::Planner>("planning_interface", "planning_interface::Planner"));
-  }
-  catch(pluginlib::PluginlibException& ex)
+    std::string name;
+    std::vector<std::string> planners;
+    std::size_t runs;
+  };
+  
+  std::vector<PluginOptions> plugins;
+};
+
+class BenchmarkConfig
+{
+public:
+  
+  static const std::string BENCHMARK_SERVICE_NAME; // name of the advertised benchmarking service (within the ~ namespace)
+  
+  BenchmarkConfig(const std::string &host, std::size_t port);
+  
+  bool readOptions(const char *filename);
+  
+  void runBenchmark(void);
+
+  const BenchmarkOptions& getOptions(void) const
   {
-    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
+    return opt_;
   }
   
-  return planner_plugin_loader->getDeclaredClasses();
-}
+  void printOptions(std::ostream &out);
+  
+private:
+  
+  BenchmarkOptions opt_;
+  moveit_warehouse::PlanningSceneStorage pss_;
+  moveit_warehouse::ConstraintsStorage cs_;
+};
+
 
 }
+
+#endif
