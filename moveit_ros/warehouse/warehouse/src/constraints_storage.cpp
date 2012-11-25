@@ -36,11 +36,11 @@
 
 #include "moveit/warehouse/constraints_storage.h"
 
-static const std::string DATABASE_NAME = "moveit_constraints";
+const std::string moveit_warehouse::ConstraintsStorage::DATABASE_NAME = "moveit_constraints";
 
-static const std::string CONSTRAINTS_ID_NAME = "constraints_id";
-static const std::string CONSTRAINTS_ROBOT_NAME = "robot_id";
-static const std::string CONSTRAINTS_GROUP_NAME = "group_id";
+const std::string moveit_warehouse::ConstraintsStorage::CONSTRAINTS_ID_NAME = "constraints_id";
+const std::string moveit_warehouse::ConstraintsStorage::CONSTRAINTS_ROBOT_NAME = "robot_id";
+const std::string moveit_warehouse::ConstraintsStorage::CONSTRAINTS_GROUP_NAME = "group_id";
 
 moveit_warehouse::ConstraintsStorage::ConstraintsStorage(const std::string &host, const unsigned int port, double wait_seconds) :
   MoveItMessageStorage(host, port, wait_seconds)
@@ -76,7 +76,7 @@ void moveit_warehouse::ConstraintsStorage::getKnownConstraints(std::vector<std::
   if (!robot.empty())
     q.append(CONSTRAINTS_ROBOT_NAME, robot);
   if (!group.empty())
-    q.append(CONSTRAINTS_GROUP_NAME, group);  
+    q.append(CONSTRAINTS_GROUP_NAME, group);
   std::vector<ConstraintsWithMetadata> constr = constraints_collection_->pullAllResults(q, true, CONSTRAINTS_ID_NAME, true);
   for (std::size_t i = 0; i < constr.size() ; ++i)
     if (constr[i]->metadata.hasField(CONSTRAINTS_ID_NAME.c_str()))

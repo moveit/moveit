@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/benchmarks/benchmarks_config.h>
+#include <boost/regex.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -80,19 +81,53 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
     req.planner_interfaces[i].planner_ids = opt_.plugins[i].planners;
     req.average_count[i] = opt_.plugins[i].runs;
   }
+  
   ros::NodeHandle nh;
   ros::service::waitForService(BENCHMARK_SERVICE_NAME);
   ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningBenchmark>(BENCHMARK_SERVICE_NAME, true);
-  
-  for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+
+  if (!opt_.query_regex.empty())
   {
-    req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
-    ROS_INFO("Calling benchmark %u of %u for scene '%s' ...", (unsigned int)(i + 1), (unsigned int)planning_queries.size(), opt_.scene.c_str());
-    if (benchmark_service_client.call(req, res))
-      ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
-    else
-      ROS_ERROR("Failed!");
+    boost::regex query_regex(opt_.query_regex);
+    for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+    {
+      std::string query_name = planning_queries[i]->lookupString(moveit_warehouse::PlanningSceneStorage::MOTION_PLAN_REQUEST_ID_NAME);
+      boost::cmatch match;
+      if (boost::regex_match(query_name.c_str(), match, query_regex))
+      {
+        req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
+        ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
+        if (benchmark_service_client.call(req, res))
+          ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
+        else
+          ROS_ERROR("Failed!");
+      }
+    }
   }
+  
+  if (!opt_.goal_regex.empty())
+  {
+    boost::regex goal_regex(opt_.goal_regex);
+    std::vector<std::string> cnames;
+    cs_.getKnownConstraints(cnames);
+    for (std::size_t i = 0 ; i < cnames.size() ; ++i)
+    {
+      boost::cmatch match;
+      if (boost::regex_match(cnames[i].c_str(), match, goal_regex))
+      {
+        req.motion_plan_request.goal_constraints.resize(1);
+        moveit_warehouse::ConstraintsWithMetadata constr;
+        cs_.getConstraints(constr, cnames[i]);
+        req.motion_plan_request.goal_constraints[0] = *constr;
+        ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
+        if (benchmark_service_client.call(req, res))
+          ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
+        else
+          ROS_ERROR("Failed!");
+      }
+    }
+  }
+
 }
 
 bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
