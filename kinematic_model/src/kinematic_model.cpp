@@ -183,8 +183,7 @@ void kinematic_model::KinematicModel::buildModel(const boost::shared_ptr<const u
         logWarn("No geometry is associated to any robot links");
       
       // build groups
-      buildGroups(srdf_model->getGroups());
-      buildGroupInfo(srdf_model);
+      buildGroups(srdf_model);
       buildGroupStates(srdf_model);
       
       std::stringstream ss;
@@ -249,87 +248,6 @@ void kinematic_model::KinematicModel::buildJointInfo(void)
         link_model_vector_[i]->associated_fixed_transforms_[it->first] = it->second;
       }
     }
-  }
-}
-
-void kinematic_model::KinematicModel::buildGroupInfo(const boost::shared_ptr<const srdf::Model> &srdf_model)
-{
-  // set the end-effector flags
-  const std::vector<srdf::Model::EndEffector> &eefs = srdf_model->getEndEffectors();
-  for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
-  {
-    // check if this group is a known end effector
-    for (std::size_t k = 0 ; k < eefs.size() ; ++k)
-      if (eefs[k].component_group_ == it->first)
-      {
-        // if it is, mark it as such
-        it->second->is_end_effector_ = true;
-
-        JointModelGroup *eef_parent_group = NULL;
-        
-        // if a parent group is specified in SRDF, try to use it
-        if (!eefs[k].parent_group_.empty())
-        {
-          std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.find(eefs[k].parent_group_);
-          if (jt != joint_model_group_map_.end())
-          {
-            if (jt->second->hasLinkModel(eefs[k].parent_link_))
-            {
-              if (jt->second != it->second)
-                eef_parent_group = jt->second;
-              else
-                logError("Group '%s' for end-effector '%s' cannot be its own parent", eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
-            }
-            else
-              logError("Group '%s' was specified as parent group for end-effector '%s' but it does not include the parent link '%s'",
-                       eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
-          }
-          else
-            logError("Group name '%s' not found (specified as parent group for end-effector '%s')",
-                     eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
-        }
-
-        if (eef_parent_group == NULL)
-        {
-          // check to see if there are groups that contain the parent link of this end effector.
-          // record this information if found
-          std::vector<JointModelGroup*> possible_parent_groups;
-          for (std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
-            if (jt->first != it->first)
-            {
-              if (jt->second->hasLinkModel(eefs[k].parent_link_))
-                possible_parent_groups.push_back(jt->second);
-            }
-          if (!possible_parent_groups.empty())
-          {
-            // if there are multiple options for the group that contains this end-effector, 
-            // we pick the group with fewest joints.
-            std::size_t best = 0;
-            for (std::size_t g = 1 ; g < possible_parent_groups.size() ; ++g)
-              if (possible_parent_groups[g]->getJointModels().size() < possible_parent_groups[best]->getJointModels().size())
-                best = g;
-            eef_parent_group = possible_parent_groups[best];
-          }
-        }
-        if (eef_parent_group)
-        {
-          eef_parent_group->attached_end_effector_group_name_ = it->first;
-          it->second->end_effector_parent_.first = eef_parent_group->getName();
-        }
-        else
-          logWarn("Could not identify parent group for end-effector '%s'", eefs[k].name_.c_str());
-        it->second->end_effector_parent_.second = eefs[k].parent_link_;
-        break;
-      }
-    // if the group happens to be a sequence of joints that follow each other in a depth-first fashion,
-    // then we consider the group to be a chain
-    const std::vector<const LinkModel*> &lmods = it->second->getLinkModels();
-    bool chain = lmods.size() > 1;
-    for (std::size_t k = 1 ; chain && k < lmods.size() ; ++k)
-      if (lmods[k]->getTreeIndex() != lmods[k - 1]->getTreeIndex() + 1)
-        chain = false;
-    if (chain)
-      it->second->is_chain_ = true;
   }
 }
 
@@ -441,8 +359,10 @@ kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getJointModel
   return it->second;
 }
 
-void kinematic_model::KinematicModel::buildGroups(const std::vector<srdf::Model::Group>& group_configs)
+void kinematic_model::KinematicModel::buildGroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
+  const std::vector<srdf::Model::Group>& group_configs = srdf_model->getGroups();
+  
   //the only thing tricky is dealing with subgroups
   std::vector<bool> processed(group_configs.size(), false);
 
@@ -477,6 +397,12 @@ void kinematic_model::KinematicModel::buildGroups(const std::vector<srdf::Model:
     if (!processed[i])
       logWarn("Could not process group '%s' due to unmet subgroup dependencies", group_configs[i].name_.c_str());
   
+  buildGroupsInfo_Subgroups(srdf_model);
+  buildGroupsInfo_EndEffectors(srdf_model);
+}
+
+void kinematic_model::KinematicModel::buildGroupsInfo_Subgroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
+{
   // compute subgroups  
   for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
   {
@@ -497,6 +423,78 @@ void kinematic_model::KinematicModel::buildGroups(const std::vector<srdf::Model:
           }
         if (ok)
           jmg->subgroup_names_.push_back(sub_jmg->getName());
+      }
+  }
+}
+
+void kinematic_model::KinematicModel::buildGroupsInfo_EndEffectors(const boost::shared_ptr<const srdf::Model> &srdf_model)
+{
+  // set the end-effector flags
+  const std::vector<srdf::Model::EndEffector> &eefs = srdf_model->getEndEffectors();
+  for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
+  {
+    // check if this group is a known end effector
+    for (std::size_t k = 0 ; k < eefs.size() ; ++k)
+      if (eefs[k].component_group_ == it->first)
+      {
+        // if it is, mark it as such
+        it->second->is_end_effector_ = true;
+
+        JointModelGroup *eef_parent_group = NULL;
+        
+        // if a parent group is specified in SRDF, try to use it
+        if (!eefs[k].parent_group_.empty())
+        {
+          std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.find(eefs[k].parent_group_);
+          if (jt != joint_model_group_map_.end())
+          {
+            if (jt->second->hasLinkModel(eefs[k].parent_link_))
+            {
+              if (jt->second != it->second)
+                eef_parent_group = jt->second;
+              else
+                logError("Group '%s' for end-effector '%s' cannot be its own parent", eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
+            }
+            else
+              logError("Group '%s' was specified as parent group for end-effector '%s' but it does not include the parent link '%s'",
+                       eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
+          }
+          else
+            logError("Group name '%s' not found (specified as parent group for end-effector '%s')",
+                     eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
+        }
+
+        if (eef_parent_group == NULL)
+        {
+          // check to see if there are groups that contain the parent link of this end effector.
+          // record this information if found
+          std::vector<JointModelGroup*> possible_parent_groups;
+          for (std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
+            if (jt->first != it->first)
+            {
+              if (jt->second->hasLinkModel(eefs[k].parent_link_))
+                possible_parent_groups.push_back(jt->second);
+            }
+          if (!possible_parent_groups.empty())
+          {
+            // if there are multiple options for the group that contains this end-effector, 
+            // we pick the group with fewest joints.
+            std::size_t best = 0;
+            for (std::size_t g = 1 ; g < possible_parent_groups.size() ; ++g)
+              if (possible_parent_groups[g]->getJointModels().size() < possible_parent_groups[best]->getJointModels().size())
+                best = g;
+            eef_parent_group = possible_parent_groups[best];
+          }
+        }
+        if (eef_parent_group)
+        {
+          eef_parent_group->attached_end_effector_group_name_ = it->first;
+          it->second->end_effector_parent_.first = eef_parent_group->getName();
+        }
+        else
+          logWarn("Could not identify parent group for end-effector '%s'", eefs[k].name_.c_str());
+        it->second->end_effector_parent_.second = eefs[k].parent_link_;
+        break;
       }
   }
 }
