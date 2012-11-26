@@ -287,7 +287,10 @@ private:
       }
     }
     else
+    {    
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
       return false;
+    }
   }
 
   bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)

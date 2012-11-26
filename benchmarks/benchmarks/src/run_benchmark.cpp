@@ -73,7 +73,7 @@ public:
         // load the planning plugins
         try
         {
-          planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("planning_interface", "planning_interface::Planner"));
+          planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
         }
         catch(pluginlib::PluginlibException& ex)
         {

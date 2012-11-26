@@ -49,14 +49,17 @@ std::vector<std::string> benchmarkGetAvailablePluginNames(void)
   boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader;
   try
   {
-    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::Planner>("planning_interface", "planning_interface::Planner"));
+    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
   }
   catch(pluginlib::PluginlibException& ex)
   {
     ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
   }
-  
-  return planner_plugin_loader->getDeclaredClasses();
+
+  if (planner_plugin_loader)
+    return planner_plugin_loader->getDeclaredClasses();
+  else
+    return std::vector<std::string>();
 }
 
 }
