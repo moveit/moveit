@@ -42,7 +42,7 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <moveit_msgs/GetMotionPlan.h>
-#include <moveit_msgs/ComputePlanningBenchmark.h>
+#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <moveit_msgs/ConstructConstraintApproximation.h>
 
 static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
@@ -137,7 +137,7 @@ public:
     }
   }
   
-  bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)
+  bool computeBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
   {
       ROS_INFO("Received new benchmark request...");
       return ompl_interface_.benchmark(psm_.getPlanningScene(), req, res);
