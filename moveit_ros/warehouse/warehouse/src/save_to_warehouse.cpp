@@ -142,8 +142,7 @@ int main(int argc, char **argv)
   moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
                                           vm.count("port") ? vm["port"].as<std::size_t>() : 0);
   std::vector<std::string> names;
-  std::vector<ros::Time> times;
-  pss.getPlanningSceneNamesAndTimes(names, times);
+  pss.getPlanningSceneNames(names);
   if (names.empty())
     ROS_INFO("There are no previously stored scenes");
   else
