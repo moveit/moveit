@@ -185,7 +185,7 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
 {
   if (!loader_)
   {
-    ROS_INFO("Configuring kinematics solvers");
+    ROS_DEBUG("Configuring kinematics solvers");
     groups_.clear();
     
     ros::NodeHandle nh("~");
@@ -217,7 +217,7 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
               }
               std::string solver; ss >> solver >> std::ws;          
               possible_kinematics_solvers[known_groups[i].name_].push_back(solver);
-              ROS_INFO("Using kinematics solver '%s' for group '%s'.", solver.c_str(), known_groups[i].name_.c_str());
+              ROS_DEBUG("Using kinematics solver '%s' for group '%s'.", solver.c_str(), known_groups[i].name_.c_str());
             }
           }
         }
