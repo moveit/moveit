@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/warehouse/planning_scene_storage.h>
-#include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
 
