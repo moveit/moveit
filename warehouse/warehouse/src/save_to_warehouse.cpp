@@ -36,11 +36,12 @@
 
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
+#include <moveit/warehouse/state_storage.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <ros/console.h>
+#include <ros/ros.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
 static bool ALLOW_DUPLICATE_SCENE_NAMES = false;
@@ -64,6 +65,18 @@ void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_war
     ROS_INFO("Scene name is empty. Not saving.");
 }
 
+void onMotionPlanRequest(const moveit_msgs::MotionPlanRequestConstPtr &req,
+                         planning_scene_monitor::PlanningSceneMonitor *psm,
+                         moveit_warehouse::PlanningSceneStorage *pss)
+{
+  if (psm->getPlanningScene()->getName().empty())
+  {
+    ROS_INFO("Scene name is empty. Not saving planning request.");
+    return;
+  }
+  pss->addPlanningQuery(*req, psm->getPlanningScene()->getName());
+}
+
 void onConstraints(const moveit_msgs::ConstraintsConstPtr &msg, moveit_warehouse::ConstraintsStorage *cs)
 {
   if (msg->name.empty())
@@ -85,20 +98,23 @@ void onConstraints(const moveit_msgs::ConstraintsConstPtr &msg, moveit_warehouse
   }
 }
 
-void onMotionPlanRequest(const moveit_msgs::MotionPlanRequestConstPtr &req,
-                         planning_scene_monitor::PlanningSceneMonitor *psm,
-                         moveit_warehouse::PlanningSceneStorage *pss)
+void onRobotState(const moveit_msgs::RobotStateConstPtr &msg, moveit_warehouse::RobotStateStorage *rs)
 {
-  if (psm->getPlanningScene()->getName().empty())
-  {
-    ROS_INFO("Scene name is empty. Not saving planning request.");
-    return;
-  }
-  pss->addPlanningQuery(*req, psm->getPlanningScene()->getName());
+  std::vector<std::string> names;
+  rs->getKnownRobotStates(names);
+  std::set<std::string> names_set(names.begin(), names.end());
+  std::size_t n = names.size();
+  while (names_set.find("S" + boost::lexical_cast<std::string>(n)) != names_set.end())
+    n++;
+  std::string name = "S" + boost::lexical_cast<std::string>(n);
+  ROS_INFO("Adding robot state '%s'", name.c_str());
+  rs->addRobotState(*msg, name);  
 }
 
 int main(int argc, char **argv)
-{ 
+{  
+  ros::init(argc, argv, "save_to_warehouse", ros::init_options::AnonymousName);
+  
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
@@ -116,8 +132,6 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  ros::init(argc, argv, "save_to_warehouse", ros::init_options::AnonymousName);
-  
   if (vm.count("allow-duplicate-scene-names"))
   {
     ALLOW_DUPLICATE_SCENE_NAMES = true;
@@ -141,6 +155,8 @@ int main(int argc, char **argv)
                                              vm.count("port") ? vm["port"].as<std::size_t>() : 0);
   moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
                                           vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+  moveit_warehouse::RobotStateStorage rs(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                         vm.count("port") ? vm["port"].as<std::size_t>() : 0);
   std::vector<std::string> names;
   pss.getPlanningSceneNames(names);
   if (names.empty())
@@ -151,17 +167,40 @@ int main(int argc, char **argv)
     for (std::size_t i = 0 ; i < names.size() ; ++i)
       ROS_INFO(" * %s", names[i].c_str());
   }
+  cs.getKnownConstraints(names);
+  if (names.empty())
+    ROS_INFO("There are no previously stored constraints");
+  else
+  {
+    ROS_INFO("Previously stored constraints:");
+    for (std::size_t i = 0 ; i < names.size() ; ++i)
+      ROS_INFO(" * %s", names[i].c_str());
+  }
+  rs.getKnownRobotStates(names);
+  if (names.empty())
+    ROS_INFO("There are no previously stored robot states");
+  else
+  {
+    ROS_INFO("Previously stored robot states:");
+    for (std::size_t i = 0 ; i < names.size() ; ++i)
+      ROS_INFO(" * %s", names[i].c_str());
+  }
   
   psm.addUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
+
   boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback1 = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
   ros::Subscriber mplan_req_sub = nh.subscribe("motion_plan_request", 100, callback1);
   boost::function<void(const moveit_msgs::ConstraintsConstPtr&)> callback2 = boost::bind(&onConstraints, _1, &cs);
   ros::Subscriber constr_sub = nh.subscribe("constraints", 100, callback2);
+  boost::function<void(const moveit_msgs::RobotStateConstPtr&)> callback3 = boost::bind(&onRobotState, _1, &rs);
+  ros::Subscriber state_sub = nh.subscribe("robot_state", 100, callback3);
+  
   std::vector<std::string> topics;
   psm.getMonitoredTopics(topics);
   ROS_INFO_STREAM("Listening for scene updates on topics " << boost::algorithm::join(topics, ", "));
   ROS_INFO_STREAM("Listening for planning requests on topic " << mplan_req_sub.getTopic());
   ROS_INFO_STREAM("Listening for named constraints on topic " << constr_sub.getTopic());
+  ROS_INFO_STREAM("Listening for states on topic " << state_sub.getTopic());
 
   ros::waitForShutdown();
   return 0;

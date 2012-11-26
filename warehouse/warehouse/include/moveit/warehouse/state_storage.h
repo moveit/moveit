@@ -65,7 +65,8 @@ public:
   void addRobotState(const moveit_msgs::RobotState &msg, const std::string &name, const std::string &robot = "");
   bool hasRobotState(const std::string &name, const std::string &robot = "") const;
   void getKnownRobotStates(std::vector<std::string> &names, const std::string &robot = "") const;
-  
+  void getKnownRobotStates(const std::string &regex, std::vector<std::string> &names, const std::string &robot = "") const;
+
   /** \brief Get the constraints named \e name. Return false on failure. */
   bool getRobotState(RobotStateWithMetadata &msg_m, const std::string &name, const std::string &robot = "") const;
 

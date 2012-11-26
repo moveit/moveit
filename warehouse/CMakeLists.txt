@@ -3,7 +3,7 @@ project(moveit_ros_warehouse)
 
 include_directories(warehouse/include)
 
-find_package(Boost REQUIRED thread system filesystem date_time program_options)
+find_package(Boost REQUIRED thread system filesystem regex date_time program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
