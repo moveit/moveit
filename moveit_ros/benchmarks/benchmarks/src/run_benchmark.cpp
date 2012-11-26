@@ -41,7 +41,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 
-#include <moveit_msgs/ComputePlanningBenchmark.h>
+#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>
@@ -215,7 +215,7 @@ public:
     }
   }
   
-  bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)
+  bool computeBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
   {      
     // figure out which planners to test
     if (!req.planner_interfaces.empty())

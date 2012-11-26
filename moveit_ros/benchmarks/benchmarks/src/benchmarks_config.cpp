@@ -41,8 +41,8 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <ros/ros.h>
-#include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <fstream>
 
 namespace moveit_benchmarks
@@ -51,7 +51,9 @@ const std::string BenchmarkConfig::BENCHMARK_SERVICE_NAME = "benchmark_planning_
 }
 
 moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std::size_t port) :
-  pss_(host, port), cs_(host, port)
+  pss_(host, port),
+  cs_(host, port),
+  rs_(host, port)
 {
   
 }
@@ -64,8 +66,8 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
     ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
     return;
   }
-  moveit_msgs::ComputePlanningBenchmark::Request req;
-  moveit_msgs::ComputePlanningBenchmark::Request res;
+  moveit_msgs::ComputePlanningPluginsBenchmark::Request req;
+  moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
   req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
   std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
   pss_.getPlanningQueries(planning_queries, opt_.scene);
@@ -84,50 +86,96 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
   
   ros::NodeHandle nh;
   ros::service::waitForService(BENCHMARK_SERVICE_NAME);
-  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningBenchmark>(BENCHMARK_SERVICE_NAME, true);
-
-  if (!opt_.query_regex.empty())
-  {
-    boost::regex query_regex(opt_.query_regex);
-    for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_SERVICE_NAME, true);
+  
+  // see if we have any start states specified
+  std::vector<std::string> start_states;
+  if (!opt_.start_regex.empty())
+  {     
+    boost::regex start_regex(opt_.start_regex);
+    std::vector<std::string> state_names;
+    rs_.getKnownRobotStates(state_names);
+    for (std::size_t i = 0 ; i < state_names.size() ; ++i)
     {
-      std::string query_name = planning_queries[i]->lookupString(moveit_warehouse::PlanningSceneStorage::MOTION_PLAN_REQUEST_ID_NAME);
       boost::cmatch match;
-      if (boost::regex_match(query_name.c_str(), match, query_regex))
-      {
-        req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
-        ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
-        if (benchmark_service_client.call(req, res))
-          ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
-        else
-          ROS_ERROR("Failed!");
-      }
+      if (boost::regex_match(state_names[i].c_str(), match, start_regex))
+        start_states.push_back(state_names[i]);
+    }
+    if (start_states.empty())
+    {
+      ROS_WARN("No stored states matched the provided regex: '%s'", opt_.start_regex.c_str());
+      return;
     }
   }
   
-  if (!opt_.goal_regex.empty())
-  {
-    boost::regex goal_regex(opt_.goal_regex);
-    std::vector<std::string> cnames;
-    cs_.getKnownConstraints(cnames);
-    for (std::size_t i = 0 ; i < cnames.size() ; ++i)
+  bool have_more_start_states = true;
+  boost::scoped_ptr<moveit_msgs::RobotState> start_state_to_use;
+  while (have_more_start_states)
+  { 
+    start_state_to_use.reset();
+    
+    // if no set of start states provided, run once for the current one
+    if (opt_.start_regex.empty())
+      have_more_start_states = false;
+    else
     {
-      boost::cmatch match;
-      if (boost::regex_match(cnames[i].c_str(), match, goal_regex))
+      // otherwise, extract the start states one by one
+      std::string state_name = start_states.back();
+      start_states.pop_back();
+      have_more_start_states = !start_states.empty();
+      moveit_warehouse::RobotStateWithMetadata robot_state;
+      if (rs_.getRobotState(robot_state, state_name))
+        start_state_to_use.reset(new moveit_msgs::RobotState(*robot_state));
+      else
+        continue;
+    }
+    
+    if (!opt_.query_regex.empty())
+    {
+      boost::regex query_regex(opt_.query_regex);
+      for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
       {
-        req.motion_plan_request.goal_constraints.resize(1);
-        moveit_warehouse::ConstraintsWithMetadata constr;
-        cs_.getConstraints(constr, cnames[i]);
-        req.motion_plan_request.goal_constraints[0] = *constr;
-        ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
-        if (benchmark_service_client.call(req, res))
-          ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
-        else
-          ROS_ERROR("Failed!");
+        std::string query_name = planning_queries[i]->lookupString(moveit_warehouse::PlanningSceneStorage::MOTION_PLAN_REQUEST_ID_NAME);
+        boost::cmatch match;
+        if (boost::regex_match(query_name.c_str(), match, query_regex))
+        {
+          req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
+          if (start_state_to_use)
+            req.motion_plan_request.start_state = *start_state_to_use;
+          ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
+          if (benchmark_service_client.call(req, res))
+            ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
+          else
+            ROS_ERROR("Failed!");
+        }
+      }
+    }
+    
+    if (!opt_.goal_regex.empty())
+    {
+      boost::regex goal_regex(opt_.goal_regex);
+      std::vector<std::string> cnames;
+      cs_.getKnownConstraints(cnames);
+      for (std::size_t i = 0 ; i < cnames.size() ; ++i)
+      {
+        boost::cmatch match;
+        if (boost::regex_match(cnames[i].c_str(), match, goal_regex))
+        {
+          if (start_state_to_use)
+            req.motion_plan_request.start_state = *start_state_to_use;
+          req.motion_plan_request.goal_constraints.resize(1);
+          moveit_warehouse::ConstraintsWithMetadata constr;
+          cs_.getConstraints(constr, cnames[i]);
+          req.motion_plan_request.goal_constraints[0] = *constr;
+          ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
+          if (benchmark_service_client.call(req, res))
+            ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
+          else
+            ROS_ERROR("Failed!");
+        }
       }
     }
   }
-
 }
 
 bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
@@ -147,6 +195,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     desc.add_options()
       ("scene.name", boost::program_options::value<std::string>(), "Scene name")
       ("scene.runs", boost::program_options::value<std::string>()->default_value("1"), "Number of runs")
+      ("scene.start", boost::program_options::value<std::string>()->default_value(""), "Regex for the start states to use")
       ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
       ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
       ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
@@ -162,6 +211,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       declared_options[it->first] = boost::any_cast<std::string>(vm[it->first].value());
     opt_.scene = declared_options["scene.name"];
     opt_.output = declared_options["scene.output"];
+    opt_.start_regex = declared_options["scene.start"];
     opt_.query_regex = declared_options["scene.query"];
     opt_.goal_regex = declared_options["scene.goal"];
     if (opt_.output.empty())
