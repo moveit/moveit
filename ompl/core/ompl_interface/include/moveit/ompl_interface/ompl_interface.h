@@ -40,7 +40,7 @@
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit_msgs/ComputePlanningBenchmark.h>
+#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <string>
 #include <map>
@@ -75,8 +75,8 @@ public:
   
   /** @brief Benchmark the planning problem*/
   bool benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const moveit_msgs::ComputePlanningBenchmark::Request &req,                  
-                 moveit_msgs::ComputePlanningBenchmark::Response &res) const;
+                 const moveit_msgs::ComputePlanningPluginsBenchmark::Request &req,                  
+                 moveit_msgs::ComputePlanningPluginsBenchmark::Response &res) const;
   
   /** @brief Solve the planning problem
    *  @param config

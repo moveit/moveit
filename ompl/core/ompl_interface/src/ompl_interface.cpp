@@ -194,8 +194,8 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 }
 
 bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                              const moveit_msgs::ComputePlanningBenchmark::Request &req,
-                                              moveit_msgs::ComputePlanningBenchmark::Response &res) const
+                                              const moveit_msgs::ComputePlanningPluginsBenchmark::Request &req,
+                                              moveit_msgs::ComputePlanningPluginsBenchmark::Response &res) const
 {  
   unsigned int attempts = 1;
   double timeout = 0.0;
