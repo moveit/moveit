@@ -34,7 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "moveit/warehouse/moveit_message_storage.h"
+#include <moveit/warehouse/moveit_message_storage.h>
+#include <boost/regex.hpp>
 #include <ros/ros.h>
 
 moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &host, const unsigned int port, double wait_seconds) :
@@ -70,4 +71,20 @@ moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &
 
 moveit_warehouse::MoveItMessageStorage::~MoveItMessageStorage(void)
 {
+}
+
+void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &regex, std::vector<std::string> &names) const
+{
+  if (!regex.empty())
+  {
+    std::vector<std::string> fnames;
+    boost::regex r(regex);
+    for (std::size_t i = 0; i < names.size() ; ++i)
+    {
+      boost::cmatch match;   
+      if (boost::regex_match(names[i].c_str(), match, r))
+        fnames.push_back(names[i]);
+    }
+    names.swap(fnames);
+  }
 }

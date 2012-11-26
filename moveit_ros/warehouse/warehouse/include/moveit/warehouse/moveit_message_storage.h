@@ -38,6 +38,7 @@
 #define MOVEIT_MOVEIT_WAREHOUSE_MOVEIT_MESSAGE_STORAGE_
 
 #include <mongo_ros/message_collection.h>
+#include <vector>
 #include <string>
 
 namespace moveit_warehouse
@@ -68,6 +69,9 @@ public:
   }
   
 protected:
+  
+  /// Keep only the \e names that match \e regex
+  void filterNames(const std::string &regex, std::vector<std::string> &names) const;
   
   std::string  db_host_;
   unsigned int db_port_;

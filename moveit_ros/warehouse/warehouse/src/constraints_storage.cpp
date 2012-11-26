@@ -69,6 +69,12 @@ bool moveit_warehouse::ConstraintsStorage::hasConstraints(const std::string &nam
   return !constr.empty();
 }
 
+void moveit_warehouse::ConstraintsStorage::getKnownConstraints(const std::string &regex, std::vector<std::string> &names, const std::string &robot, const std::string &group) const
+{
+  getKnownConstraints(names, robot, group);
+  filterNames(regex, names);
+}
+
 void moveit_warehouse::ConstraintsStorage::getKnownConstraints(std::vector<std::string> &names, const std::string &robot, const std::string &group) const
 {
   names.clear();

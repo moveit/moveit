@@ -65,6 +65,12 @@ bool moveit_warehouse::RobotStateStorage::hasRobotState(const std::string &name,
   return !constr.empty();
 }
 
+void moveit_warehouse::RobotStateStorage::getKnownRobotStates(const std::string &regex, std::vector<std::string> &names, const std::string &robot) const
+{
+  getKnownRobotStates(names, robot);
+  filterNames(regex, names);
+}
+
 void moveit_warehouse::RobotStateStorage::getKnownRobotStates(std::vector<std::string> &names, const std::string &robot) const
 {
   names.clear();

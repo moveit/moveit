@@ -75,6 +75,7 @@ public:
   
   bool hasPlanningScene(const std::string &name) const;
   void getPlanningSceneNames(std::vector<std::string> &names) const;
+  void getPlanningSceneNames(const std::string &regex, std::vector<std::string> &names) const;
 
   /** \brief Get the latest planning scene named \e scene_name */
   bool getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const;

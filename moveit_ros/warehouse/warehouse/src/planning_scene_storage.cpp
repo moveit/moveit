@@ -144,7 +144,7 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningResult(const moveit_msgs
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<std::string> &names) const
-{
+{ 
   names.clear();
   mongo_ros::Query q;
   std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_ID_NAME, true);
@@ -153,6 +153,11 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<s
       names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
 }
 
+void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(const std::string &regex, std::vector<std::string> &names) const
+{ 
+  getPlanningSceneNames(names); 
+  filterNames(regex, names);
+}
 
 bool moveit_warehouse::PlanningSceneStorage::getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name) const
 {
