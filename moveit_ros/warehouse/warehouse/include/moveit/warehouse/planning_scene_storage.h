@@ -60,13 +60,11 @@ public:
   static const std::string DATABASE_NAME;
   
   static const std::string PLANNING_SCENE_ID_NAME;
-  static const std::string PLANNING_SCENE_TIME_NAME;
   static const std::string MOTION_PLAN_REQUEST_ID_NAME;
 
   /** \brief Initialize the planning scene storage to connect to a specified \e host and \e port for the MongoDB. 
       If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying 
       which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
-      If these params are not found either, a final attempt is made to look for the param values under /moveit_warehouse/warehouse_*.
       If no values are found, the defaults are left to be the ones MongoDB uses. 
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
   PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
@@ -77,15 +75,9 @@ public:
   
   bool hasPlanningScene(const std::string &name) const;
   void getPlanningSceneNames(std::vector<std::string> &names) const;
-  void getPlanningSceneNamesAndTimes(std::vector<std::string> &names, std::vector<ros::Time>& times) const;
-
-  /** \brief Get the planning scene named \e scene_name and time stamp closest to \e time. If the scene is found but the time difference between its stamp and \e time is larger than \e margin, a warning is issued. */
-  bool getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name, const ros::Time& time, double margin = 1.0) const;
 
   /** \brief Get the latest planning scene named \e scene_name */
   bool getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const;
-
-  bool getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name, const ros::Time& time, double margin = 1.0) const;
   bool getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name) const;
 
   bool hasPlanningQuery(const std::string &scene_name, const std::string &query_name) const;

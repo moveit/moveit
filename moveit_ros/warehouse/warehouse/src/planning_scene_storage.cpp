@@ -34,12 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#include "moveit/warehouse/planning_scene_storage.h"
+#include <moveit/warehouse/planning_scene_storage.h>
 
 const std::string moveit_warehouse::PlanningSceneStorage::DATABASE_NAME = "moveit_planning_scenes";
 
 const std::string moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_ID_NAME = "planning_scene_id";
-const std::string moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_TIME_NAME = "planning_scene_time";
 const std::string moveit_warehouse::PlanningSceneStorage::MOTION_PLAN_REQUEST_ID_NAME = "motion_request_id";
 
 moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &host, const unsigned int port, double wait_seconds) :
@@ -53,8 +52,7 @@ moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
 {
-  mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene.name,
-                               PLANNING_SCENE_TIME_NAME, scene.robot_state.joint_state.header.stamp.toSec());
+  mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene.name);
   planning_scene_collection_->insert(scene, metadata); 
   ROS_DEBUG("Saved scene '%s'", scene.name.c_str());
 }
@@ -145,42 +143,16 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningResult(const moveit_msgs
   robot_trajectory_collection_->insert(result, metadata);
 }
 
-void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNamesAndTimes(std::vector<std::string> &names, std::vector<ros::Time> &times) const
-{
-  names.clear();
-  times.clear();
-  mongo_ros::Query q;
-  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_TIME_NAME, true);
-  for (std::size_t i = 0; i < planning_scenes.size() ; ++i)
-  {
-    if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_ID_NAME.c_str()))
-      names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
-    if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str()))
-      times.push_back(ros::Time(planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME)));
-  }
-}
-
 void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<std::string> &names) const
 {
   names.clear();
   mongo_ros::Query q;
-  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_TIME_NAME, true);
+  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_ID_NAME, true);
   for (std::size_t i = 0; i < planning_scenes.size() ; ++i)
     if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_ID_NAME.c_str()))
       names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
 }
 
-bool moveit_warehouse::PlanningSceneStorage::getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name, const ros::Time& time, double margin) const
-{
-  PlanningSceneWithMetadata scene_m;
-  if (getPlanningScene(scene_m, scene_name, time, margin))
-  {
-    world = scene_m->world;
-    return true;
-  }
-  else
-    return false;
-}
 
 bool moveit_warehouse::PlanningSceneStorage::getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name) const
 {
@@ -203,71 +175,7 @@ bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithM
     ROS_WARN("Planning scene '%s' was not found in the database", scene_name.c_str());
     return false;
   }
-  if (planning_scenes.size() > 1)
-  {
-    double max_tm = 0.0;
-    int index = -1;
-    for (unsigned int i = 0; i < planning_scenes.size(); ++i)
-      if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str()))
-      {
-        double tm = planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME);
-        if (index < 0 || tm > max_tm)
-        {
-          max_tm = tm;
-          index = i;
-        }
-      }
-    if (index < 0) 
-      ROS_INFO_STREAM("No time information was found for any of the scenes named " << scene_name);      
-    else
-    {
-      scene_m = planning_scenes[index];
-      return true;
-    }
-  }
-  
-  scene_m = planning_scenes[0];
-  return true;
-}
-
-bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name,
-                                                              const ros::Time& time, double margin) const
-{
-  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, false);
-  if (planning_scenes.empty())
-  {
-    ROS_WARN("Planning scene '%s' was not found in the database", scene_name.c_str());
-    return false;
-  }
-  if (planning_scenes.size() > 1)
-  {
-    double diff = 0.0;
-    int index = -1;
-    for (unsigned int i = 0; i < planning_scenes.size(); ++i)
-      if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str()))
-      {
-        double d = fabs(time.toSec() - planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME));
-        if (index < 0 || d < diff)
-        {
-          diff = d;
-          index = i;
-        }
-      }
-    if (diff > margin)
-      ROS_INFO_STREAM("Did not match time for scene " << scene_name);
-    else 
-      ROS_INFO_STREAM("Matched time stamp for scene " << scene_name);
-    if (index < 0)
-      ROS_INFO_STREAM("No time information was found for any of the scenes named " << scene_name);      
-    else
-    {
-      scene_m = planning_scenes[index];
-      return true;
-    }
-  }
-  
-  scene_m = planning_scenes[0];
+  scene_m = planning_scenes.back();
   return true;
 }
 

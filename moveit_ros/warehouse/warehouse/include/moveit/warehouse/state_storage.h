@@ -34,50 +34,48 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVEIT_WAREHOUSE_CONSTRAINTS_STORAGE_
-#define MOVEIT_MOVEIT_WAREHOUSE_CONSTRAINTS_STORAGE_
+#ifndef MOVEIT_MOVEIT_WAREHOUSE_STATE_STORAGE_
+#define MOVEIT_MOVEIT_WAREHOUSE_STATE_STORAGE_
 
-#include "moveit/warehouse/moveit_message_storage.h"
-#include <moveit_msgs/Constraints.h>
+#include <moveit/warehouse/moveit_message_storage.h>
+#include <moveit_msgs/RobotState.h>
 
 namespace moveit_warehouse
 {
 
-typedef mongo_ros::MessageWithMetadata<moveit_msgs::Constraints>::ConstPtr ConstraintsWithMetadata;
-typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::Constraints> > ConstraintsCollection;
+typedef mongo_ros::MessageWithMetadata<moveit_msgs::RobotState>::ConstPtr RobotStateWithMetadata;
+typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotState> > RobotStateCollection;
 
-class ConstraintsStorage : public MoveItMessageStorage
+class RobotStateStorage : public MoveItMessageStorage
 {
 public:
 
   static const std::string DATABASE_NAME;
   
-  static const std::string CONSTRAINTS_ID_NAME;
-  static const std::string CONSTRAINTS_GROUP_NAME;
+  static const std::string STATE_NAME;
   static const std::string ROBOT_NAME;
 
-
-  /** \brief Initialize the constraints storage to connect to a specified \e host and \e port for the MongoDB. 
+  /** \brief Initialize the state storage to connect to a specified \e host and \e port for the MongoDB. 
       If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying 
       which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
       If no values are found, the defaults are left to be the ones MongoDB uses. 
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
-  ConstraintsStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  RobotStateStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
   
-  void addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot = "", const std::string &group = "");
-  bool hasConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "") const;
-  void getKnownConstraints(std::vector<std::string> &names, const std::string &robot = "", const std::string &group = "") const;
+  void addRobotState(const moveit_msgs::RobotState &msg, const std::string &name, const std::string &robot = "");
+  bool hasRobotState(const std::string &name, const std::string &robot = "") const;
+  void getKnownRobotStates(std::vector<std::string> &names, const std::string &robot = "") const;
   
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name, const std::string &robot = "", const std::string &group = "") const;
+  bool getRobotState(RobotStateWithMetadata &msg_m, const std::string &name, const std::string &robot = "") const;
 
-  void renameConstraints(const std::string &old_name, const std::string &new_name, const std::string &robot = "", const std::string &group = "");
+  void renameRobotState(const std::string &old_name, const std::string &new_name, const std::string &robot = "");
 
-  void removeConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "");
+  void removeRobotState(const std::string &name, const std::string &robot = "");
   
 private:
   
-  ConstraintsCollection constraints_collection_;
+  RobotStateCollection state_collection_;
   
 };
 }
