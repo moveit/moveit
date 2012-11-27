@@ -33,6 +33,7 @@
 
   <export>
     <rviz plugin="${prefix}/motion_planning_rviz_plugin_description.xml"/>
+    <rviz plugin="${prefix}/planning_scene_rviz_plugin_description.xml"/>
   </export>
 
 </package>

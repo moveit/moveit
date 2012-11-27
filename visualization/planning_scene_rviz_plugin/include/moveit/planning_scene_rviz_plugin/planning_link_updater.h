@@ -29,13 +29,13 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
-#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
+#ifndef MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
+#define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
 
 #include <rviz/robot/link_updater.h>
 #include <moveit/kinematic_state/kinematic_state.h>
 
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
 
 /** \brief Update the links of an rviz::Robot using a kinematic_state::KinematicState */
