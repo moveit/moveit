@@ -246,30 +246,30 @@ kinematic_state::JointState* kinematic_state::JointStateGroup::getJointState(con
     return it->second;
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, double timeout, const kinematics::KinematicsBase::IKCallbackFn &constraint)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
     return false;
-  return setFromIK(pose, solver->getTipFrame(), timeout);
+  return setFromIK(pose, solver->getTipFrame(), timeout, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout, const kinematics::KinematicsBase::IKCallbackFn &constraint)
 {
   Eigen::Affine3d mat;
   tf::poseMsgToEigen(pose, mat);
-  return setFromIK(mat, tip, timeout);
+  return setFromIK(mat, tip, timeout, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, double timeout, const kinematics::KinematicsBase::IKCallbackFn &constraint)
 { 
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
     return false;
-  return setFromIK(pose, solver->getTipFrame(), timeout);
+  return setFromIK(pose, solver->getTipFrame(), timeout, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, double timeout, const kinematics::KinematicsBase::IKCallbackFn &constraint)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -365,9 +365,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
     // compute the IK solution
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
-    if (solver->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
+    if (constraint ?
+        solver->searchPositionIK(ik_query, seed, timeout, ik_sol, constraint, error) : 
+        solver->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
     {
-      
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         solution[i] = ik_sol[bij[i]];
