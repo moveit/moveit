@@ -1,7 +1,7 @@
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set( headers
-  include/moveit/planning_scene_rviz_plugin/scene_display.h
+  include/moveit/planning_scene_rviz_plugin/planning_scene_display.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -11,7 +11,7 @@ qt4_wrap_cpp(MOC_SOURCES ${headers})
 set(SOURCE_FILES 
   src/planning_scene_render.cpp
   src/planning_link_updater.cpp
-  src/scene_display.cpp
+  src/planning_scene_display.cpp
 )
 
 set(MOVEIT_LIB_NAME moveit_planning_scene_rviz_plugin)

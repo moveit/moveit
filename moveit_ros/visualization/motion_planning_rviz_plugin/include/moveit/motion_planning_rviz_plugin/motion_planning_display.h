@@ -29,16 +29,16 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_DISPLAY_
-#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_DISPLAY_
+#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_DISPLAY_
+#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_DISPLAY_
 
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
+#include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
+#include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 
 #ifndef Q_MOC_RUN
 #include <moveit/motion_planning_rviz_plugin/background_processing.h>
-#include <moveit/motion_planning_rviz_plugin/planning_frame.h>
-#include <moveit/motion_planning_rviz_plugin/planning_scene_render.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -69,15 +69,15 @@ class ColorProperty;
 class MovableText;
 }
 
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
 
-class PlanningDisplay : public rviz::Display
+class MotionPlanningDisplay : public PlanningSceneDisplay
 {
   Q_OBJECT
-
-public:
-
+  
+  public:
+  
   struct TrajectoryMessageToDisplay
   {
     TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene);
@@ -87,41 +87,34 @@ public:
     std::vector<kinematic_state::KinematicStatePtr> trajectory_;
     std::vector<double> time_from_start_;
   };
-
+  
   /**
    * \brief Contructor
    */
-  PlanningDisplay();
-
+  MotionPlanningDisplay();
+  
   /**
    * \brief Destructor
    */
-  virtual ~PlanningDisplay();
-
+  virtual ~MotionPlanningDisplay();
+  
   virtual void load( const rviz::Config& config );
   virtual void save( rviz::Config config ) const;
-
+  
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
   
   // pass the execution of this function call to a separate thread that runs in the background
   void addBackgroundJob(const boost::function<void(void)> &job);
-
+  
   // queue the execution of this function for the next time the main update() loop gets called
   void addMainLoopJob(const boost::function<void(void)> &job);
   
-  /**
-   * \brief Set of functions for highlighting parts of a robot
-   */
-  
-  void setLinkColor(const std::string& link_name, const QColor &color);
-  void unsetLinkColor(const std::string& link_name);
-
   const kinematic_state::KinematicStatePtr& getQueryStartState(void) const
   {
     return query_start_state_->getState();
   }
-
+  
   const kinematic_state::KinematicStatePtr& getQueryGoalState(void) const
   {
     return query_goal_state_->getState();
@@ -134,34 +127,18 @@ public:
   void updateQueryGoalState(void);
   
   std::string getCurrentPlanningGroup(void) const;
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void);
-  const planning_scene::PlanningScenePtr& getPlanningScene(void);  
-  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)
-  {
-    return planning_scene_monitor_;
-  }
-
-  void showPlanningFrame(bool show);
+  
   void queueRenderSceneGeometry(void);
   
   void displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
                               const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
                                                                                                 
 private Q_SLOTS:
+
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-  void changedRobotDescription();
-  void changedSceneName();
-  void changedRootLinkName();
-  void changedSceneEnabled();
-  void changedSceneRobotEnabled();
-  void changedRobotSceneAlpha();
-  void changedSceneAlpha();
-  void changedSceneColor();
-  void changedAttachedBodyColor();
-  void changedSceneDisplayTime();
-  void changedPlanningSceneTopic();
+
   void changedDisplayPathVisualEnabled();
   void changedDisplayPathCollisionEnabled();
   void changedRobotPathAlpha();
@@ -186,34 +163,22 @@ private Q_SLOTS:
   
 protected:
 
-  /**
-   * \brief Loads a URDF from our #description_param_
-   */
-  void loadRobotModel();
+  virtual void onRobotModelLoaded();
+  virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
 
   /**
-   * \brief ROS callback for an incoming kinematic path message
+   * \brief ROS callback for an incoming path message
    */
   void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
 
-  /**
-   * \brief Set the robot's position, given the target frame and the planning frame
-   */
-  void calculateOffsetPosition();
-
-  void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  void renderPlanningScene(void);
   void renderWorkspaceBox(void);
-  void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
-  void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
-  void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color);
-  void unsetGroupColor(rviz::Robot* robot, const std::string& group_name);
-  void unsetAllColors(rviz::Robot* robot);
+  void updateLinkColors(void);
+  
   void displayTable(const std::map<std::string, double> &values,
                     const Ogre::ColourValue &color,
                     const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
   void displayMetrics(bool start);
-  void updateLinkColors(void);
+
   void executeMainLoopJobs(void);
   void clearTrajectoryTrail();  
   void publishInteractiveMarkers(void);
@@ -240,32 +205,25 @@ protected:
   rviz::Robot* query_robot_start_;                  ///< Handles drawing the robot at the start configuration
   rviz::Robot* query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
   rviz::Robot* display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
-  rviz::Robot* planning_scene_robot_;               ///< Handles actually drawing the robot from the planning scene
 
-  Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
-  Ogre::SceneNode* rendered_geometry_node_;         ///< displays planning scene geometry
   Ogre::SceneNode* text_display_scene_node_;        ///< displays texts
   bool text_display_for_start_;                     ///< indicates whether the text display is for the start state or not
-  
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  rviz::MovableText *text_to_display_;
+    
   boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
   boost::shared_ptr<TrajectoryMessageToDisplay> trajectory_message_to_display_;
   std::vector<rviz::Robot*> trajectory_trail_;
-  
   ros::Subscriber trajectory_topic_sub_;
+  bool animating_path_;
+  int current_state_;
+  float current_state_time_;
 
-  // render the planning scene
-  boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
-  
   // render the workspace box
   boost::scoped_ptr<rviz::Shape> workspace_box_;
   
-  rviz::MovableText *text_to_display_;
-    
   // the planning frame
-  PlanningFrame *frame_;
+  MotionPlanningFrame *frame_;
   QDockWidget *frame_dock_;
-  bool show_planning_frame_;
   
   // robot interaction
   robot_interaction::RobotInteractionPtr robot_interaction_;
@@ -281,18 +239,11 @@ protected:
   std::set<std::string> invalid_start_state_;
   std::set<std::string> invalid_goal_state_;
   
-  bool animating_path_;
-  int current_state_;
-  float current_state_time_;
-  float current_scene_time_;
-  bool planning_scene_needs_render_;
-
   //Metric calculations
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  
   std::map<std::string, dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
      
   // properties to show on side panel
-  rviz::Property* scene_category_;
   rviz::Property* path_category_;
   rviz::Property* plan_category_;
   rviz::Property* metrics_category_;
@@ -306,22 +257,11 @@ protected:
   rviz::FloatProperty* query_goal_alpha_property_;
   rviz::ColorProperty* query_colliding_link_color_property_;
 
-  rviz::StringProperty* robot_description_property_;
-  rviz::StringProperty* scene_name_property_;
-  rviz::StringProperty* root_link_name_property_;
   rviz::BoolProperty* display_path_visual_enabled_property_;
   rviz::BoolProperty* display_path_collision_enabled_property_;
-  rviz::BoolProperty* scene_enabled_property_;
-  rviz::BoolProperty* scene_robot_enabled_property_;
   rviz::EditableEnumProperty* state_display_time_property_;
-  rviz::FloatProperty* scene_display_time_property_;
   rviz::RosTopicProperty* trajectory_topic_property_;
-  rviz::RosTopicProperty* planning_scene_topic_property_;
   rviz::FloatProperty* robot_path_alpha_property_;
-  rviz::FloatProperty* robot_scene_alpha_property_;
-  rviz::FloatProperty* scene_alpha_property_;
-  rviz::ColorProperty* scene_color_property_;
-  rviz::ColorProperty* attached_body_color_property_;
   rviz::BoolProperty* loop_display_property_;
   rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* compute_weight_limit_property_;
@@ -334,6 +274,6 @@ protected:
   rviz::Display *int_marker_display_;
 };
 
-} // namespace motion_planning_rviz_plugin
+} // namespace moveit_rviz_plugin
 
 #endif

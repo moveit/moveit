@@ -29,8 +29,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_FRAME_
-#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_FRAME_
+#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_FRAME_
+#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_FRAME_
 
 #include <QWidget>
 #include <QTreeWidgetItem>
@@ -53,7 +53,7 @@ class DisplayContext;
 
 namespace Ui
 {
-class MotionPlanningFrame;
+class MotionPlanningUI;
 }
 
 namespace moveit_warehouse
@@ -61,18 +61,18 @@ namespace moveit_warehouse
 class PlanningSceneStorage;
 }
 
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
-class PlanningDisplay;
+class MotionPlanningDisplay;
 
-class PlanningFrame : public QWidget
+class MotionPlanningFrame : public QWidget
 {
-  friend class PlanningDisplay;
+  friend class MotionPlanningDisplay;
   Q_OBJECT
 
 public:
-  PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
-  ~PlanningFrame(void);
+  MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
+  ~MotionPlanningFrame(void);
 
   void changePlanningGroup(void);
   void enable(void);
@@ -85,9 +85,9 @@ protected:
   
   void updateSceneMarkers(float wall_dt, float ros_dt);
 
-  PlanningDisplay *planning_display_;  
+  MotionPlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
-  Ui::MotionPlanningFrame *ui_;
+  Ui::MotionPlanningUI *ui_;
   
   boost::shared_ptr<move_group_interface::MoveGroup> move_group_;
   ros::WallTime move_group_construction_time_;
