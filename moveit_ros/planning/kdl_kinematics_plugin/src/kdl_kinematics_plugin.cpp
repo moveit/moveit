@@ -35,25 +35,24 @@
 * Author: Sachin Chitta, David Lu!!, Ugo Cupcic
 *********************************************************************/
 
-#include <kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-#include <pluginlib/class_list_macros.h>
+#include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
+#include <class_loader/class_loader.h> 
 
 //#include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_kdl.h>
 #include <kdl_parser/kdl_parser.hpp>
 
 // URDF, SRDF
-#include <urdf_interface/model.h>
-#include <urdf/model.h>
-#include <srdf/model.h>
+#include <urdf_model/model.h>
+#include <srdfdom/model.h>
 
 // Kinematic model
-#include <planning_models/kinematic_model.h>
+#include <moveit/kinematic_model/kinematic_model.h>
 
 static const double MAX_TIMEOUT_KDL_PLUGIN = 5.0;
  
 //register KDLKinematics as a KinematicsBase implementation
-PLUGINLIB_DECLARE_CLASS(kdl_kinematics_plugin,KDLKinematicsPlugin, kdl_kinematics_plugin::KDLKinematicsPlugin, kinematics::KinematicsBase)
+CLASS_LOADER_REGISTER_CLASS(kdl_kinematics_plugin::KDLKinematicsPlugin, kinematics::KinematicsBase)
 
 namespace kdl_kinematics_plugin
 {
@@ -106,18 +105,18 @@ bool KDLKinematicsPlugin::initialize(const std::string& group_name,
   setValues(group_name, base_frame, tip_frame, search_discretization);
 
   ros::NodeHandle private_handle("~");  
-  planning_models::KinematicModelPtr kinematic_model;
+  kinematic_model::KinematicModelPtr kinematic_model;
   const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_.getSRDF();
   const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader_.getURDF();
 
-  kinematic_model.reset(new planning_models::KinematicModel(urdf_model, srdf));
+  kinematic_model.reset(new kinematic_model::KinematicModel(urdf_model, srdf));
 
   if(!kinematic_model->hasJointModelGroup(group_name))
   {
     ROS_ERROR("Kinematic model does not contain group %s",group_name.c_str());
     return false;
   }  
-  planning_models::KinematicModel::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name);
+  kinematic_model::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name);
   if(!joint_model_group->isChain())
   {
     ROS_ERROR("Group is not a chain");
@@ -126,7 +125,7 @@ bool KDLKinematicsPlugin::initialize(const std::string& group_name,
   
   KDL::Tree kdl_tree;
   
-  if (!kdl_parser::treeFromUrdfModel((const urdf::Model&) *urdf_model, kdl_tree)) 
+  if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree)) 
   {
     ROS_ERROR("Could not initialize tree object");
     return false;
@@ -212,14 +211,12 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
                                         std::vector<double> &solution,
                                         moveit_msgs::MoveItErrorCodes &error_code) const
 {
-  const IKCallbackFn desired_pose_callback = 0;
   const IKCallbackFn solution_callback = 0;  
 
   return searchPositionIK(ik_pose,
                           ik_seed_state,
                           MAX_TIMEOUT_KDL_PLUGIN,
                           solution,
-                          desired_pose_callback,
                           solution_callback,
                           error_code,
                           1,
@@ -232,14 +229,12 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            std::vector<double> &solution,
                                            moveit_msgs::MoveItErrorCodes &error_code) const
 {
-  const IKCallbackFn desired_pose_callback = 0;
   const IKCallbackFn solution_callback = 0;  
 
   return searchPositionIK(ik_pose,
                           ik_seed_state,
                           timeout,
                           solution,
-                          desired_pose_callback,
                           solution_callback,
                           error_code,
                           max_search_iterations_,
@@ -254,14 +249,12 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            std::vector<double> &solution,
                                            moveit_msgs::MoveItErrorCodes &error_code) const
 {
-  const IKCallbackFn desired_pose_callback = 0;
   const IKCallbackFn solution_callback = 0;  
 
   return searchPositionIK(ik_pose,
                           ik_seed_state,
                           timeout,
                           solution,
-                          desired_pose_callback,
                           solution_callback,
                           error_code,
                           max_search_iterations_,
@@ -274,7 +267,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            const std::vector<double> &ik_seed_state,
                                            double timeout,
                                            std::vector<double> &solution,
-                                           const IKCallbackFn &desired_pose_callback,
                                            const IKCallbackFn &solution_callback,
                                            moveit_msgs::MoveItErrorCodes &error_code) const
 {
@@ -282,7 +274,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           ik_seed_state,
                           timeout,
                           solution,
-                          desired_pose_callback,
                           solution_callback,
                           error_code,
                           max_search_iterations_,
@@ -295,7 +286,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            unsigned int redundancy,
                                            double consistency_limit,
                                            std::vector<double> &solution,
-                                           const IKCallbackFn &desired_pose_callback,
                                            const IKCallbackFn &solution_callback,
                                            moveit_msgs::MoveItErrorCodes &error_code) const
 {
@@ -303,7 +293,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           ik_seed_state,
                           timeout,
                           solution,
-                          desired_pose_callback,
                           solution_callback,
                           error_code,
                           max_search_iterations_,
@@ -316,7 +305,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            const std::vector<double> &ik_seed_state,
                                            double timeout,
                                            std::vector<double> &solution,
-                                           const IKCallbackFn &desired_pose_callback,
                                            const IKCallbackFn &solution_callback,
                                            moveit_msgs::MoveItErrorCodes &error_code,
                                            unsigned int max_search_iterations,
@@ -341,7 +329,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   solution.resize(dimension_);
   
   KDL::Frame pose_desired;
-  tf::PoseMsgToKDL(ik_pose, pose_desired);
+  tf::poseMsgToKDL(ik_pose, pose_desired);
 
   ROS_DEBUG_STREAM("searchPositionIK2: Position request pose is " <<
                    ik_pose.position.x << " " <<
@@ -357,16 +345,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     jnt_seed_state_(i) = ik_seed_state[i]; 
   jnt_pos_in_ = jnt_seed_state_;
 
-  if(!desired_pose_callback.empty())
-  {
-    desired_pose_callback(ik_pose,ik_seed_state,error_code);
-    if(error_code.val != error_code.SUCCESS)
-    {
-      ROS_DEBUG("Could not find inverse kinematics for desired end-effector pose since the pose may be in collision");
-      return false;
-    }
-  }
-  
   for(int i=0; i < (int) max_search_iterations; ++i)
   {
     if(timedOut(n1,timeout))
@@ -444,7 +422,7 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_nam
     ROS_DEBUG("End effector index: %d",getKDLSegmentIndex(link_names[i]));
     if(fk_solver_->JntToCart(jnt_pos_in_,p_out,getKDLSegmentIndex(link_names[i])) >=0)
     {
-      tf::PoseKDLToMsg(p_out,poses[i]);
+      tf::poseKDLToMsg(p_out,poses[i]);
     }
     else
     {

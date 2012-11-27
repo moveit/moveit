@@ -8,6 +8,7 @@ include_directories(planning_pipeline/include)
 include_directories(planning_scene_monitor/include)
 include_directories(trajectory_execution_manager/include)
 include_directories(plan_execution/include)
+include_directories(kdl_kinematics_plugin/include)
 
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
@@ -65,6 +66,7 @@ include_directories(cfg/cpp)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/stamps/${PROJECT_NAME}/cfg/cpp)
 
 add_subdirectory(robot_model_loader)
+add_subdirectory(kdl_kinematics_plugin)
 add_subdirectory(kinematics_plugin_loader)
 add_subdirectory(planning_models_loader)
 add_subdirectory(planning_pipeline)
@@ -75,9 +77,13 @@ add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
 add_subdirectory(move_group)
 
-install(FILES planning_request_adapters_plugin_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(
+  FILES
+    planning_request_adapters_plugin_description.xml
+    kdl_kinematics_plugin_description.xml
+  DESTINATION
+    ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #collision_distance_field_ros
-#kdl_kinematics_plugin
 #kinematics_planner_ros
 #kinematics_reachability
