@@ -73,9 +73,9 @@ class RenderPanel;
 class VisualizationManager;
 }
 
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
-class PlanningDisplay;
+class PlanningSceneDisplay;
 }
 
 namespace moveit_setup_assistant
@@ -209,7 +209,7 @@ private:
   // Rviz Panel
   rviz::RenderPanel* rviz_render_panel_;
   rviz::VisualizationManager* rviz_manager_;
-  motion_planning_rviz_plugin::PlanningDisplay* planning_display_;
+  moveit_rviz_plugin::PlanningSceneDisplay* scene_display_;
 
   // Screen Widgets
   StartScreenWidget *ssw_;
