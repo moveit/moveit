@@ -180,18 +180,22 @@ public:
    * \return True if jacobian was successfully computed, false otherwise
    */    
   bool getJacobian(const std::string &link_name, const Eigen::Vector3d &reference_point_position, Eigen::MatrixXd& jacobian) const;
-  
-  bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout);
+
+  bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout,
+                 const kinematics::KinematicsBase::IKCallbackFn &constraint = kinematics::KinematicsBase::IKCallbackFn());
   
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The transform is assumed to be in the reference frame of the kinematic model. Returns true on success. */
-  bool setFromIK(const geometry_msgs::Pose &pose, double timeout);
+  bool setFromIK(const geometry_msgs::Pose &pose, double timeout,
+                 const kinematics::KinematicsBase::IKCallbackFn &constraint = kinematics::KinematicsBase::IKCallbackFn());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The transform is assumed to be in the reference frame of the kinematic model. Returns true on success. */
-  bool setFromIK(const Eigen::Affine3d &pose, double timeout);
+  bool setFromIK(const Eigen::Affine3d &pose, double timeout,
+                 const kinematics::KinematicsBase::IKCallbackFn &constraint = kinematics::KinematicsBase::IKCallbackFn());
 
-  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout);
+  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout,
+                 const kinematics::KinematicsBase::IKCallbackFn &constraint = kinematics::KinematicsBase::IKCallbackFn());
 
   JointStateGroup& operator=(const JointStateGroup &other);
 
