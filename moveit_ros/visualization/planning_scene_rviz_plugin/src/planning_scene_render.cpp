@@ -29,7 +29,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/motion_planning_rviz_plugin/planning_scene_render.h>
+#include <moveit/planning_scene_rviz_plugin/planning_scene_render.h>
+#include <moveit/planning_scene_rviz_plugin/planning_link_updater.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
@@ -40,9 +41,7 @@
 #include <rviz/display_context.h>
 #include <rviz/robot/robot.h>
 
-#include "planning_link_updater.h"
-
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
 
 PlanningSceneRender::PlanningSceneRender(rviz::DisplayContext *context, Ogre::SceneNode *node, rviz::Robot *robot) :

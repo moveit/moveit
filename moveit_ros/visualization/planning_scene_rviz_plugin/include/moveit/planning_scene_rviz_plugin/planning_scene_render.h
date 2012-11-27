@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Willow Garage, Inc.
+ * Copyright (c) 2012, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,57 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_link_updater.h"
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreVector3.h>
+#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
+#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
 
-bool motion_planning_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
-                                                                         Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
+#include <moveit/planning_scene/planning_scene.h>
+#include <rviz/helpers/color.h>
+#include <OGRE/OgreMaterial.h>
+
+namespace Ogre
 {
-  const kinematic_state::LinkState* link_state = kinematic_state_->getLinkState( link_name );
-  
-  if ( !link_state )
-  {
-    return false;
-  }
-  
-  const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
-  Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
-  visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
-  visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
-  collision_position = visual_position;
-  collision_orientation = visual_orientation;
-  
-  return true;
+class Entity;
+class SceneNode;
+class ManualObject;
 }
+
+namespace rviz
+{
+class DisplayContext;
+class Shape;
+class Robot;
+}
+
+namespace moveit_rviz_plugin
+{
+
+class PlanningSceneRender
+{
+public:
+  PlanningSceneRender(rviz::DisplayContext *context, Ogre::SceneNode *node, rviz::Robot *robot);
+ 
+  void renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
+                           const rviz::Color &env_color, rviz::Color &attached_color,
+                           float scene_alpha, float robot_alpha);
+  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
+  void clear(void);
+  
+protected:
+  
+  rviz::DisplayContext *context_;
+  
+  Ogre::SceneNode *scene_node_;
+  rviz::Robot *scene_robot_;
+  
+  std::vector<boost::shared_ptr<rviz::Shape> > scene_shapes_;
+  std::vector<Ogre::ManualObject*> manual_objects_;
+  Ogre::MaterialPtr material_;
+  std::string material_name_;
+  
+};
+
+  
+}
+
+#endif
 

@@ -1,28 +1,21 @@
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set( headers
-  include/moveit/motion_planning_rviz_plugin/planning_display.h
-  include/moveit/motion_planning_rviz_plugin/planning_frame.h
+  include/moveit/planning_scene_rviz_plugin/scene_display.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(MOC_SOURCES ${headers})
 
-qt4_wrap_ui(UIC_FILES
-  src/ui/motion_planning_rviz_plugin_frame.ui
-)
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 # Plugin Source
 set(SOURCE_FILES 
-  src/background_processing.cpp
-  src/planning_frame.cpp
-  src/planning_display.cpp
+  src/planning_scene_render.cpp
+  src/planning_link_updater.cpp
+  src/scene_display.cpp
 )
 
-set(MOVEIT_LIB_NAME moveit_motion_planning_rviz_plugin)
-add_library(${MOVEIT_LIB_NAME}_core ${SOURCE_FILES} ${MOC_SOURCES} ${UIC_FILES})
+set(MOVEIT_LIB_NAME moveit_planning_scene_rviz_plugin)
+add_library(${MOVEIT_LIB_NAME}_core ${SOURCE_FILES} ${MOC_SOURCES})
 target_link_libraries(${MOVEIT_LIB_NAME}_core ${catkin_LIBRARIES} ${OGRE_LIBRARIES} ${QT_LIBRARIES} ${Boost_LIBRARIES})
 
 add_library(${MOVEIT_LIB_NAME} src/plugin_init.cpp)
