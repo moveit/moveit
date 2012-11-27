@@ -53,7 +53,7 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/view_manager.h>
 #include <rviz/default_plugin/view_controllers/orbit_view_controller.h>
-#include <moveit/motion_planning_rviz_plugin/planning_display.h>
+#include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 
 namespace moveit_setup_assistant
 {
@@ -168,10 +168,10 @@ SetupAssistantWidget::~SetupAssistantWidget()
 
 void SetupAssistantWidget::virtualJointReferenceFrameChanged()
 {
-  if (rviz_manager_ && planning_display_)
+  if (rviz_manager_ && scene_display_)
   {
     rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getKinematicModel()->getModelFrame() ) );
-    planning_display_->reset();
+    scene_display_->reset();
   }
 }
 
@@ -311,22 +311,16 @@ void SetupAssistantWidget::loadRviz()
   rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getKinematicModel()->getModelFrame() ) );
 
   // Create the MoveIt Rviz Plugin and attach to display
-  planning_display_ = new motion_planning_rviz_plugin::PlanningDisplay();
-  planning_display_->setName( "Motion Planning" );  
-  planning_display_->showPlanningFrame(false);
+  scene_display_ = new moveit_rviz_plugin::PlanningSceneDisplay();
+  scene_display_->setName( "Planning Scene" );  
 
-  rviz_manager_->addDisplay( planning_display_, true );
+  rviz_manager_->addDisplay( scene_display_, true );
 
   // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
-  planning_display_->subProp("Planning Scene")->subProp("Planning Scene Topic")->setValue(QString::fromStdString( MOVEIT_PLANNING_SCENE ));
+  scene_display_->subProp("Planning Scene Topic")->setValue(QString::fromStdString( MOVEIT_PLANNING_SCENE ));
 
   // Set robot description
-  planning_display_->subProp("Robot Description")->setValue(QString::fromStdString( ROBOT_DESCRIPTION ));
-
-  // do not display query start & goal states
-  planning_display_->subProp("Planning Request")->subProp("Query Start State")->setValue(false);
-  planning_display_->subProp("Planning Request")->subProp("Query Goal State")->setValue(false);
-  
+  scene_display_->subProp("Robot Description")->setValue(QString::fromStdString( ROBOT_DESCRIPTION ));
 
   // Zoom into robot
   rviz::ViewController* view = rviz_manager_->getViewManager()->getCurrent();
@@ -347,7 +341,7 @@ void SetupAssistantWidget::highlightLink( const std::string& link_name )
 {  
   const kinematic_model::LinkModel *lm = config_data_->getKinematicModel()->getLinkModel(link_name);
   if (lm->getShape()) // skip links with no geometry
-    planning_display_->setLinkColor( link_name, QColor(255, 0, 0) );
+    scene_display_->setLinkColor( link_name, QColor(255, 0, 0) );
 }
 
 // ******************************************************************************************
@@ -389,7 +383,7 @@ void SetupAssistantWidget::unhighlightAll()
   for( std::vector<std::string>::const_iterator link_it = links.begin();
        link_it < links.end(); ++link_it )
   {
-    planning_display_->unsetLinkColor( *link_it );
+    scene_display_->unsetLinkColor( *link_it );
   }
 
 }
