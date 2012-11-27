@@ -35,8 +35,8 @@
 * Author: Sachin Chitta, David Lu!!, Ugo Cupcic
 *********************************************************************/
 
-#ifndef KDL_KINEMATICS_PLUGIN_H_
-#define KDL_KINEMATICS_PLUGIN_H_
+#ifndef MOVEIT_ROS_PLANNING_KDL_KINEMATICS_PLUGIN_
+#define MOVEIT_ROS_PLANNING_KDL_KINEMATICS_PLUGIN_
 
 // ROS
 #include <ros/ros.h>
@@ -47,13 +47,10 @@
 
 // ROS msgs
 #include <geometry_msgs/PoseStamped.h>
-#include <kinematics_msgs/GetPositionFK.h>
-#include <kinematics_msgs/GetPositionIK.h>
-#include <kinematics_msgs/GetKinematicSolverInfo.h>
+#include <moveit_msgs/GetPositionFK.h>
+#include <moveit_msgs/GetPositionIK.h>
+#include <moveit_msgs/GetKinematicSolverInfo.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
-
-// Plugin
-#include <kinematics_base/kinematics_base.h>
 
 // KDL
 #include <kdl/jntarray.hpp>
@@ -62,7 +59,8 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 
 // MoveIt!
-#include <robot_model_loader/robot_model_loader.h>
+#include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 namespace kdl_kinematics_plugin                        
 {
@@ -101,7 +99,6 @@ namespace kdl_kinematics_plugin
                                   const std::vector<double> &ik_seed_state,
                                   double timeout,
                                   std::vector<double> &solution,
-                                  const IKCallbackFn &desired_pose_callback,
                                   const IKCallbackFn &solution_callback,
                                   moveit_msgs::MoveItErrorCodes &error_code) const;
     
@@ -111,7 +108,6 @@ namespace kdl_kinematics_plugin
                                   unsigned int redundancy,
                                   double consistency_limit,
                                   std::vector<double> &solution,
-                                  const IKCallbackFn &desired_pose_callback,
                                   const IKCallbackFn &solution_callback,
                                   moveit_msgs::MoveItErrorCodes &error_code) const;      
 
@@ -144,7 +140,6 @@ namespace kdl_kinematics_plugin
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
    * @param solution the solution vector
-   * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
    * @param solution_callback A callback solution for the IK solution
    * @param error_code an error code that encodes the reason for failure or success
    * @param max_search_iteration The maximum number of times the search will restart
@@ -157,7 +152,6 @@ namespace kdl_kinematics_plugin
                           const std::vector<double> &ik_seed_state,
                           double timeout,
                           std::vector<double> &solution,
-                          const IKCallbackFn &desired_pose_callback,
                           const IKCallbackFn &solution_callback,
                           moveit_msgs::MoveItErrorCodes &error_code,
                           unsigned int max_search_iterations,
@@ -203,9 +197,9 @@ namespace kdl_kinematics_plugin
 
     bool active_; /** Internal variable that indicates whether solvers are configured and ready */
 
-    kinematics_msgs::KinematicSolverInfo ik_chain_info_; /** Stores information for the inverse kinematics solver */
+    moveit_msgs::KinematicSolverInfo ik_chain_info_; /** Stores information for the inverse kinematics solver */
 
-    kinematics_msgs::KinematicSolverInfo fk_chain_info_; /** Store information for the forward kinematics solver */
+    moveit_msgs::KinematicSolverInfo fk_chain_info_; /** Store information for the forward kinematics solver */
 
     KDL::Chain kdl_chain_; 
 

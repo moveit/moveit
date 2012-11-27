@@ -19,15 +19,20 @@
   <build_depend>pluginlib</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
- 
+  <build_depend>orocos_kdl</build_depend>
+  <build_depend>geometry_angles_utils</build_depend>
+
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_perception</run_depend>
   <run_depend>pluginlib</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>orocos_kdl</run_depend>
+  <run_depend>geometry_angles_utils</run_depend>
 
   <export>
-    <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>
+    <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/> 
+    <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>
   </export>
 
 </package>
