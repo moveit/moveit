@@ -59,21 +59,14 @@ class ColorProperty;
 namespace moveit_rviz_plugin
 {
 
-class SceneDisplay : public rviz::Display
+class PlanningSceneDisplay : public rviz::Display
 {
   Q_OBJECT
 
 public:
 
-  /**
-   * \brief Contructor
-   */
-  SceneDisplay();
-
-  /**
-   * \brief Destructor
-   */
-  virtual ~SceneDisplay();
+  PlanningSceneDisplay();
+  virtual ~PlanningSceneDisplay();
 
   virtual void load(const rviz::Config& config);
   virtual void save(rviz::Config config) const;
@@ -81,9 +74,6 @@ public:
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
   
-  /**
-   * \brief Set of functions for highlighting parts of a robot
-   */
   void setLinkColor(const std::string &link_name, const QColor &color);
   void unsetLinkColor(const std::string& link_name);
   
@@ -91,11 +81,7 @@ public:
   
   const kinematic_model::KinematicModelConstPtr& getKinematicModel(void);
   const planning_scene::PlanningScenePtr& getPlanningScene(void);  
-  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)
-  {
-    return planning_scene_monitor_;
-  }
-
+  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void);
                                                                                                 
 private Q_SLOTS:
 
@@ -116,13 +102,10 @@ private Q_SLOTS:
   
 protected:
 
-  /**
-   * \brief Loads a URDF from our #description_param_
-   */
-  virtual void loadRobotModel();
+  void loadRobotModel();
 
   /**
-   * \brief Set the robot's position, given the target frame and the planning frame
+   * \brief Set the scene node's position, given the target frame and the planning frame
    */
   void calculateOffsetPosition();
 
@@ -133,7 +116,6 @@ protected:
   void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color);
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name);
   void unsetAllColors(rviz::Robot* robot);
-  void updateLinkColors(void);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -141,10 +123,13 @@ protected:
   virtual void onDisable();
   virtual void fixedFrameChanged();
 
+  virtual void onRobotModelLoaded();
+  virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
+
   rviz::Robot* planning_scene_robot_;               ///< Handles actually drawing the robot from the planning scene
 
   Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
-  Ogre::SceneNode* rendered_geometry_node_;         ///< displays planning scene geometry
+  Ogre::SceneNode* planning_scene_geometry_node_;         ///< displays planning scene geometry
   
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
@@ -170,6 +155,6 @@ protected:
 
 };
 
-} // namespace planning_scene_rviz_plugin
+} // namespace moveit_rviz_plugin
 
 #endif

@@ -29,8 +29,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/motion_planning_rviz_plugin/planning_frame.h>
-#include <moveit/motion_planning_rviz_plugin/planning_display.h>
+#include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
+#include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/kinematic_state/conversions.h>
@@ -49,21 +49,21 @@
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
 
 static const int ITEM_TYPE_SCENE = 1;
 static const int ITEM_TYPE_QUERY = 2;
 
-PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
+MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
   QWidget(parent),
   planning_display_(pdisplay),
   context_(context),
-  ui_(new Ui::MotionPlanningFrame())
+  ui_(new Ui::MotionPlanningUI())
 {
   // set up the GUI
   ui_->setupUi(this);
-
+  
   // connect bottons to actions; each action actually only registers the function pointer for the actual computation,
   // to keep the GUI more responsive
   connect( ui_->plan_button, SIGNAL( clicked() ), this, SLOT( planButtonClicked() ));
@@ -108,11 +108,11 @@ PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *co
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
 
-PlanningFrame::~PlanningFrame(void)
+MotionPlanningFrame::~MotionPlanningFrame(void)
 {
 }
 
-void PlanningFrame::changePlanningGroupHelper(void)
+void MotionPlanningFrame::changePlanningGroupHelper(void)
 { 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
@@ -140,18 +140,18 @@ void PlanningFrame::changePlanningGroupHelper(void)
       move_group_->allowReplanning(ui_->allow_replanning->isChecked());
       moveit_msgs::PlannerInterfaceDescription desc;
       if (move_group_->getInterfaceDescription(desc))
-        planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlannersList, this, desc));
-      planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::populateConstraintsList, this));
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
+      planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this));
     }
   }
 }
 
-void PlanningFrame::changePlanningGroup(void)
+void MotionPlanningFrame::changePlanningGroup(void)
 {
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::changePlanningGroupHelper, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::changePlanningGroupHelper, this));
 }
 
-void PlanningFrame::publishSceneButtonClicked(void)
+void MotionPlanningFrame::publishSceneButtonClicked(void)
 {
   if (planning_display_->getPlanningSceneMonitor())
   {
@@ -161,13 +161,13 @@ void PlanningFrame::publishSceneButtonClicked(void)
   }
 }
 
-void PlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   if (update_type & planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY)
-    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populateCollisionObjectsList, this));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
 
-void PlanningFrame::populateCollisionObjectsList(void)
+void MotionPlanningFrame::populateCollisionObjectsList(void)
 {
   ui_->collision_objects_list->setUpdatesEnabled(false); 
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
@@ -196,7 +196,7 @@ void PlanningFrame::populateCollisionObjectsList(void)
 }
 
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
-void  PlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void  MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
   ui_->object_x->setValue(feedback.pose.position.x);
   ui_->object_y->setValue(feedback.pose.position.y);
@@ -210,7 +210,7 @@ void  PlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeed
   ui_->object_rz->setValue(yaw);
 }
 
-void PlanningFrame::createSceneInteractiveMarker(void)
+void MotionPlanningFrame::createSceneInteractiveMarker(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -247,7 +247,7 @@ void PlanningFrame::createSceneInteractiveMarker(void)
   }
 }
 
-void PlanningFrame::importSceneButtonClicked(void)
+void MotionPlanningFrame::importSceneButtonClicked(void)
 {
   std::string path = QFileDialog::getOpenFileName(this, "Import Scene").toStdString();
   std::string name;
@@ -318,7 +318,7 @@ void PlanningFrame::importSceneButtonClicked(void)
   }
 }
 
-void PlanningFrame::addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
+void MotionPlanningFrame::addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
                               const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   world->addToObject(id, shape, pose);
@@ -331,7 +331,7 @@ void PlanningFrame::addObject(const collision_detection::CollisionWorldPtr &worl
   planning_display_->queueRenderSceneGeometry();
 }
 
-void PlanningFrame::removeObjectButtonClicked(void)
+void MotionPlanningFrame::removeObjectButtonClicked(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -347,7 +347,7 @@ void PlanningFrame::removeObjectButtonClicked(void)
   }
 } 
 
-void PlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
+void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
 {
   if (item->text(column) == item->toolTip(column) || item->toolTip(column).length() == 0)
     return;
@@ -361,7 +361,7 @@ void PlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
 
     if (planning_scene_storage->hasPlanningScene(new_name))
     {
-      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
+      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
       QMessageBox::warning(this, "Scene not renamed", QString("The scene name '").append(item->text(column)).append("' already exists"));
       return;
     }
@@ -378,7 +378,7 @@ void PlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
     std::string new_name = item->text(column).toStdString();
     if (planning_scene_storage->hasPlanningQuery(scene, new_name))
     {
-      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
+      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
       QMessageBox::warning(this, "Query not renamed", QString("The query name '").append(item->text(column)).
                            append("' already exists for scene ").append(item->parent()->text(0)));
       return;
@@ -392,7 +392,7 @@ void PlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
   }
 }
 
-void PlanningFrame::collisionObjectNameChanged(QListWidgetItem *item)
+void MotionPlanningFrame::collisionObjectNameChanged(QListWidgetItem *item)
 {
   if (item->type() < (int)collision_object_names_.size() && 
       collision_object_names_[item->type()] != item->text().toStdString() && 
@@ -424,7 +424,7 @@ void PlanningFrame::collisionObjectNameChanged(QListWidgetItem *item)
   }
 }
 
-void PlanningFrame::selectedCollisionObjectChanged(void)
+void MotionPlanningFrame::selectedCollisionObjectChanged(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -465,7 +465,7 @@ void PlanningFrame::selectedCollisionObjectChanged(void)
   }
 }
 
-void PlanningFrame::clearSceneButtonClicked(void)
+void MotionPlanningFrame::clearSceneButtonClicked(void)
 {    
   if (planning_display_->getPlanningSceneMonitor())
   {
@@ -475,7 +475,7 @@ void PlanningFrame::clearSceneButtonClicked(void)
   }
 }
 
-void PlanningFrame::objectPoseValueChanged(double value)
+void MotionPlanningFrame::objectPoseValueChanged(double value)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -510,7 +510,7 @@ void PlanningFrame::objectPoseValueChanged(double value)
   }
 }
 
-void PlanningFrame::sceneScaleStartChange(void)
+void MotionPlanningFrame::sceneScaleStartChange(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -522,13 +522,13 @@ void PlanningFrame::sceneScaleStartChange(void)
   }
 }
 
-void PlanningFrame::sceneScaleEndChange(void)
+void MotionPlanningFrame::sceneScaleEndChange(void)
 {
   scaled_object_.reset();
   ui_->scene_scale->setSliderPosition(100);
 }
 
-void PlanningFrame::sceneScaleChanged(int value)
+void MotionPlanningFrame::sceneScaleChanged(int value)
 {
   if (scaled_object_ && planning_display_->getPlanningSceneMonitor())
   {
@@ -549,7 +549,7 @@ void PlanningFrame::sceneScaleChanged(int value)
   }
 }
 
-void PlanningFrame::populateConstraintsList(void)
+void MotionPlanningFrame::populateConstraintsList(void)
 {
   if (move_group_)
   {
@@ -557,11 +557,11 @@ void PlanningFrame::populateConstraintsList(void)
     double dt = (ros::WallTime::now() - move_group_construction_time_).toSec();
     if (dt < 0.2)
       ros::WallDuration(0.1).sleep();
-    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populateConstraintsList, this, move_group_->getKnownConstraints()));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this, move_group_->getKnownConstraints()));
   }
 }
 
-void PlanningFrame::populateConstraintsList(const std::vector<std::string> &constr)
+void MotionPlanningFrame::populateConstraintsList(const std::vector<std::string> &constr)
 {
   ui_->path_constraints_combo_box->clear();     
   ui_->path_constraints_combo_box->addItem("None");
@@ -569,7 +569,7 @@ void PlanningFrame::populateConstraintsList(const std::vector<std::string> &cons
     ui_->path_constraints_combo_box->addItem(QString::fromStdString(constr[i]));
 }
 
-void PlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
+void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
 { 
   std::string group = planning_display_->getCurrentPlanningGroup();
   ui_->planning_algorithm_combo_box->clear();  
@@ -601,7 +601,7 @@ void PlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDesc
   ui_->planning_algorithm_combo_box->setCurrentIndex(0);
 }
 
-void PlanningFrame::enable(void)
+void MotionPlanningFrame::enable(void)
 {
   ui_->planning_algorithm_combo_box->clear();  
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
@@ -613,25 +613,25 @@ void PlanningFrame::enable(void)
   show();
 }
 
-void PlanningFrame::disable(void)
+void MotionPlanningFrame::disable(void)
 {
   move_group_.reset();
   hide();
 }
 
-void PlanningFrame::allowLookingToggled(bool checked)
+void MotionPlanningFrame::allowLookingToggled(bool checked)
 {
   if (move_group_)
     move_group_->allowLooking(checked);
 }
 
-void PlanningFrame::allowReplanningToggled(bool checked)
+void MotionPlanningFrame::allowReplanningToggled(bool checked)
 {
   if (move_group_)
     move_group_->allowReplanning(checked);
 }
 
-void PlanningFrame::pathConstraintsIndexChanged(int index)
+void MotionPlanningFrame::pathConstraintsIndexChanged(int index)
 {
   if (move_group_)
   {
@@ -642,7 +642,7 @@ void PlanningFrame::pathConstraintsIndexChanged(int index)
   }
 }
 
-void PlanningFrame::tabChanged(int index)
+void MotionPlanningFrame::tabChanged(int index)
 {
   if(scene_marker_ && index!=3)
     scene_marker_.reset();
@@ -650,7 +650,7 @@ void PlanningFrame::tabChanged(int index)
     createSceneInteractiveMarker();
 }
 
-void PlanningFrame::planningAlgorithmIndexChanged(int index)
+void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 {
   if (move_group_)
   {
@@ -661,7 +661,7 @@ void PlanningFrame::planningAlgorithmIndexChanged(int index)
   }
 }
 
-void PlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)
+void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)
 {
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
   mreq.num_planning_attempts = 1;
@@ -681,45 +681,45 @@ void PlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mre
   }
 }
 
-void PlanningFrame::planButtonClicked(void)
+void MotionPlanningFrame::planButtonClicked(void)
 {
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computePlanButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanButtonClicked, this));
 }
 
-void PlanningFrame::executeButtonClicked(void)
+void MotionPlanningFrame::executeButtonClicked(void)
 {
   ui_->execute_button->setEnabled(false);
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeExecuteButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeExecuteButtonClicked, this));
 }
 
-void PlanningFrame::planAndExecuteButtonClicked(void)
+void MotionPlanningFrame::planAndExecuteButtonClicked(void)
 {
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computePlanAndExecuteButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this));
 }
 
-void PlanningFrame::randomStatesButtonClicked(void)
+void MotionPlanningFrame::randomStatesButtonClicked(void)
 {
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeRandomStatesButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeRandomStatesButtonClicked, this));
 }
 
-void PlanningFrame::setStartToCurrentButtonClicked(void)
+void MotionPlanningFrame::setStartToCurrentButtonClicked(void)
 { 
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSetStartToCurrentButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSetStartToCurrentButtonClicked, this));
 }
 
-void PlanningFrame::setGoalToCurrentButtonClicked(void)
+void MotionPlanningFrame::setGoalToCurrentButtonClicked(void)
 {
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSetGoalToCurrentButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSetGoalToCurrentButtonClicked, this));
 }
 
-void PlanningFrame::databaseConnectButtonClicked(void)
+void MotionPlanningFrame::databaseConnectButtonClicked(void)
 {   
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClicked, this));
 }
 
-void PlanningFrame::saveSceneButtonClicked(void)
+void MotionPlanningFrame::saveSceneButtonClicked(void)
 { 
   if (planning_scene_storage_)
   {
@@ -758,21 +758,21 @@ void PlanningFrame::saveSceneButtonClicked(void)
       }
     }
     
-    planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSaveSceneButtonClicked, this));
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveSceneButtonClicked, this));
   }
 }
 
-void PlanningFrame::loadSceneButtonClicked(void)
+void MotionPlanningFrame::loadSceneButtonClicked(void)
 {   
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeLoadSceneButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadSceneButtonClicked, this));
 }
 
-void PlanningFrame::loadQueryButtonClicked(void)
+void MotionPlanningFrame::loadQueryButtonClicked(void)
 {   
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeLoadQueryButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadQueryButtonClicked, this));
 }
 
-void PlanningFrame::saveQueryButtonClicked(void)
+void MotionPlanningFrame::saveQueryButtonClicked(void)
 {   
   if (planning_scene_storage_)
   {
@@ -785,7 +785,7 @@ void PlanningFrame::saveQueryButtonClicked(void)
       if (s->type() == ITEM_TYPE_SCENE)
       {
         std::string scene = s->text(0).toStdString();
-        planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSaveQueryButtonClicked, this, scene, ""));
+        planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveQueryButtonClicked, this, scene, ""));
       }
       else
       {
@@ -826,23 +826,23 @@ void PlanningFrame::saveQueryButtonClicked(void)
               return;
           }
         }
-        planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeSaveQueryButtonClicked, this, scene, query_name));
+        planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveQueryButtonClicked, this, scene, query_name));
       }
     }
   }
 }
 
-void PlanningFrame::deleteSceneButtonClicked(void)
+void MotionPlanningFrame::deleteSceneButtonClicked(void)
 {   
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeDeleteSceneButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDeleteSceneButtonClicked, this));
 }
 
-void PlanningFrame::deleteQueryButtonClicked(void)
+void MotionPlanningFrame::deleteQueryButtonClicked(void)
 {   
-  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::computeDeleteQueryButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDeleteQueryButtonClicked, this));
 }
 
-void PlanningFrame::checkPlanningSceneTreeEnabledButtons(void)
+void MotionPlanningFrame::checkPlanningSceneTreeEnabledButtons(void)
 {
   QList<QTreeWidgetItem *> sel = ui_->planning_scene_tree->selectedItems();
   if (sel.empty())
@@ -878,12 +878,12 @@ void PlanningFrame::checkPlanningSceneTreeEnabledButtons(void)
   }
 }
 
-void PlanningFrame::planningSceneItemClicked(void)
+void MotionPlanningFrame::planningSceneItemClicked(void)
 {
   checkPlanningSceneTreeEnabledButtons();
 }
 
-void PlanningFrame::configureForPlanning(void)
+void MotionPlanningFrame::configureForPlanning(void)
 {
   move_group_->setStartState(*planning_display_->getQueryStartState());
   move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
@@ -896,13 +896,13 @@ void PlanningFrame::configureForPlanning(void)
                             ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0);
 }
 
-void PlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
+void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
 {
   if (scene_marker_)
     scene_marker_->update(wall_dt);
 }
 
-void PlanningFrame::computePlanButtonClicked(void)
+void MotionPlanningFrame::computePlanButtonClicked(void)
 {
   if (!move_group_)
     return;
@@ -914,13 +914,13 @@ void PlanningFrame::computePlanButtonClicked(void)
     current_plan_.reset();
 }
 
-void PlanningFrame::computeExecuteButtonClicked(void)
+void MotionPlanningFrame::computeExecuteButtonClicked(void)
 {
   if (move_group_ && current_plan_)
     move_group_->execute(*current_plan_);
 }
 
-void PlanningFrame::computePlanAndExecuteButtonClicked(void)
+void MotionPlanningFrame::computePlanAndExecuteButtonClicked(void)
 {    
   if (!move_group_)
     return;
@@ -929,7 +929,7 @@ void PlanningFrame::computePlanAndExecuteButtonClicked(void)
   ui_->plan_and_execute_button->setEnabled(true);
 }
 
-void PlanningFrame::computeSetStartToCurrentButtonClicked(void)
+void MotionPlanningFrame::computeSetStartToCurrentButtonClicked(void)
 {  
   if (!move_group_)
     return;
@@ -938,7 +938,7 @@ void PlanningFrame::computeSetStartToCurrentButtonClicked(void)
     planning_display_->setQueryStartState(s);
 }
 
-void PlanningFrame::computeSetGoalToCurrentButtonClicked(void)
+void MotionPlanningFrame::computeSetGoalToCurrentButtonClicked(void)
 { 
   if (!move_group_)
     return;
@@ -947,7 +947,7 @@ void PlanningFrame::computeSetGoalToCurrentButtonClicked(void)
     planning_display_->setQueryGoalState(s);
 }
 
-void PlanningFrame::computeRandomStatesButtonClicked(void)
+void MotionPlanningFrame::computeRandomStatesButtonClicked(void)
 {
   std::string group_name = planning_display_->getCurrentPlanningGroup();
 
@@ -970,7 +970,7 @@ void PlanningFrame::computeRandomStatesButtonClicked(void)
   }
 }
 
-void PlanningFrame::populatePlanningSceneTreeView(void)
+void MotionPlanningFrame::populatePlanningSceneTreeView(void)
 {  
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
   if (!planning_scene_storage)
@@ -1016,7 +1016,7 @@ void PlanningFrame::populatePlanningSceneTreeView(void)
   checkPlanningSceneTreeEnabledButtons();
 }
 
-void PlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
+void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
 {  
   if (mode == 1)
   {
@@ -1063,16 +1063,16 @@ void PlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
   }
 }
 
-void PlanningFrame::computeDatabaseConnectButtonClicked(void)
+void MotionPlanningFrame::computeDatabaseConnectButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
     planning_scene_storage_.reset();
-    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 1));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 1));
   }
   else
   {      
-    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 2));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 2));
     try
     {
       planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(ui_->database_host->text().toStdString(),
@@ -1080,15 +1080,15 @@ void PlanningFrame::computeDatabaseConnectButtonClicked(void)
     }
     catch(std::runtime_error &ex)
     { 
-      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 3));
+      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 3));
       ROS_ERROR("%s", ex.what());  
       return;
     }     
-    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 4));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 4));
   }
 }
 
-void PlanningFrame::computeSaveSceneButtonClicked(void)
+void MotionPlanningFrame::computeSaveSceneButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
@@ -1096,11 +1096,11 @@ void PlanningFrame::computeSaveSceneButtonClicked(void)
     planning_display_->getPlanningScene()->getPlanningSceneMsg(msg);
     planning_scene_storage_->removePlanningScene(msg.name);
     planning_scene_storage_->addPlanningScene(msg);
-    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
   }
 }
 
-void PlanningFrame::computeLoadSceneButtonClicked(void)
+void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
 {
   if (planning_scene_storage_)
   { 
@@ -1138,7 +1138,7 @@ void PlanningFrame::computeLoadSceneButtonClicked(void)
   }
 }
 
-void PlanningFrame::computeLoadQueryButtonClicked(void)
+void MotionPlanningFrame::computeLoadQueryButtonClicked(void)
 {
   if (planning_scene_storage_)
   { 
@@ -1174,7 +1174,7 @@ void PlanningFrame::computeLoadQueryButtonClicked(void)
   }
 }
 
-void PlanningFrame::computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name)
+void MotionPlanningFrame::computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name)
 {
   moveit_msgs::MotionPlanRequest mreq;
   constructPlanningRequest(mreq);
@@ -1183,11 +1183,11 @@ void PlanningFrame::computeSaveQueryButtonClicked(const std::string &scene, cons
     if (!query_name.empty())
       planning_scene_storage_->removePlanningQuery(scene, query_name);
     planning_scene_storage_->addPlanningQuery(mreq, scene, query_name);
-    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
   }
 }
 
-void PlanningFrame::computeDeleteSceneButtonClicked(void)
+void MotionPlanningFrame::computeDeleteSceneButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
@@ -1206,19 +1206,19 @@ void PlanningFrame::computeDeleteSceneButtonClicked(void)
         std::string scene = s->parent()->text(0).toStdString();
         planning_scene_storage_->removePlanningScene(scene);  
       }
-      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
+      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
     }
   }
 }
 
-void PlanningFrame::computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s)
+void MotionPlanningFrame::computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s)
 {     
   ui_->planning_scene_tree->setUpdatesEnabled(false);
   s->parent()->removeChild(s);  
   ui_->planning_scene_tree->setUpdatesEnabled(true);
 }
 
-void PlanningFrame::computeDeleteQueryButtonClicked(void)
+void MotionPlanningFrame::computeDeleteQueryButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
@@ -1231,7 +1231,7 @@ void PlanningFrame::computeDeleteQueryButtonClicked(void)
         std::string scene = s->parent()->text(0).toStdString();
         std::string query_name = s->text(0).toStdString();
         planning_scene_storage_->removePlanningQuery(scene, query_name); 
-        planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDeleteQueryButtonClickedHelper, this, s));
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDeleteQueryButtonClickedHelper, this, s));
       }
     }
   }

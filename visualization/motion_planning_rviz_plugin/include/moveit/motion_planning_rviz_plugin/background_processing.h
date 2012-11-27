@@ -37,7 +37,7 @@
 #include <boost/function.hpp>
 #include <boost/scoped_ptr.hpp>
 
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
 
 class BackgroundProcessing
