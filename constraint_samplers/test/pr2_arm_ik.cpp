@@ -31,6 +31,7 @@
 //POSSIBILITY OF SUCH DAMAGE.
 
 #include <angles/angles.h>
+#include <console_bridge/console.h>
 #include "pr2_arm_ik.h"
 
 /**** List of angles (for reference) *******
@@ -62,16 +63,16 @@ bool PR2ArmIK::init(const urdf::ModelInterface &robot_model, const std::string &
     if(!joint)
     {
       if (link->parent_joint)
-        ROS_ERROR("Could not find joint: %s",link->parent_joint->name.c_str());
+        logError("Could not find joint: %s",link->parent_joint->name.c_str());
       else
-        ROS_ERROR("Link %s has no parent joint",link->name.c_str());
+        logError("Link %s has no parent joint",link->name.c_str());
       return false;
     }
     if(joint->type != urdf::Joint::UNKNOWN && joint->type != urdf::Joint::FIXED)
     {
       link_offset.push_back(link->parent_joint->parent_to_joint_origin_transform);
       angle_multipliers_.push_back(joint->axis.x*fabs(joint->axis.x) +  joint->axis.y*fabs(joint->axis.y) +  joint->axis.z*fabs(joint->axis.z));
-      ROS_DEBUG("Joint axis: %d, %f, %f, %f",6-num_joints,joint->axis.x,joint->axis.y,joint->axis.z);
+      logDebug("Joint axis: %d, %f, %f, %f",6-num_joints,joint->axis.x,joint->axis.y,joint->axis.z);
       if(joint->type != urdf::Joint::CONTINUOUS)
       {
         if (joint->safety)
@@ -90,7 +91,7 @@ bool PR2ArmIK::init(const urdf::ModelInterface &robot_model, const std::string &
           {
             min_angles_.push_back(0.0);
             max_angles_.push_back(0.0);
-            ROS_WARN("No joint limits or joint '%s'",joint->name.c_str());
+            logWarn("No joint limits or joint '%s'",joint->name.c_str());
           }
         }
         continuous_joint_.push_back(false);
@@ -122,7 +123,7 @@ bool PR2ArmIK::init(const urdf::ModelInterface &robot_model, const std::string &
 
   if(num_joints != 7)
   {
-    ROS_FATAL("PR2ArmIK:: Chain from %s to %s does not have 7 joints",root_name.c_str(),tip_name.c_str());
+    logError("PR2ArmIK:: Chain from %s to %s does not have 7 joints",root_name.c_str(),tip_name.c_str());
     return false;
   }
 
