@@ -38,6 +38,11 @@
 #ifndef PR2_ARM_IK_NODE_H
 #define PR2_ARM_IK_NODE_H
 
+#include <kdl/frames.hpp>
+#include <kdl/jntarray.hpp>
+#include <kdl/tree.hpp>
+#include <kdl_parser/kdl_parser.hpp>
+
 #include <angles/angles.h>
 #include <tf_conversions/tf_kdl.h>
 
@@ -52,10 +57,77 @@
 
 #include <moveit/kinematics_base/kinematics_base.h>
 
-#include "pr2_arm_ik_solver.h"
+#include "pr2_arm_ik.h"
 
 namespace pr2_arm_kinematics
 {
+
+static const int NO_IK_SOLUTION = -1;
+static const int TIMED_OUT = -2;
+
+//minimal stuff necessary
+class PR2ArmIKSolver : public KDL::ChainIkSolverPos
+{
+public:
+  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  
+  /** @class
+   *  @brief ROS/KDL based interface for the inverse kinematics of the PR2 arm
+   *  @author Sachin Chitta <sachinc@willowgarage.com>
+   *
+   *  This class provides a KDL based interface to the inverse kinematics of the PR2 arm. It inherits from the KDL::ChainIkSolverPos class
+   *  but also exposes additional functionality to return multiple solutions from an inverse kinematics computation.
+   */
+  PR2ArmIKSolver(const urdf::ModelInterface &robot_model, 
+                 const std::string &root_frame_name,
+                 const std::string &tip_frame_name,
+                 const double &search_discretization_angle, 
+                 const int &free_angle);
+  
+  ~PR2ArmIKSolver(){};
+  
+  /** 
+   * @brief The PR2 inverse kinematics solver 
+   */ 
+  PR2ArmIK pr2_arm_ik_;
+  
+  /**
+   * @brief Indicates whether the solver has been successfully initialized
+   */
+  bool active_;
+  
+  int CartToJnt(const KDL::JntArray& q_init, 
+                const KDL::Frame& p_in, 
+                KDL::JntArray& q_out);
+
+  int CartToJntSearch(const KDL::JntArray& q_in, 
+                      const KDL::Frame& p_in, 
+                      KDL::JntArray &q_out, 
+                      const double &timeout);
+
+  void getSolverInfo(moveit_msgs::KinematicSolverInfo &response)
+  {
+    pr2_arm_ik_.getSolverInfo(response);
+  }
+  
+private:
+  
+  bool getCount(int &count, const int &max_count, const int &min_count);
+  
+  double search_discretization_angle_;
+  
+  int free_angle_;
+  
+  std::string root_frame_name_;
+};
+
+Eigen::Matrix4f KDLToEigenMatrix(const KDL::Frame &p);
+double computeEuclideanDistance(const std::vector<double> &array_1, const KDL::JntArray &array_2);
+void getKDLChainInfo(const KDL::Chain &chain,
+                     moveit_msgs::KinematicSolverInfo &chain_info);
+
+
 class PR2ArmKinematicsPlugin : public kinematics::KinematicsBase
 {
 public:
