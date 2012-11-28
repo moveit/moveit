@@ -40,7 +40,7 @@ void addErrorMarker(visualization_msgs::InteractiveMarker &im)
   err.scale.x = 0.002 * im.scale;
   err.scale.y = 0.002 * im.scale;
   err.scale.z = 0.002 * im.scale;
-  err.mesh_resource = "package://moveit_ros_planning_interface/res/access-denied.dae";
+  err.mesh_resource = "package://moveit_ros_planning_interface/robot_interaction/res/access-denied.dae";
   err.ns = "robot_interaction_error";
   err.id = 1;
   err.action = visualization_msgs::Marker::ADD;
