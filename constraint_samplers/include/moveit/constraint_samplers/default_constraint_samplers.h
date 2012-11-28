@@ -45,10 +45,11 @@ namespace constraint_samplers
 
 /**
  * \brief JointConstraintSampler is a class that allows the sampling
- * of joints in a particular group of the robot.  It further allows a
- * set of constraints to be associated with the group that will reduce
- * the allowable bounds used in the sampling.  Unconstrained values
- * will be sampled within their limits.  
+ * of joints in a particular group of the robot, subject to a set of individual joint constraints.  
+ *
+ * The set of individual joint constraint reduce the allowable bounds
+ * used in the sampling.  Unconstrained values will be sampled within
+ * their limits.
  *
  */
 class JointConstraintSampler : public ConstraintSampler
@@ -75,21 +76,14 @@ public:
    *
    * If more than one constraint for a particular joint is specified,
    * the most restrictive set of bounds will be used (highest minimum
-   * value, lowest_maximum value.  For the configuration to be
-   * successful, the following conditions must be met:
+   * value, lowest maximum value).  For the configuration to be
+   * successful, the following condition must be met, in addition to
+   * the conditions specified in \ref configure(const std::vector<kinematic_constraints::JointConstraint> &jc) :
    
    * \li The Constraints message must contain one or more valid joint
    * constraints (where validity is judged by the ability to configure
    * a \ref JointConstraint) 
    *
-   * \li At least one constraint must reference a joint in the
-   * indicated group.  If no additional bounds exist for this group,
-   * then setToRandomValues will generate a sample.
-   *
-   * \li The constraints must allow a sampleable region for all
-   * joints, where the most restrictive minimum bound is less than the
-   * most restrictive maximum bound
-   * 
    * @param [in] constr The message containing the constraints 
    * 
    * @return True if the conditions are met, otherwise false 
@@ -109,7 +103,9 @@ public:
    *
    * \li At least one constraint must reference a joint in the
    * indicated group.  If no additional bounds exist for this group,
-   * then setToRandomValues will generate a sample.
+   * then kinematic_state::JointStateGroup::setToRandomValues can be
+   * used to generate a sample independently from the
+   * constraint_samplers infrastructure.
    *
    * \li The constraints must allow a sampleable region for all
    * joints, where the most restrictive minimum bound is less than the
@@ -195,12 +191,12 @@ protected:
 
   virtual void clear();
 
-  random_numbers::RandomNumberGenerator           random_number_generator_; /**< Random number generator used to sample */
-  std::vector<JointInfo> bounds_; /**< The bounds for any joint with bounds that are more restrictive than the joint limits */
+  random_numbers::RandomNumberGenerator           random_number_generator_; /**< \brief Random number generator used to sample */
+  std::vector<JointInfo> bounds_; /**< \brief The bounds for any joint with bounds that are more restrictive than the joint limits */
 
-  std::vector<const kinematic_model::JointModel*> unbounded_; /**< The joints that are not bounded except by joint limits */
-  std::vector<unsigned int>                       uindex_; /**< The index of the unbounded joints in the joint state vector */
-  std::vector<double>                             values_; /**< Values associated with this group to avoid continuously reallocating */
+  std::vector<const kinematic_model::JointModel*> unbounded_; /**< \brief The joints that are not bounded except by joint limits */
+  std::vector<unsigned int>                       uindex_; /**< \brief The index of the unbounded joints in the joint state vector */
+  std::vector<double>                             values_; /**< \brief Values associated with this group to avoid continuously reallocating */
 };
 
 /**
@@ -276,13 +272,14 @@ struct IKSamplingPose
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, 
                  const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
   
-  boost::shared_ptr<kinematic_constraints::PositionConstraint>    position_constraint_; /**< Holds the position constraint for sampling */
-  boost::shared_ptr<kinematic_constraints::OrientationConstraint> orientation_constraint_; /**< Holds the orientation constraint for sampling */
+  boost::shared_ptr<kinematic_constraints::PositionConstraint>    position_constraint_; /**< \brief Holds the position constraint for sampling */
+  boost::shared_ptr<kinematic_constraints::OrientationConstraint> orientation_constraint_; /**< \brief Holds the orientation constraint for sampling */
 };
 
 /**
- * \brief A class that allows the sampling of IK constraints.  An IK
- * constraint can have a position constraint, and orientation
+ * \brief A class that allows the sampling of IK constraints.  
+ * 
+ * An IK constraint can have a position constraint, and orientation
  * constraint, or both.  The constraint will attempt to sample a pose
  * that adheres to the constraint, and then solves IK for that pose.
  *
@@ -316,17 +313,17 @@ public:
    * potential pair until it finds a pair of position orientation
    * constraints that lead to valid configuration of kinematic
    * constraints.  It creates an IKSamplingPose from these and calls
-   * the other configuration function.  If no pair leads to both
-   * having valid configuration, it will attempt to iterate through
-   * the position constraints in the Constraints message, running the
-   * overloaded configuration function on the resulting
+   * \ref configure(const IKSamplingPose &sp).  If no pair leads to
+   * both having valid configuration, it will attempt to iterate
+   * through the position constraints in the Constraints message,
+   * calling \ref configure(const IKSamplingPose &sp) on the resulting
    * IKSamplingPose.  Finally, if no valid position constraints exist
    * it will attempt the same procedure with the orientation
    * constraints.  If no valid position or orientation constraints
    * exist, it will return false.  For more information, see the docs
-   * for the overloaded configuration function.
+   * for \ref configure(const IKSamplingPose &sp).
    * 
-   * @param constr The Constraint message from which to create the IKConstraintSampler
+   * @param constr The Constraint message 
    * 
    * @return True if some valid position and orientation constraints
    * exist and the overloaded configuration function returns true.
@@ -339,12 +336,12 @@ public:
    * 
    *
    * This function performs the actual constraint configuration.  It returns true if the following are true:
-   * \li The IKSamplingPose has either a valid orientation or position constraint
+   * \li The \ref IKSamplingPose has either a valid orientation or position constraint
    * \li The position and orientation constraints are specified for the same link
    *
    * \li There is a valid IK solver instance for the indicated group.
    * This will be only be the case if a group has a specific solver
-   * associated with it - for situations where the super-group doesn't
+   * associated with it.  For situations where the super-group doesn't
    * have a solver, but all subgroups have solvers, then use the 
    * \ref ConstraintSamplerManager.  
    * 
@@ -494,12 +491,12 @@ protected:
    */
   bool callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg) const;
 
-  mutable random_numbers::RandomNumberGenerator random_number_generator_; /**< Random generator used by the sampler */
-  IKSamplingPose                        sampling_pose_; /**< Holder for the pose used for sampling */
-  kinematics::KinematicsBaseConstPtr    kb_; /**< Holds the kinematics solver */
-  double                                ik_timeout_; /**< Holds the timeout associated with IK */
-  std::string                           ik_frame_; /**< Holds the base from of the IK solver */
-  bool                                  transform_ik_; /**< True if the frame associated with the kinematic model is different than the base frame of the IK solver */
+  mutable random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random generator used by the sampler */
+  IKSamplingPose                        sampling_pose_; /**< \brief Holder for the pose used for sampling */
+  kinematics::KinematicsBaseConstPtr    kb_; /**< \brief Holds the kinematics solver */
+  double                                ik_timeout_; /**< \brief Holds the timeout associated with IK */
+  std::string                           ik_frame_; /**< \brief Holds the base from of the IK solver */
+  bool                                  transform_ik_; /**< \brief True if the frame associated with the kinematic model is different than the base frame of the IK solver */
 };
 
 

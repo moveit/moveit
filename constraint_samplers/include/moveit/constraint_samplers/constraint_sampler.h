@@ -42,6 +42,14 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
+/**
+ * \brief The constraint samplers namespace contains a number of
+ * methods for generating samples based on a constraint or set of
+ * constraints.  
+ * 
+ * It intended for use by any algorithm that requires a
+ * constraint-aware sampling strategy.
+ */
 namespace constraint_samplers
 {
 /**
@@ -67,11 +75,11 @@ public:
   }
   
   /** 
-   * \brief Pure virtual function for configuring a constraint sampler given a Constraints message.  
+   * \brief Function for configuring a constraint sampler given a Constraints message.  
    * 
    * @param [in] constr The constraints from which to construct a sampler
    * 
-   * @return True if the configuration is successful.  If true, isValid should also true.  If false, isValid should return false
+   * @return True if the configuration is successful.  If true, \ref isValid should also true.  If false, \ref isValid should return false
    */
   virtual bool configure(const moveit_msgs::Constraints &constr) = 0;
 
@@ -108,7 +116,13 @@ public:
   }
   
   /** 
-   * \brief Return the names of the mobile frames (correspond to robot links) whose pose is needed when sample() is called.
+   * \brief Return the names of the mobile frames whose pose is needed when sample() is called.
+   * 
+   * Mobile frames mean frames other than the reference frame of the
+   * kinematic model.  These frames may move when the kinematic state
+   * changes.  Frame dependency can help determine an ordering from a
+   * set of constraint samplers - for more information see the derived
+   * class documentation for \ref UnionConstraintSampler.
    * 
    * @return The list of names whose pose is needed
    */
@@ -123,7 +137,7 @@ public:
    * as the maximum number of attempts to make to take a sample.
    * 
    * @param [out] jsg The joint state group into which the values will be placed
-   * @param [in] reference_state A reference state that will be used to do transforms or perform other actions
+   * @param [in] reference_state Reference state that will be used to do transforms or perform other actions
    * 
    * @return True if a sample was successfully taken, false otherwise
    */
@@ -138,7 +152,7 @@ public:
    * group.  This function allows the parameter max_attempts to be set.
    *
    * @param [out] jsg The joint state group into which the values will be placed
-   * @param [in] reference_state A reference state that will be used to do transforms or perform other actions
+   * @param [in] reference_state Reference state that will be used to do transforms or perform other actions
    * @param [in] max_attempts The maximum number of times to attempt to draw a sample.  If no sample has been drawn in this number of attempts, false will be returned.
    *
    * @return True if a sample was successfully taken, false otherwise

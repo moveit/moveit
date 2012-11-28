@@ -16,6 +16,12 @@
     <group name="left_arm"/>
     <group name="right_arm"/>
   </group>
+
+  <group name="arms_and_torso">
+    <group name="arms"/>
+    <joint name="torso_lift_joint"/>
+  </group>
+
   
   <group_state name="tuck_arms" group="arms">
     <joint name="l_shoulder_pan_joint" value="0.2" />

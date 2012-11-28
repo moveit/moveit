@@ -115,6 +115,12 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       }
     }
   }
+
+  std::vector<ConstraintSamplerPtr> samplers;
+  if(joint_sampler) 
+  {
+    samplers.push_back(joint_sampler);
+  }
   
   // read the ik allocators, if any
   kinematic_model::SolverAllocatorFn ik_alloc = jmg->getSolverAllocators().first;
@@ -211,10 +217,12 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       }
     }
     
-    if (usedL.size() == 1)
+    if (usedL.size() == 1 && samplers.empty()) {
       return usedL.begin()->second;
-    
-    if (usedL.size() > 1)
+    } else if(usedL.size() == 1) {
+      samplers.push_back(usedL.begin()->second);
+      return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
+    } else if (usedL.size() > 1)
     {
       logDebug("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
       // find the sampler with the smallest sampling volume; delete the rest
@@ -229,7 +237,12 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           msv = v;
         } 
       }
-      return iks;
+      if(samplers.empty()) {
+        return iks;
+      } else {
+        samplers.push_back(iks);
+        return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
+      }
     }
   }
     
@@ -238,8 +251,9 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   if (!ik_subgroup_alloc.empty())
   {        
     logDebug("There are IK allocators for subgroups of group '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
+
+    bool some_sampler_valid = false;
     
-    std::vector<ConstraintSamplerPtr> samplers;
     std::set<std::size_t> usedP, usedO;
     for (std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
     {
@@ -270,17 +284,19 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
         {
           logDebug("Constructed a sampler for the joints corresponding to group '%s', but part of group '%s'", 
                    it->first->getName().c_str(), jmg->getName().c_str());
+          some_sampler_valid = true;
           samplers.push_back(cs);
         }
       }
     }
-    if (!samplers.empty())
+    if (some_sampler_valid)
     {
       logDebug("Constructing sampler for group '%s' as a union of %u samplers", jmg->getName().c_str(), (unsigned int)samplers.size());
       return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
     }
   }
-  
+
+  //if we've gotten here, just return joint sampler
   if (joint_sampler)
   {
     logDebug("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
