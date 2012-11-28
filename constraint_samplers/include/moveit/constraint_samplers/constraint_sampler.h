@@ -66,7 +66,7 @@ public:
    * \brief Constructor
    * 
    * @param [in] scene The planning scene that will be used for constraint checking 
-   * @param [in] group_name The group name of the associated group.  Will be invalid if no group name is passed in or the joint model group cannot be found in the kinematic model
+   * @param [in] group_name The name of the group that will be sampled.  Will be invalid if no group name is passed in or the joint model group cannot be found in the kinematic model
    */
   ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
   
@@ -162,11 +162,12 @@ public:
                       unsigned int max_attempts) = 0;
   
   /** 
-   * \brief Returns whether or not the constraint sampler is valid or not.  To be valid, the joint state group must be available in the kinematic model.  
+   * \brief Returns whether or not the constraint sampler is valid or not.  To be valid, the joint model group must be available in the kinematic model.  
    * 
    * @return True if the sampler is valid, and otherwise false.
    */
-  bool isValid() const {
+  bool isValid() const
+  {
     return is_valid_;
   }
   
@@ -178,11 +179,11 @@ protected:
    */
   virtual void clear();
 
-  bool is_valid_;               /**< \brief  Holds the value for validity */
+  bool                                    is_valid_;  /**< \brief  Holds the value for validity */
 
-  planning_scene::PlanningSceneConstPtr                   scene_; /**< \brief Holds the planning scene */
+  planning_scene::PlanningSceneConstPtr   scene_; /**< \brief Holds the planning scene */
   const kinematic_model::JointModelGroup *jmg_; /**< \brief Holds the joint model group associated with this constraint */
-  std::vector<std::string>                                frame_depends_; /**< \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
+  std::vector<std::string>                frame_depends_; /**< \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
 };
 
 typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr; /**< \brief boost shared_ptr to a ConstraintSampler */
