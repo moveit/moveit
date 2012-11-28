@@ -59,10 +59,10 @@ unsigned int kinematic_model::PlanarJointModel::getStateSpaceDimension(void) con
   return 3;
 }
 
-double kinematic_model::PlanarJointModel::getMaximumExtent(void) const
+double kinematic_model::PlanarJointModel::getMaximumExtent(const Bounds &other_bounds) const
 {
-  double dx = variable_bounds_[0].first - variable_bounds_[0].second;
-  double dy = variable_bounds_[1].first - variable_bounds_[1].second;
+  double dx = other_bounds[0].first - other_bounds[0].second;
+  double dy = other_bounds[1].first - other_bounds[1].second;
   return sqrt(dx*dx + dy*dy) + boost::math::constants::pi<double>() * angular_distance_weight_;
 }
 
@@ -214,4 +214,11 @@ void kinematic_model::PlanarJointModel::computeJointStateValues(const Eigen::Aff
     double s = 1.0/sqrt(s_squared);
     joint_values[2] = (acos(q.w())*2.0f)*(q.z()*s);
   }
+}
+
+std::vector<moveit_msgs::JointLimits> kinematic_model::PlanarJointModel::getVariableLimits(void) const
+{
+  std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getVariableLimits();
+  ret_vec[2].has_position_limits = false;
+  return ret_vec;
 }

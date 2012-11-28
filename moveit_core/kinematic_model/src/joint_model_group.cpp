@@ -152,6 +152,16 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
     updated_link_model_name_vector_.push_back(updated_link_model_vector_[i]->getName());
   for (std::size_t i = 0; i < updated_link_model_with_geometry_vector_.size(); ++i)
     updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry_vector_[i]->getName());
+
+  
+  // if the group happens to be a sequence of joints that follow each other in a depth-first fashion,
+  // then we consider the group to be a chain; this is just a heuristic and does not cover the case where there are branches 
+  bool chain = link_model_vector_.size() > 1;
+  for (std::size_t k = 1 ; chain && k < link_model_vector_.size() ; ++k)
+    if (link_model_vector_[k]->getTreeIndex() != link_model_vector_[k - 1]->getTreeIndex() + 1)
+      chain = false;
+  if (chain)
+    is_chain_ = true;  
 }
 
 kinematic_model::JointModelGroup::~JointModelGroup(void)

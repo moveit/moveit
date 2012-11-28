@@ -39,7 +39,7 @@
 
 kinematic_model::JointModel::JointModel(const std::string& name) :
   name_(name), type_(UNKNOWN), max_velocity_(0.0), parent_link_model_(NULL), child_link_model_(NULL),
-  mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), distance_factor_(1.0), tree_index_(-1)
+  mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), passive_(false), distance_factor_(1.0), tree_index_(-1)
 {
 }
 
@@ -56,6 +56,18 @@ bool kinematic_model::JointModel::getVariableBounds(const std::string& variable,
     return false;
   }
   bounds = variable_bounds_[it->second];
+  return true;
+}
+
+bool kinematic_model::JointModel::setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds)
+{ 
+  std::map<std::string, unsigned int>::const_iterator it = variable_index_.find(variable);
+  if (it == variable_index_.end())
+  {   
+    logWarn("Could not find variable '%s' to set bounds for within joint '%s'", variable.c_str(), name_.c_str());
+    return false;
+  }
+  variable_bounds_[it->second] = bounds;
   return true;
 }
 

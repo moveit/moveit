@@ -367,17 +367,20 @@ protected:
                   const std::string &root_link);
   
   /** \brief Given a SRDF model describing the groups, build up the groups in this kinematic model */
-  void buildGroups(const std::vector<srdf::Model::Group> &group_config);
-  
+  void buildGroups(const boost::shared_ptr<const srdf::Model> &srdf_model);
+
+  /** \brief Compute helpful information about groups (that can be queried later) */
+  void buildGroupsInfo_Subgroups(const boost::shared_ptr<const srdf::Model> &srdf_model);
+
+  /** \brief Compute helpful information about groups (that can be queried later) */
+  void buildGroupsInfo_EndEffectors(const boost::shared_ptr<const srdf::Model> &srdf_model);
+
   /** \brief Given the URDF model, build up the mimic joints (mutually constrained joints) */
   void buildMimic(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model);
 
   /** \brief Given a SRDF model describing the groups, build the default states defined in the SRDF */
   void buildGroupStates(const boost::shared_ptr<const srdf::Model> &srdf_model);
-  
-  /** \brief Compute helpful information about groups (that can be queried later) */
-  void buildGroupInfo(const boost::shared_ptr<const srdf::Model> &srdf_model);
-  
+    
   /** \brief Compute helpful information about joints */
   void buildJointInfo(void);
   
@@ -387,18 +390,19 @@ protected:
                             std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
                             std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map);
   
-  /** \brief (This function is mostly intended for internal use). Given a parent link, build up (recursively), the kinematic model by walking  down the tree*/
+  /** \brief (This function is mostly intended for internal use). Given a parent link, build up (recursively),
+      the kinematic model by walking  down the tree*/
   JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link,
                              const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
                              const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
-                             const std::vector<srdf::Model::VirtualJoint> &vjoints);
+                             const srdf::Model &srdf_model);
 
   /** \brief Construct a JointModelGroup given a SRDF description \e group */
   bool addJointModelGroup(const srdf::Model::Group& group);
   
   /** \brief Given a urdf joint model, a child link and a set of virtual joints,
       build up the corresponding JointModel object*/
-  JointModel* constructJointModel(const urdf::Joint *urdf_joint_model, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
+  JointModel* constructJointModel(const urdf::Joint *urdf_joint_model, const urdf::Link *child_link, const srdf::Model &srdf_model);
   
   /** \brief Given a urdf link, build the corresponding LinkModel object*/
   LinkModel* constructLinkModel(const urdf::Link *urdf_link, const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map);

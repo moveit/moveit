@@ -234,7 +234,10 @@ public:
   {
     return variable_bounds_;
   }
-  
+
+  /** \brief Set the lower and upper bounds for a variable. Return false if the variable was not found */
+  bool setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds);
+
   /** \brief Get variable limits as a message type */
   const std::vector<moveit_msgs::JointLimits>& getVariableDefaultLimits(void) const
   {
@@ -295,6 +298,12 @@ public:
   {
     return mimic_requests_;
   }
+
+  /** \brief Check if this joint is passive */
+  bool isPassive(void) const
+  {
+    return passive_;
+  }
   
   /** \brief Get the maximum velocity of this joint. If the result is zero, the value is assumed not to be specified. */
   double getMaximumVelocity(void) const
@@ -308,8 +317,13 @@ public:
   virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const = 0;
   
   /** \brief Get the extent of the state space (the maximum value distance() can ever report) */
-  virtual double getMaximumExtent(void) const = 0;
-  
+  virtual double getMaximumExtent(const Bounds &other_bounds) const = 0;
+
+  double getMaximumExtent(void) const
+  {
+    return getMaximumExtent(variable_bounds_);
+  }
+    
   /** @name Computing transforms 
       @{ */
   
@@ -366,6 +380,9 @@ protected:
   
   /** \brief The set of joints that should get a value copied to them when this joint changes */
   std::vector<const JointModel*>                    mimic_requests_;
+  
+  /** \brief Specify whether this joint is marked as passive in the SRDF */
+  bool                                              passive_;
   
   /** \brief The factor applied to the distance between two joint states */
   double                                            distance_factor_;

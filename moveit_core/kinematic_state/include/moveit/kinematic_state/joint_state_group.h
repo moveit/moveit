@@ -42,9 +42,14 @@
 #include <moveit/kinematic_state/joint_state.h>
 #include <sensor_msgs/JointState.h>
 #include <boost/scoped_ptr.hpp>
+#include <boost/function.hpp>
 
 namespace kinematic_state
 {
+
+class JointStateGroup;
+
+typedef boost::function<bool(JointStateGroup *joint_state_group, const std::vector<double> &joint_group_variable_values)> IKValidityCallbackFn;
 
 class KinematicState;
 
@@ -180,18 +185,22 @@ public:
    * \return True if jacobian was successfully computed, false otherwise
    */    
   bool getJacobian(const std::string &link_name, const Eigen::Vector3d &reference_point_position, Eigen::MatrixXd& jacobian) const;
-  
-  bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout);
+
+  bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout, unsigned int attempts,
+                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
   
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The transform is assumed to be in the reference frame of the kinematic model. Returns true on success. */
-  bool setFromIK(const geometry_msgs::Pose &pose, double timeout);
+  bool setFromIK(const geometry_msgs::Pose &pose, double timeout, unsigned int attempts,
+                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The transform is assumed to be in the reference frame of the kinematic model. Returns true on success. */
-  bool setFromIK(const Eigen::Affine3d &pose, double timeout);
+  bool setFromIK(const Eigen::Affine3d &pose, double timeout, unsigned int attempts,
+                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
-  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout);
+  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout, unsigned int attempts,
+                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
   JointStateGroup& operator=(const JointStateGroup &other);
 
@@ -199,7 +208,11 @@ private:
 
   /** \brief Copy the values from another joint state group */
   void copyFrom(const JointStateGroup &other_jsg);
-
+  
+  /** \brief This function converts output from the IK plugin to the proper ordering of values expected by this group and passes it to \e constraint */
+  void ikCallbackFnAdapter(const IKValidityCallbackFn &constraint, const geometry_msgs::Pose &ik_pose,
+                           const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code);
+  
   /** \brief The kinematic state this group is part of */
   KinematicState                         *kinematic_state_;
   
