@@ -37,6 +37,7 @@
 #include <moveit/constraint_samplers/default_constraint_samplers.h>
 #include <set>  
 #include <cassert>
+#include <eigen_conversions/eigen_msg.h>
 
 bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::Constraints &constr)
 {  
@@ -49,62 +50,108 @@ bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::C
       jc.push_back(j);
   }
   
-  return jc.empty() ? false : setup(jc);
+  return jc.empty() ? false : configure(jc);
 }
 
-bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinematic_constraints::JointConstraint> &jc)
+bool constraint_samplers::JointConstraintSampler::configure(const std::vector<kinematic_constraints::JointConstraint> &jc)
 {
+  clear();
+
   if (!jmg_)
   {
     logError("NULL group specified for constraint sampler");
     return false;
   }
-  
+
   // find and keep the constraints that operate on the group we sample
   // also keep bounds for joints as convenient
   const std::map<std::string, unsigned int> &vim = jmg_->getJointVariablesIndexMap();
-  std::set<std::string> bounded;
+  std::map<std::string, JointInfo> bound_data;
+  bool some_valid_constraint = false;
   for (std::size_t i = 0 ; i < jc.size() ; ++i)
   {
     if (!jc[i].enabled())
       continue;
-    
+
     const kinematic_model::JointModel *jm = jc[i].getJointModel();
     if (!jmg_->hasJointModel(jm->getName()))
       continue;
-    
-    std::pair<double, double> bounds;
-    jm->getVariableBounds(jc[i].getJointVariableName(), bounds);
 
-    bounds.first = std::max(bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow());
-    bounds.second = std::min(bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
-    if (bounds.first > bounds.second)
+    some_valid_constraint = true;
+    
+    std::pair<double, double> joint_bounds;
+    jm->getVariableBounds(jc[i].getJointVariableName(), joint_bounds);
+    
+    JointInfo ji;
+    ji.index_ = vim.find(jc[i].getJointVariableName())->second;
+    std::map<std::string, JointInfo>::iterator it = bound_data.find(jc[i].getJointVariableName());
+    if(it != bound_data.end()) {
+      ji = it->second;
+    }
+
+    ji.potentiallyAdjustMinMaxBounds(std::max(joint_bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow()),
+                                     std::min(joint_bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
+    
+    logDebug("Vals %g %g %g %g",
+             joint_bounds.first, 
+             jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow(),
+             joint_bounds.second, 
+             jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
+    logDebug("Bounds for %s are %g %g",jc[i].getJointVariableName().c_str(),ji.min_bound_,ji.max_bound_);
+
+    if (ji.min_bound_ > ji.max_bound_+std::numeric_limits<double>::epsilon())
     {
       std::stringstream cs; jc[i].print(cs);
-      logWarn("The constraints for joint '%s' are such that there are no possible values for this joint. Ignoring constraint: %s\n", jm->getName().c_str(), cs.str().c_str());
-      continue;
+      logError("The constraints for joint '%s' are such that there are no possible values for the joint - min_bound: %g, max_bound: %g. Failing.\n", jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
+      clear();
+      return false;
     }
-    if (jm->getVariableCount() == 1)
-      bounded.insert(jm->getName());
-    bounds_.push_back(bounds);
-    index_.push_back(vim.find(jc[i].getJointVariableName())->second);
+    if (jm->getVariableCount() == 1) {
+      bound_data[jc[i].getJointVariableName()] = ji;      
+    }
+  }
+
+  if(!some_valid_constraint) {
+    logWarn("No valid joint constraints");
+    return false;
+  }
+
+  for(std::map<std::string, JointInfo>::iterator it = bound_data.begin();
+      it != bound_data.end();
+      it++) {
+    bounds_.push_back(it->second);
   }
   
   // get a separate list of joints that are not bounded; we will sample these randomly
   const std::vector<const kinematic_model::JointModel*> &joints = jmg_->getJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
-    if (bounded.find(joints[i]->getName()) == bounded.end())
+    if (bound_data.find(joints[i]->getName()) == bound_data.end())
     {
       unbounded_.push_back(joints[i]);
       uindex_.push_back(vim.find(joints[i]->getName())->second);
     } 
   values_.resize(jmg_->getVariableCount());
+  is_valid_ = true;
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState & /* ks */,
+bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, 
+                                                         const kinematic_state::KinematicState & /* ks */,
                                                          unsigned int /* max_attempts */)
 {
+  if(!is_valid_) 
+  {
+    logWarn("JointConstraintSampler not configured, won't sample");
+    return false;
+  }
+
+  if(jsg->getName() != getGroupName()) 
+  {
+    logWarn("JointConstraintSampler sample function called with name %s which is not the group %s for which it was configured",
+            jsg->getName().c_str(), getGroupName().c_str());
+    return false;
+  }
+
   // sample the unbounded joints first (in case some joint variables are bounded)
   for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
   {
@@ -116,13 +163,22 @@ bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointS
 
   // enforce the constraints for the constrained components (could be all of them)
   for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
-    values_[index_[i]] = random_number_generator_.uniformReal(bounds_[i].first, bounds_[i].second);
+    values_[bounds_[i].index_] = random_number_generator_.uniformReal(bounds_[i].min_bound_, bounds_[i].max_bound_);
 
   jsg->setVariableValues(values_);
 
 
   // we are always successful
   return true;
+}
+ 
+void constraint_samplers::JointConstraintSampler::clear()
+{
+  ConstraintSampler::clear();
+  bounds_.clear();
+  unbounded_.clear();
+  uindex_.clear();
+  values_.clear();
 }
 
 constraint_samplers::IKSamplingPose::IKSamplingPose(void)
@@ -154,8 +210,26 @@ constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kine
 {
 }
 
-bool constraint_samplers::IKConstraintSampler::setup(const IKSamplingPose &sp)
+void constraint_samplers::IKConstraintSampler::clear()
 {
+  ConstraintSampler::clear();
+  kb_.reset();
+  ik_frame_ = "";
+  transform_ik_ = false;
+}
+
+bool constraint_samplers::IKConstraintSampler::configure(const IKSamplingPose &sp)
+{
+  clear();
+  if(!sp.position_constraint_ && !sp.orientation_constraint_) return false;
+  if((!sp.orientation_constraint_ && !sp.position_constraint_->enabled()) ||
+     (!sp.position_constraint_ && !sp.orientation_constraint_->enabled()) ||
+     (sp.position_constraint_ && sp.orientation_constraint_ &&
+      !sp.position_constraint_->enabled() && !sp.orientation_constraint_->enabled())) {
+    logWarn("No enabled constraints in sampling pose");
+    return false;
+  }
+
   sampling_pose_ = sp;
   ik_timeout_ = 0.5;
   if (sampling_pose_.position_constraint_ && sampling_pose_.orientation_constraint_)
@@ -164,12 +238,19 @@ bool constraint_samplers::IKConstraintSampler::setup(const IKSamplingPose &sp)
       logError("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
       return false;
     }
+
   if (sampling_pose_.position_constraint_ && sampling_pose_.position_constraint_->mobileReferenceFrame())
     frame_depends_.push_back(sampling_pose_.position_constraint_->getReferenceFrame());
   if (sampling_pose_.orientation_constraint_ && sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     frame_depends_.push_back(sampling_pose_.orientation_constraint_->getReferenceFrame());
-  ik_alloc_ = jmg_->getSolverAllocators().first;
-  return true;
+  kb_ = jmg_->getSolverInstance();
+  if(!kb_) {
+    logWarn("No solver instance in setup");
+    is_valid_ = false;
+    return false;
+  } 
+  is_valid_ = loadIKSolver();
+  return is_valid_;
 }
 
 bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Constraints &constr)
@@ -181,21 +262,21 @@ bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Cons
         boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene_->getKinematicModel(), scene_->getTransforms()));
         boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene_->getKinematicModel(), scene_->getTransforms()));
         if (pc->configure(constr.position_constraints[p]) && oc->configure(constr.orientation_constraints[o]))
-          return setup(IKSamplingPose(pc, oc));
+          return configure(IKSamplingPose(pc, oc));
       }
   
   for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
   {   
     boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene_->getKinematicModel(), scene_->getTransforms()));
     if (pc->configure(constr.position_constraints[p]))
-      return setup(IKSamplingPose(pc));
+      return configure(IKSamplingPose(pc));
   }
   
   for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
   {            
     boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene_->getKinematicModel(), scene_->getTransforms()));
       if (oc->configure(constr.orientation_constraints[o]))
-        return setup(IKSamplingPose(oc));
+        return configure(IKSamplingPose(oc));
   }
   return false;
 }
@@ -227,49 +308,11 @@ const std::string& constraint_samplers::IKConstraintSampler::getLinkName(void) c
 
 bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
 {  
-  if (kb_)
-    return true;
-
-  if (!ik_alloc_)
-  {
-    logError("No IK allocator specified");
-    return false;
-  }
-  
-  // allocate the solver
-  kb_ = ik_alloc_(jmg_);
   if (!kb_)
   {
-    logError("Failed to allocate IK solver for group '%s'", jmg_->getName().c_str());
+    logError("No IK solver");
     return false;
-  }
-  else
-    logDebug("IKConstraintSampler successfully loaded IK solver");
-  
-  // the ik solver must cover the same joints as the group
-  const std::vector<std::string> &ik_jnames = kb_->getJointNames();
-  const std::map<std::string, unsigned int> &g_map = jmg_->getJointVariablesIndexMap();
-  
-  if (ik_jnames.size() != g_map.size())
-  {
-    logError("Group '%s' does not have the same set of joints as the employed IK solver", jmg_->getName().c_str());
-    return false;
-  }
-  
-  // compute a mapping between the group state and the IK solution
-  ik_joint_bijection_.clear();    
-  for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
-  {
-    std::map<std::string, unsigned int>::const_iterator it = g_map.find(ik_jnames[i]);
-    if (it == g_map.end())
-    {
-      logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a joint.", ik_jnames[i].c_str(), jmg_->getName().c_str());
-      return false;
-    }
-    const kinematic_model::JointModel *jm = jmg_->getJointModel(ik_jnames[i]);
-    for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
-      ik_joint_bijection_.push_back(it->second + k);
-  }
+  }  
   
   // check if we need to transform the request into the coordinate frame expected by IK
   ik_frame_ = kb_->getBaseFrame();
@@ -297,7 +340,6 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
              sampling_pose_.position_constraint_ ? sampling_pose_.position_constraint_->getLinkModel()->getName().c_str() : sampling_pose_.orientation_constraint_->getLinkModel()->getName().c_str(), kb_->getTipFrame().c_str());
     return false;
   }
-  
   return true;
 }
 
@@ -357,9 +399,9 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
   if (sampling_pose_.orientation_constraint_)
   {
     // sample a rotation matrix within the allowed bounds
-    double angle_x = 2.0 * (random_number_generator_.uniform01() - 0.5) * sampling_pose_.orientation_constraint_->getXAxisTolerance();
-    double angle_y = 2.0 * (random_number_generator_.uniform01() - 0.5) * sampling_pose_.orientation_constraint_->getYAxisTolerance();
-    double angle_z = 2.0 * (random_number_generator_.uniform01() - 0.5) * sampling_pose_.orientation_constraint_->getZAxisTolerance();
+    double angle_x = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getXAxisTolerance()-std::numeric_limits<double>::epsilon());
+    double angle_y = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getYAxisTolerance()-std::numeric_limits<double>::epsilon());
+    double angle_z = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getZAxisTolerance()-std::numeric_limits<double>::epsilon());
     Eigen::Affine3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX())
                          * Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY())
                          * Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
@@ -407,16 +449,17 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
 
 bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
 {
-  // make sure we at least have a chance of sampling using IK; we need at least some kind of constraint
-  if (!sampling_pose_.position_constraint_ && !sampling_pose_.orientation_constraint_)
-    return false;
-
-  // load an IK solver if we need to 
-  if (!loadIKSolver())
-  {
-    kb_.reset();
+  if(!is_valid_) {
     return false;
   }
+
+  if(jsg->getName() != getGroupName()) 
+  {
+    logWarn("IKConstraintSampler sample function called with name %s which is not the group %s for which it was configured",
+            jsg->getName().c_str(), getGroupName().c_str());
+    return false;
+  }
+
 
   for (unsigned int a = 0 ; a < max_attempts ; ++a)
   {
@@ -441,28 +484,39 @@ bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStat
   return false;
 }
 
-bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg)
+bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg) const
 {
   // sample a seed value
   std::vector<double> vals;
   jmg_->getVariableRandomValues(random_number_generator_, vals);
-  assert(vals.size() == ik_joint_bijection_.size());
-  std::vector<double> seed(ik_joint_bijection_.size(), 0.0);
-  for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
-    seed[ik_joint_bijection_[i]] = vals[i];
+  const std::vector<unsigned int>& ik_joint_bijection = jmg_->getKinematicsSolverJointBijection();
+  assert(vals.size() == ik_joint_bijection.size());
+  std::vector<double> seed(ik_joint_bijection.size(), 0.0);
+  for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
+    seed[ik_joint_bijection[i]] = vals[i];
   
   std::vector<double> ik_sol;
   moveit_msgs::MoveItErrorCodes error;
  
   if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
   {
-    assert(ik_sol.size() == ik_joint_bijection_.size());
-    std::vector<double> solution(ik_joint_bijection_.size());
-    for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
-      solution[i] = ik_sol[ik_joint_bijection_[i]];
+    assert(ik_sol.size() == ik_joint_bijection.size());
+    std::vector<double> solution(ik_joint_bijection.size());
+    for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
+      solution[i] = ik_sol[ik_joint_bijection[i]];
     jsg->setVariableValues(solution);
-    assert((!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied) && 
-	   (!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied));
+
+    //EGJ removing edge condition check
+    // if(sampling_pose_.orientation_constraint_ && !sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied) {
+    //   logDebug("Edge condition for orientation constraint");
+    //   return false;
+    // }
+    // if(sampling_pose_.position_constraint_ && !sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied) {
+    //   logDebug("Edge condition for position constraint");
+    //   return false;
+    // }
+    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
+    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
     return true;
   }
   else

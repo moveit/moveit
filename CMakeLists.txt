@@ -42,6 +42,7 @@ find_package(catkin COMPONENTS
   resource_retriever
   urdfdom
   srdfdom
+  orocos_kdl
   kdl_parser
   geometric_shapes
   shape_tools
