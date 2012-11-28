@@ -744,6 +744,17 @@ void MotionPlanningDisplay::setQueryGoalState(const kinematic_state::KinematicSt
   updateQueryGoalState();
 }
 
+bool MotionPlanningDisplay::isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
+{
+  if (frame_->ui_->collision_aware_ik->isChecked() && planning_scene_monitor_)
+  { 
+    group->setVariableValues(ik_solution);
+    return !planning_scene_monitor_->getPlanningScene()->isStateColliding(*group->getKinematicState(), group->getName());
+  }
+  else
+    return true;
+}
+
 void MotionPlanningDisplay::updateLinkColors(void)
 {  
   unsetAllColors(query_robot_start_);
@@ -828,7 +839,9 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::updateQueryStartState, this, _1));
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::updateQueryGoalState, this, _1));
-  
+  query_start_state_->setIKValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
+  query_goal_state_->setIKValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
+
   const std::vector<std::string> &groups = getKinematicModel()->getJointModelGroupNames();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     planning_group_property_->addOptionStd(groups[i]);

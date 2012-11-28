@@ -66,6 +66,8 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
 void RobotInteraction::InteractionHandler::setup(void)
 {
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name  
+  ik_timeout_ = 0.1;
+  ik_attempts_ = 3;
 }
 
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
@@ -78,7 +80,7 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   if (!transformFeedbackPose(feedback, tpose))
     return;
   
-  if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose))
+  if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, ik_timeout_, ik_attempts_, ik_validity_callback_fn_))
   {
     if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
       error_state_.insert(eef.parent_group);
@@ -380,9 +382,10 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
   return true;
 }
 
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, double ik_timeout)
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
+                                   double ik_timeout, unsigned int attempts, const kinematic_state::IKValidityCallbackFn &validity_callback)
 { 
-  return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, ik_timeout);
+  return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, ik_timeout, attempts, validity_callback);
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)

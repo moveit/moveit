@@ -184,6 +184,7 @@ protected:
   void publishInteractiveMarkers(void);
   void updateQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
   void updateQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+  bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const;
   
   void computeMetrics(double payload);
   void computeMetrics(bool start, const std::string &group, double payload);
