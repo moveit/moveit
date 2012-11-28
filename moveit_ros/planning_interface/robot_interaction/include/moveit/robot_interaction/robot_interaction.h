@@ -116,6 +116,21 @@ public:
       update_callback_ = callback;
     }
     
+    void setIKValidityCallback(const kinematic_state::IKValidityCallbackFn &callback)
+    {
+      ik_validity_callback_fn_ = callback;
+    }
+    
+    void setIKTimeout(double timeout)
+    {
+      ik_timeout_ = timeout;
+    }
+    
+    void setIKAttempts(unsigned int attempts)
+    {
+      ik_attempts_ = attempts;
+    }
+    
     virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
     virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
     virtual bool inError(const RobotInteraction::EndEffector& eef);
@@ -130,6 +145,9 @@ public:
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
     boost::function<void(InteractionHandler*)> update_callback_;
+    kinematic_state::IKValidityCallbackFn ik_validity_callback_fn_;
+    double ik_timeout_;
+    unsigned int ik_attempts_;
     
   private:
     
@@ -163,7 +181,8 @@ public:
     return active_vj_;
   }
   
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, double ik_timeout = 0.1);
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
+                          double ik_timeout, unsigned int attempts, const kinematic_state::IKValidityCallbackFn &validity_callback = kinematic_state::IKValidityCallbackFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
 
 private:
