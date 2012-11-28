@@ -130,7 +130,8 @@ private Q_SLOTS:
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
   void tabChanged(int index);
-
+  void copySelectedCollisionObject(void);
+  
 private:
 
   void computePlanButtonClicked(void);  
