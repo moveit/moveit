@@ -251,7 +251,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
     dif = current_joint_position - joint_position_;
   
   // check bounds
-  bool result = dif <= joint_tolerance_above_ && dif >= -joint_tolerance_below_;
+  bool result = dif <= (joint_tolerance_above_+2*std::numeric_limits<double>::epsilon()) && dif >= (-joint_tolerance_below_-2*std::numeric_limits<double>::epsilon());
   if (verbose)
     logInform("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
               result ? "satisfied" : "violated", joint_variable_name_.c_str(),
@@ -938,7 +938,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
   {
     const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) * sensor_pose_ : sensor_pose_;
     const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) * target_pose_ : target_pose_;
-    //neccessary to do subtraction as SENSOR_Z is 0 and SENSOR_X is 2
+    //necessary to do subtraction as SENSOR_Z is 0 and SENSOR_X is 2
     const Eigen::Vector3d &normal2 = sp.rotation().col(2-sensor_view_direction_);
 
     if (max_view_angle_ > 0.0)
@@ -946,6 +946,9 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
       const Eigen::Vector3d &normal1 = tp.rotation().col(2)*-1.0; // along Z axis and inverted
       double dp = normal2.dot(normal1);
       double ang = acos(dp);
+      if(verbose) {
+        logInform("Angle is %g max view angle is %g", ang, max_view_angle_);
+      }
       if (dp < 0.0)
       { 
         if (verbose)
@@ -971,6 +974,9 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
       }
       
       double ang = acos(dp);
+      if(verbose) {
+        logInform("Angle is %g max range angle is %g", ang, max_range_angle_);
+      }
       if (max_range_angle_ < ang)
       {
 	if (verbose)

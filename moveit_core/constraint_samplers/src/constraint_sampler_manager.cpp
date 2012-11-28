@@ -66,25 +66,60 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   if (!constr.joint_constraints.empty())
   {    
     logDebug("There are joint constraints specified. Attempting to construct a JointConstraintSampler for group '%s'", jmg->getName().c_str());
+
+    std::map<std::string, bool> joint_coverage;
+    for(unsigned int i = 0; i < jmg->getJointModelNames().size(); i++) {
+      joint_coverage[jmg->getJointModelNames()[i]] = false;
+    }
     
     // construct the constraints
     std::vector<kinematic_constraints::JointConstraint> jc;
     for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
     {
       kinematic_constraints::JointConstraint j(scene->getKinematicModel(), scene->getTransforms());
-      if (j.configure(constr.joint_constraints[i]))
-        jc.push_back(j);
+      if (j.configure(constr.joint_constraints[i])) {
+        if(joint_coverage.find(j.getJointVariableName()) != joint_coverage.end()) {
+          joint_coverage[j.getJointVariableName()] = true;
+          jc.push_back(j);
+        }
+      }
+    }
+
+    bool full_coverage = true;
+    for(std::map<std::string, bool>::iterator it = joint_coverage.begin();
+        it != joint_coverage.end();
+        it++) 
+    {
+      if(!it->second) 
+      {
+        full_coverage = false;
+        break;
+      }
     }
     
     // if we have constrained every joint, then we just use a sampler using these constraints
-    if (jc.size() == jmg->getJointModels().size())
+    if (full_coverage)
     {
       logDebug("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
-      return ConstraintSamplerPtr(new JointConstraintSampler(scene, jmg->getName(), jc));
+      boost::shared_ptr<JointConstraintSampler> sampler(new JointConstraintSampler(scene, jmg->getName()));
+      if(sampler->configure(jc)) {
+        return sampler;
+      }
+    } else if(!jc.empty()) {
+      // if a smaller set of joints has been specified, keep the constraint sampler around, but use it only if no IK sampler has been specified.
+      if (!jc.empty()) {
+        boost::shared_ptr<JointConstraintSampler> sampler(new JointConstraintSampler(scene, jmg->getName()));
+        if(sampler->configure(jc)) {
+          joint_sampler = sampler;
+        }
+      }
     }
-    // if a smaller set of joints has been specified, keep the constraint sampler around, but use it only if no IK sampler has been specified.
-    if (!jc.empty())
-      joint_sampler.reset(new JointConstraintSampler(scene, jmg->getName(), jc));
+  }
+
+  std::vector<ConstraintSamplerPtr> samplers;
+  if(joint_sampler) 
+  {
+    samplers.push_back(joint_sampler);
   }
   
   // read the ik allocators, if any
@@ -111,9 +146,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getKinematicModel(), scene->getTransforms()));
           if (pc->configure(constr.position_constraints[p]) && oc->configure(constr.orientation_constraints[o]))
           {        
-            boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName(), IKSamplingPose(pc, oc)));
-            if (iks->loadIKSolver())
-            {        
+            boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+            if(iks->configure(IKSamplingPose(pc, oc))) {
               bool use = true;
               if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
                 if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
@@ -140,8 +174,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getKinematicModel(), scene->getTransforms()));
       if (pc->configure(constr.position_constraints[p]))
       {
-        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName(), IKSamplingPose(pc)));
-        if (iks->loadIKSolver())
+        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+        if(iks->configure(IKSamplingPose(pc))) 
         {
           bool use = true;
           if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
@@ -166,8 +200,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getKinematicModel(), scene->getTransforms()));
       if (oc->configure(constr.orientation_constraints[o]))
       {
-        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName(), IKSamplingPose(oc)));
-        if (iks->loadIKSolver())
+        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+        if(iks->configure(IKSamplingPose(oc))) 
         {
           bool use = true;
           if (usedL.find(constr.orientation_constraints[o].link_name) != usedL.end())
@@ -183,10 +217,12 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       }
     }
     
-    if (usedL.size() == 1)
+    if (usedL.size() == 1 && samplers.empty()) {
       return usedL.begin()->second;
-    
-    if (usedL.size() > 1)
+    } else if(usedL.size() == 1) {
+      samplers.push_back(usedL.begin()->second);
+      return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
+    } else if (usedL.size() > 1)
     {
       logDebug("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
       // find the sampler with the smallest sampling volume; delete the rest
@@ -201,21 +237,27 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           msv = v;
         } 
       }
-      return iks;
+      if(samplers.empty()) {
+        return iks;
+      } else {
+        samplers.push_back(iks);
+        return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
+      }
     }
   }
-  
+    
   // if we got to this point, we have not decided on a sampler.
   // we now check to see if we can use samplers from subgroups
   if (!ik_subgroup_alloc.empty())
   {        
     logDebug("There are IK allocators for subgroups of group '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
+
+    bool some_sampler_valid = false;
     
-    std::vector<ConstraintSamplerPtr> samplers;
     std::set<std::size_t> usedP, usedO;
     for (std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
     {
-      // construct a sub-set of constraints that uperate on the sub-group for which we have an IK allocator
+      // construct a sub-set of constraints that operate on the sub-group for which we have an IK allocator
       moveit_msgs::Constraints sub_constr;
       for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
         if (it->first->hasLinkModel(constr.position_constraints[p].link_name))
@@ -242,17 +284,19 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
         {
           logDebug("Constructed a sampler for the joints corresponding to group '%s', but part of group '%s'", 
                    it->first->getName().c_str(), jmg->getName().c_str());
+          some_sampler_valid = true;
           samplers.push_back(cs);
         }
       }
     }
-    if (!samplers.empty())
+    if (some_sampler_valid)
     {
       logDebug("Constructing sampler for group '%s' as a union of %u samplers", jmg->getName().c_str(), (unsigned int)samplers.size());
       return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
     }
   }
-  
+
+  //if we've gotten here, just return joint sampler
   if (joint_sampler)
   {
     logDebug("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
