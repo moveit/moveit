@@ -36,6 +36,7 @@
 
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <boost/bind.hpp>
 
 kinematic_state::JointStateGroup::JointStateGroup(KinematicState *state,
                                                   const kinematic_model::JointModelGroup *jmg) :
@@ -246,30 +247,30 @@ kinematic_state::JointState* kinematic_state::JointStateGroup::getJointState(con
     return it->second;
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, double timeout, unsigned int attempts, const IKValidityCallbackFn &constraint)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
     return false;
-  return setFromIK(pose, solver->getTipFrame(), timeout);
+  return setFromIK(pose, solver->getTipFrame(), timeout, attempts, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout, unsigned int attempts, const IKValidityCallbackFn &constraint)
 {
   Eigen::Affine3d mat;
   tf::poseMsgToEigen(pose, mat);
-  return setFromIK(mat, tip, timeout);
+  return setFromIK(mat, tip, timeout, attempts, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, double timeout, unsigned int attempts, const IKValidityCallbackFn &constraint)
 { 
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
     return false;
-  return setFromIK(pose, solver->getTipFrame(), timeout);
+  return setFromIK(pose, solver->getTipFrame(), timeout, attempts, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, double timeout)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, double timeout, unsigned int attempts, const IKValidityCallbackFn &constraint)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -337,9 +338,13 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
   ik_query.orientation.y = quat.y();
   ik_query.orientation.z = quat.z();
   ik_query.orientation.w = quat.w();
-    
+  
+  kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
+  if (constraint)
+    ik_callback_fn = boost::bind(&JointStateGroup::ikCallbackFnAdapter, this, constraint, _1, _2, _3);
+  
   bool first_seed = true;
-  for (int st = 0 ; st < 2 ; ++st)
+  for (unsigned int st = 0 ; st < attempts ; ++st)
   {
     std::vector<double> seed(bij.size());
     
@@ -365,9 +370,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
     // compute the IK solution
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
-    if (solver->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
+    if (ik_callback_fn ?
+        solver->searchPositionIK(ik_query, seed, timeout, ik_sol, ik_callback_fn, error) : 
+        solver->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
     {
-      
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         solution[i] = ik_sol[bij[i]];
@@ -378,11 +384,24 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
   return false;
 }
 
+void kinematic_state::JointStateGroup::ikCallbackFnAdapter(const IKValidityCallbackFn &constraint,
+                                                           const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
+{  
+  const std::vector<unsigned int> &bij = joint_model_group_->getKinematicsSolverJointBijection();
+  std::vector<double> solution(bij.size());
+  for (std::size_t i = 0 ; i < bij.size() ; ++i)
+    solution[i] = ik_sol[bij[i]];
+  if (constraint(this, solution))
+    error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  else
+    error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
+}
+
 bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
                                                    const Eigen::Vector3d &reference_point_position, 
                                                    Eigen::MatrixXd& jacobian) const
 {
-  if(!joint_model_group_->isChain())
+  if (!joint_model_group_->isChain())
   {
     logError("Will compute Jacobian only for a chain");
     return false;
@@ -394,7 +413,6 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
   }
   
   const kinematic_model::JointModel* root_joint_model = (joint_model_group_->getJointRoots())[0];
-  logDebug("ROOT_LINK ", root_joint_model->getParentLinkModel()->getName().c_str());
   const kinematic_state::LinkState *root_link_state = kinematic_state_->getLinkState(root_joint_model->getParentLinkModel()->getName());
   Eigen::Affine3d reference_transform = root_link_state ? root_link_state->getGlobalLinkTransform() : kinematic_state_->getRootTransform();
   reference_transform = reference_transform.inverse();
@@ -412,7 +430,7 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
   Eigen::Vector3d joint_axis;
   Eigen::Affine3d joint_transform;
   
-  while(link_state)
+  while (link_state)
   {
     logDebug("Link: %s, %f %f %f",link_state->getName().c_str(),
              link_state->getGlobalLinkTransform().translation().x(),
@@ -426,7 +444,7 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
-        joint_axis = joint_transform.rotation()*(dynamic_cast<const kinematic_model::RevoluteJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
+        joint_axis = joint_transform.rotation()*(static_cast<const kinematic_model::RevoluteJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
         jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
         jacobian.block<3,1>(3,joint_index) = joint_axis;
       }
@@ -434,7 +452,7 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
-        joint_axis = joint_transform*(dynamic_cast<const kinematic_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
+        joint_axis = joint_transform*(static_cast<const kinematic_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
         jacobian.block<3,1>(0,joint_index) = joint_axis;
       }
       if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)

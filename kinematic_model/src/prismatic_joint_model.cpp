@@ -49,9 +49,9 @@ unsigned int kinematic_model::PrismaticJointModel::getStateSpaceDimension(void) 
   return 1;
 }
 
-double kinematic_model::PrismaticJointModel::getMaximumExtent(void) const
+double kinematic_model::PrismaticJointModel::getMaximumExtent(const Bounds &other_bounds) const
 {  
-  return variable_bounds_[0].second - variable_bounds_[0].first;
+  return other_bounds[0].second - other_bounds[0].first;
 }
 
 void kinematic_model::PrismaticJointModel::getVariableDefaultValues(std::vector<double> &values, const Bounds &bounds) const
@@ -121,4 +121,3 @@ void kinematic_model::PrismaticJointModel::computeJointStateValues(const Eigen::
   joint_values.resize(1);
   joint_values[0] = transf.translation().dot(axis_);
 }
-

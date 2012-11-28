@@ -124,7 +124,6 @@ public:
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
                                 std::vector<double> &solution,
-                                const IKCallbackFn &desired_pose_callback,
                                 const IKCallbackFn &solution_callback,
                                 moveit_msgs::MoveItErrorCodes &error_code) const = 0;      
 
@@ -149,7 +148,6 @@ public:
                                 unsigned int redundancy,
                                 double consistency_limit,
                                 std::vector<double> &solution,
-                                const IKCallbackFn &desired_pose_callback,
                                 const IKCallbackFn &solution_callback,
                                 moveit_msgs::MoveItErrorCodes &error_code) const = 0;      
     

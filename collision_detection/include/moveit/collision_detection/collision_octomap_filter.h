@@ -34,8 +34,8 @@
 
 /* Author Adam Leeper */
 
-#ifndef COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
-#define COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
+#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
+#define MOVEIT_COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_world.h>

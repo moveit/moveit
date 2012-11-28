@@ -73,7 +73,7 @@ double kinematic_model::FixedJointModel::distance(const std::vector<double> &val
   return 0.0;  
 }
 
-double kinematic_model::FixedJointModel::getMaximumExtent(void) const
+double kinematic_model::FixedJointModel::getMaximumExtent(const Bounds &other_bounds) const
 {
   return 0.0;
 }

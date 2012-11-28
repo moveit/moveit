@@ -73,7 +73,7 @@ void kinematic_state::KinematicState::buildState(void)
     link_state_map_[link_state_vector_[i]->getName()] = link_state_vector_[i];
   }
   
-  // now we need to figure out who are the link parents are
+  // now we need to figure out who the link parents are
   for (std::size_t i = 0; i < link_state_vector_.size(); ++i)
   {
     const kinematic_model::JointModel* parent_joint_model = link_state_vector_[i]->getLinkModel()->getParentJointModel();
