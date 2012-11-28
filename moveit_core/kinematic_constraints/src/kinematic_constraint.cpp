@@ -75,7 +75,8 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
   clear();
 
   //testing tolerances first
-  if(jc.tolerance_above < 0.0 || jc.tolerance_below < 0.0) {
+  if (jc.tolerance_above < 0.0 || jc.tolerance_below < 0.0)
+  {
     logWarn("JointConstraint tolerance values must be positive.");
     joint_model_ = NULL;
     return false;
@@ -181,8 +182,9 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
 	}
     }
     
-    if (jc.weight <= std::numeric_limits<double>::epsilon()) {
-      logWarn("The weight on constraint for joint '%s' is near zero.  Setting to 1.0.", jc.joint_name.c_str());
+    if (jc.weight <= std::numeric_limits<double>::epsilon())
+    {
+      logWarn("The weight on constraint for joint '%s' is very near zero.  Setting to 1.0.", jc.joint_name.c_str());
       constraint_weight_ = 1.0;
     }
     else
@@ -242,10 +244,6 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
     else
       if (dif < -boost::math::constants::pi<double>())
         dif += 2.0*boost::math::constants::pi<double>(); // we include a sign change to have dif > 0
-    // however, we want to include proper sign for diff, as the tol below is may be different from tol above
-    // EGJ - this gives incorrect values
-    // if (current_joint_position < joint_position_)
-    //   dif = -dif;
   }
   else
     dif = current_joint_position - joint_position_;
@@ -296,12 +294,14 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
   clear();
 
   link_model_ = kmodel_->getLinkModel(pc.link_name);
-  if(link_model_ == NULL) {
+  if (link_model_ == NULL)
+  {
     logWarn("Position constraint link model %s not found in kinematic model.  Constraint invalid.", pc.link_name.c_str());
     return false;
   }
 
-  if (pc.header.frame_id.empty()) {
+  if (pc.header.frame_id.empty())
+  {
     logWarn("No frame specified for position constraint on link '%s'!", pc.link_name.c_str());
     return false;
   }
@@ -326,7 +326,8 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region.primitives[i]));
     if (shape)
     {
-      if (pc.constraint_region.primitive_poses.size() <= i) {
+      if (pc.constraint_region.primitive_poses.size() <= i) 
+      {
         logWarn("Constraint region message does not contain enough primitive poses");
         continue;
       }
@@ -341,7 +342,8 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
         tf_->transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
         constraint_region_.back()->setPose(constraint_region_pose_.back());
       }
-    } else {
+    } else 
+    {
       logWarn("Could not construct primitive shape %d", i);
     }
   }
@@ -352,7 +354,8 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region.meshes[i]));
     if (shape)
     {
-      if (pc.constraint_region.mesh_poses.size() <= i) {
+      if (pc.constraint_region.mesh_poses.size() <= i)
+      {
         logWarn("Constraint region message does not contain enough primitive poses");
         continue;
       }
@@ -367,12 +370,15 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
         tf_->transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
         constraint_region_.back()->setPose(constraint_region_pose_.back());
       }
-    } else {
+    }
+    else
+    {
       logWarn("Could not construct mesh shape %d",i);
     }
   }
   
-    if (pc.weight <= std::numeric_limits<double>::epsilon()) {
+    if (pc.weight <= std::numeric_limits<double>::epsilon())
+    {
       logWarn("The weight on position constraint for link '%s' is near zero.  Setting to 1.0.", pc.link_name.c_str());
       constraint_weight_ = 1.0;
     }
@@ -397,26 +403,25 @@ bool kinematic_constraints::PositionConstraint::equal(const KinematicConstraint 
     {
       bool some_match = false;
       //need to check against all other regions
-      for(std::size_t j = 0 ; j < o.constraint_region_.size() ; ++j) {
+      for(std::size_t j = 0 ; j < o.constraint_region_.size() ; ++j) 
+      {
         Eigen::Affine3d diff = constraint_region_pose_[i].inverse() * o.constraint_region_pose_[j];
         if (diff.translation().norm() < margin 
             && diff.rotation().isIdentity(margin) 
             && constraint_region_[i]->getType() == o.constraint_region_[j]->getType()
-            && fabs(constraint_region_[i]->computeVolume() - o.constraint_region_[j]->computeVolume()) < margin) {
+            && fabs(constraint_region_[i]->computeVolume() - o.constraint_region_[j]->computeVolume()) < margin)
+        {
           some_match = true;
           //can't break, as need to do matches the other way as well
           other_region_matches_this[j] = true;
         }      
       }
-      if(!some_match) {
+      if (!some_match)
         return false;
-      }
     }
-    for (std::size_t i = 0 ; i < o.constraint_region_.size() ; ++i) {
-      if(!other_region_matches_this[i]) {
+    for (std::size_t i = 0 ; i < o.constraint_region_.size() ; ++i)
+      if (!other_region_matches_this[i]) 
         return false;
-      }
-    }
     return true;
   }
   return false;
@@ -425,13 +430,15 @@ bool kinematic_constraints::PositionConstraint::equal(const KinematicConstraint 
 namespace kinematic_constraints
 {
 // helper function to avoid code duplication
-static inline kinematic_constraints::ConstraintEvaluationResult finishPositionConstraintDecision(const Eigen::Vector3d &pt, const Eigen::Vector3d &desired, const std::string &name,
-                                                                                                 double weight, bool result, bool verbose)
+static inline
+kinematic_constraints::ConstraintEvaluationResult finishPositionConstraintDecision(const Eigen::Vector3d &pt, const Eigen::Vector3d &desired, const std::string &name,
+                                                                                   double weight, bool result, bool verbose)
 {
   double dx = desired.x() - pt.x();
   double dy = desired.y() - pt.y();
   double dz = desired.z() - pt.z(); 
-  if (verbose) {
+  if (verbose)
+  {
     logInform("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
              result ? "satisfied" : "violated", name.c_str(), desired.x(), desired.y(), desired.z(), pt.x(), pt.y(), pt.z());
     logInform("Differences %g %g %g",dx,dy, dz);
@@ -484,9 +491,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Positio
 void kinematic_constraints::PositionConstraint::print(std::ostream &out) const
 {
   if (enabled())
-  {
     out << "Position constraint on link '" << link_model_->getName() << "'" << std::endl;
-  }
   else
     out << "No constraint" << std::endl;
 }
@@ -513,7 +518,8 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   clear();
 
   link_model_ = kmodel_->getLinkModel(oc.link_name);
-  if(!link_model_) {
+  if(!link_model_)
+  {
     logWarn("Could not find link model for link name %s", oc.link_name.c_str());
     return false;
   }
@@ -547,25 +553,23 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   matrix_str << desired_rotation_matrix_;
   logDebug("The desired rotation matrix for link '%s' in frame %s is:\n%s", oc.link_name.c_str(), desired_rotation_frame_id_.c_str(), matrix_str.str().c_str());
   
-  if (oc.weight <= std::numeric_limits<double>::epsilon()) {
+  if (oc.weight <= std::numeric_limits<double>::epsilon())
+  {
     logWarn("The weight on position constraint for link '%s' is near zero.  Setting to 1.0.", oc.link_name.c_str());
     constraint_weight_ = 1.0;
   }
   else
     constraint_weight_ = oc.weight;
   absolute_x_axis_tolerance_ = fabs(oc.absolute_x_axis_tolerance);
-  if(absolute_x_axis_tolerance_ < std::numeric_limits<double>::epsilon()) {
+  if (absolute_x_axis_tolerance_ < std::numeric_limits<double>::epsilon())
     logWarn("Near-zero value for absolute_x_axis_tolerance");
-  }
   absolute_y_axis_tolerance_ = fabs(oc.absolute_y_axis_tolerance);
-  if(absolute_y_axis_tolerance_ < std::numeric_limits<double>::epsilon()) {
+  if (absolute_y_axis_tolerance_ < std::numeric_limits<double>::epsilon())
     logWarn("Near-zero value for absolute_y_axis_tolerance");
-  }
   absolute_z_axis_tolerance_ = fabs(oc.absolute_z_axis_tolerance);
-  if(absolute_z_axis_tolerance_ < std::numeric_limits<double>::epsilon()) {
+  if (absolute_z_axis_tolerance_ < std::numeric_limits<double>::epsilon())
     logWarn("Near-zero value for absolute_z_axis_tolerance");
-  }
-
+  
   return link_model_ != NULL;
 }
 
@@ -743,7 +747,8 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
     mobile_sensor_frame_ = true;
   }
   
-  if (vc.weight <= std::numeric_limits<double>::epsilon()) {
+  if (vc.weight <= std::numeric_limits<double>::epsilon())
+  {
     logWarn("The weight of visibility constraint is near zero.  Setting to 1.0.");
     constraint_weight_ = 1.0;
   }  
@@ -946,9 +951,6 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
       const Eigen::Vector3d &normal1 = tp.rotation().col(2)*-1.0; // along Z axis and inverted
       double dp = normal2.dot(normal1);
       double ang = acos(dp);
-      if(verbose) {
-        logInform("Angle is %g max view angle is %g", ang, max_view_angle_);
-      }
       if (dp < 0.0)
       { 
         if (verbose)
@@ -974,9 +976,6 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
       }
       
       double ang = acos(dp);
-      if(verbose) {
-        logInform("Angle is %g max range angle is %g", ang, max_range_angle_);
-      }
       if (max_range_angle_ < ang)
       {
 	if (verbose)

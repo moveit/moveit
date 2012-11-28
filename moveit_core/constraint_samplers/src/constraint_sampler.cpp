@@ -40,15 +40,19 @@ constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::
 {
   jmg_ = scene->getKinematicModel()->getJointModelGroup(group_name);
   scene_ = scene;
-  if (!jmg_) {
+  if (!jmg_)
+  {
     logError("A JointModelGroup should have been specified for the constraint sampler");
     is_valid_ = false;
-  } else {
+  }
+  else
+  {
     is_valid_ = true;
   }
 }
 
-void constraint_samplers::ConstraintSampler::clear() {
+void constraint_samplers::ConstraintSampler::clear()
+{
   is_valid_ = false;
   frame_depends_.clear();
 }
