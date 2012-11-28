@@ -78,34 +78,50 @@ public:
   /** @brief Constructor
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param tf A pointer to a tf::Transformer
+   *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  PlanningSceneMonitor(const std::string &robot_description,
+                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+                       const std::string &name = "");
 
   /** @brief Constructor
    *  @param kml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
+   *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml,
+                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+                       const std::string &name = "");
 
   /** @brief Constructor
    *  @param scene The scene instance to maintain up to date with monitored information
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param tf A pointer to a tf::Transformer
+   *  @param name A name identifying this planning scene monitor
    */
   PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const std::string &robot_description, 
-                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+                       const std::string &name = "");
 
   /** @brief Constructor
    *  @param scene The scene instance to maintain up to date with monitored information
    *  @param kml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
+   *  @param name A name identifying this planning scene monitor
    */
   PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, 
                        const planning_models_loader::KinematicModelLoaderPtr &kml, 
-                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+                       const std::string &name = "");
 
   ~PlanningSceneMonitor(void);
-
+  
+  /** \brief Get the name of this monitor */
+  const std::string& getName(void) const
+  {
+    return monitor_name_;
+  }
+  
   /** \brief Get the user kinematic model loader */
   const planning_models_loader::KinematicModelLoaderPtr& getKinematicModelLoader(void) const
   {
@@ -135,6 +151,30 @@ public:
     return robot_description_;
   }
 
+  /// Get the default robot padding
+  double getDefaultRobotPadding(void) const
+  {
+    return default_robot_padd_;
+  }
+  
+  /// Get the default robot scaling
+  double getDefaultRobotScale(void) const
+  {
+    return default_robot_scale_;
+  }
+    
+  /// Get the default object padding
+  double getDefaultObjectPadding(void) const
+  {
+    return default_object_padd_;
+  }
+  
+  /// Get the default attached padding
+  double getDefaultAttachedObjectPadding(void) const
+  {
+    return default_attached_padd_;
+  }
+  
   /** @brief Get the instance of the TF client that was passed to the constructor of this class. */
   const boost::shared_ptr<tf::Transformer>& getTFClient(void) const
   {
@@ -278,6 +318,9 @@ protected:
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
   
   void getUpdatedFrameTransforms(const kinematic_model::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
+  
+  /// The name of this scene monitor
+  std::string                           monitor_name_;
   
   planning_scene::PlanningScenePtr      scene_;
   planning_scene::PlanningSceneConstPtr scene_const_;

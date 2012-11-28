@@ -347,7 +347,8 @@ void PlanningSceneDisplay::loadRobotModel(void)
   planning_scene_render_.reset();
   planning_scene_monitor_.reset(); // this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
-                                                                                 context_->getFrameManager()->getTFClientPtr()));
+                                                                                 context_->getFrameManager()->getTFClientPtr(),
+                                                                                 getNameStd() + "_planning_scene_monitor"));
   if (getPlanningScene() && getPlanningScene()->isConfigured())
   {
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));

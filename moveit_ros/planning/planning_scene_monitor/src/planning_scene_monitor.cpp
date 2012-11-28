@@ -50,12 +50,26 @@ class PlanningSceneMonitor::DynamicReconfigureImpl
 public:
   
   DynamicReconfigureImpl(PlanningSceneMonitor *owner) : owner_(owner),
-							dynamic_reconfigure_server_(ros::NodeHandle("~/planning_scene_monitor"))
+							dynamic_reconfigure_server_(ros::NodeHandle(decideNamespace(owner->getName())))
   {
     dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
   }
   
 private:
+
+  // make sure we do not advertise the same service multiple times, in case we use multiple PlanningSceneMonitor instances in a process
+  static std::string decideNamespace(const std::string &name)
+  {
+    std::string ns = "~/" + name;
+    if (ros::service::exists(ns + "/set_parameters", false))
+    {
+      unsigned int c = 1;
+      while (ros::service::exists(ns + boost::lexical_cast<std::string>(c) + "/set_parameters", false))
+        c++;
+      ns += boost::lexical_cast<std::string>(c);
+    }
+    return ns;
+  }
   
   void dynamicReconfigureCallback(PlanningSceneMonitorDynamicReconfigureConfig &config, uint32_t level)
   {   
@@ -81,28 +95,31 @@ private:
 
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
-  nh_("~"), tf_(tf)
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
+  nh_("~"), tf_(tf), monitor_name_(name)
 {  
   kinematics_loader_.reset(new planning_models_loader::KinematicModelLoader(robot_description));
   initialize(planning_scene::PlanningScenePtr());
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
-  nh_("~"), tf_(tf)
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const std::string &robot_description,
+                                                                   const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
+  nh_("~"), tf_(tf), monitor_name_(name)
 {
   kinematics_loader_.reset(new planning_models_loader::KinematicModelLoader(robot_description));
   initialize(scene);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
-  nh_("~"), tf_(tf), kinematics_loader_(kml)
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml,
+                                                                   const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
+  nh_("~"), tf_(tf), kinematics_loader_(kml), monitor_name_(name)
 {
   initialize(planning_scene::PlanningScenePtr());
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
-  nh_("~"), tf_(tf), kinematics_loader_(kml)
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const planning_models_loader::KinematicModelLoaderPtr &kml,
+                                                                   const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
+  nh_("~"), tf_(tf), kinematics_loader_(kml), monitor_name_(name)
 {
   initialize(scene);
 }
@@ -119,7 +136,8 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr &scene)
 {
   bounds_error_ = std::numeric_limits<double>::epsilon();
-  
+  if (monitor_name_.empty())
+    monitor_name_ = "planning_scene_monitor";
   robot_description_ = kinematics_loader_->getRobotDescription();
   if (kinematics_loader_->getModel())
   {
