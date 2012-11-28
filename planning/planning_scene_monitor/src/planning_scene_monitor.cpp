@@ -60,7 +60,9 @@ private:
   // make sure we do not advertise the same service multiple times, in case we use multiple PlanningSceneMonitor instances in a process
   static std::string decideNamespace(const std::string &name)
   {
-    std::string ns = "~/" + name;
+    std::string ns = "~/" + name; 
+    std::replace(ns.begin(), ns.end(), ' ', '_');
+    std::transform(ns.begin(), ns.end(), ns.begin(), ::tolower);
     if (ros::service::exists(ns + "/set_parameters", false))
     {
       unsigned int c = 1;
