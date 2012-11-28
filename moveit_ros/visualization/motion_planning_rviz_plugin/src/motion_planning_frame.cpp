@@ -46,6 +46,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QShortcut>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
@@ -102,6 +103,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->planning_scene_tree, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( warehouseItemNameChanged( QTreeWidgetItem *, int ) ));
 
   connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
+  
+  QShortcut *copy_object_shortcut = new QShortcut(QKeySequence("Ctrl+C"), ui_->collision_objects_list);
+  connect(copy_object_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedCollisionObject() ) );
 
   ui_->tabWidget->setCurrentIndex(0); 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
@@ -110,6 +114,42 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
 
 MotionPlanningFrame::~MotionPlanningFrame(void)
 {
+}
+
+void MotionPlanningFrame::copySelectedCollisionObject(void)
+{
+  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+  if (sel.empty())
+    return;
+  if (!planning_display_->getPlanningScene())
+    return;
+  
+  collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
+  bool change = false;
+  for (int i = 0 ; i < sel.size() ; ++i)
+  {
+    std::string name = sel[i]->text().toStdString();
+    collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(name);
+    if (!obj)
+      continue;
+
+    // find a name for the copy
+    name = "Copy of " + name;
+    if (world->hasObject(name))
+    {
+      name += " ";
+      unsigned int n = 1;
+      while (world->hasObject(name + boost::lexical_cast<std::string>(n)))
+        n++;
+      name += boost::lexical_cast<std::string>(n);
+    }
+    world->addToObject(name, obj->shapes_, obj->shape_poses_);
+    ROS_DEBUG("Copied collision object to '%s'", name.c_str());
+    change = true;
+  }
+  
+  if (change)
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
 
 void MotionPlanningFrame::changePlanningGroupHelper(void)
@@ -186,6 +226,7 @@ void MotionPlanningFrame::populateCollisionObjectsList(void)
       QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(collision_object_names_[i]),
                                                   ui_->collision_objects_list, (int)i);
       item->setFlags(item->flags() | Qt::ItemIsEditable);
+      item->setToolTip(item->text());
       item->setCheckState(Qt::Unchecked);
       if (to_select.find(collision_object_names_[i]) != to_select.end())
         item->setSelected(true);
@@ -214,7 +255,7 @@ void MotionPlanningFrame::createSceneInteractiveMarker(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
-      return;
+    return;
 
   collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
   collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());

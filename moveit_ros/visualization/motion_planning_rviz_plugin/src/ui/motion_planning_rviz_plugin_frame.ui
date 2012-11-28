@@ -660,6 +660,9 @@
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
         <widget class="QGroupBox" name="groupBox_8">
+         <property name="toolTip">
+          <string>Press Ctrl+C to duplicate an object</string>
+         </property>
          <property name="title">
           <string>Scene Collision Objects</string>
          </property>
