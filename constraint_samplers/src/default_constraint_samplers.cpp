@@ -85,19 +85,14 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
     JointInfo ji;
     ji.index_ = vim.find(jc[i].getJointVariableName())->second;
     std::map<std::string, JointInfo>::iterator it = bound_data.find(jc[i].getJointVariableName());
-    if(it != bound_data.end()) {
+    if (it != bound_data.end())
       ji = it->second;
-    }
-
+    
     ji.potentiallyAdjustMinMaxBounds(std::max(joint_bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow()),
                                      std::min(joint_bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
     
-    logDebug("Vals %g %g %g %g",
-             joint_bounds.first, 
-             jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow(),
-             joint_bounds.second, 
-             jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
-    logDebug("Bounds for %s are %g %g",jc[i].getJointVariableName().c_str(),ji.min_bound_,ji.max_bound_);
+
+    logDebug("Bounds for %s JointConstraint are %g %g", jc[i].getJointVariableName().c_str(),ji.min_bound_,ji.max_bound_);
 
     if (ji.min_bound_ > ji.max_bound_+std::numeric_limits<double>::epsilon())
     {
@@ -106,21 +101,18 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
       clear();
       return false;
     }
-    if (jm->getVariableCount() == 1) {
+    if (jm->getVariableCount() == 1)
       bound_data[jc[i].getJointVariableName()] = ji;      
-    }
   }
 
-  if(!some_valid_constraint) {
+  if (!some_valid_constraint)
+  {
     logWarn("No valid joint constraints");
     return false;
   }
 
-  for(std::map<std::string, JointInfo>::iterator it = bound_data.begin();
-      it != bound_data.end();
-      it++) {
+  for (std::map<std::string, JointInfo>::iterator it = bound_data.begin(); it != bound_data.end(); ++it)
     bounds_.push_back(it->second);
-  }
   
   // get a separate list of joints that are not bounded; we will sample these randomly
   const std::vector<const kinematic_model::JointModel*> &joints = jmg_->getJointModels();
@@ -166,7 +158,6 @@ bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointS
     values_[bounds_[i].index_] = random_number_generator_.uniformReal(bounds_[i].min_bound_, bounds_[i].max_bound_);
 
   jsg->setVariableValues(values_);
-
 
   // we are always successful
   return true;
@@ -244,7 +235,8 @@ bool constraint_samplers::IKConstraintSampler::configure(const IKSamplingPose &s
   if (sampling_pose_.orientation_constraint_ && sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     frame_depends_.push_back(sampling_pose_.orientation_constraint_->getReferenceFrame());
   kb_ = jmg_->getSolverInstance();
-  if(!kb_) {
+  if (!kb_)
+  {
     logWarn("No solver instance in setup");
     is_valid_ = false;
     return false;
@@ -449,17 +441,15 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
 
 bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
 {
-  if(!is_valid_) {
+  if (!is_valid_)
     return false;
-  }
-
+  
   if(jsg->getName() != getGroupName()) 
   {
     logWarn("IKConstraintSampler sample function called with name %s which is not the group %s for which it was configured",
             jsg->getName().c_str(), getGroupName().c_str());
     return false;
   }
-
 
   for (unsigned int a = 0 ; a < max_attempts ; ++a)
   {
@@ -484,7 +474,7 @@ bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStat
   return false;
 }
 
-bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg) const
+bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg) 
 {
   // sample a seed value
   std::vector<double> vals;
@@ -506,15 +496,6 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
       solution[i] = ik_sol[ik_joint_bijection[i]];
     jsg->setVariableValues(solution);
 
-    //EGJ removing edge condition check
-    // if(sampling_pose_.orientation_constraint_ && !sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied) {
-    //   logDebug("Edge condition for orientation constraint");
-    //   return false;
-    // }
-    // if(sampling_pose_.position_constraint_ && !sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied) {
-    //   logDebug("Edge condition for position constraint");
-    //   return false;
-    // }
     assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
     assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
     return true;

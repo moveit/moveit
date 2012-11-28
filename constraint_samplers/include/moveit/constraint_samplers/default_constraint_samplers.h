@@ -192,7 +192,7 @@ protected:
   virtual void clear();
 
   random_numbers::RandomNumberGenerator           random_number_generator_; /**< \brief Random number generator used to sample */
-  std::vector<JointInfo> bounds_; /**< \brief The bounds for any joint with bounds that are more restrictive than the joint limits */
+  std::vector<JointInfo>                          bounds_; /**< \brief The bounds for any joint with bounds that are more restrictive than the joint limits */
 
   std::vector<const kinematic_model::JointModel*> unbounded_; /**< \brief The joints that are not bounded except by joint limits */
   std::vector<unsigned int>                       uindex_; /**< \brief The index of the unbounded joints in the joint state vector */
@@ -489,9 +489,9 @@ protected:
    * 
    * @return True if IK returns successfully with the timeout, and otherwise false.
    */
-  bool callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg) const;
+  bool callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg);
 
-  mutable random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random generator used by the sampler */
+  random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random generator used by the sampler */
   IKSamplingPose                        sampling_pose_; /**< \brief Holder for the pose used for sampling */
   kinematics::KinematicsBaseConstPtr    kb_; /**< \brief Holds the kinematics solver */
   double                                ik_timeout_; /**< \brief Holds the timeout associated with IK */
