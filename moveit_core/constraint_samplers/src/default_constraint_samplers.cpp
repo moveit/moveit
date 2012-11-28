@@ -340,7 +340,6 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
              sampling_pose_.position_constraint_ ? sampling_pose_.position_constraint_->getLinkModel()->getName().c_str() : sampling_pose_.orientation_constraint_->getLinkModel()->getName().c_str(), kb_->getTipFrame().c_str());
     return false;
   }
-  
   return true;
 }
 
@@ -507,17 +506,17 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
       solution[i] = ik_sol[ik_joint_bijection[i]];
     jsg->setVariableValues(solution);
 
-    if(sampling_pose_.orientation_constraint_ && !sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied) {
-      logDebug("Edge condition for orientation constraint");
-      return false;
-    }
-    if(sampling_pose_.position_constraint_ && !sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied) {
-      logDebug("Edge condition for position constraint");
-      return false;
-    }
-    //EGJ - removing asserts, doing edge condition check instead
-    //assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
-    //assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
+    //EGJ removing edge condition check
+    // if(sampling_pose_.orientation_constraint_ && !sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied) {
+    //   logDebug("Edge condition for orientation constraint");
+    //   return false;
+    // }
+    // if(sampling_pose_.position_constraint_ && !sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied) {
+    //   logDebug("Edge condition for position constraint");
+    //   return false;
+    // }
+    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
+    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
     return true;
   }
   else

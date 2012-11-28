@@ -94,13 +94,38 @@ public:
    * \brief Default logic to select a ConstraintSampler given a
    * constraints message.
    *
+   * This function will generate a sampler using the joint_constraint,
+   * position_constraint, and orientation_constraint vectors from the
+   * Constraints argument.  The type of constraint sampler that is
+   * produced depends on which constraint vectors have been populated.
+   * The following rules are applied:
    * 
+   * - If every joint in the group indicated by group_name is
+   * constrained by a valid joint constraint in the joint_constraints
+   * vector, a JointConstraintSampler with all bounded joints in
+   * returned.
+   * - If not every joint is constrained, but no position and
+   * orientation constraints are specified, or no valid
+   * IKConstraintSampler can be created, then a JointConstraintSampler
+   * with some unbounded joints is returned.
+   * - If position and orientation constraints are present and there
+   * is an IKSolver for the group, the function will attempt to
+   * create an IKConstraintSampler.
+   *   - If there are multiple valid position/constraint pairings, the
+   *     one with the smallest volume will be kept.
+   *   - If no full pose is available, the function will attempt to create a position-only IKConstraintSampler.
+   *   - Finally, the function will attempt to create an orientation-only IKConstraintSampler.
+   *   - If there is a valid IKConstraintSampler, then if no valid joint constraints are present then an IKConstraintSampler will be returned.
+   *   - If there are joint constraints, a UnionConstraintSampler with both the JointConstraintSampler and the IKConstraintSampler will be returned.
+   * - If there is no direct IK solver for the group, or no valid IKConstraintSampler could be generated, and there are subgroup IKSolvers, the function will attempt to generate a sampler from the various subgroup solvers.
+   *   - It will attempt to determine which constraints act on the IK link for the sub-group IK solvers, and attempts to create ConstraintSampler functions by recursively calling \ref selectDefaultSampler for the sub-group.  
+   *   - If any samplers are valid, it adds them to a vector of type \ref ConstraintSamplerPtr.
+   *   - Once it has iterated through each sub-group, if any samplers are valid, they are returned in a UnionConstraintSampler, along with a JointConstraintSampler if one exists.
+   * @param scene The planning scene that will be used to create the ConstraintSampler
+   * @param group_name The group name for which to create a sampler
+   * @param constr The set of constraints for which to create a sampler
    * 
-   * @param scene 
-   * @param group_name 
-   * @param constr 
-   * 
-   * @return 
+   * @return A valid \ref ConstraintSamplerPtr if one could be allocated, and otherwise an empty \ref ConstraintSamplerPtr
    */
   static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr);
   
