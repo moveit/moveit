@@ -126,15 +126,15 @@ protected:
   virtual void onRobotModelLoaded();
   virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
 
-  rviz::Robot* planning_scene_robot_;               ///< Handles actually drawing the robot from the planning scene
-
-  Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
-  Ogre::SceneNode* planning_scene_geometry_node_;         ///< displays planning scene geometry
   
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-
+  
+  Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
+  
   // render the planning scene
-  boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
+  KinematicStateVisualizationPtr planning_scene_robot_;  
+  PlanningSceneRenderPtr planning_scene_render_;
+  
   bool planning_scene_needs_render_;
   float current_scene_time_;
   

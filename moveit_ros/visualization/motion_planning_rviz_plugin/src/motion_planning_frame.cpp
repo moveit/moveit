@@ -641,13 +641,15 @@ void MotionPlanningFrame::selectedCollisionObjectChanged(void)
     ui_->object_rz->setValue(0.0);
     ui_->object_status->setText("");
     scene_marker_.reset();
+    ui_->scene_scale->setEnabled(false);
   }
   else
     if (planning_display_->getPlanningSceneMonitor())
     {
       // if this is a CollisionWorld element
       if (sel[0]->checkState() == Qt::Unchecked)
-      {  
+      {     
+        ui_->scene_scale->setEnabled(true);
         collision_detection::CollisionWorldConstPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
         collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString()); 
         if (obj)
@@ -679,7 +681,9 @@ void MotionPlanningFrame::selectedCollisionObjectChanged(void)
           ui_->object_status->setText("ERROR: '" + sel[0]->text() + "' should be a collision object but it is not");
       }
       else
-      {
+      {  
+        ui_->scene_scale->setEnabled(false);
+
         // if it is an attached object
         scene_marker_.reset();
         const kinematic_state::AttachedBody *attached_body = planning_display_->getPlanningScene()->getCurrentState().getAttachedBody(sel[0]->text().toStdString());
@@ -742,7 +746,7 @@ void MotionPlanningFrame::sceneScaleStartChange(void)
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
     return;
-  if (planning_display_->getPlanningSceneMonitor())
+  if (planning_display_->getPlanningSceneMonitor() && sel[0]->checkState() == Qt::Unchecked)
   {
     collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
     scaled_object_ = world->getObject(sel[0]->text().toStdString());
@@ -875,8 +879,8 @@ void MotionPlanningFrame::tabChanged(int index)
   if (scene_marker_ && index != 3)
     scene_marker_.reset();
   else
-    if (index==3)
-      createSceneInteractiveMarker();
+    if (index == 3)
+      selectedCollisionObjectChanged();
 }
 
 void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
