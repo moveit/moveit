@@ -88,7 +88,6 @@ private:
                     const std_msgs::ColorRGBA &default_attached_object_color,
                     const std::map<std::string, std_msgs::ColorRGBA> *color_map);
 
-  kinematic_state::KinematicStateConstPtr kinematic_state_;
   rviz::Robot robot_;
   RenderShapesPtr render_shapes_;
   
