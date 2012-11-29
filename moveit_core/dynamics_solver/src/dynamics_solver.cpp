@@ -79,18 +79,21 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::ModelInterfa
   if (!kdl_parser::treeFromUrdfModel(*urdf_model_, tree)) 
   {
     logError("Could not initialize tree object");
+    return false;    
   }
   if (!tree.getChain(base_name_, tip_name_, kdl_chain_)) 
   {
     logError("Could not initialize chain object");
+    return false;    
   }
   num_joints_ = kdl_chain_.getNrOfJoints();
+  num_segments_ = kdl_chain_.getNrOfSegments();
 
   kinematic_state_.reset(new kinematic_state::KinematicState(kinematic_model_));  
   joint_state_group_ = kinematic_state_->getJointStateGroup(joint_model_group_->getName());
 
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();
-  for(unsigned int i=0; i < joint_model_names.size(); i++)
+  for(unsigned int i=0; i < joint_model_names.size(); ++i)
   {
     const urdf::Joint* ujoint = urdf_model_->getJoint(joint_model_names[i]).get();
     if (ujoint->limits)
@@ -125,9 +128,9 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
     logError("Joint accelerations vector should be size %d",num_joints_);
     return false;
   }
-  if(wrenches.size() != num_joints_)
+  if(wrenches.size() != num_segments_)
   {
-    logError("Wrenches vector should be size %d",num_joints_);
+    logError("Wrenches vector should be size %d",num_segments_);
     return false;
   }
   if(torques.size() != num_joints_)
@@ -137,14 +140,17 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
   }
 
   KDL::JntArray kdl_angles(num_joints_), kdl_velocities(num_joints_), kdl_accelerations(num_joints_), kdl_torques(num_joints_);
-  KDL::Wrenches kdl_wrenches(num_joints_);
+  KDL::Wrenches kdl_wrenches(num_segments_);
 
-  for(unsigned int i=0; i < num_joints_; i++)
+  for(unsigned int i=0; i < num_joints_; ++i)
   {
     kdl_angles(i) = joint_angles[i];
     kdl_velocities(i) = joint_velocities[i];
     kdl_accelerations(i) = joint_accelerations[i];
+  }
 
+  for(unsigned int i=0; i < num_segments_; ++i)
+  {
     kdl_wrenches[i](0) = wrenches[i].force.x;
     kdl_wrenches[i](1) = wrenches[i].force.y;
     kdl_wrenches[i](2) = wrenches[i].force.z;
@@ -153,7 +159,12 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
     kdl_wrenches[i](4) = wrenches[i].torque.y;
     kdl_wrenches[i](5) = wrenches[i].torque.z;    
   }
-  chain_id_solver_->CartToJnt(kdl_angles,kdl_velocities,kdl_accelerations,kdl_wrenches,kdl_torques);
+    
+  if(chain_id_solver_->CartToJnt(kdl_angles,kdl_velocities,kdl_accelerations,kdl_wrenches,kdl_torques) < 0)
+  {    
+    logError("Something went wrong computing torques");    
+    return false;
+  }
 
   for(unsigned int i=0; i < num_joints_; ++i)
     torques[i] = kdl_torques(i);
@@ -173,9 +184,10 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   std::vector<double> joint_velocities(num_joints_,0.0), joint_accelerations(num_joints_,0.0);
   std::vector<double> torques(num_joints_,0.0), zero_torques(num_joints_,0.0);
 
-  std::vector<geometry_msgs::Wrench> wrenches(num_joints_);
+  std::vector<geometry_msgs::Wrench> wrenches(num_segments_);
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,zero_torques))
     return false;
+  
   for(unsigned int i=0; i < num_joints_; ++i)
   {
     if(fabs(zero_torques[i]) >= max_torques_[i])
@@ -196,14 +208,13 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
 
   logDebug("New wrench (local frame): %f %f %f",wrenches.back().force.x,wrenches.back().force.y,wrenches.back().force.z);
   
-
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,torques))
     return false;
 
   double min_payload = std::numeric_limits<double>::max();
   for(unsigned int i=0; i < num_joints_; ++i)
   {
-    double payload_joint = std::max<double>((max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]),(-max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]));
+    double payload_joint = std::max<double>((max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]),(-max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]));//because we set the payload to 1.0
     logDebug("Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f",i,torques[i],max_torques_[i],zero_torques[i]);
     logDebug("Joint: %d, Payload Allowed (N): %f",i,payload_joint);
     if(payload_joint < min_payload)
@@ -232,7 +243,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
     return false;
   }
   std::vector<double> joint_velocities(num_joints_,0.0), joint_accelerations(num_joints_,0.0);
-  std::vector<geometry_msgs::Wrench> wrenches(num_joints_);
+  std::vector<geometry_msgs::Wrench> wrenches(num_segments_);
 
   joint_state_group_->setVariableValues(joint_angles);
   const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
@@ -271,6 +282,3 @@ const std::vector<double>& DynamicsSolver::getMaxTorques() const
 
 
 }
-/*
-int ChainIdSolver_RNE::CartToJnt(const JntArray &q, const JntArray &q_dot, const JntArray &q_dotdot, const Wrenches& f_ext,JntArray &torques)
-*/

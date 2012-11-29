@@ -83,7 +83,7 @@ private:
   boost::shared_ptr<const srdf::Model> srdf_model_;
 
   std::string group_name_, base_name_, tip_name_;
-  unsigned int num_joints_;
+  unsigned int num_joints_, num_segments_;
   std::vector<double> max_torques_;
 
   kinematic_model::KinematicModelPtr kinematic_model_;
