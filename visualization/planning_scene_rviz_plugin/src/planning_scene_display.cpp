@@ -145,7 +145,7 @@ void PlanningSceneDisplay::onInitialize(void)
   planning_scene_geometry_node_ = planning_scene_node_->createChildSceneNode();
   planning_scene_geometry_node_->setVisible(scene_enabled_property_->getBool()); 
 
-  planning_scene_robot_ = new rviz::Robot(planning_scene_node_, context_, "Planning Scene", scene_category_ );
+  planning_scene_robot_ = new rviz::Robot(planning_scene_node_, context_, "Planning Scene", robot_category_);
   planning_scene_robot_->setCollisionVisible(false);
   planning_scene_robot_->setVisualVisible(true);
   planning_scene_robot_->setVisible( scene_robot_enabled_property_->getBool() );
@@ -371,7 +371,6 @@ void PlanningSceneDisplay::onRobotModelLoaded(void)
   scene_name_property_->setStdString(getPlanningScene()->getName());
   root_link_name_property_->setStdString(getKinematicModel()->getRootLinkName());
 }
-
 
 void PlanningSceneDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
