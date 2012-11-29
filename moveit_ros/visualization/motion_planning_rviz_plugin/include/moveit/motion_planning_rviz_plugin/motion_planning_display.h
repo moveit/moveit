@@ -203,9 +203,9 @@ protected:
   std::deque<boost::function<void(void)> > main_loop_jobs_;
   boost::mutex main_loop_jobs_lock_;
   
-  rviz::Robot* query_robot_start_;                  ///< Handles drawing the robot at the start configuration
-  rviz::Robot* query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
-  rviz::Robot* display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
+  KinematicStateVisualizationPtr query_robot_start_;                  ///< Handles drawing the robot at the start configuration
+  KinematicStateVisualizationPtr query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
+  KinematicStateVisualizationPtr display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
 
   Ogre::SceneNode* text_display_scene_node_;        ///< displays texts
   bool text_display_for_start_;                     ///< indicates whether the text display is for the start state or not
