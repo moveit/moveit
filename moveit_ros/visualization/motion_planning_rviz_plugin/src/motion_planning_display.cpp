@@ -829,6 +829,8 @@ void MotionPlanningDisplay::changedDisplayPathCollisionEnabled()
 
 void MotionPlanningDisplay::onRobotModelLoaded(void)
 { 
+  PlanningSceneDisplay::onRobotModelLoaded();
+  
   robot_interaction_.reset(new robot_interaction::RobotInteraction(getKinematicModel()));
   display_path_robot_->load(*getKinematicModel()->getURDF());
   query_robot_start_->load(*getKinematicModel()->getURDF());

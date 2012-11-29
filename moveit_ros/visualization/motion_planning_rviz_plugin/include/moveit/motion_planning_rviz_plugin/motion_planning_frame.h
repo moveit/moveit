@@ -125,7 +125,7 @@ private Q_SLOTS:
   void selectedCollisionObjectChanged(void);
   void objectPoseValueChanged(double value);
   void publishSceneButtonClicked(void);
-  void collisionObjectNameChanged(QListWidgetItem *item);
+  void collisionObjectChanged(QListWidgetItem *item);
   void pathConstraintsIndexChanged(int index);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
@@ -161,13 +161,15 @@ private:
   void addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
                  const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
   void createSceneInteractiveMarker(void);
-
+  void renameCollisionObject(QListWidgetItem *item);
+  void attachDetachCollisionObject(QListWidgetItem *item);
+  
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
 
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
-  std::vector<std::string> collision_object_names_;
+  std::vector< std::pair<std::string, bool> > known_collision_objects_;
 };
 
 }
