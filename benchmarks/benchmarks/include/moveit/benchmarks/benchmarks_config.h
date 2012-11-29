@@ -38,6 +38,7 @@
 #define MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
 
 #include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/planning_scene_world_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 
@@ -85,7 +86,8 @@ public:
 private:
   
   BenchmarkOptions opt_;
-  moveit_warehouse::PlanningSceneStorage pss_;
+  moveit_warehouse::PlanningSceneStorage pss_; 
+  moveit_warehouse::PlanningSceneWorldStorage psws_;
   moveit_warehouse::ConstraintsStorage cs_;
   moveit_warehouse::RobotStateStorage rs_;
 };
