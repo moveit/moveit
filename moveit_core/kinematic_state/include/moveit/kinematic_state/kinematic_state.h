@@ -175,6 +175,9 @@ public:
   
   void attachBody(AttachedBody *body);
   
+  /** \brief Remove the attached body named \e id. Return false if the object was not found (and thus not removed). Return true on success. */
+  bool clearAttachedBody(const std::string &id);
+  
   /** \brief Clear all attached bodies */
   void clearAttachedBodies(void);
   

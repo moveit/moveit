@@ -431,6 +431,21 @@ void kinematic_state::KinematicState::clearAttachedBodies(void)
     link_state_vector_[i]->clearAttachedBodies();
 }
 
+bool kinematic_state::KinematicState::clearAttachedBody(const std::string &id)
+{
+  std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.find(id);
+  if (it != attached_body_map_.end())
+  {
+    LinkState *ls = getLinkState(it->second->getAttachedLinkName());
+    if (ls)
+      return ls->clearAttachedBody(id);
+    else
+      return false;
+  }
+  else
+    return false;
+}
+
 namespace kinematic_state
 {
 static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e, std::vector<double> &aabb)
