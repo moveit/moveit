@@ -9,6 +9,8 @@ qt4_wrap_cpp(MOC_SOURCES ${headers})
 
 # Plugin Source
 set(SOURCE_FILES 
+  src/render_shapes.cpp
+  src/kinematic_state_visualization.cpp
   src/planning_scene_render.cpp
   src/planning_link_updater.cpp
   src/planning_scene_display.cpp
