@@ -51,7 +51,8 @@ const std::string BenchmarkConfig::BENCHMARK_SERVICE_NAME = "benchmark_planning_
 }
 
 moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std::size_t port) :
-  pss_(host, port),
+  pss_(host, port), 
+  psws_(host, port),
   cs_(host, port),
   rs_(host, port)
 {
@@ -61,14 +62,38 @@ moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std
 void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
 {
   moveit_warehouse::PlanningSceneWithMetadata pswm;
-  if (!pss_.getPlanningScene(pswm, opt_.scene))
+  moveit_warehouse::PlanningSceneWorldWithMetadata pswwm;
+  bool world_only = false;
+  
+  if (!pss_.hasPlanningScene(opt_.scene))
   {
-    ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
-    return;
+    if (psws_.hasPlanningSceneWorld(opt_.scene) && psws_.getPlanningSceneWorld(pswwm, opt_.scene))
+      world_only = true;
+    else
+    {  
+      ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
+      return;
+    }
   }
+  else
+  {
+    if (!pss_.getPlanningScene(pswm, opt_.scene))
+    {
+      ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
+      return;
+    }
+  }
+  
   moveit_msgs::ComputePlanningPluginsBenchmark::Request req;
   moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
-  req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
+  if (world_only)
+  {
+    req.scene.world = static_cast<const moveit_msgs::PlanningSceneWorld&>(*pswwm);
+    req.scene.robot_model_name = "NO ROBOT INFORMATION. ONLY WORLD GEOMETRY"; // so that run_benchmark sees a different robot name
+  }
+  else
+    req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
+  req.scene.name = opt_.scene;
   std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
   pss_.getPlanningQueries(planning_queries, opt_.scene);
   if (planning_queries.empty())
