@@ -47,3 +47,4 @@ add_subdirectory(py_bindings_tools)
 add_subdirectory(robot_interaction)
 add_subdirectory(move_group_interface)
 
+install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
