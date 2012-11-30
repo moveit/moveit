@@ -98,7 +98,6 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
   pss_.getPlanningQueries(planning_queries, opt_.scene);
   if (planning_queries.empty())
     ROS_WARN("Scene '%s' has no associated queries", opt_.scene.c_str());
-  req.filename = opt_.output;
   req.default_average_count = opt_.default_run_count;
   req.planner_interfaces.resize(opt_.plugins.size());
   req.average_count.resize(req.planner_interfaces.size());
@@ -112,6 +111,8 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
   ros::NodeHandle nh;
   ros::service::waitForService(BENCHMARK_SERVICE_NAME);
   ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_SERVICE_NAME, true);
+  
+  unsigned int n_call = 0;
   
   // see if we have any start states specified
   std::vector<std::string> start_states;
@@ -167,6 +168,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
           req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
           if (start_state_to_use)
             req.motion_plan_request.start_state = *start_state_to_use;
+          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
           ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
           if (benchmark_service_client.call(req, res))
             ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
@@ -240,7 +242,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.query_regex = declared_options["scene.query"];
     opt_.goal_regex = declared_options["scene.goal"];
     if (opt_.output.empty())
-      opt_.output = std::string(filename) + ".log";
+      opt_.output = std::string(filename);
     opt_.plugins.clear();
     std::size_t default_run_count = 1;
     if (!declared_options["scene.runs"].empty())
