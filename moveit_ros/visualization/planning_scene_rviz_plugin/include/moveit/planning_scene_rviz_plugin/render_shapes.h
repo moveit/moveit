@@ -29,66 +29,54 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
+#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
+#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
 
-#include <moveit/planning_scene/planning_scene.h>
+#include <geometric_shapes/shapes.h>
 #include <rviz/helpers/color.h>
 #include <OGRE/OgreMaterial.h>
+#include <Eigen/Geometry>
+#include <string>
+#include <boost/shared_ptr.hpp>
 
 namespace Ogre
 {
+class Entity;
 class SceneNode;
+class ManualObject;
 }
 
 namespace rviz
 {
 class DisplayContext;
+class Shape;
 }
 
 namespace moveit_rviz_plugin
 {
 
-class KinematicStateVisualization;
-typedef boost::shared_ptr<KinematicStateVisualization> KinematicStateVisualizationPtr;
-
-class RenderShapes;
-typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
-
-class PlanningSceneRender
+class RenderShapes
 {
 public:
-  PlanningSceneRender(Ogre::SceneNode *root_node, rviz::DisplayContext *context,
-                      const KinematicStateVisualizationPtr &robot);
-  ~PlanningSceneRender(void);
 
-  Ogre::SceneNode* getGeometryNode(void)
-  {
-    return planning_scene_geometry_node_;
-  }
+  RenderShapes(rviz::DisplayContext *context);
+  ~RenderShapes(void);
   
-  const KinematicStateVisualizationPtr& getRobotVisualization(void)
-  {
-    return scene_robot_;
-  }
-  
-  void renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
-                           const rviz::Color &default_scene_color,
-                           const rviz::Color &default_attached_color,
-                           float scene_alpha, float robot_alpha);
-  void clear(void);
+  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
+  void clear();
   
 private:
-  
-  Ogre::SceneNode *planning_scene_geometry_node_;
+
   rviz::DisplayContext *context_;
-  RenderShapesPtr render_shapes_;
-  KinematicStateVisualizationPtr scene_robot_;
   
+  std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
+  std::vector< Ogre::ManualObject* > manual_objects_;
+  Ogre::MaterialPtr material_;
+  std::string material_name_;
 };
 
-typedef boost::shared_ptr<PlanningSceneRender> PlanningSceneRenderPtr;
-typedef boost::shared_ptr<const PlanningSceneRender> PlanningSceneRenderConstPtr;
+typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
+typedef boost::shared_ptr<const RenderShapes> RenderShapesConstPtr;
 
 }
 
