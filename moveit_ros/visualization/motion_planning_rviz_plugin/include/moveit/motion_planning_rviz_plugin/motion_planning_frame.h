@@ -84,6 +84,8 @@ protected:
   void constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq);
   
   void updateSceneMarkers(float wall_dt, float ros_dt);
+  void updateGoalPoseMarkers(float wall_dt, float ros_dt);
+
 
   MotionPlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
@@ -96,6 +98,11 @@ protected:
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
 
   boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
+ 
+  typedef std::map<std::string, boost::shared_ptr<rviz::InteractiveMarker> > goal_pose_map_t;
+  typedef std::pair<std::string, boost::shared_ptr<rviz::InteractiveMarker> > goal_pose_pair_t;
+  goal_pose_map_t goal_poses_;
+
 
 private Q_SLOTS:
 
@@ -128,9 +135,13 @@ private Q_SLOTS:
   void collisionObjectChanged(QListWidgetItem *item);
   void pathConstraintsIndexChanged(int index);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
   void tabChanged(int index);
   void copySelectedCollisionObject(void);
+  void createGoalPoseButtonClicked(void);
+  void removeGoalPoseButtonClicked(void);
+  void selectedGoalPoseChanged(void);
   
 private:
 
@@ -163,7 +174,8 @@ private:
   void createSceneInteractiveMarker(void);
   void renameCollisionObject(QListWidgetItem *item);
   void attachDetachCollisionObject(QListWidgetItem *item);
-  
+  void populateGoalPosesList();
+ 
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
