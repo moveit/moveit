@@ -106,13 +106,129 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   
   QShortcut *copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
   connect(copy_object_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedCollisionObject() ) );
+  
+  connect( ui_->new_goal_pose_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
+  connect( ui_->remove_goal_pose_button, SIGNAL( clicked() ), this, SLOT( removeGoalPoseButtonClicked() ));
+  connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedGoalPoseChanged() ));
 
+  
   ui_->tabWidget->setCurrentIndex(0); 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
 
 MotionPlanningFrame::~MotionPlanningFrame(void)
+{
+}
+
+void MotionPlanningFrame::createGoalPoseButtonClicked(void) {
+  ROS_INFO("Create goal pose");
+  
+  bool ok;
+  QString text = QInputDialog::getText(this, tr("Choose a name"),
+		  tr("Goal pose name:"), QLineEdit::Normal,
+		  QString(), &ok);
+  
+  std::string name;
+  if (ok)
+  {
+	  if (!text.isEmpty())
+	  {
+		  name = text.toStdString();
+		  if (goal_poses_.find(name)!=goal_poses_.end())
+			  QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
+					  append("' already exists. Not creating goal."));
+		  else {
+			  //Create the new goal pose at the current eef pose, and attach an interactive marker to it
+			  Eigen::Affine3d tip_pose=planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
+			  
+			  geometry_msgs::PoseStamped shape_pose;
+			  shape_pose.pose.position.x = tip_pose(0,3);
+			  shape_pose.pose.position.y = tip_pose(1,3);
+			  shape_pose.pose.position.z = tip_pose(2,3);
+			  Eigen::Quaterniond q(tip_pose.rotation());
+			  shape_pose.pose.orientation.x = q.x();
+			  shape_pose.pose.orientation.y = q.y();
+			  shape_pose.pose.orientation.z = q.z();
+			  shape_pose.pose.orientation.w = q.w();
+
+			  visualization_msgs::InteractiveMarker int_marker;
+			  int_marker.header.frame_id = planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
+			  int_marker.scale=0.35;
+			  int_marker.pose=shape_pose.pose;
+			  robot_interaction::addArrowMarker(int_marker);
+
+			  rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
+			  interactive_markers::autoComplete(int_marker);
+			  imarker->processMessage(int_marker);
+			  imarker->setShowAxes(false);			  
+			  imarker->setShowDescription(false);
+			  
+			  goal_poses_.insert(goal_pose_pair_t(name, boost::shared_ptr<rviz::InteractiveMarker>(imarker)));
+			  
+			  // Connect signals
+  			  connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+		  }
+	  }
+	  else
+		  QMessageBox::warning(this, "Goal not created", "Cannot use an empty name for a new goal pose.");
+  }
+  
+  populateGoalPosesList();
+}
+
+void MotionPlanningFrame::removeGoalPoseButtonClicked(void) {
+  if (ui_->goal_poses_list->currentItem()!=NULL) {
+    goal_poses_.erase(ui_->goal_poses_list->currentItem()->text().toStdString());
+    populateGoalPosesList();
+  }
+}
+
+void MotionPlanningFrame::selectedGoalPoseChanged(void)
+{
+	//Remove all controls, show them only for the selected goal pose
+	QList<QListWidgetItem *> sel = ui_->goal_poses_list->selectedItems();
+	if (!sel.empty())
+	{
+		std::string name=ui_->goal_poses_list->currentItem()->text().toStdString();
+
+		goal_pose_map_t::iterator it=goal_poses_.begin();
+		for (;it!=goal_poses_.end(); it++) {			
+			geometry_msgs::PoseStamped current_pose;
+			current_pose.pose.position.x=it->second->getPosition().x;
+			current_pose.pose.position.y=it->second->getPosition().y;
+			current_pose.pose.position.z=it->second->getPosition().z;
+			current_pose.pose.orientation.x=it->second->getOrientation().x;
+			current_pose.pose.orientation.y=it->second->getOrientation().y;
+			current_pose.pose.orientation.z=it->second->getOrientation().z;
+			current_pose.pose.orientation.w=it->second->getOrientation().w;
+
+			visualization_msgs::InteractiveMarker int_marker;
+			if (it->first==name) {
+				//If this goal pose is selected, create 6dof controls for it
+				int_marker= robot_interaction::make6DOFMarker(std::string("marker_") + name, current_pose, 1.0);
+			} else
+				int_marker.pose=current_pose.pose;
+			
+			int_marker.header.frame_id = it->second->getReferenceFrame();
+			int_marker.scale=0.35;
+			robot_interaction::addArrowMarker(int_marker);
+			interactive_markers::autoComplete(int_marker);
+			it->second->processMessage(int_marker);
+		}
+	}
+}
+
+void MotionPlanningFrame::populateGoalPosesList(void) {
+  ui_->goal_poses_list->clear();
+  goal_pose_map_t::iterator it=goal_poses_.begin();
+  for (it; it!=goal_poses_.end(); it++) {
+    ui_->goal_poses_list->addItem(QString(it->first.c_str()));
+  }
+}
+
+/* Receives feedback from the interactive marker attached to a goal pose */
+void  MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
 }
 
@@ -293,7 +409,6 @@ void MotionPlanningFrame::createSceneInteractiveMarker(void)
     int_marker.header.frame_id = context_->getFrameManager()->getFixedFrame();
     int_marker.description = sel[0]->text().toStdString();
 
-    // Store the interactive marker in a map, access through the name on the shape
     rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
     interactive_markers::autoComplete(int_marker);
     imarker->processMessage(int_marker);
@@ -1129,6 +1244,14 @@ void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
 {
   if (scene_marker_)
     scene_marker_->update(wall_dt);
+}
+
+void MotionPlanningFrame::updateGoalPoseMarkers(float wall_dt, float ros_dt)
+{
+  goal_pose_map_t::iterator it=goal_poses_.begin();
+  for (;it!=goal_poses_.end();it++) {
+	it->second->update(wall_dt);
+  }
 }
 
 void MotionPlanningFrame::computePlanButtonClicked(void)
