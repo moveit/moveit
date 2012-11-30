@@ -53,7 +53,7 @@ void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::Robot
   mongo_ros::Metadata metadata(STATE_NAME, name,
                                ROBOT_NAME, robot);
   state_collection_->insert(msg, metadata);
-  ROS_DEBUG("Saved constraints '%s'", name.c_str());
+  ROS_DEBUG("Saved robot state '%s'", name.c_str());
 }
 
 bool moveit_warehouse::RobotStateStorage::hasRobotState(const std::string &name, const std::string &robot) const
