@@ -603,6 +603,22 @@ void ConfigurationFilesWidget::savePackage()
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
                  "Launch file for starting MongoDB.");
 
+  // Create warehouse Launch File  -----------------------------------------------------
+  file_name = "run_benchmark_server_ompl.launch";
+  file_path = config_data_->appendPaths( launch_path, file_name );
+  template_path = config_data_->appendPaths( template_launch_path, file_name );
+  // Use generic template copy function
+  if ( !copyTemplate( template_path, file_path, new_package_name ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
+                           .append( " file at location " ).append( file_path.c_str() ) );
+    return;
+  }
+  // Feedback
+  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
+                 "Launch file for benchmarking OMPL planners");
+
+
   // Create Planning_Pipeline Launch File  -----------------------------------------------------
   file_name = "sensor_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
