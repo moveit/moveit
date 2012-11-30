@@ -41,35 +41,36 @@
 namespace kinematics_metrics
 {
 
-bool KinematicsMetrics::checkState(const kinematic_state::KinematicState &kinematic_state,
-                                   const std::string &group_name) const
-{
-  if(!kinematic_state.hasJointStateGroup(group_name))
-    return false;  
-  return true;
-}
-
 Eigen::MatrixXd KinematicsMetrics::getJacobian(const kinematic_state::KinematicState &kinematic_state,
-                                               const std::string &group_name) const
+                                               const kinematic_model::JointModelGroup *joint_model_group) const
 {
   Eigen::MatrixXd jacobian;
-  Eigen::Vector3d reference_point_position(0.0,0.0,0.0);
-  std::string link_name = kinematic_state.getKinematicModel()->getJointModelGroup(group_name)->getLinkModelNames().back();  
-  kinematic_state.getJointStateGroup(group_name)->getJacobian(link_name,reference_point_position,jacobian);
+  Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
+  std::string link_name = joint_model_group->getLinkModelNames().back();  
+  kinematic_state.getJointStateGroup(joint_model_group->getName())->getJacobian(link_name, reference_point_position, jacobian);
   return jacobian;
+}
+
+bool KinematicsMetrics::getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state, 
+                                               const kinematic_model::JointModelGroup *joint_model_group,
+                                               double &manipulability_index) const
+{
+  if (!joint_model_group)
+    return false;
+
+  Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
+  Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
+  // Get manipulability index
+  manipulability_index = sqrt(matrix.determinant());
+  return true;  
 }
 
 bool KinematicsMetrics::getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state, 
                                                const std::string &group_name,
                                                double &manipulability_index) const
 {
-  if(!checkState(kinematic_state,group_name))
-    return false;  
-  Eigen::MatrixXd jacobian = getJacobian(kinematic_state,group_name);  
-  Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
-  // Get manipulability index
-  manipulability_index = sqrt(matrix.determinant());
-  return true;  
+  const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
+  return getManipulabilityIndex(kinematic_state, joint_model_group, manipulability_index);  
 }
 
 bool KinematicsMetrics::getManipulabilityEllipsoid(const kinematic_state::KinematicState &kinematic_state,
@@ -77,11 +78,24 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const kinematic_state::Kinema
                                                    Eigen::MatrixXcd &eigen_values,
                                                    Eigen::MatrixXcd &eigen_vectors) const
 {
-  if(!checkState(kinematic_state,group_name))
-    return false;  
-  Eigen::MatrixXd jacobian = getJacobian(kinematic_state,group_name);  
+  const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
+  return getManipulabilityEllipsoid(kinematic_state, joint_model_group, eigen_values, eigen_vectors);  
+}
+
+bool KinematicsMetrics::getManipulabilityEllipsoid(const kinematic_state::KinematicState &kinematic_state,
+                                                   const kinematic_model::JointModelGroup *joint_model_group,
+                                                   Eigen::MatrixXcd &eigen_values,
+                                                   Eigen::MatrixXcd &eigen_vectors) const
+{
+  if (!joint_model_group)
+  {    
+    logError("Joint model group does not exist");    
+    return false;
+  }  
+
+  Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
   Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
-  Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix.block(0,0,3,3));
+  Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix.block(0, 0, 3, 3));
   eigen_values = eigensolver.eigenvalues();
   eigen_vectors = eigensolver.eigenvectors();
   return true;  
@@ -89,11 +103,23 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const kinematic_state::Kinema
 
 bool KinematicsMetrics::getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
                                            const std::string &group_name,
-                                           double &condition_number)
+                                           double &condition_number) const
 {
-  if(!checkState(kinematic_state,group_name))
-    return false;  
-  Eigen::MatrixXd jacobian = getJacobian(kinematic_state,group_name);  
+  const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
+  return getConditionNumber(kinematic_state, joint_model_group, condition_number);
+}
+
+bool KinematicsMetrics::getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
+                                           const kinematic_model::JointModelGroup *joint_model_group,
+                                           double &condition_number) const
+{
+  if (!joint_model_group)
+  {    
+    logError("Joint model group does not exist");    
+    return false;
+  }  
+
+  Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
   Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
   Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix);
   Eigen::MatrixXcd eigen_values = eigensolver.eigenvalues();
