@@ -44,43 +44,95 @@
 namespace kinematics_metrics
 {
 /**
- * @class Compute different kinds of metrics for kinematics evaluation
+ * @class Compute different kinds of metrics for kinematics evaluation. Currently includes
+ * manipulability.
  */
 class KinematicsMetrics
 {
 public:  
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
-  /** @class
-   *  @brief Kinematics metrics
-   */
   KinematicsMetrics(const kinematic_model::KinematicModelConstPtr &kinematic_model) : 
     kinematic_model_(kinematic_model)
   {
   }
   
+  /**
+   * @brief Get the manipulability for a given group at a given joint configuration
+   * @param kinematic_state Complete kinematic state for the robot
+   * @param group_name The group name (e.g. "arm")
+   * @param manipulability_index The computed manipulability = sqrt(det(JJ^T))
+   * @return False if the group was not found
+   */
   bool getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state, 
                               const std::string &group_name,
                               double &manipulability_index) const;
+
+  /**
+   * @brief Get the manipulability for a given group at a given joint configuration
+   * @param kinematic_state Complete kinematic state for the robot
+   * @param joint_model_group A pointer to the desired joint model group
+   * @param manipulability_index The computed manipulability = sqrt(det(JJ^T))
+   * @return False if the group was not found
+   */
+  bool getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state, 
+                              const kinematic_model::JointModelGroup *joint_model_group,
+                              double &manipulability_index) const;
     
+  /**
+   * @brief Get the (translation) manipulability ellipsoid for a given group at a given joint configuration
+   * @param kinematic_state Complete kinematic state for the robot
+   * @param group_name The group name (e.g. "arm")
+   * @param eigen_values The eigen values for the translation part of JJ^T
+   * @param eigen_vectors The eigen vectors for the translation part of JJ^T
+   * @return False if the group was not found
+   */
   bool getManipulabilityEllipsoid(const kinematic_state::KinematicState &kinematic_state,
                                   const std::string &group_name,
                                   Eigen::MatrixXcd &eigen_values,
                                   Eigen::MatrixXcd &eigen_vectors) const;
+
+  /**
+   * @brief Get the (translation) manipulability ellipsoid for a given group at a given joint configuration
+   * @param kinematic_state Complete kinematic state for the robot
+   * @param joint_model_group A pointer to the desired joint model group
+   * @param eigen_values The eigen values for the translation part of JJ^T
+   * @param eigen_vectors The eigen vectors for the translation part of JJ^T
+   * @return False if the group was not found
+   */
+  bool getManipulabilityEllipsoid(const kinematic_state::KinematicState &kinematic_state,
+                                  const kinematic_model::JointModelGroup *joint_model_group,
+                                  Eigen::MatrixXcd &eigen_values,
+                                  Eigen::MatrixXcd &eigen_vectors) const;
   
+  /**
+   * @brief Get the condition number for JJ^T
+   * @param kinematic_state Complete kinematic state for the robot
+   * @param group_name The group name (e.g. "arm")
+   * @param condition_number Condition number for JJ^T
+   * @return False if the group was not found
+   */
   bool getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
                           const std::string &group_name,
-                          double &condition_number);
+                          double &condition_number) const;
+
+  /**
+   * @brief Get the condition number for JJ^T
+   * @param kinematic_state Complete kinematic state for the robot
+   * @param joint_model_group A pointer to the desired joint model group
+   * @param condition_number Condition number for JJ^T
+   * @return False if the group was not found
+   */
+  bool getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
+                          const kinematic_model::JointModelGroup *joint_model_group,
+                          double &condition_number) const;
 
 protected:
   
   kinematic_model::KinematicModelConstPtr kinematic_model_;
-  
-  bool checkState(const kinematic_state::KinematicState &kinematic_state,
-                  const std::string &group_name) const;
-  
+    
   Eigen::MatrixXd getJacobian(const kinematic_state::KinematicState &kinematic_state,
-                              const std::string &group_name) const;
+                              const kinematic_model::JointModelGroup *joint_model_group) const;  
   
 };
 
