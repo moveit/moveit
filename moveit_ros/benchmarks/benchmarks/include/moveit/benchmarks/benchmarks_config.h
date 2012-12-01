@@ -52,6 +52,7 @@ struct BenchmarkOptions
   std::string start_regex;
   std::string query_regex;
   std::string goal_regex;
+  std::string group_override;
   std::size_t default_run_count;
   
   struct PluginOptions
