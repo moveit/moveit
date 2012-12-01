@@ -58,6 +58,7 @@ void addArrowMarker(visualization_msgs::InteractiveMarker &im)
   
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = true;
+  m_control.interaction_mode=m_control.BUTTON;
   m_control.markers.push_back(m);
 
   // add the control to the interactive marker
