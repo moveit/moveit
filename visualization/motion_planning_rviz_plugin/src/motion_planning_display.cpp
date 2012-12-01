@@ -116,9 +116,9 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
                                                                 metrics_category_,
                                                                 SLOT( changedShowManipulabilityIndex() ), this );
   
-  show_manipulability_region_property_ = new rviz::BoolProperty( "Show Manipulability Region", false, "Shows the manipulability region for an end-effector",
-                                                                 metrics_category_,
-                                                                 SLOT( changedShowManipulabilityRegion() ), this );
+  show_manipulability_property_ = new rviz::BoolProperty( "Show Manipulability", false, "Shows the manipulability for an end-effector",
+                                                          metrics_category_,
+                                                          SLOT( changedShowManipulability() ), this );
   
   show_joint_torques_property_ = new rviz::BoolProperty( "Show Joint Torques", false, "Shows the joint torques for a given configuration and payload",
                                                          metrics_category_,
@@ -329,7 +329,7 @@ void MotionPlanningDisplay::changedShowManipulabilityIndex(void)
   }
 }
 
-void MotionPlanningDisplay::changedShowManipulabilityRegion(void)
+void MotionPlanningDisplay::changedShowManipulability(void)
 {
   if (text_display_for_start_)
   {
@@ -534,11 +534,11 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
   
   if (kinematics_metrics_)
   {
-    double manipulability_index, condition_number;
+    double manipulability_index, manipulability;
     if (kinematics_metrics_->getManipulabilityIndex(state, ee.parent_group, manipulability_index))
       metrics["manipulability_index"] = manipulability_index;
-    if (kinematics_metrics_->getConditionNumber(state, ee.parent_group, condition_number))
-      metrics["condition_number"] = condition_number;
+    if (kinematics_metrics_->getManipulability(state, ee.parent_group, manipulability))
+      metrics["manipulability"] = manipulability;
   }
 }
 
@@ -569,8 +569,8 @@ void MotionPlanningDisplay::displayMetrics(bool start)
     }
     if (show_manipulability_index_property_->getBool())
       copyItemIfExists(metrics_table, text_table, "manipulability_index");
-    if (show_manipulability_region_property_->getBool())
-      copyItemIfExists(metrics_table, text_table, "condition_number");
+    if (show_manipulability_property_->getBool())
+      copyItemIfExists(metrics_table, text_table, "manipulability");
     if (show_joint_torques_property_->getBool())
     {
       std::size_t nj = getKinematicModel()->getJointModelGroup(eef[i].parent_group)->getJointModelNames().size();
