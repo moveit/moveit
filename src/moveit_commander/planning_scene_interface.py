@@ -60,8 +60,8 @@ from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJo
 #from moveit_python_interface import trajectory_tools
 #from pr2_python.exceptions import ArmNavError, ActionFailedError
 
-roslib.load_manifest('move_group_interface')
-from _planning_scene_interface import PlanningSceneInterface
+#roslib.load_manifest('move_group_interface')
+from _moveit_planning_scene_interface import PlanningSceneInterface
 
 #DEFAULT_PLANNER_SERVICE_NAME = 'ompl_planning/plan_kinematic_path'
 
