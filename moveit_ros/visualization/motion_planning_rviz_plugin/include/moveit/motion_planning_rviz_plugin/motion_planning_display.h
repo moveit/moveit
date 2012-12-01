@@ -156,7 +156,7 @@ private Q_SLOTS:
   void changedPlanningGroup();
   void changedShowWeightLimit();
   void changedShowManipulabilityIndex();
-  void changedShowManipulabilityRegion();
+  void changedShowManipulability();
   void changedShowJointTorques();
   void changedMetricsSetPayload();
   void changedWorkspace();
@@ -267,7 +267,7 @@ protected:
   rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* compute_weight_limit_property_;
   rviz::BoolProperty* show_manipulability_index_property_;
-  rviz::BoolProperty* show_manipulability_region_property_;
+  rviz::BoolProperty* show_manipulability_property_;
   rviz::BoolProperty* show_joint_torques_property_;
   rviz::FloatProperty* metrics_set_payload_property_;
   rviz::BoolProperty* show_workspace_property_;
