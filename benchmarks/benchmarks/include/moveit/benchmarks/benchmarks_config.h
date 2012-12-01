@@ -38,6 +38,7 @@
 #define MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
 
 #include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/planning_scene_world_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 
@@ -51,6 +52,7 @@ struct BenchmarkOptions
   std::string start_regex;
   std::string query_regex;
   std::string goal_regex;
+  std::string group_override;
   std::size_t default_run_count;
   
   struct PluginOptions
@@ -85,7 +87,8 @@ public:
 private:
   
   BenchmarkOptions opt_;
-  moveit_warehouse::PlanningSceneStorage pss_;
+  moveit_warehouse::PlanningSceneStorage pss_; 
+  moveit_warehouse::PlanningSceneWorldStorage psws_;
   moveit_warehouse::ConstraintsStorage cs_;
   moveit_warehouse::RobotStateStorage rs_;
 };

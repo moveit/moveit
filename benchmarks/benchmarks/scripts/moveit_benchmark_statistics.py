@@ -321,11 +321,15 @@ if __name__ == "__main__":
         help="Create a PDF of plots")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
+
+    if len(argv) == 1:
+        parser.print_help()
+
     (options, args) = parser.parse_args()
 
-    if len(args)>0:
+    if len(args) > 0:
         read_benchmark_log(options.dbname, args)
-
+    
     if options.plot:
         plot_statistics(options.dbname, options.plot)
 
