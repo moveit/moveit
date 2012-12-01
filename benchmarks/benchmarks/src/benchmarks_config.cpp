@@ -169,6 +169,8 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
           if (start_state_to_use)
             req.motion_plan_request.start_state = *start_state_to_use;
           req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+          if (!opt_.group_override.empty())
+            req.motion_plan_request.group_name = opt_.group_override;
           ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
           if (benchmark_service_client.call(req, res))
             ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
@@ -193,7 +195,10 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
           req.motion_plan_request.goal_constraints.resize(1);
           moveit_warehouse::ConstraintsWithMetadata constr;
           cs_.getConstraints(constr, cnames[i]);
-          req.motion_plan_request.goal_constraints[0] = *constr;
+          req.motion_plan_request.goal_constraints[0] = *constr;  
+          if (!opt_.group_override.empty())
+            req.motion_plan_request.group_name = opt_.group_override;
+          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
           ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
           if (benchmark_service_client.call(req, res))
             ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
@@ -225,6 +230,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       ("scene.start", boost::program_options::value<std::string>()->default_value(""), "Regex for the start states to use")
       ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
       ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
+      ("scene.group", boost::program_options::value<std::string>()->default_value(""), "Override the group to plan for")
       ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
     
     boost::program_options::variables_map vm;
@@ -241,6 +247,8 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.start_regex = declared_options["scene.start"];
     opt_.query_regex = declared_options["scene.query"];
     opt_.goal_regex = declared_options["scene.goal"];
+    opt_.group_override = declared_options["scene.group"];
+    
     if (opt_.output.empty())
       opt_.output = std::string(filename);
     opt_.plugins.clear();
