@@ -28,9 +28,42 @@
  */
 
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
+#include <tf/transform_datatypes.h>
 
 namespace robot_interaction
 {
+
+void addArrowMarker(visualization_msgs::InteractiveMarker &im)
+{
+  // create a grey box marker
+  visualization_msgs::Marker m;
+  m.type = visualization_msgs::Marker::ARROW;
+  m.scale.x = 0.8 * im.scale;
+  m.scale.y = 0.15 * im.scale;
+  m.scale.z = 0.15 * im.scale;
+  m.ns = "goal_pose_arrow_marker";
+  m.id = 1;
+  m.action = visualization_msgs::Marker::ADD;
+  m.header = im.header;
+  m.pose = im.pose;
+  //Arrow points along Z
+  tf::Quaternion imq;
+  tf::quaternionMsgToTF(m.pose.orientation, imq);
+  imq=imq*tf::createQuaternionFromRPY(0, -M_PI_2, 0);
+  tf::quaternionTFToMsg(imq, m.pose.orientation);
+  m.color.r = 0.0f;
+  m.color.g = 1.0f;
+  m.color.b = 0.0f;
+  m.color.a = 1.0f;
+  
+  visualization_msgs::InteractiveMarkerControl m_control;
+  m_control.always_visible = true;
+  m_control.interaction_mode=m_control.BUTTON;
+  m_control.markers.push_back(m);
+
+  // add the control to the interactive marker
+  im.controls.push_back(m_control);
+}
 
 void addErrorMarker(visualization_msgs::InteractiveMarker &im)
 {

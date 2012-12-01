@@ -59,12 +59,14 @@ class MotionPlanningUI;
 namespace moveit_warehouse
 {
 class PlanningSceneStorage;
+class ConstraintsStorage;
+class RobotStateStorage;
 }
 
 namespace moveit_rviz_plugin
 {
 class MotionPlanningDisplay;
-
+  
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
@@ -84,6 +86,8 @@ protected:
   void constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq);
   
   void updateSceneMarkers(float wall_dt, float ros_dt);
+  void updateGoalPoseMarkers(float wall_dt, float ros_dt);
+
 
   MotionPlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
@@ -94,8 +98,25 @@ protected:
 
   boost::shared_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
+  boost::shared_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
+  boost::shared_ptr<moveit_warehouse::RobotStateStorage> robot_state_storage_;
 
   boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
+ 
+  class goalPoseMarker {
+  public:
+	  boost::shared_ptr<rviz::InteractiveMarker> imarker;
+	  bool selected;
+	  
+	  goalPoseMarker(): selected(false) {}
+	  goalPoseMarker(rviz::InteractiveMarker *marker): imarker(marker), selected(false) {}
+	  goalPoseMarker(rviz::InteractiveMarker *marker, bool is_selected): imarker(marker), selected(is_selected) {}
+  };
+  
+  typedef std::map<std::string, goalPoseMarker> goal_pose_map_t;
+  typedef std::pair<std::string, goalPoseMarker> goal_pose_pair_t;
+  goal_pose_map_t goal_poses_;
+
 
 private Q_SLOTS:
 
@@ -128,9 +149,16 @@ private Q_SLOTS:
   void collisionObjectChanged(QListWidgetItem *item);
   void pathConstraintsIndexChanged(int index);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
   void tabChanged(int index);
   void copySelectedCollisionObject(void);
+  void createGoalPoseButtonClicked(void);
+  void removeSelectedGoalsButtonClicked(void);
+  void loadConstraintsButtonClicked(void);
+  void saveConstraintsButtonClicked(void);
+  void deleteConstraintsButtonClicked(void);
+  void goalPoseItemClicked(QListWidgetItem * item);
   
 private:
 
@@ -163,13 +191,22 @@ private:
   void createSceneInteractiveMarker(void);
   void renameCollisionObject(QListWidgetItem *item);
   void attachDetachCollisionObject(QListWidgetItem *item);
+  void populateGoalPosesList();
   
+  /** Selects or unselects a item in a list by the item name */
+  void setItemSelectionInList(std::string item_name, bool selection, QListWidget *list);
+  
+  /** Switches the selection state of a goal pose marker */
+  void switchGoalPoseMarkerSelection(std::string marker_name);
+ 
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
 
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
+  
+  std::map<std::string, Eigen::Affine3d> goals_initial_pose_;
 };
 
 }
