@@ -31,6 +31,7 @@
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 #include <moveit/planning_scene_rviz_plugin/planning_link_updater.h>
+#include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 #include <rviz/robot/robot_link.h>
@@ -224,9 +225,6 @@ MotionPlanningDisplay::~MotionPlanningDisplay()
   delete text_to_display_;
   delete int_marker_display_;
   delete frame_dock_;
-  delete display_path_robot_;
-  delete query_robot_start_;
-  delete query_robot_goal_;
 }
 
 void MotionPlanningDisplay::onInitialize(void)
@@ -235,17 +233,17 @@ void MotionPlanningDisplay::onInitialize(void)
   
   text_display_scene_node_ = planning_scene_node_->createChildSceneNode();
   
-  display_path_robot_ = new rviz::Robot(planning_scene_node_, context_, "Planned Path", path_category_ );
+  display_path_robot_.reset(new KinematicStateVisualization(planning_scene_node_, context_, "Planned Path", path_category_));
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   display_path_robot_->setVisible(false); 
   
-  query_robot_start_ = new rviz::Robot(planning_scene_node_, context_, "Planning Request Start", NULL );
+  query_robot_start_.reset(new KinematicStateVisualization(planning_scene_node_, context_, "Planning Request Start", NULL));
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible( query_start_state_property_->getBool() );
   
-  query_robot_goal_ = new rviz::Robot(planning_scene_node_, context_, "Planning Request Goal", NULL );
+  query_robot_goal_.reset(new KinematicStateVisualization(planning_scene_node_, context_, "Planning Request Goal", NULL ));
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
@@ -616,7 +614,7 @@ void MotionPlanningDisplay::changedQueryStartState(void)
     if (isEnabled())
     {
       // update link poses
-      query_robot_start_->update(PlanningLinkUpdater(getQueryStartState()));
+      query_robot_start_->update(getQueryStartState());
       query_robot_start_->setVisible(true);  
       
       // update link colors
@@ -665,7 +663,7 @@ void MotionPlanningDisplay::changedQueryGoalState(void)
     if (isEnabled())
     { 
       // update link poses
-      query_robot_goal_->update(PlanningLinkUpdater(getQueryGoalState()));
+      query_robot_goal_->update(getQueryGoalState());
       query_robot_goal_->setVisible(true);  
       
       // update link colors
@@ -757,17 +755,17 @@ bool MotionPlanningDisplay::isIKSolutionCollisionFree(kinematic_state::JointStat
 
 void MotionPlanningDisplay::updateLinkColors(void)
 {  
-  unsetAllColors(query_robot_start_);
-  unsetAllColors(query_robot_goal_);
+  unsetAllColors(&query_robot_start_->getRobot());
+  unsetAllColors(&query_robot_goal_->getRobot());
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
   {
-    setGroupColor(query_robot_start_, group, query_start_color_property_->getColor());
-    setGroupColor(query_robot_goal_, group, query_goal_color_property_->getColor());
+    setGroupColor(&query_robot_start_->getRobot(), group, query_start_color_property_->getColor());
+    setGroupColor(&query_robot_goal_->getRobot(), group, query_goal_color_property_->getColor());
     for (std::size_t i = 0 ; i < collision_links_start_.size() ; ++i)
-      setLinkColor(query_robot_start_, collision_links_start_[i], query_colliding_link_color_property_->getColor());
+      setLinkColor(&query_robot_start_->getRobot(), collision_links_start_[i], query_colliding_link_color_property_->getColor());
     for (std::size_t i = 0 ; i < collision_links_goal_.size() ; ++i)
-      setLinkColor(query_robot_goal_, collision_links_goal_[i], query_colliding_link_color_property_->getColor());
+      setLinkColor(&query_robot_goal_->getRobot(), collision_links_goal_[i], query_colliding_link_color_property_->getColor());
   }
 }
 
@@ -1042,8 +1040,7 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     animating_path_ = true;
     current_state_ = -1;
     current_state_time_ = std::numeric_limits<float>::infinity();
-    PlanningLinkUpdater plu(displaying_trajectory_message_->start_state_);
-    display_path_robot_->update(plu);
+    display_path_robot_->update(displaying_trajectory_message_->start_state_);
   }
   
   if (animating_path_)
@@ -1060,14 +1057,9 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     {
       ++current_state_;
       if ((std::size_t) current_state_ < displaying_trajectory_message_->trajectory_.size())
-      {
-        PlanningLinkUpdater plu(displaying_trajectory_message_->trajectory_[current_state_]);
-        display_path_robot_->update(plu);
-      }
+        display_path_robot_->update(displaying_trajectory_message_->trajectory_[current_state_]);
       else
-      {
         animating_path_ = false;
-      }
       current_state_time_ = 0.0f;
     }
     current_state_time_ += wall_dt;

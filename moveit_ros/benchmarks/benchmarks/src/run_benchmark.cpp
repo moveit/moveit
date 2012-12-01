@@ -268,7 +268,7 @@ public:
             bool fnd = false;
             for (std::size_t q = 0 ; q < known.size() ; ++q)
               if (known[q] == req.planner_interfaces[found].planner_ids[k] ||
-                  mp_req.motion_plan_request.group_name + "[" + known[q] + "]" == req.planner_interfaces[found].planner_ids[k])
+                  mp_req.motion_plan_request.group_name + "[" + req.planner_interfaces[found].planner_ids[k] + "]" == known[q])
               {
                 fnd = true;
                 break;
@@ -307,8 +307,22 @@ public:
     }
     ROS_INFO("\n%s", sst.str().c_str());
     
-    // configure planning context 
-    scene_->setPlanningSceneMsg(req.scene);
+    // configure planning context
+    
+    if (req.scene.robot_model_name != scene_->getKinematicModel()->getName())
+    {
+      // if we have a different robot, use the world geometry only
+      
+      // clear all geometry from the scene
+      scene_->getCollisionWorld()->clearObjects();
+      scene_->getCurrentState().clearAttachedBodies();
+      scene_->getCurrentState().setToDefaultValues();
+      
+      scene_->processPlanningSceneWorldMsg(req.scene.world);
+    }
+    else
+      scene_->usePlanningSceneMsg(req.scene);
+    
     res.responses.resize(planner_interfaces_to_benchmark.size());
 
     std::size_t total_n_planners = 0;

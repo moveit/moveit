@@ -34,7 +34,7 @@
 
 /* Author: Sarah Elliott */
 
-#include <planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <geometric_shapes/shape_operations.h>
@@ -235,7 +235,7 @@ void wrapPlanningSceneInterface()
                                   //.staticmethod("remove_simple_attached_object");
 }
 
-BOOST_PYTHON_MODULE(_planning_scene_interface)
+BOOST_PYTHON_MODULE(_moveit_planning_scene_interface)
 {
   using namespace planning_scene_interface;
   wrapPlanningSceneInterface();  

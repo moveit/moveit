@@ -4,6 +4,7 @@ project(moveit_ros_planning_interface)
 include_directories(py_bindings_tools/include)
 include_directories(robot_interaction/include)
 include_directories(move_group_interface/include)
+include_directories(planning_scene_interface/include)
 
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
@@ -34,10 +35,12 @@ catkin_package(
   LIBRARIES  
     moveit_robot_interaction
     moveit_move_group_interface
+    moveit_planning_scene_interface
   INCLUDE_DIRS
     py_bindings_tools/include
     robot_interaction/include
     move_group_interface/include
+    planning_scene_interface/include
   DEPENDS
     moveit_ros_planning
     moveit_ros_warehouse
@@ -46,5 +49,6 @@ catkin_package(
 add_subdirectory(py_bindings_tools)
 add_subdirectory(robot_interaction)
 add_subdirectory(move_group_interface)
+add_subdirectory(planning_scene_interface)
 
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

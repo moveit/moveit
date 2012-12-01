@@ -1,0 +1,129 @@
+/*
+ * Copyright (c) 2012, Willow Garage, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Willow Garage, Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/* Author: Ioan Sucan */
+
+#include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
+#include <moveit/planning_scene_rviz_plugin/planning_link_updater.h>
+#include <moveit/planning_scene_rviz_plugin/render_shapes.h>
+
+namespace moveit_rviz_plugin
+{
+
+KinematicStateVisualization::KinematicStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
+                                                         const std::string& name, rviz::Property* parent_property) :
+  robot_(root_node, context, name, parent_property)
+{
+  render_shapes_.reset(new RenderShapes(context));
+}
+
+void KinematicStateVisualization::load(const urdf::ModelInterface &descr, bool visual, bool collision)
+{
+  robot_.load(descr, visual, collision);
+}
+
+void KinematicStateVisualization::clear()
+{
+  robot_.clear(); 
+  render_shapes_->clear();
+}
+
+void KinematicStateVisualization::update(const kinematic_state::KinematicStateConstPtr &kinematic_state)
+{
+  std_msgs::ColorRGBA default_color;
+  default_color.r = 0.0f;
+  default_color.g = 0.7f;
+  default_color.b = 0.0f;
+  default_color.a = 0.9f;
+  updateHelper(kinematic_state, default_color, NULL);
+}
+
+
+void KinematicStateVisualization::update(const kinematic_state::KinematicStateConstPtr &kinematic_state,
+                                         const  std_msgs::ColorRGBA &default_attached_object_color)
+{
+  updateHelper(kinematic_state, default_attached_object_color, NULL);
+}
+
+void KinematicStateVisualization::update(const kinematic_state::KinematicStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color, 
+                                         const std::map<std::string, std_msgs::ColorRGBA> &color_map)
+{
+  updateHelper(kinematic_state, default_attached_object_color, &color_map);
+}
+
+void KinematicStateVisualization::updateHelper(const kinematic_state::KinematicStateConstPtr &kinematic_state,
+                                               const std_msgs::ColorRGBA &default_attached_object_color,
+                                               const std::map<std::string, std_msgs::ColorRGBA> *color_map)
+{
+  robot_.update(PlanningLinkUpdater(kinematic_state));
+  render_shapes_->clear();
+  
+  std::vector<const kinematic_state::AttachedBody*> attached_bodies;
+  kinematic_state->getAttachedBodies(attached_bodies);
+  for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
+  {
+    std_msgs::ColorRGBA color = default_attached_object_color;
+    if (color_map)
+    {
+      std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = color_map->find(attached_bodies[i]->getName());
+      if (it != color_map->end())
+        color = it->second;
+    }
+    rviz::Color rcolor(color.r, color.g, color.b);
+    const EigenSTL::vector_Affine3d &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+    const std::vector<shapes::ShapeConstPtr> &ab_shapes = attached_bodies[i]->getShapes();
+    for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
+    {
+      render_shapes_->renderShape(robot_.getVisualNode(), ab_shapes[j].get(), ab_t[j], rcolor, robot_.getAlpha());
+      render_shapes_->renderShape(robot_.getCollisionNode(), ab_shapes[j].get(), ab_t[j], rcolor, robot_.getAlpha());
+    }
+  }
+}
+
+void KinematicStateVisualization::setVisible( bool visible )
+{
+  robot_.setVisible(visible);
+}
+
+void KinematicStateVisualization::setVisualVisible( bool visible )
+{
+  robot_.setVisualVisible(visible);
+}
+
+void KinematicStateVisualization::setCollisionVisible( bool visible )
+{  
+  robot_.setCollisionVisible(visible);
+}
+
+void KinematicStateVisualization::setAlpha( float alpha )
+{
+  robot_.setAlpha(alpha);
+}
+
+}
