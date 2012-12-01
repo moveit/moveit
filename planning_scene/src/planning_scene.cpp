@@ -678,14 +678,17 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   {
     if (!kstate_)
       kstate_.reset(new kinematic_state::KinematicState(parent_->getCurrentState()));
-    kinematic_state::robotStateToKinematicState(*getTransforms(), state, *kstate_, false);
+    else
+      // attached bodies are sent fully, so we need to clear old ones, if any
+      kstate_->clearAttachedBodies();
+    kinematic_state::robotStateToKinematicState(*getTransforms(), state, *kstate_);
   }
   else
-    kinematic_state::robotStateToKinematicState(*ftf_, state, *kstate_, false);
-  
-  if (!state.attached_collision_objects.empty())
-    for (std::size_t i = 0 ; i < state.attached_collision_objects.size() ; ++i)
-      processAttachedCollisionObjectMsg(state.attached_collision_objects[i]);
+  {   
+    // attached bodies are sent fully, so we need to clear old ones, if any
+    kstate_->clearAttachedBodies();
+    kinematic_state::robotStateToKinematicState(*ftf_, state, *kstate_);
+  }
 }
 
 void planning_scene::PlanningScene::setCurrentState(const kinematic_state::KinematicState &state)
@@ -954,7 +957,10 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
 {
   if (!getKinematicModel()->hasLinkModel(object.link_name))
   {
-    logError("Unable to attach a body to link '%s' (link not found)", object.link_name.c_str());
+    if (object.object.operation == moveit_msgs::CollisionObject::ADD)
+      logError("Unable to attach a body to link '%s' (link not found)", object.link_name.c_str());
+    else
+      logError("Unable to detach body from link '%s' (link not found)", object.link_name.c_str());
     return false;
   }
 
@@ -1004,7 +1010,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       {
         if (cworld_->hasObject(object.object.id))
         {
-          logDebug("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+          logInform("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
 
           // extract the shapes from the world
           collision_detection::CollisionWorld::ObjectConstPtr obj = cworld_->getObject(object.object.id);
@@ -1030,7 +1036,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         // we clear the world objects with the same name, since we got an update on their geometry
         if (cworld_->hasObject(object.object.id))
         {
-          logDebug("Removing wold object with the same name as newly attached object: '%s'", object.object.id.c_str());
+          logInform("Removing wold object with the same name as newly attached object: '%s'", object.object.id.c_str());
           cworld_->removeObject(object.object.id);
         }
 
@@ -1085,10 +1091,10 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
 
       // there should not exist an attached object with this name
       if (ls->clearAttachedBody(object.object.id))
-        logWarn("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
-                 object.object.id.c_str(), object.link_name.c_str());
+        logInform("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
+                  object.object.id.c_str(), object.link_name.c_str());
       ls->attachBody(object.object.id, shapes, poses, object.touch_links);      
-      logDebug("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+      logInform("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       return true;
     }
     else
@@ -1112,7 +1118,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           else
           {
             cworld_->addToObject(object.object.id, shapes, poses);
-            logDebug("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
+            logInform("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
           }
           
           return true;
