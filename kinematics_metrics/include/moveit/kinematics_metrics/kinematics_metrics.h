@@ -50,7 +50,6 @@ namespace kinematics_metrics
 class KinematicsMetrics
 {
 public:  
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
   KinematicsMetrics(const kinematic_model::KinematicModelConstPtr &kinematic_model) : 
     kinematic_model_(kinematic_model)
