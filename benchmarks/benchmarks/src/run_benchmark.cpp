@@ -268,7 +268,7 @@ public:
             bool fnd = false;
             for (std::size_t q = 0 ; q < known.size() ; ++q)
               if (known[q] == req.planner_interfaces[found].planner_ids[k] ||
-                  mp_req.motion_plan_request.group_name + "[" + known[q] + "]" == req.planner_interfaces[found].planner_ids[k])
+                  mp_req.motion_plan_request.group_name + "[" + req.planner_interfaces[found].planner_ids[k] + "]" == known[q])
               {
                 fnd = true;
                 break;

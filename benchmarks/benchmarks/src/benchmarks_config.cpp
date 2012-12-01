@@ -98,7 +98,6 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
   pss_.getPlanningQueries(planning_queries, opt_.scene);
   if (planning_queries.empty())
     ROS_WARN("Scene '%s' has no associated queries", opt_.scene.c_str());
-  req.filename = opt_.output;
   req.default_average_count = opt_.default_run_count;
   req.planner_interfaces.resize(opt_.plugins.size());
   req.average_count.resize(req.planner_interfaces.size());
@@ -112,6 +111,8 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
   ros::NodeHandle nh;
   ros::service::waitForService(BENCHMARK_SERVICE_NAME);
   ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_SERVICE_NAME, true);
+  
+  unsigned int n_call = 0;
   
   // see if we have any start states specified
   std::vector<std::string> start_states;
@@ -167,6 +168,9 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
           req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
           if (start_state_to_use)
             req.motion_plan_request.start_state = *start_state_to_use;
+          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+          if (!opt_.group_override.empty())
+            req.motion_plan_request.group_name = opt_.group_override;
           ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
           if (benchmark_service_client.call(req, res))
             ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
@@ -191,7 +195,10 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
           req.motion_plan_request.goal_constraints.resize(1);
           moveit_warehouse::ConstraintsWithMetadata constr;
           cs_.getConstraints(constr, cnames[i]);
-          req.motion_plan_request.goal_constraints[0] = *constr;
+          req.motion_plan_request.goal_constraints[0] = *constr;  
+          if (!opt_.group_override.empty())
+            req.motion_plan_request.group_name = opt_.group_override;
+          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
           ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
           if (benchmark_service_client.call(req, res))
             ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
@@ -223,6 +230,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       ("scene.start", boost::program_options::value<std::string>()->default_value(""), "Regex for the start states to use")
       ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
       ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
+      ("scene.group", boost::program_options::value<std::string>()->default_value(""), "Override the group to plan for")
       ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
     
     boost::program_options::variables_map vm;
@@ -239,8 +247,10 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.start_regex = declared_options["scene.start"];
     opt_.query_regex = declared_options["scene.query"];
     opt_.goal_regex = declared_options["scene.goal"];
+    opt_.group_override = declared_options["scene.group"];
+    
     if (opt_.output.empty())
-      opt_.output = std::string(filename) + ".log";
+      opt_.output = std::string(filename);
     opt_.plugins.clear();
     std::size_t default_run_count = 1;
     if (!declared_options["scene.runs"].empty())
