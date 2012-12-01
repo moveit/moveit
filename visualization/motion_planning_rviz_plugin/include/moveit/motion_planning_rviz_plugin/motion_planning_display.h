@@ -119,6 +119,11 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   {
     return query_goal_state_->getState();
   }
+  
+  const robot_interaction::RobotInteractionPtr& getRobotInteraction(void) const
+  {
+    return robot_interaction_;
+  }
 
   void setQueryStartState(const kinematic_state::KinematicStatePtr &start);
   void setQueryGoalState(const kinematic_state::KinematicStatePtr &goal);  

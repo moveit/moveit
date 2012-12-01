@@ -1015,6 +1015,7 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
 {
   int_marker_display_->update(wall_dt, ros_dt);
   frame_->updateSceneMarkers(wall_dt, ros_dt);
+  frame_->updateGoalPoseMarkers(wall_dt, ros_dt);
   
   Display::update(wall_dt, ros_dt);
   
