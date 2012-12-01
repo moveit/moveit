@@ -878,27 +878,32 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor:
   std::string group = planning_group_property_->getStdString();
   if (query_start_state_property_->getBool() && !group.empty())
   {
-    
-    kinematic_state::JointStateGroup *jsg = getQueryStartState()->getJointStateGroup(group);
-    if (jsg)
+    // update all joints in the start state, except the ones for the group we are working with
+    const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(group);
+    if (jmg)
     {
-      std::map<std::string, double> joint_state_values;
-      jsg->getVariableValues(joint_state_values);
-      query_start_state_->setState(getPlanningScene()->getCurrentState());
-      getQueryStartState()->getJointStateGroup(group)->setVariableValues(joint_state_values);
+      std::map<std::string, double> values_map;
+      getPlanningScene()->getCurrentState().getStateValues(values_map);
+      const std::vector<std::string> &keep = jmg->getVariableNames();
+      for (std::size_t i = 0 ; i < keep.size() ; ++i)
+        values_map.erase(keep[i]);
+      getQueryStartState()->setStateValues(values_map);
       updateQueryStartState();
     }
   }
   
   if (query_goal_state_property_->getBool() && !group.empty())
   {
-    kinematic_state::JointStateGroup *jsg = getQueryGoalState()->getJointStateGroup(group);
-    if (jsg)
-    {
-      std::map<std::string, double> joint_state_values;
-      jsg->getVariableValues(joint_state_values);
-      query_goal_state_->setState(getPlanningScene()->getCurrentState());
-      getQueryGoalState()->getJointStateGroup(group)->setVariableValues(joint_state_values);
+    // update all joints in the goal state, except the ones for the group we are working with
+    const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(group);
+    if (jmg)
+    {  
+      std::map<std::string, double> values_map;
+      getPlanningScene()->getCurrentState().getStateValues(values_map);
+      const std::vector<std::string> &keep = jmg->getVariableNames();
+      for (std::size_t i = 0 ; i < keep.size() ; ++i)
+        values_map.erase(keep[i]);
+      getQueryGoalState()->setStateValues(values_map);
       updateQueryGoalState();
     }
   }
