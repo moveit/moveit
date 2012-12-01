@@ -102,17 +102,17 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const kinematic_state::Kinema
   return true;  
 }
 
-bool KinematicsMetrics::getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
-                                           const std::string &group_name,
-                                           double &condition_number) const
+bool KinematicsMetrics::getManipulability(const kinematic_state::KinematicState &kinematic_state,
+                                          const std::string &group_name,
+                                          double &manipulability) const
 {
   const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
-  return getConditionNumber(kinematic_state, joint_model_group, condition_number);
+  return getManipulability(kinematic_state, joint_model_group, manipulability);
 }
 
-bool KinematicsMetrics::getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
-                                           const kinematic_model::JointModelGroup *joint_model_group,
-                                           double &condition_number) const
+bool KinematicsMetrics::getManipulability(const kinematic_state::KinematicState &kinematic_state,
+                                          const kinematic_model::JointModelGroup *joint_model_group,
+                                          double &manipulability) const
 {
   if (!joint_model_group)
   {    
@@ -120,11 +120,11 @@ bool KinematicsMetrics::getConditionNumber(const kinematic_state::KinematicState
     return false;
   }  
   Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
-  Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
-  Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix);
-  Eigen::MatrixXcd eigen_values = eigensolver.eigenvalues();
-  Eigen::MatrixXcd eigen_vectors = eigensolver.eigenvectors();
-  condition_number = eigen_values.real().maxCoeff()/eigen_values.real().minCoeff();  
+  Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
+  Eigen::MatrixXd singular_values = svdsolver.singularValues();
+  for(unsigned int i=0; i < singular_values.rows(); ++i)
+    logDebug("Singular value: %d %f",i,singular_values(i,0));  
+  manipulability = singular_values.minCoeff()/singular_values.maxCoeff();  
   return true;  
 }
 
