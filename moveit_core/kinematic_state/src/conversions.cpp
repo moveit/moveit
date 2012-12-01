@@ -299,15 +299,17 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
           Eigen::Affine3d t = ls->getGlobalLinkTransform().inverse() * t0;
           for (std::size_t i = 0 ; i < poses.size() ; ++i)
             poses[i] = t * poses[i];
-        }
-        
+        }        
         
         if (shapes.empty())
           logError("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(), aco.object.id.c_str());
         else
         {  
-          ls->clearAttachedBody(aco.object.id);
+          if (ls->clearAttachedBody(aco.object.id))
+            logInform("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
+                      aco.object.id.c_str(), aco.link_name.c_str());
           ls->attachBody(aco.object.id, shapes, poses, aco.touch_links);
+          logInform("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
       }
     }
