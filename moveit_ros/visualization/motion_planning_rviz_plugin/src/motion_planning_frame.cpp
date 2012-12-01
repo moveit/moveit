@@ -1508,20 +1508,18 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked(void)
 
 void MotionPlanningFrame::computeSetStartToCurrentButtonClicked(void)
 {  
-  if (!move_group_)
+  if (!planning_display_->getPlanningScene())
     return;
-  kinematic_state::KinematicStatePtr s = move_group_->getCurrentState();
-  if (s)
-    planning_display_->setQueryStartState(s);
+  const kinematic_state::KinematicState &s = planning_display_->getPlanningScene()->getCurrentState();
+  planning_display_->setQueryStartState(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(s)));
 }
 
 void MotionPlanningFrame::computeSetGoalToCurrentButtonClicked(void)
 { 
-  if (!move_group_)
+  if (!planning_display_->getPlanningScene())
     return;
-  kinematic_state::KinematicStatePtr s = move_group_->getCurrentState();
-  if (s)
-    planning_display_->setQueryGoalState(s);
+  const kinematic_state::KinematicState &s = planning_display_->getPlanningScene()->getCurrentState();
+  planning_display_->setQueryGoalState(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(s)));
 }
 
 void MotionPlanningFrame::computeRandomStatesButtonClicked(void)
