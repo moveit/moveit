@@ -30,9 +30,9 @@
 *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
+* 
+* Author: Sachin Chitta
 *********************************************************************/
-
-/* Author: Sachin Chitta */
 
 #ifndef MOVEIT_DYNAMICS_SOLVER_DYNAMICS_SOLVER_
 #define MOVEIT_DYNAMICS_SOLVER_DYNAMICS_SOLVER_
@@ -96,7 +96,7 @@ public:
    * @param joint_angles The joint angles (desired joint configuration)
    * this must have size = number of joints in the group
    * @param payload The computed maximum payload
-   * @param joint_saturation The first saturated joint and the maximum payload
+   * @param joint_saturated The first saturated joint and the maximum payload
    * @return False if the input set of joint angles is of the wrong size
    */
   bool getMaxPayload(const std::vector<double> &joint_angles,

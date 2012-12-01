@@ -105,26 +105,30 @@ public:
                                   Eigen::MatrixXcd &eigen_vectors) const;
   
   /**
-   * @brief Get the condition number for JJ^T
+   * @brief Get the manipulability = sigma_min/sigma_max 
+   * where sigma_min and sigma_max are the smallest and largest singular values 
+   * of the Jacobian matrix J
    * @param kinematic_state Complete kinematic state for the robot
    * @param group_name The group name (e.g. "arm")
    * @param condition_number Condition number for JJ^T
    * @return False if the group was not found
    */
-  bool getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
-                          const std::string &group_name,
-                          double &condition_number) const;
+  bool getManipulability(const kinematic_state::KinematicState &kinematic_state,
+                         const std::string &group_name,
+                         double &condition_number) const;
 
   /**
-   * @brief Get the condition number for JJ^T
+   * @brief Get the manipulability = sigma_min/sigma_max 
+   * where sigma_min and sigma_max are the smallest and largest singular values 
+   * of the Jacobian matrix J
    * @param kinematic_state Complete kinematic state for the robot
    * @param joint_model_group A pointer to the desired joint model group
    * @param condition_number Condition number for JJ^T
    * @return False if the group was not found
    */
-  bool getConditionNumber(const kinematic_state::KinematicState &kinematic_state,
-                          const kinematic_model::JointModelGroup *joint_model_group,
-                          double &condition_number) const;
+  bool getManipulability(const kinematic_state::KinematicState &kinematic_state,
+                         const kinematic_model::JointModelGroup *joint_model_group,
+                         double &condition_number) const;
 
 protected:
   
