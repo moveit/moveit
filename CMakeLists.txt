@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(moveit_core)
 
 include_directories(kinematics_base/include)
+include_directories(kinematics_cache/include)
 include_directories(kinematic_model/include)
 include_directories(kinematic_state/include)
 include_directories(kinematics_planner/include)
@@ -58,6 +59,7 @@ link_directories(${catkin_LIBRARY_DIRS})
 catkin_package(
   INCLUDE_DIRS
     kinematics_base/include
+    kinematics_cache/include
     controller_manager/include
     sensor_manager/include
     kinematic_model/include
@@ -89,6 +91,7 @@ catkin_package(
     moveit_collision_distance_field
     moveit_kinematics_metrics
     moveit_dynamics_solver
+    moveit_kinematics_cache
     moveit_kinematics_planner
   CATKIN_DEPENDS
     geometric_shapes
@@ -122,4 +125,5 @@ add_subdirectory(distance_field)
 add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
+add_subdirectory(kinematics_cache)
 add_subdirectory(kinematics_planner)
