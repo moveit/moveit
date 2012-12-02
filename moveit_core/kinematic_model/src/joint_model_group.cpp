@@ -285,7 +285,9 @@ void kinematic_model::JointModelGroup::setSolverAllocators(const std::pair<Solve
 
 bool kinematic_model::JointModelGroup::canSetStateFromIK(const std::string &tip) const
 {
-  const kinematics::KinematicsBaseConstPtr& solver = getSolverInstance();  
+  const kinematics::KinematicsBaseConstPtr& solver = getSolverInstance();
+  if (!solver)
+    return false;
   const std::string &tip_frame = solver->getTipFrame();
   if (tip != tip_frame)
   {
