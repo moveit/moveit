@@ -858,14 +858,13 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   gravity_vector.x = 0.0;
   gravity_vector.y = 0.0;
   gravity_vector.z = 9.81;  
-
+  
+  dynamics_solver_.clear();  
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     if (getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
-    {
       dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getKinematicModel(),
                                                                             groups[i],
                                                                             gravity_vector));
-    }  
   changedQueryStartState();
   changedQueryGoalState(); 
 }
