@@ -32,8 +32,8 @@
 
 /* Author: Sarah Elliott */
 
-#ifndef PLANNING_SCENE_INTERFACE_
-#define PLANNING_SCENE_INTERFACE__
+#ifndef MOVEIT_PLANNING_INTERFACE_PLANNING_SCENE_INTERFACE_
+#define MOVEIT_PLANNING_INTERFACE_PLANNING_SCENE_INTERFACE__
 
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <boost/function.hpp>
