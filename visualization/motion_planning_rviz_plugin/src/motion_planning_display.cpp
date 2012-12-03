@@ -853,14 +853,19 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   
   kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(getKinematicModel()));  
   computeMetrics(metrics_set_payload_property_->getFloat());
-  
+
+  geometry_msgs::Vector3 gravity_vector;
+  gravity_vector.x = 0.0;
+  gravity_vector.y = 0.0;
+  gravity_vector.z = 9.81;  
+
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     if (getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
     {
       dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver());
-      if (!dynamics_solver_[groups[i]]->initialize(getKinematicModel()->getURDF(),
-                                                   getKinematicModel()->getSRDF(),
-                                                   groups[i]))
+      if (!dynamics_solver_[groups[i]]->initialize(getKinematicModel(),
+                                                   groups[i],
+                                                   gravity_vector))
       {
         dynamics_solver_[groups[i]].reset();
         dynamics_solver_.erase(groups[i]);
