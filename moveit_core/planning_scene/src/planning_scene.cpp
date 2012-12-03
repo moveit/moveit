@@ -496,12 +496,12 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
     scene.link_scale.clear();
   }
 
+  scene.world.collision_objects.clear();
+  scene.world.collision_map = moveit_msgs::CollisionMap();
+  scene.world.octomap = octomap_msgs::OctomapWithPose();
+    
   if (cworld_->isRecordingChanges())
   {
-    scene.world.collision_objects.clear();
-    scene.world.collision_map = moveit_msgs::CollisionMap();
-    scene.world.octomap = octomap_msgs::OctomapWithPose();
-    
     bool do_cmap = false;
     bool do_omap = false;
     const std::vector<collision_detection::CollisionWorld::Change> &changes = cworld_->getChanges();
