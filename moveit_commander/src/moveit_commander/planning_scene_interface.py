@@ -70,14 +70,32 @@ class PlanningScene:
     def __init__(self):
         self._g = PlanningSceneInterface()
 
-    def add_simple_object(self, id_name, frame_id, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions):
-        self._g.add_simple_object(id_name, frame_id, type_name, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
+    def add_sphere(self, id_name, frame_id, position, orientation, radius):
+        self._g.add_sphere(id_name, frame_id, position, orientation, radius)
+
+    def add_cylinder(self, id_name, frame_id, position, orientation, height, radius):
+        self._g.add_cylinder(id_name, frame_id, position, orientation, height, radius)
+
+    def add_box(self, id_name, frame_id, position, orientation, length, width, height):
+        self._g.add_box(id_name, frame_id, position, orientation, length, width, height)
+
+    def add_cone(self, id_name, frame_id, position, orientation, height, radius):
+        self._g.add_cone(id_name, frame_id, position, orientation, height, radius)
 
     def remove_simple_object(self, id_name, frame_id):
         self._g.remove_simple_object(id_name, frame_id)
 
-    def attach_simple_collision_object(self, id_name, frame_id, type_name, link_name, touch_links, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions):
-        self._g.attach_simple_collision_object(id_name, frame_id, type_name, link_name, touch_links, pos_x, pos_y, pos_z, or_x, or_y, or_z, or_w, dimensions)
+    def attach_sphere(self, id_name, frame_id, link_name, touch_links, position, orientation, radius):
+        self._g.attach_sphere(id_name, frame_id, link_name, touch_links, position, orientation, radius)
+
+    def attach_cylinder(self, id_name, frame_id, link_name, touch_links, position, orientation, height, radius):
+        self._g.attach_cylinder(id_name, frame_id, link_name, touch_links, position, orientation, height, radius)
+
+    def attach_box(self, id_name, frame_id, link_name, touch_links, position, orientation, length, width, height):
+        self._g.attach_box(id_name, frame_id, link_name, touch_links, position, orientation, length, width, height)
+
+    def attach_cone(self, id_name, frame_id, link_name, touch_links, position, orientation, height, radius):
+        self._g.attach_cone(id_name, frame_id, link_name, touch_links, position, orientation, height, radius)
 
     def remove_simple_attached_object(self, id_name, frame_id, link_name):
         self._g.remove_simple_attached_object(id_name, frame_id, link_name)
