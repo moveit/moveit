@@ -196,6 +196,7 @@ protected:
   void computeMetricsInternal(std::map<std::string, double> &metrics,
                               const robot_interaction::RobotInteraction::EndEffector &eef,
                               const kinematic_state::KinematicState &state, double payload);
+  void updateStateExceptGroup(kinematic_state::KinematicState &dest, const kinematic_state::KinematicState &src, const std::string &group);
   float getStateDisplayTime(void);
   
   // overrides from Display  
