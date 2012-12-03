@@ -61,7 +61,8 @@ public:
   void update(const kinematic_state::KinematicStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color);
   void update(const kinematic_state::KinematicStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color, 
               const std::map<std::string, std_msgs::ColorRGBA> &color_map);
-  
+  void setDefaultAttachedObjectColor(const std_msgs::ColorRGBA &default_attached_object_color);
+
   /**
    * \brief Set the robot as a whole to be visible or not
    * @param visible Should we be visible?
@@ -88,7 +89,8 @@ private:
                     const std_msgs::ColorRGBA &default_attached_object_color,
                     const std::map<std::string, std_msgs::ColorRGBA> *color_map);
   rviz::Robot robot_;
-  RenderShapesPtr render_shapes_;
+  RenderShapesPtr render_shapes_; 
+  std_msgs::ColorRGBA default_attached_object_color_;
   bool visible_;
   bool visual_visible_;
   bool collision_visible_;
