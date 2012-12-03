@@ -542,11 +542,14 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
   }
 }
 
-static void copyItemIfExists(const std::map<std::string, double> &source, std::map<std::string, double> &dest, const std::string &key)
+namespace
+{
+inline void copyItemIfExists(const std::map<std::string, double> &source, std::map<std::string, double> &dest, const std::string &key)
 {
   std::map<std::string, double>::const_iterator it = source.find(key);
   if (it != source.end())
     dest[key] = it->second;
+}
 }
 
 void MotionPlanningDisplay::displayMetrics(bool start)
@@ -646,12 +649,20 @@ void MotionPlanningDisplay::publishInteractiveMarkers(void)
 
 void MotionPlanningDisplay::changedQueryStartColor(void)
 {
-  changedQueryStartState();
+  std_msgs::ColorRGBA color;
+  QColor qcolor = query_start_color_property_->getColor();
+  color.r = qcolor.redF();
+  color.g = qcolor.greenF();
+  color.b = qcolor.blueF();
+  color.a = 1.0f;  
+  query_robot_start_->setDefaultAttachedObjectColor(color);
+  changedQueryStartState(); 
 }
 
 void MotionPlanningDisplay::changedQueryStartAlpha(void)
 {
-  query_robot_start_->setAlpha(query_start_alpha_property_->getFloat());
+  query_robot_start_->setAlpha(query_start_alpha_property_->getFloat()); 
+  changedQueryStartState();
 }
 
 void MotionPlanningDisplay::changedQueryGoalState(void)
@@ -682,12 +693,20 @@ void MotionPlanningDisplay::changedQueryGoalState(void)
 
 void MotionPlanningDisplay::changedQueryGoalColor(void)
 {
+  std_msgs::ColorRGBA color;
+  QColor qcolor = query_goal_color_property_->getColor();
+  color.r = qcolor.redF();
+  color.g = qcolor.greenF();
+  color.b = qcolor.blueF();
+  color.a = 1.0f;  
+  query_robot_goal_->setDefaultAttachedObjectColor(color);
   changedQueryGoalState();
 }
 
 void MotionPlanningDisplay::changedQueryGoalAlpha(void)
 {
   query_robot_goal_->setAlpha(query_goal_alpha_property_->getFloat());
+  changedQueryGoalState();
 }
 
 void MotionPlanningDisplay::changedQueryCollidingLinkColor(void)
