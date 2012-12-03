@@ -405,9 +405,10 @@ class LockedPlanningScene
 public:
   
   LockedPlanningScene(const PlanningSceneMonitorPtr &planning_scene_monitor) :
-    planning_scene_monitor_(planning_scene_monitor),
-    lock_(new SingleUnlock(planning_scene_monitor.get()))
-  {    
+    planning_scene_monitor_(planning_scene_monitor)
+  {
+    if (planning_scene_monitor_)
+      lock_.reset(new SingleUnlock(planning_scene_monitor.get()));
   }
   
   const PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)

@@ -187,6 +187,7 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
         scene_->decoupleParent();
         parent_scene_ = scene_;
         scene_ = parent_scene_->diff();
+        scene_const_ = scene_;
       }
     }
     else
