@@ -666,6 +666,13 @@ void MotionPlanningFrame::importSceneButtonClicked(void)
       Eigen::Affine3d pose;
       pose.setIdentity();
       
+      if (planning_display_->getPlanningScene()->getCurrentState().hasAttachedBody(name))
+      {
+        QMessageBox::warning(this, QString("Duplicate names"),
+                             QString("An attached object named '").append(name.c_str()).append("' already exists. Please rename the attached object before importing."));
+        return;
+      }
+      
       //If the object already exists, ask the user whether to overwrite or rename
       if (planning_display_->getPlanningScene()->getCollisionWorld()->hasObject(name))
       {
@@ -728,6 +735,11 @@ void MotionPlanningFrame::importSceneButtonClicked(void)
         if (ps)
           addObject(ps->getCollisionWorld(), name, shape, pose);  
       }
+    }
+    else
+    {
+      QMessageBox::warning(this, QString("Import error"), QString("Unable to import scene"));
+      return;
     }
   }
 }
@@ -818,18 +830,18 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
     item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
     return;
   }
+  
+  if (planning_display_->getPlanningScene()->getCollisionWorld()->hasObject(item->text().toStdString()) ||
+      planning_display_->getPlanningScene()->getCurrentState().hasAttachedBody(item->text().toStdString()))
+  { 
+    QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
+                         append("' already exists. Not renaming object ").append((known_collision_objects_[item->type()].first.c_str())));
+    item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
+    return;
+  }
 
   if (item->checkState() == Qt::Unchecked)
   {
-    // rename collision object
-    if (planning_display_->getPlanningScene()->getCollisionWorld()->hasObject(item->text().toStdString()))
-    {
-      QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
-                           append("' already exists. Not renaming object ").append((known_collision_objects_[item->type()].first.c_str())));
-      item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
-      return;
-    }
-
     planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
     const collision_detection::CollisionWorldPtr &world = ps->getCollisionWorld();
     collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(known_collision_objects_[item->type()].first);
@@ -848,15 +860,6 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
   else
   {
     // rename attached body
-
-    if (planning_display_->getPlanningScene()->getCurrentState().hasAttachedBody(item->text().toStdString()))
-    { 
-      QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
-                           append("' already exists. Not renaming object ").append((known_collision_objects_[item->type()].first.c_str())));
-      item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
-      return;
-    }
-
     planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
     kinematic_state::KinematicState &cs = ps->getCurrentState();
     const kinematic_state::AttachedBody *ab = cs.getAttachedBody(known_collision_objects_[item->type()].first);
