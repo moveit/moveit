@@ -80,7 +80,7 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   
   struct TrajectoryMessageToDisplay
   {
-    TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene);
+    TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningSceneConstPtr &scene);
     TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
     
     kinematic_state::KinematicStatePtr start_state_;

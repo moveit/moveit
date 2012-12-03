@@ -66,30 +66,32 @@ public:
    * \brief Set the robot as a whole to be visible or not
    * @param visible Should we be visible?
    */
-  void setVisible( bool visible );
+  void setVisible(bool visible);
   
   /**
    * \brief Set whether the visual meshes of the robot should be visible
    * @param visible Whether the visual meshes of the robot should be visible
    */
-  void setVisualVisible( bool visible );
+  void setVisualVisible(bool visible);
   
   /**
    * \brief Set whether the collision meshes/primitives of the robot should be visible
    * @param visible Whether the collision meshes/primitives should be visible
    */
-  void setCollisionVisible( bool visible );
+  void setCollisionVisible(bool visible);
 
-  void setAlpha( float alpha );
+  void setAlpha(float alpha);
 
 private:
   
   void updateHelper(const kinematic_state::KinematicStateConstPtr &kinematic_state,
                     const std_msgs::ColorRGBA &default_attached_object_color,
                     const std::map<std::string, std_msgs::ColorRGBA> *color_map);
-
   rviz::Robot robot_;
   RenderShapesPtr render_shapes_;
+  bool visible_;
+  bool visual_visible_;
+  bool collision_visible_;
   
 };
 

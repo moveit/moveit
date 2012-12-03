@@ -108,8 +108,8 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
         // check if we need to construct the material
         if (material_name_.empty())
         {
-          material_name_ = "Planning Display Mesh Material";
-          material_ = Ogre::MaterialManager::getSingleton().create( material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+          material_name_ = "Planning Scene Display Mesh Material @" + boost::lexical_cast<std::string>(this);
+          material_ = Ogre::MaterialManager::getSingleton().create(material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
           material_->setReceiveShadows(true);
           material_->getTechnique(0)->setLightingEnabled(true);
           material_->setCullingMode(Ogre::CULL_NONE);
@@ -127,7 +127,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
           }
         }
 
-        std::string name = "Planning Display Mesh " + boost::lexical_cast<std::string>(manual_objects_.size());
+        std::string name = "Planning Scene Display Mesh " + boost::lexical_cast<std::string>(manual_objects_.size()) + " @" + boost::lexical_cast<std::string>(this);
         Ogre::ManualObject *manual_object = context_->getSceneManager()->createManualObject(name);
         manual_object->estimateVertexCount(mesh->triangle_count * 3);
         manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);

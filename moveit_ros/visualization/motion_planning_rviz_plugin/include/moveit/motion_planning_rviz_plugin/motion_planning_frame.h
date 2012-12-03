@@ -103,21 +103,22 @@ protected:
 
   boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
  
-  class goalPoseMarker {
+  class goalPoseMarker
+  {
   public:
-	  boost::shared_ptr<rviz::InteractiveMarker> imarker;
-	  bool selected;
-	  
-	  goalPoseMarker(): selected(false) {}
-	  goalPoseMarker(rviz::InteractiveMarker *marker): imarker(marker), selected(false) {}
-	  goalPoseMarker(rviz::InteractiveMarker *marker, bool is_selected): imarker(marker), selected(is_selected) {}
+    boost::shared_ptr<rviz::InteractiveMarker> imarker;
+    bool selected;
+    
+    goalPoseMarker(): selected(false) {}
+    goalPoseMarker(rviz::InteractiveMarker *marker): imarker(marker), selected(false) {}
+    goalPoseMarker(rviz::InteractiveMarker *marker, bool is_selected): imarker(marker), selected(is_selected) {}
   };
   
   typedef std::map<std::string, goalPoseMarker> goal_pose_map_t;
   typedef std::pair<std::string, goalPoseMarker> goal_pose_pair_t;
   goal_pose_map_t goal_poses_;
-
-
+                             
+                             
 private Q_SLOTS:
 
   void planButtonClicked(void);  
@@ -194,10 +195,10 @@ private:
   void populateGoalPosesList();
   
   /** Selects or unselects a item in a list by the item name */
-  void setItemSelectionInList(std::string item_name, bool selection, QListWidget *list);
+  void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
   
   /** Switches the selection state of a goal pose marker */
-  void switchGoalPoseMarkerSelection(std::string marker_name);
+  void switchGoalPoseMarkerSelection(const std::string &marker_name);
  
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
