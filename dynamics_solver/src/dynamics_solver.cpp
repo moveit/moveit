@@ -48,19 +48,22 @@
 namespace dynamics_solver
 {
 
+namespace
+{
 inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform, 
                                               const geometry_msgs::Vector3 &vector) 
 {
   Eigen::Vector3d p;
   p = Eigen::Vector3d(vector.x, vector.y, vector.z);
   p = transform.rotation()*p;  
-
+  
   geometry_msgs::Vector3 result;
   result.x = p.x();
   result.y = p.y();
   result.z = p.z();  
   
   return result;  
+}
 }
 
 DynamicsSolver::DynamicsSolver(const kinematic_model::KinematicModelConstPtr &kinematic_model,
@@ -69,26 +72,26 @@ DynamicsSolver::DynamicsSolver(const kinematic_model::KinematicModelConstPtr &ki
 {
   group_name_ = group_name;
   kinematic_model_ = kinematic_model;  
-  if (!kinematic_model_->hasJointModelGroup(group_name))
-  {
-    logError("Did not find the group %s in robot model", group_name.c_str());
-    joint_model_group_ = NULL;    
-  }  
   joint_model_group_ = kinematic_model_->getJointModelGroup(group_name);
+  if (!joint_model_group_)
+    return;
+  
   if(!joint_model_group_->isChain())
   {
     logError("Group %s is not a chain. Will not initialize dynamics solver", group_name_.c_str());
-    joint_model_group_ = NULL;    
+    joint_model_group_ = NULL;
+    return;
   }
-
+  
   const kinematic_model::JointModel* joint = joint_model_group_->getJointRoots()[0];  
   if(!joint->getParentLinkModel())
   {
     logError("Group %s does not have a parent link",group_name_.c_str());    
-    joint_model_group_ = NULL;    
+    joint_model_group_ = NULL;
+    return;
   }
-  else
-    base_name_ = joint->getParentLinkModel()->getName();  
+  
+  base_name_ = joint->getParentLinkModel()->getName();  
   
   tip_name_ = joint_model_group_->getLinkModelNames().back();
   logDebug("Base name: %s, Tip name: %s", base_name_.c_str(), tip_name_.c_str());
@@ -100,12 +103,14 @@ DynamicsSolver::DynamicsSolver(const kinematic_model::KinematicModelConstPtr &ki
   if (!kdl_parser::treeFromUrdfModel(*urdf_model, tree)) 
   {
     logError("Could not initialize tree object");
-    joint_model_group_ = NULL;    
+    joint_model_group_ = NULL;
+    return;
   }
   if (!tree.getChain(base_name_, tip_name_, kdl_chain_)) 
   {
     logError("Could not initialize chain object");
-    joint_model_group_ = NULL;    
+    joint_model_group_ = NULL;
+    return;
   }
   num_joints_ = kdl_chain_.getNrOfJoints();
   num_segments_ = kdl_chain_.getNrOfSegments();
@@ -123,9 +128,9 @@ DynamicsSolver::DynamicsSolver(const kinematic_model::KinematicModelConstPtr &ki
       max_torques_.push_back(0.0);
   }
   
-  KDL::Vector gravity(gravity_vector.x,gravity_vector.y,gravity_vector.z);//Not sure if KDL expects the negative of this
+  KDL::Vector gravity(gravity_vector.x,gravity_vector.y,gravity_vector.z); // \todo Not sure if KDL expects the negative of this (Sachin)
   gravity_ = gravity.Norm();
-  logDebug("Gravity norm set to %f",gravity_);
+  logDebug("Gravity norm set to %f", gravity_);
   
   chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_, gravity));
 }
@@ -138,7 +143,7 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
 {
   if(!joint_model_group_)
   {
-    logError("Did not construct this object properly. Check error logs.");
+    logError("Did not construct DynamisSolver object properly. Check error logs.");
     return false;
   }
   if(joint_angles.size() != num_joints_)
@@ -206,7 +211,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
 {
   if(!joint_model_group_)
   {
-    logError("Did not construct this object properly. Check error logs.");
+    logError("Did not construct DynamisSolver object properly. Check error logs.");
     return false;
   }
   if(joint_angles.size() != num_joints_)
@@ -267,7 +272,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
 {
   if(!joint_model_group_)
   {
-    logError("Did not construct this object properly. Check error logs.");
+    logError("Did not construct DynamisSolver object properly. Check error logs.");
     return false;
   }
   if(joint_angles.size() != num_joints_)
