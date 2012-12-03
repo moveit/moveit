@@ -56,8 +56,6 @@ class DynamicsSolver
 {
 public:
   
-  DynamicsSolver();
-  
   /**
    * @brief Initialize the dynamics solver
    * @param urdf_model The urdf model for the robot
@@ -65,10 +63,10 @@ public:
    * @param group_name The name of the group to compute stuff for
    * @return False if initialization failed
    */
-  bool initialize(const kinematic_model::KinematicModelConstPtr &kinematic_model,
-                  const std::string &group_name,
-                  const geometry_msgs::Vector3 &gravity_vector);
-      
+  DynamicsSolver(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+                 const std::string &group_name,
+                 const geometry_msgs::Vector3 &gravity_vector);
+  
   /**
    * @brief Get the torques (the order of all input and output is the same 
    * as the order of joints for this group in the KinematicModel)
@@ -129,7 +127,7 @@ public:
    * @brief Get the kinematic model
    * @return kinematic model
    */
-  const kinematic_model::KinematicModelConstPtr getKinematicModel()
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return kinematic_model_;
   }  
@@ -138,7 +136,7 @@ public:
    * @brief Get the group name
    * @return group name
    */
-  const std::string getGroupName()
+  const std::string& getGroupName() const
   {
     return group_name_;
   }  

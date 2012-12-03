@@ -63,33 +63,29 @@ inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform,
   return result;  
 }
 
-DynamicsSolver::DynamicsSolver(void)
-{
-}
-
-bool DynamicsSolver::initialize(const kinematic_model::KinematicModelConstPtr &kinematic_model,
-                                const std::string &group_name,
-                                const geometry_msgs::Vector3 &gravity_vector)
+DynamicsSolver::DynamicsSolver(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+                               const std::string &group_name,
+                               const geometry_msgs::Vector3 &gravity_vector)
 {
   group_name_ = group_name;
   kinematic_model_ = kinematic_model;  
   if (!kinematic_model_->hasJointModelGroup(group_name))
   {
     logError("Did not find the group %s in robot model", group_name.c_str());
-    return false;
+    joint_model_group_ = NULL;    
   }  
   joint_model_group_ = kinematic_model_->getJointModelGroup(group_name);
   if(!joint_model_group_->isChain())
   {
     logError("Group %s is not a chain. Will not initialize dynamics solver", group_name_.c_str());
-    return false;    
+    joint_model_group_ = NULL;    
   }
 
   const kinematic_model::JointModel* joint = joint_model_group_->getJointRoots()[0];  
   if(!joint->getParentLinkModel())
   {
     logError("Group %s does not have a parent link",group_name_.c_str());    
-    return false;    
+    joint_model_group_ = NULL;    
   }
   else
     base_name_ = joint->getParentLinkModel()->getName();  
@@ -104,12 +100,12 @@ bool DynamicsSolver::initialize(const kinematic_model::KinematicModelConstPtr &k
   if (!kdl_parser::treeFromUrdfModel(*urdf_model, tree)) 
   {
     logError("Could not initialize tree object");
-    return false;    
+    joint_model_group_ = NULL;    
   }
   if (!tree.getChain(base_name_, tip_name_, kdl_chain_)) 
   {
     logError("Could not initialize chain object");
-    return false;    
+    joint_model_group_ = NULL;    
   }
   num_joints_ = kdl_chain_.getNrOfJoints();
   num_segments_ = kdl_chain_.getNrOfSegments();
@@ -129,10 +125,9 @@ bool DynamicsSolver::initialize(const kinematic_model::KinematicModelConstPtr &k
   
   KDL::Vector gravity(gravity_vector.x,gravity_vector.y,gravity_vector.z);//Not sure if KDL expects the negative of this
   gravity_ = gravity.Norm();
-  logError("Gravity norm set to %f",gravity_);
+  logDebug("Gravity norm set to %f",gravity_);
   
   chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_, gravity));
-  return true;
 }
 
 bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
@@ -141,6 +136,11 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
                                 const std::vector<geometry_msgs::Wrench> &wrenches,
                                 std::vector<double> &torques) const
 {
+  if(!joint_model_group_)
+  {
+    logError("Did not construct this object properly. Check error logs.");
+    return false;
+  }
   if(joint_angles.size() != num_joints_)
   {
     logError("Joint angles vector should be size %d", num_joints_);
@@ -204,6 +204,11 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
                                    double &payload,
                                    unsigned int &joint_saturated) const
 {
+  if(!joint_model_group_)
+  {
+    logError("Did not construct this object properly. Check error logs.");
+    return false;
+  }
   if(joint_angles.size() != num_joints_)
   {
     logError("Joint angles vector should be size %d", num_joints_);
@@ -260,6 +265,11 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
                                        double payload,
                                        std::vector<double> &joint_torques) const
 {
+  if(!joint_model_group_)
+  {
+    logError("Did not construct this object properly. Check error logs.");
+    return false;
+  }
   if(joint_angles.size() != num_joints_)
   {
     logError("Joint angles vector should be size %d", num_joints_);
