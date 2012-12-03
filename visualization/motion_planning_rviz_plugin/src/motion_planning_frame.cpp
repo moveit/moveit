@@ -35,6 +35,8 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/constraints_storage.h>
+#include <moveit/warehouse/state_storage.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
 
 #include <geometric_shapes/shape_operations.h>
@@ -42,6 +44,8 @@
 
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
+
+#include <eigen_conversions/eigen_msg.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -57,14 +61,14 @@ static const int ITEM_TYPE_SCENE = 1;
 static const int ITEM_TYPE_QUERY = 2;
 
 MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
-  QWidget(parent),
-  planning_display_(pdisplay),
-  context_(context),
-  ui_(new Ui::MotionPlanningUI())
+          QWidget(parent),
+          planning_display_(pdisplay),
+          context_(context),
+          ui_(new Ui::MotionPlanningUI())
 {
   // set up the GUI
   ui_->setupUi(this);
-  
+
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
   // to keep the GUI more responsive (using the background job processing)
   connect( ui_->plan_button, SIGNAL( clicked() ), this, SLOT( planButtonClicked() ));
@@ -103,9 +107,17 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->planning_scene_tree, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( warehouseItemNameChanged( QTreeWidgetItem *, int ) ));
 
   connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
-  
+
   QShortcut *copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
   connect(copy_object_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedCollisionObject() ) );
+
+  connect( ui_->new_goal_pose_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
+  connect( ui_->remove_goal_pose_button, SIGNAL( clicked() ), this, SLOT( removeSelectedGoalsButtonClicked() ));
+  connect( ui_->load_constraints_button, SIGNAL( clicked() ), this, SLOT( loadConstraintsButtonClicked() ));
+  connect( ui_->save_constraints_button, SIGNAL( clicked() ), this, SLOT( saveConstraintsButtonClicked() ));
+  connect( ui_->delete_constraints_button, SIGNAL( clicked() ), this, SLOT( deleteConstraintsButtonClicked() ));
+  connect( ui_->goal_poses_list, SIGNAL( itemClicked(QListWidgetItem*) ), this, SLOT( goalPoseItemClicked(QListWidgetItem*) ));
+
 
   ui_->tabWidget->setCurrentIndex(0); 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
@@ -116,15 +128,334 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 {
 }
 
+void MotionPlanningFrame::createGoalPoseButtonClicked(void) 
+{
+  ROS_DEBUG("Create goal pose");
+
+  bool ok;
+  QString text = QInputDialog::getText(this, tr("Choose a name"),
+                                       tr("Goal pose name:"), QLineEdit::Normal,
+                                       QString(), &ok);
+
+  std::string name;
+  if (ok)
+  {
+    if (!text.isEmpty())
+    {
+      name = text.toStdString();
+      if (goal_poses_.find(name)!=goal_poses_.end())
+        QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
+                             append("' already exists. Not creating goal."));
+      else 
+      {
+        //Create the new goal pose at the current eef pose, and attach an interactive marker to it
+        Eigen::Affine3d tip_pose=planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
+
+        geometry_msgs::PoseStamped shape_pose;
+        shape_pose.pose.position.x = tip_pose(0,3);
+        shape_pose.pose.position.y = tip_pose(1,3);
+        shape_pose.pose.position.z = tip_pose(2,3);
+        Eigen::Quaterniond q(tip_pose.rotation());
+        shape_pose.pose.orientation.x = q.x();
+        shape_pose.pose.orientation.y = q.y();
+        shape_pose.pose.orientation.z = q.z();
+        shape_pose.pose.orientation.w = q.w();
+
+        visualization_msgs::InteractiveMarker int_marker;
+        int_marker.header.frame_id = planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
+        int_marker.scale=0.35;
+        int_marker.pose=shape_pose.pose;
+        int_marker.name=name;
+
+        robot_interaction::addArrowMarker(int_marker);
+
+        rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
+        interactive_markers::autoComplete(int_marker);
+        imarker->processMessage(int_marker);
+        imarker->setShowAxes(false);			  
+        imarker->setShowDescription(false);
+
+        goal_poses_.insert(goal_pose_pair_t(name, goalPoseMarker(imarker)));
+
+        // Connect signals
+        connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+      }
+    }
+    else
+      QMessageBox::warning(this, "Goal not created", "Cannot use an empty name for a new goal pose.");
+  }
+
+  populateGoalPosesList();
+}
+
+void MotionPlanningFrame::removeSelectedGoalsButtonClicked(void)
+{
+  QList<QListWidgetItem*> found_items=ui_->goal_poses_list->selectedItems();
+  for (unsigned int i=0; i<found_items.size(); i++)
+  {
+    ROS_DEBUG_STREAM("Removing " << found_items[i]->text().toStdString());
+    goal_poses_.erase(found_items[i]->text().toStdString());    
+  }
+  populateGoalPosesList();
+}
+
+void MotionPlanningFrame::loadConstraintsButtonClicked(void) 
+{
+  //Get all the constraints from the database, convert to goal pose markers
+  if (constraints_storage_) 
+  {
+    std::vector<std::string> names;
+    ROS_DEBUG("Getting constraints");
+    constraints_storage_->getKnownConstraints(".*", names);
+
+    for (unsigned int i=0; i<names.size(); i++) 
+    {
+      //Create a goal pose marker
+      moveit_warehouse::ConstraintsWithMetadata c;
+      constraints_storage_->getConstraints(c, names[i]);
+      ROS_DEBUG_STREAM("Loading: " << c->name);
+
+      if (c->position_constraints.size()>0 && c->position_constraints[0].constraint_region.primitive_poses.size()>0 && c->orientation_constraints.size()>0) 
+      {
+        //Overwrite if exists. TODO: Ask the user before overwriting? copy the existing one with another name before?
+        if (ui_->goal_poses_list->findItems(QString(c->name.c_str()), Qt::MatchExactly).size()>0) {
+          goal_poses_.erase(c->name);
+        }
+            
+        geometry_msgs::PoseStamped shape_pose;
+        shape_pose.pose.position= c->position_constraints[0].constraint_region.primitive_poses[0].position;
+        shape_pose.pose.orientation = c->orientation_constraints[0].orientation;
+
+        visualization_msgs::InteractiveMarker int_marker;
+        int_marker.header.frame_id = planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
+        int_marker.scale=0.35;
+        int_marker.pose=shape_pose.pose;
+        int_marker.name=c->name;
+
+        robot_interaction::addArrowMarker(int_marker);
+
+        rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
+        interactive_markers::autoComplete(int_marker);
+        imarker->processMessage(int_marker);
+        imarker->setShowAxes(false);			  
+        imarker->setShowDescription(false);
+
+        goal_poses_.insert(goal_pose_pair_t(c->name, goalPoseMarker(imarker)));
+
+        // Connect signals
+        connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+      }
+    }
+    populateGoalPosesList();
+  } 
+  else 
+  {
+    QMessageBox::warning(this, "Warning", "Not connected to a database.");
+  }
+}
+
+void MotionPlanningFrame::saveConstraintsButtonClicked(void)
+{
+  //Convert all goal pose markers into constraints and store them
+  if (constraints_storage_) 
+  {
+    goal_pose_map_t::iterator it=goal_poses_.begin();
+    for (it; it!=goal_poses_.end(); it++)
+    {
+      moveit_msgs::Constraints c;
+      c.name=it->second.imarker->getName();
+
+      shape_msgs::SolidPrimitive sp;
+      sp.type=sp.BOX;
+      sp.dimensions.push_back(0.02);
+      sp.dimensions.push_back(0.02);
+      sp.dimensions.push_back(0.02);
+
+      moveit_msgs::PositionConstraint pc;
+      pc.constraint_region.primitives.push_back(sp);
+      geometry_msgs::Pose posemsg;
+      posemsg.position.x=it->second.imarker->getPosition().x;
+      posemsg.position.y=it->second.imarker->getPosition().y;
+      posemsg.position.z=it->second.imarker->getPosition().z;
+      posemsg.orientation.x=0;
+      posemsg.orientation.y=0;
+      posemsg.orientation.z=0;
+      posemsg.orientation.w=1;
+      pc.constraint_region.primitive_poses.push_back(posemsg);
+      c.position_constraints.push_back(pc);
+
+      moveit_msgs::OrientationConstraint oc;
+      oc.orientation.x=it->second.imarker->getOrientation().x;
+      oc.orientation.y=it->second.imarker->getOrientation().y;
+      oc.orientation.z=it->second.imarker->getOrientation().z;
+      oc.orientation.w=it->second.imarker->getOrientation().w;
+      c.orientation_constraints.push_back(oc);
+      
+      constraints_storage_->addConstraints(c);
+    }
+  } 
+  else
+  {
+    QMessageBox::warning(this, "Warning", "Not connected to a database.");
+  }
+  
+}
+
+void MotionPlanningFrame::deleteConstraintsButtonClicked(void) 
+{
+  //Go through the list of goal poses, and delete those selected
+  if (constraints_storage_) 
+  {
+    goal_pose_map_t::iterator it=goal_poses_.begin();
+    for (it; it!=goal_poses_.end(); it++) 
+    {
+      if (it->second.selected) 
+      {
+        constraints_storage_->removeConstraints(it->second.imarker->getName());        
+      }
+    }
+    
+    removeSelectedGoalsButtonClicked();
+  }
+  else
+  {
+    QMessageBox::warning(this, "Warning", "Not connected to a database.");
+  }
+}
+
+void MotionPlanningFrame::populateGoalPosesList(void) 
+{
+  ui_->goal_poses_list->clear();
+  goal_pose_map_t::iterator it=goal_poses_.begin();
+  for (it; it!=goal_poses_.end(); it++) 
+  {
+    QListWidgetItem *item=new QListWidgetItem(QString(it->first.c_str()));
+    ui_->goal_poses_list->addItem(item);
+    if (it->second.selected) 
+    {
+      //If selected, highlight in the list
+      item->setSelected(true);
+    }
+  }
+}
+
+void MotionPlanningFrame::goalPoseItemClicked(QListWidgetItem * item)
+{	
+  switchGoalPoseMarkerSelection(item->text().toStdString());	
+}
+
+/* Receives feedback from the interactive marker attached to a goal pose */
+void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+{ 
+  static Eigen::Affine3d initial_pose_eigen;
+  static bool dragging=false;
+  
+  if (feedback.event_type==feedback.BUTTON_CLICK) 
+  {
+    switchGoalPoseMarkerSelection(feedback.marker_name);
+  } 
+  else if (feedback.event_type==feedback.MOUSE_DOWN) 
+  {
+    //Store current poses
+    goals_initial_pose_.clear();
+    goal_pose_map_t::iterator it=goal_poses_.begin();
+    for (; it!=goal_poses_.end(); it++) 
+    {
+      Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x, it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
+      pose(0,3)=it->second.imarker->getPosition().x;
+      pose(1,3)=it->second.imarker->getPosition().y;
+      pose(2,3)=it->second.imarker->getPosition().z;
+      goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second.imarker->getName(), pose));
+
+      if (it->second.imarker->getName()==feedback.marker_name) 
+      {
+        initial_pose_eigen=pose;
+      }
+    }
+    dragging=true;
+  } 
+  else if (feedback.event_type==feedback.POSE_UPDATE && dragging) 
+  {
+    //Compute displacement from stored pose, and apply to the rest of selected markers
+    Eigen::Affine3d current_pose_eigen;
+    tf::poseMsgToEigen(feedback.pose, current_pose_eigen);
+
+    Eigen::Affine3d current_wrt_initial=initial_pose_eigen.inverse() * current_pose_eigen;
+
+    //Update the rest of selected markers
+    goal_pose_map_t::iterator it=goal_poses_.begin();
+    for (; it!=goal_poses_.end(); it++) 
+    {
+      if (it->second.imarker->getName() != feedback.marker_name && it->second.selected) 
+      {
+        visualization_msgs::InteractiveMarkerPose impose;
+
+        Eigen::Affine3d newpose = goals_initial_pose_[it->second.imarker->getName()] * current_wrt_initial;
+        tf::poseEigenToMsg(newpose, impose.pose);
+        impose.header.frame_id=it->second.imarker->getReferenceFrame();
+
+        it->second.imarker->processMessage(impose);
+      }
+    }
+  } else if (feedback.event_type==feedback.MOUSE_UP) 
+  {
+    dragging=false;
+  }
+}
+
+void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marker_name) 
+{
+  geometry_msgs::PoseStamped current_pose;
+  current_pose.pose.position.x=goal_poses_[marker_name].imarker->getPosition().x;
+  current_pose.pose.position.y=goal_poses_[marker_name].imarker->getPosition().y;
+  current_pose.pose.position.z=goal_poses_[marker_name].imarker->getPosition().z;
+  current_pose.pose.orientation.x=goal_poses_[marker_name].imarker->getOrientation().x;
+  current_pose.pose.orientation.y=goal_poses_[marker_name].imarker->getOrientation().y;
+  current_pose.pose.orientation.z=goal_poses_[marker_name].imarker->getOrientation().z;
+  current_pose.pose.orientation.w=goal_poses_[marker_name].imarker->getOrientation().w;
+
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.name=goal_poses_[marker_name].imarker->getName();
+  if (goal_poses_[marker_name].selected) 
+  {
+    //If selected, unselect
+    int_marker.pose=current_pose.pose;
+    goal_poses_[marker_name].selected=false;
+    setItemSelectionInList(marker_name, false, ui_->goal_poses_list);
+  } 
+  else 
+  {
+    //If unselected, select
+    int_marker= robot_interaction::make6DOFMarker(goal_poses_[marker_name].imarker->getName(), current_pose, 1.0);
+    goal_poses_[marker_name].selected=true;
+    setItemSelectionInList(marker_name, true, ui_->goal_poses_list);
+  }
+  int_marker.header.frame_id = goal_poses_[marker_name].imarker->getReferenceFrame();
+  int_marker.scale=0.35;
+  robot_interaction::addArrowMarker(int_marker);
+  interactive_markers::autoComplete(int_marker);
+  goal_poses_[marker_name].imarker->processMessage(int_marker);
+}
+
+void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list) 
+{
+  QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
+  if (found_items.size() > 0) 
+    for (unsigned int i = 0 ; i < found_items.size(); ++i) 
+      found_items[i]->setSelected(selection);
+}
+
 void MotionPlanningFrame::copySelectedCollisionObject(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
     return;
-  if (!planning_display_->getPlanningScene())
+  
+  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+  if (!ps)
     return;
   
-  collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
+  collision_detection::CollisionWorldPtr world = ps->getCollisionWorld();
   bool change = false;
   for (int i = 0 ; i < sel.size() ; ++i)
   {
@@ -147,7 +478,7 @@ void MotionPlanningFrame::copySelectedCollisionObject(void)
     ROS_DEBUG("Copied collision object to '%s'", name.c_str());
     change = true;
   }
-  
+
   if (change)
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
@@ -193,10 +524,11 @@ void MotionPlanningFrame::changePlanningGroup(void)
 
 void MotionPlanningFrame::publishSceneButtonClicked(void)
 {
-  if (planning_display_->getPlanningSceneMonitor())
+  const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+  if (ps)
   {
     moveit_msgs::PlanningScene msg;
-    planning_display_->getPlanningScene()->getPlanningSceneMsg(msg);
+    ps->getPlanningSceneMsg(msg);
     planning_scene_publisher_.publish(msg);
   }
 }
@@ -209,48 +541,56 @@ void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonit
 
 void MotionPlanningFrame::populateCollisionObjectsList(void)
 {
-  ui_->collision_objects_list->setUpdatesEnabled(false); 
-  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
-  std::set<std::string> to_select;
-  for (int i = 0 ; i < sel.size() ; ++i)
-    to_select.insert(sel[i]->text().toStdString());
-  ui_->collision_objects_list->clear();
-  known_collision_objects_.clear();
-  
-  if (planning_display_->getPlanningSceneMonitor())
-  {
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
-    const std::vector<std::string> &collision_object_names = world->getObjectIds();
-    for (std::size_t i = 0 ; i < collision_object_names.size() ; ++i)
-    {
-      QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(collision_object_names[i]),
-                                                  ui_->collision_objects_list, (int)i);
-      item->setFlags(item->flags() | Qt::ItemIsEditable);
-      item->setToolTip(item->text());
-      item->setCheckState(Qt::Unchecked);
-      if (to_select.find(collision_object_names[i]) != to_select.end())
-        item->setSelected(true);
-      ui_->collision_objects_list->addItem(item);
-      known_collision_objects_.push_back(std::make_pair(collision_object_names[i], false));
-    }
+  ui_->collision_objects_list->setUpdatesEnabled(false);
+  bool oldState = ui_->collision_objects_list->blockSignals(true);  
 
-    kinematic_state::KinematicState &cs = planning_display_->getPlanningScene()->getCurrentState();
-    std::vector<const kinematic_state::AttachedBody*> attached_bodies;
-    cs.getAttachedBodies(attached_bodies);
-    for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
+  { 
+    QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+    std::set<std::string> to_select;
+    for (int i = 0 ; i < sel.size() ; ++i)
+      to_select.insert(sel[i]->text().toStdString());
+    ui_->collision_objects_list->clear();
+    known_collision_objects_.clear();
+    
+    planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+    if (ps)
     {
-      QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(attached_bodies[i]->getName()),
-                                                  ui_->collision_objects_list, (int)(i + collision_object_names.size()));
-      item->setFlags(item->flags() | Qt::ItemIsEditable);
-      item->setToolTip(item->text());
-      item->setCheckState(Qt::Checked);
-      if (to_select.find(attached_bodies[i]->getName()) != to_select.end())
-        item->setSelected(true);
-      ui_->collision_objects_list->addItem(item);
-      known_collision_objects_.push_back(std::make_pair(attached_bodies[i]->getName(), true));
+      const collision_detection::CollisionWorldPtr &world = ps->getCollisionWorld();
+      const std::vector<std::string> &collision_object_names = world->getObjectIds();
+      for (std::size_t i = 0 ; i < collision_object_names.size() ; ++i)
+      {
+        QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(collision_object_names[i]),
+                                                    ui_->collision_objects_list, (int)i);
+        item->setFlags(item->flags() | Qt::ItemIsEditable);
+        item->setToolTip(item->text());
+        item->setCheckState(Qt::Unchecked);
+        if (to_select.find(collision_object_names[i]) != to_select.end())
+          item->setSelected(true);
+        ui_->collision_objects_list->addItem(item);
+        known_collision_objects_.push_back(std::make_pair(collision_object_names[i], false));
+      }
+      
+      const kinematic_state::KinematicState &cs = ps->getCurrentState();
+      std::vector<const kinematic_state::AttachedBody*> attached_bodies;
+      cs.getAttachedBodies(attached_bodies);
+      for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
+      {
+        QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(attached_bodies[i]->getName()),
+                                                    ui_->collision_objects_list, (int)(i + collision_object_names.size()));
+        item->setFlags(item->flags() | Qt::ItemIsEditable);
+        item->setToolTip(item->text());
+        item->setCheckState(Qt::Checked);
+        if (to_select.find(attached_bodies[i]->getName()) != to_select.end())
+          item->setSelected(true);
+        ui_->collision_objects_list->addItem(item);
+        known_collision_objects_.push_back(std::make_pair(attached_bodies[i]->getName(), true));
+      }
     }
   }
+  
+  ui_->collision_objects_list->blockSignals(oldState);
   ui_->collision_objects_list->setUpdatesEnabled(true);
+  selectedCollisionObjectChanged();
 }
 
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
@@ -259,13 +599,14 @@ void  MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMark
   ui_->object_x->setValue(feedback.pose.position.x);
   ui_->object_y->setValue(feedback.pose.position.y);
   ui_->object_z->setValue(feedback.pose.position.z);
-  tf::Quaternion q(feedback.pose.orientation.x, feedback.pose.orientation.y, feedback.pose.orientation.z, feedback.pose.orientation.w);
 
-  double yaw, pitch, roll;
-  tf::Matrix3x3(q).getEulerYPR(yaw,pitch,roll);
-  ui_->object_rx->setValue(roll);
-  ui_->object_ry->setValue(pitch);
-  ui_->object_rz->setValue(yaw);
+  Eigen::Quaterniond q;
+  tf::quaternionMsgToEigen(feedback.pose.orientation, q);
+  Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
+  
+  ui_->object_rx->setValue(xyz[0]);
+  ui_->object_ry->setValue(xyz[1]);
+  ui_->object_rz->setValue(xyz[2]);
 }
 
 void MotionPlanningFrame::createSceneInteractiveMarker(void)
@@ -274,8 +615,12 @@ void MotionPlanningFrame::createSceneInteractiveMarker(void)
   if (sel.empty())
     return;
 
-  collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
-  collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
+  const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+  if (!ps)
+    return;
+  
+  const collision_detection::CollisionWorldConstPtr &world = ps->getCollisionWorld();
+  const collision_detection::CollisionWorld::ObjectConstPtr &obj = world->getObject(sel[0]->text().toStdString());
   if (!scene_marker_ && obj && obj->shapes_.size() == 1)
   {
     Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
@@ -293,7 +638,6 @@ void MotionPlanningFrame::createSceneInteractiveMarker(void)
     int_marker.header.frame_id = context_->getFrameManager()->getFixedFrame();
     int_marker.description = sel[0]->text().toStdString();
 
-    // Store the interactive marker in a map, access through the name on the shape
     rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
     interactive_markers::autoComplete(int_marker);
     imarker->processMessage(int_marker);
@@ -301,14 +645,14 @@ void MotionPlanningFrame::createSceneInteractiveMarker(void)
     scene_marker_.reset(imarker);
 
     // Connect signals
-    connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+    connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this,
+             SLOT( imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
   }
 }
 
 void MotionPlanningFrame::importSceneButtonClicked(void)
 {
   std::string path = QFileDialog::getOpenFileName(this, "Import Scene").toStdString();
-  std::string name;
 
   if (!path.empty() && planning_display_->getPlanningSceneMonitor())
   {
@@ -317,14 +661,13 @@ void MotionPlanningFrame::importSceneButtonClicked(void)
     if (mesh)
     {
       std::size_t slash = path.find_last_of("/");
-      name = path.substr(slash + 1);
+      std::string name = path.substr(slash + 1);
       shapes::ShapeConstPtr shape(mesh);
       Eigen::Affine3d pose;
       pose.setIdentity();
-      collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
-
+      
       //If the object already exists, ask the user whether to overwrite or rename
-      if (world->hasObject(name))
+      if (planning_display_->getPlanningScene()->getCollisionWorld()->hasObject(name))
       {
         QMessageBox msgBox;
         msgBox.setText("There exists another object with the same name.");
@@ -332,13 +675,19 @@ void MotionPlanningFrame::importSceneButtonClicked(void)
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
         msgBox.setDefaultButton(QMessageBox::No);
         int ret = msgBox.exec();
-
+        
         switch (ret)
         {
           case QMessageBox::Yes:
             // Overwrite was clicked
-            world->removeObject(name);
-            addObject(world, name, shape, pose);
+            {
+              planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+              if (ps)
+              {
+                ps->getCollisionWorld()->removeObject(name);
+                addObject(ps->getCollisionWorld(), name, shape, pose);
+              }
+            }
             break;
           case QMessageBox::No:
           {
@@ -346,17 +695,22 @@ void MotionPlanningFrame::importSceneButtonClicked(void)
             bool ok;
             QString text = QInputDialog::getText(this, tr("Choose a new name"),
                                                  tr("New object name:"), QLineEdit::Normal,
-                                                 QString::fromStdString(name + "-" + boost::lexical_cast<std::string>(world->getObjectsCount())), &ok);
+                                                 QString::fromStdString(name + "-" + boost::lexical_cast<std::string>
+                                                                        (planning_display_->getPlanningScene()->getCollisionWorld()->getObjectsCount())), &ok);
             if (ok)
             {
               if (!text.isEmpty())
               {
                 name = text.toStdString();
-                if (world->hasObject(name))
-                  QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
-                                       append("' already exists. Not importing object."));
-                else
-                  addObject(world, name, shape, pose);
+                planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+                if (ps)
+                {
+                  if (ps->getCollisionWorld()->hasObject(name))
+                    QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
+                                         append("' already exists. Not importing object."));
+                  else
+                    addObject(ps->getCollisionWorld(), name, shape, pose);
+                }
               }
               else
                 QMessageBox::warning(this, "Object not imported", "Cannot use an empty name for an imported object");
@@ -370,7 +724,9 @@ void MotionPlanningFrame::importSceneButtonClicked(void)
       }
       else
       {
-        addObject(world, name, shape, pose);
+        planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+        if (ps)
+          addObject(ps->getCollisionWorld(), name, shape, pose);  
       }
     }
   }
@@ -380,12 +736,12 @@ void MotionPlanningFrame::addObject(const collision_detection::CollisionWorldPtr
                                     const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   world->addToObject(id, shape, pose);
-  populateCollisionObjectsList();
+  
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this)); 
 
   // Automatically select the inserted object so that its IM is displayed
-  if (ui_->collision_objects_list->findItems(QString(id.c_str()), Qt::MatchExactly).size()>0)
-    ui_->collision_objects_list->setItemSelected(ui_->collision_objects_list->findItems(QString(id.c_str()), Qt::MatchExactly)[0], true);
-
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::setItemSelectionInList, this, id, true, ui_->collision_objects_list));
+  
   planning_display_->queueRenderSceneGeometry();
 }
 
@@ -394,16 +750,17 @@ void MotionPlanningFrame::removeObjectButtonClicked(void)
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
     return;
-  if (planning_display_->getPlanningSceneMonitor())
+  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+  if (ps)
   {    
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
+    collision_detection::CollisionWorldPtr world = ps->getCollisionWorld();
     for (int i = 0 ; i < sel.count() ; ++i)
       if (sel[i]->checkState() == Qt::Unchecked)
         world->removeObject(sel[i]->text().toStdString());
       else
-        planning_display_->getPlanningScene()->getCurrentState().clearAttachedBody(sel[i]->text().toStdString());
+        ps->getCurrentState().clearAttachedBody(sel[i]->text().toStdString());
     scene_marker_.reset();
-    populateCollisionObjectsList();
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry(); 
   }
 } 
@@ -415,7 +772,7 @@ void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int co
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
   if (!planning_scene_storage)
     return;
-  
+
   if (item->type() == ITEM_TYPE_SCENE)
   {
     std::string new_name = item->text(column).toStdString();
@@ -461,20 +818,20 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
     item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
     return;
   }
-  
+
   if (item->checkState() == Qt::Unchecked)
   {
     // rename collision object
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
-    
-    if (world->hasObject(item->text().toStdString()))
+    if (planning_display_->getPlanningScene()->getCollisionWorld()->hasObject(item->text().toStdString()))
     {
       QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
                            append("' already exists. Not renaming object ").append((known_collision_objects_[item->type()].first.c_str())));
       item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
       return;
     }
-    
+
+    planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+    const collision_detection::CollisionWorldPtr &world = ps->getCollisionWorld();
     collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(known_collision_objects_[item->type()].first);
     if (obj)
     {
@@ -484,23 +841,24 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
       if (scene_marker_)
       {
         scene_marker_.reset();
-        createSceneInteractiveMarker();
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::createSceneInteractiveMarker, this));
       }
     }
   }
   else
   {
     // rename attached body
-    kinematic_state::KinematicState &cs = planning_display_->getPlanningScene()->getCurrentState();
-    
-    if (cs.hasAttachedBody(item->text().toStdString()))
+
+    if (planning_display_->getPlanningScene()->getCurrentState().hasAttachedBody(item->text().toStdString()))
     { 
       QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
                            append("' already exists. Not renaming object ").append((known_collision_objects_[item->type()].first.c_str())));
       item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
       return;
     }
-    
+
+    planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+    kinematic_state::KinematicState &cs = ps->getCurrentState();
     const kinematic_state::AttachedBody *ab = cs.getAttachedBody(known_collision_objects_[item->type()].first);
     if (ab)
     {
@@ -520,7 +878,7 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
 {
   bool checked = item->checkState() == Qt::Checked;
   moveit_msgs::AttachedCollisionObject aco;
-  
+
   if (checked) // we need to attach a known collision object
   {
     QStringList links;
@@ -541,7 +899,8 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
   }
   else // we need to detach an attached object
   { 
-    const kinematic_state::AttachedBody *attached_body = planning_display_->getPlanningScene()->getCurrentState().getAttachedBody(known_collision_objects_[item->type()].first);
+    const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+    const kinematic_state::AttachedBody *attached_body = ps->getCurrentState().getAttachedBody(known_collision_objects_[item->type()].first);
     if (attached_body)
     {
       aco.link_name = attached_body->getAttachedLinkName();
@@ -549,9 +908,12 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
       aco.object.operation = moveit_msgs::CollisionObject::REMOVE;
     }
   }
+  {
+    planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+    known_collision_objects_[item->type()].second = checked;
+    ps->processAttachedCollisionObjectMsg(aco);
+  }
   
-  known_collision_objects_[item->type()].second = checked;
-  planning_display_->getPlanningScene()->processAttachedCollisionObjectMsg(aco);
   selectedCollisionObjectChanged();
   planning_display_->queueRenderSceneGeometry(); 
 }
@@ -584,30 +946,30 @@ static QString decideStatusText(const collision_detection::CollisionWorld::Objec
     for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
       switch (obj->shapes_[i]->type)
       {
-      case shapes::SPHERE:
-        shape_names.push_back("sphere");
-        break;     
-      case shapes::CYLINDER:
-        shape_names.push_back("cylinder");
-        break;
-      case shapes::CONE:
-        shape_names.push_back("cone");
-        break;
-      case shapes::BOX:
-        shape_names.push_back("box");
-        break;
-      case shapes::PLANE:
-        shape_names.push_back("plane");
-        break;
-      case shapes::MESH:
-        shape_names.push_back("mesh");
-        break;
-      case shapes::OCTREE:
-        shape_names.push_back("octree");
-        break;
-      default: 
-        shape_names.push_back("unknown");
-        break;
+        case shapes::SPHERE:
+          shape_names.push_back("sphere");
+          break;     
+        case shapes::CYLINDER:
+          shape_names.push_back("cylinder");
+          break;
+        case shapes::CONE:
+          shape_names.push_back("cone");
+          break;
+        case shapes::BOX:
+          shape_names.push_back("box");
+          break;
+        case shapes::PLANE:
+          shape_names.push_back("plane");
+          break;
+        case shapes::MESH:
+          shape_names.push_back("mesh");
+          break;
+        case shapes::OCTREE:
+          shape_names.push_back("octree");
+          break;
+        default: 
+          shape_names.push_back("unknown");
+          break;
       }
     if (shape_names.size() == 1)
       status_text += "one " + shape_names[0];
@@ -624,7 +986,7 @@ static QString decideStatusText(const collision_detection::CollisionWorld::Objec
 static QString decideStatusText(const kinematic_state::AttachedBody *attached_body) 
 {
   QString status_text = "'" + QString::fromStdString(attached_body->getName()) + "' is attached to '" +
-    QString::fromStdString(attached_body->getAttachedLinkName()) + "'";
+      QString::fromStdString(attached_body->getAttachedLinkName()) + "'";
   return status_text;
 }
 
@@ -632,13 +994,31 @@ void MotionPlanningFrame::selectedCollisionObjectChanged(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
-  {
+  {    
+    bool oldState = ui_->object_x->blockSignals(true);
     ui_->object_x->setValue(0.0);
+    ui_->object_x->blockSignals(oldState);
+
+    oldState = ui_->object_y->blockSignals(true);
     ui_->object_y->setValue(0.0);
+    ui_->object_y->blockSignals(oldState);
+
+    oldState = ui_->object_z->blockSignals(true);
     ui_->object_z->setValue(0.0);
+    ui_->object_z->blockSignals(oldState);
+
+    oldState = ui_->object_rx->blockSignals(true);
     ui_->object_rx->setValue(0.0);
+    ui_->object_rx->blockSignals(oldState);
+
+    oldState = ui_->object_ry->blockSignals(true);
     ui_->object_ry->setValue(0.0);
+    ui_->object_ry->blockSignals(oldState);
+
+    oldState = ui_->object_rz->blockSignals(true);
     ui_->object_rz->setValue(0.0);
+    ui_->object_rz->blockSignals(oldState);
+    
     ui_->object_status->setText("");
     scene_marker_.reset();
     ui_->scene_scale->setEnabled(false);
@@ -648,45 +1028,72 @@ void MotionPlanningFrame::selectedCollisionObjectChanged(void)
     {
       // if this is a CollisionWorld element
       if (sel[0]->checkState() == Qt::Unchecked)
-      {     
+      {
         ui_->scene_scale->setEnabled(true);
-        collision_detection::CollisionWorldConstPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
-        collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString()); 
-        if (obj)
-        {
-          ui_->object_status->setText(decideStatusText(obj));
-          
-          if (obj->shapes_.size() == 1)
+        bool update_scene_marker = false;
+        Eigen::Affine3d obj_pose;
+        {  
+          const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+          const collision_detection::CollisionWorldConstPtr &world = ps->getCollisionWorld();
+          const collision_detection::CollisionWorld::ObjectConstPtr &obj = world->getObject(sel[0]->text().toStdString()); 
+          if (obj)
           {
-            ui_->object_x->setValue(obj->shape_poses_[0].translation()[0]);
-            ui_->object_y->setValue(obj->shape_poses_[0].translation()[1]);
-            ui_->object_z->setValue(obj->shape_poses_[0].translation()[2]);
-            Eigen::Vector3d xyz = obj->shape_poses_[0].rotation().eulerAngles(0, 1, 2);
-            ui_->object_rx->setValue(xyz[0]);
-            ui_->object_ry->setValue(xyz[1]);
-            ui_->object_rz->setValue(xyz[2]);
+            ui_->object_status->setText(decideStatusText(obj));
             
-            if (!scene_marker_)
-              createSceneInteractiveMarker();
-            if (scene_marker_)
+            if (obj->shapes_.size() == 1)
             {
-              Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
-              // Update the IM pose to match the current selected object
-              scene_marker_->setPose(Ogre::Vector3(obj->shape_poses_[0].translation()[0], obj->shape_poses_[0].translation()[1], obj->shape_poses_[0].translation()[2]),
-                                     Ogre::Quaternion(eq.w(), eq.x(), eq.y(), eq.z()), "");
+              obj_pose = obj->shape_poses_[0];
+              Eigen::Vector3d xyz = obj_pose.rotation().eulerAngles(0, 1, 2);
+              update_scene_marker = true; // do the marker update to avoid deadlock
+              
+              bool oldState = ui_->object_x->blockSignals(true);
+              ui_->object_x->setValue(obj_pose.translation()[0]);
+              ui_->object_x->blockSignals(oldState);
+
+              oldState = ui_->object_y->blockSignals(true);
+              ui_->object_y->setValue(obj_pose.translation()[1]);
+              ui_->object_y->blockSignals(oldState);
+
+              oldState = ui_->object_z->blockSignals(true);
+              ui_->object_z->setValue(obj_pose.translation()[2]);
+              ui_->object_z->blockSignals(oldState);
+              
+              oldState = ui_->object_rx->blockSignals(true);
+              ui_->object_rx->setValue(xyz[0]);
+              ui_->object_rx->blockSignals(oldState);
+
+              oldState = ui_->object_ry->blockSignals(true);
+              ui_->object_ry->setValue(xyz[1]);
+              ui_->object_ry->blockSignals(oldState);
+              
+              oldState = ui_->object_rz->blockSignals(true);
+              ui_->object_rz->setValue(xyz[2]);
+              ui_->object_rz->blockSignals(oldState);
             }
           }
+          else
+            ui_->object_status->setText("ERROR: '" + sel[0]->text() + "' should be a collision object but it is not");
         }
-        else
-          ui_->object_status->setText("ERROR: '" + sel[0]->text() + "' should be a collision object but it is not");
+        if (update_scene_marker)
+        {              
+          if (!scene_marker_)
+            createSceneInteractiveMarker();
+          if (scene_marker_)
+          {
+            Eigen::Quaterniond eq(obj_pose.rotation());
+            // Update the IM pose to match the current selected object
+            scene_marker_->setPose(Ogre::Vector3(obj_pose.translation()[0], obj_pose.translation()[1], obj_pose.translation()[2]),
+                                   Ogre::Quaternion(eq.w(), eq.x(), eq.y(), eq.z()), "");
+          }
+        }
       }
       else
-      {  
+      {        
         ui_->scene_scale->setEnabled(false);
-
         // if it is an attached object
         scene_marker_.reset();
-        const kinematic_state::AttachedBody *attached_body = planning_display_->getPlanningScene()->getCurrentState().getAttachedBody(sel[0]->text().toStdString());
+        const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+        const kinematic_state::AttachedBody *attached_body = ps->getCurrentState().getAttachedBody(sel[0]->text().toStdString());
         if (attached_body)
           ui_->object_status->setText(decideStatusText(attached_body));
         else
@@ -697,12 +1104,13 @@ void MotionPlanningFrame::selectedCollisionObjectChanged(void)
 
 void MotionPlanningFrame::clearSceneButtonClicked(void)
 {    
-  if (planning_display_->getPlanningSceneMonitor())
+  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+  if (ps)
   {
-    planning_display_->getPlanningScene()->getCollisionWorld()->clearObjects();
-    planning_display_->getPlanningScene()->getCurrentState().clearAttachedBodies();
-    populateCollisionObjectsList();
-    planning_display_->queueRenderSceneGeometry(); 
+    ps->getCollisionWorld()->clearObjects();
+    ps->getCurrentState().clearAttachedBodies();
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
+    planning_display_->queueRenderSceneGeometry();
   }
 }
 
@@ -711,9 +1119,10 @@ void MotionPlanningFrame::objectPoseValueChanged(double value)
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
     return;
-  if (planning_display_->getPlanningSceneMonitor())
+  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+  if (ps)
   {
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
+    const collision_detection::CollisionWorldPtr &world = ps->getCollisionWorld();
     collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
     if (obj && obj->shapes_.size() == 1)
     {
@@ -748,8 +1157,12 @@ void MotionPlanningFrame::sceneScaleStartChange(void)
     return;
   if (planning_display_->getPlanningSceneMonitor() && sel[0]->checkState() == Qt::Unchecked)
   {
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
-    scaled_object_ = world->getObject(sel[0]->text().toStdString());
+    planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+    if (ps)
+    {
+      const collision_detection::CollisionWorldPtr &world = ps->getCollisionWorld();
+      scaled_object_ = world->getObject(sel[0]->text().toStdString());
+    }
   }
 }
 
@@ -761,19 +1174,25 @@ void MotionPlanningFrame::sceneScaleEndChange(void)
 
 void MotionPlanningFrame::sceneScaleChanged(int value)
 {
-  if (scaled_object_ && planning_display_->getPlanningSceneMonitor())
+  if (scaled_object_)
   {
-    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningScene()->getCollisionWorld();
-    if (world->hasObject(scaled_object_->id_))
+    planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+    if (ps)
     {
-      world->removeObject(scaled_object_->id_);
-      for (std::size_t i = 0 ; i < scaled_object_->shapes_.size() ; ++i)
+      collision_detection::CollisionWorldPtr world = ps->getCollisionWorld();
+      if (world->hasObject(scaled_object_->id_))
       {
-        shapes::Shape *s = scaled_object_->shapes_[i]->clone();
-        s->scale((double)value / 100.0);
-        world->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s), scaled_object_->shape_poses_[i]);
+        world->removeObject(scaled_object_->id_);
+        for (std::size_t i = 0 ; i < scaled_object_->shapes_.size() ; ++i)
+        {
+          shapes::Shape *s = scaled_object_->shapes_[i]->clone();
+          s->scale((double)value / 100.0);
+          world->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s), scaled_object_->shape_poses_[i]);
+        }
+        planning_display_->queueRenderSceneGeometry(); 
       }
-      planning_display_->queueRenderSceneGeometry(); 
+      else
+        scaled_object_.reset();
     }
     else
       scaled_object_.reset();
@@ -808,7 +1227,7 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
   // set the label for the planning library
   ui_->library_label->setText(QString::fromStdString(desc.name));
   ui_->library_label->setStyleSheet("QLabel { color : green; font: bold }");
-  
+
   bool found_group = false;
   // the name of a planner is either "GROUP[planner_id]" or "planner_id"
   if (!group.empty())
@@ -840,7 +1259,7 @@ void MotionPlanningFrame::enable(void)
   ui_->object_status->setText("");
 
   changePlanningGroup();
-  
+
   // activate the frame
   show();
 }
@@ -990,7 +1409,7 @@ void MotionPlanningFrame::saveSceneButtonClicked(void)
         return;
       }
     }
-    
+
     planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveSceneButtonClicked, this));
   }
 }
@@ -1013,7 +1432,7 @@ void MotionPlanningFrame::saveQueryButtonClicked(void)
     if (!sel.empty())
     {
       QTreeWidgetItem *s = sel.front();
-      
+
       // if we have selected a PlanningScene, add the query as a new one, under that planning scene
       if (s->type() == ITEM_TYPE_SCENE)
       {
@@ -1025,7 +1444,7 @@ void MotionPlanningFrame::saveQueryButtonClicked(void)
         // if we selected a query name, then we overwrite that query
         std::string scene = s->parent()->text(0).toStdString();
         std::string query_name = s->text(0).toStdString();
-        
+
         while (query_name.empty() || planning_scene_storage_->hasPlanningQuery(scene, query_name))
         {
           boost::scoped_ptr<QMessageBox> q;
@@ -1088,9 +1507,9 @@ void MotionPlanningFrame::checkPlanningSceneTreeEnabledButtons(void)
   else
   {
     ui_->save_query_button->setEnabled(true);
-    
+
     QTreeWidgetItem *s = sel.front();
-    
+
     // if the item is a PlanningScene
     if (s->type() == ITEM_TYPE_SCENE)
     {
@@ -1135,6 +1554,12 @@ void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
     scene_marker_->update(wall_dt);
 }
 
+void MotionPlanningFrame::updateGoalPoseMarkers(float wall_dt, float ros_dt)
+{
+  for (goal_pose_map_t::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
+    it->second.imarker->update(wall_dt);
+}
+
 void MotionPlanningFrame::computePlanButtonClicked(void)
 {
   if (!move_group_)
@@ -1164,20 +1589,22 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked(void)
 
 void MotionPlanningFrame::computeSetStartToCurrentButtonClicked(void)
 {  
-  if (!move_group_)
-    return;
-  kinematic_state::KinematicStatePtr s = move_group_->getCurrentState();
-  if (s)
-    planning_display_->setQueryStartState(s);
+  const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+  if (ps)
+  {
+    const kinematic_state::KinematicState &s = ps->getCurrentState();
+    planning_display_->setQueryStartState(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(s)));
+  }
 }
 
 void MotionPlanningFrame::computeSetGoalToCurrentButtonClicked(void)
 { 
-  if (!move_group_)
-    return;
-  kinematic_state::KinematicStatePtr s = move_group_->getCurrentState();
-  if (s)
-    planning_display_->setQueryGoalState(s);
+  const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+  if (ps)
+  {
+    const kinematic_state::KinematicState &s = ps->getCurrentState();
+    planning_display_->setQueryGoalState(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(s)));
+  }
 }
 
 void MotionPlanningFrame::computeRandomStatesButtonClicked(void)
@@ -1208,7 +1635,7 @@ void MotionPlanningFrame::populatePlanningSceneTreeView(void)
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
   if (!planning_scene_storage)
     return;
-  
+
   ui_->planning_scene_tree->setUpdatesEnabled(false);
 
   // remember which items were expanded
@@ -1219,11 +1646,11 @@ void MotionPlanningFrame::populatePlanningSceneTreeView(void)
     if (it->isExpanded())
       expanded.insert(it->text(0).toStdString());
   }
-  
+
   ui_->planning_scene_tree->clear();
   std::vector<std::string> names;
   planning_scene_storage->getPlanningSceneNames(names);
-  
+
   for (std::size_t i = 0; i < names.size(); ++i)
   {
     std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
@@ -1239,7 +1666,7 @@ void MotionPlanningFrame::populatePlanningSceneTreeView(void)
       subitem->setToolTip(0, subitem->text(0));
       item->addChild(subitem);
     }
-    
+
     ui_->planning_scene_tree->insertTopLevelItem(ui_->planning_scene_tree->topLevelItemCount(), item);
     if (expanded.find(names[i]) != expanded.end())
       ui_->planning_scene_tree->expandItem(item);
@@ -1256,12 +1683,12 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
     ui_->planning_scene_tree->setUpdatesEnabled(false); 
     ui_->planning_scene_tree->clear();
     ui_->planning_scene_tree->setUpdatesEnabled(true); 
-    
+
     ui_->database_connect_button->setUpdatesEnabled(false); 
     ui_->database_connect_button->setText(QString::fromStdString("Connect")); 
     ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
     ui_->database_connect_button->setUpdatesEnabled(true); 
-    
+
     ui_->load_scene_button->setEnabled(false);
     ui_->load_query_button->setEnabled(false);
     ui_->save_query_button->setEnabled(false);
@@ -1270,30 +1697,30 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
     ui_->delete_scene_button->setEnabled(false);
   }
   else  
-  if (mode == 2)
-  {   
-    ui_->database_connect_button->setUpdatesEnabled(false); 
-    ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
-    ui_->database_connect_button->setUpdatesEnabled(true); 
-  }
-  else  
-  if (mode == 3)
-  {   
-    ui_->database_connect_button->setUpdatesEnabled(false); 
-    ui_->database_connect_button->setText(QString::fromStdString("Connect"));   
-    ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
-    ui_->database_connect_button->setUpdatesEnabled(true); 
-  }
-  else
-  if (mode == 4)
-  {
-    ui_->database_connect_button->setUpdatesEnabled(false); 
-    ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
-    ui_->database_connect_button->setStyleSheet("QPushButton { color : red }");
-    ui_->database_connect_button->setUpdatesEnabled(true); 
-    ui_->save_scene_button->setEnabled(true);
-    populatePlanningSceneTreeView();
-  }
+    if (mode == 2)
+    {   
+      ui_->database_connect_button->setUpdatesEnabled(false); 
+      ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
+      ui_->database_connect_button->setUpdatesEnabled(true); 
+    }
+    else  
+      if (mode == 3)
+      {   
+        ui_->database_connect_button->setUpdatesEnabled(false); 
+        ui_->database_connect_button->setText(QString::fromStdString("Connect"));   
+        ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
+        ui_->database_connect_button->setUpdatesEnabled(true); 
+      }
+      else
+        if (mode == 4)
+        {
+          ui_->database_connect_button->setUpdatesEnabled(false); 
+          ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
+          ui_->database_connect_button->setStyleSheet("QPushButton { color : red }");
+          ui_->database_connect_button->setUpdatesEnabled(true); 
+          ui_->save_scene_button->setEnabled(true);
+          populatePlanningSceneTreeView();
+        }
 }
 
 void MotionPlanningFrame::computeDatabaseConnectButtonClicked(void)
@@ -1301,6 +1728,8 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClicked(void)
   if (planning_scene_storage_)
   {
     planning_scene_storage_.reset();
+    robot_state_storage_.reset();
+    constraints_storage_.reset();
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 1));
   }
   else
@@ -1310,6 +1739,10 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClicked(void)
     {
       planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(ui_->database_host->text().toStdString(),
                                                                                ui_->database_port->value(), 5.0));
+      robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(ui_->database_host->text().toStdString(),
+                                                                         ui_->database_port->value(), 5.0));
+      constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(ui_->database_host->text().toStdString(),
+                                                                          ui_->database_port->value(), 5.0));
     }
     catch(std::runtime_error &ex)
     { 
@@ -1348,10 +1781,10 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
         moveit_warehouse::PlanningSceneWithMetadata scene_m;
         if (planning_scene_storage_->getPlanningScene(scene_m, scene))
         {
-          ROS_DEBUG("Loaded scene '%s'", scene.c_str());
+          ROS_INFO("Loaded scene '%s'", scene.c_str());
           if (planning_display_->getPlanningSceneMonitor())
           {
-            if (scene_m->robot_model_name != planning_display_->getPlanningSceneMonitor()->getKinematicModel()->getName())
+            if (scene_m->robot_model_name != planning_display_->getKinematicModel()->getName())
             {
               ROS_INFO("Scene '%s' was saved for robot '%s' but we are using robot '%s'. Using scene geometry only",
                        scene.c_str(), scene_m->robot_model_name.c_str(),
@@ -1389,7 +1822,7 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked(void)
           kinematic_state::KinematicStatePtr start_state(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
           kinematic_state::robotStateToKinematicState(*planning_display_->getPlanningScene()->getTransforms(), mp->start_state, *start_state);
           planning_display_->setQueryStartState(start_state);
-          
+
           kinematic_state::KinematicStatePtr goal_state(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
           for (std::size_t i = 0 ; i < mp->goal_constraints.size() ; ++i)
             if (mp->goal_constraints[i].joint_constraints.size() > 0)

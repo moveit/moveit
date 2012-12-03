@@ -172,7 +172,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   last_state_update_ = ros::WallTime::now();
   dt_state_update_ = 0.1;
 
-  reconfigure_impl_ = new DynamicReconfigureImpl(this);
+  reconfigure_impl_ = new DynamicReconfigureImpl(this); 
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
@@ -187,6 +187,7 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
         scene_->decoupleParent();
         parent_scene_ = scene_;
         scene_ = parent_scene_->diff();
+        scene_const_ = scene_;
       }
     }
     else
@@ -275,7 +276,7 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
           if (publish_update_types_ & new_scene_update_)
           {
             rate.reset();
-            scene_->getPlanningSceneDiffMsg(msg);  
+            scene_->getPlanningSceneDiffMsg(msg);
             scene_->pushDiffs(parent_scene_);
             scene_->clearDiffs();
             have_diff = true;
@@ -343,6 +344,15 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
       boost::mutex::scoped_lock slock(scene_update_mutex_);  
       last_update_time_ = ros::Time::now();
       scene_->usePlanningSceneMsg(*scene);
+
+      // if we just reset the scene completely but we were maintaining diffs, we need to fix that
+      if (!scene->is_diff && parent_scene_)
+      {
+        // the scene is now decoupled from the parent, since we just reset it
+        parent_scene_ = scene_;
+        scene_ = parent_scene_->diff();
+        scene_const_ = scene_;
+      }
     }
     processSceneUpdateEvent(UPDATE_SCENE);
   }

@@ -75,7 +75,7 @@ public:
   void renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
                            const rviz::Color &default_scene_color,
                            const rviz::Color &default_attached_color,
-                           float scene_alpha, float robot_alpha);
+                           float default_scene_alpha);
   void clear(void);
   
 private:

@@ -38,14 +38,20 @@ namespace moveit_rviz_plugin
 
 KinematicStateVisualization::KinematicStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
                                                          const std::string& name, rviz::Property* parent_property) :
-  robot_(root_node, context, name, parent_property)
+  robot_(root_node, context, name, parent_property),
+  visible_(true),
+  visual_visible_(true),
+  collision_visible_(false)
 {
   render_shapes_.reset(new RenderShapes(context));
 }
 
 void KinematicStateVisualization::load(const urdf::ModelInterface &descr, bool visual, bool collision)
 {
-  robot_.load(descr, visual, collision);
+  robot_.load(descr, visual, collision); 
+  robot_.setVisualVisible(visual_visible_);
+  robot_.setCollisionVisible(collision_visible_);
+  robot_.setVisible(visible_);
 }
 
 void KinematicStateVisualization::clear()
@@ -104,24 +110,30 @@ void KinematicStateVisualization::updateHelper(const kinematic_state::KinematicS
       render_shapes_->renderShape(robot_.getCollisionNode(), ab_shapes[j].get(), ab_t[j], rcolor, robot_.getAlpha());
     }
   }
+  robot_.setVisualVisible(visual_visible_);
+  robot_.setCollisionVisible(collision_visible_);
+  robot_.setVisible(visible_);
 }
 
-void KinematicStateVisualization::setVisible( bool visible )
+void KinematicStateVisualization::setVisible(bool visible)
 {
+  visible_ = visible;
   robot_.setVisible(visible);
 }
 
-void KinematicStateVisualization::setVisualVisible( bool visible )
+void KinematicStateVisualization::setVisualVisible(bool visible)
 {
+  visual_visible_ = visible;
   robot_.setVisualVisible(visible);
 }
 
-void KinematicStateVisualization::setCollisionVisible( bool visible )
+void KinematicStateVisualization::setCollisionVisible(bool visible)
 {  
+  collision_visible_ = visible;
   robot_.setCollisionVisible(visible);
 }
 
-void KinematicStateVisualization::setAlpha( float alpha )
+void KinematicStateVisualization::setAlpha(float alpha)
 {
   robot_.setAlpha(alpha);
 }
