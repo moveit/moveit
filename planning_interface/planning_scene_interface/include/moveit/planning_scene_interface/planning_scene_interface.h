@@ -61,26 +61,47 @@ public:
   PlanningSceneInterface();
 
 
-  void addSimpleObjectToPlanningScene(std::string id, std::string frame_id, int type, double pos_x,
-                                      double pos_y, double pos_z, double or_x, double or_y, double or_z,
-                                      double or_w, std::vector<double> dimensions);
+  void addSimpleObjectToPlanningScene(std::string id, std::string frame_id, int type, std::vector<double> position,
+                                      std::vector<double> orientation, std::vector<double> dimensions);
 
-  void addSimpleObjectToPlanningScenePython(std::string id, std::string frame_id, int type, double pos_x,
-                                            double pos_y, double pos_z, double or_x, double or_y, double or_z,
-                                            double or_w, bp::list &values);
+  void addSimpleObjectToPlanningScenePython(std::string id, std::string frame_id, int type,
+                                            bp::list &position, bp::list &orientation, bp::list &dimensions);
 
   void removeSimpleObjectFromPlanningScene(std::string id, std::string frame_id);
   
   void attachSimpleCollisionObject(std::string id, std::string frame_id, int type, std::string link_name,
-                                   std::vector<std::string> touch_links, double pos_x, double pos_y,
-                                   double pos_z, double or_x, double or_y, double or_z, double or_w,
-                                   std::vector<double> dimensions);
+                                   std::vector<std::string> touch_links, std::vector<double> position,
+                                   std::vector<double> orientation, std::vector<double> dimensions);
 
   void attachSimpleCollisionObjectPython(std::string id, std::string frame_id, int type, std::string link_name,
-                                         bp::list &touch_links, double pos_x, double pos_y, double pos_z,
-                                         double or_x, double or_y, double or_z, double or_w, bp::list &values);
+                                         bp::list &touch_links, bp::list &position,
+                                         bp::list &orientation, bp::list &dimensions);
 
   void removeSimpleAttachedObject(std::string id, std::string frame_id, std::string link_name);
+
+  void addSphere(std::string id, std::string frame_id, bp::list &position,
+                 bp::list &orientation, double radius);
+
+  void addCylinder(std::string id, std::string frame_id, bp::list &position,
+                   bp::list &orientation, double height, double radius);
+
+  void addBox(std::string id, std::string frame_id, bp::list &position, 
+              bp::list &orientation, double length, double width, double height);
+
+  void addCone(std::string id, std::string frame_id, bp::list &position,
+               bp::list &orientation, double height, double radius);
+
+  void attachSphere(std::string id, std::string frame_id, std::string link_name,
+                    bp::list &touch_links, bp::list &position, bp::list &orientation, double radius);
+  
+  void attachCylinder(std::string id, std::string frame_id, std::string link_name,
+                      bp::list &touch_links, bp::list &position, bp::list &orientation, double height, double radius);
+
+  void attachBox(std::string id, std::string frame_id, std::string link_name,
+                 bp::list &touch_links, bp::list &position, bp::list &orientation, double length, double width, double height);
+
+  void attachCone(std::string id, std::string frame_id, std::string link_name,
+                  bp::list &touch_links, bp::list &position, bp::list &orientation, double height, double radius);
 
 private:
 
