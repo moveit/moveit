@@ -65,12 +65,13 @@ public:
    * @param group_name The name of the group to compute stuff for
    * @return False if initialization failed
    */
-  bool initialize(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,                    
-                  const boost::shared_ptr<const srdf::Model> &srdf_model,
-                  const std::string &group_name);
+  bool initialize(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+                  const std::string &group_name,
+                  const geometry_msgs::Vector3 &gravity_vector);
       
   /**
-   * @brief Get the torques
+   * @brief Get the torques (the order of all input and output is the same 
+   * as the order of joints for this group in the KinematicModel)
    * @param joint_angles The joint angles (desired joint configuration)
    * this must have size = number of joints in the group
    * @param joint_velocities The desired joint velocities
@@ -92,7 +93,8 @@ public:
   /**
    * @brief Get the maximum payload for this group (in kg). Payload is 
    * the weight that this group can hold when the weight is attached to the origin
-   * of the last link of this group
+   * of the last link of this group. (The order of joint_angles vector is the same 
+   * as the order of joints for this group in the KinematicModel)
    * @param joint_angles The joint angles (desired joint configuration)
    * this must have size = number of joints in the group
    * @param payload The computed maximum payload
@@ -109,39 +111,54 @@ public:
    * of the last link of this group.
    * @param joint_angles The joint angles (desired joint configuration)
    * this must have size = number of joints in the group
-   * @param payload The computed maximum payload
+   * @param payload The payload for which to compute torques (in kg)
    * @param joint_torques The resulting joint torques
    * @return False if the input vectors are of the wrong size
    */
   bool getPayloadTorques(const std::vector<double> &joint_angles,
-                         double &payload,
+                         double payload,
                          std::vector<double> &joint_torques) const;
 
   /**
    * @brief Get maximum torques for this group
-   * @return False vector of max torques
+   * @return Vector of max torques
    */
   const std::vector<double>& getMaxTorques() const;  
     
+  /**
+   * @brief Get the kinematic model
+   * @return kinematic model
+   */
+  const kinematic_model::KinematicModelConstPtr getKinematicModel()
+  {
+    return kinematic_model_;
+  }  
+
+  /**
+   * @brief Get the group name
+   * @return group name
+   */
+  const std::string getGroupName()
+  {
+    return group_name_;
+  }  
+
 private:
 
   boost::shared_ptr<KDL::ChainIdSolver_RNE> chain_id_solver_; // KDL chain inverse dynamics
   KDL::Chain kdl_chain_; // KDL chain
-  boost::shared_ptr<const urdf::ModelInterface> urdf_model_; // URDF model
-  boost::shared_ptr<const srdf::Model> srdf_model_; // SRDF model
 
   std::string group_name_, base_name_, tip_name_; // group name, base name, tip name 
   unsigned int num_joints_, num_segments_; // number of joints in group, number of segments in group
   std::vector<double> max_torques_; // vector of max torques
 
-  kinematic_model::KinematicModelPtr kinematic_model_; // kinematic model
+  kinematic_model::KinematicModelConstPtr kinematic_model_; // kinematic model
   const kinematic_model::JointModelGroup* joint_model_group_; //joint model group
-
-  geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform, 
-                                         const geometry_msgs::Vector3 &vector) const; //local transform function
 
   kinematic_state::KinematicStatePtr kinematic_state_; //kinematic state
   kinematic_state::JointStateGroup* joint_state_group_; //joint state for the group
+  
+  double gravity_; //Norm of the gravity vector passed in initialize()
   
 };
 

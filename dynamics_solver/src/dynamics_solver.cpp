@@ -48,18 +48,31 @@
 namespace dynamics_solver
 {
 
+inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform, 
+                                              const geometry_msgs::Vector3 &vector) 
+{
+  Eigen::Vector3d p;
+  p = Eigen::Vector3d(vector.x, vector.y, vector.z);
+  p = transform.rotation()*p;  
+
+  geometry_msgs::Vector3 result;
+  result.x = p.x();
+  result.y = p.y();
+  result.z = p.z();  
+  
+  return result;  
+}
+
 DynamicsSolver::DynamicsSolver(void)
 {
 }
 
-bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                const std::string &group_name)
+bool DynamicsSolver::initialize(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+                                const std::string &group_name,
+                                const geometry_msgs::Vector3 &gravity_vector)
 {
-  urdf_model_ = urdf_model;
-  srdf_model_ = srdf_model;
   group_name_ = group_name;
-  kinematic_model_.reset(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
+  kinematic_model_ = kinematic_model;  
   if (!kinematic_model_->hasJointModelGroup(group_name))
   {
     logError("Did not find the group %s in robot model", group_name.c_str());
@@ -71,12 +84,24 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::ModelInterfa
     logError("Group %s is not a chain. Will not initialize dynamics solver", group_name_.c_str());
     return false;    
   }
-  base_name_ = joint_model_group_->getLinkModels().front()->getParentJointModel()->getParentLinkModel()->getName();
+
+  const kinematic_model::JointModel* joint = joint_model_group_->getJointRoots()[0];  
+  if(!joint->getParentLinkModel())
+  {
+    logError("Group %s does not have a parent link",group_name_.c_str());    
+    return false;    
+  }
+  else
+    base_name_ = joint->getParentLinkModel()->getName();  
+  
   tip_name_ = joint_model_group_->getLinkModelNames().back();
   logDebug("Base name: %s, Tip name: %s", base_name_.c_str(), tip_name_.c_str());
   
+  const boost::shared_ptr<const urdf::ModelInterface> urdf_model = kinematic_model_->getURDF();  
+  const boost::shared_ptr<const srdf::Model> srdf_model = kinematic_model_->getSRDF();  
   KDL::Tree tree;
-  if (!kdl_parser::treeFromUrdfModel(*urdf_model_, tree)) 
+
+  if (!kdl_parser::treeFromUrdfModel(*urdf_model, tree)) 
   {
     logError("Could not initialize tree object");
     return false;    
@@ -95,14 +120,17 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::ModelInterfa
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();
   for(unsigned int i=0; i < joint_model_names.size(); ++i)
   {
-    const urdf::Joint* ujoint = urdf_model_->getJoint(joint_model_names[i]).get();
+    const urdf::Joint* ujoint = urdf_model->getJoint(joint_model_names[i]).get();
     if (ujoint->limits)
       max_torques_.push_back(ujoint->limits->effort);
     else
       max_torques_.push_back(0.0);
   }
   
-  KDL::Vector gravity(0.0, 0.0, 9.81);//Not sure if KDL expects the negative of this
+  KDL::Vector gravity(gravity_vector.x,gravity_vector.y,gravity_vector.z);//Not sure if KDL expects the negative of this
+  gravity_ = gravity.Norm();
+  logError("Gravity norm set to %f",gravity_);
+  
   chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_, gravity));
   return true;
 }
@@ -223,13 +251,13 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
       joint_saturated = i;
     }    
   }  
-  payload = min_payload/9.81;  
+  payload = min_payload/gravity_;  
   logDebug("Max payload (kg): %f", payload);
   return true;
 }
 
 bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
-                                       double &payload,
+                                       double payload,
                                        std::vector<double> &joint_torques) const
 {
   if(joint_angles.size() != num_joints_)
@@ -249,7 +277,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
   const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
   const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
   Eigen::Affine3d transform = tip_frame->inverse()*(*base_frame);  
-  wrenches.back().force.z = payload * 9.81;
+  wrenches.back().force.z = payload * gravity_;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);  
 
@@ -258,21 +286,6 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
   if(!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques))
     return false;
   return true;
-}
-
-geometry_msgs::Vector3 DynamicsSolver::transformVector(const Eigen::Affine3d &transform, 
-                                                       const geometry_msgs::Vector3 &vector) const
-{
-  Eigen::Vector3d p;
-  p = Eigen::Vector3d(vector.x, vector.y, vector.z);
-  p = transform.rotation()*p;  
-
-  geometry_msgs::Vector3 result;
-  result.x = p.x();
-  result.y = p.y();
-  result.z = p.z();  
-  
-  return result;  
 }
 
 const std::vector<double>& DynamicsSolver::getMaxTorques() const
