@@ -841,7 +841,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
       if (scene_marker_)
       {
         scene_marker_.reset();
-        planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::createSceneInteractiveMarker, this));
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::createSceneInteractiveMarker, this));
       }
     }
   }
