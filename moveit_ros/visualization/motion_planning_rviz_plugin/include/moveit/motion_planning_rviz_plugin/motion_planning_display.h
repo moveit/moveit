@@ -80,7 +80,7 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   
   struct TrajectoryMessageToDisplay
   {
-    TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene);
+    TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningSceneConstPtr &scene);
     TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
     
     kinematic_state::KinematicStatePtr start_state_;
@@ -118,6 +118,11 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   const kinematic_state::KinematicStatePtr& getQueryGoalState(void) const
   {
     return query_goal_state_->getState();
+  }
+  
+  const robot_interaction::RobotInteractionPtr& getRobotInteraction(void) const
+  {
+    return robot_interaction_;
   }
 
   void setQueryStartState(const kinematic_state::KinematicStatePtr &start);

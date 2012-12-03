@@ -45,14 +45,16 @@
 #include <moveit/planning_models_loader/kinematic_model_loader.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
 
 namespace planning_scene_monitor
 {
+
 /**
  * @class PlanningSceneMonitor
  * Subscribes to the topic \e planning_scene */
-class PlanningSceneMonitor
+class PlanningSceneMonitor : private boost::noncopyable
 {
 public:
   
@@ -143,7 +145,7 @@ public:
   {
     return scene_const_;
   }
-  
+
   /** @brief Get the stored robot description
    *  @return An instance of the stored robot description*/
   const std::string& getRobotDescription(void) const
@@ -396,6 +398,71 @@ private:
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
 typedef boost::shared_ptr<const PlanningSceneMonitor> PlanningSceneMonitorConstPtr;
+
+/** \brief This is a convenience class for obtaining access to an instance of a locked PlanningScene */
+class LockedPlanningScene
+{
+public:
+  
+  LockedPlanningScene(const PlanningSceneMonitorPtr &planning_scene_monitor) :
+    planning_scene_monitor_(planning_scene_monitor)
+  {
+    if (planning_scene_monitor_)
+      lock_.reset(new SingleUnlock(planning_scene_monitor.get()));
+  }
+  
+  const PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)
+  {
+    return planning_scene_monitor_;
+  }
+  
+  operator const planning_scene::PlanningScenePtr&()
+  {
+    return planning_scene_monitor_->getPlanningScene();
+  }
+
+  operator const planning_scene::PlanningSceneConstPtr&() const
+  {
+    return static_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
+  }
+
+  const planning_scene::PlanningScenePtr& operator->()
+  {
+    return planning_scene_monitor_->getPlanningScene();
+  }
+  
+  const planning_scene::PlanningSceneConstPtr& operator->() const
+  {
+    return static_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
+  }
+  
+  operator bool() const
+  {
+    return planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene();
+  }
+  
+private:
+  
+  // we use this struct so that lock/unlock are called only once 
+  // even if the LockedPlanningScene instance is copied around
+  struct SingleUnlock
+  {
+    SingleUnlock(PlanningSceneMonitor *planning_scene_monitor) :
+      planning_scene_monitor_(planning_scene_monitor)
+    {
+      planning_scene_monitor_->lockScene();
+    }
+    ~SingleUnlock(void)
+    {
+      planning_scene_monitor_->unlockScene();
+    }
+    PlanningSceneMonitor *planning_scene_monitor_;
+  };
+  
+  PlanningSceneMonitorPtr planning_scene_monitor_;
+  boost::shared_ptr<SingleUnlock> lock_;  
+};
+
 }
 
 #endif
