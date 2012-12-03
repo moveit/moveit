@@ -876,42 +876,96 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   changedQueryGoalState(); 
 }
 
+namespace 
+{
+struct AttachedBodyInfo
+{ 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  
+  std::string link;
+  std::string id;
+  std::vector<shapes::ShapeConstPtr> shapes;
+  EigenSTL::vector_Affine3d attach_trans;
+  std::vector<std::string> touch_links;
+};
+}
+
+void MotionPlanningDisplay::updateStateExceptGroup(kinematic_state::KinematicState &dest, const kinematic_state::KinematicState &src, const std::string &group)
+{
+  const kinematic_state::JointStateGroup *jsg = dest.getJointStateGroup(group);
+  if (jsg)
+  {
+    // remember the joint values for the group that should not be updated
+    std::map<std::string, double> values_to_keep;
+    jsg->getVariableValues(values_to_keep);
+
+    const std::vector<std::string> &links = jsg->getJointModelGroup()->getLinkModelNames();
+
+    // remember the attached bodies to keep
+    std::vector<AttachedBodyInfo*> ab_to_keep;
+    for (std::size_t i = 0 ; i < links.size() ; ++i)
+    {
+      kinematic_state::LinkState *ls = dest.getLinkState(links[i]);
+      if (ls)
+      {
+        std::vector<const kinematic_state::AttachedBody*> attached_bodies;
+        ls->getAttachedBodies(attached_bodies);
+        for (std::size_t j = 0 ; j < attached_bodies.size() ; ++j)
+        {
+          AttachedBodyInfo *ab = new AttachedBodyInfo();
+          ab->link = links[i];
+          ab->id = attached_bodies[j]->getName();
+          ab->shapes = attached_bodies[j]->getShapes();
+          ab->touch_links.insert(ab->touch_links.end(), attached_bodies[j]->getTouchLinks().begin(), attached_bodies[j]->getTouchLinks().end());
+          ab-> attach_trans = attached_bodies[j]->getFixedTransforms();
+          ab_to_keep.push_back(ab);
+        }
+      }
+    }
+
+    // overwrite the destination state 
+    dest = src;
+
+    // restore the joint values we want to keep
+    dest.setStateValues(values_to_keep);
+    
+    // clear the attached bodies that may have been copied over, for the group we know
+    for (std::size_t i = 0 ; i < links.size() ; ++i)
+    {
+      kinematic_state::LinkState *ls = dest.getLinkState(links[i]);
+      if (ls)
+        ls->clearAttachedBodies();
+    }
+    
+    // set the attached bodies we wanted to keep
+    for (std::size_t i = 0 ; i < ab_to_keep.size() ; ++i)
+    {
+      kinematic_state::LinkState *ls = dest.getLinkState(ab_to_keep[i]->link);
+      if (ls)
+        ls->attachBody(ab_to_keep[i]->id, ab_to_keep[i]->shapes, ab_to_keep[i]->attach_trans, ab_to_keep[i]->touch_links);
+      delete ab_to_keep[i];
+    }
+  }
+}
+
 void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
-  
+  kinematic_state::KinematicState ks = getPlanningScene()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
+  
   if (query_start_state_property_->getBool() && !group.empty())
   {
-    // update all joints in the start state, except the ones for the group we are working with
-    const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(group);
-    if (jmg)
-    {
-      std::map<std::string, double> values_map;
-      getPlanningScene()->getCurrentState().getStateValues(values_map);
-      const std::vector<std::string> &keep = jmg->getVariableNames();
-      for (std::size_t i = 0 ; i < keep.size() ; ++i)
-        values_map.erase(keep[i]);
-      getQueryStartState()->setStateValues(values_map);
-      updateQueryStartState();
-    }
+    updateStateExceptGroup(*getQueryStartState(), ks, group);
+    updateQueryStartState();
   }
   
   if (query_goal_state_property_->getBool() && !group.empty())
   {
-    // update all joints in the goal state, except the ones for the group we are working with
-    const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(group);
-    if (jmg)
-    {  
-      std::map<std::string, double> values_map;
-      getPlanningScene()->getCurrentState().getStateValues(values_map);
-      const std::vector<std::string> &keep = jmg->getVariableNames();
-      for (std::size_t i = 0 ; i < keep.size() ; ++i)
-        values_map.erase(keep[i]);
-      getQueryGoalState()->setStateValues(values_map);
-      updateQueryGoalState();
-    }
+    updateStateExceptGroup(*getQueryGoalState(), ks, group);
+    updateQueryGoalState();
   }
+  
   if (frame_)
     frame_->sceneUpdate(update_type);
 }
