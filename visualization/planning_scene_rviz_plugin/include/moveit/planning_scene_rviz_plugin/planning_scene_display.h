@@ -80,7 +80,7 @@ public:
   void queueRenderSceneGeometry(void);
   
   const kinematic_model::KinematicModelConstPtr& getKinematicModel(void);
-  const planning_scene::PlanningScenePtr& getPlanningScene(void);  
+  planning_scene_monitor::LockedPlanningScene getPlanningScene(void);
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void);
                                                                                                 
 private Q_SLOTS:

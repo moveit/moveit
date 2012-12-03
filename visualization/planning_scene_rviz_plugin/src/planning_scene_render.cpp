@@ -59,8 +59,9 @@ void PlanningSceneRender::clear(void)
 }
 
 void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
-                                              const rviz::Color &env_color, const rviz::Color &attached_color,
-                                              float scene_alpha, float robot_alpha)
+                                              const rviz::Color &default_env_color,
+                                              const rviz::Color &default_attached_color,
+                                              float default_scene_alpha)
 {
   if (!scene)
     return;
@@ -71,9 +72,9 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
   {
     kinematic_state::KinematicStateConstPtr ks(new kinematic_state::KinematicState(scene->getCurrentState()));
     std_msgs::ColorRGBA color;
-    color.r = attached_color.r_;
-    color.g = attached_color.g_;
-    color.b = attached_color.b_;
+    color.r = default_attached_color.r_;
+    color.g = default_attached_color.g_;
+    color.b = default_attached_color.b_;
     color.a = 1.0f;
     scene_robot_->update(ks, color, scene->getObjectColors());
   }
@@ -83,14 +84,16 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
   for (std::size_t i = 0 ; i < ids.size() ; ++i)
   {
     collision_detection::CollisionWorld::ObjectConstPtr o = cworld->getObject(ids[i]);
-    rviz::Color color = env_color;
+    rviz::Color color = default_env_color;
+    float alpha = default_scene_alpha;
     if (scene->hasColor(ids[i]))
     {
       const std_msgs::ColorRGBA &c = scene->getColor(ids[i]);
       color.r_ = c.r; color.g_ = c.g; color.b_ = c.b;
+      alpha = c.a;
     }
     for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
-      render_shapes_->renderShape(planning_scene_geometry_node_, o->shapes_[j].get(), o->shape_poses_[j], color, scene_alpha);
+      render_shapes_->renderShape(planning_scene_geometry_node_, o->shapes_[j].get(), o->shape_poses_[j], color, alpha);
   }
 }
 

@@ -69,7 +69,7 @@ namespace moveit_rviz_plugin
 {
 
 MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message,
-                                                                              const planning_scene::PlanningScenePtr &scene)
+                                                                              const planning_scene::PlanningSceneConstPtr &scene)
 {
   start_state_.reset(new kinematic_state::KinematicState(scene->getCurrentState()));
   kinematic_state::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
@@ -907,7 +907,6 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor:
       updateQueryGoalState();
     }
   }
-  
   if (frame_)
     frame_->sceneUpdate(update_type);
 }
@@ -952,6 +951,7 @@ void MotionPlanningDisplay::onDisable()
   display_path_robot_->setVisible(false);
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
     trajectory_trail_[i]->setVisible(false);
+  displaying_trajectory_message_.reset();
   
   query_robot_start_->setVisible(false);
   query_robot_goal_->setVisible(false); 
@@ -1096,6 +1096,9 @@ void MotionPlanningDisplay::load( const rviz::Config& config )
       frame_->ui_->planning_time->setValue(d);
     if (config.mapGetFloat( "MoveIt_Goal_Tolerance", &d))
       frame_->ui_->goal_tolerance->setValue(d);
+    bool b;
+    if (config.mapGetBool( "MoveIt_Use_Constraint_Aware_IK", &b))
+      frame_->ui_->collision_aware_ik->setChecked(b);
   }
 }
 
@@ -1107,7 +1110,8 @@ void MotionPlanningDisplay::save( rviz::Config config ) const
     config.mapSetValue( "MoveIt_Warehouse_Host", frame_->ui_->database_host->text());
     config.mapSetValue( "MoveIt_Warehouse_Port", frame_->ui_->database_port->value());
     config.mapSetValue( "MoveIt_Planning_Time", frame_->ui_->planning_time->value());
-    config.mapSetValue( "MoveIt_Goal_Tolerance", frame_->ui_->goal_tolerance->value());
+    config.mapSetValue( "MoveIt_Goal_Tolerance", frame_->ui_->goal_tolerance->value()); 
+    config.mapSetValue( "MoveIt_Use_Constraint_Aware_IK", frame_->ui_->collision_aware_ik->isChecked());
   }
 }
 
@@ -1118,7 +1122,10 @@ void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::Display
       ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
                msg->model_id.c_str(), getKinematicModel()->getName().c_str());
   
-  trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, getPlanningScene()));
+  {
+    const planning_scene_monitor::LockedPlanningScene &ps = getPlanningScene();
+    trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, ps));
+  }
   
   if (trail_display_property_->getBool())
     changedShowTrail();
