@@ -77,7 +77,7 @@ void kinematic_model::PrismaticJointModel::getVariableRandomValues(random_number
 }
 
 void kinematic_model::PrismaticJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
-                                                                                 const std::vector<double> &near, const double distance) const
+                                                                         const std::vector<double> &near, const double distance) const
 { 
   values.push_back(rng.uniformReal(std::max(bounds[0].first, near[values.size()] - distance),
                                    std::min(bounds[0].second, near[values.size()] + distance)));
