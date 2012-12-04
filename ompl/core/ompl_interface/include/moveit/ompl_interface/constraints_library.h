@@ -52,9 +52,11 @@ typedef boost::function<bool(const ompl::base::State*)> ConstraintStateStorageDe
 
 class ConstraintApproximation;
 typedef boost::shared_ptr<ConstraintApproximation> ConstraintApproximationPtr;
+typedef boost::shared_ptr<const ConstraintApproximation> ConstraintApproximationConstPtr;
 
 class ConstraintApproximationFactory;
 typedef boost::shared_ptr<ConstraintApproximationFactory> ConstraintApproximationFactoryPtr;
+typedef boost::shared_ptr<const ConstraintApproximationFactory> ConstraintApproximationFactoryConstPtr;
 
 class ConstraintApproximation
 {

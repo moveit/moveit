@@ -74,7 +74,7 @@ void ompl_interface_ros::OMPLInterfaceROS::loadConstraintSamplers(void)
   {      
     try
     {
-      constraint_sampler_plugin_loader_.reset(new pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator>("constraint_samplers", "constraint_samplers::ConstraintSamplerAllocator"));
+      constraint_sampler_plugin_loader_.reset(new pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator>("moveit_core", "constraint_samplers::ConstraintSamplerAllocator"));
     }
     catch(pluginlib::PluginlibException& ex)
     {

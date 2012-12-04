@@ -65,14 +65,8 @@ public:
   /** @brief Sample a state using the specified Gaussian*/
   virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
   
-  double getConstrainedSamplingRate(void) const
-  {
-    if (constrained_success_ == 0)
-      return 0.0;
-    else
-      return  (double)constrained_success_ / (double)(constrained_success_ + constrained_failure_);
-  }
-    
+  double getConstrainedSamplingRate(void) const;
+
 private:
   
   bool sampleC(ompl::base::State *state);
@@ -84,7 +78,7 @@ private:
   kinematic_state::JointStateGroup                 *work_joint_group_state_;
   unsigned int                                      constrained_success_;
   unsigned int                                      constrained_failure_;
-
+  double                                            inv_dim_;
 };
 
 }

@@ -43,6 +43,9 @@
 
 namespace ompl_interface
 {
+
+namespace
+{
 template<typename T>
 void msgToHex(const T& msg, std::string &hex)
 {
@@ -74,6 +77,7 @@ void hexToMsg(const std::string &hex, T& msg)
   ros::serialization::IStream stream_arg(buffer_arg.get(), serial_size_arg);
   ros::serialization::deserialize(stream_arg, msg);
 }
+}
 
 class ConstraintApproximationStateSampler : public ob::StateSampler
 {
@@ -84,6 +88,7 @@ public:
   {
     min_index_ = 0;
     max_index_ = state_storage_->size() - 1;
+    inv_dim_ = space->getDimension() > 0 ? 1.0 / (double)space->getDimension() : 1.0;
   }
   
   ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage,
@@ -91,7 +96,8 @@ public:
     ob::StateSampler(space), state_storage_(state_storage)
   {
     min_index_ = mini;
-    max_index_ = maxi;
+    max_index_ = maxi;  
+    inv_dim_ = space->getDimension() > 0 ? 1.0 / (double)space->getDimension() : 1.0;
   }
   
   virtual void sampleUniform(ob::State *state)
@@ -119,7 +125,7 @@ public:
     double dist = space_->distance(near, state_storage_->getState(index));
     if (dist > distance)
     {
-      double d = rng_.uniformReal(0.0, distance);
+      double d = pow(rng_.uniform01(), inv_dim_) * distance;
       space_->interpolate(near, state_storage_->getState(index), d / dist, state);
     }
     else
@@ -137,7 +143,7 @@ protected:
   const ConstraintApproximationStateStorage *state_storage_;  
   unsigned int min_index_;
   unsigned int max_index_;
-  
+  double inv_dim_;
 };
 
 ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::StateSpace *space, const std::vector<int> &expected_signature,
@@ -254,7 +260,6 @@ void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::s
   for (std::size_t i = 0 ; i < count ; ++i)
   {
     state_storage_->getStateSpace()->as<ModelBasedStateSpace>()->copyToKinematicState(kstate, state_storage_->getState(rng.uniformInt(0, state_storage_->size() - 1)));
-    kstate.getJointStateGroup(group_)->updateLinkTransforms();
     const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
     
     visualization_msgs::Marker mk;
@@ -460,7 +465,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   unsigned int attempts = 0;
   
   double bounds_val = std::numeric_limits<double>::max() / 2.0 - 1.0;
-  pcontext->getOMPLStateSpace()->setBounds(-bounds_val, bounds_val, -bounds_val, bounds_val, -bounds_val, bounds_val);
+  pcontext->getOMPLStateSpace()->setPlanningVolume(-bounds_val, bounds_val, -bounds_val, bounds_val, -bounds_val, bounds_val);
   pcontext->getOMPLStateSpace()->setup();
   
   // construct the constrained states
@@ -514,7 +519,6 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       
       ss->sampleUniform(temp.get());
       pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp.get());
-      kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName())->updateLinkTransforms();
       if (kset.decide(kstate).satisfied)
       {
 #pragma omp critical
@@ -585,17 +589,14 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
         
         space->interpolate(states[j], states[i], 0.5, temp);
         pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
-        jsg->updateLinkTransforms();
         if (kset.decide(kstate).satisfied)
         {
 	  space->interpolate(states[j], states[i], 0.25, temp);
 	  pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
-	  jsg->updateLinkTransforms();
 	  if (kset.decide(kstate).satisfied)
 	  {
             space->interpolate(states[j], states[i], 0.75, temp);
             pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
-            jsg->updateLinkTransforms();
             if (kset.decide(kstate).satisfied)
             {
 #pragma omp critical

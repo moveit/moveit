@@ -131,9 +131,9 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   computeStateIK(state);
 }
 
-void ompl_interface::PoseModelStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
+void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
-  ModelBasedStateSpace::setBounds(minX, maxX, minY, maxY, minZ, maxZ);
+  ModelBasedStateSpace::setPlanningVolume(minX, maxX, minY, maxY, minZ, maxZ);
   ompl::base::RealVectorBounds b(3);
   b.low[0] = minX; b.low[1] = minY; b.low[2] = minZ;
   b.high[0] = maxX; b.high[1] = maxY; b.high[2] = maxZ;

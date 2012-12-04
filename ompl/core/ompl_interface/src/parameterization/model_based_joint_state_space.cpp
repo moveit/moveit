@@ -131,7 +131,7 @@ void ompl_interface::ModelBasedJointStateSpace::deserialize(ompl::base::State *s
   memcpy(&state->as<StateType>()->joint_state->getVariableValues()[0], serialization, joint_model_->getVariableCount() * sizeof(double));
 }
 
-void ompl_interface::ModelBasedJointStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
+void ompl_interface::ModelBasedJointStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
   if (joint_model_->getType() == kinematic_model::JointModel::PLANAR)
   {
