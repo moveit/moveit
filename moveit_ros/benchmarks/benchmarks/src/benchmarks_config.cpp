@@ -63,6 +63,22 @@ void checkConstrainedLink(moveit_msgs::Constraints &c, const std::string &link_n
       c.orientation_constraints[i].link_name = link_name;
 }
 
+void checkHeader(moveit_msgs::Constraints &c, const std::string &header_frame)
+{
+  for (std::size_t i = 0 ; i < c.position_constraints.size() ; ++i)
+    if (c.position_constraints[i].header.frame_id.empty())
+    {
+      c.position_constraints[i].header.frame_id = header_frame;
+      c.position_constraints[i].header.stamp = ros::Time::now();
+    }
+  for (std::size_t i = 0 ; i < c.orientation_constraints.size() ; ++i)
+    if (c.orientation_constraints[i].header.frame_id.empty())
+    {
+      c.orientation_constraints[i].header.frame_id = header_frame;
+      c.orientation_constraints[i].header.stamp = ros::Time::now();
+    }
+}
+
 }
 }
 
@@ -181,7 +197,10 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
         boost::cmatch match;
         if (boost::regex_match(query_name.c_str(), match, query_regex))
         {
+          // read request from db
           req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
+          
+          // update request given .cfg options
           if (start_state_to_use)
             req.motion_plan_request.start_state = *start_state_to_use;
           req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
@@ -193,7 +212,13 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
             for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
               checkConstrainedLink(req.motion_plan_request.goal_constraints[j], opt_.default_constrained_link);
           }
-          
+          if (!opt_.planning_frame.empty())
+          {
+            checkHeader(req.motion_plan_request.path_constraints, opt_.planning_frame);
+            for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
+              checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
+          }
+
           ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
           if (benchmark_service_client.call(req, res))
             ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
@@ -213,22 +238,29 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
         boost::cmatch match;
         if (boost::regex_match(cnames[i].c_str(), match, goal_regex))
         {
-          if (start_state_to_use)
-            req.motion_plan_request.start_state = *start_state_to_use;
-          req.motion_plan_request.goal_constraints.resize(1);
           moveit_warehouse::ConstraintsWithMetadata constr;
-          cs_.getConstraints(constr, cnames[i]);
-          req.motion_plan_request.goal_constraints[0] = *constr;
-          if (!opt_.group_override.empty())
-            req.motion_plan_request.group_name = opt_.group_override;
-          if (!opt_.default_constrained_link.empty())
-            checkConstrainedLink(req.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
-          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
-          ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
-          if (benchmark_service_client.call(req, res))
-            ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
-          else
-            ROS_ERROR("Failed!");
+          if (cs_.getConstraints(constr, cnames[i]))
+          {
+            // construct a planning request from the constraints message
+            req.motion_plan_request = moveit_msgs::MotionPlanRequest();
+            req.motion_plan_request.goal_constraints.resize(1);          
+            if (start_state_to_use)
+              req.motion_plan_request.start_state = *start_state_to_use;
+            req.motion_plan_request.goal_constraints[0] = *constr;
+            if (!opt_.group_override.empty())
+              req.motion_plan_request.group_name = opt_.group_override;
+            if (!opt_.default_constrained_link.empty())
+              checkConstrainedLink(req.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
+            if (!opt_.planning_frame.empty())
+              checkHeader(req.motion_plan_request.goal_constraints[0], opt_.planning_frame);
+            req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+            
+            ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
+            if (benchmark_service_client.call(req, res))
+              ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
+            else
+              ROS_ERROR("Failed!");
+          }
         }
       }
     }
@@ -256,6 +288,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
       ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
       ("scene.group", boost::program_options::value<std::string>()->default_value(""), "Override the group to plan for")
+      ("scene.planning_frame", boost::program_options::value<std::string>()->default_value(""), "Override the planning frame to use")
       ("scene.default_constrained_link", boost::program_options::value<std::string>()->default_value(""),
        "Specify the default link to consider as constrained when one is not specified in a moveit_msgs::Constraints message")
       ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
@@ -276,6 +309,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.goal_regex = declared_options["scene.goal"];
     opt_.group_override = declared_options["scene.group"];
     opt_.default_constrained_link = declared_options["scene.default_constrained_link"];
+    opt_.planning_frame = declared_options["scene.planning_frame"];
     
     if (opt_.output.empty())
       opt_.output = std::string(filename);
