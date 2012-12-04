@@ -61,14 +61,14 @@ static const int ITEM_TYPE_SCENE = 1;
 static const int ITEM_TYPE_QUERY = 2;
 
 MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
-          QWidget(parent),
-          planning_display_(pdisplay),
-          context_(context),
-          ui_(new Ui::MotionPlanningUI())
+  QWidget(parent),
+  planning_display_(pdisplay),
+  context_(context),
+  ui_(new Ui::MotionPlanningUI())
 {
   // set up the GUI
   ui_->setupUi(this);
-
+  
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
   // to keep the GUI more responsive (using the background job processing)
   connect( ui_->plan_button, SIGNAL( clicked() ), this, SLOT( planButtonClicked() ));
