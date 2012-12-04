@@ -71,7 +71,8 @@ class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
   Q_OBJECT
-
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  
 public:
   MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
   ~MotionPlanningFrame(void);
@@ -103,21 +104,35 @@ protected:
 
   boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
  
-  class goalPoseMarker
+  class GoalPoseMarker
   {
   public:
     boost::shared_ptr<rviz::InteractiveMarker> imarker;
     bool selected;
     
-    goalPoseMarker(): selected(false) {}
-    goalPoseMarker(rviz::InteractiveMarker *marker): imarker(marker), selected(false) {}
-    goalPoseMarker(rviz::InteractiveMarker *marker, bool is_selected): imarker(marker), selected(is_selected) {}
+    GoalPoseMarker(): selected(false) {}
+    GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker): imarker(marker), selected(false) {}
+    GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker, bool is_selected): imarker(marker), selected(is_selected) {}
   };
   
-  typedef std::map<std::string, goalPoseMarker> goal_pose_map_t;
-  typedef std::pair<std::string, goalPoseMarker> goal_pose_pair_t;
-  goal_pose_map_t goal_poses_;
-                             
+  typedef std::map<std::string, GoalPoseMarker> GoalPoseMap;
+  typedef std::pair<std::string, GoalPoseMarker> GoalPosePair;
+  GoalPoseMap goal_poses_;
+          
+  class StartState
+  {
+  public:
+    moveit_msgs::RobotState state_msg;
+    bool selected;
+    
+    StartState(): selected(false) {}
+    StartState(moveit_msgs::RobotState state): state_msg(state), selected(false) {}
+    StartState(moveit_msgs::RobotState state, bool is_selected): state_msg(state), selected(is_selected) {}
+  };
+  
+  typedef std::map<std::string, StartState> StartStateMap;
+  typedef std::pair<std::string, StartState> StartStatePair;
+  StartStateMap start_states_;
                              
 private Q_SLOTS:
 
@@ -154,12 +169,17 @@ private Q_SLOTS:
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
   void tabChanged(int index);
   void copySelectedCollisionObject(void);
+  
   void createGoalPoseButtonClicked(void);
   void removeSelectedGoalsButtonClicked(void);
-  void loadConstraintsButtonClicked(void);
-  void saveConstraintsButtonClicked(void);
-  void deleteConstraintsButtonClicked(void);
+  void loadFromDBButtonClicked(void);
+  void saveOnDBButtonClicked(void);
+  void deleteOnDBButtonClicked(void);
   void goalPoseItemClicked(QListWidgetItem * item);
+  
+  void saveStartStateButtonClicked(void);
+  void removeSelectedStatesButtonClicked(void);
+  void startStateItemDoubleClicked(QListWidgetItem * item);
   
 private:
 
@@ -193,6 +213,7 @@ private:
   void renameCollisionObject(QListWidgetItem *item);
   void attachDetachCollisionObject(QListWidgetItem *item);
   void populateGoalPosesList();
+  void populateStartStatesList();
   
   /** Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
@@ -207,7 +228,7 @@ private:
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
   
-  std::map<std::string, Eigen::Affine3d> goals_initial_pose_;
+  EigenSTL::map_string_Affine3d goals_initial_pose_;
 };
 
 }
