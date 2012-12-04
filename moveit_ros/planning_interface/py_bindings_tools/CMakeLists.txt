@@ -1,6 +1,6 @@
 set(MOVEIT_LIB_NAME moveit_py_bindings_tools)
 
-add_library(${MOVEIT_LIB_NAME} src/roscpp_initializer.cpp)
+add_library(${MOVEIT_LIB_NAME} src/roscpp_initializer.cpp src/py_conversions.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_library(_moveit_roscpp_initializer src/roscpp_initializer_pymodule.cpp)

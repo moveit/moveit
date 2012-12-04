@@ -36,6 +36,8 @@
 
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
+#include <moveit/py_bindings_tools/py_conversions.h>
+
 #include <boost/function.hpp>
 #include <boost/python.hpp>
 #include <boost/python/return_value_policy.hpp>
@@ -66,12 +68,12 @@ public:
   
   void setJointValueTargetPerJointPythonList(const std::string &joint, bp::list &values)
   {
-    setJointValueTarget(joint, doubleFromList(values));
+    setJointValueTarget(joint, moveit_py_bindings_tools::doubleFromList(values));
   }
   
   void setJointValueTargetPythonList(bp::list &values)
   {
-    setJointValueTarget(doubleFromList(values));
+    setJointValueTarget(moveit_py_bindings_tools::doubleFromList(values));
   }
 
   void setJointValueTargetPythonDict(bp::dict &values)
@@ -86,22 +88,22 @@ public:
   
   void rememberJointValuesFromPythonList(const std::string &string, bp::list &values)
   {
-    rememberJointValues(string, doubleFromList(values));
+    rememberJointValues(string, moveit_py_bindings_tools::doubleFromList(values));
   }
 
   bp::list getJointsList(void)
   {
-    return listFromString(getJoints());
+    return moveit_py_bindings_tools::listFromString(getJoints());
   }
 
   bp::list getCurrentJointValuesList(void)
   {
-    return listFromDouble(getCurrentJointValues());
+    return moveit_py_bindings_tools::listFromDouble(getCurrentJointValues());
   }
   
   bp::list getRandomJointValuesList(void)
   {
-    return listFromDouble(getRandomJointValues());
+    return moveit_py_bindings_tools::listFromDouble(getRandomJointValues());
   }
   
   bp::dict getRememberedJointValuesPython(void) const
@@ -109,7 +111,7 @@ public:
     const std::map<std::string, std::vector<double> > &rv = getRememberedJointValues();
     bp::dict d;
     for (std::map<std::string, std::vector<double> >::const_iterator it = rv.begin() ; it != rv.end() ; ++it)
-      d[it->first] = listFromDouble(it->second);
+      d[it->first] = moveit_py_bindings_tools::listFromDouble(it->second);
     return d;
   }
   
@@ -125,17 +127,17 @@ public:
     v[3] = r(0);
     v[4] = r(1);
     v[5] = r(2);
-    return listFromDouble(v);
+    return moveit_py_bindings_tools::listFromDouble(v);
   }
 
   bp::list getKnownConstraintsList(void) const
   {
-    return listFromString(getKnownConstraints());
+    return moveit_py_bindings_tools::listFromString(getKnownConstraints());
   }
   
   void setPoseTargetPython(bp::list &pose, const std::string &end_effector_link)
   {
-    std::vector<double> v = doubleFromList(pose);
+    std::vector<double> v = moveit_py_bindings_tools::doubleFromList(pose);
     if (v.size() != 6)
       ROS_ERROR("Pose description expected to consist of 6 values");
     else
@@ -164,7 +166,7 @@ public:
   {
     MoveGroup::Plan plan;
     MoveGroup::plan(plan);
-    bp::list joint_names = listFromString(plan.trajectory_.joint_trajectory.joint_names);
+    bp::list joint_names = moveit_py_bindings_tools::listFromString(plan.trajectory_.joint_trajectory.joint_names);
     bp::dict plan_dict, joint_trajectory, multi_dof_joint_trajectory;
     joint_trajectory["joint_names"] = joint_names;
     multi_dof_joint_trajectory["joint_names"] = joint_names;
@@ -173,16 +175,16 @@ public:
 
     for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = plan.trajectory_.joint_trajectory.points.begin() ; it != plan.trajectory_.joint_trajectory.points.end() ; ++it)
     {
-      joint_traj_point["positions"] = listFromDouble(it->positions);
-      joint_traj_point["velocities"] = listFromDouble(it->velocities);
-      joint_traj_point["accelerations"] = listFromDouble(it->accelerations);
+      joint_traj_point["positions"] = moveit_py_bindings_tools::listFromDouble(it->positions);
+      joint_traj_point["velocities"] = moveit_py_bindings_tools::listFromDouble(it->velocities);
+      joint_traj_point["accelerations"] = moveit_py_bindings_tools::listFromDouble(it->accelerations);
       joint_traj_points.append(joint_traj_point);
     }
 
     joint_trajectory["points"] = joint_traj_points;
  
-    bp::list frame_ids = listFromString(plan.trajectory_.multi_dof_joint_trajectory.frame_ids);
-    bp::list child_frame_ids = listFromString(plan.trajectory_.multi_dof_joint_trajectory.child_frame_ids);
+    bp::list frame_ids = moveit_py_bindings_tools::listFromString(plan.trajectory_.multi_dof_joint_trajectory.frame_ids);
+    bp::list child_frame_ids = moveit_py_bindings_tools::listFromString(plan.trajectory_.multi_dof_joint_trajectory.child_frame_ids);
     multi_dof_joint_trajectory["frame_ids"] = frame_ids;
     multi_dof_joint_trajectory["child_frame_ids"] = child_frame_ids;
 
@@ -211,36 +213,6 @@ public:
     plan_dict["joint_trajectory"] = joint_trajectory;
     plan_dict["multi_dof_joint_trajectory"] = multi_dof_joint_trajectory;
     return plan_dict;
-  }
-
-private:
-
-  std::vector<double> doubleFromList(bp::list &values) const
-  {   
-    int l = bp::len(values);
-    std::vector<double> v(l);
-    for (int i = 0; i < l ; ++i)
-      v[i] = bp::extract<double>(values[i]);
-    return v;
-  }
-
-  template<typename T>
-  bp::list listFromType(const std::vector<T>& v) const
-  {
-    bp::list l;
-    for (std::size_t i = 0 ; i < v.size() ; ++i)
-      l.append(v[i]);
-    return l;
-  }
-  
-  bp::list listFromDouble(const std::vector<double>& v) const
-  {
-    return listFromType<double>(v);
-  }
-
-  bp::list listFromString(const std::vector<std::string>& v) const
-  {
-    return listFromType<std::string>(v);
   }
 
 };  

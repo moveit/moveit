@@ -40,31 +40,13 @@
 #include <geometric_shapes/shape_operations.h>
 #include <shape_msgs/SolidPrimitive.h>
 #include <geometry_msgs/Pose.h>
-
-
-/*#include <boost/function.hpp>
-#include <boost/python.hpp>
-#include <boost/python/return_value_policy.hpp>
-#include <boost/python/stl_iterator.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/suite/indexing/map_indexing_suite.hpp>
-
-#include <boost/shared_ptr.hpp>
-#include <Python.h>
-#include <ros/ros.h>
-#include <boost/thread.hpp>
-*/
+#include <moveit/py_bindings_tools/py_conversions.h>
 
 namespace bp = boost::python;
 
 namespace planning_scene_interface
 
 {
-
-//class PlanningSceneInterface : protected moveit_py_bindings_tools::ROScppInitializer
-//{
-
-//public:
 
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
   PlanningSceneInterface::PlanningSceneInterface() : moveit_py_bindings_tools::ROScppInitializer()
@@ -156,8 +138,10 @@ namespace planning_scene_interface
                                                                     int type, bp::list &position,
                                                                     bp::list &orientation, bp::list &dimensions)
   {
-    addSimpleObjectToPlanningScene(id, frame_id, type, doubleFromList(position), doubleFromList(orientation), 
-                                   doubleFromList(dimensions));
+    addSimpleObjectToPlanningScene(id, frame_id, type,
+                                   moveit_py_bindings_tools::doubleFromList(position),
+                                   moveit_py_bindings_tools::doubleFromList(orientation), 
+                                   moveit_py_bindings_tools::doubleFromList(dimensions));
   }
 
   void PlanningSceneInterface::removeSimpleObjectFromPlanningScene(const std::string &id, const std::string &frame_id) 
@@ -264,8 +248,11 @@ namespace planning_scene_interface
                                                                  bp::list &touch_links, bp::list &position, 
                                                                  bp::list &orientation, bp::list &dimensions)
   {
-    attachSimpleCollisionObject(id, frame_id, type, link_name, stringFromList(touch_links), doubleFromList(position), 
-                                doubleFromList(orientation), doubleFromList(dimensions));
+    attachSimpleCollisionObject(id, frame_id, type, link_name, 
+                                moveit_py_bindings_tools::stringFromList(touch_links), 
+                                moveit_py_bindings_tools::doubleFromList(position), 
+                                moveit_py_bindings_tools::doubleFromList(orientation),
+                                moveit_py_bindings_tools::doubleFromList(dimensions));
   }
 
   void PlanningSceneInterface::removeSimpleAttachedObject(const std::string &id, const std::string &frame_id, const std::string &link_name)
@@ -282,47 +269,27 @@ namespace planning_scene_interface
     ROS_INFO("Should have published");
   }
 
-
-  std::vector<double> PlanningSceneInterface::doubleFromList(bp::list &values)
-  {
-    int l = bp::len(values);
-    std::vector<double> v(l);
-    for (int i = 0; i < l ; ++i)
-      v[i] = bp::extract<double>(values[i]);
-    return v;
-  }
-
-
-  std::vector<std::string> PlanningSceneInterface::stringFromList(bp::list &values)
-  {
-    int l = bp::len(values);
-    std::vector<std::string> v(l);
-    for (int i = 0; i < l ; ++i)
-      v[i] = bp::extract<std::string>(values[i]);
-    return v;
-  }
-
-//};
-
 void wrapPlanningSceneInterface()
 {
   bp::class_<PlanningSceneInterface> PlanningSceneInterfaceClass("PlanningSceneInterface");
-
+  
   PlanningSceneInterfaceClass.def("add_sphere", &PlanningSceneInterface::addSphere);
   PlanningSceneInterfaceClass.def("add_cylinder", &PlanningSceneInterface::addCylinder);
   PlanningSceneInterfaceClass.def("add_box", &PlanningSceneInterface::addBox);
   PlanningSceneInterfaceClass.def("add_cone", &PlanningSceneInterface::addCone);
-
+  
   PlanningSceneInterfaceClass.def("remove_simple_object", 
                                   &PlanningSceneInterface::removeSimpleObjectFromPlanningScene);
-
+  
   PlanningSceneInterfaceClass.def("attach_sphere", &PlanningSceneInterface::attachSphere);
   PlanningSceneInterfaceClass.def("attach_cylinder", &PlanningSceneInterface::attachCylinder);
   PlanningSceneInterfaceClass.def("attach_box", &PlanningSceneInterface::attachBox);
   PlanningSceneInterfaceClass.def("attach_cone", &PlanningSceneInterface::attachCone);
-
+  
   PlanningSceneInterfaceClass.def("remove_simple_attached_object", 
                                   &PlanningSceneInterface::removeSimpleAttachedObject);
+}
+
 }
 
 BOOST_PYTHON_MODULE(_moveit_planning_scene_interface)
@@ -330,6 +297,3 @@ BOOST_PYTHON_MODULE(_moveit_planning_scene_interface)
   using namespace planning_scene_interface;
   wrapPlanningSceneInterface();  
 }
-
-}
-
