@@ -206,11 +206,18 @@ void kinematic_model::JointModelGroup::getVariableRandomValues(random_numbers::R
 
 void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::map<kinematic_model::JointModel::JointType, double> &distance_map) const
 {
+  if (near.size() != variable_count_)
+  {
+    logError("The specification of the near-by variable values to sample around for group '%s' should be of size %u but it is of size %u",
+             name_.c_str(), variable_count_, (unsigned int)near.size());
+    return;
+  }  
+  
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
   {
     double distance = 0.0;    
     std::map<kinematic_model::JointModel::JointType, double>::const_iterator iter = distance_map.find(joint_model_vector_[i]->getType());
-    if(iter != distance_map.end())
+    if (iter != distance_map.end())
       distance = iter->second;    
     else
       logWarn("Did not pass in distance for %s",joint_model_vector_[i]->getName().c_str());    
@@ -220,16 +227,21 @@ void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numb
 
 void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const
 {
-  if(distances.size() != joint_model_vector_.size())
+  if (distances.size() != joint_model_vector_.size())
   {
-    logError("distances vector should be of size %d. It is of size %d",joint_model_vector_.size(),distances.size());
+    logError("When sampling random values nearby for group '%s', distances vector should be of size %u, but it is of size %u",
+             name_.c_str(), (unsigned int)joint_model_vector_.size(), (unsigned int)distances.size());
     return;    
-  }  
-  for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
+  } 
+  if (near.size() != variable_count_)
   {
-    double distance = distances[i];    
-    joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distance);
+    logError("The specification of the near-by variable values to sample around for group '%s' should be of size %u but it is of size %u",
+             name_.c_str(), variable_count_, (unsigned int)near.size());
+    return;
   }  
+
+  for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
+    joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distances[i]);
 }
 
 bool kinematic_model::JointModelGroup::getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const
