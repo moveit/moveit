@@ -290,7 +290,8 @@ public:
     if (planner_interfaces_to_benchmark.empty())
     {
       ROS_ERROR("There are no planning interfaces to benchmark");
-      return false;	    
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+      return true;
     }
     
     // output information about tested planners
