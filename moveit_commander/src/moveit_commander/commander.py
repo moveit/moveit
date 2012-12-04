@@ -33,6 +33,9 @@
 # Author: Ioan Sucan, Sarah Elliott
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
+from geometry_msgs.msg import Pose, PoseStamped
+from sensor_msgs.msg import JointState
+import tf
 from _moveit_move_group_interface import *
 
 class MoveGroupCommander:
@@ -195,7 +198,25 @@ class MoveGroupCommander:
             wait = joints
             joints = None
 
-        if not joints == None:
+        elif type(joints) is JointState:
+            self._g.set_joint_value_target(joints.position)
+
+        elif type(joints) is Pose:
+            if self.has_end_effector_link():
+                pose = []
+                pose.append(joints.position.x)
+                pose.append(joints.position.y)
+                pose.append(joints.position.z)
+                (r, p, y) = tf.transformations.euler_from_quaternion([joints.orientation.x, joints.orientation.y,
+                            joints.orientation.z, joints.orientation.w])
+                pose.append(r)
+                pose.append(p)
+                pose.append(y)
+                self._g.set_pose_target(pose)
+            else:
+                raise "There is no end effector to get the pose of"
+
+        elif not joints == None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
             except:
@@ -207,7 +228,25 @@ class MoveGroupCommander:
 
     def plan(self, joints = None):
         """ Return a motion plan (a RobotTrajectory) to the set goal state (or specified by the joints argument) """
-        if not joints == None:
+        if type(joints) is JointState:
+            self._g.set_joint_value_target(joints.position)
+
+        elif type(joints) is Pose:
+            if self.has_end_effector_link():
+                pose = []
+                pose.append(joints.position.x)
+                pose.append(joints.position.y)
+                pose.append(joints.position.z)
+                (r, p, y) = tf.transformations.euler_from_quaternion([joints.orientation.x, joints.orientation.y, 
+                            joints.orientation.z, joints.orientation.w])
+                pose.append(r)
+                pose.append(p)
+                pose.append(y)
+                self._g.set_pose_target(pose)
+            else:
+                raise "There is no end effector to get the pose of"
+
+        elif not joints == None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
             except:
