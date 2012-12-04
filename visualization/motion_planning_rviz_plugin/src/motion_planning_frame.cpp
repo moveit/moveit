@@ -408,16 +408,15 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
   static Eigen::Affine3d initial_pose_eigen;
   static bool dragging=false;
   
-  if (feedback.event_type==feedback.BUTTON_CLICK) 
+  if (feedback.event_type == feedback.BUTTON_CLICK) 
   {
     switchGoalPoseMarkerSelection(feedback.marker_name);
   } 
-  else if (feedback.event_type==feedback.MOUSE_DOWN) 
+  else if (feedback.event_type == feedback.MOUSE_DOWN) 
   {
     //Store current poses
-    goals_initial_pose_.clear();
-    GoalPoseMap::iterator it=goal_poses_.begin();
-    for (; it!=goal_poses_.end(); it++) 
+    goals_initial_pose_.clear();    
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
     {
       Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x, it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
       pose(0,3)=it->second.imarker->getPosition().x;
@@ -425,14 +424,14 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
       pose(2,3)=it->second.imarker->getPosition().z;
       goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second.imarker->getName(), pose));
 
-      if (it->second.imarker->getName()==feedback.marker_name) 
+      if (it->second.imarker->getName() == feedback.marker_name) 
       {
         initial_pose_eigen=pose;
       }
     }
     dragging=true;
   } 
-  else if (feedback.event_type==feedback.POSE_UPDATE && dragging) 
+  else if (feedback.event_type == feedback.POSE_UPDATE && dragging) 
   {
     //Compute displacement from stored pose, and apply to the rest of selected markers
     Eigen::Affine3d current_pose_eigen;
@@ -440,22 +439,21 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 
     Eigen::Affine3d current_wrt_initial=initial_pose_eigen.inverse() * current_pose_eigen;
 
-    //Update the rest of selected markers
-    GoalPoseMap::iterator it=goal_poses_.begin();
-    for (; it!=goal_poses_.end(); it++) 
+    //Update the rest of selected markers    
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
     {
       if (it->second.imarker->getName() != feedback.marker_name && it->second.selected) 
       {
         visualization_msgs::InteractiveMarkerPose impose;
 
-        Eigen::Affine3d newpose = goals_initial_pose_[it->second.imarker->getName()] * current_wrt_initial;
+        Eigen::Affine3d newpose=initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_initial_pose_[it->second.imarker->getName()];
         tf::poseEigenToMsg(newpose, impose.pose);
         impose.header.frame_id=it->second.imarker->getReferenceFrame();
 
         it->second.imarker->processMessage(impose);
       }
     }
-  } else if (feedback.event_type==feedback.MOUSE_UP) 
+  } else if (feedback.event_type == feedback.MOUSE_UP) 
   {
     dragging=false;
   }
