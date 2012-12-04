@@ -152,7 +152,8 @@ private Q_SLOTS:
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
   void planningAlgorithmIndexChanged(int index);
-  void importSceneButtonClicked(void);
+  void importFileButtonClicked(void);
+  void importUrlButtonClicked(void);
   void clearSceneButtonClicked(void);
   void sceneScaleChanged(int value);
   void sceneScaleStartChange(void);
@@ -213,6 +214,7 @@ private:
   void attachDetachCollisionObject(QListWidgetItem *item);
   void populateGoalPosesList();
   void populateStartStatesList();
+  void importResource(const std::string &path);
   
   /** Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);

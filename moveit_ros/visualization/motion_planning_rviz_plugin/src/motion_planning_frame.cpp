@@ -88,7 +88,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->allow_looking, SIGNAL( toggled(bool) ), this, SLOT( allowLookingToggled(bool) ));
   connect( ui_->allow_replanning, SIGNAL( toggled(bool) ), this, SLOT( allowReplanningToggled(bool) ));
   connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
-  connect( ui_->import_scene_button, SIGNAL( clicked() ), this, SLOT( importSceneButtonClicked() ));
+  connect( ui_->import_file_button, SIGNAL( clicked() ), this, SLOT( importFileButtonClicked() ));
+  connect( ui_->import_url_button, SIGNAL( clicked() ), this, SLOT( importUrlButtonClicked() ));
   connect( ui_->clear_scene_button, SIGNAL( clicked() ), this, SLOT( clearSceneButtonClicked() ));
   connect( ui_->scene_scale, SIGNAL( valueChanged(int) ), this, SLOT( sceneScaleChanged(int) ));
   connect( ui_->scene_scale, SIGNAL( sliderPressed() ), this, SLOT( sceneScaleStartChange() ));
@@ -137,7 +138,7 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
 {
   ROS_DEBUG("Create goal pose");
 
-  bool ok;                
+  bool ok = false;
   
   std::stringstream ss;
   ss << planning_display_->getPlanningScene()->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
@@ -507,7 +508,7 @@ void MotionPlanningFrame::saveStartStateButtonClicked(void)
 {
   ROS_DEBUG("Saving start state");
 
-  bool ok;                
+  bool ok = false;                
 
   std::stringstream ss;
   ss << planning_display_->getPlanningScene()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << start_states_.size();
@@ -781,17 +782,31 @@ void MotionPlanningFrame::createSceneInteractiveMarker(void)
   }
 }
 
-void MotionPlanningFrame::importSceneButtonClicked(void)
+void MotionPlanningFrame::importUrlButtonClicked(void)
 {
-  std::string path = QFileDialog::getOpenFileName(this, "Import Scene").toStdString();
+  bool ok = false;
+  QString url = QInputDialog::getText(this, tr("Import Scene"),
+                                      tr("URL for file to import:"), QLineEdit::Normal,
+                                      QString("http://"), &ok);
+  if (ok && !url.isEmpty())
+    importResource(url.toStdString());
+}
 
-  if (!path.empty() && planning_display_->getPlanningSceneMonitor())
+void MotionPlanningFrame::importFileButtonClicked(void)
+{ 
+  QString path = QFileDialog::getOpenFileName(this, "Import Scene");
+  if (!path.isEmpty())
+    importResource("file://" + path.toStdString());
+}
+
+void MotionPlanningFrame::importResource(const std::string &path)
+{
+  if (planning_display_->getPlanningSceneMonitor())
   {
-    path = "file://" + path;
     shapes::Mesh *mesh = shapes::createMeshFromResource(path);
     if (mesh)
     {
-      std::size_t slash = path.find_last_of("/");
+      std::size_t slash = path.find_last_of("/\\");
       std::string name = path.substr(slash + 1);
       shapes::ShapeConstPtr shape(mesh);
       Eigen::Affine3d pose;
@@ -830,9 +845,9 @@ void MotionPlanningFrame::importSceneButtonClicked(void)
           case QMessageBox::No:
           {
             // Don't overwrite was clicked. Ask for another name
-            bool ok;
+            bool ok = false;
             QString text = QInputDialog::getText(this, tr("Choose a new name"),
-                                                 tr("New object name:"), QLineEdit::Normal,
+                                                 tr("Import the new object under the name:"), QLineEdit::Normal,
                                                  QString::fromStdString(name + "-" + boost::lexical_cast<std::string>
                                                                         (planning_display_->getPlanningScene()->getCollisionWorld()->getObjectsCount())), &ok);
             if (ok)
