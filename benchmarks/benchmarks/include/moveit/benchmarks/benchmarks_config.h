@@ -53,6 +53,7 @@ struct BenchmarkOptions
   std::string query_regex;
   std::string goal_regex;
   std::string group_override;
+  std::string default_constrained_link;
   std::size_t default_run_count;
   
   struct PluginOptions
