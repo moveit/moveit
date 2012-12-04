@@ -3,11 +3,10 @@ roslib.load_manifest('moveit_commander')
 import rospy
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
-from moveit_commander.arm_mover import ArmMover
-
+from moveit_commander.commander import MoveGroupCommander
 # initialize
 rospy.init_node('test_arm_control', anonymous=True)
-arm_mover = ArmMover('arm')
+arm_mover = MoveGroupCommander('arm')
 
 # desired joint positions
 #msg = JointState()
@@ -16,17 +15,17 @@ joints = [-0.199792813192, -0.0301778257579, -0.119474613742, 0.113024891124, -0
 #msg.position = joints
 
 # get a joint state message already configured for this arm
-js = arm_mover.get_current_joint_values()
+#js = arm_mover.get_current_joint_values()
 
 # set desired joint positions
-js.position = joints
-print 'Moving to %s' % (str(joints))
+#js.position = joints
+#print 'Moving to %s' % (str(joints))
 
 # send out the command
 #reached_goal = arm_mover.move_to_goal(js)
 #if not reached_goal:
 #    print arm_mover.get_exceptions()
-reached_goal = arm_mover.move_arm(js)
+reached_goal = arm_mover.go(joints)
 if reached_goal:
     print 'Success.'
 else: 
