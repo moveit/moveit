@@ -37,12 +37,7 @@
 #include <ros/ros.h>
 #include <moveit/benchmarks/benchmarks_config.h>
 #include <moveit/planning_scene/planning_scene.h>
-/*
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/planning_interface/planning_interface.h>
-*/
 #include <boost/program_options/variables_map.hpp>
-
 
 namespace moveit_benchmarks
 {
@@ -67,7 +62,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  ros::init(argc, argv, "call_planning_scene_benchmark", ros::init_options::AnonymousName);
+  ros::init(argc, argv, "call_moveit_benchmark", ros::init_options::AnonymousName);
   ros::AsyncSpinner spinner(1);
   spinner.start();
   

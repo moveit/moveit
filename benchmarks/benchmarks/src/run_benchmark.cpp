@@ -225,7 +225,6 @@ public:
     
     res.planner_interfaces.clear();
     std::vector<planning_interface::Planner*> planner_interfaces_to_benchmark;
-    std::vector<planning_interface::PlannerCapabilities> planner_interfaces_to_benchmark_capabilities;
     std::vector<std::vector<std::string> > planner_ids_to_benchmark_per_planner_interface;
     std::vector<std::size_t> average_count_per_planner_interface;
     moveit_msgs::GetMotionPlan::Request mp_req;
@@ -248,11 +247,9 @@ public:
       }
       if (it->second->canServiceRequest(mp_req))
       {
-        planning_interface::PlannerCapabilities capabilities = it->second->getPlannerCapabilities();
         res.planner_interfaces.resize(res.planner_interfaces.size() + 1);
         res.planner_interfaces.back().name = it->first;
         planner_interfaces_to_benchmark.push_back(it->second.get());
-        planner_interfaces_to_benchmark_capabilities.push_back(capabilities);
         planner_ids_to_benchmark_per_planner_interface.resize(planner_ids_to_benchmark_per_planner_interface.size() + 1);
         average_count_per_planner_interface.resize(average_count_per_planner_interface.size() + 1, std::max<std::size_t>(1, req.default_average_count));
         std::vector<std::string> known;
@@ -455,7 +452,7 @@ private:
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "planning_scene_benchmark");
+  ros::init(argc, argv, "moveit_benchmark");
   ros::AsyncSpinner spinner(1);
   spinner.start();
   
