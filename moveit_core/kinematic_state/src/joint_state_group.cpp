@@ -183,6 +183,39 @@ void kinematic_state::JointStateGroup::setToRandomValues(void)
   setVariableValues(random_joint_states);
 }
 
+void kinematic_state::JointStateGroup::setToRandomValuesNearBy(const std::vector<double> &near, 
+                                                               const std::map<kinematic_model::JointModel::JointType, double> &distance_map)
+{
+  if(near.size() != joint_model_group_->getVariableCount())
+  {
+    logError("Vector should be of size %d. It is of size %d",joint_model_group_->getVariableCount(),near.size());
+    return;
+  }  
+  random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+  std::vector<double> random_joint_states;
+  joint_model_group_->getVariableRandomValuesNearBy(rng, random_joint_states, near, distance_map);
+  setVariableValues(random_joint_states);
+}
+
+void kinematic_state::JointStateGroup::setToRandomValuesNearBy(const std::vector<double> &near, 
+                                                               const std::vector<double> &distances)
+{
+  if(near.size() != joint_model_group_->getVariableCount())
+  {
+    logError("Near vector should be of size %d. It is of size %d",joint_model_group_->getVariableCount(),near.size());
+    return;
+  }  
+  if(distances.size() != joint_model_group_->getVariableCount())
+  {
+    logError("Distance should be of size %d. It is of size %d",joint_model_group_->getVariableCount(),distances.size());
+    return;
+  }  
+  random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+  std::vector<double> random_joint_states;
+  joint_model_group_->getVariableRandomValuesNearBy(rng, random_joint_states, near, distances);
+  setVariableValues(random_joint_states);
+}
+
 void kinematic_state::JointStateGroup::getVariableValues(std::vector<double>& joint_state_values) const
 {
   joint_state_values.clear();

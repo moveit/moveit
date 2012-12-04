@@ -147,6 +147,12 @@ public:
   /** \brief Sample a random state in accordance with the type of joints employed */
   void setToRandomValues(void);
 
+  /** \brief Sample a random state in accordance with the type of joints employed, near the specified joint state */
+  void setToRandomValuesNearBy(const std::vector<double> &near, const std::map<kinematic_model::JointModel::JointType, double> &distance_map);
+
+  /** \brief Sample a random state in accordance with the type of joints employed, near the specified joint state */
+  void setToRandomValuesNearBy(const std::vector<double> &near, const std::vector<double> &distances);  
+
   /** \brief Checks if the current joint state values are all within the bounds set in the model */
   bool satisfiesBounds(void) const;
   
