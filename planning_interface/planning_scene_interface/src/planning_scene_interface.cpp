@@ -74,7 +74,7 @@ namespace planning_scene_interface
   }
 
 
-  void PlanningSceneInterface::addSphere(const std::string id, const std::string frame_id, bp::list &position, 
+  void PlanningSceneInterface::addSphere(const std::string &id, const std::string &frame_id, bp::list &position, 
                                          bp::list &orientation, double radius)
   {
     bp::list dimensions;
@@ -83,7 +83,7 @@ namespace planning_scene_interface
                                          dimensions);
   }
 
-  void PlanningSceneInterface::addCylinder(const std::string id, const std::string frame_id, bp::list  &position, 
+  void PlanningSceneInterface::addCylinder(const std::string &id, const std::string &frame_id, bp::list  &position, 
                                            bp::list  &orientation, double height, double radius)
   {
     bp::list dimensions;
@@ -94,7 +94,7 @@ namespace planning_scene_interface
 
   }
 
-  void PlanningSceneInterface::addBox(const std::string id, const std::string frame_id, bp::list &position, 
+  void PlanningSceneInterface::addBox(const std::string &id, const std::string &frame_id, bp::list &position, 
                                       bp::list &orientation, double length, double width, double height)
   {
     bp::list  dimensions;
@@ -104,7 +104,7 @@ namespace planning_scene_interface
     addSimpleObjectToPlanningScenePython(id, frame_id, shape_msgs::SolidPrimitive::BOX, position, orientation, dimensions);
   }
 
-  void PlanningSceneInterface::addCone(const std::string id, const std::string frame_id, bp::list &position, 
+  void PlanningSceneInterface::addCone(const std::string &id, const std::string &frame_id, bp::list &position, 
                                        bp::list &orientation, double height, double radius)
   {
     bp::list dimensions;
@@ -113,10 +113,10 @@ namespace planning_scene_interface
     addSimpleObjectToPlanningScenePython(id, frame_id, shape_msgs::SolidPrimitive::CONE, position, orientation, dimensions);
   }
 
-  void PlanningSceneInterface::addSimpleObjectToPlanningScene(const std::string id, const std::string frame_id, int type,
-                                                              const std::vector<double> position, 
-                                                              const std::vector<double> orientation, 
-                                                              const std::vector<double> dimensions)
+  void PlanningSceneInterface::addSimpleObjectToPlanningScene(const std::string &id, const std::string &frame_id, int type,
+                                                              const std::vector<double> &position, 
+                                                              const std::vector<double> &orientation, 
+                                                              const std::vector<double> &dimensions)
   {
 
     ros::Duration(2.0).sleep();// This delay is so critical, otherwise the first published object may not be added in the collision_space by the environment_server
@@ -152,7 +152,7 @@ namespace planning_scene_interface
     ROS_INFO("Should have published");
   }
 
-  void PlanningSceneInterface::addSimpleObjectToPlanningScenePython(const std::string id, const std::string frame_id, 
+  void PlanningSceneInterface::addSimpleObjectToPlanningScenePython(const std::string &id, const std::string &frame_id, 
                                                                     int type, bp::list &position,
                                                                     bp::list &orientation, bp::list &dimensions)
   {
@@ -160,7 +160,7 @@ namespace planning_scene_interface
                                    doubleFromList(dimensions));
   }
 
-  void PlanningSceneInterface::removeSimpleObjectFromPlanningScene(const std::string id, const std::string frame_id) 
+  void PlanningSceneInterface::removeSimpleObjectFromPlanningScene(const std::string &id, const std::string &frame_id) 
   {
     moveit_msgs::CollisionObject object_to_remove;
     object_to_remove.id = id;
@@ -173,10 +173,10 @@ namespace planning_scene_interface
     ROS_INFO("Should have published");
   }
   
-  void PlanningSceneInterface::attachSimpleCollisionObject(const std::string id, const std::string frame_id, int type,  
-                                   const std::string link_name, const std::vector<std::string> touch_links, 
-                                   const std::vector<double> position, const std::vector<double> orientation, 
-                                   const std::vector<double> dimensions)
+  void PlanningSceneInterface::attachSimpleCollisionObject(const std::string &id, const std::string &frame_id, int type,  
+                                   const std::string &link_name, const std::vector<std::string> &touch_links, 
+                                   const std::vector<double> &position, const std::vector<double> &orientation, 
+                                   const std::vector<double> &dimensions)
   {
     //add the cylinder into the collision space
     moveit_msgs::AttachedCollisionObject gripper_object;
@@ -215,7 +215,7 @@ namespace planning_scene_interface
     ROS_INFO("Should have published");
   }
 
-  void PlanningSceneInterface::attachSphere(const std::string id, const std::string frame_id, const std::string link_name,
+  void PlanningSceneInterface::attachSphere(const std::string &id, const std::string &frame_id, const std::string &link_name,
                                          bp::list &touch_links, bp::list &position,                      
                                          bp::list &orientation, double radius)
   {
@@ -225,7 +225,7 @@ namespace planning_scene_interface
                                       position, orientation, dimensions);
   }
 
-  void PlanningSceneInterface::attachCylinder(const std::string id, const std::string frame_id, const std::string link_name,
+  void PlanningSceneInterface::attachCylinder(const std::string &id, const std::string &frame_id, const std::string &link_name,
                                          bp::list &touch_links, bp::list &position,
                                          bp::list &orientation, double height, double radius)
   {
@@ -236,7 +236,7 @@ namespace planning_scene_interface
                                       position, orientation, dimensions);
   }
 
-  void PlanningSceneInterface::attachBox(const std::string id, const std::string frame_id, const std::string link_name,
+  void PlanningSceneInterface::attachBox(const std::string &id, const std::string &frame_id, const std::string &link_name,
                                          bp::list &touch_links, bp::list &position,
                                          bp::list &orientation, double length, double width, double height)
   {
@@ -248,7 +248,7 @@ namespace planning_scene_interface
                                       position, orientation, dimensions);
   }
  
-  void PlanningSceneInterface::attachCone(const std::string id, const std::string frame_id, const std::string link_name,
+  void PlanningSceneInterface::attachCone(const std::string &id, const std::string &frame_id, const std::string &link_name,
                                          bp::list &touch_links, bp::list &position,
                                          bp::list &orientation, double height, double radius)
   {
@@ -259,8 +259,8 @@ namespace planning_scene_interface
                                       position, orientation, dimensions);
   }
 
-  void PlanningSceneInterface::attachSimpleCollisionObjectPython(const std::string id, const std::string frame_id, 
-                                                                 int type, const std::string link_name, 
+  void PlanningSceneInterface::attachSimpleCollisionObjectPython(const std::string &id, const std::string &frame_id, 
+                                                                 int type, const std::string &link_name, 
                                                                  bp::list &touch_links, bp::list &position, 
                                                                  bp::list &orientation, bp::list &dimensions)
   {
@@ -268,7 +268,7 @@ namespace planning_scene_interface
                                 doubleFromList(orientation), doubleFromList(dimensions));
   }
 
-  void PlanningSceneInterface::removeSimpleAttachedObject(const std::string id, const std::string frame_id, const std::string link_name)
+  void PlanningSceneInterface::removeSimpleAttachedObject(const std::string &id, const std::string &frame_id, const std::string &link_name)
   {
     moveit_msgs::AttachedCollisionObject object_to_remove;
     object_to_remove.link_name = link_name;
