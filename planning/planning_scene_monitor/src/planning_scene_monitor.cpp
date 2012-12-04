@@ -232,7 +232,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopPublishingPlanningScene(v
 void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(SceneUpdateType update_type, const std::string &planning_scene_topic)
 {
   publish_update_types_ = update_type;
-  if (!publish_planning_scene_)
+  if (!publish_planning_scene_ && scene_)
   {
     planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>(planning_scene_topic, 100, false);
     ROS_INFO("Publishing maintained planning scene on '%s'", planning_scene_topic.c_str());

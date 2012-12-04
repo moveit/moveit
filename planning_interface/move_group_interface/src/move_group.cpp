@@ -110,20 +110,19 @@ public:
       ROS_FATAL_STREAM(error);
       throw std::runtime_error(error);
     }
-    
+
     if (!getKinematicModel()->hasJointModelGroup(opt.group_name_))
     {
       std::string error = "Group '" + opt.group_name_ + "' was not found.";
       ROS_FATAL_STREAM(error);
       throw std::runtime_error(error);
     }
-    
+
     joint_state_target_.reset(new kinematic_state::KinematicState(getKinematicModel()));
     joint_state_target_->setToDefaultValues();
     use_joint_state_target_ = true;
     can_look_ = false;
     can_replan_ = false;
-    
     goal_tolerance_ = 1e-4;
     planning_time_ = ros::Duration(5.0);
     
@@ -186,7 +185,7 @@ public:
   {
     if (constraints_init_thread_)
     {
-      constraints_init_thread_->interrupt();
+      terminate_constraints_init_thread_ = true;
       constraints_init_thread_->join();
     }
   }
@@ -563,12 +562,13 @@ public:
   }
   
   void initializeConstraintsStorage(const std::string &host = "", unsigned int port = 0)
-  {
+  {    
     if (constraints_init_thread_)
     {
-      constraints_init_thread_->interrupt();
+      terminate_constraints_init_thread_ = true;
       constraints_init_thread_->join();
     }
+    terminate_constraints_init_thread_ = false;
     constraints_init_thread_.reset(new boost::thread(boost::bind(&MoveGroupImpl::initializeConstraintsStorageThread, this, host, port)));
   }
   
@@ -590,8 +590,12 @@ private:
   {
     // this is interruptible, allows the thread to quickly terminate if the destructor is 
     // triggered right after the constructor
-    ros::WallDuration(0.1).sleep();
-    
+    ros::WallDuration d(0.01);
+    for (int i = 0 ; i < 20 ; ++i)
+      if (terminate_constraints_init_thread_)
+        return;
+      else
+        d.sleep();
     try
     {
       constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host, port));
@@ -630,6 +634,7 @@ private:
   ros::ServiceClient query_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
+  bool terminate_constraints_init_thread_;
 };
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
