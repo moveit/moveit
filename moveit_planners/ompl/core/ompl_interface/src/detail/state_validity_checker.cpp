@@ -62,13 +62,13 @@ void ompl_interface::StateValidityChecker::setVerbose(bool flag)
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state) const
 {  
-  ompl::tools::Profiler::ScopedBlock sblock("isValid");
+  //  ompl::tools::Profiler::ScopedBlock sblock("isValid");
   return planning_context_->useStateValidityCache() ? isValidWithCache(state) : isValidWithoutCache(state);
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
 {
-  ompl::tools::Profiler::ScopedBlock sblock("isValid");
+  //  ompl::tools::Profiler::ScopedBlock sblock("isValid");
   return planning_context_->useStateValidityCache() ? isValidWithCache(state, dist) : isValidWithoutCache(state, dist);
 }
 

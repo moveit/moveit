@@ -54,7 +54,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getKinematicModel()),
   ompl_simple_setup_(spec.state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
   last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_state_sampling_attempts_(0), max_goal_sampling_attempts_(0), 
-  max_planning_threads_(0), max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0), use_state_validity_cache_(true)
+  max_planning_threads_(0), max_solution_segment_length_(0.0)
 {
   ompl_simple_setup_.getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
@@ -186,36 +186,6 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(void)
     cfg.erase(it);
   }
   
-  it = cfg.find("max_velocity");
-  if (it != cfg.end())
-  {
-    try
-    {
-      max_velocity_ = boost::lexical_cast<double>(boost::trim_copy(it->second));
-      logInform("%s: Maximum velocity set to %lf", name_.c_str(), max_velocity_);
-    }
-    catch(boost::bad_lexical_cast &e)
-    {
-      logError("%s: Unable to parse maximum velocity: %s", name_.c_str(), e.what());
-    }
-    cfg.erase(it);
-  }
-  
-  it = cfg.find("max_acceleration");
-  if (it != cfg.end())
-  {
-    try
-    {
-      max_velocity_ = boost::lexical_cast<double>(boost::trim_copy(it->second));
-      logInform("%s: Maximum acceleration set to %lf", name_.c_str(), max_velocity_);
-    }
-    catch(boost::bad_lexical_cast &e)
-    {
-      logError("%s: Unable to parse maximum acceleration: %s", name_.c_str(), e.what());
-    }
-    cfg.erase(it);
-  }
-  
   if (cfg.empty())
     return;
   
@@ -253,9 +223,9 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   logDebug("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]", name_.c_str(),
            wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
   
-  spec_.state_space_->setBounds(wparams.min_corner.x, wparams.max_corner.x,
-                                wparams.min_corner.y, wparams.max_corner.y,
-                                wparams.min_corner.z, wparams.max_corner.z);
+  spec_.state_space_->setPlanningVolume(wparams.min_corner.x, wparams.max_corner.x,
+                                        wparams.min_corner.y, wparams.max_corner.y,
+                                        wparams.min_corner.z, wparams.max_corner.z);
 }
 
 void ompl_interface::ModelBasedPlanningContext::simplifySolution(double timeout)
@@ -461,9 +431,6 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
   
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
-
-  //  ompl_simple_setup_.getPlanner()->params().setParam("range", "0.07");  
-  //  ompl_simple_setup_.print();
 
   
   bool result = false;

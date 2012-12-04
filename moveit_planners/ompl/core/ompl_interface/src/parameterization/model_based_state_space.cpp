@@ -215,10 +215,10 @@ void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State *s
   out << "Tag: " << state->as<StateType>()->tag << std::endl;
 }
 
-void ompl_interface::ModelBasedStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
+void ompl_interface::ModelBasedStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
   for (std::size_t i = 0 ; i < jointSubspaceCount_ ; ++i)
-    components_[i]->as<ModelBasedJointStateSpace>()->setBounds(minX, maxX, minY, maxY, minZ, maxZ);
+    components_[i]->as<ModelBasedJointStateSpace>()->setPlanningVolume(minX, maxX, minY, maxY, minZ, maxZ);
 }
 
 void ompl_interface::ModelBasedStateSpace::copyToKinematicState(kinematic_state::JointStateGroup* jsg, const ompl::base::State *state) const

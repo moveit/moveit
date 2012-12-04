@@ -197,7 +197,7 @@ public:
   virtual void printState(const ompl::base::State *state, std::ostream &out) const;
   
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
-  virtual void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
+  virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
   const std::vector<kinematic_model::JointModel::Bounds>& getJointsBounds(void) const
   {

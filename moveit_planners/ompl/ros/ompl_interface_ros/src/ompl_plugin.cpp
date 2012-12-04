@@ -37,7 +37,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <boost/shared_ptr.hpp>
-#include <pluginlib/class_list_macros.h>
+#include <class_loader/class_loader.h>
 
 #include <dynamic_reconfigure/server.h>
 #include "moveit_ompl_planners_ros_plugin/OMPLDynamicReconfigureConfig.h"
@@ -168,6 +168,4 @@ private:
 
 } // ompl_interface_ros
 
-PLUGINLIB_DECLARE_CLASS(ompl_interface_ros, OMPLPlanner,
-                        ompl_interface_ros::OMPLPlanner, 
-                        planning_interface::Planner);
+CLASS_LOADER_REGISTER_CLASS(ompl_interface_ros::OMPLPlanner, planning_interface::Planner);

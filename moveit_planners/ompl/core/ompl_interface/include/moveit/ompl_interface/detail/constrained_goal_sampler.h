@@ -58,7 +58,6 @@ public:
 private:
   
   bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
-  bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
   
   const ModelBasedPlanningContext                 *planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;

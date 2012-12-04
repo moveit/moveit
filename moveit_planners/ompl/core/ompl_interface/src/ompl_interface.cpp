@@ -52,12 +52,37 @@ ompl_interface::OMPLInterface::~OMPLInterface(void)
 {
 }
 
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const
+{
+  ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(req);
+  if (ctx)
+    configureConstraints(ctx);
+  return ctx;
+}
+
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const std::string &config, const std::string &factory_type) const
+{
+  ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(config, factory_type);
+  if (ctx)
+    configureConstraints(ctx);
+  return ctx;
+}
+
+void ompl_interface::OMPLInterface::configureConstraints(const ModelBasedPlanningContextPtr &context) const
+{
+  if (use_constraints_approximations_)
+    context->setConstraintsApproximations(constraints_library_);
+  else
+    context->setConstraintsApproximations(ConstraintsLibraryPtr());
+}
+
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPlanRequest &req, 
                                                                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                                             moveit_msgs::MoveItErrorCodes *error_code,
                                                                                             unsigned int *attempts, double *timeout) const
 {
-  ros::WallTime start = ros::WallTime::now();
+  ot::Profiler::ScopedBlock sblock("OMPLInterface:PrepareForSolve");
+
   kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
   kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
 
@@ -104,7 +129,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
                                           const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
 {
   ompl::tools::Profiler::ScopedStart pslv;
-  ot::Profiler::ScopedBlock sblock("OMPLInterfaceSolve");
+  ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
 
   unsigned int attempts = 1;
   double timeout = 0.0;
@@ -142,7 +167,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 					  const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::MotionPlanDetailedResponse &res) const
 {
   ompl::tools::Profiler::ScopedStart pslv;
-  ot::Profiler::ScopedBlock sblock("OMPLInterfaceSolve");
+  ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
   
   unsigned int attempts = 1;
   double timeout = 0.0;
@@ -222,7 +247,8 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
                                                          const std::string &factory_type) const
 { 
   ompl::tools::Profiler::ScopedStart pslv;
-  
+  ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
+
   ModelBasedPlanningContextPtr context = getPlanningContext(config, factory_type);
   if (!context)
     return ob::PathPtr();

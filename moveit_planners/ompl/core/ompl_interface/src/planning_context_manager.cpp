@@ -101,7 +101,7 @@ struct PlanningContextManager::CachedContexts
 ompl_interface::PlanningContextManager::PlanningContextManager(const kinematic_model::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
   kmodel_(kmodel), constraint_sampler_manager_(csm),
   max_goal_samples_(10), max_state_sampling_attempts_(4), max_goal_sampling_attempts_(1000),
-  max_planning_threads_(4), max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
+  max_planning_threads_(4), max_solution_segment_length_(0.0)
 {
   last_planning_context_.reset(new LastPlanningContext());
   cached_contexts_.reset(new CachedContexts());
@@ -241,9 +241,12 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     context_spec.planner_selector_ = getPlannerSelector();
     context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
     context_spec.state_space_ = factory->getNewStateSpace(space_spec);
+    context_spec.use_state_validity_cache_ = true;
     if (config.config.find("subspaces") != config.config.end())
     {
       context_spec.config_.erase("subspaces");
+      // if the planner operates at subspace level the cache may be unsafe
+      context_spec.use_state_validity_cache_ = false;
       boost::char_separator<char> sep(" ");
       boost::tokenizer<boost::char_separator<char> > tok(config.config.at("subspaces"), sep);
       for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
@@ -269,8 +272,6 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   context->setMaximumGoalSamples(max_goal_samples_);
   context->setMaximumStateSamplingAttempts(max_state_sampling_attempts_);
   context->setMaximumGoalSamplingAttempts(max_goal_sampling_attempts_);
-  context->setMaximumVelocity(max_velocity_);
-  context->setMaximumAcceleration(max_acceleration_);
   if (max_solution_segment_length_ <= std::numeric_limits<double>::epsilon())
     context->setMaximumSolutionSegmentLength(context->getOMPLSimpleSetup().getStateSpace()->getMaximumExtent() / 100.0);
   else

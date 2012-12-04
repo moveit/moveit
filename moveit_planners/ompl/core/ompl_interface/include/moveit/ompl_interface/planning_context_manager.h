@@ -56,8 +56,6 @@ struct PlanningConfigurationSettings
   std::map<std::string, std::string> config;
 };
 
-typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> FactoryTypeSelector;
-
 class PlanningContextManager
 {
 public: 
@@ -129,26 +127,6 @@ public:
     max_solution_segment_length_ = mssl;
   }
   
-  double getMaximumVelocity(void) const
-  {
-    return max_velocity_;    
-  }
-  
-  void setMaximumVelocity(double mv)
-  {
-    max_velocity_ = mv;
-  }
-  
-  double getMaximumAcceleration(void) const
-  {
-    return max_acceleration_;
-  }
-  
-  void setMaximumAcceleration(double ma)
-  {
-    max_acceleration_ = ma;
-  }
-  
   const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return kmodel_;
@@ -188,7 +166,9 @@ public:
   }
   
 protected:
-  
+
+  typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> FactoryTypeSelector;
+
   ConfiguredPlannerAllocator plannerSelector(const std::string &planner) const;
   
   void registerDefaultPlanners(void);
@@ -224,12 +204,6 @@ protected:
   
   /// when planning in parallel, this is the maximum number of threads to use at one time
   unsigned int                                          max_planning_threads_;
-  
-  /// the maximum velocity to move with
-  double                                                max_velocity_;
-  
-  /// the maximum acceleration to move at
-  double                                                max_acceleration_;
   
   /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
   double                                                max_solution_segment_length_;

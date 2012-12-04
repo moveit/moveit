@@ -104,27 +104,14 @@ public:
   
   void terminateSolve(void);
 
+  ModelBasedPlanningContextPtr getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const;
+  ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const;
+
   ModelBasedPlanningContextPtr getLastPlanningContext(void) const
   {
     return context_manager_.getLastPlanningContext();    
   }
   
-  ModelBasedPlanningContextPtr getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const
-  {
-    ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(req);
-    if (ctx)
-      configureConstraints(ctx);
-    return ctx;
-  }
-  
-  ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const
-  {
-    ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(config, factory_type);
-    if (ctx)
-      configureConstraints(ctx);
-    return ctx;
-  }
-    
   const PlanningContextManager& getPlanningContextManager(void) const
   {
     return context_manager_;
@@ -172,13 +159,7 @@ public:
   
 protected:
 
-  void configureConstraints(const ModelBasedPlanningContextPtr &context) const
-  {
-    if (use_constraints_approximations_)
-      context->setConstraintsApproximations(constraints_library_);
-    else
-      context->setConstraintsApproximations(ConstraintsLibraryPtr());
-  }
+  void configureConstraints(const ModelBasedPlanningContextPtr &context) const;
   
   /** \brief Configure the OMPL planning context for a new planning request */
   ModelBasedPlanningContextPtr prepareForSolve(const moveit_msgs::MotionPlanRequest &req,

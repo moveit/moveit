@@ -93,7 +93,7 @@ public:
   }
   
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
-  void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
+  void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
   const kinematic_model::JointModel::Bounds& getJointBounds(void) const
   {

@@ -105,7 +105,7 @@ public:
   bool computeStateIK(ompl::base::State *state) const;
   bool computeStateK(ompl::base::State *state) const;
 
-  virtual void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
+  virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   virtual void copyToOMPLState(ompl::base::State *state, const kinematic_state::JointStateGroup* jsg) const;
   virtual void sanityChecks(void) const;
   

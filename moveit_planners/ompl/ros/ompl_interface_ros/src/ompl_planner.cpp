@@ -38,7 +38,6 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <tf/transform_listener.h>
-#include <visualization_msgs/MarkerArray.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <moveit_msgs/GetMotionPlan.h>
@@ -63,7 +62,6 @@ public:
     construct_ca_service_ = nh_.advertiseService(CONSTRUCT_CONSTRAINT_APPROXIMATION_SERVICE_NAME, &OMPLPlannerService::constructConstraintApproximation, this);
     if (debug_)
     {
-      pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 5);
       pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 100);
       pub_request_ = nh_.advertise<moveit_msgs::MotionPlanRequest>("motion_plan_request", 100);
     }
@@ -79,7 +77,6 @@ public:
     {
       if (result)
         displaySolution(res);
-      displayPlannerData("r_wrist_roll_link");
       std::stringstream ss;
       ompl::tools::Profiler::Status(ss);
       ROS_INFO("%s", ss.str().c_str());
@@ -94,47 +91,6 @@ public:
     d.trajectory_start = mplan_res.trajectory_start;
     d.trajectory = mplan_res.trajectory;
     pub_plan_.publish(d);
-  }
-  
-  void displayPlannerData(const std::string &link_name)
-  {    
-    const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_.getLastPlanningContext();
-    if (pc)
-    {
-      ompl::base::PlannerData pd(pc->getOMPLSimpleSetup().getSpaceInformation());
-      pc->getOMPLSimpleSetup().getPlannerData(pd);
-      kinematic_state::KinematicState kstate = psm_.getPlanningScene()->getCurrentState();  
-      visualization_msgs::MarkerArray arr; 
-      std_msgs::ColorRGBA color;
-      color.r = 1.0f;
-      color.g = 0.0f;
-      color.b = 0.0f;
-      color.a = 1.0f;
-      unsigned int nv = pd.numVertices();
-      for (unsigned int i = 0 ; i < nv ; ++i)
-      {
-	pc->getOMPLStateSpace()->copyToKinematicState(kstate, pd.getVertex(i).getState());
-        kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
-        const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
-        
-        visualization_msgs::Marker mk;
-        mk.header.stamp = ros::Time::now();
-        mk.header.frame_id = psm_.getPlanningScene()->getPlanningFrame();
-        mk.ns = "planner_data";
-        mk.id = i;
-        mk.type = visualization_msgs::Marker::SPHERE;
-        mk.action = visualization_msgs::Marker::ADD;
-        mk.pose.position.x = pos.x();
-        mk.pose.position.y = pos.y();
-        mk.pose.position.z = pos.z();
-        mk.pose.orientation.w = 1.0;
-        mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
-        mk.color = color;
-        mk.lifetime = ros::Duration(30.0);
-        arr.markers.push_back(mk);
-      }
-      pub_markers_.publish(arr); 
-    }
   }
   
   bool computeBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
@@ -179,7 +135,6 @@ private:
   ros::ServiceServer                            benchmark_service_;  
   ros::ServiceServer                            construct_ca_service_;  
   ros::ServiceServer                            display_states_service_;
-  ros::Publisher                                pub_markers_;
   ros::Publisher                                pub_plan_;
   ros::Publisher                                pub_request_;
   bool                                          debug_;

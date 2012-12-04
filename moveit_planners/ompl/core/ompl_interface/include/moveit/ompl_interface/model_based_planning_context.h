@@ -70,6 +70,7 @@ struct ModelBasedPlanningContextSpecification
   ConfiguredPlannerSelector planner_selector_; 
   ConstraintsLibraryConstPtr constraints_library_;
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
+  bool use_state_validity_cache_;
   
   ModelBasedStateSpacePtr state_space_;
   std::vector<ModelBasedStateSpacePtr> subspaces_;
@@ -210,26 +211,6 @@ public:
     max_solution_segment_length_ = mssl;
   }
 
-  double getMaximumVeolcity(void) const
-  {
-    return max_velocity_;    
-  }
-  
-  void setMaximumVelocity(double mv)
-  {
-    max_velocity_ = mv;
-  }
-  
-  double getMaximumAcceleration(void) const
-  {
-    return max_acceleration_;
-  }
-  
-  void setMaximumAcceleration(double ma)
-  {
-    max_acceleration_ = ma;
-  }
-  
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager(void)
   {
     return spec_.constraint_sampler_manager_;
@@ -264,15 +245,9 @@ public:
   
   bool useStateValidityCache(void) const
   {
-    return use_state_validity_cache_;
+    return spec_.use_state_validity_cache_;
   }
 
-  void useStateValidityCache(bool flag) 
-  {
-    use_state_validity_cache_ = flag;
-  }
-  
-  
   /* @brief solve the planning problem. Return true if the problem is solved
      @param timeout The time to spend on solving
      @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
@@ -367,17 +342,8 @@ protected:
   /// when planning in parallel, this is the maximum number of threads to use at one time
   unsigned int                                            max_planning_threads_;
 
-  /// the maximum velocity to move with
-  double                                                  max_velocity_;
-
-  /// the maximum acceleration to move at
-  double                                                  max_acceleration_;
-
-
   /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
   double                                                  max_solution_segment_length_;
-  
-  bool                                                    use_state_validity_cache_;
 };
 
 }
