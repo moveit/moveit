@@ -204,6 +204,34 @@ void kinematic_model::JointModelGroup::getVariableRandomValues(random_numbers::R
     joint_model_vector_[i]->getVariableRandomValues(rng, values);
 }
 
+void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::map<kinematic_model::JointModel::JointType, double> &distance_map) const
+{
+  for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
+  {
+    double distance = 0.0;    
+    std::map<kinematic_model::JointModel::JointType, double>::const_iterator iter = distance_map.find(joint_model_vector_[i]->getType());
+    if(iter != distance_map.end())
+      distance = iter->second;    
+    else
+      logWarn("Did not pass in distance for %s",joint_model_vector_[i]->getName().c_str());    
+    joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distance);
+  }  
+}
+
+void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const
+{
+  if(distances.size() != joint_model_vector_.size())
+  {
+    logError("distances vector should be of size %d. It is of size %d",joint_model_vector_.size(),distances.size());
+    return;    
+  }  
+  for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
+  {
+    double distance = distances[i];    
+    joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distance);
+  }  
+}
+
 bool kinematic_model::JointModelGroup::getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const
 {
   std::map<std::string, std::map<std::string, double> >::const_iterator it = default_states_.find(name);
