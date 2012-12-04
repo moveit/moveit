@@ -71,7 +71,6 @@ class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
   Q_OBJECT
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
 public:
   MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);

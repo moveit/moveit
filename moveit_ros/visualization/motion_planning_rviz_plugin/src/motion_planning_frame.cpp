@@ -616,8 +616,10 @@ void MotionPlanningFrame::changePlanningGroupHelper(void)
 { 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
+  
   const kinematic_model::KinematicModelConstPtr &kmodel = planning_display_->getKinematicModel();
-  std::string group = planning_display_->getCurrentPlanningGroup();
+  std::string group = planning_display_->getCurrentPlanningGroup(); 
+
   if (!group.empty() && kmodel)
   {
     if (move_group_ && move_group_->getName() == group)
@@ -643,7 +645,7 @@ void MotionPlanningFrame::changePlanningGroupHelper(void)
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
       planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this));
     }
-  }
+  } 
 }
 
 void MotionPlanningFrame::changePlanningGroup(void)

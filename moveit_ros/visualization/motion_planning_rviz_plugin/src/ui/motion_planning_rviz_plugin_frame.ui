@@ -166,7 +166,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="planning">
       <attribute name="title">
        <string>Planning</string>
       </attribute>
@@ -627,7 +627,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="scene_collision_objects">
       <attribute name="title">
        <string>Scene Collision Objects</string>
       </attribute>
@@ -879,183 +879,153 @@
      </widget>
      <widget class="QWidget" name="goal_poses_and_states">
       <attribute name="title">
-       <string>Goal poses and States</string>
+       <string>Goal Poses and States</string>
       </attribute>
-      <widget class="QGroupBox" name="goal_poses_groupbox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>201</width>
-         <height>253</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>Press Ctrl+C to duplicate an object</string>
-       </property>
-       <property name="title">
-        <string>Goal poses</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_13">
-        <item>
-         <widget class="QListWidget" name="goal_poses_list">
-          <property name="editTriggers">
-           <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::MultiSelection</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="new_goal_pose_button">
-          <property name="text">
-           <string>New goal pose</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="remove_goal_pose_button">
-          <property name="text">
-           <string>Remove selected goals</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QPushButton" name="load_from_db_button">
-       <property name="geometry">
-        <rect>
-         <x>260</x>
-         <y>80</y>
-         <width>131</width>
-         <height>27</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Load from DB</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="save_on_db_button">
-       <property name="geometry">
-        <rect>
-         <x>260</x>
-         <y>110</y>
-         <width>131</width>
-         <height>27</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Save on DB</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="delete_on_db_button">
-       <property name="geometry">
-        <rect>
-         <x>260</x>
-         <y>140</y>
-         <width>131</width>
-         <height>27</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Delete on DB</string>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="load_goals_filter_text">
-       <property name="geometry">
-        <rect>
-         <x>210</x>
-         <y>40</y>
-         <width>101</width>
-         <height>27</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>.*</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_10">
-       <property name="geometry">
-        <rect>
-         <x>210</x>
-         <y>20</y>
-         <width>81</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Goals filter</string>
-       </property>
-      </widget>
-      <widget class="QGroupBox" name="start_states_groupbox">
-       <property name="geometry">
-        <rect>
-         <x>440</x>
-         <y>10</y>
-         <width>201</width>
-         <height>253</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>Press Ctrl+C to duplicate an object</string>
-       </property>
-       <property name="title">
-        <string>Start states</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_14">
-        <item>
-         <widget class="QListWidget" name="start_states_list">
-          <property name="editTriggers">
-           <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::MultiSelection</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="save_start_state_button">
-          <property name="text">
-           <string>Save start state</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="remove_start_state_button">
-          <property name="text">
-           <string>Remove selected states</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QLineEdit" name="load_states_filter_text">
-       <property name="geometry">
-        <rect>
-         <x>330</x>
-         <y>40</y>
-         <width>101</width>
-         <height>27</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>.*</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_11">
-       <property name="geometry">
-        <rect>
-         <x>330</x>
-         <y>20</y>
-         <width>81</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>States filter</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QGroupBox" name="start_states_groupbox">
+         <property name="toolTip">
+          <string>Press Ctrl+C to duplicate an object</string>
+         </property>
+         <property name="title">
+          <string>Start States</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="load_states_filter_text">
+            <property name="text">
+             <string>.*</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Filter:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QListWidget" name="start_states_list">
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::MultiSelection</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2">
+           <widget class="QPushButton" name="save_start_state_button">
+            <property name="text">
+             <string>Save Start State</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0" colspan="2">
+           <widget class="QPushButton" name="remove_start_state_button">
+            <property name="text">
+             <string>Remove Selected States</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="goal_poses_groupbox">
+         <property name="toolTip">
+          <string>Press Ctrl+C to duplicate an object</string>
+         </property>
+         <property name="title">
+          <string>Goal Poses</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="load_goals_filter_text">
+            <property name="text">
+             <string>.*</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Filter:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QListWidget" name="goal_poses_list">
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::MultiSelection</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2">
+           <widget class="QPushButton" name="new_goal_pose_button">
+            <property name="text">
+             <string>New Goal Pose</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0" colspan="2">
+           <widget class="QPushButton" name="remove_goal_pose_button">
+            <property name="text">
+             <string>Remove Selected Goals</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>Database Options</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_15">
+          <item>
+           <widget class="QPushButton" name="load_from_db_button">
+            <property name="text">
+             <string>Load</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="save_on_db_button">
+            <property name="text">
+             <string>Save</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="delete_on_db_button">
+            <property name="text">
+             <string>Clear All</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>

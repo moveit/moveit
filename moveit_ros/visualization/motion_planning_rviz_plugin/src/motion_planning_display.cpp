@@ -242,11 +242,17 @@ void MotionPlanningDisplay::onInitialize(void)
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible( query_start_state_property_->getBool() );
-  
+  std_msgs::ColorRGBA color; QColor qcolor = query_start_color_property_->getColor();
+  color.r = qcolor.redF(); color.g = qcolor.greenF(); color.b = qcolor.blueF(); color.a = 1.0f;  
+  query_robot_start_->setDefaultAttachedObjectColor(color);
+
   query_robot_goal_.reset(new KinematicStateVisualization(planning_scene_node_, context_, "Planning Request Goal", NULL ));
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
+  qcolor = query_goal_color_property_->getColor();
+  color.r = qcolor.redF(); color.g = qcolor.greenF(); color.b = qcolor.blueF();
+  query_robot_goal_->setDefaultAttachedObjectColor(color);
   
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
   frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : NULL);
@@ -794,8 +800,9 @@ void MotionPlanningDisplay::changedPlanningGroup(void)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
   computeMetrics(metrics_set_payload_property_->getFloat());
   updateLinkColors();
+  if (frame_)
+    frame_->changePlanningGroup();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
-  frame_->changePlanningGroup();
 }
 
 void MotionPlanningDisplay::changedWorkspace(void)
@@ -1001,14 +1008,13 @@ void MotionPlanningDisplay::onEnable()
   
   text_to_display_->setVisible(false);
   
-  changedPlanningGroup();
   query_robot_start_->setVisible(query_start_state_property_->getBool());
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
   frame_->enable();
   
   int_marker_display_->setEnabled(true);
   
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+  changedPlanningGroup();
 }
 
 // ******************************************************************************************
