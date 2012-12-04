@@ -48,6 +48,22 @@
 namespace moveit_benchmarks
 {
 const std::string BenchmarkConfig::BENCHMARK_SERVICE_NAME = "benchmark_planning_problem"; // name of the advertised benchmarking service (within the ~ namespace)
+
+namespace
+{
+
+// update the constrained link for Position and Orientation constraints, if that link is empty
+void checkConstrainedLink(moveit_msgs::Constraints &c, const std::string &link_name)
+{
+  for (std::size_t i = 0 ; i < c.position_constraints.size() ; ++i)
+    if (c.position_constraints[i].link_name.empty())
+      c.position_constraints[i].link_name = link_name;
+  for (std::size_t i = 0 ; i < c.orientation_constraints.size() ; ++i)
+    if (c.orientation_constraints[i].link_name.empty())
+      c.orientation_constraints[i].link_name = link_name;
+}
+
+}
 }
 
 moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std::size_t port) :
@@ -171,6 +187,13 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
           req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
           if (!opt_.group_override.empty())
             req.motion_plan_request.group_name = opt_.group_override;
+          if (!opt_.default_constrained_link.empty())
+          {
+            checkConstrainedLink(req.motion_plan_request.path_constraints, opt_.default_constrained_link);
+            for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
+              checkConstrainedLink(req.motion_plan_request.goal_constraints[j], opt_.default_constrained_link);
+          }
+          
           ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
           if (benchmark_service_client.call(req, res))
             ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
@@ -195,9 +218,11 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
           req.motion_plan_request.goal_constraints.resize(1);
           moveit_warehouse::ConstraintsWithMetadata constr;
           cs_.getConstraints(constr, cnames[i]);
-          req.motion_plan_request.goal_constraints[0] = *constr;  
+          req.motion_plan_request.goal_constraints[0] = *constr;
           if (!opt_.group_override.empty())
             req.motion_plan_request.group_name = opt_.group_override;
+          if (!opt_.default_constrained_link.empty())
+            checkConstrainedLink(req.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
           req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
           ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
           if (benchmark_service_client.call(req, res))
@@ -231,6 +256,8 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
       ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
       ("scene.group", boost::program_options::value<std::string>()->default_value(""), "Override the group to plan for")
+      ("scene.default_constrained_link", boost::program_options::value<std::string>()->default_value(""),
+       "Specify the default link to consider as constrained when one is not specified in a moveit_msgs::Constraints message")
       ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
     
     boost::program_options::variables_map vm;
@@ -248,6 +275,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.query_regex = declared_options["scene.query"];
     opt_.goal_regex = declared_options["scene.goal"];
     opt_.group_override = declared_options["scene.group"];
+    opt_.default_constrained_link = declared_options["scene.default_constrained_link"];
     
     if (opt_.output.empty())
       opt_.output = std::string(filename);
