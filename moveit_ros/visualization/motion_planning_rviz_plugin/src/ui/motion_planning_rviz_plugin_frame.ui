@@ -923,11 +923,11 @@
         </item>
        </layout>
       </widget>
-      <widget class="QPushButton" name="load_constraints_button">
+      <widget class="QPushButton" name="load_from_db_button">
        <property name="geometry">
         <rect>
-         <x>220</x>
-         <y>40</y>
+         <x>260</x>
+         <y>80</y>
          <width>131</width>
          <height>27</height>
         </rect>
@@ -936,11 +936,11 @@
         <string>Load from DB</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="save_constraints_button">
+      <widget class="QPushButton" name="save_on_db_button">
        <property name="geometry">
         <rect>
-         <x>220</x>
-         <y>70</y>
+         <x>260</x>
+         <y>110</y>
          <width>131</width>
          <height>27</height>
         </rect>
@@ -949,17 +949,111 @@
         <string>Save on DB</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="delete_constraints_button">
+      <widget class="QPushButton" name="delete_on_db_button">
        <property name="geometry">
         <rect>
-         <x>220</x>
-         <y>100</y>
+         <x>260</x>
+         <y>140</y>
          <width>131</width>
          <height>27</height>
         </rect>
        </property>
        <property name="text">
         <string>Delete on DB</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="load_goals_filter_text">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>40</y>
+         <width>101</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>.*</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_10">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>20</y>
+         <width>81</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Goals filter</string>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="start_states_groupbox">
+       <property name="geometry">
+        <rect>
+         <x>440</x>
+         <y>10</y>
+         <width>201</width>
+         <height>253</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>Press Ctrl+C to duplicate an object</string>
+       </property>
+       <property name="title">
+        <string>Start states</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_14">
+        <item>
+         <widget class="QListWidget" name="start_states_list">
+          <property name="editTriggers">
+           <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="save_start_state_button">
+          <property name="text">
+           <string>Save start state</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="remove_start_state_button">
+          <property name="text">
+           <string>Remove selected states</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QLineEdit" name="load_states_filter_text">
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>40</y>
+         <width>101</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>.*</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_11">
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>20</y>
+         <width>81</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>States filter</string>
        </property>
       </widget>
      </widget>
