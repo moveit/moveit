@@ -46,8 +46,8 @@
 
 namespace planning_scene
 {
-const std::string PlanningScene::COLLISION_MAP_NS = "_1_collision_map";
-const std::string PlanningScene::OCTOMAP_NS = "_2_octomap";
+const std::string PlanningScene::COLLISION_MAP_NS = "<collision_map>";
+const std::string PlanningScene::OCTOMAP_NS = "<octomap>";
 const std::string PlanningScene::DEFAULT_SCENE_NAME = "(noname)";
 }
 
@@ -620,6 +620,11 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
     collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(COLLISION_MAP_NS);
     for (std::size_t i = 0 ; i < map->shapes_.size() ; ++i)
     {
+      if (map->shapes_[i]->type != shapes::BOX)
+      {
+        logError("Shape that is not a box was found in '%s' object. Skipping shape.", COLLISION_MAP_NS.c_str());
+        continue;
+      }
       const shapes::Box *b = static_cast<const shapes::Box*>(map->shapes_[i].get());
       moveit_msgs::OrientedBoundingBox obb;
       obb.extents.x = b->size[0]; obb.extents.y = b->size[1]; obb.extents.z = b->size[2];
@@ -631,22 +636,21 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
 
 void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const
 {  
-  /*
   scene.world.octomap.header.frame_id = getPlanningFrame();
-  scene.world.octomap.octomap.data.clear();
+  scene.world.octomap.octomap = octomap_msgs::Octomap();
+  
   if (getCollisionWorld()->hasObject(OCTOMAP_NS))
   {
     collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(OCTOMAP_NS);
     if (map->shapes_.size() == 1)
     {
       const shapes::OcTree *o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
-      octomap_msgs::binaryMapToMsgData(*o->octree, scene.world.octomap.data); /// \todo swith to full octomap
+      octomap_msgs::fullMapToMsg(*o->octree, scene.world.octomap.octomap);
       tf::poseEigenToMsg(map->shape_poses_[0], scene.world.octomap.origin);
     }
     else
-      logError("Unexpected number of shapes in octomap collision object");
+      logError("Unexpected number of shapes in octomap collision object. Not including '%s' object", OCTOMAP_NS.c_str());
   }
-  */
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const
@@ -899,14 +903,26 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 {
   // each octomap replaces any previous one
   cworld_->removeObject(OCTOMAP_NS);
-  /*
+
   if (map.data.empty())
     return;
   
-  boost::shared_ptr<octomap::OcTree> om(octomap_msgs::binaryMsgDataToMap(map.data)); /// \todo switch to full octomap
-  const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
-  cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), t);
-  */
+  if (map.id != "OcTree")
+  {
+    logError("Received ocomap is of type '%s' but type 'OcTree' is expected.", map.id.c_str());
+    return;
+  }
+  
+  boost::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map)));
+  if (!map.header.frame_id.empty())
+  {
+    const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
+    cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), t);
+  }
+  else
+  {
+    cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), Eigen::Affine3d::Identity());
+  }
 }
 
 void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose &map)
@@ -914,16 +930,21 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   // each octomap replaces any previous one
   cworld_->removeObject(OCTOMAP_NS);
 
-  /*
-  if (map.data.empty())
+  if (map.octomap.data.empty())
     return;
-  boost::shared_ptr<octomap::OcTree> om(octomap_msgs::binaryMsgDataToMap(map.data)); /// \todo switch to full octomap
+  
+  if (map.octomap.id != "OcTree")
+  {
+    logError("Received ocomap is of type '%s' but type 'OcTree' is expected.", map.octomap.id.c_str());
+    return;
+  }
+
+  boost::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map.octomap)));
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
   Eigen::Affine3d p;
   tf::poseMsgToEigen(map.origin, p);
   p = t * p;
   cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
-  */
 }
 
 void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t)
