@@ -60,6 +60,8 @@
 
 // MoveIt!
 #include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/kinematic_state/kinematic_state.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
 namespace kdl_kinematics_plugin                        
@@ -90,7 +92,6 @@ namespace kdl_kinematics_plugin
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                   const std::vector<double> &ik_seed_state,
                                   double timeout,
-                                  unsigned int redundancy,         
                                   double consistency_limit,
                                   std::vector<double> &solution,
                                   moveit_msgs::MoveItErrorCodes &error_code) const;      
@@ -105,7 +106,6 @@ namespace kdl_kinematics_plugin
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                   const std::vector<double> &ik_seed_state,
                                   double timeout,
-                                  unsigned int redundancy,
                                   double consistency_limit,
                                   std::vector<double> &solution,
                                   const IKCallbackFn &solution_callback,
@@ -156,7 +156,6 @@ namespace kdl_kinematics_plugin
                           moveit_msgs::MoveItErrorCodes &error_code,
                           unsigned int max_search_iterations,
                           bool check_consistency,
-                          unsigned int redundancy=0,
                           double consistency_limit=-1.0) const;
     
   private:
@@ -172,8 +171,7 @@ namespace kdl_kinematics_plugin
      *  @return true if check succeeds
      */
     bool checkConsistency(const KDL::JntArray& seed_state,
-                          const unsigned int& redundancy,
-                          const double& consistency_limit,
+                          double consistency_limit,
                           const KDL::JntArray& solution) const;
 
     int getJointIndex(const std::string &name) const;
@@ -189,8 +187,7 @@ namespace kdl_kinematics_plugin
      *  @param jnt_array Returned random configuration
      */
     void getRandomConfiguration(const KDL::JntArray& seed_state,
-                                const unsigned int& redundancy,
-                                const double& consistency_limit,
+                                double consistency_limit,
                                 KDL::JntArray &jnt_array) const;
     
     int max_search_iterations_; /** max number of search iterations for the kinematics solver */
@@ -218,6 +215,12 @@ namespace kdl_kinematics_plugin
     mutable KDL::JntArray jnt_seed_state_,jnt_pos_in_,jnt_pos_out_;/** Pre-allocated for the number of joints (hence mutable) */
 
     mutable random_numbers::RandomNumberGenerator random_number_generator_;
+
+    kinematic_model::KinematicModelPtr kinematic_model_;
+
+    kinematic_state::KinematicStatePtr kinematic_state_, kinematic_state_2_;
+
+    //    kinematic_state::JointStateGroup* joint_state_group_, joint_state_group_2_;
     
   };
 }

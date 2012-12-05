@@ -46,9 +46,6 @@
 #include <urdf_model/model.h>
 #include <srdfdom/model.h>
 
-// Kinematic model
-#include <moveit/kinematic_model/kinematic_model.h>
-
 static const double MAX_TIMEOUT_KDL_PLUGIN = 5.0;
  
 //register KDLKinematics as a KinematicsBase implementation
@@ -59,41 +56,54 @@ namespace kdl_kinematics_plugin
 
 KDLKinematicsPlugin::KDLKinematicsPlugin():active_(false){}
 
-
 void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array) const
 {
-  for(unsigned int i=0; i < dimension_; ++i)
-    jnt_array(i) = random_number_generator_.uniformReal(joint_min_(i),joint_max_(i));
+  std::vector<double> jnt_array_vector(dimension_,0.0);  
+  kinematic_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
+  joint_state_group->setToRandomValues();  
+  joint_state_group->getVariableValues(jnt_array_vector);
+  for(std::size_t i=0; i < dimension_; ++i)
+    jnt_array(i) = jnt_array_vector[i];    
 }
 
 void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray& seed_state,
-                                                 const unsigned int& redundancy,
-                                                 const double& consistency_limit,
+                                                 double consistency_limit,
                                                  KDL::JntArray& jnt_array) const
 {
-  for(unsigned int i=0; i < dimension_; ++i) {
-    if(i != redundancy) {
-      jnt_array(i) = random_number_generator_.uniformReal(joint_min_(i),joint_max_(i));
-    } else {
-      double jmin = fmin(joint_min_(i), seed_state(i)-consistency_limit);
-      double jmax = fmax(joint_max_(i), seed_state(i)+consistency_limit);
-      jnt_array(i) = random_number_generator_.uniformReal(jmin, jmax);
-    }
-  }
+  std::vector<double> values, near, distances;
+  for(std::size_t i=0; i < dimension_; ++i) 
+  {  
+    near.push_back(seed_state(i));    
+    distances.push_back(consistency_limit);    
+  }  
+  kinematic_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
+  joint_state_group->setToRandomValuesNearBy(near, distances);
+  joint_state_group->getVariableValues(values);
+  for(std::size_t i=0; i < dimension_; ++i) 
+  {  
+    jnt_array(i) = values[i];    
+  } 
 }
 
 bool KDLKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
-                                           const unsigned int& redundancy,
-                                           const double& consistency_limit,
+                                           double consistency_limit,
                                            const KDL::JntArray& solution) const
 {
-  if (redundancy >= dimension_)
+  std::vector<double> seed_state_vector(dimension_), solution_vector(dimension_);  
+  for(std::size_t i=0; i < dimension_; ++i) 
+  {  
+    seed_state_vector[i] = seed_state(i);
+    solution_vector[i] = solution(i);    
+  }
+  kinematic_state::JointStateGroup* joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
+  kinematic_state::JointStateGroup* joint_state_group_2 = kinematic_state_2_->getJointStateGroup(getGroupName());
+  joint_state_group->setVariableValues(seed_state_vector);  
+  joint_state_group_2->setVariableValues(solution_vector);
+  
+  if(joint_state_group->infinityNormDistance(joint_state_group_2) > consistency_limit)
     return false;
-  double jmin = fmin(joint_min_(redundancy), seed_state(redundancy)-consistency_limit);
-  double jmax = fmax(joint_max_(redundancy), seed_state(redundancy)+consistency_limit);
-  if(solution(redundancy) < jmin || solution(redundancy) > jmax) 
-    return false;
-  return true;
+
+  return true;  
 }
 
 bool KDLKinematicsPlugin::initialize(const std::string& group_name,
@@ -105,18 +115,17 @@ bool KDLKinematicsPlugin::initialize(const std::string& group_name,
   setValues(group_name, base_frame, tip_frame, search_discretization);
 
   ros::NodeHandle private_handle("~");  
-  kinematic_model::KinematicModelPtr kinematic_model;
   const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_.getSRDF();
   const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader_.getURDF();
 
-  kinematic_model.reset(new kinematic_model::KinematicModel(urdf_model, srdf));
+  kinematic_model_.reset(new kinematic_model::KinematicModel(urdf_model, srdf));
 
-  if(!kinematic_model->hasJointModelGroup(group_name))
+  if(!kinematic_model_->hasJointModelGroup(group_name))
   {
     ROS_ERROR("Kinematic model does not contain group %s",group_name.c_str());
     return false;
   }  
-  kinematic_model::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name);
+  kinematic_model::JointModelGroup* joint_model_group = kinematic_model_->getJointModelGroup(group_name);
   if(!joint_model_group->isChain())
   {
     ROS_ERROR("Group is not a chain");
@@ -175,6 +184,13 @@ bool KDLKinematicsPlugin::initialize(const std::string& group_name,
   ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(kdl_chain_));
   ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
 
+  // Setup the joint state groups that we need
+  kinematic_state_.reset(new kinematic_state::KinematicState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));
+  kinematic_state_2_.reset(new kinematic_state::KinematicState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));  
+
+  /*  joint_state_group_ = kinematic_state_->getJointStateGroup(group_name);
+  joint_state_group_2_ = kinematic_state_2_->getJointStateGroup(group_name);  
+  */
   active_ = true;  
   ROS_INFO("KDL solver initialized");  
   return true;
@@ -244,7 +260,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
 bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            const std::vector<double> &ik_seed_state,
                                            double timeout,
-                                           unsigned int redundancy,
                                            double consistency_limit,
                                            std::vector<double> &solution,
                                            moveit_msgs::MoveItErrorCodes &error_code) const
@@ -259,7 +274,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           error_code,
                           max_search_iterations_,
                           true,
-                          redundancy,
                           consistency_limit);
 }
 
@@ -283,7 +297,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
 bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            const std::vector<double> &ik_seed_state,
                                            double timeout,
-                                           unsigned int redundancy,
                                            double consistency_limit,
                                            std::vector<double> &solution,
                                            const IKCallbackFn &solution_callback,
@@ -297,7 +310,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           error_code,
                           max_search_iterations_,
                           true,
-                          redundancy,
                           consistency_limit);
 }
 
@@ -309,7 +321,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            moveit_msgs::MoveItErrorCodes &error_code,
                                            unsigned int max_search_iterations,
                                            bool check_consistency,
-                                           unsigned int redundancy,
                                            double consistency_limit) const
 {
   ros::WallTime n1 = ros::WallTime::now();
@@ -357,8 +368,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     ROS_DEBUG("Iteration: %d, time: %f, Timeout: %f",i,(ros::WallTime::now()-n1).toSec(),timeout);    
     if(check_consistency) 
     {
-      getRandomConfiguration(jnt_seed_state_, redundancy, consistency_limit, jnt_pos_in_);
-      if(ik_valid < 0 || !checkConsistency(jnt_seed_state_, redundancy, consistency_limit, jnt_pos_out_))
+      getRandomConfiguration(jnt_seed_state_, consistency_limit, jnt_pos_in_);
+      if(ik_valid < 0 || !checkConsistency(jnt_seed_state_, consistency_limit, jnt_pos_out_))
         continue;
     }
     else
