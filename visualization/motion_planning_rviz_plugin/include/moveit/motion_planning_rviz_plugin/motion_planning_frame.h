@@ -176,7 +176,7 @@ private Q_SLOTS:
   void loadFromDBButtonClicked(void);
   void saveOnDBButtonClicked(void);
   void deleteOnDBButtonClicked(void);
-  void goalPoseItemClicked(QListWidgetItem * item);
+  void goalPoseSelectionChanged();
   
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);

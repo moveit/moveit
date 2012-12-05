@@ -118,7 +118,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->load_from_db_button, SIGNAL( clicked() ), this, SLOT( loadFromDBButtonClicked() ));
   connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveOnDBButtonClicked() ));
   connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteOnDBButtonClicked() ));
-  connect( ui_->goal_poses_list, SIGNAL( itemClicked(QListWidgetItem*) ), this, SLOT( goalPoseItemClicked(QListWidgetItem*) ));
+  connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   
   //Start states
   connect( ui_->save_start_state_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
@@ -403,9 +403,17 @@ void MotionPlanningFrame::populateGoalPosesList(void)
   }
 }
 
-void MotionPlanningFrame::goalPoseItemClicked(QListWidgetItem * item)
-{	
-  switchGoalPoseMarkerSelection(item->text().toStdString());	
+void MotionPlanningFrame::goalPoseSelectionChanged()
+{
+  for (unsigned int i = 0; i < ui_->goal_poses_list->count(); ++i)
+  {
+    QListWidgetItem *item=ui_->goal_poses_list->item(i);
+    if ( ( item->isSelected() && ! goal_poses_[item->text().toStdString()].selected )
+        || ( ! item->isSelected() && goal_poses_[item->text().toStdString()].selected ))
+    {
+      switchGoalPoseMarkerSelection(item->text().toStdString());
+    }
+  }
 }
 
 /* Receives feedback from the interactive marker attached to a goal pose */
@@ -416,7 +424,15 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
   
   if (feedback.event_type == feedback.BUTTON_CLICK) 
   {
-    switchGoalPoseMarkerSelection(feedback.marker_name);
+    //Unselect all but the clicked one
+    for (unsigned int i = 0; i < ui_->goal_poses_list->count(); ++i)
+    {
+      QListWidgetItem *item=ui_->goal_poses_list->item(i);
+      if (item->text().toStdString() == feedback.marker_name)
+        item->setSelected(true);
+      else
+        item->setSelected(false);
+    }
   } 
   else if (feedback.event_type == feedback.MOUSE_DOWN) 
   {
@@ -502,9 +518,8 @@ void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marke
 void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list) 
 {
   QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
-  if (found_items.size() > 0) 
-    for (unsigned int i = 0 ; i < found_items.size(); ++i) 
-      found_items[i]->setSelected(selection);
+  for (unsigned int i = 0 ; i < found_items.size(); ++i)
+    found_items[i]->setSelected(selection);
 }
 
 
