@@ -36,6 +36,8 @@
 
 #include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/kinematic_state/conversions.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/ompl_interface/detail/constrained_sampler.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <fstream>
 
@@ -116,8 +118,42 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   context->setPlanningVolume(req.workspace_parameters);
   if (!context->setPathConstraints(req.path_constraints, error_code))
     return ModelBasedPlanningContextPtr();
-  if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, error_code))
-    return ModelBasedPlanningContextPtr();
+
+  if (req.trajectory_constraints.constraints.empty())
+  {
+    if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, error_code))
+      return ModelBasedPlanningContextPtr();
+  }
+  else
+  {  
+    if (req.goal_constraints.empty())
+    {
+      // if there are no goal constraints, then the goal has to satisfy the last trajectory constraint only
+      std::vector<moveit_msgs::Constraints> goal_constraints(1, req.trajectory_constraints.constraints.back());
+      if (!context->setGoalConstraints(goal_constraints, req.path_constraints, error_code))
+        return ModelBasedPlanningContextPtr();
+    }
+    else
+    {
+      // if there are goal constraints, the goal has to satisfy them as well as the path constraints and the last trajectory constraint
+      moveit_msgs::Constraints additional_constraints = kinematic_constraints::mergeConstraints(req.path_constraints, req.trajectory_constraints.constraints.back());
+      if (!context->setGoalConstraints(req.goal_constraints, additional_constraints, error_code))
+        return ModelBasedPlanningContextPtr();
+    }
+    std::size_t n1 = req.trajectory_constraints.constraints.size() - 1;
+    std::vector<ompl::base::StateSamplerPtr> samplers(n1);
+    for (std::size_t i = 0 ; i < n1 ; ++i)
+    {
+      constraint_samplers::ConstraintSamplerPtr cs;
+      if (constraint_sampler_manager_)
+        cs = constraint_sampler_manager_->selectSampler(context->getPlanningScene(), context->getJointModelGroupName(), req.trajectory_constraints.constraints[i]);
+      if (cs)
+        samplers[i] = ob::StateSamplerPtr(new ConstrainedSampler(context.get(), cs));
+      else
+        samplers[i] = context->getOMPLStateSpace()->allocDefaultStateSampler();
+    }
+    context->setFollowSamplers(samplers);
+  }
   context->configure();
   logDebug("%s: New planning context is set.", context->getName().c_str());
   error_code->val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -137,42 +173,30 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (!context)
     return false;
 
-  if (req.motion_plan_request.trajectory_constraints.constraints.size() != req.motion_plan_request.trajectory_constraints.fraction_from_start.size())
+  bool follow = !req.motion_plan_request.trajectory_constraints.constraints.empty();
+  if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
   {
-    logError("The number points for trajectory constraints is not the same as the number of points for fraction_from_start");
-    return false;
-  }
-  
-  if (!req.motion_plan_request.trajectory_constraints.constraints.empty())
-  {
-    // run a specialized planner
+    double ptime = context->getLastPlanTime();
+    if (ptime < timeout && !follow)
+    {
+      context->simplifySolution(timeout - ptime);
+      ptime += context->getLastSimplifyTime();
+    }
+    context->interpolateSolution();
+    
+    // fill the response
+    logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
+             context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
+    kinematic_state::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
+    context->getSolutionPath(res.trajectory);
+    res.planning_time = ros::Duration(ptime);
+    return true;
   }
   else
-  {    
-    if (context->solve(timeout, attempts))
-    {
-      double ptime = context->getLastPlanTime();
-      if (ptime < timeout)
-      {
-        context->simplifySolution(timeout - ptime);
-        ptime += context->getLastSimplifyTime();
-      }
-      context->interpolateSolution();
-      
-      // fill the response
-      logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
-               context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-      kinematic_state::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
-      context->getSolutionPath(res.trajectory);
-      res.planning_time = ros::Duration(ptime);
-      return true;
-    }
-    else
-    {
-      logInform("Unable to solve the planning problem");
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-      return false;
-    }
+  {
+    logInform("Unable to solve the planning problem");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+    return false;
   }
 }
 
@@ -189,58 +213,46 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (!context)
     return false;
 
-  if (req.motion_plan_request.trajectory_constraints.constraints.size() != req.motion_plan_request.trajectory_constraints.fraction_from_start.size())
+  bool follow = !req.motion_plan_request.trajectory_constraints.constraints.empty();
+  if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
   {
-    logError("The number points for trajectory constraints is not the same as the number of points for fraction_from_start");
-    return false;
-  }
-  
-  if (!req.motion_plan_request.trajectory_constraints.constraints.empty())
-  {
-    // run a specialized planner
+    res.trajectory.reserve(3);
+    kinematic_state::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
+    
+    // add info about planned solution
+    double ptime = context->getLastPlanTime();
+    res.processing_time.push_back(ros::Duration(ptime));
+    res.description.push_back("plan");
+    res.trajectory.resize(res.trajectory.size() + 1);
+    context->getSolutionPath(res.trajectory.back());
+    
+    // simplify solution if time remains
+    if (ptime < timeout || !follow)
+    {
+      context->simplifySolution(timeout - ptime);
+      res.processing_time.push_back(ros::Duration(context->getLastSimplifyTime()));
+      res.description.push_back("simplify");
+      res.trajectory.resize(res.trajectory.size() + 1);
+      context->getSolutionPath(res.trajectory.back());
+    }
+    
+    ros::WallTime start_interpolate = ros::WallTime::now();
+    context->interpolateSolution();
+    res.processing_time.push_back(ros::Duration((ros::WallTime::now() - start_interpolate).toSec()));
+    res.description.push_back("interpolate");
+    res.trajectory.resize(res.trajectory.size() + 1);
+    context->getSolutionPath(res.trajectory.back());
+    
+    // fill the response
+    logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
+             context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
+    return true;
   }
   else
   {
-    if (context->solve(timeout, attempts))
-    {
-      res.trajectory.reserve(3);
-      kinematic_state::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
-      
-      // add info about planned solution
-      double ptime = context->getLastPlanTime();
-      res.processing_time.push_back(ros::Duration(ptime));
-      res.description.push_back("plan");
-      res.trajectory.resize(res.trajectory.size() + 1);
-      context->getSolutionPath(res.trajectory.back());
-      
-      // simplify solution if time remains
-      if (ptime < timeout)
-      {
-        context->simplifySolution(timeout - ptime);
-        res.processing_time.push_back(ros::Duration(context->getLastSimplifyTime()));
-        res.description.push_back("simplify");
-        res.trajectory.resize(res.trajectory.size() + 1);
-        context->getSolutionPath(res.trajectory.back());
-      }
-      
-      ros::WallTime start_interpolate = ros::WallTime::now();
-      context->interpolateSolution();
-      res.processing_time.push_back(ros::Duration((ros::WallTime::now() - start_interpolate).toSec()));
-      res.description.push_back("interpolate");
-      res.trajectory.resize(res.trajectory.size() + 1);
-      context->getSolutionPath(res.trajectory.back());
-      
-      // fill the response
-      logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
-               context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-      return true;
-    }
-    else
-    {
-      logInform("Unable to solve the planning problem");
-      error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-      return false;
-    }
+    logInform("Unable to solve the planning problem");
+    error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+    return false;
   }
 }
 

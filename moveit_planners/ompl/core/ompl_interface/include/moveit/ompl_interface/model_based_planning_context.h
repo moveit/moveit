@@ -240,7 +240,12 @@ public:
   {
     spec_.constraints_library_ = constraints_library;
   }
-    
+  
+  void setFollowSamplers(const std::vector<ompl::base::StateSamplerPtr> &samplers)
+  {
+    follow_samplers_ = samplers;
+  }
+  
   void clear(void);
   
   bool useStateValidityCache(void) const
@@ -248,11 +253,17 @@ public:
     return spec_.use_state_validity_cache_;
   }
 
-  /* @brief solve the planning problem. Return true if the problem is solved
+  /* @brief Solve the planning problem. Return true if the problem is solved
      @param timeout The time to spend on solving
      @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
   */
   bool solve(double timeout, unsigned int count);
+  
+  /* @brief Solve the planning problem in the case that requires following a specified set of trajectory constaints. Return true if the problem is solved.
+     @param timeout The time to spend on solving
+     @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
+  */
+  bool follow(double timeout, unsigned int count);
   
   /* @brief Benchmark the planning problem. Return true on succesful saving of benchmark results
      @param timeout The time to spend on solving
@@ -290,7 +301,10 @@ public:
   virtual void configure(void);
 
 protected:
-
+  
+  void preSolve(void);
+  void postSolve(void);
+  
   virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
   virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
   virtual void useConfig(void);
@@ -320,6 +334,7 @@ protected:
   kinematic_constraints::KinematicConstraintSetPtr              path_constraints_;
   moveit_msgs::Constraints                                      path_constraints_msg_;
   std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
+  std::vector<ompl::base::StateSamplerPtr>                      follow_samplers_;
   
   const ob::PlannerTerminationCondition *ptc_;
   boost::mutex ptc_lock_;
