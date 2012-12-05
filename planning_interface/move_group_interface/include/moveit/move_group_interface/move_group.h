@@ -41,6 +41,7 @@
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/PlannerInterfaceDescription.h>
+#include <moveit_msgs/Constraints.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
@@ -224,6 +225,10 @@ public:
       Y, Z) axes. If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
   void setOrientationTarget(double x, double y, double z, const std::string &end_effector_link = "");
 
+  /** \brief Set the goal orientation of the end-effector \e end_effector_link to be the quaternion (\e x,\e y,\e z,\e w).
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link = "");
+  
   /** \brief Set the goal pose of the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
   void setPoseTarget(const Eigen::Affine3d &end_effector_pose, const std::string &end_effector_link = "");
@@ -262,12 +267,12 @@ public:
 
   /** Get the currently set pose goal for the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  const Eigen::Affine3d& getPoseTarget(const std::string &end_effector_link = "") const;
+  const geometry_msgs::PoseStamped& getPoseTarget(const std::string &end_effector_link = "") const;
 
   /** Get the currently set pose goal for the end-effector \e end_effector_link. The pose goal can consist of multiple poses,
       if corresponding setPoseTarget() calls were made. Otherwise, only one pose is returned in the vector.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void getPoseTargets(EigenSTL::vector_Affine3d &poses, const std::string &end_effector_link = "") const;
+  const std::vector<geometry_msgs::PoseStamped>& getPoseTargets(const std::string &end_effector_link = "") const;
   
   /** \brief Get the current end-effector link. This returns the value set by setEndEffectorLink().
       If setEndEffectorLink() was not called, this function reports the link name that serves as parent
@@ -278,6 +283,34 @@ public:
   /** \brief Get the reference frame set by setPoseReferenceFrame(). By default this is the reference frame of the kinematic model */
   const std::string& getPoseReferenceFrame(void) const;
 
+  /**@}*/
+
+
+  /**
+   * \defgroup follow_existing_traj Follow an existing sequence of constraints
+   */
+  /**@{*/
+
+  /** \brief Follow the specified sequence of constraints */
+  void followConstraints(const std::vector<moveit_msgs::Constraints> &constraints);
+
+  /** \brief Follow a trajectory that takes the specified end-effector link through the specified sequence of poses.
+      The tolerance for achieving the position is \e tolerance_pos and the tolerance for achieving the orientation is \e tolerance_angle.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  void followConstraints(const std::vector<geometry_msgs::PoseStamped> &poses,  double tolerance_pos = 1e-3, double tolerance_angle = 1e-2, const std::string &end_effector_link = "");
+
+  /** \brief Follow a trajectory that takes the specified end-effector link through the specified sequence of poses. The
+      reference frame for the poses is assumed to be that returned by getPoseReferenceFrame().
+      The tolerance for achieving the position is \e tolerance_pos and the tolerance for achieving the orientation is \e tolerance_angle.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  void followConstraints(const std::vector<geometry_msgs::Pose> &poses,  double tolerance_pos = 1e-3, double tolerance_angle = 1e-2, const std::string &end_effector_link = "");
+  
+  /** \brief Follow a trajectory that takes the specified end-effector link through the specified sequence of poses. The
+      reference frame for the poses is assumed to be that returned by getPoseReferenceFrame().
+      The tolerance for achieving the position is \e tolerance_pos and the tolerance for achieving the orientation is \e tolerance_angle.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  void followConstraints(const EigenSTL::vector_Affine3d &poses, double tolerance_pos = 1e-3, double tolerance_angle = 1e-2, const std::string &end_effector_link = "");
+  
   /**@}*/
 
   /**
@@ -293,7 +326,7 @@ public:
 
   /** \brief Get the pose for the end-effector \e end_effector_link. 
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
-  Eigen::Affine3d getCurrentPose(const std::string &end_effector_link = "");
+  geometry_msgs::PoseStamped getCurrentPose(const std::string &end_effector_link = "");
 
   /** \brief Get random joint values for the joints planned for by this instance (see getJoints()) */
   std::vector<double> getRandomJointValues(void);
