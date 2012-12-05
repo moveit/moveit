@@ -317,7 +317,6 @@ void MotionPlanningFrame::saveOnDBButtonClicked(void)
       sp.dimensions.push_back(std::numeric_limits<float>::epsilon() * 10.0);
 
       moveit_msgs::PositionConstraint pc;
-      pc.header.frame_id=planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
       pc.constraint_region.primitives.push_back(sp);
       geometry_msgs::Pose posemsg;
       posemsg.position.x=it->second.imarker->getPosition().x;
@@ -332,7 +331,6 @@ void MotionPlanningFrame::saveOnDBButtonClicked(void)
       c.position_constraints.push_back(pc);
 
       moveit_msgs::OrientationConstraint oc;
-      oc.header.frame_id=planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
       oc.orientation.x=it->second.imarker->getOrientation().x;
       oc.orientation.y=it->second.imarker->getOrientation().y;
       oc.orientation.z=it->second.imarker->getOrientation().z;
