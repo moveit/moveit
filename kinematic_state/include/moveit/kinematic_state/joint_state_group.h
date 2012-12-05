@@ -156,7 +156,7 @@ public:
       the type of joints employed, near the specified joint state. 
       The distances vector specifies a distance for each joint model.
       The distance computation uses an InfinityNorm computation 
-      - see also infinityNormDistance(const JointStateGroup *other) */
+      - see also infinityNormDistance() */
   void setToRandomValuesNearBy(const std::vector<double> &near, const std::vector<double> &distances);  
 
   /** \brief Checks if the current joint state values are all within the bounds set in the model */

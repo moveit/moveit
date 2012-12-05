@@ -304,11 +304,16 @@ void kinematic_state::KinematicState::setToRandomValues(void)
 
 double kinematic_state::KinematicState::infinityNormDistance(const kinematic_state::KinematicState *other) const
 {
-  std::vector<double> distances;  
-  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
-    distances.push_back(joint_state_vector_[i]->distance(other->joint_state_vector_[i]));
-  std::sort(distances.begin(),distances.end());  
-  return distances.back();
+  if (joint_state_vector_.empty())
+    return 0.0;
+  double max_d = joint_state_vector_[0]->distance(other->joint_state_vector_[0]);
+  for (std::size_t i = 1 ; i < joint_state_vector_.size() ; ++i)
+  {
+    double d = joint_state_vector_[i]->distance(other->joint_state_vector_[i]);
+    if (d > max_d)
+      max_d = d;
+  }
+  return max_d;
 }
 
 bool kinematic_state::KinematicState::satisfiesBounds(const std::string& joint) const
