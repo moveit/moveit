@@ -145,7 +145,7 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
 
   bool ok = false;
   std::stringstream ss;
-  ss << planning_display_->getPlanningScene()->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
+  ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
   
   QString text = QInputDialog::getText(this, tr("Choose a name"),
                                        tr("Goal pose name:"), QLineEdit::Normal,
@@ -198,7 +198,7 @@ void MotionPlanningFrame::removeSelectedGoalsButtonClicked(void)
   QList<QListWidgetItem*> found_items = ui_->goal_poses_list->selectedItems();
   for ( unsigned int i = 0 ; i < found_items.size() ; i++ )
   {
-    goal_poses_.erase(found_items[i]->text().toStdString());    
+    goal_poses_.erase(found_items[i]->text().toStdString());
   }
   populateGoalPosesList();
 }
@@ -401,8 +401,9 @@ void MotionPlanningFrame::goalPoseSelectionChanged()
   {
     QListWidgetItem *item = ui_->goal_poses_list->item(i);
     std::string name = item->text().toStdString();
-    if ( ( item->isSelected() && ! goal_poses_[name].selected )
-         || ( ! item->isSelected() && goal_poses_[name].selected ))
+    if ( goal_poses_.find(name) != goal_poses_.end() &&
+        ( (item->isSelected() && ! goal_poses_[name].selected )
+            || ( ! item->isSelected() && goal_poses_[name].selected )))
       switchGoalPoseMarkerSelection(name);
   }
 }
@@ -431,7 +432,7 @@ void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 }
 
 /* Receives feedback from the interactive marker attached to a goal pose */
-void MotionPlanningFrame::goalPoseFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback)
+void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 { 
   static Eigen::Affine3d initial_pose_eigen;
   static bool dragging = false;
@@ -757,7 +758,7 @@ void MotionPlanningFrame::populateCollisionObjectsList(void)
 }
 
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
-void  MotionPlanningFrame::imProcessFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback)
+void  MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
   ui_->object_x->setValue(feedback.pose.position.x);
   ui_->object_y->setValue(feedback.pose.position.y);
