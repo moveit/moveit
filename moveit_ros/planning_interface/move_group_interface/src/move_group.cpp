@@ -120,7 +120,7 @@ public:
 
     joint_state_target_.reset(new kinematic_state::KinematicState(getKinematicModel()));
     joint_state_target_->setToDefaultValues();
-    use_joint_state_target_ = true;
+    active_target_ = JOINT;
     can_look_ = false;
     can_replan_ = false;
     goal_tolerance_ = 1e-4;
@@ -130,10 +130,7 @@ public:
     if (joint_model_group)
     {
       if (joint_model_group->isChain())
-      {
         end_effector_ = joint_model_group->getLinkModelNames().back();
-        pose_target_[end_effector_].setIdentity();
-      }      
       pose_reference_frame_ = getKinematicModel()->getModelFrame();
       
       trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
@@ -241,25 +238,16 @@ public:
   void setEndEffector(const std::string &end_effector)
   {
     end_effector_ = end_effector;
-    if (pose_target_.find(end_effector_) == pose_target_.end())
-      pose_target_[end_effector_].setIdentity();
   }
   
   void clearPoseTarget(const std::string &end_effector_link)
   {
-    if (end_effector_link == end_effector_)
-      pose_target_[end_effector_].setIdentity();
-    else
-      pose_target_.erase(end_effector_link);
-    pose_targets_[end_effector_link].reset();
+    pose_targets_.erase(end_effector_link);
   }
 
   void clearPoseTargets(void)
   {
-    pose_target_.clear();
     pose_targets_.clear();
-    if (!end_effector_.empty())
-      pose_target_[end_effector_].setIdentity();
   }
   
   const std::string &getEndEffector(void) const
@@ -267,65 +255,55 @@ public:
     return end_effector_;
   }
   
-  void setPoseTarget(const Eigen::Affine3d &eef_pose, const std::string &end_effector_link)
-  {
-    const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link;
-    if (eef.empty())
-      ROS_ERROR("No end-effector to set the pose for");
-    else
-    {
-      pose_target_[eef] = eef_pose;
-      pose_targets_[eef].reset();
-    }
-  }
-  
-  void setPoseTargets(const EigenSTL::vector_Affine3d &poses, const std::string &end_effector_link)
+  void setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &poses, const std::string &end_effector_link)
   {  
     const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link;
     if (eef.empty())
       ROS_ERROR("No end-effector to set the pose for");
     else
-      pose_targets_[eef].reset(new EigenSTL::vector_Affine3d(poses));
-  }  
-
-  const Eigen::Affine3d& getPoseTarget(const std::string &end_effector_link) const
+    {
+      pose_targets_[eef] = poses;
+      // make sure we don't store an actual stamp, since that will become stale can potentially cause tf errors
+      std::vector<geometry_msgs::PoseStamped> &stored_poses = pose_targets_[eef];
+      for (std::size_t i = 0 ; i < stored_poses.size() ; ++i)
+        stored_poses[i].header.stamp = ros::Time(0);
+    }
+  }
+  
+  const geometry_msgs::PoseStamped& getPoseTarget(const std::string &end_effector_link) const
   {    
     const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link; 
     
     // if multiple pose targets are set, return the first one
-    std::map<std::string, boost::shared_ptr<EigenSTL::vector_Affine3d> >::const_iterator jt = pose_targets_.find(eef);
+    std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator jt = pose_targets_.find(eef);
     if (jt != pose_targets_.end())
-      if (!jt->second->empty())
-        return jt->second->at(0);
-
-    // otherwise, return the one that is set,
-    EigenSTL::map_string_Affine3d::const_iterator it = pose_target_.find(eef);
-    if (it != pose_target_.end())
-      return it->second;
-    else
-    {
-      // or return an error
-      static const Eigen::Affine3d id(Eigen::Affine3d::Identity());
-      ROS_ERROR("Pose for end effector '%s' not known. Assuming identity.", eef.c_str());
-      return id;
-    }
+      if (!jt->second.empty())
+        return jt->second.at(0);
+    
+    // or return an error
+    static const geometry_msgs::PoseStamped unknown;
+    ROS_ERROR("Pose for end effector '%s' not known.", eef.c_str());
+    return unknown;
   } 
-
-  boost::shared_ptr<EigenSTL::vector_Affine3d> getPoseTargets(const std::string &end_effector_link) const
+  
+  const std::vector<geometry_msgs::PoseStamped>& getPoseTargets(const std::string &end_effector_link) const
   {
     const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link; 
     
-    // if multiple pose targets are set, return the first one
-    std::map<std::string, boost::shared_ptr<EigenSTL::vector_Affine3d> >::const_iterator jt = pose_targets_.find(eef);
+    std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator jt = pose_targets_.find(eef);
     if (jt != pose_targets_.end())
-      if (!jt->second->empty())
+      if (!jt->second.empty())
         return jt->second;
-    EigenSTL::map_string_Affine3d::const_iterator it = pose_target_.find(eef);
-    if (it != pose_target_.end())
-      return boost::shared_ptr<EigenSTL::vector_Affine3d>(new EigenSTL::vector_Affine3d(1, it->second));
-    ROS_ERROR("Poses for end effector '%s' are not known. Returning NULL pointer.", eef.c_str());
     
-    return boost::shared_ptr<EigenSTL::vector_Affine3d>();
+    // or return an error
+    static const std::vector<geometry_msgs::PoseStamped> empty;
+    ROS_ERROR("Poses for end effector '%s' are not known.", eef.c_str());
+    return empty;
+  }
+
+  void followConstraints(const std::vector<moveit_msgs::Constraints> &constraints)
+  {
+    follow_constraints_ = constraints;
   }
   
   void setPoseReferenceFrame(const std::string &pose_reference_frame)
@@ -340,12 +318,17 @@ public:
   
   void useJointStateTarget(void)
   {
-    use_joint_state_target_ = true;
+    active_target_ = JOINT;    
   }
   
   void usePoseTarget(void)
   {
-    use_joint_state_target_ = false;
+    active_target_ = POSE;
+  }
+  
+  void useFollowTarget(void)
+  {
+    active_target_ = FOLLOW;
   }
   
   void allowLooking(bool flag)
@@ -497,8 +480,9 @@ public:
       planning_time_ = ros::Duration(seconds);
   }
   
-  void constructGoal(moveit_msgs::MoveGroupGoal &goal)
+  void constructGoal(moveit_msgs::MoveGroupGoal &goal_out)
   {
+    moveit_msgs::MoveGroupGoal goal;
     goal.request.group_name = opt_.group_name_;
     goal.request.num_planning_attempts = 1;
     goal.request.allowed_planning_time = planning_time_;
@@ -508,27 +492,37 @@ public:
     if (considered_start_state_)
       kinematic_state::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
     
-    if (use_joint_state_target_)
+    if (active_target_ == JOINT)
     {    
       goal.request.goal_constraints.resize(1);
       goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget(), goal_tolerance_);
     }
     else
-    {
-      goal.request.goal_constraints.clear();
-      ros::Time t = ros::Time::now();
-      for (EigenSTL::map_string_Affine3d::const_iterator it = pose_target_.begin() ; it != pose_target_.end() ; ++it)
+      if (active_target_ == POSE)
       {
-        geometry_msgs::PoseStamped pose;
-        tf::poseEigenToMsg(it->second, pose.pose);
-        pose.header.frame_id = pose_reference_frame_;
-        pose.header.stamp = t;
-        goal.request.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(it->first, pose, goal_tolerance_));
+        for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin() ;
+             it != pose_targets_.end() ; ++it)
+        {
+          moveit_msgs::Constraints g;
+          for (std::size_t i = 0 ; i < it->second.size() ; ++i)
+          {
+            moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(it->first, it->second[i], goal_tolerance_);
+            g = kinematic_constraints::mergeConstraints(g, c);
+          }
+          goal.request.goal_constraints.push_back(g);
+        }
       }
-    }
+      else
+        if (active_target_ == FOLLOW)
+        {
+          goal.request.trajectory_constraints.constraints = follow_constraints_;
+        }
+        else
+          ROS_ERROR("Unable to construct goal representation");
     
     if (path_constraints_)
       goal.request.path_constraints = *path_constraints_;
+    goal_out = goal;
   }
   
   bool setPathConstraints(const std::string &constraint)
@@ -607,28 +601,43 @@ private:
     }
   }
   
+  enum ActiveTarget
+  {
+    JOINT, POSE, FOLLOW
+  };
+  
   Options opt_;
   ros::NodeHandle node_handle_;
   boost::shared_ptr<tf::Transformer> tf_;
   kinematic_model::KinematicModelConstPtr kinematic_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > action_client_;
+
+  // general planning params
   kinematic_state::KinematicStatePtr considered_start_state_;
-  kinematic_state::KinematicStatePtr joint_state_target_;
-  boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   ros::Duration planning_time_;
-  EigenSTL::map_string_Affine3d pose_target_;
-  std::map<std::string, boost::shared_ptr<EigenSTL::vector_Affine3d> > pose_targets_;
-  std::string end_effector_;
-  std::string pose_reference_frame_; 
   std::string planner_id_;
   double goal_tolerance_;
   bool can_look_;
   bool can_replan_;
   
-  bool use_joint_state_target_;
+  // joint state goal
+  kinematic_state::KinematicStatePtr joint_state_target_;
+
+  // pose goal
+  std::map<std::string, std::vector<geometry_msgs::PoseStamped> > pose_targets_;
+
+  // follow trajectory goal
+  std::vector<moveit_msgs::Constraints> follow_constraints_;
+
+  // common properties for goals
+  ActiveTarget active_target_;
+  boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
+  std::string end_effector_;
+  std::string pose_reference_frame_; 
   
+  // ROS communication
   ros::Publisher trajectory_event_publisher_;
   ros::ServiceClient execute_service_;
   ros::ServiceClient query_service_;
@@ -789,12 +798,6 @@ const kinematic_state::JointStateGroup& MoveGroup::getJointValueTarget(void) con
   return *impl_->getJointStateTarget();
 }
 
-void MoveGroup::setPoseTarget(const Eigen::Affine3d &pose, const std::string &end_effector_link)
-{
-  impl_->setPoseTarget(pose, end_effector_link);
-  impl_->usePoseTarget();
-}
-
 const std::string& MoveGroup::getEndEffectorLink(void) const
 {
   return impl_->getEndEffector();
@@ -816,91 +819,172 @@ void MoveGroup::clearPoseTargets(void)
   impl_->clearPoseTargets();
 }
 
+void MoveGroup::setPoseTarget(const Eigen::Affine3d &pose, const std::string &end_effector_link)
+{
+  std::vector<geometry_msgs::PoseStamped> pose_msg(1);
+  tf::poseEigenToMsg(pose, pose_msg[0].pose);
+  pose_msg[0].header.frame_id = getPoseReferenceFrame();
+  pose_msg[0].header.stamp = ros::Time::now();
+  setPoseTargets(pose_msg, end_effector_link);
+}
+
 void MoveGroup::setPoseTarget(const geometry_msgs::Pose &target, const std::string &end_effector_link)
 {
-  Eigen::Affine3d m;
-  tf::poseMsgToEigen(target, m);
-  setPoseTarget(m, end_effector_link);
+  std::vector<geometry_msgs::PoseStamped> pose_msg(1);
+  pose_msg[0].pose = target;
+  pose_msg[0].header.frame_id = getPoseReferenceFrame();
+  pose_msg[0].header.stamp = ros::Time::now();
+  setPoseTargets(pose_msg, end_effector_link);
 }
 
 void MoveGroup::setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link)
 {
-  // avoid using the TransformListener API, since out pointer is for the base class only;
-  tf::Pose pose;
-  tf::poseMsgToTF(target.pose, pose);
-  tf::Stamped<tf::Pose> stamped_pose(pose, target.header.stamp, target.header.frame_id);
-  tf::Stamped<tf::Pose> stamped_pose_out;
-  impl_->getTF()->transformPose(impl_->getPoseReferenceFrame(), stamped_pose, stamped_pose_out);
-  
-  geometry_msgs::Pose pose_out;
-  tf::poseTFToMsg(stamped_pose_out, pose_out);
-  setPoseTarget(pose_out, end_effector_link);
+  std::vector<geometry_msgs::PoseStamped> targets(1, target);
+  setPoseTargets(targets, end_effector_link);
 }
 
-void MoveGroup::setPoseTargets(const EigenSTL::vector_Affine3d &pose, const std::string &end_effector_link)
-{
-  if (pose.empty())
-    ROS_ERROR("No pose specified as goal target");
-  else
+void MoveGroup::setPoseTargets(const EigenSTL::vector_Affine3d &target, const std::string &end_effector_link)
+{  
+  std::vector<geometry_msgs::PoseStamped> pose_out(target.size());
+  ros::Time tm = ros::Time::now();
+  const std::string &frame_id = getPoseReferenceFrame();
+  for (std::size_t i = 0 ; i < target.size() ; ++i)
   {
-    impl_->setPoseTargets(pose, end_effector_link);
-    impl_->usePoseTarget();
+    tf::poseEigenToMsg(target[i], pose_out[i].pose);
+    pose_out[i].header.stamp = tm;
+    pose_out[i].header.frame_id = frame_id;
   }
+  setPoseTargets(pose_out, end_effector_link);
 }
 
 void MoveGroup::setPoseTargets(const std::vector<geometry_msgs::Pose> &target, const std::string &end_effector_link)
 {
-  EigenSTL::vector_Affine3d target_eigen(target.size());
+  std::vector<geometry_msgs::PoseStamped> target_stamped(target.size());
+  ros::Time tm = ros::Time::now();
+  const std::string &frame_id = getPoseReferenceFrame();
   for (std::size_t i = 0 ; i < target.size() ; ++i)
-    tf::poseMsgToEigen(target[i], target_eigen[i]);
-  setPoseTargets(target_eigen, end_effector_link);
+  {
+    target_stamped[i].pose = target[i];
+    target_stamped[i].header.stamp = tm;
+    target_stamped[i].header.frame_id = frame_id;
+  }
+  setPoseTargets(target_stamped, end_effector_link);
 }
 
 void MoveGroup::setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &target, const std::string &end_effector_link)
 {
-  std::vector<geometry_msgs::Pose> pose_out_vector(target.size());
-  for (std::size_t i = 0 ; i < target.size() ; ++i)
+  if (target.empty())
+    ROS_ERROR("No pose specified as goal target");
+  else
   {
-    // avoid using the TransformListener API, since out pointer is for the base class only;
-    tf::Pose pose;
-    tf::poseMsgToTF(target[i].pose, pose);
-    tf::Stamped<tf::Pose> stamped_pose(pose, target[i].header.stamp, target[i].header.frame_id);
-    tf::Stamped<tf::Pose> stamped_pose_out;
-    impl_->getTF()->transformPose(impl_->getPoseReferenceFrame(), stamped_pose, stamped_pose_out);
-    
-    tf::poseTFToMsg(stamped_pose_out, pose_out_vector[i]);
+    impl_->setPoseTargets(target, end_effector_link);
+    impl_->usePoseTarget();
   }
-  setPoseTargets(pose_out_vector, end_effector_link);
 }
 
-const Eigen::Affine3d& MoveGroup::getPoseTarget(const std::string &end_effector_link) const
+const geometry_msgs::PoseStamped& MoveGroup::getPoseTarget(const std::string &end_effector_link) const
 {
   return impl_->getPoseTarget(end_effector_link);
 }
 
-void MoveGroup::getPoseTargets(EigenSTL::vector_Affine3d &poses, const std::string &end_effector_link) const
+const std::vector<geometry_msgs::PoseStamped>& MoveGroup::getPoseTargets(const std::string &end_effector_link) const
 {
-  boost::shared_ptr<EigenSTL::vector_Affine3d> p = impl_->getPoseTargets(end_effector_link);
-  if (p)
-    poses = *p;
-  else
-    poses.clear();
+  return impl_->getPoseTargets(end_effector_link);
+}
+
+namespace
+{
+inline void transformPose(const tf::Transformer& tf, const std::string &desired_frame, geometry_msgs::PoseStamped &target)
+{
+  if (desired_frame != target.header.frame_id)
+  {
+    tf::Pose pose;
+    tf::poseMsgToTF(target.pose, pose);
+    tf::Stamped<tf::Pose> stamped_target(pose, target.header.stamp, target.header.frame_id);
+    tf::Stamped<tf::Pose> stamped_target_out;
+    tf.transformPose(desired_frame, stamped_target, stamped_target_out);
+    target.header.frame_id = stamped_target_out.frame_id_;
+    //    target.header.stamp = stamped_target_out.stamp_; // we leave the stamp to ros::Time(0) on purpose
+    tf::poseTFToMsg(stamped_target_out, target.pose);
+  }
+}
 }
 
 void MoveGroup::setPositionTarget(double x, double y, double z, const std::string &end_effector_link)
 {
-  Eigen::Affine3d target = getPoseTarget(end_effector_link);
-  target.translation() = Eigen::Vector3d(x,y,z);
+  geometry_msgs::PoseStamped target = getPoseTarget(end_effector_link);
+  transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  target.pose.position.x = x;
+  target.pose.position.y = y;
+  target.pose.position.z = z;
   setPoseTarget(target, end_effector_link);
 }
 
 void MoveGroup::setOrientationTarget(double x, double y, double z, const std::string &end_effector_link)
-{ 
-  Eigen::Affine3d target(Eigen::AngleAxisd(x, Eigen::Vector3d::UnitX())
-                         * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY())
-                         * Eigen::AngleAxisd(z, Eigen::Vector3d::UnitZ()));
-  target.translation() = getPoseTarget(end_effector_link).translation();
+{
+  geometry_msgs::PoseStamped target = getPoseTarget(end_effector_link);
+  transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  tf::quaternionTFToMsg(tf::createQuaternionFromRPY(x, y, z), target.pose.orientation);
   setPoseTarget(target, end_effector_link);
+}
+
+void MoveGroup::setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link)
+{
+  geometry_msgs::PoseStamped target = getPoseTarget(end_effector_link);
+  transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  target.pose.orientation.x = x;
+  target.pose.orientation.y = y;
+  target.pose.orientation.z = z;
+  target.pose.orientation.w = w;
+  setPoseTarget(target, end_effector_link);
+}
+
+void MoveGroup::followConstraints(const std::vector<moveit_msgs::Constraints> &constraints)
+{
+  impl_->followConstraints(constraints); 
+  impl_->useFollowTarget();
+}
+
+void MoveGroup::followConstraints(const std::vector<geometry_msgs::PoseStamped> &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
+{
+  const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
+  if (eef.empty())
+    ROS_ERROR("No end-effector to specify trajectory following constraints for");
+  else
+  {
+    std::vector<moveit_msgs::Constraints> constraints(poses.size());
+    for (std::size_t i = 0 ; i < poses.size() ; ++i)
+      constraints[i] = kinematic_constraints::constructGoalConstraints(eef, poses[i], tolerance_pos, tolerance_angle);
+    followConstraints(constraints);
+  }
+}
+
+void MoveGroup::followConstraints(const std::vector<geometry_msgs::Pose> &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
+{ 
+  std::vector<geometry_msgs::PoseStamped> pose_msgs(poses.size()); 
+  const std::string &frame_id = getPoseReferenceFrame();
+  ros::Time tm = ros::Time(0);
+  for (std::size_t i = 0 ; i < poses.size() ; ++i)
+  {
+    pose_msgs[i].pose = poses[i]; 
+    pose_msgs[i].header.frame_id = frame_id;
+    pose_msgs[i].header.stamp = tm;
+  }  
+  followConstraints(pose_msgs, tolerance_pos, tolerance_angle, end_effector_link);
+}
+
+void MoveGroup::followConstraints(const EigenSTL::vector_Affine3d &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
+{
+  std::vector<geometry_msgs::PoseStamped> pose_msgs(poses.size()); 
+  const std::string &frame_id = getPoseReferenceFrame();
+  ros::Time tm = ros::Time(0);
+  for (std::size_t i = 0 ; i < poses.size() ; ++i)
+  {
+    tf::poseEigenToMsg(poses[i], pose_msgs[i].pose);
+    pose_msgs[i].header.frame_id = frame_id;
+    pose_msgs[i].header.stamp = tm;
+  }
+  followConstraints(pose_msgs, tolerance_pos, tolerance_angle, end_effector_link);
 }
 
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
@@ -950,7 +1034,7 @@ std::vector<double> MoveGroup::getRandomJointValues(void)
   return r;
 }
 
-Eigen::Affine3d MoveGroup::getCurrentPose(const std::string &end_effector_link)
+geometry_msgs::PoseStamped MoveGroup::getCurrentPose(const std::string &end_effector_link)
 {
   const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
   Eigen::Affine3d pose;
@@ -966,8 +1050,12 @@ Eigen::Affine3d MoveGroup::getCurrentPose(const std::string &end_effector_link)
       if (ls)
         pose = ls->getGlobalLinkTransform();
     }
-  }  
-  return pose;
+  }
+  geometry_msgs::PoseStamped pose_msg;
+  pose_msg.header.stamp = ros::Time::now();
+  pose_msg.header.frame_id = impl_->getKinematicModel()->getModelFrame();
+  tf::poseEigenToMsg(pose, pose_msg.pose);
+  return pose_msg;
 }
 
 const std::vector<std::string>& MoveGroup::getJoints(void) const
