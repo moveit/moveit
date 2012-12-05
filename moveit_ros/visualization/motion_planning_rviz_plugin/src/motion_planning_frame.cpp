@@ -119,6 +119,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveOnDBButtonClicked() ));
   connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteOnDBButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
+  connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
+
   
   //Start states
   connect( ui_->save_start_state_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
@@ -414,6 +416,22 @@ void MotionPlanningFrame::goalPoseSelectionChanged()
       switchGoalPoseMarkerSelection(item->text().toStdString());
     }
   }
+}
+
+void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
+{
+  //Call to IK
+  geometry_msgs::Pose current_pose;
+  current_pose.position.x=goal_poses_[item->text().toStdString()].imarker->getPosition().x;
+  current_pose.position.y=goal_poses_[item->text().toStdString()].imarker->getPosition().y;
+  current_pose.position.z=goal_poses_[item->text().toStdString()].imarker->getPosition().z;
+  current_pose.orientation.x=goal_poses_[item->text().toStdString()].imarker->getOrientation().x;
+  current_pose.orientation.y=goal_poses_[item->text().toStdString()].imarker->getOrientation().y;
+  current_pose.orientation.z=goal_poses_[item->text().toStdString()].imarker->getOrientation().z;
+  current_pose.orientation.w=goal_poses_[item->text().toStdString()].imarker->getOrientation().w;
+
+  planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(), planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, 10.0, 5);
+  planning_display_->queueRenderSceneGeometry();
 }
 
 /* Receives feedback from the interactive marker attached to a goal pose */
