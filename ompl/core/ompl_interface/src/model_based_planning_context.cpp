@@ -413,13 +413,20 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
   return filename.empty() ? ompl_benchmark_.saveResultsToFile() : ompl_benchmark_.saveResultsToFile(filename.c_str());
 }
 
-
-bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
+bool ompl_interface::ModelBasedPlanningContext::follow(double timeout, unsigned int count)
 {
-  ot::Profiler::ScopedBlock sblock("PlanningContextSolve");
-
+  ot::Profiler::ScopedBlock sblock("PlanningContext:Follow");
   ompl::time::point start = ompl::time::now();
+  preSolve();
+
   
+  postSolve();
+  
+  return false;
+}
+
+void ompl_interface::ModelBasedPlanningContext::preSolve(void)
+{
   // clear previously computed solutions
   ompl_simple_setup_.getProblemDefinition()->clearSolutionPaths();
   const ob::PlannerPtr planner = ompl_simple_setup_.getPlanner();
@@ -431,7 +438,29 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
   
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+}
 
+void ompl_interface::ModelBasedPlanningContext::postSolve(void)
+{  
+  bool gls = ompl_simple_setup_.getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
+  if (gls)
+    // just in case we need to stop sampling
+    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->stopSampling();
+  
+  int v = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getValidMotionCount();
+  int iv = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
+  logDebug("There were %d valid motions and %d invalid motions.", v, iv);
+  
+  if (ompl_simple_setup_.getProblemDefinition()->hasApproximateSolution())
+    logWarn("Computed solution is approximate");
+}
+
+bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
+{
+  ot::Profiler::ScopedBlock sblock("PlanningContext:Solve");
+
+  ompl::time::point start = ompl::time::now();
+  preSolve();
   
   bool result = false;
   if (count <= 1)
@@ -499,17 +528,8 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     }
   }
   
-  if (gls)
-    // just in case we need to stop sampling
-    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->stopSampling();
-  
-  int v = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getValidMotionCount();
-  int iv = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
-  logDebug("There were %d valid motions and %d invalid motions.", v, iv);
-  
-  if (ompl_simple_setup_.getProblemDefinition()->hasApproximateSolution())
-    logWarn("Computed solution is approximate");
-  
+  postSolve();
+    
   return result;
 }
 
