@@ -217,6 +217,12 @@ public:
   
   /** \brief Compute random values for the state of the joint group */
   void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
+
+  /** \brief Compute random values for the state of the joint group */
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::map<kinematic_model::JointModel::JointType, double> &distance_map) const;
+
+  /** \brief Compute random values for the state of the joint group */
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const;
   
   /** \brief Get the number of variables that describe this joint group */
   unsigned int getVariableCount(void) const
