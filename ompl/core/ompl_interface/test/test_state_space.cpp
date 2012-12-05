@@ -53,7 +53,7 @@ protected:
     srdf_model_.reset(new srdf::Model());
     
     std::string xml_string;
-    std::fstream xml_file("../planning_models/test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file("../kinematic_state/test/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -68,10 +68,10 @@ protected:
     }
     else
       urdf_ok_ = false;
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../planning_models/test/srdf/robot.xml");
+    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../kinematic_state/test/srdf/robot.xml");
     
     if (urdf_ok_ && srdf_ok_)
-      kmodel_.reset(new planning_models::KinematicModel(urdf_model_, srdf_model_));
+      kmodel_.reset(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
   };
 
   virtual void TearDown()
@@ -79,7 +79,7 @@ protected:
   }
   
 protected:
-  planning_models::KinematicModelPtr kmodel_;
+  kinematic_model::KinematicModelPtr kmodel_;
   boost::shared_ptr<urdf::ModelInterface> urdf_model_;
   boost::shared_ptr<srdf::Model>     srdf_model_;
   bool                               urdf_ok_;
@@ -91,7 +91,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
 {
   ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "whole_body");
   ompl_interface::JointModelStateSpace ss(spec);
-  ss.setBounds(-1, 1, -1, 1, -1, 1);
+  ss.setPlanningVolume(-1, 1, -1, 1, -1, 1);
   ss.setup();
   std::ofstream fout("ompl_interface_test_state_space_diagram1.dot");
   ss.diagram(fout);
@@ -103,7 +103,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
   }
   catch(ompl::Exception &ex)
   {
-    ROS_ERROR_STREAM("Sanity checks did not pass: " << ex.what());
+    logError("Sanity checks did not pass: %s", ex.what());
   }
   EXPECT_TRUE(passed);
 }
@@ -134,7 +134,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
 {
   ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "right_arm");
   ompl_interface::JointModelStateSpace ss(spec);
-  ss.setBounds(-1, 1, -1, 1, -1, 1);
+  ss.setPlanningVolume(-1, 1, -1, 1, -1, 1);
   ss.setup();
   std::ofstream fout("ompl_interface_test_state_space_diagram1.dot");
   ss.diagram(fout);
@@ -146,17 +146,17 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   }
   catch(ompl::Exception &ex)
   {
-    ROS_ERROR_STREAM("Sanity checks did not pass: " << ex.what());
+    logError("Sanity checks did not pass: %s", ex.what());
   }
   EXPECT_TRUE(passed);
 
-  planning_models::KinematicState kstate(kmodel_);
+  kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToRandomValues();
   EXPECT_TRUE(kstate.distance(kstate) < 1e-12);
   ompl::base::State *state = ss.allocState();
   for (int i = 0 ; i < 10 ; ++i)
   {
-    planning_models::KinematicState kstate2(kstate);
+    kinematic_state::KinematicState kstate2(kstate);
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
     ss.copyToOMPLState(state, kstate);
     kstate.getJointStateGroup(ss.getJointModelGroupName())->setToRandomValues();
