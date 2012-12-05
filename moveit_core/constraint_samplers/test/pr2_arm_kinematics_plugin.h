@@ -15,7 +15,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of Willow Garage, Inc. nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -182,7 +182,6 @@ public:
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
-                                unsigned int redundancy,         
                                 double consistency_limit,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code) const;      
@@ -215,7 +214,6 @@ public:
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
-                                unsigned int redundancy,
                                 double consistency_limit,
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
