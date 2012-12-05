@@ -138,7 +138,11 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 
 void MotionPlanningFrame::createGoalPoseButtonClicked(void) 
 {
-  ROS_DEBUG("Create goal pose");
+  ROS_DEBUG("Create goal pose");// \todo @mario please add a check for PlanningSceneMonitor to be available, like in the other functions
+
+  // \todo also check that
+  // planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].empty()
+  // returns false
 
   bool ok = false;
   
@@ -155,28 +159,18 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
     if (!text.isEmpty())
     {
       name = text.toStdString();
-      if (goal_poses_.find(name)!=goal_poses_.end())
+      if (goal_poses_.find(name)!=goal_poses_.end()) // \todo @mario please fix operator spacing
         QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
                              append("' already exists. Not creating goal."));
       else 
       {
         //Create the new goal pose at the current eef pose, and attach an interactive marker to it
-        Eigen::Affine3d tip_pose=planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
-
-        geometry_msgs::PoseStamped shape_pose;
-        shape_pose.pose.position.x = tip_pose(0,3);
-        shape_pose.pose.position.y = tip_pose(1,3);
-        shape_pose.pose.position.z = tip_pose(2,3);
-        Eigen::Quaterniond q(tip_pose.rotation());
-        shape_pose.pose.orientation.x = q.x();
-        shape_pose.pose.orientation.y = q.y();
-        shape_pose.pose.orientation.z = q.z();
-        shape_pose.pose.orientation.w = q.w();
-
+        Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
         visualization_msgs::InteractiveMarker int_marker;
-        int_marker.header.frame_id = planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
-        int_marker.scale=0.35;
-        int_marker.pose=shape_pose.pose;
+        int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
+        int_marker.scale = 0.35; // \todo @mario use static const here
+        tf::poseEigenToMsg(tip_pose, int_marker.pose);
+
         int_marker.name=name;
 
         robot_interaction::addArrowMarker(int_marker);
@@ -201,11 +195,11 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
 }
 
 void MotionPlanningFrame::removeSelectedGoalsButtonClicked(void)
-{
+{// \todo @mario please fix operator spacing
   QList<QListWidgetItem*> found_items=ui_->goal_poses_list->selectedItems();
   for (unsigned int i=0; i<found_items.size(); i++)
   {
-    ROS_DEBUG_STREAM("Removing " << found_items[i]->text().toStdString());
+    ROS_DEBUG_STREAM("Removing " << found_items[i]->text().toStdString());// \todo @mario please make the debug message a little more clear -- you get messages from many libs to the console
     goal_poses_.erase(found_items[i]->text().toStdString());    
   }
   populateGoalPosesList();
@@ -227,7 +221,7 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
       QMessageBox::warning(this, "Cannot query the database", "Wrongly formatted regular expression for goal poses.");
       return;
     }
-
+  // \todo @mario please fix operator spacing
     for (unsigned int i=0; i<names.size(); i++) 
     {
       //Create a goal pose marker
@@ -241,13 +235,13 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
         {
           goal_poses_.erase(c->name);
         }
-            
+        // \todo @mario please fix operator spacing below
         geometry_msgs::PoseStamped shape_pose;
         shape_pose.pose.position= c->position_constraints[0].constraint_region.primitive_poses[0].position;
         shape_pose.pose.orientation = c->orientation_constraints[0].orientation;
 
         visualization_msgs::InteractiveMarker int_marker;
-        int_marker.header.frame_id = planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
+        int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
         int_marker.scale=0.35;
         int_marker.pose=shape_pose.pose;
         int_marker.name=c->name;
@@ -283,9 +277,12 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
     for (unsigned int i=0; i<names.size(); i++) 
     {
       moveit_warehouse::RobotStateWithMetadata rs;
-      robot_state_storage_->getRobotState(rs, names[i]);
+      robot_state_storage_->getRobotState(rs, names[i]);    // \todo @mario this returns false on failure; please check for failuere
+
       
       //Overwrite if exists. TODO: Ask the user before overwriting? copy the existing one with another name before?
+      // Ioan: It is ok to even clear the list of goals when clicking load. Overwrite is fine. Otherwise multiple load will duplicate everything.
+      // no need for confirmation; remove this message when read
       if (start_states_.find(names[i]) != start_states_.end()) 
       {
         start_states_.erase(names[i]);
@@ -310,37 +307,34 @@ void MotionPlanningFrame::saveOnDBButtonClicked(void)
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++)
     {
       moveit_msgs::Constraints c;
-      c.name=it->second.imarker->getName();
+      c.name = it->second.imarker->getName();
 
       shape_msgs::SolidPrimitive sp;
-      sp.type=sp.BOX;
-      sp.dimensions.push_back(std::numeric_limits<float>::epsilon() * 10.0);
-      sp.dimensions.push_back(std::numeric_limits<float>::epsilon() * 10.0);
-      sp.dimensions.push_back(std::numeric_limits<float>::epsilon() * 10.0);
+      sp.type = sp.BOX;
+      sp.dimensions.resize(3, std::numeric_limits<float>::epsilon() * 10.0);
 
       moveit_msgs::PositionConstraint pc;
       pc.constraint_region.primitives.push_back(sp);
       geometry_msgs::Pose posemsg;
-      posemsg.position.x=it->second.imarker->getPosition().x;
-      posemsg.position.y=it->second.imarker->getPosition().y;
-      posemsg.position.z=it->second.imarker->getPosition().z;
-      posemsg.orientation.x=0;
-      posemsg.orientation.y=0;
-      posemsg.orientation.z=0;
-      posemsg.orientation.w=1;
+      posemsg.position.x = it->second.imarker->getPosition().x;
+      posemsg.position.y = it->second.imarker->getPosition().y;
+      posemsg.position.z = it->second.imarker->getPosition().z;
+      posemsg.orientation.x = 0.0;
+      posemsg.orientation.y = 0.0;
+      posemsg.orientation.z = 0.0;
+      posemsg.orientation.w = 1.0;
       pc.constraint_region.primitive_poses.push_back(posemsg);
-      pc.weight=1.0;
+      pc.weight = 1.0;
       c.position_constraints.push_back(pc);
 
       moveit_msgs::OrientationConstraint oc;
-      oc.orientation.x=it->second.imarker->getOrientation().x;
-      oc.orientation.y=it->second.imarker->getOrientation().y;
-      oc.orientation.z=it->second.imarker->getOrientation().z;
-      oc.orientation.w=it->second.imarker->getOrientation().w;
-      oc.absolute_x_axis_tolerance=std::numeric_limits<float>::epsilon() * 10.0;
-      oc.absolute_y_axis_tolerance=std::numeric_limits<float>::epsilon() * 10.0;
-      oc.absolute_z_axis_tolerance=std::numeric_limits<float>::epsilon() * 10.0;
-      oc.weight=1.0;
+      oc.orientation.x = it->second.imarker->getOrientation().x;
+      oc.orientation.y = it->second.imarker->getOrientation().y;
+      oc.orientation.z = it->second.imarker->getOrientation().z;
+      oc.orientation.w = it->second.imarker->getOrientation().w;
+      oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance = 
+        oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
+      oc.weight = 1.0;
       c.orientation_constraints.push_back(oc);
       
       constraints_storage_->addConstraints(c);
@@ -394,7 +388,7 @@ void MotionPlanningFrame::populateGoalPosesList(void)
 {
   ui_->goal_poses_list->clear();
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
-  {
+  {// \todo @mario operator spacing
     QListWidgetItem *item=new QListWidgetItem(QString(it->first.c_str()));
     ui_->goal_poses_list->addItem(item);
     if (it->second.selected) 
@@ -407,38 +401,43 @@ void MotionPlanningFrame::populateGoalPosesList(void)
 
 void MotionPlanningFrame::goalPoseSelectionChanged()
 {
-  for (unsigned int i = 0; i < ui_->goal_poses_list->count(); ++i)
+  for (unsigned int i = 0; i < ui_->goal_poses_list->count() ; ++i)
   {
-    QListWidgetItem *item=ui_->goal_poses_list->item(i);
-    if ( ( item->isSelected() && ! goal_poses_[item->text().toStdString()].selected )
-        || ( ! item->isSelected() && goal_poses_[item->text().toStdString()].selected ))
-    {
-      switchGoalPoseMarkerSelection(item->text().toStdString());
-    }
+    QListWidgetItem *item = ui_->goal_poses_list->item(i);
+    std::string name = item->text().toStdString();
+    if ( ( item->isSelected() && ! goal_poses_[name].selected )
+         || ( ! item->isSelected() && goal_poses_[name].selected ))
+      switchGoalPoseMarkerSelection(name);
   }
 }
 
 void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 {
-  //Call to IK
+  if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
+    return;
+  
+  // Call to IK  
   geometry_msgs::Pose current_pose;
-  current_pose.position.x=goal_poses_[item->text().toStdString()].imarker->getPosition().x;
-  current_pose.position.y=goal_poses_[item->text().toStdString()].imarker->getPosition().y;
-  current_pose.position.z=goal_poses_[item->text().toStdString()].imarker->getPosition().z;
-  current_pose.orientation.x=goal_poses_[item->text().toStdString()].imarker->getOrientation().x;
-  current_pose.orientation.y=goal_poses_[item->text().toStdString()].imarker->getOrientation().y;
-  current_pose.orientation.z=goal_poses_[item->text().toStdString()].imarker->getOrientation().z;
-  current_pose.orientation.w=goal_poses_[item->text().toStdString()].imarker->getOrientation().w;
+  const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[item->text().toStdString()].imarker;
+  current_pose.position.x = imarker->getPosition().x;
+  current_pose.position.y = imarker->getPosition().y;
+  current_pose.position.z = imarker->getPosition().z;
+  current_pose.orientation.x = imarker->getOrientation().x;
+  current_pose.orientation.y = imarker->getOrientation().y;
+  current_pose.orientation.z = imarker->getOrientation().z;
+  current_pose.orientation.w = imarker->getOrientation().w;
 
-  planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(), planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, 10.0, 5);
+  // \todo @mario : please use named static constants for 10.0 and 5; or make the inputs in the plugin if possible
+  planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
+                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, 10.0, 5);
   planning_display_->queueRenderSceneGeometry();
 }
 
 /* Receives feedback from the interactive marker attached to a goal pose */
-void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void MotionPlanningFrame::goalPoseFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback)
 { 
   static Eigen::Affine3d initial_pose_eigen;
-  static bool dragging=false;
+  static bool dragging = false;
   
   if (feedback.event_type == feedback.BUTTON_CLICK) 
   {
@@ -764,7 +763,7 @@ void MotionPlanningFrame::populateCollisionObjectsList(void)
 }
 
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
-void  MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void  MotionPlanningFrame::imProcessFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
   ui_->object_x->setValue(feedback.pose.position.x);
   ui_->object_y->setValue(feedback.pose.position.y);
