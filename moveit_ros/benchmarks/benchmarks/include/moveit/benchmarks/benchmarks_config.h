@@ -56,7 +56,8 @@ struct BenchmarkOptions
   std::string planning_frame;
   std::string default_constrained_link;
   std::size_t default_run_count;
-  
+  double timeout;
+
   struct PluginOptions
   {
     std::string name;
