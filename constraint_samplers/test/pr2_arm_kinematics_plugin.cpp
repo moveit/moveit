@@ -370,7 +370,6 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
 bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                               const std::vector<double> &ik_seed_state,
                                               double timeout,
-                                              unsigned int redundancy,
                                               double consistency_limit,
                                               std::vector<double> &solution,
                                               moveit_msgs::MoveItErrorCodes &error_code) const
@@ -391,7 +390,6 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
 bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                               const std::vector<double> &ik_seed_state,
                                               double timeout,
-                                              unsigned int redundancy,
                                               double consistency_limit,
                                               std::vector<double> &solution,
                                               const IKCallbackFn &solution_callback,
