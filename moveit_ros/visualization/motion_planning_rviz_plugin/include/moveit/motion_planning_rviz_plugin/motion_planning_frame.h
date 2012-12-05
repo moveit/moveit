@@ -165,8 +165,8 @@ private Q_SLOTS:
   void publishSceneButtonClicked(void);
   void collisionObjectChanged(QListWidgetItem *item);
   void pathConstraintsIndexChanged(int index);
-  void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void imProcessFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void goalPoseFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback);
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
   void tabChanged(int index);
   void copySelectedCollisionObject(void);
