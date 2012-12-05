@@ -183,6 +183,24 @@ void kinematic_state::JointStateGroup::setToRandomValues(void)
   setVariableValues(random_joint_states);
 }
 
+void kinematic_state::JointStateGroup::setToRandomValuesNearBy(const std::vector<double> &near, 
+                                                               const std::map<kinematic_model::JointModel::JointType, double> &distance_map)
+{
+  random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+  std::vector<double> variable_values;
+  joint_model_group_->getVariableRandomValuesNearBy(rng, variable_values, near, distance_map);
+  setVariableValues(variable_values);
+}
+
+void kinematic_state::JointStateGroup::setToRandomValuesNearBy(const std::vector<double> &near, 
+                                                               const std::vector<double> &distances)
+{
+  random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+  std::vector<double> variable_values;
+  joint_model_group_->getVariableRandomValuesNearBy(rng, variable_values, near, distances);
+  setVariableValues(variable_values);
+}
+
 void kinematic_state::JointStateGroup::getVariableValues(std::vector<double>& joint_state_values) const
 {
   joint_state_values.clear();
