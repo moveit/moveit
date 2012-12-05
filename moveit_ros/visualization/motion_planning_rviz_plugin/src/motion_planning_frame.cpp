@@ -426,9 +426,11 @@ void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 
   static const float timeout=10.0;
   static const unsigned int attempts=5;
-  planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
-                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
-  planning_display_->queueRenderSceneGeometry();
+  if ( planning_display_->getQueryGoalState() && planning_display_->getRobotInteraction()->getActiveEndEffectors().size() > 0 ) {
+    planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
+                                                          planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
+    planning_display_->updateQueryGoalState();
+  }
 }
 
 /* Receives feedback from the interactive marker attached to a goal pose */
