@@ -312,11 +312,12 @@ void MotionPlanningFrame::saveOnDBButtonClicked(void)
 
       shape_msgs::SolidPrimitive sp;
       sp.type=sp.BOX;
-      sp.dimensions.push_back(0.02);
-      sp.dimensions.push_back(0.02);
-      sp.dimensions.push_back(0.02);
+      sp.dimensions.push_back(std::numeric_limits<float>::epsilon() * 10.0);
+      sp.dimensions.push_back(std::numeric_limits<float>::epsilon() * 10.0);
+      sp.dimensions.push_back(std::numeric_limits<float>::epsilon() * 10.0);
 
       moveit_msgs::PositionConstraint pc;
+      pc.header.frame_id=planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
       pc.constraint_region.primitives.push_back(sp);
       geometry_msgs::Pose posemsg;
       posemsg.position.x=it->second.imarker->getPosition().x;
@@ -327,13 +328,19 @@ void MotionPlanningFrame::saveOnDBButtonClicked(void)
       posemsg.orientation.z=0;
       posemsg.orientation.w=1;
       pc.constraint_region.primitive_poses.push_back(posemsg);
+      pc.weight=1.0;
       c.position_constraints.push_back(pc);
 
       moveit_msgs::OrientationConstraint oc;
+      oc.header.frame_id=planning_display_->getQueryGoalState()->getKinematicModel()->getModelFrame();
       oc.orientation.x=it->second.imarker->getOrientation().x;
       oc.orientation.y=it->second.imarker->getOrientation().y;
       oc.orientation.z=it->second.imarker->getOrientation().z;
       oc.orientation.w=it->second.imarker->getOrientation().w;
+      oc.absolute_x_axis_tolerance=std::numeric_limits<float>::epsilon() * 10.0;
+      oc.absolute_y_axis_tolerance=std::numeric_limits<float>::epsilon() * 10.0;
+      oc.absolute_z_axis_tolerance=std::numeric_limits<float>::epsilon() * 10.0;
+      oc.weight=1.0;
       c.orientation_constraints.push_back(oc);
       
       constraints_storage_->addConstraints(c);

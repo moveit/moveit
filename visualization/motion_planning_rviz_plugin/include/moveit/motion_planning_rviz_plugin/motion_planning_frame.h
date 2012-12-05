@@ -45,6 +45,7 @@
 
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <map>
+#include <string>
 
 namespace rviz
 {
