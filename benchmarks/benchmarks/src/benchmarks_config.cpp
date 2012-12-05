@@ -87,8 +87,7 @@ moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std
   psws_(host, port),
   cs_(host, port),
   rs_(host, port)
-{
-  
+{  
 }
 
 void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
@@ -206,6 +205,10 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
           req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
           if (!opt_.group_override.empty())
             req.motion_plan_request.group_name = opt_.group_override;
+          
+          if (opt_.timeout > 0.0)
+            req.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+          
           if (!opt_.default_constrained_link.empty())
           {
             checkConstrainedLink(req.motion_plan_request.path_constraints, opt_.default_constrained_link);
@@ -249,6 +252,8 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
             req.motion_plan_request.goal_constraints[0] = *constr;
             if (!opt_.group_override.empty())
               req.motion_plan_request.group_name = opt_.group_override;
+            if (opt_.timeout > 0.0)
+              req.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
             if (!opt_.default_constrained_link.empty())
               checkConstrainedLink(req.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
             if (!opt_.planning_frame.empty())
@@ -284,6 +289,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     desc.add_options()
       ("scene.name", boost::program_options::value<std::string>(), "Scene name")
       ("scene.runs", boost::program_options::value<std::string>()->default_value("1"), "Number of runs")
+      ("scene.timeout", boost::program_options::value<std::string>()->default_value(""), "Timeout for planning (s)")
       ("scene.start", boost::program_options::value<std::string>()->default_value(""), "Regex for the start states to use")
       ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
       ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
@@ -327,6 +333,19 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       }
     }
     opt_.default_run_count = default_run_count;
+    opt_.timeout = 0.0;
+    if (!declared_options["scene.timeout"].empty())
+    {
+      try
+      {
+        opt_.timeout = boost::lexical_cast<double>(declared_options["scene.timeout"]);
+      }
+      catch(boost::bad_lexical_cast &ex)
+      {
+        ROS_WARN("%s", ex.what());
+      }
+    }
+    
     std::vector<std::string> unr = boost::program_options::collect_unrecognized(po.options, boost::program_options::exclude_positional);
     boost::scoped_ptr<BenchmarkOptions::PluginOptions> bpo;
     for (std::size_t i = 0 ; i < unr.size() / 2 ; ++i)
