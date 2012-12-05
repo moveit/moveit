@@ -160,7 +160,6 @@ private:
     action_res.executed_trajectory = res.executed_trajectory_;
     action_res.error_code = res.error_code_;
       
-    
     if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
       if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
@@ -200,7 +199,13 @@ private:
                 if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
                   action_server_->setPreempted(action_res, "Preempted");
                 else
-                  action_server_->setAborted(action_res, "Unknown event");
+                  if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS)
+                    action_server_->setAborted(action_res, "Invalid goal constraints");
+                  else
+                    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
+                      action_server_->setAborted(action_res, "Invalid group name");
+                    else
+                      action_server_->setAborted(action_res, "Unknown event");
     setState(IDLE, 0.0);
   }
   
