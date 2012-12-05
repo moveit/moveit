@@ -92,7 +92,6 @@ public:
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
-   * @param redundancy The index of the redundant joint in the solver
    * @param consistency_limit the distance that the redundancy can be from the current position 
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
@@ -101,7 +100,6 @@ public:
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
-                                unsigned int redundancy,
                                 double consistency_limit,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code) const = 0;      
@@ -134,7 +132,6 @@ public:
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
-   * @param redundancy The index of the redundant joint in the solver
    * @param consistency_limit the distance that the redundancy can be from the current position 
    * @param solution the solution vector
    * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
@@ -145,7 +142,6 @@ public:
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
-                                unsigned int redundancy,
                                 double consistency_limit,
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
@@ -218,6 +214,17 @@ public:
     return tip_frame_;
   }
 
+  virtual bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
+  {
+    redundant_joint_indices_ = redundant_joint_indices;
+    return true;    
+  }
+      
+  virtual void getRedundantJoints(std::vector<unsigned int> &redundant_joint_indices) const
+  {
+    redundant_joint_indices = redundant_joint_indices_;    
+  }
+
   /**
    * @brief  Return all the joint names in the order they are used internally
    */
@@ -252,6 +259,7 @@ protected:
   std::string base_frame_;
   std::string tip_frame_;
   double search_discretization_;
+  std::vector<unsigned int> redundant_joint_indices_;
   KinematicsBase(){}
 };
 

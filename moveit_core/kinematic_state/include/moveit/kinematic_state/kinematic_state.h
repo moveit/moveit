@@ -253,6 +253,9 @@ public:
   /** \brief Interpolate between two states */
   void interpolate(const KinematicState &to, const double t, KinematicState &dest) const;
   
+  /** \brief Get the infinity norm distance between two kinematic states */
+  double infinityNormDistance(const kinematic_state::KinematicState *other) const;
+  
   /** \brief Get the distance between this state and another one. This distance does not consider topology -- it is only the L2 norm on the joint vector */
   double distance(const KinematicState &state) const;
     
