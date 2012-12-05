@@ -100,7 +100,13 @@ class MoveGroupCommander:
 
     def set_orientation_target(self, xyz, end_effector_link = ""):
         if self.has_end_effector_link():
-            return self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], end_effector_link)
+            if len(xyz) == 3:
+                return self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], end_effector_link)
+            else:
+                if len(xyz) == 4:
+                    return self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], xyz[3], end_effector_link)
+                else:
+                    raise "Expected either [roll, pitch, yaw] or [qx, qy, qz, qw]"
         else:
             raise "There is no end effector to set the pose for"
 
@@ -111,11 +117,24 @@ class MoveGroupCommander:
             raise "There is no end effector to set the pose for"
 
     def set_pose_target(self, pose, end_effector_link = ""):
-        """ Set the pose of the end-effector, if one is available. The expected input is a list of 6 floats: [x, y, z, rot_x, rot_y, rot_z]"""
+        """ Set the pose of the end-effector, if one is available. The expected input is a list of 6 floats: [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
         if self.has_end_effector_link():
             return self._g.set_pose_target(pose, end_effector_link)
         else:
-            raise "There is no end effector to get the pose of"
+            raise "There is no end effector to set the pose for"
+
+    def set_pose_targets(self, poses, end_effector_link = ""):
+        """ Set the pose of the end-effector, if one is available. The expected input is a list of poses. Each pose can be 6 floats: [x, y, z, rot_x, rot_y, rot_z] or 7 floats [x, y, z, qx, qy, qz, qw] """
+        if self.has_end_effector_link():
+            return self._g.set_pose_targets(poses, end_effector_link)
+        else:
+            raise "There is no end effector to set poses for"
+
+    def follow_pose_sequence(self, poses, end_effector_link = ""):
+        if self.has_end_effector_link():
+            return self._g.follow_constraints(poses, end_effector_link)
+        else:
+            raise "There is no end effector to set poses for"
 
     def shift_pose_target(self, axis, value, end_effector_link = ""):
         """ Get the current pose of the end effector, add value to the corresponding axis and set the new pose as the pose target """
