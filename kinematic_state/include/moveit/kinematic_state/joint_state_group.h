@@ -147,10 +147,16 @@ public:
   /** \brief Sample a random state in accordance with the type of joints employed */
   void setToRandomValues(void);
 
-  /** \brief Sample a random state in accordance with the type of joints employed, near the specified joint state */
+  /** \brief Sample a random state in accordance with 
+      the type of joints employed, near the specified joint state. 
+      The distance map specifies distances according to joint type. */
   void setToRandomValuesNearBy(const std::vector<double> &near, const std::map<kinematic_model::JointModel::JointType, double> &distance_map);
 
-  /** \brief Sample a random state in accordance with the type of joints employed, near the specified joint state */
+  /** \brief Sample a random state in accordance with 
+      the type of joints employed, near the specified joint state. 
+      The distances vector specifies a distance for each joint model.
+      The distance computation uses an InfinityNorm computation 
+      - see also infinityNormDistance(const JointStateGroup *other) */
   void setToRandomValuesNearBy(const std::vector<double> &near, const std::vector<double> &distances);  
 
   /** \brief Checks if the current joint state values are all within the bounds set in the model */
@@ -159,6 +165,9 @@ public:
   /** \brief Force the joint to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
   void enforceBounds(void);
   
+  /** \brief Get the infinity norm distance between two joint states */
+  double infinityNormDistance(const JointStateGroup *other) const;  
+
   double distance(const JointStateGroup *other) const;
   
   void interpolate(const JointStateGroup *to, const double t, JointStateGroup *dest) const;

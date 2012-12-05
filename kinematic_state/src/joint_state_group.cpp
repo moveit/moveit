@@ -241,6 +241,15 @@ void kinematic_state::JointStateGroup::enforceBounds(void)
   updateLinkTransforms();
 }
 
+double kinematic_state::JointStateGroup::infinityNormDistance(const JointStateGroup *other) const
+{
+  std::vector<double> distances;  
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    distances.push_back(joint_state_vector_[i]->distance(other->joint_state_vector_[i]));
+  std::sort(distances.begin(),distances.end());  
+  return distances.back();
+}
+
 double kinematic_state::JointStateGroup::distance(const JointStateGroup *other) const
 {
   double d = 0.0;

@@ -302,6 +302,15 @@ void kinematic_state::KinematicState::setToRandomValues(void)
   setStateValues(random_joint_states);
 }
 
+double kinematic_state::KinematicState::infinityNormDistance(const kinematic_state::KinematicState *other) const
+{
+  std::vector<double> distances;  
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    distances.push_back(joint_state_vector_[i]->distance(other->joint_state_vector_[i]));
+  std::sort(distances.begin(),distances.end());  
+  return distances.back();
+}
+
 bool kinematic_state::KinematicState::satisfiesBounds(const std::string& joint) const
 {
   std::vector<std::string> j(1, joint);
