@@ -42,44 +42,27 @@
 namespace planning_interface
 {
 
-// This struct will change a lot over time as we figure out what's
-// needed.
-struct PlannerCapabilities
-{
-  PlannerCapabilities(void)
-  {
-  }
-  
-  /*
-    bool can_plan_from_collision;
-    bool can_plan_to_collision;
-    bool is_anytime;
-    bool can_handle_goal_constraints;
-    bool can_handle_path_constraints;
-    bool needs_distance_field;
-  */
-};
-
+/** \brief Base class for a MoveIt planner */
 class Planner
 {
 public:
-  Planner() {}
-  virtual ~Planner() {};
+  
+  Planner()
+  {
+  }
+
+  virtual ~Planner() 
+  {
+  };
   
   /// Subclass may implement methods below
-  virtual void init(const kinematic_model::KinematicModelConstPtr& model) {}
+  virtual void init(const kinematic_model::KinematicModelConstPtr& model) { }
   
   /// Get a short string that identifies the planning interface
   virtual std::string getDescription(void) const { return ""; }
   
   /// Get the names of the known planning algorithms (values that can be filled as planner_id in the planning request)
   virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const { }
-
-  virtual PlannerCapabilities getPlannerCapabilities(void) const
-  {
-    return PlannerCapabilities();
-  }
-  
 
   /// Subclass must implement methods below
   virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
