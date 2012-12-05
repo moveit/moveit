@@ -116,7 +116,7 @@ public:
     return d;
   }
   
-  bp::list getCurrentPosePython(const std::string &end_effector_link)
+  bp::list getCurrentPosePython(const std::string &end_effector_link = "")
   {
     geometry_msgs::PoseStamped pose = getCurrentPose(end_effector_link);
     std::vector<double> v(6);
@@ -136,8 +136,46 @@ public:
   {
     return moveit_py_bindings_tools::listFromString(getKnownConstraints());
   }
+
+  void convertToArrayOfPoses(bp::list &poses, std::vector<geometry_msgs::Pose> &msg)
+  { 
+    int l = bp::len(poses);
+    for (int i = 0; i < l ; ++i)
+    {
+      bp::list pose = bp::extract<bp::list>(poses[i]);
+      std::vector<double> v = moveit_py_bindings_tools::doubleFromList(pose);
+      if (v.size() == 6 || v.size() == 7)
+      {
+        Eigen::Affine3d p = v.size() == 6 ? 
+          Eigen::Affine3d(Eigen::AngleAxisd(v[3], Eigen::Vector3d::UnitX())
+                          * Eigen::AngleAxisd(v[4], Eigen::Vector3d::UnitY())
+                          * Eigen::AngleAxisd(v[5], Eigen::Vector3d::UnitZ())) :
+          Eigen::Affine3d(Eigen::Quaterniond(v[6], v[3], v[4], v[5]));
+        p.translation() = Eigen::Vector3d(v[0], v[1], v[2]);
+        geometry_msgs::Pose pm;
+        tf::poseEigenToMsg(p, pm);
+        msg.push_back(pm);
+      }
+      else
+        ROS_WARN("Incorrect number of values for a pose: %u", (unsigned int)v.size());
+    }
+  }
   
-  void setPoseTargetPython(bp::list &pose, const std::string &end_effector_link)
+  void setPoseTargetsPython(bp::list &poses, const std::string &end_effector_link = "")
+  {
+    std::vector<geometry_msgs::Pose> msg;
+    convertToArrayOfPoses(poses, msg);
+    setPoseTargets(msg, end_effector_link);
+  }
+
+  void followConstraintsPython(bp::list &poses, const std::string &end_effector_link = "")
+  {
+    std::vector<geometry_msgs::Pose> msg;
+    convertToArrayOfPoses(poses, msg);
+    followConstraints(msg, 1e-3, 1e-2, end_effector_link);
+  }
+  
+  void setPoseTargetPython(bp::list &pose, const std::string &end_effector_link = "")
   {
     std::vector<double> v = moveit_py_bindings_tools::doubleFromList(pose);
     if (v.size() == 6)
@@ -181,7 +219,8 @@ public:
     bp::list joint_traj_points, multi_dof_traj_points, poses;
     bp::dict joint_traj_point, multi_dof_traj_point, pose, position, orientation;
 
-    for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = plan.trajectory_.joint_trajectory.points.begin() ; it != plan.trajectory_.joint_trajectory.points.end() ; ++it)
+    for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = plan.trajectory_.joint_trajectory.points.begin() ;
+         it != plan.trajectory_.joint_trajectory.points.end() ; ++it)
     {
       joint_traj_point["positions"] = moveit_py_bindings_tools::listFromDouble(it->positions);
       joint_traj_point["velocities"] = moveit_py_bindings_tools::listFromDouble(it->velocities);
@@ -196,7 +235,8 @@ public:
     multi_dof_joint_trajectory["frame_ids"] = frame_ids;
     multi_dof_joint_trajectory["child_frame_ids"] = child_frame_ids;
 
-    for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = plan.trajectory_.multi_dof_joint_trajectory.points.begin() ; it != plan.trajectory_.multi_dof_joint_trajectory.points.end() ; ++it)
+    for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = plan.trajectory_.multi_dof_joint_trajectory.points.begin() ;
+         it != plan.trajectory_.multi_dof_joint_trajectory.points.end() ; ++it)
     {
       for (std::vector<geometry_msgs::Pose>::const_iterator itr = it->poses.begin() ; itr != it->poses.end() ; ++itr)
       {
@@ -254,6 +294,8 @@ void wrap_move_group_interface()
 
   MoveGroupClass.def("set_pose_target", &MoveGroupWrapper::setPoseTargetPython);
 
+  MoveGroupClass.def("set_pose_targets", &MoveGroupWrapper::setPoseTargetsPython);
+
   MoveGroupClass.def("set_position_target", &MoveGroupWrapper::setPositionTarget);
   
   void (MoveGroupWrapper::*setOrientationTarget_1)(double, double, double, const std::string&) = &MoveGroupWrapper::setOrientationTarget;
@@ -279,6 +321,8 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget); 
   MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget); 
 
+  MoveGroupClass.def("follow_constraints", &MoveGroupWrapper::followConstraintsPython);
+  
   void (MoveGroupWrapper::*rememberJointValues_2)(const std::string&) = &MoveGroupWrapper::rememberJointValues;
   MoveGroupClass.def("remember_joint_values", rememberJointValues_2);
   
