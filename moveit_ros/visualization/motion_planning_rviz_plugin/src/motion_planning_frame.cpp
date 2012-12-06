@@ -120,8 +120,10 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteOnDBButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
-
   
+  QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->goal_poses_list);
+  connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
+
   //Start states
   connect( ui_->save_start_state_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
   connect( ui_->remove_start_state_button, SIGNAL( clicked() ), this, SLOT( removeSelectedStatesButtonClicked() ));
@@ -138,16 +140,13 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 
 void MotionPlanningFrame::createGoalPoseButtonClicked(void) 
 {
-  ROS_DEBUG("Create goal pose");// \todo @mario please add a check for PlanningSceneMonitor to be available, like in the other functions
-
-  // \todo also check that
-  // planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].empty()
-  // returns false
+  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+  if ( ! ps || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() )
+    return;
 
   bool ok = false;
-  
   std::stringstream ss;
-  ss << planning_display_->getPlanningScene()->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
+  ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
   
   QString text = QInputDialog::getText(this, tr("Choose a name"),
                                        tr("Goal pose name:"), QLineEdit::Normal,
@@ -156,10 +155,10 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
   std::string name;
   if (ok)
   {
-    if (!text.isEmpty())
+    if ( ! text.isEmpty() )
     {
       name = text.toStdString();
-      if (goal_poses_.find(name)!=goal_poses_.end()) // \todo @mario please fix operator spacing
+      if (goal_poses_.find(name) != goal_poses_.end())
         QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
                              append("' already exists. Not creating goal."));
       else 
@@ -168,10 +167,11 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
         Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
         visualization_msgs::InteractiveMarker int_marker;
         int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
-        int_marker.scale = 0.35; // \todo @mario use static const here
+        static const float marker_scale = 0.35;
+        int_marker.scale = marker_scale;
         tf::poseEigenToMsg(tip_pose, int_marker.pose);
 
-        int_marker.name=name;
+        int_marker.name = name;
 
         robot_interaction::addArrowMarker(int_marker);
 
@@ -195,12 +195,11 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
 }
 
 void MotionPlanningFrame::removeSelectedGoalsButtonClicked(void)
-{// \todo @mario please fix operator spacing
-  QList<QListWidgetItem*> found_items=ui_->goal_poses_list->selectedItems();
-  for (unsigned int i=0; i<found_items.size(); i++)
+{
+  QList<QListWidgetItem*> found_items = ui_->goal_poses_list->selectedItems();
+  for ( unsigned int i = 0 ; i < found_items.size() ; i++ )
   {
-    ROS_DEBUG_STREAM("Removing " << found_items[i]->text().toStdString());// \todo @mario please make the debug message a little more clear -- you get messages from many libs to the console
-    goal_poses_.erase(found_items[i]->text().toStdString());    
+    goal_poses_.erase(found_items[i]->text().toStdString());
   }
   populateGoalPosesList();
 }
@@ -221,30 +220,30 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
       QMessageBox::warning(this, "Cannot query the database", "Wrongly formatted regular expression for goal poses.");
       return;
     }
-  // \todo @mario please fix operator spacing
-    for (unsigned int i=0; i<names.size(); i++) 
+
+    for (unsigned int i = 0 ; i < names.size() ; i++)
     {
       //Create a goal pose marker
       moveit_warehouse::ConstraintsWithMetadata c;
       constraints_storage_->getConstraints(c, names[i]);
 
-      if (c->position_constraints.size()>0 && c->position_constraints[0].constraint_region.primitive_poses.size()>0 && c->orientation_constraints.size()>0) 
+      if ( c->position_constraints.size() > 0 && c->position_constraints[0].constraint_region.primitive_poses.size() > 0 && c->orientation_constraints.size() > 0 )
       {
         //Overwrite if exists. TODO: Ask the user before overwriting? copy the existing one with another name before?
-        if (goal_poses_.find(c->name) != goal_poses_.end()) 
+        if ( goal_poses_.find(c->name) != goal_poses_.end() )
         {
           goal_poses_.erase(c->name);
         }
-        // \todo @mario please fix operator spacing below
-        geometry_msgs::PoseStamped shape_pose;
-        shape_pose.pose.position= c->position_constraints[0].constraint_region.primitive_poses[0].position;
-        shape_pose.pose.orientation = c->orientation_constraints[0].orientation;
+        geometry_msgs::Pose shape_pose;
+        shape_pose.position = c->position_constraints[0].constraint_region.primitive_poses[0].position;
+        shape_pose.orientation = c->orientation_constraints[0].orientation;
 
         visualization_msgs::InteractiveMarker int_marker;
         int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
-        int_marker.scale=0.35;
-        int_marker.pose=shape_pose.pose;
-        int_marker.name=c->name;
+        static const float marker_scale = 0.35;
+        int_marker.scale = marker_scale;
+        int_marker.pose = shape_pose;
+        int_marker.name = c->name;
 
         robot_interaction::addArrowMarker(int_marker);
 
@@ -274,18 +273,16 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
       return;
     }
 
-    for (unsigned int i=0; i<names.size(); i++) 
+    for ( unsigned int i = 0 ; i < names.size() ; i++ )
     {
       moveit_warehouse::RobotStateWithMetadata rs;
-      robot_state_storage_->getRobotState(rs, names[i]);    // \todo @mario this returns false on failure; please check for failuere
-
-      
-      //Overwrite if exists. TODO: Ask the user before overwriting? copy the existing one with another name before?
-      // Ioan: It is ok to even clear the list of goals when clicking load. Overwrite is fine. Otherwise multiple load will duplicate everything.
-      // no need for confirmation; remove this message when read
-      if (start_states_.find(names[i]) != start_states_.end()) 
+      if ( robot_state_storage_->getRobotState(rs, names[i]) )
       {
-        start_states_.erase(names[i]);
+        //Overwrite if exists.
+        if (start_states_.find(names[i]) != start_states_.end())
+        {
+          start_states_.erase(names[i]);
+        }
       }
              
       //Store the current start state
@@ -388,8 +385,8 @@ void MotionPlanningFrame::populateGoalPosesList(void)
 {
   ui_->goal_poses_list->clear();
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
-  {// \todo @mario operator spacing
-    QListWidgetItem *item=new QListWidgetItem(QString(it->first.c_str()));
+  {
+    QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_->goal_poses_list->addItem(item);
     if (it->second.selected) 
     {
@@ -405,15 +402,16 @@ void MotionPlanningFrame::goalPoseSelectionChanged()
   {
     QListWidgetItem *item = ui_->goal_poses_list->item(i);
     std::string name = item->text().toStdString();
-    if ( ( item->isSelected() && ! goal_poses_[name].selected )
-         || ( ! item->isSelected() && goal_poses_[name].selected ))
+    if ( goal_poses_.find(name) != goal_poses_.end() &&
+        ( (item->isSelected() && ! goal_poses_[name].selected )
+            || ( ! item->isSelected() && goal_poses_[name].selected )))
       switchGoalPoseMarkerSelection(name);
   }
 }
 
 void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 {
-  if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
+  if ( planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! planning_display_->getQueryGoalState() )
     return;
   
   // Call to IK  
@@ -427,14 +425,23 @@ void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
   current_pose.orientation.z = imarker->getOrientation().z;
   current_pose.orientation.w = imarker->getOrientation().w;
 
-  // \todo @mario : please use named static constants for 10.0 and 5; or make the inputs in the plugin if possible
-  planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
-                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, 10.0, 5);
-  planning_display_->queueRenderSceneGeometry();
+  static const float timeout = 1.0;
+  static const unsigned int attempts = 1.0;
+
+  bool feasible = planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
+                                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
+  if (feasible)
+  {
+    planning_display_->updateQueryGoalState();
+  }
+  else
+  {
+    QMessageBox::warning(this, "Goal not reachable" , "Could not find a solution to the inverse kinematics");
+  }
 }
 
 /* Receives feedback from the interactive marker attached to a goal pose */
-void MotionPlanningFrame::goalPoseFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback)
+void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 { 
   static Eigen::Affine3d initial_pose_eigen;
   static bool dragging = false;
@@ -444,7 +451,7 @@ void MotionPlanningFrame::goalPoseFeedback(const visualization_msgs::Interactive
     //Unselect all but the clicked one
     for (unsigned int i = 0; i < ui_->goal_poses_list->count(); ++i)
     {
-      QListWidgetItem *item=ui_->goal_poses_list->item(i);
+      QListWidgetItem *item = ui_->goal_poses_list->item(i);
       if (item->text().toStdString() == feedback.marker_name)
         item->setSelected(true);
       else
@@ -458,9 +465,9 @@ void MotionPlanningFrame::goalPoseFeedback(const visualization_msgs::Interactive
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
     {
       Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x, it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
-      pose(0,3)=it->second.imarker->getPosition().x;
-      pose(1,3)=it->second.imarker->getPosition().y;
-      pose(2,3)=it->second.imarker->getPosition().z;
+      pose(0,3) = it->second.imarker->getPosition().x;
+      pose(1,3) = it->second.imarker->getPosition().y;
+      pose(2,3) = it->second.imarker->getPosition().z;
       goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second.imarker->getName(), pose));
 
       if (it->second.imarker->getName() == feedback.marker_name) 
@@ -476,7 +483,7 @@ void MotionPlanningFrame::goalPoseFeedback(const visualization_msgs::Interactive
     Eigen::Affine3d current_pose_eigen;
     tf::poseMsgToEigen(feedback.pose, current_pose_eigen);
 
-    Eigen::Affine3d current_wrt_initial=initial_pose_eigen.inverse() * current_pose_eigen;
+    Eigen::Affine3d current_wrt_initial = initial_pose_eigen.inverse() * current_pose_eigen;
 
     //Update the rest of selected markers    
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
@@ -485,9 +492,9 @@ void MotionPlanningFrame::goalPoseFeedback(const visualization_msgs::Interactive
       {
         visualization_msgs::InteractiveMarkerPose impose;
 
-        Eigen::Affine3d newpose=initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_initial_pose_[it->second.imarker->getName()];
+        Eigen::Affine3d newpose = initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_initial_pose_[it->second.imarker->getName()];
         tf::poseEigenToMsg(newpose, impose.pose);
-        impose.header.frame_id=it->second.imarker->getReferenceFrame();
+        impose.header.frame_id = it->second.imarker->getReferenceFrame();
 
         it->second.imarker->processMessage(impose);
       }
@@ -510,23 +517,24 @@ void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marke
   current_pose.pose.orientation.w=goal_poses_[marker_name].imarker->getOrientation().w;
 
   visualization_msgs::InteractiveMarker int_marker;
-  int_marker.name=goal_poses_[marker_name].imarker->getName();
+  int_marker.name = goal_poses_[marker_name].imarker->getName();
   if (goal_poses_[marker_name].selected) 
   {
     //If selected, unselect
-    int_marker.pose=current_pose.pose;
-    goal_poses_[marker_name].selected=false;
+    int_marker.pose = current_pose.pose;
+    goal_poses_[marker_name].selected = false;
     setItemSelectionInList(marker_name, false, ui_->goal_poses_list);
   } 
   else 
   {
     //If unselected, select
-    int_marker= robot_interaction::make6DOFMarker(goal_poses_[marker_name].imarker->getName(), current_pose, 1.0);
-    goal_poses_[marker_name].selected=true;
+    int_marker = robot_interaction::make6DOFMarker(goal_poses_[marker_name].imarker->getName(), current_pose, 1.0);
+    goal_poses_[marker_name].selected = true;
     setItemSelectionInList(marker_name, true, ui_->goal_poses_list);
   }
   int_marker.header.frame_id = goal_poses_[marker_name].imarker->getReferenceFrame();
-  int_marker.scale=0.35;
+  static const float marker_scale = 0.35;
+  int_marker.scale = marker_scale;
   robot_interaction::addArrowMarker(int_marker);
   interactive_markers::autoComplete(int_marker);
   goal_poses_[marker_name].imarker->processMessage(int_marker);
@@ -539,12 +547,59 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
     found_items[i]->setSelected(selection);
 }
 
+void MotionPlanningFrame::copySelectedGoalPoses(void)
+{
+  QList<QListWidgetItem *> sel = ui_->goal_poses_list->selectedItems();
+  if (sel.empty())
+    return;
 
+  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+  if (!ps)
+    return;
+
+  for (int i = 0 ; i < sel.size() ; ++i)
+  {
+    std::string name = sel[i]->text().toStdString();
+    std::stringstream ss;
+    ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
+
+    geometry_msgs::PoseStamped current_pose;
+    current_pose.pose.position.x=goal_poses_[name].imarker->getPosition().x;
+    current_pose.pose.position.y=goal_poses_[name].imarker->getPosition().y;
+    current_pose.pose.position.z=goal_poses_[name].imarker->getPosition().z;
+    current_pose.pose.orientation.x=goal_poses_[name].imarker->getOrientation().x;
+    current_pose.pose.orientation.y=goal_poses_[name].imarker->getOrientation().y;
+    current_pose.pose.orientation.z=goal_poses_[name].imarker->getOrientation().z;
+    current_pose.pose.orientation.w=goal_poses_[name].imarker->getOrientation().w;
+
+    visualization_msgs::InteractiveMarker int_marker;
+    int_marker = robot_interaction::make6DOFMarker(ss.str(), current_pose, 1.0);
+
+    int_marker.header.frame_id = ps->getKinematicModel()->getModelFrame();
+    static const float marker_scale = 0.35;
+    int_marker.scale = marker_scale;
+    robot_interaction::addArrowMarker(int_marker);
+    interactive_markers::autoComplete(int_marker);
+
+    rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
+    imarker->processMessage(int_marker);
+    imarker->setShowAxes(false);
+    imarker->setShowDescription(false);
+
+    goal_poses_.insert(GoalPosePair(ss.str(), GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker), true)));
+
+    // Connect signals
+    connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+
+    //Unselect the marker source of the copy
+    switchGoalPoseMarkerSelection(name);
+  }
+
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateGoalPosesList, this));
+}
 
 void MotionPlanningFrame::saveStartStateButtonClicked(void) 
 {
-  ROS_DEBUG("Saving start state");
-
   bool ok = false;                
 
   std::stringstream ss;
@@ -579,10 +634,9 @@ void MotionPlanningFrame::saveStartStateButtonClicked(void)
 
 void MotionPlanningFrame::removeSelectedStatesButtonClicked(void)
 {
-  QList<QListWidgetItem*> found_items=ui_->start_states_list->selectedItems();
-  for (unsigned int i=0; i < found_items.size(); i++)
+  QList<QListWidgetItem*> found_items = ui_->start_states_list->selectedItems();
+  for (unsigned int i = 0; i < found_items.size(); i++)
   {
-    ROS_DEBUG_STREAM("Removing " << found_items[i]->text().toStdString());
     start_states_.erase(found_items[i]->text().toStdString());    
   }
   populateStartStatesList();
@@ -593,7 +647,7 @@ void MotionPlanningFrame::populateStartStatesList(void)
   ui_->start_states_list->clear();
   for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); it++) 
   {
-    QListWidgetItem *item=new QListWidgetItem(QString(it->first.c_str()));
+    QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_->start_states_list->addItem(item);
     if (it->second.selected) 
     {
@@ -606,7 +660,6 @@ void MotionPlanningFrame::populateStartStatesList(void)
 void MotionPlanningFrame::startStateItemDoubleClicked(QListWidgetItem * item)
 {       
   //If a start state item is double clicked, apply it to the start query
-  ROS_DEBUG("Setting query start state to the stored state");
   kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
   kinematic_state::robotStateToKinematicState(start_states_[item->text().toStdString()].state_msg, *ks);
   planning_display_->setQueryStartState(ks);
@@ -763,7 +816,7 @@ void MotionPlanningFrame::populateCollisionObjectsList(void)
 }
 
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
-void  MotionPlanningFrame::imProcessFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback)
+void  MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
   ui_->object_x->setValue(feedback.pose.position.x);
   ui_->object_y->setValue(feedback.pose.position.y);
