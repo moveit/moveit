@@ -1,23 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_planning)
 
-include_directories(robot_model_loader/include)
-include_directories(kinematics_plugin_loader/include)
-include_directories(planning_models_loader/include)
-include_directories(planning_pipeline/include)
-include_directories(planning_scene_monitor/include)
-include_directories(trajectory_execution_manager/include)
-include_directories(plan_execution/include)
-include_directories(kdl_kinematics_plugin/include)
-
 find_package(Eigen REQUIRED)
-include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
-
 find_package(Boost REQUIRED system filesystem date_time program_options signals thread)
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIRS})
-
-find_package(catkin COMPONENTS
+find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_perception
   pluginlib
@@ -30,10 +16,21 @@ find_package(catkin COMPONENTS
   urdf
   tf
   tf_conversions
-  REQUIRED)
+)
 
-include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
+generate_dynamic_reconfigure_options("planning_scene_monitor/cfg/PublishSceneDR.cfg")
+generate_dynamic_reconfigure_options("plan_execution/cfg/PlanExecutionParamsDR.cfg")
+
+set(THIS_PACKAGE_INCLUDE_DIRS
+    robot_model_loader/include
+    kinematics_plugin_loader/include
+    planning_models_loader/include
+    planning_pipeline/include
+    planning_scene_monitor/include
+    trajectory_execution_manager/include
+    plan_execution/include
+    kdl_kinematics_plugin/include
+)
 
 catkin_package(
   LIBRARIES
@@ -45,20 +42,17 @@ catkin_package(
     moveit_plan_execution
     moveit_planning_scene_monitor
   INCLUDE_DIRS
-    robot_model_loader/include
-    kinematics_plugin_loader/include
-    planning_models_loader/include
-    planning_pipeline/include
-    planning_scene_monitor/include
-    trajectory_execution_manager/include
-    plan_execution/include
+      ${THIS_PACKAGE_INCLUDE_DIRS}
   DEPENDS
     pluginlib
     moveit_core
     moveit_ros_perception)
 
-generate_dynamic_reconfigure_options("planning_scene_monitor/cfg/PublishSceneDR.cfg")
-generate_dynamic_reconfigure_options("plan_execution/cfg/PlanExecutionParamsDR.cfg")
+include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
+                    ${catkin_INCLUDE_DIRS} 
+                    ${EIGEN_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
+                    )
 
 # for buildspace as a single package
 include_directories(cfg/cpp)
