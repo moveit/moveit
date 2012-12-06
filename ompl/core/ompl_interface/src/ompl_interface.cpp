@@ -37,7 +37,7 @@
 #include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/ompl_interface/detail/constrained_sampler.h>
+#include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <fstream>
 
@@ -85,6 +85,13 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
 {
   ot::Profiler::ScopedBlock sblock("OMPLInterface:PrepareForSolve");
 
+  if (!planning_scene)
+  { 
+    logError("No planning scene supplied as input"); 
+    error_code->val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    return ModelBasedPlanningContextPtr();
+  }
+  
   kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
   kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
 
@@ -140,17 +147,18 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
       if (!context->setGoalConstraints(req.goal_constraints, additional_constraints, error_code))
         return ModelBasedPlanningContextPtr();
     }
+
+    // construct the valid state samplers we have to go through
     std::size_t n1 = req.trajectory_constraints.constraints.size() - 1;
-    std::vector<ompl::base::StateSamplerPtr> samplers(n1);
+    std::vector<ompl::base::ValidStateSamplerPtr> samplers(n1);
     for (std::size_t i = 0 ; i < n1 ; ++i)
     {
       constraint_samplers::ConstraintSamplerPtr cs;
       if (constraint_sampler_manager_)
         cs = constraint_sampler_manager_->selectSampler(context->getPlanningScene(), context->getJointModelGroupName(), req.trajectory_constraints.constraints[i]);
-      if (cs)
-        samplers[i] = ob::StateSamplerPtr(new ConstrainedSampler(context.get(), cs));
-      else
-        samplers[i] = context->getOMPLStateSpace()->allocDefaultStateSampler();
+      kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(planning_scene->getKinematicModel(), planning_scene->getTransforms()));
+      ks->add(req.trajectory_constraints.constraints[i]);
+      samplers[i] = ob::ValidStateSamplerPtr(new ValidConstrainedSampler(context.get(), ks, cs));
     }
     context->setFollowSamplers(samplers);
   }
