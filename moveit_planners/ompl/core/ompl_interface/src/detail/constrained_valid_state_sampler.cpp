@@ -34,56 +34,59 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/detail/constrained_goal_sampler.h>
+#include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 
-ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
-                                                               const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                                                               const constraint_samplers::ConstraintSamplerPtr &cs) :
-  ob::GoalLazySamples(pc->getOMPLSimpleSetup().getSpaceInformation(), boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false),
+ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBasedPlanningContext *pc,
+                                                                 const kinematic_constraints::KinematicConstraintSetPtr &ks,
+                                                                 const constraint_samplers::ConstraintSamplerPtr &cs) :
+  ob::ValidStateSampler(pc->getOMPLSimpleSetup().getSpaceInformation().get()),
   planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()),
   work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName()))
-{
+{  
   if (!constraint_sampler_)
     default_sampler_ = si_->allocStateSampler();
-  logDebug("Constructed a ConstrainedGoalSampler instance at address %p", this);
-  startSampling();
+  inv_dim_ = si_->getStateSpace()->getDimension() > 0 ? 1.0 / (double)si_->getStateSpace()->getDimension() : 1.0;
+  logDebug("Constructed a ValidConstrainedSampler instance at address %p", this);
 }
 
-bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples *gls, ob::State *newGoal)
+bool ompl_interface::ValidConstrainedSampler::sample(ob::State *state)
 {
-  unsigned int ma = planning_context_->getMaximumGoalSamplingAttempts();
-  
-  // terminate after too many attempts
-  if (gls->samplingAttemptsCount() >= ma)
-    return false;
-  // terminate after a maximum number of samples
-  if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
-    return false;  
-  
-  // terminate the sampling thread when a solution has been found
-  if (planning_context_->getOMPLSimpleSetup().getProblemDefinition()->hasSolution())
-    return false;
-  
-  for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
-    if (constraint_sampler_)
+  if (constraint_sampler_)
+  {
+    if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
     {
-      if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
-      { 
-        if (kinematic_constraint_set_->decide(work_state_).satisfied)
-        {
-          planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, work_joint_group_state_);
-          return true;
-        }
+      if (kinematic_constraint_set_->decide(work_state_).satisfied)
+      {
+        planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
+        return true;
       }
     }
-    else
-    {
-      default_sampler_->sampleUniform(newGoal); 
-      planning_context_->getOMPLStateSpace()->copyToKinematicState(work_joint_group_state_, newGoal);
-      if (kinematic_constraint_set_->decide(work_state_).satisfied)
-        return true;
-    }
+  }
+  else
+  {
+    default_sampler_->sampleUniform(state); 
+    planning_context_->getOMPLStateSpace()->copyToKinematicState(work_joint_group_state_, state);
+    if (kinematic_constraint_set_->decide(work_state_).satisfied)
+      return true;
+  }
   
   return false;
 }
+
+bool ompl_interface::ValidConstrainedSampler::sampleNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
+{
+  if (!sample(state))
+    return false;
+  double total_d = si_->distance(state, near);
+  if (total_d > distance)
+  {
+    double dist = pow(rng_.uniform01(), inv_dim_) * distance;
+    si_->getStateSpace()->interpolate(near, state, dist / total_d, state);
+    planning_context_->getOMPLStateSpace()->copyToKinematicState(work_joint_group_state_, state);
+    if (!kinematic_constraint_set_->decide(work_state_).satisfied)
+      return false;
+  }
+  return true;
+}
+
