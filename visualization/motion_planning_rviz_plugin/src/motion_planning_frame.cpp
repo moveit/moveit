@@ -684,7 +684,7 @@ void MotionPlanningFrame::saveStartStateButtonClicked(void)
   bool ok = false;                
 
   std::stringstream ss;
-  ss << planning_display_->getPlanningScene()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << start_states_.size();
+  ss << planning_display_->getKinematicModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << start_states_.size();
 
   QString text = QInputDialog::getText(this, tr("Choose a name"),
                                        tr("Start state name:"), QLineEdit::Normal,
@@ -2130,8 +2130,8 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
             planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
 
           //Automatically load constraints from the db, filtered with the scene name
-          ui_->load_states_filter_text->setText(QString(scene.c_str())+".*");
-          ui_->load_goals_filter_text->setText(QString(scene.c_str())+".*");
+          ui_->load_states_filter_text->setText((planning_display_->getKinematicModel()->getName() + ".*").c_str());
+          ui_->load_goals_filter_text->setText((scene + ".*").c_str());
           planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllGoalsButtonClicked, this));
           planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadGoalsFromDBButtonClicked, this));
         }
