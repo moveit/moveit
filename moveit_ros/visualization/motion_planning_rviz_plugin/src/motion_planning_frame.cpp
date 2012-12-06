@@ -140,14 +140,17 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 
 void MotionPlanningFrame::createGoalPoseButtonClicked(void) 
 {
-  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
-  if ( ! ps || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() )
-    return;
-
-  bool ok = false;
   std::stringstream ss;
-  ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
   
+  {
+    const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+    if ( ! ps || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() )
+      return;
+    else
+      ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
+  }
+
+  bool ok = false;  
   QString text = QInputDialog::getText(this, tr("Choose a name"),
                                        tr("Goal pose name:"), QLineEdit::Normal,
                                        QString(ss.str().c_str()), &ok);
@@ -215,9 +218,9 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
     {
       constraints_storage_->getKnownConstraints(ui_->load_goals_filter_text->text().toStdString(), names);
     }
-    catch (...)
+    catch (std::runtime_error &ex)
     {
-      QMessageBox::warning(this, "Cannot query the database", "Wrongly formatted regular expression for goal poses.");
+      QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for goal poses: ").append(ex.what()));
       return;
     }
 
@@ -225,8 +228,18 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
     {
       //Create a goal pose marker
       moveit_warehouse::ConstraintsWithMetadata c;
-      constraints_storage_->getConstraints(c, names[i]);
-
+      bool got_constraint = false;
+      try
+      {
+        got_constraint = constraints_storage_->getConstraints(c, names[i]);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("%s", ex.what());
+      }
+      if (!got_constraint)
+        continue;
+      
       if ( c->position_constraints.size() > 0 && c->position_constraints[0].constraint_region.primitive_poses.size() > 0 && c->orientation_constraints.size() > 0 )
       {
         //Overwrite if exists. TODO: Ask the user before overwriting? copy the existing one with another name before?
@@ -267,24 +280,33 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
     {
       robot_state_storage_->getKnownRobotStates(ui_->load_states_filter_text->text().toStdString(), names);
     }
-    catch (...)
+    catch (std::runtime_error &ex)
     {
-      QMessageBox::warning(this, "Cannot query the database", "Wrongly formatted regular expression for start states.");
+      QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for goal poses: ").append(ex.what()));
       return;
     }
-
+    
     for ( unsigned int i = 0 ; i < names.size() ; i++ )
     {
       moveit_warehouse::RobotStateWithMetadata rs;
-      if ( robot_state_storage_->getRobotState(rs, names[i]) )
+      bool got_state = false;
+      try
       {
-        //Overwrite if exists.
-        if (start_states_.find(names[i]) != start_states_.end())
-        {
-          start_states_.erase(names[i]);
-        }
+        got_state = robot_state_storage_->getRobotState(rs, names[i]);
       }
-             
+      catch(std::runtime_error &ex)
+      {
+        ROS_ERROR("%s", ex.what());        
+      }
+      if (!got_state)
+        continue;
+      
+      //Overwrite if exists.
+      if (start_states_.find(names[i]) != start_states_.end())
+      {
+        start_states_.erase(names[i]);
+      }
+      
       //Store the current start state
       start_states_.insert(StartStatePair(names[i],  StartState(*rs)));        
     }
@@ -301,7 +323,7 @@ void MotionPlanningFrame::saveOnDBButtonClicked(void)
   if (constraints_storage_ && robot_state_storage_) 
   {
     //Convert all goal pose markers into constraints and store them
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++)
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
       moveit_msgs::Constraints c;
       c.name = it->second.imarker->getName();
@@ -334,20 +356,31 @@ void MotionPlanningFrame::saveOnDBButtonClicked(void)
       oc.weight = 1.0;
       c.orientation_constraints.push_back(oc);
       
-      constraints_storage_->addConstraints(c);
+      try
+      {
+        constraints_storage_->addConstraints(c);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("Cannot save constraint: %s", ex.what());
+      }
     }
     
     //Store all start states
-    for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); it++)
-    {
-      robot_state_storage_->addRobotState(it->second.state_msg, it->first);
-    }
-  } 
+    for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
+      try
+      {
+        robot_state_storage_->addRobotState(it->second.state_msg, it->first);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("Cannot save robot state: %s", ex.what());
+      }
+  }
   else
   {
     QMessageBox::warning(this, "Warning", "Not connected to a database.");
   }
-  
 }
 
 void MotionPlanningFrame::deleteOnDBButtonClicked(void) 
@@ -355,22 +388,32 @@ void MotionPlanningFrame::deleteOnDBButtonClicked(void)
   //Go through the list of goal poses, and delete those selected
   if (constraints_storage_ && robot_state_storage_) 
   {
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
     {
       if (it->second.selected) 
-      {
-        constraints_storage_->removeConstraints(it->second.imarker->getName());        
-      }
+        try
+        {
+          constraints_storage_->removeConstraints(it->second.imarker->getName());        
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }      
     }
     
     removeSelectedGoalsButtonClicked();
     
-    for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); it++) 
+    for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it) 
     {
       if (it->second.selected) 
-      {
-        robot_state_storage_->removeRobotState(it->first);        
-      }
+        try
+        {
+          robot_state_storage_->removeRobotState(it->first);        
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }   
     }
     
     removeSelectedStatesButtonClicked();
@@ -384,7 +427,7 @@ void MotionPlanningFrame::deleteOnDBButtonClicked(void)
 void MotionPlanningFrame::populateGoalPosesList(void) 
 {
   ui_->goal_poses_list->clear();
-  for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
+  for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
   {
     QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_->goal_poses_list->addItem(item);
@@ -462,7 +505,7 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
   {
     //Store current poses
     goals_initial_pose_.clear();    
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
     {
       Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x, it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
       pose(0,3) = it->second.imarker->getPosition().x;
@@ -486,7 +529,7 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
     Eigen::Affine3d current_wrt_initial = initial_pose_eigen.inverse() * current_pose_eigen;
 
     //Update the rest of selected markers    
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); it++) 
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
     {
       if (it->second.imarker->getName() != feedback.marker_name && it->second.selected) 
       {
@@ -552,30 +595,35 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
   QList<QListWidgetItem *> sel = ui_->goal_poses_list->selectedItems();
   if (sel.empty())
     return;
-
-  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
-  if (!ps)
-    return;
-
+  
+  std::string scene_name;
+  {
+    const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+    if (!ps)
+      return;
+    else
+      scene_name = ps->getName();
+  }
+  
   for (int i = 0 ; i < sel.size() ; ++i)
   {
     std::string name = sel[i]->text().toStdString();
     std::stringstream ss;
-    ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
+    ss << scene_name.c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
 
     geometry_msgs::PoseStamped current_pose;
-    current_pose.pose.position.x=goal_poses_[name].imarker->getPosition().x;
-    current_pose.pose.position.y=goal_poses_[name].imarker->getPosition().y;
-    current_pose.pose.position.z=goal_poses_[name].imarker->getPosition().z;
-    current_pose.pose.orientation.x=goal_poses_[name].imarker->getOrientation().x;
-    current_pose.pose.orientation.y=goal_poses_[name].imarker->getOrientation().y;
-    current_pose.pose.orientation.z=goal_poses_[name].imarker->getOrientation().z;
-    current_pose.pose.orientation.w=goal_poses_[name].imarker->getOrientation().w;
+    current_pose.pose.position.x = goal_poses_[name].imarker->getPosition().x;
+    current_pose.pose.position.y = goal_poses_[name].imarker->getPosition().y;
+    current_pose.pose.position.z = goal_poses_[name].imarker->getPosition().z;
+    current_pose.pose.orientation.x = goal_poses_[name].imarker->getOrientation().x;
+    current_pose.pose.orientation.y = goal_poses_[name].imarker->getOrientation().y;
+    current_pose.pose.orientation.z = goal_poses_[name].imarker->getOrientation().z;
+    current_pose.pose.orientation.w = goal_poses_[name].imarker->getOrientation().w;
 
     visualization_msgs::InteractiveMarker int_marker;
     int_marker = robot_interaction::make6DOFMarker(ss.str(), current_pose, 1.0);
 
-    int_marker.header.frame_id = ps->getKinematicModel()->getModelFrame();
+    int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
     static const float marker_scale = 0.35;
     int_marker.scale = marker_scale;
     robot_interaction::addArrowMarker(int_marker);
@@ -645,7 +693,7 @@ void MotionPlanningFrame::removeSelectedStatesButtonClicked(void)
 void MotionPlanningFrame::populateStartStatesList(void) 
 {
   ui_->start_states_list->clear();
-  for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); it++) 
+  for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it) 
   {
     QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_->start_states_list->addItem(item);
@@ -676,7 +724,6 @@ void MotionPlanningFrame::copySelectedCollisionObject(void)
     return;
   
   collision_detection::CollisionWorldPtr world = ps->getCollisionWorld();
-  bool change = false;
   for (int i = 0 ; i < sel.size() ; ++i)
   {
     std::string name = sel[i]->text().toStdString();
@@ -696,11 +743,7 @@ void MotionPlanningFrame::copySelectedCollisionObject(void)
     }
     world->addToObject(name, obj->shapes_, obj->shape_poses_);
     ROS_DEBUG("Copied collision object to '%s'", name.c_str());
-    change = true;
   }
-
-  if (change)
-    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
 
 void MotionPlanningFrame::changePlanningGroupHelper(void)
@@ -1892,9 +1935,8 @@ void MotionPlanningFrame::populatePlanningSceneTreeView(void)
 
   for (std::size_t i = 0; i < names.size(); ++i)
   {
-    std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
     std::vector<std::string> query_names;
-    planning_scene_storage->getPlanningQueries(planning_queries, query_names, names[i]);
+    planning_scene_storage->getPlanningQueriesNames(query_names, names[i]);
     QTreeWidgetItem *item = new QTreeWidgetItem(ui_->planning_scene_tree, QStringList(QString::fromStdString(names[i])), ITEM_TYPE_SCENE);
     item->setFlags(item->flags() | Qt::ItemIsEditable);
     item->setToolTip(0, item->text(0)); // we use the tool tip as a backup of the old name when renaming
@@ -1999,8 +2041,16 @@ void MotionPlanningFrame::computeSaveSceneButtonClicked(void)
   {
     moveit_msgs::PlanningScene msg;
     planning_display_->getPlanningScene()->getPlanningSceneMsg(msg);
-    planning_scene_storage_->removePlanningScene(msg.name);
-    planning_scene_storage_->addPlanningScene(msg);
+    try
+    {
+      planning_scene_storage_->removePlanningScene(msg.name);
+      planning_scene_storage_->addPlanningScene(msg);
+    }
+    catch (std::runtime_error &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+    }
+    
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
   }
 }
@@ -2018,7 +2068,17 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
         std::string scene = s->text(0).toStdString();
         ROS_DEBUG("Attempting to load scene '%s'", scene.c_str());
         moveit_warehouse::PlanningSceneWithMetadata scene_m;
-        if (planning_scene_storage_->getPlanningScene(scene_m, scene))
+        bool got_ps = false;
+        try
+        {
+          got_ps = planning_scene_storage_->getPlanningScene(scene_m, scene);
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
+        
+        if (got_ps)
         {
           ROS_INFO("Loaded scene '%s'", scene.c_str());
           if (planning_display_->getPlanningSceneMonitor())
@@ -2056,7 +2116,17 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked(void)
         std::string scene = s->parent()->text(0).toStdString();
         std::string query_name = s->text(0).toStdString();
         moveit_warehouse::MotionPlanRequestWithMetadata mp;
-        if (planning_scene_storage_->getPlanningQuery(mp, scene, query_name))
+        bool got_q = false;
+        try
+        {
+          got_q = planning_scene_storage_->getPlanningQuery(mp, scene, query_name);
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
+        
+        if (got_q)
         {
           kinematic_state::KinematicStatePtr start_state(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
           kinematic_state::robotStateToKinematicState(*planning_display_->getPlanningScene()->getTransforms(), mp->start_state, *start_state);
@@ -2074,6 +2144,8 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked(void)
             }
           planning_display_->setQueryGoalState(goal_state);
         }
+        else
+          ROS_ERROR("Failed to load planning query '%s'. Has the message format changed since the query was saved?", query_name.c_str());
       }
     }
   }
@@ -2085,9 +2157,17 @@ void MotionPlanningFrame::computeSaveQueryButtonClicked(const std::string &scene
   constructPlanningRequest(mreq);
   if (planning_scene_storage_)
   {
-    if (!query_name.empty())
-      planning_scene_storage_->removePlanningQuery(scene, query_name);
-    planning_scene_storage_->addPlanningQuery(mreq, scene, query_name);
+    try
+    {
+      if (!query_name.empty())
+        planning_scene_storage_->removePlanningQuery(scene, query_name);
+      planning_scene_storage_->addPlanningQuery(mreq, scene, query_name);
+    }
+    catch (std::runtime_error &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+    }
+    
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
   }
 }
@@ -2103,13 +2183,27 @@ void MotionPlanningFrame::computeDeleteSceneButtonClicked(void)
       if (s->type() == ITEM_TYPE_SCENE)
       {
         std::string scene = s->text(0).toStdString();
-        planning_scene_storage_->removePlanningScene(scene);
+        try
+        {
+          planning_scene_storage_->removePlanningScene(scene);
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
       }
       else
       {
         // if we selected a query name, then we overwrite that query
         std::string scene = s->parent()->text(0).toStdString();
-        planning_scene_storage_->removePlanningScene(scene);  
+        try
+        {
+          planning_scene_storage_->removePlanningScene(scene);  
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
       }
       planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
     }
@@ -2135,7 +2229,14 @@ void MotionPlanningFrame::computeDeleteQueryButtonClicked(void)
       {
         std::string scene = s->parent()->text(0).toStdString();
         std::string query_name = s->text(0).toStdString();
-        planning_scene_storage_->removePlanningQuery(scene, query_name); 
+        try
+        {
+          planning_scene_storage_->removePlanningQuery(scene, query_name); 
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDeleteQueryButtonClickedHelper, this, s));
       }
     }

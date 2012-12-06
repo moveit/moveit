@@ -34,15 +34,21 @@ catkin_package(
   INCLUDE_DIRS
     planning_scene_rviz_plugin/include
     motion_planning_rviz_plugin/include  
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_ros_planning_interface
     )
 
 include_directories(planning_scene_rviz_plugin/include
                     motion_planning_rviz_plugin/include
-                    ${catkin_INCLUDE_DIRS}
+                    ${catkin_INCLUDE_DIRS})
+
+include_directories(SYSTEM
+                    ${Boost_INCLUDE_DIRS}
                     ${QT_INCLUDE_DIR}
                     ${OGRE_INCLUDE_DIRS})
+
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(planning_scene_rviz_plugin)
 add_subdirectory(motion_planning_rviz_plugin)

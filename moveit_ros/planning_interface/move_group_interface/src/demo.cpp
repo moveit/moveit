@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group.h>
 #include <ros/ros.h>
 
 int main(int argc, char **argv)
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
   c[1] = c[0];
   
   group.followConstraints(c);
-  move_group_interface::Plan p;  
+  move_group_interface::MoveGroup::Plan p;  
   group.plan(p);
   sleep(2);
   
