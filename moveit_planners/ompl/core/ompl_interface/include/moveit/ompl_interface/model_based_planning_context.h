@@ -241,7 +241,7 @@ public:
     spec_.constraints_library_ = constraints_library;
   }
   
-  void setFollowSamplers(const std::vector<ompl::base::StateSamplerPtr> &samplers)
+  void setFollowSamplers(const std::vector<ompl::base::ValidStateSamplerPtr> &samplers)
   {
     follow_samplers_ = samplers;
   }
@@ -334,7 +334,7 @@ protected:
   kinematic_constraints::KinematicConstraintSetPtr              path_constraints_;
   moveit_msgs::Constraints                                      path_constraints_msg_;
   std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
-  std::vector<ompl::base::StateSamplerPtr>                      follow_samplers_;
+  std::vector<ompl::base::ValidStateSamplerPtr>                 follow_samplers_;
   
   const ob::PlannerTerminationCondition *ptc_;
   boost::mutex ptc_lock_;
