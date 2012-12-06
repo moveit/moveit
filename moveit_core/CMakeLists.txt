@@ -1,44 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_core)
 
-include_directories(kinematics_base/include)
-include_directories(kinematics_cache/include)
-include_directories(kinematic_model/include)
-include_directories(kinematic_state/include)
-include_directories(kinematics_planner/include)
-include_directories(collision_detection/include)
-include_directories(collision_detection_fcl/include)
-include_directories(kinematic_constraints/include)
-include_directories(planning_scene/include)
-include_directories(constraint_samplers/include)
-include_directories(planning_interface/include)
-include_directories(planning_request_adapter/include)
-include_directories(trajectory_processing/include)
-include_directories(distance_field/include)
-include_directories(collision_distance_field/include)
-include_directories(kinematics_metrics/include)
-include_directories(dynamics_solver/include)
-include_directories(controller_manager/include)
-include_directories(sensor_manager/include)
-
 find_package(Eigen REQUIRED)
-include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
-
 find_package(Boost REQUIRED system filesystem date_time thread)
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIRS})
-
 find_package(PkgConfig REQUIRED)
-
-pkg_check_modules(FCL REQUIRED fcl)
-include_directories(${FCL_INCLUDE_DIRS})
-link_directories(${FCL_LIBRARY_DIRS})
-
-pkg_check_modules(OCTOMAP REQUIRED octomap)
-include_directories(${OCTOMAP_INCLUDE_DIRS})
-link_directories(${OCTOMAP_LIBRARY_DIRS})
-
-find_package(catkin COMPONENTS
+find_package(catkin REQUIRED 
+COMPONENTS
   moveit_msgs
   resource_retriever
   urdfdom
@@ -52,31 +19,50 @@ find_package(catkin COMPONENTS
   random_numbers
   console_bridge
   visualization_msgs
-  rostime REQUIRED)
-include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
+  rostime
+)
+pkg_check_modules(FCL REQUIRED fcl)
+find_package(octomap REQUIRED)
 
-catkin_package(
-  INCLUDE_DIRS
+# Sets a variable for passing this along in catkin_package()
+find_library(LIBFCL_LIBRARIES NAMES ${FCL_LIBRARIES})
+
+# octomap does not follow the find_package convention, 
+# so we have to manually pass it along in catkin_package()
+find_library(LIBOCTOMAP_LIBRARIES NAMES ${OCTOMAP_LIBRARIES})
+
+#message( STATUS "FCL found: " ${FCL_LIBRARIES} " at " ${LIBFCL_LIBRARIES})
+#message( STATUS "OCTOMAP found: " ${OCTOMAP_LIBRARIES} " at " ${LIBOCTOMAP_LIBRARIES})
+unset( OCTOMAP_LIBRARIES )
+unset( FCL_LIBRARIES )
+
+set(THIS_PACKAGE_INCLUDE_DIRS
+    collision_detection/include
+    collision_detection_fcl/include
+    collision_distance_field/include
+    constraint_samplers/include
+    controller_manager/include
+    distance_field/include
+    dynamics_solver/include
     kinematics_base/include
     kinematics_cache/include
-    controller_manager/include
-    sensor_manager/include
+    kinematics_metrics/include
     kinematic_model/include
     kinematic_state/include
     kinematics_planner/include
-    collision_detection/include
-    collision_detection_fcl/include
     kinematic_constraints/include
-    planning_scene/include
-    constraint_samplers/include
     planning_interface/include
     planning_request_adapter/include
+    planning_scene/include
+    sensor_manager/include
     trajectory_processing/include
-    distance_field/include
-    collision_distance_field/include
-    kinematics_metrics/include
-    dynamics_solver/include
+)
+
+catkin_package(
+  INCLUDE_DIRS
+    ${THIS_PACKAGE_INCLUDE_DIRS}
+    ${FCL_INCLUDE_DIRS}
+    ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_kinematic_model
     moveit_kinematic_state
@@ -93,6 +79,8 @@ catkin_package(
     moveit_dynamics_solver
     moveit_kinematics_cache
     moveit_kinematics_planner
+    ${LIBFCL_LIBRARIES}
+    ${LIBOCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     geometric_shapes
     shape_tools
@@ -107,6 +95,15 @@ catkin_package(
     Eigen
     urdfdom
     )
+
+include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
+                    ${catkin_INCLUDE_DIRS} 
+                    ${EIGEN_INCLUDE_DIRS}
+                    ${FCL_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
+                    )
+link_directories(${FCL_LIBRARY_DIRS})
+
 
 add_subdirectory(kinematics_base)
 add_subdirectory(controller_manager)
