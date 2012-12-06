@@ -43,7 +43,7 @@ catkin_package(
     moveit_planning_scene_monitor
   INCLUDE_DIRS
       ${THIS_PACKAGE_INCLUDE_DIRS}
-  DEPENDS
+  CATKIN_DEPENDS
     pluginlib
     moveit_core
     moveit_ros_perception)
