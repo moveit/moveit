@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
+#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_VALID_STATE_SAMPLER_
+#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_VALID_STATE_SAMPLER_
 
 #include <ompl/base/StateSampler.h>
+#include <ompl/base/ValidStateSampler.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
 
 namespace ompl_interface
@@ -45,40 +46,28 @@ namespace ompl_interface
 
 class ModelBasedPlanningContext;
 
-/** @class ConstrainedSampler
- *  This class defines a sampler that tries to find a sample that satisfies the constraints*/
-class ConstrainedSampler : public ompl::base::StateSampler
+/** @class ValidConstrainedSampler
+ *  This class defines a sampler that tries to find a valid sample that satisfies the specified constraints */
+class ValidConstrainedSampler : public ompl::base::ValidStateSampler
 {
 public:
-  /** @brief Default constructor
-   *  @param pg The planning group
-   *  @param cs A pointer to a kinematic constraint sampler
-   */
-  ConstrainedSampler(const ModelBasedPlanningContext *pc, const constraint_samplers::ConstraintSamplerPtr &cs);
 
-  /** @brief Sample a state (uniformly)*/
-  virtual void sampleUniform(ompl::base::State *state);
+  ValidConstrainedSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
+                          const constraint_samplers::ConstraintSamplerPtr &cs = constraint_samplers::ConstraintSamplerPtr());
   
-  /** @brief Sample a state (uniformly) within a certain distance of another state*/
-  virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
-  
-  /** @brief Sample a state using the specified Gaussian*/
-  virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
-  
-  double getConstrainedSamplingRate(void) const;
+  virtual bool sample(ompl::base::State *state);
+  virtual bool sampleNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
 
 private:
   
-  bool sampleC(ompl::base::State *state);
-  
   const ModelBasedPlanningContext                  *planning_context_;  
-  ompl::base::StateSamplerPtr                       default_;
+  kinematic_constraints::KinematicConstraintSetPtr  kinematic_constraint_set_;
   constraint_samplers::ConstraintSamplerPtr         constraint_sampler_;
+  ompl::base::StateSamplerPtr                       default_sampler_;
   kinematic_state::KinematicState                   work_state_;
   kinematic_state::JointStateGroup                 *work_joint_group_state_;
-  unsigned int                                      constrained_success_;
-  unsigned int                                      constrained_failure_;
   double                                            inv_dim_;
+  ompl::RNG                                         rng_;
 };
 
 }

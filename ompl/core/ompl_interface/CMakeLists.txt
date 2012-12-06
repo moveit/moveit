@@ -17,9 +17,11 @@ add_library(moveit_ompl_interface
   src/detail/projection_evaluators.cpp
   src/detail/goal_union.cpp
   src/detail/constrained_sampler.cpp
+  src/detail/constrained_valid_state_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
   src/detail/ompl_console.cpp
 )
+
 find_package(OpenMP)
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 target_link_libraries(${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})

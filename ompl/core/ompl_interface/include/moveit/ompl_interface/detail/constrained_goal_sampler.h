@@ -62,6 +62,7 @@ private:
   const ModelBasedPlanningContext                 *planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
   constraint_samplers::ConstraintSamplerPtr        constraint_sampler_;
+  ompl::base::StateSamplerPtr                      default_sampler_;
   kinematic_state::KinematicState                  work_state_;
   kinematic_state::JointStateGroup                *work_joint_group_state_;
 
