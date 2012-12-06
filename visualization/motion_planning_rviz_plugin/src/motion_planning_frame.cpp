@@ -583,7 +583,7 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
     visualization_msgs::InteractiveMarker int_marker;
     int_marker = robot_interaction::make6DOFMarker(ss.str(), current_pose, 1.0);
 
-    int_marker.header.frame_id = getKinematicModel()->getModelFrame();
+    int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
     static const float marker_scale = 0.35;
     int_marker.scale = marker_scale;
     robot_interaction::addArrowMarker(int_marker);

@@ -24,9 +24,13 @@ catkin_package(
     moveit_ros_warehouse)
 
 include_directories(pick_place_planner/include)
-include_directories(${catkin_INCLUDE_DIRS}
+include_directories(${catkin_INCLUDE_DIRS})
+include_directories(SYSTEM
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
+
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(pick_place_planner)
 add_subdirectory(moveit_manipulation_testing)

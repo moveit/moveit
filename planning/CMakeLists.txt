@@ -49,7 +49,8 @@ catkin_package(
     moveit_ros_perception)
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
-                    ${catkin_INCLUDE_DIRS} 
+                    ${catkin_INCLUDE_DIRS})
+include_directories(SYSTEM
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     )
@@ -58,6 +59,9 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
 include_directories(cfg/cpp)
 # for buildspace in a workspace
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/stamps/${PROJECT_NAME}/cfg/cpp)
+
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(robot_model_loader)
 add_subdirectory(kdl_kinematics_plugin)
