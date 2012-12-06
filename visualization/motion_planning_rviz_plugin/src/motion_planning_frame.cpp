@@ -120,8 +120,10 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteOnDBButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
-
   
+  QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->goal_poses_list);
+  connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
+
   //Start states
   connect( ui_->save_start_state_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
   connect( ui_->remove_start_state_button, SIGNAL( clicked() ), this, SLOT( removeSelectedStatesButtonClicked() ));
@@ -531,7 +533,7 @@ void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marke
     setItemSelectionInList(marker_name, true, ui_->goal_poses_list);
   }
   int_marker.header.frame_id = goal_poses_[marker_name].imarker->getReferenceFrame();
-  static const float marker_scale=0.35;
+  static const float marker_scale = 0.35;
   int_marker.scale = marker_scale;
   robot_interaction::addArrowMarker(int_marker);
   interactive_markers::autoComplete(int_marker);
@@ -545,7 +547,56 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
     found_items[i]->setSelected(selection);
 }
 
+void MotionPlanningFrame::copySelectedGoalPoses(void)
+{
+  QList<QListWidgetItem *> sel = ui_->goal_poses_list->selectedItems();
+  if (sel.empty())
+    return;
 
+  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
+  if (!ps)
+    return;
+
+  for (int i = 0 ; i < sel.size() ; ++i)
+  {
+    std::string name = sel[i]->text().toStdString();
+    std::stringstream ss;
+    ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
+
+    geometry_msgs::PoseStamped current_pose;
+    current_pose.pose.position.x=goal_poses_[name].imarker->getPosition().x;
+    current_pose.pose.position.y=goal_poses_[name].imarker->getPosition().y;
+    current_pose.pose.position.z=goal_poses_[name].imarker->getPosition().z;
+    current_pose.pose.orientation.x=goal_poses_[name].imarker->getOrientation().x;
+    current_pose.pose.orientation.y=goal_poses_[name].imarker->getOrientation().y;
+    current_pose.pose.orientation.z=goal_poses_[name].imarker->getOrientation().z;
+    current_pose.pose.orientation.w=goal_poses_[name].imarker->getOrientation().w;
+
+    visualization_msgs::InteractiveMarker int_marker;
+    int_marker = robot_interaction::make6DOFMarker(ss.str(), current_pose, 1.0);
+
+    int_marker.header.frame_id = ps->getKinematicModel()->getModelFrame();
+    static const float marker_scale = 0.35;
+    int_marker.scale = marker_scale;
+    robot_interaction::addArrowMarker(int_marker);
+    interactive_markers::autoComplete(int_marker);
+
+    rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
+    imarker->processMessage(int_marker);
+    imarker->setShowAxes(false);
+    imarker->setShowDescription(false);
+
+    goal_poses_.insert(GoalPosePair(ss.str(), GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker), true)));
+
+    // Connect signals
+    connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+
+    //Unselect the marker source of the copy
+    switchGoalPoseMarkerSelection(name);
+  }
+
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateGoalPosesList, this));
+}
 
 void MotionPlanningFrame::saveStartStateButtonClicked(void) 
 {

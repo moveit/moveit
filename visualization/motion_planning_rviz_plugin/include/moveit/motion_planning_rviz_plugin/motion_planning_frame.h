@@ -178,11 +178,12 @@ private Q_SLOTS:
   void deleteOnDBButtonClicked(void);
   void goalPoseSelectionChanged();
   void goalPoseDoubleClicked(QListWidgetItem *item);
-  
+  void copySelectedGoalPoses(void);
+
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
   void startStateItemDoubleClicked(QListWidgetItem * item);
-  
+
 private:
 
   void computePlanButtonClicked(void);  
