@@ -140,14 +140,17 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 
 void MotionPlanningFrame::createGoalPoseButtonClicked(void) 
 {
-  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
-  if ( ! ps || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() )
-    return;
-
-  bool ok = false;
   std::stringstream ss;
-  ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
   
+  {
+    const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+    if ( ! ps || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() )
+      return;
+    else
+      ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
+  }
+
+  bool ok = false;  
   QString text = QInputDialog::getText(this, tr("Choose a name"),
                                        tr("Goal pose name:"), QLineEdit::Normal,
                                        QString(ss.str().c_str()), &ok);
@@ -552,30 +555,35 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
   QList<QListWidgetItem *> sel = ui_->goal_poses_list->selectedItems();
   if (sel.empty())
     return;
-
-  planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
-  if (!ps)
-    return;
-
+  
+  std::string scene_name;
+  {
+    const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
+    if (!ps)
+      return;
+    else
+      scene_name = ps->getName();
+  }
+  
   for (int i = 0 ; i < sel.size() ; ++i)
   {
     std::string name = sel[i]->text().toStdString();
     std::stringstream ss;
-    ss << ps->getName().c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
+    ss << scene_name.c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
 
     geometry_msgs::PoseStamped current_pose;
-    current_pose.pose.position.x=goal_poses_[name].imarker->getPosition().x;
-    current_pose.pose.position.y=goal_poses_[name].imarker->getPosition().y;
-    current_pose.pose.position.z=goal_poses_[name].imarker->getPosition().z;
-    current_pose.pose.orientation.x=goal_poses_[name].imarker->getOrientation().x;
-    current_pose.pose.orientation.y=goal_poses_[name].imarker->getOrientation().y;
-    current_pose.pose.orientation.z=goal_poses_[name].imarker->getOrientation().z;
-    current_pose.pose.orientation.w=goal_poses_[name].imarker->getOrientation().w;
+    current_pose.pose.position.x = goal_poses_[name].imarker->getPosition().x;
+    current_pose.pose.position.y = goal_poses_[name].imarker->getPosition().y;
+    current_pose.pose.position.z = goal_poses_[name].imarker->getPosition().z;
+    current_pose.pose.orientation.x = goal_poses_[name].imarker->getOrientation().x;
+    current_pose.pose.orientation.y = goal_poses_[name].imarker->getOrientation().y;
+    current_pose.pose.orientation.z = goal_poses_[name].imarker->getOrientation().z;
+    current_pose.pose.orientation.w = goal_poses_[name].imarker->getOrientation().w;
 
     visualization_msgs::InteractiveMarker int_marker;
     int_marker = robot_interaction::make6DOFMarker(ss.str(), current_pose, 1.0);
 
-    int_marker.header.frame_id = ps->getKinematicModel()->getModelFrame();
+    int_marker.header.frame_id = getKinematicModel()->getModelFrame();
     static const float marker_scale = 0.35;
     int_marker.scale = marker_scale;
     robot_interaction::addArrowMarker(int_marker);
@@ -676,7 +684,6 @@ void MotionPlanningFrame::copySelectedCollisionObject(void)
     return;
   
   collision_detection::CollisionWorldPtr world = ps->getCollisionWorld();
-  bool change = false;
   for (int i = 0 ; i < sel.size() ; ++i)
   {
     std::string name = sel[i]->text().toStdString();
@@ -696,11 +703,7 @@ void MotionPlanningFrame::copySelectedCollisionObject(void)
     }
     world->addToObject(name, obj->shapes_, obj->shape_poses_);
     ROS_DEBUG("Copied collision object to '%s'", name.c_str());
-    change = true;
   }
-
-  if (change)
-    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
 
 void MotionPlanningFrame::changePlanningGroupHelper(void)
