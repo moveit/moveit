@@ -165,8 +165,8 @@ private Q_SLOTS:
   void publishSceneButtonClicked(void);
   void collisionObjectChanged(QListWidgetItem *item);
   void pathConstraintsIndexChanged(int index);
-  void imProcessFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void goalPoseFeedback(const visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
   void tabChanged(int index);
   void copySelectedCollisionObject(void);
@@ -178,11 +178,12 @@ private Q_SLOTS:
   void deleteOnDBButtonClicked(void);
   void goalPoseSelectionChanged();
   void goalPoseDoubleClicked(QListWidgetItem *item);
-  
+  void copySelectedGoalPoses(void);
+
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
   void startStateItemDoubleClicked(QListWidgetItem * item);
-  
+
 private:
 
   void computePlanButtonClicked(void);  
