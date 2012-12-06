@@ -21,7 +21,7 @@ catkin_package(
   INCLUDE_DIRS
     robot_self_filter/include
     occupancy_map_monitor/include
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_core)
 
 include_directories(robot_self_filter/include
