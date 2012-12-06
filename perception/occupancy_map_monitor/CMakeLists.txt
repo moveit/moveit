@@ -13,7 +13,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/point_cloud_occupancy_map_updater.cpp
   src/octomap_markers.cpp
   )
-target_link_libraries(${MOVEIT_LIB_NAME} ${LIBOCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} moveit_robot_self_filter)
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_self_filter ${LIBOCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)

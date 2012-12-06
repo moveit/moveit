@@ -207,6 +207,16 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(std::vector<Moti
   planning_queries = motion_plan_request_collection_->pullAllResults(q, false);
 }
 
+void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(std::vector<std::string> &query_names, const std::string &scene_name) const
+{
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  std::vector<MotionPlanRequestWithMetadata> planning_queries = motion_plan_request_collection_->pullAllResults(q, true);
+  query_names.clear();
+  for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+    if (planning_queries[i]->metadata.hasField(MOTION_PLAN_REQUEST_ID_NAME.c_str()))
+      query_names.push_back(planning_queries[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME));
+}
+
 void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const
 {
   mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);

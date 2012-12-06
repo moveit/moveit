@@ -10,3 +10,6 @@ set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES OUTPUT_NAME _moveit_m
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
 install(TARGETS ${MOVEIT_LIB_NAME}_python LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+
+add_executable(demo src/demo.cpp)
+target_link_libraries(demo ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
