@@ -28,7 +28,9 @@ find_package(octomap REQUIRED)
 find_library(LIBFCL_LIBRARIES NAMES ${FCL_LIBRARIES})
 
 # octomap does not follow the find_package convention, 
-# so we have to manually pass it along in catkin_package()
+# so we have to find the full paths and store in a variable; 
+# you SHOULD NOT use OCTOMAP_LIBRARIES as it will muck up dependent packages.
+# Also, this way we can manually pass it along in catkin_package()
 find_library(LIBOCTOMAP_LIBRARIES NAMES ${OCTOMAP_LIBRARIES})
 
 #message( STATUS "FCL found: " ${FCL_LIBRARIES} " at " ${LIBFCL_LIBRARIES})
