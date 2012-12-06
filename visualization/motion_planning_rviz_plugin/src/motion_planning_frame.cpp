@@ -402,41 +402,56 @@ void MotionPlanningFrame::saveGoalsAndStatesOnDBButtonClicked(void)
 
 void MotionPlanningFrame::deleteGoalsAndStatesOnDBButtonClicked(void) 
 {
-  //Go through the list of goal poses, and delete those selected
   if (constraints_storage_ && robot_state_storage_) 
   {
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
+    //Warn the user
+    QMessageBox msgBox;
+    msgBox.setText("All the selected items will be removed from the database");
+    msgBox.setInformativeText("Do you want to continue?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::No);
+    int ret = msgBox.exec();
+
+    switch (ret)
     {
-      if (it->second.selected) 
-        try
-        {
-          constraints_storage_->removeConstraints(it->second.imarker->getName());        
-        }
-        catch (std::runtime_error &ex)
-        {
-          ROS_ERROR("%s", ex.what());
-        }      
-    }
-    
-    removeSelectedGoalsButtonClicked();
-    
-    for (unsigned int i = 0; i < ui_->start_states_list->count() ; ++i)
-    {
-      QListWidgetItem *item = ui_->start_states_list->item(i);
-      if ( item->isSelected() )
+      case QMessageBox::Yes:
       {
-        try
+        //Go through the list of goal poses, and delete those selected
+        for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
         {
-          robot_state_storage_->removeRobotState(item->text().toStdString());
+          if (it->second.selected)
+            try
+          {
+              constraints_storage_->removeConstraints(it->second.imarker->getName());
+          }
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("%s", ex.what());
+          }
         }
-        catch (std::runtime_error &ex)
+
+        removeSelectedGoalsButtonClicked();
+
+        for (unsigned int i = 0; i < ui_->start_states_list->count() ; ++i)
         {
-          ROS_ERROR("%s", ex.what());
-        }   
+          QListWidgetItem *item = ui_->start_states_list->item(i);
+          if ( item->isSelected() )
+          {
+            try
+            {
+              robot_state_storage_->removeRobotState(item->text().toStdString());
+            }
+            catch (std::runtime_error &ex)
+            {
+              ROS_ERROR("%s", ex.what());
+            }
+          }
+        }
+
+        removeSelectedStatesButtonClicked();
+        break;
       }
     }
-    
-    removeSelectedStatesButtonClicked();
   }
   else
   {
