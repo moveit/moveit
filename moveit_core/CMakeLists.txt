@@ -98,14 +98,18 @@ catkin_package(
     urdfdom
     )
 
+include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
+                           ${Boost_INCLUDE_DIRS}
+			   )
+
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
                     ${catkin_INCLUDE_DIRS} 
-                    ${EIGEN_INCLUDE_DIRS}
                     ${FCL_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
                     )
-link_directories(${FCL_LIBRARY_DIRS})
 
+link_directories(${FCL_LIBRARY_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(kinematics_base)
 add_subdirectory(controller_manager)
