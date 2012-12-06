@@ -7,7 +7,7 @@ find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
-find_package(catkin REQUIRED
+find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_visualization
   rviz
@@ -85,7 +85,7 @@ set( sources
 catkin_package(
   LIBRARIES
     ${PROJECT_NAME}_tools 
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_visualization
     )
