@@ -115,9 +115,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   //Goal poses
   connect( ui_->new_goal_pose_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
   connect( ui_->remove_goal_pose_button, SIGNAL( clicked() ), this, SLOT( removeSelectedGoalsButtonClicked() ));
-  connect( ui_->load_from_db_button, SIGNAL( clicked() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
-  connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveGoalsOnDBButtonClicked() ));
-  connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteOnDBButtonClicked() ));
+  connect( ui_->load_from_db_button, SIGNAL( clicked() ), this, SLOT( loadGoalsAndStatesFromDBButtonClicked() ));
+  connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveGoalsAndStatesOnDBButtonClicked() ));
+  connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteGoalsAndStatesOnDBButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
   
@@ -213,7 +213,7 @@ void MotionPlanningFrame::removeAllGoalsButtonClicked(void)
   populateGoalPosesList();
 }
 
-void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
+void MotionPlanningFrame::loadGoalsAndStatesFromDBButtonClicked(void)
 {
   
   //Get all the constraints from the database, convert to goal pose markers
@@ -324,7 +324,7 @@ void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
+void MotionPlanningFrame::saveGoalsAndStatesOnDBButtonClicked(void)
 {  
   if (constraints_storage_ && robot_state_storage_) 
   {
@@ -400,7 +400,7 @@ void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::deleteOnDBButtonClicked(void) 
+void MotionPlanningFrame::deleteGoalsAndStatesOnDBButtonClicked(void) 
 {
   //Go through the list of goal poses, and delete those selected
   if (constraints_storage_ && robot_state_storage_) 
@@ -720,6 +720,12 @@ void MotionPlanningFrame::removeSelectedStatesButtonClicked(void)
   {
     start_states_.erase(found_items[i]->text().toStdString());    
   }
+  populateStartStatesList();
+}
+
+void MotionPlanningFrame::removeAllStatesButtonClicked(void)
+{
+  start_states_.clear();
   populateStartStatesList();
 }
 
@@ -2133,7 +2139,8 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
           ui_->load_states_filter_text->setText((planning_display_->getKinematicModel()->getName() + ".*").c_str());
           ui_->load_goals_filter_text->setText((scene + ".*").c_str());
           planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllGoalsButtonClicked, this));
-          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadGoalsFromDBButtonClicked, this));
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllStatesButtonClicked, this));
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadGoalsAndStatesFromDBButtonClicked, this));
         }
         else
           ROS_WARN("Failed to load scene '%s'. Has the message format changed since the scene was saved?", scene.c_str());

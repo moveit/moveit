@@ -83,7 +83,10 @@ int main(int argc, char **argv)
         std::stringstream ss;
         bc.printOptions(ss);
         ROS_INFO("Calling benchmark with options:\n%s\n", ss.str().c_str());
-        bc.runBenchmark();
+	try {
+          bc.runBenchmark();
+	} catch (...) {}
+
         proc++;
       }
     }
