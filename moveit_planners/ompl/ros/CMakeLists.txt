@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ompl_planners_ros_plugin)
 
 find_package(Boost REQUIRED system filesystem date_time thread)
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIRS})
-
 find_package(catkin COMPONENTS
   moveit_ros_planning
   moveit_ompl_planners_core
@@ -15,8 +12,7 @@ find_package(catkin COMPONENTS
   dynamic_reconfigure
   REQUIRED)
 
-include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
+generate_dynamic_reconfigure_options("ompl_interface_ros/cfg/OMPLParamsDR.cfg")
 
 catkin_package(
   LIBRARIES
@@ -28,14 +24,16 @@ catkin_package(
     moveit_ros_planning
     )
 
-generate_dynamic_reconfigure_options("ompl_interface_ros/cfg/OMPLParamsDR.cfg")
+include_directories(ompl_interface_ros/include 
+                    ${catkin_INCLUDE_DIRS} 
+                    ${EIGEN_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS})
 
 # for buildspace as a single package
 include_directories(cfg/cpp)
 # for buildspace in a workspace
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/stamps/${PROJECT_NAME}/cfg/cpp)
 
-include_directories(ompl_interface_ros/include)
 add_subdirectory(ompl_interface_ros)
 
 install(FILES ompl_interface_ros_plugin_description.xml
