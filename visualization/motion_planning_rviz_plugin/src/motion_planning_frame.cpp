@@ -115,8 +115,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   //Goal poses
   connect( ui_->new_goal_pose_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
   connect( ui_->remove_goal_pose_button, SIGNAL( clicked() ), this, SLOT( removeSelectedGoalsButtonClicked() ));
-  connect( ui_->load_from_db_button, SIGNAL( clicked() ), this, SLOT( loadFromDBButtonClicked() ));
-  connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveOnDBButtonClicked() ));
+  connect( ui_->load_from_db_button, SIGNAL( clicked() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
+  connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveGoalsOnDBButtonClicked() ));
   connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteOnDBButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
@@ -207,7 +207,13 @@ void MotionPlanningFrame::removeSelectedGoalsButtonClicked(void)
   populateGoalPosesList();
 }
 
-void MotionPlanningFrame::loadFromDBButtonClicked(void) 
+void MotionPlanningFrame::removeAllGoalsButtonClicked(void)
+{
+  goal_poses_.clear();
+  populateGoalPosesList();
+}
+
+void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
 {
   
   //Get all the constraints from the database, convert to goal pose markers
@@ -318,7 +324,7 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::saveOnDBButtonClicked(void)
+void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
 {  
   if (constraints_storage_ && robot_state_storage_) 
   {
@@ -2122,6 +2128,12 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
           }
           else
             planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
+
+          //Automatically load constraints from the db, filtered with the scene name
+          ui_->load_states_filter_text->setText(QString(scene.c_str())+".*");
+          ui_->load_goals_filter_text->setText(QString(scene.c_str())+".*");
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllGoalsButtonClicked, this));
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadGoalsFromDBButtonClicked, this));
         }
         else
           ROS_WARN("Failed to load scene '%s'. Has the message format changed since the scene was saved?", scene.c_str());

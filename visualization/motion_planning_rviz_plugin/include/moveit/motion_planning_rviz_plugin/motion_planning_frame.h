@@ -173,8 +173,9 @@ private Q_SLOTS:
   
   void createGoalPoseButtonClicked(void);
   void removeSelectedGoalsButtonClicked(void);
-  void loadFromDBButtonClicked(void);
-  void saveOnDBButtonClicked(void);
+  void removeAllGoalsButtonClicked(void);
+  void loadGoalsFromDBButtonClicked(void);
+  void saveGoalsOnDBButtonClicked(void);
   void deleteOnDBButtonClicked(void);
   void goalPoseSelectionChanged();
   void goalPoseDoubleClicked(QListWidgetItem *item);
