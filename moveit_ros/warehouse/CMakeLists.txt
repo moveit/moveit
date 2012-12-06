@@ -16,12 +16,15 @@ catkin_package(
     moveit_warehouse
   INCLUDE_DIRS
     warehouse/include
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_ros_planning
     warehouse_ros)
 
 include_directories(warehouse/include)
 include_directories(${catkin_INCLUDE_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(warehouse)

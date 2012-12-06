@@ -16,13 +16,16 @@ catkin_package(
     benchmarks/include  
   LIBRARIES
     moveit_benchmarks_config
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_warehouse
 )
 
 include_directories(benchmarks/include)
 include_directories(${catkin_INCLUDE_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(benchmarks)

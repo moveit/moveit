@@ -27,9 +27,14 @@ catkin_package(
 include_directories(robot_self_filter/include
                     occupancy_map_monitor/include
                     ${catkin_INCLUDE_DIRS} 
+                    )
+include_directories(SYSTEM
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     )
+
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(robot_self_filter)
 add_subdirectory(occupancy_map_monitor)

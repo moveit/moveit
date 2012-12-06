@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_planning_interface)
 
-
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread date_time system filesystem program_options python)
 find_package(PythonLibs)
@@ -30,17 +29,21 @@ catkin_package(
     moveit_move_group_interface
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_warehouse
     )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
-                    ${catkin_INCLUDE_DIRS} 
-                    ${EIGEN_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
-                    ${PYTHON_INCLUDE_DIRS})
+                    ${catkin_INCLUDE_DIRS})
 
+include_directories(SYSTEM
+                    ${EIGEN_INCLUDE_DIRS}
+		    ${Boost_INCLUDE_DIRS}
+                    ${PYTHON_INCLUDE_DIRS})
+		  
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(py_bindings_tools)
 add_subdirectory(robot_interaction)
