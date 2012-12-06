@@ -139,8 +139,7 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 void MotionPlanningFrame::createGoalPoseButtonClicked(void) 
 {
   planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
-  if ( ! ps || planning_display_->getRobotInteraction()->getActiveEndEffectors().size() == 0
-      || planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link.empty() )
+  if ( ! ps || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() )
     return;
 
   bool ok = false;
@@ -166,7 +165,7 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
         Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
         visualization_msgs::InteractiveMarker int_marker;
         int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
-        static const float marker_scale=0.35;
+        static const float marker_scale = 0.35;
         int_marker.scale = marker_scale;
         tf::poseEigenToMsg(tip_pose, int_marker.pose);
 
@@ -239,7 +238,7 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
 
         visualization_msgs::InteractiveMarker int_marker;
         int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
-        static const float marker_scale=0.35;
+        static const float marker_scale = 0.35;
         int_marker.scale = marker_scale;
         int_marker.pose = shape_pose;
         int_marker.name = c->name;
@@ -410,7 +409,7 @@ void MotionPlanningFrame::goalPoseSelectionChanged()
 
 void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 {
-  if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
+  if ( planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! planning_display_->getQueryGoalState() )
     return;
   
   // Call to IK  
@@ -424,12 +423,18 @@ void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
   current_pose.orientation.z = imarker->getOrientation().z;
   current_pose.orientation.w = imarker->getOrientation().w;
 
-  static const float timeout=10.0;
-  static const unsigned int attempts=5;
-  if ( planning_display_->getQueryGoalState() && planning_display_->getRobotInteraction()->getActiveEndEffectors().size() > 0 ) {
-    planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
-                                                          planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
+  static const float timeout = 1.0;
+  static const unsigned int attempts = 1.0;
+
+  bool feasible = planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
+                                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
+  if (feasible)
+  {
     planning_display_->updateQueryGoalState();
+  }
+  else
+  {
+    QMessageBox::warning(this, "Goal not reachable" , "Could not find a solution to the inverse kinematics");
   }
 }
 
