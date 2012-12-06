@@ -16,15 +16,19 @@ catkin_package(
     moveit_ompl_interface
   INCLUDE_DIRS
     ompl_interface/include
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_core
   CFG_EXTRAS
     addOMPLDep.cmake)
 
-include_directories(ompl_interface/include 
-                    ${catkin_INCLUDE_DIRS} 
+include_directories(SYSTEM
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
 
+include_directories(ompl_interface/include 
+                    ${catkin_INCLUDE_DIRS})
+
+link_directories(${catkin_LIBRARY_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
 
 add_subdirectory(ompl_interface)

@@ -19,20 +19,25 @@ catkin_package(
     moveit_ompl_interface_ros
   INCLUDE_DIRS
     ompl_interface_ros/include
-  DEPENDS 
+  CATKIN_DEPENDS 
     moveit_ompl_planners_core
     moveit_ros_planning
     )
 
-include_directories(ompl_interface_ros/include 
-                    ${catkin_INCLUDE_DIRS} 
+include_directories(SYSTEM
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
+
+include_directories(ompl_interface_ros/include 
+                    ${catkin_INCLUDE_DIRS})
 
 # for buildspace as a single package
 include_directories(cfg/cpp)
 # for buildspace in a workspace
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/stamps/${PROJECT_NAME}/cfg/cpp)
+
+link_directories(${catkin_LIBRARY_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
 
 add_subdirectory(ompl_interface_ros)
 
