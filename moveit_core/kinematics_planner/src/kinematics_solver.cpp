@@ -75,7 +75,7 @@ bool KinematicsSolver::initialize(const kinematic_model::KinematicModelConstPtr 
         }
         if(is_solvable_group)
         {
-          // ROS_DEBUG("Group %s is still a group for which we can solve IK",iter->first.c_str());
+          logDebug("Group %s is a group for which we can solve IK",iter->first.c_str());
           group_map_.insert(std::pair<std::string,std::vector<std::string> >(iter->first,sub_group_names));
         }
       }

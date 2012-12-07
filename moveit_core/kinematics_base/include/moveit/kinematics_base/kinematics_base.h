@@ -92,7 +92,7 @@ public:
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
-   * @param consistency_limit the distance that the redundancy can be from the current position 
+   * @param consistency_limits the distance that any joint can be from the corresponding joints in the current seed state
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
    * @return True if a valid solution was found, false otherwise
@@ -100,10 +100,9 @@ public:
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
-                                double consistency_limit,
+                                const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code) const = 0;      
-
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -132,7 +131,7 @@ public:
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
-   * @param consistency_limit the distance that the redundancy can be from the current position 
+   * @param consistency_limit the distance that any joint can be from the current seed state
    * @param solution the solution vector
    * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
    * @param solution_callback A callback solution for the IK solution
@@ -142,7 +141,7 @@ public:
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
-                                double consistency_limit,
+                                const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
                                 moveit_msgs::MoveItErrorCodes &error_code) const = 0;      
@@ -214,12 +213,29 @@ public:
     return tip_frame_;
   }
 
+  /**
+   * @brief Set a set of redundant joints for the kinematics solver to use. 
+   * @param redundant_joint_indices The set of redundant joint indices (corresponding to 
+   * the list of joints you get from getJointNames()). 
+   * @return False if any of the input joint indices are invalid (exceed number of 
+   * joints)
+   */
   virtual bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
   {
+    for(std::size_t i=0; i < redundant_joint_indices.size(); ++i)
+    {
+      if(redundant_joint_indices[i] >= getJointNames().size())
+      {
+        return false;
+      }      
+    }    
     redundant_joint_indices_ = redundant_joint_indices;
     return true;    
   }
       
+  /**
+   * @brief Get the set of redundant joints
+   */
   virtual void getRedundantJoints(std::vector<unsigned int> &redundant_joint_indices) const
   {
     redundant_joint_indices = redundant_joint_indices_;    
