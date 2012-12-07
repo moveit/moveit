@@ -352,7 +352,7 @@ void MotionPlanningFrame::saveGoalsAndStatesOnDBButtonClicked(void)
       pc.weight = 1.0;
       c.position_constraints.push_back(pc);
 
-      moveit_msgs::OrientationConstraint oc, oc_flipped;
+      moveit_msgs::OrientationConstraint oc;
       oc.orientation.x = it->second.imarker->getOrientation().x;
       oc.orientation.y = it->second.imarker->getOrientation().y;
       oc.orientation.z = it->second.imarker->getOrientation().z;
@@ -360,18 +360,7 @@ void MotionPlanningFrame::saveGoalsAndStatesOnDBButtonClicked(void)
       oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance = 
         oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
       oc.weight = 1.0;
-
-      Ogre::Quaternion orientation_flipped = it->second.imarker->getOrientation() * Ogre::Quaternion(Ogre::Radian(M_PI), Ogre::Vector3(0,0,1));
-      oc_flipped.orientation.x = orientation_flipped.x;
-      oc_flipped.orientation.y = orientation_flipped.y;
-      oc_flipped.orientation.z = orientation_flipped.z;
-      oc_flipped.orientation.w = orientation_flipped.w;
-      oc_flipped.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
-          oc_flipped.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
-      oc_flipped.weight = 1.0;
-
       c.orientation_constraints.push_back(oc);
-      c.orientation_constraints.push_back(oc_flipped);
       
       try
       {
@@ -506,20 +495,8 @@ void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
   static const float timeout = 1.0;
   static const unsigned int attempts = 1;
 
-  //Try the original orientation first. If no solution, try to flip the goal orientation
   bool feasible = planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
                                                                         planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
-  if ( ! feasible )
-  {
-    Ogre::Quaternion orientation_flipped = imarker->getOrientation() * Ogre::Quaternion(Ogre::Radian(M_PI), Ogre::Vector3(0,0,1));
-    current_pose.orientation.x = orientation_flipped.x;
-    current_pose.orientation.y = orientation_flipped.y;
-    current_pose.orientation.z = orientation_flipped.z;
-    current_pose.orientation.w = orientation_flipped.w;
-
-    feasible = planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
-                                                                            planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
-  }
 
   if (feasible)
   {
