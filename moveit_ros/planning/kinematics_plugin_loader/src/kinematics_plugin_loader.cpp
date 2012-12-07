@@ -198,11 +198,11 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
       // read the list of plugin names for possible kinematics solvers
       for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
       {
-	      ROS_DEBUG("Looking for param %s ", (known_groups[i].name_ + "/kinematics_solver").c_str());
+        ROS_DEBUG("Looking for param %s ", (known_groups[i].name_ + "/kinematics_solver").c_str());
         std::string ksolver_param_name;
         if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver", ksolver_param_name))
         {
-	        ROS_DEBUG("Found param %s ", ksolver_param_name.c_str());
+          ROS_DEBUG("Found param %s ", ksolver_param_name.c_str());
           std::string ksolver;          
           if (nh.getParam(ksolver_param_name, ksolver))
           {
@@ -221,6 +221,21 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
             }
           }
         }
+
+        std::string ksolver_timeout_param_name;
+        if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_timeout", ksolver_timeout_param_name))
+        {
+          std::string ksolver_timeout;
+          if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout))
+          {
+            std::stringstream ss(ksolver_timeout);
+            if (ss.good() && !ss.eof())
+            {
+              double t; ss >> t;
+              ik_timeout_[known_groups[i].name_] = t;
+            }
+          }
+        }
         
         std::string ksolver_res_param_name;
         if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_search_resolution", ksolver_res_param_name))
@@ -228,8 +243,6 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
           std::string ksolver_res;
           if (nh.getParam(ksolver_res_param_name, ksolver_res))
           {
-            ROS_ERROR_STREAM(ksolver_res);
-            
             std::stringstream ss(ksolver_res);
             while (ss.good() && !ss.eof())
             {
@@ -261,12 +274,4 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
   }
   
   return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
-}
-
-bool kinematics_plugin_loader::KinematicsPluginLoader::isGroupKnown(const std::string& name) const
-{
-  for (unsigned int i = 0; i < groups_.size(); i++)
-    if (groups_[i] == name) 
-      return true;
-  return false;
 }

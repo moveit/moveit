@@ -126,9 +126,19 @@ public:
       ik_timeout_ = timeout;
     }
     
+    double getIKTimeout(void) const
+    {
+      return ik_timeout_;
+    }
+    
     void setIKAttempts(unsigned int attempts)
     {
       ik_attempts_ = attempts;
+    }
+    
+    unsigned int getIKAttempts(void) const
+    {
+      return ik_attempts_;
     }
     
     virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
@@ -182,7 +192,7 @@ public:
   }
   
   static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
-                          double ik_timeout, unsigned int attempts, const kinematic_state::IKValidityCallbackFn &validity_callback = kinematic_state::IKValidityCallbackFn());
+                          unsigned int attempts, double ik_timeout, const kinematic_state::IKValidityCallbackFn &validity_callback = kinematic_state::IKValidityCallbackFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
 
 private:
