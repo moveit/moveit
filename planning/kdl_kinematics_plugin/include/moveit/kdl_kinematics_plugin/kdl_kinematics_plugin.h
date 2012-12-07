@@ -92,7 +92,7 @@ namespace kdl_kinematics_plugin
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                   const std::vector<double> &ik_seed_state,
                                   double timeout,
-                                  double consistency_limit,
+                                  const std::vector<double> &consistency_limits,
                                   std::vector<double> &solution,
                                   moveit_msgs::MoveItErrorCodes &error_code) const;      
 
@@ -106,7 +106,7 @@ namespace kdl_kinematics_plugin
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                   const std::vector<double> &ik_seed_state,
                                   double timeout,
-                                  double consistency_limit,
+                                  const std::vector<double> &consistency_limits,
                                   std::vector<double> &solution,
                                   const IKCallbackFn &solution_callback,
                                   moveit_msgs::MoveItErrorCodes &error_code) const;      
@@ -142,7 +142,6 @@ namespace kdl_kinematics_plugin
    * @param solution the solution vector
    * @param solution_callback A callback solution for the IK solution
    * @param error_code an error code that encodes the reason for failure or success
-   * @param max_search_iteration The maximum number of times the search will restart
    * @param check_consistency Set to true if consistency check needs to be performed
    * @param redundancy The index of the redundant joint
    * @param consistency_limit The returned solutuion will contain a value for the redundant joint in the range [seed_state(redundancy_limit)-consistency_limit,seed_state(redundancy_limit)+consistency_limit]
@@ -154,9 +153,8 @@ namespace kdl_kinematics_plugin
                           std::vector<double> &solution,
                           const IKCallbackFn &solution_callback,
                           moveit_msgs::MoveItErrorCodes &error_code,
-                          unsigned int max_search_iterations,
                           bool check_consistency,
-                          double consistency_limit=-1.0) const;
+                          const std::vector<double> &consistency_limits) const;
     
   private:
     
@@ -171,7 +169,7 @@ namespace kdl_kinematics_plugin
      *  @return true if check succeeds
      */
     bool checkConsistency(const KDL::JntArray& seed_state,
-                          double consistency_limit,
+                          const std::vector<double> &consistency_limit,
                           const KDL::JntArray& solution) const;
 
     int getJointIndex(const std::string &name) const;
@@ -187,11 +185,9 @@ namespace kdl_kinematics_plugin
      *  @param jnt_array Returned random configuration
      */
     void getRandomConfiguration(const KDL::JntArray& seed_state,
-                                double consistency_limit,
+                                const std::vector<double> &consistency_limits,
                                 KDL::JntArray &jnt_array) const;
     
-    int max_search_iterations_; /** max number of search iterations for the kinematics solver */
-
     bool active_; /** Internal variable that indicates whether solvers are configured and ready */
 
     moveit_msgs::KinematicSolverInfo ik_chain_info_; /** Stores information for the inverse kinematics solver */
