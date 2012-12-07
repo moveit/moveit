@@ -201,20 +201,37 @@ public:
    */    
   bool getJacobian(const std::string &link_name, const Eigen::Vector3d &reference_point_position, Eigen::MatrixXd& jacobian) const;
 
-  bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout, unsigned int attempts,
+  /** \brief Get the default IK timeout */
+  double getDefaultIKTimeout(void) const
+  {
+    return joint_model_group_->getDefaultIKTimeout();
+  }
+
+  /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
+      The transform is assumed to be in the reference frame of the kinematic model. Returns true on success.
+      @param pose The pose the \e tip  link in the chain needs to achieve 
+      @param tip The name of the link the pose is specified for
+      @param attempts The number of times IK is attempted
+      @param timeout The timeout passed to the kinematics solver on each attempt
+      @param constraint A state validity constraint to be required for IK solutions */  
+  bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, unsigned int attempts, double timeout = 0.0, 
                  const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
   
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
-      The transform is assumed to be in the reference frame of the kinematic model. Returns true on success. */
-  bool setFromIK(const geometry_msgs::Pose &pose, double timeout, unsigned int attempts,
+      The transform is assumed to be in the reference frame of the kinematic model. Returns true on success.
+      @param pose The pose the last link in the chain needs to achieve 
+      @param attempts The number of times IK is attempted
+      @param timeout The timeout passed to the kinematics solver on each attempt
+      @param constraint A state validity constraint to be required for IK solutions */  
+  bool setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts, double timeout = 0.0,
                  const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The transform is assumed to be in the reference frame of the kinematic model. Returns true on success. */
-  bool setFromIK(const Eigen::Affine3d &pose, double timeout, unsigned int attempts,
+  bool setFromIK(const Eigen::Affine3d &pose, unsigned int attempts, double timeout = 0.0, 
                  const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
-  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout, unsigned int attempts,
+  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, unsigned int attempts, double timeout = 0.0, 
                  const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
   bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, double timeout, unsigned int attempts,
