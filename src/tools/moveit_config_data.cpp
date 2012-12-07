@@ -325,6 +325,11 @@ bool MoveItConfigData::outputKinematicsYAML( const std::string& file_path )
     // Search Resolution
     emitter << YAML::Key << "kinematics_solver_search_resolution";
     emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_search_resolution_;
+
+    // Solver Timeout
+    emitter << YAML::Key << "kinematics_solver_timeout";
+    emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_timeout_;
+    
     emitter << YAML::EndMap;
   }    
 
@@ -457,6 +462,12 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_search_resolution" ) ) 
       {
         *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
+      }
+
+      // kinematics_solver_timeout 
+      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_timeout" ) ) 
+      {
+        *prop_name >> new_meta_data.kinematics_solver_timeout_;
       }
 
       // Assign meta data to vector
