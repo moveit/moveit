@@ -222,7 +222,7 @@ bool constraint_samplers::IKConstraintSampler::configure(const IKSamplingPose &s
   }
 
   sampling_pose_ = sp;
-  ik_timeout_ = 0.5;
+  ik_timeout_ = jmg_->getDefaultIKTimeout();
   if (sampling_pose_.position_constraint_ && sampling_pose_.orientation_constraint_)
     if (sampling_pose_.position_constraint_->getLinkModel()->getName() != sampling_pose_.orientation_constraint_->getLinkModel()->getName())
     {
@@ -501,7 +501,8 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
     return true;
   }
   else
-    if (error.val != moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION)
+    if (error.val != moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION && 
+        error.val != moveit_msgs::MoveItErrorCodes::TIMED_OUT)
       logError("IK solver failed with error %d", error.val);
   return false;
 }

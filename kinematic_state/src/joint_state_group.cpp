@@ -279,30 +279,30 @@ kinematic_state::JointState* kinematic_state::JointStateGroup::getJointState(con
     return it->second;
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, double timeout, unsigned int attempts, const IKValidityCallbackFn &constraint)
+bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts, double timeout, const IKValidityCallbackFn &constraint)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
     return false;
-  return setFromIK(pose, solver->getTipFrame(), timeout, attempts, constraint);
+  return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout, unsigned int attempts, const IKValidityCallbackFn &constraint)
+bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, unsigned int attempts, double timeout, const IKValidityCallbackFn &constraint)
 {
   Eigen::Affine3d mat;
   tf::poseMsgToEigen(pose, mat);
-  return setFromIK(mat, tip, timeout, attempts, constraint);
+  return setFromIK(mat, tip,  attempts, timeout, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, double timeout, unsigned int attempts, const IKValidityCallbackFn &constraint)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, unsigned int attempts, double timeout, const IKValidityCallbackFn &constraint)
 { 
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
     return false;
-  return setFromIK(pose, solver->getTipFrame(), timeout, attempts, constraint);
+  return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, double timeout, unsigned int attempts, const IKValidityCallbackFn &constraint)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, const IKValidityCallbackFn &constraint)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -359,6 +359,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
     return false;    
   }
 
+  // if no timeout has been specified, use the default one
+  if (timeout < std::numeric_limits<double>::epsilon())
+    timeout = joint_model_group_->getDefaultIKTimeout();
+  
   const std::vector<unsigned int> &bij = joint_model_group_->getKinematicsSolverJointBijection();
   Eigen::Quaterniond quat(pose.rotation());
   Eigen::Vector3d point(pose.translation());
