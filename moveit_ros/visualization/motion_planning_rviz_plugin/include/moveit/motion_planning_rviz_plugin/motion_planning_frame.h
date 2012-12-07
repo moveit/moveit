@@ -171,18 +171,24 @@ private Q_SLOTS:
   void tabChanged(int index);
   void copySelectedCollisionObject(void);
   
+  //Slots for goal poses (constraints)
   void createGoalPoseButtonClicked(void);
   void removeSelectedGoalsButtonClicked(void);
-  void loadFromDBButtonClicked(void);
-  void saveOnDBButtonClicked(void);
-  void deleteOnDBButtonClicked(void);
+  void removeAllGoalsButtonClicked(void);
   void goalPoseSelectionChanged();
   void goalPoseDoubleClicked(QListWidgetItem *item);
   void copySelectedGoalPoses(void);
 
+  //Slots for start states
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
+  void removeAllStatesButtonClicked(void);
   void startStateItemDoubleClicked(QListWidgetItem * item);
+
+  //Slots for goal poses and start states loading/storing/removing on the warehouse
+  void loadGoalsAndStatesFromDBButtonClicked(void);
+  void saveGoalsAndStatesOnDBButtonClicked(void);
+  void deleteGoalsAndStatesOnDBButtonClicked(void);
 
 private:
 
