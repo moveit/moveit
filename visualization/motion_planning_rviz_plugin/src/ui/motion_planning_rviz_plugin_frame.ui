@@ -908,7 +908,7 @@
              <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
             </property>
             <property name="selectionMode">
-             <enum>QAbstractItemView::MultiSelection</enum>
+             <enum>QAbstractItemView::ExtendedSelection</enum>
             </property>
            </widget>
           </item>
@@ -1002,7 +1002,7 @@
           <item>
            <widget class="QPushButton" name="delete_on_db_button">
             <property name="text">
-             <string>Clear All</string>
+             <string>Remove Selected</string>
             </property>
            </widget>
           </item>
