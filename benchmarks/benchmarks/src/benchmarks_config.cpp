@@ -98,8 +98,21 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
   
   if (!pss_.hasPlanningScene(opt_.scene))
   {
-    if (psws_.hasPlanningSceneWorld(opt_.scene) && psws_.getPlanningSceneWorld(pswwm, opt_.scene))
+    if (psws_.hasPlanningSceneWorld(opt_.scene))
+    { 
+      bool ok = false;
+      try
+      {
+        ok = psws_.getPlanningSceneWorld(pswwm, opt_.scene);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("%s", ex.what());
+      }
+      if (!ok)
+        return;
       world_only = true;
+    }
     else
     {  
       ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
@@ -108,7 +121,17 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
   }
   else
   {
-    if (!pss_.getPlanningScene(pswm, opt_.scene))
+    bool ok = false;
+    try
+    {
+      ok = pss_.getPlanningScene(pswm, opt_.scene);
+    }
+    catch (std::runtime_error &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+    }
+    
+    if (!ok)
     {
       ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
       return;
@@ -126,9 +149,17 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
     req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
   req.scene.name = opt_.scene;
   std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
-  pss_.getPlanningQueries(planning_queries, opt_.scene);
+  try
+  {
+    pss_.getPlanningQueries(planning_queries, opt_.scene);
+  }
+  catch (std::runtime_error &ex)
+  {
+    ROS_ERROR("%s", ex.what());
+  }
+  
   if (planning_queries.empty())
-    ROS_WARN("Scene '%s' has no associated queries", opt_.scene.c_str());
+    ROS_INFO("Scene '%s' has no associated queries", opt_.scene.c_str());
   req.default_average_count = opt_.default_run_count;
   req.planner_interfaces.resize(opt_.plugins.size());
   req.average_count.resize(req.planner_interfaces.size());
@@ -181,7 +212,17 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
       start_states.pop_back();
       have_more_start_states = !start_states.empty();
       moveit_warehouse::RobotStateWithMetadata robot_state;
-      if (rs_.getRobotState(robot_state, state_name))
+      bool got_robot_state = false;
+      try
+      {
+        got_robot_state = rs_.getRobotState(robot_state, state_name);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("%s", ex.what());
+      }
+      
+      if (got_robot_state)
         start_state_to_use.reset(new moveit_msgs::RobotState(*robot_state));
       else
         continue;
@@ -242,7 +283,17 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
         if (boost::regex_match(cnames[i].c_str(), match, goal_regex))
         {
           moveit_warehouse::ConstraintsWithMetadata constr;
-          if (cs_.getConstraints(constr, cnames[i]))
+          bool got_constraints = false;
+          try
+          {
+            got_constraints = cs_.getConstraints(constr, cnames[i]);
+          }
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("%s", ex.what());
+          }
+          
+          if (got_constraints)
           {
             // construct a planning request from the constraints message
             req.motion_plan_request = moveit_msgs::MotionPlanRequest();
