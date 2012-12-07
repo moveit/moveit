@@ -56,6 +56,7 @@ typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn
 class JointModelGroup
 {
   friend class KinematicModel;
+
 public:
   
   JointModelGroup(const std::string& name, const std::vector<const JointModel*>& joint_vector, const KinematicModel *parent_model);

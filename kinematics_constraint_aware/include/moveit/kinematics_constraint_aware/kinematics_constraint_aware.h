@@ -113,9 +113,6 @@ protected:
                                       const std::string &link_name,
                                       unsigned int sub_group_index) const;
   
-  /*  moveit_msgs::RobotState getRobotState(const kinematics_constraint_aware::SolutionStateVector &solutions,
-                                        const std::vector<std::string> &group_names) const;  
-  */
   std::vector<kinematics::KinematicsBaseConstPtr> kinematics_solvers_;    
 
   std::vector<std::string> sub_groups_names_, kinematics_base_frames_;

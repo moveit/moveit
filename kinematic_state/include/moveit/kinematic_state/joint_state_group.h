@@ -217,6 +217,9 @@ public:
   bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout, unsigned int attempts,
                  const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
+  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, double timeout, unsigned int attempts,
+                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+
   JointStateGroup& operator=(const JointStateGroup &other);
 
 private:

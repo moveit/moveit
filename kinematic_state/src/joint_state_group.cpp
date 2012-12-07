@@ -416,6 +416,181 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
   return false;
 }
 
+bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine3d> &poses_in, 
+                                                 const std::vector<std::string> &tips_in, 
+                                                 double timeout, 
+                                                 unsigned int attempts, 
+                                                 const IKValidityCallbackFn &constraint)
+{
+  if(joint_model_group_->getSolverInstance())
+  {
+    logError("Cannot use this function for simple groups");
+    return false;
+  }
+  
+  const std::vector<std::string>& sub_group_names = joint_model_group_->getSubgroupNames();
+  
+  if(poses_in.size() != sub_group_names.size())
+  {
+    logError("Number of poses must be the same as number of sub-groups");
+    return false;
+  }
+  
+  if(tips_in.size() != sub_group_names.size())
+  {
+    logError("Number of tip names must be the same as number of sub-groups");
+    return false;
+  }
+
+  std::vector<kinematics::KinematicsBaseConstPtr> solvers;   
+  for(std::size_t i=0; i < poses_in.size(); ++i)
+  {
+    kinematics::KinematicsBaseConstPtr solver = joint_model_group_->getParentModel()->getJointModelGroup(sub_group_names[i])->getSolverInstance();   
+    if (!solver)
+    {
+      logError("Could not find solver for %s", sub_group_names[i].c_str());      
+      return false;
+    }
+    solvers.push_back(solver);
+  }
+  
+  std::vector<Eigen::Affine3d> transformed_poses = poses_in;
+  std::vector<std::string> tip_names = tips_in;  
+
+  for(std::size_t i=0; i < poses_in.size(); ++i)
+  {    
+    Eigen::Affine3d pose = poses_in[i];
+    std::string tip = tips_in[i];
+  
+    // bring the pose to the frame of the IK solver
+    const std::string &ik_frame = solvers[i]->getBaseFrame();
+    if (ik_frame != joint_model_group_->getParentModel()->getModelFrame())
+    {
+      const LinkState *ls = kinematic_state_->getLinkState(ik_frame);
+      if (!ls)
+        return false;
+      pose = ls->getGlobalLinkTransform().inverse() * pose;
+    }
+
+    // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
+    const std::string &tip_frame = solvers[i]->getTipFrame();
+    if (tip != tip_frame)
+    {
+      if (kinematic_state_->hasAttachedBody(tip))
+      {
+        const AttachedBody *ab = kinematic_state_->getAttachedBody(tip);
+        const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
+        if (ab_trans.size() != 1)
+        {
+          logError("Cannot use an attached body with multiple geometries as a reference frame.");
+          return false;
+        }
+        tip = ab->getAttachedLinkName();
+        pose = pose * ab_trans[0].inverse();
+      }
+      if (tip != tip_frame)
+      {
+        const kinematic_model::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
+        if (!lm)
+          return false;
+        const kinematic_model::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+        for (std::map<const kinematic_model::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+          if (it->first->getName() == tip_frame)
+          {
+            tip = tip_frame;
+            pose = pose * it->second;
+            break;
+          }
+      }
+    }
+  
+    if (tip != tip_frame)
+    {
+      logError("Cannot compute IK for tip reference frame '%s'", tip.c_str());
+      return false;    
+    }
+    transformed_poses[i] = pose;
+    tip_names[i] = tip;   
+  }
+    
+  std::vector<geometry_msgs::Pose> ik_queries(poses_in.size());
+  kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
+  if (constraint)
+    ik_callback_fn = boost::bind(&JointStateGroup::ikCallbackFnAdapter, this, constraint, _1, _2, _3);
+  
+  for(std::size_t i = 0; i < transformed_poses.size(); ++i)
+  {    
+    Eigen::Quaterniond quat(transformed_poses[i].rotation());
+    Eigen::Vector3d point(transformed_poses[i].translation());
+    ik_queries[i].position.x = point.x();
+    ik_queries[i].position.y = point.y();
+    ik_queries[i].position.z = point.z();
+    ik_queries[i].orientation.x = quat.x();
+    ik_queries[i].orientation.y = quat.y();
+    ik_queries[i].orientation.z = quat.z();
+    ik_queries[i].orientation.w = quat.w();
+  }
+    
+  bool first_seed = true;  
+  for (unsigned int st = 0 ; st < attempts ; ++st)
+  {    
+    bool found_solution = true;    
+    for(std::size_t sg = 0; sg < sub_group_names.size(); ++sg)
+    {      
+      kinematic_state::JointStateGroup* joint_state_group = getKinematicState()->getJointStateGroup(sub_group_names[sg]);      
+      const std::vector<unsigned int>& bij = joint_state_group->getJointModelGroup()->getKinematicsSolverJointBijection();
+      std::vector<double> seed(bij.size());
+       // the first seed is the initial state
+      if (first_seed)
+      {
+        if(sg == sub_group_names.size()-1)
+          first_seed = false;
+        std::vector<double> initial_values;
+        joint_state_group->getVariableValues(initial_values);
+        for (std::size_t i = 0 ; i < bij.size() ; ++i)
+          seed[bij[i]] = initial_values[i];
+      }
+      else
+      {
+        // sample a random seed
+        random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+        std::vector<double> random_values;
+        joint_state_group->getJointModelGroup()->getVariableRandomValues(rng, random_values);
+        for (std::size_t i = 0 ; i < bij.size() ; ++i)
+          seed[bij[i]] = random_values[i];
+      }
+    
+      // compute the IK solution
+      std::vector<double> ik_sol;
+      moveit_msgs::MoveItErrorCodes error;
+      if(solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout, ik_sol, error))
+      {
+        std::vector<double> solution(bij.size());
+        for (std::size_t i = 0 ; i < bij.size() ; ++i)
+          solution[i] = ik_sol[bij[i]];
+        joint_state_group->setVariableValues(solution);
+      }
+      else
+      {
+        found_solution = false;        
+        break;
+      }      
+      if(found_solution && sg == (sub_group_names.size() - 1))
+      {
+        std::vector<double> full_solution;
+        getVariableValues(full_solution);
+        if(constraint ? constraint(this, full_solution) : true)
+        {
+          logDebug("Got solution");
+          return true;
+        }        
+      }  
+      logDebug("Attempt: %d of %d", st, attempts);      
+    }    
+  }
+  return false;
+}
+
 void kinematic_state::JointStateGroup::ikCallbackFnAdapter(const IKValidityCallbackFn &constraint,
                                                            const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
 {  
