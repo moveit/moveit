@@ -291,6 +291,18 @@ public:
 
   bool canSetStateFromIK(const std::string &tip) const;
 
+  /** \brief Get the default IK timeout */
+  double getDefaultIKTimeout(void) const
+  {
+    return default_ik_timeout_;
+  }
+
+  /** \brief Set the default IK timeout */
+  void setDefaultIKTimeout(double ik_timeout)
+  {
+    default_ik_timeout_ = ik_timeout;
+  }
+  
   /** \brief Return the mapping between the order of the joints in this group and the order of the joints in the kinematics solver */
   const std::vector<unsigned int>& getKinematicsSolverJointBijection(void) const
   {
@@ -391,7 +403,9 @@ protected:
   kinematics::KinematicsBaseConstPtr                    solver_instance_;
   
   std::vector<unsigned int>                             ik_joint_bijection_;
- 
+
+  double                                                default_ik_timeout_;
+  
   /** \brief The set of default states specified for this group in the SRDF */
   std::map<std::string, std::map<std::string, double> > default_states_;
 };

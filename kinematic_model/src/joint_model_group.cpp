@@ -49,7 +49,9 @@ static bool orderLinksByIndex(const LinkModel *a, const LinkModel *b)
 kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
                                                   const std::vector<const JointModel*> &group_joints,
                                                   const KinematicModel* parent_model) :
-  parent_model_(parent_model), name_(group_name), variable_count_(0), is_end_effector_(false), is_chain_(false)
+  parent_model_(parent_model), name_(group_name),
+  variable_count_(0), is_end_effector_(false), is_chain_(false),
+  default_ik_timeout_(0.5)
 {
   for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
   {
