@@ -179,6 +179,14 @@ void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
       imap[groups[i]] = kinematics_allocator;
     model_->setKinematicsAllocators(imap);
+
+    // set the default IK timeouts
+    const std::map<std::string, double> &timeout = kinematics_loader_->getIKTimeout();
+    for (std::map<std::string, double>::const_iterator it = timeout.begin() ; it != timeout.end() ; ++it)
+    {
+      kinematic_model::JointModelGroup *jmg = model_->getJointModelGroup(it->first);
+      jmg->setDefaultIKTimeout(it->second);
+    }
   }
 }
 

@@ -454,7 +454,7 @@ void MotionPlanningFrame::goalPoseSelectionChanged()
 
 void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 {
-  if ( planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! planning_display_->getQueryGoalState() )
+  if ( !planning_display_->getRobotInteraction() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! planning_display_->getQueryGoalState() )
     return;
   
   // Call to IK  
@@ -468,11 +468,11 @@ void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
   current_pose.orientation.z = imarker->getOrientation().z;
   current_pose.orientation.w = imarker->getOrientation().w;
 
-  static const float timeout = 1.0;
-  static const unsigned int attempts = 1.0;
-
   bool feasible = planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
-                                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
+                                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
+                                                                        current_pose,
+                                                                        planning_display_->getQueryGoalStateHandler()->getIKAttempts(),
+                                                                        planning_display_->getQueryGoalStateHandler()->getIKTimeout());
   if (feasible)
   {
     planning_display_->updateQueryGoalState();
@@ -551,13 +551,13 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marker_name) 
 {
   geometry_msgs::PoseStamped current_pose;
-  current_pose.pose.position.x=goal_poses_[marker_name].imarker->getPosition().x;
-  current_pose.pose.position.y=goal_poses_[marker_name].imarker->getPosition().y;
-  current_pose.pose.position.z=goal_poses_[marker_name].imarker->getPosition().z;
-  current_pose.pose.orientation.x=goal_poses_[marker_name].imarker->getOrientation().x;
-  current_pose.pose.orientation.y=goal_poses_[marker_name].imarker->getOrientation().y;
-  current_pose.pose.orientation.z=goal_poses_[marker_name].imarker->getOrientation().z;
-  current_pose.pose.orientation.w=goal_poses_[marker_name].imarker->getOrientation().w;
+  current_pose.pose.position.x = goal_poses_[marker_name].imarker->getPosition().x;
+  current_pose.pose.position.y = goal_poses_[marker_name].imarker->getPosition().y;
+  current_pose.pose.position.z = goal_poses_[marker_name].imarker->getPosition().z;
+  current_pose.pose.orientation.x = goal_poses_[marker_name].imarker->getOrientation().x;
+  current_pose.pose.orientation.y = goal_poses_[marker_name].imarker->getOrientation().y;
+  current_pose.pose.orientation.z = goal_poses_[marker_name].imarker->getOrientation().z;
+  current_pose.pose.orientation.w = goal_poses_[marker_name].imarker->getOrientation().w;
 
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.name = goal_poses_[marker_name].imarker->getName();
