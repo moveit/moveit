@@ -54,6 +54,8 @@
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
+#include <boost/math/constants/constants.hpp>
+
 namespace moveit_rviz_plugin
 {
 
@@ -552,6 +554,12 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 
     Eigen::Affine3d current_wrt_initial = initial_pose_eigen.inverse() * current_pose_eigen;
 
+    //Display the pose in the ui
+    Eigen::Vector3d v = current_pose_eigen.linear().eulerAngles(0,1,2);
+    ui_->goalrx->setText(QString().sprintf("%.1f", v(0) * 180.0 / boost::math::constants::pi<double>()));
+    ui_->goalry->setText(QString().sprintf("%.1f", v(1) * 180.0 / boost::math::constants::pi<double>()));
+    ui_->goalrz->setText(QString().sprintf("%.1f", v(2) * 180.0 / boost::math::constants::pi<double>()));
+
     //Update the rest of selected markers    
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
     {
@@ -569,6 +577,9 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
   } else if (feedback.event_type == feedback.MOUSE_UP) 
   {
     dragging=false;
+    ui_->goalrx->setText("");
+    ui_->goalry->setText("");
+    ui_->goalrz->setText("");
   }
 }
 
