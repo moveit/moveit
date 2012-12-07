@@ -80,6 +80,11 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   kinematics_resolution_field_->setMaximumWidth( 400 );
   form_layout->addRow( "Kin. Search Resolution:", kinematics_resolution_field_ );
 
+  // resolution to use with solver
+  kinematics_timeout_field_ = new QLineEdit( this );
+  kinematics_timeout_field_->setMaximumWidth( 400 );
+  form_layout->addRow( "Kin. Search Timeout (s):", kinematics_timeout_field_ );
+
   layout->addLayout( form_layout );
   layout->setAlignment( Qt::AlignTop );
 
@@ -179,6 +184,15 @@ void GroupEditWidget::setSelected( const std::string &group_name )
     *resolution = 0.005;
   }
   kinematics_resolution_field_->setText( QString::number( *resolution ) );
+
+  // Load timeout
+  double *timeout = &config_data_->group_meta_data_[ group_name ].kinematics_solver_timeout_;
+  if( *timeout == 0 )
+  {
+    // Set default value
+    *timeout = 0.5;
+  }
+  kinematics_timeout_field_->setText( QString::number( *timeout ) );
 
   // Set kin solver
   const std::string& kin_solver = config_data_->group_meta_data_[ group_name ].kinematics_solver_;
