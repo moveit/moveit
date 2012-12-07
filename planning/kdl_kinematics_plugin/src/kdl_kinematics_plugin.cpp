@@ -337,6 +337,12 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;    
   }
+  if(check_consistency && consistency_limits.size() != dimension_)
+  {
+    ROS_ERROR_STREAM("Consistency limits must have size " << dimension_ << " instead of size " << consistency_limits.size());
+    error_code.val = error_code.NO_IK_SOLUTION;
+    return false;        
+  }  
   solution.resize(dimension_);
   
   KDL::Frame pose_desired;
@@ -378,7 +384,10 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     {
       getRandomConfiguration(jnt_pos_in_);
       if(ik_valid < 0)
+      {
+        ROS_DEBUG("Could not find IK solution");        
         continue;
+      }      
     }
     
     for(unsigned int j=0; j < dimension_; j++)
