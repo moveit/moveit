@@ -178,7 +178,7 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
 
         int_marker.name = name;
 
-        robot_interaction::addArrowMarker(int_marker);
+        robot_interaction::addTArrowMarker(int_marker);
 
         rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
         interactive_markers::autoComplete(int_marker);
@@ -266,7 +266,7 @@ void MotionPlanningFrame::loadGoalsAndStatesFromDBButtonClicked(void)
         int_marker.pose = shape_pose;
         int_marker.name = c->name;
 
-        robot_interaction::addArrowMarker(int_marker);
+        robot_interaction::addTArrowMarker(int_marker);
 
         rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
         interactive_markers::autoComplete(int_marker);
@@ -613,7 +613,7 @@ void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marke
   int_marker.header.frame_id = goal_poses_[marker_name].imarker->getReferenceFrame();
   static const float marker_scale = 0.35;
   int_marker.scale = marker_scale;
-  robot_interaction::addArrowMarker(int_marker);
+  robot_interaction::addTArrowMarker(int_marker);
   interactive_markers::autoComplete(int_marker);
   goal_poses_[marker_name].imarker->processMessage(int_marker);
 }
@@ -661,7 +661,7 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
     int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
     static const float marker_scale = 0.35;
     int_marker.scale = marker_scale;
-    robot_interaction::addArrowMarker(int_marker);
+    robot_interaction::addTArrowMarker(int_marker);
     interactive_markers::autoComplete(int_marker);
 
     rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
