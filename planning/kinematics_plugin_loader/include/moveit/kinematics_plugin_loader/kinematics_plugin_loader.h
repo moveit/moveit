@@ -64,8 +64,12 @@ public:
   {
     return groups_;
   }
+  
+  const std::map<std::string, double>& getIKTimeout(void) const
+  {
+    return ik_timeout_;
+  }
 
-  bool isGroupKnown(const std::string& name) const;
   void status(void) const;
   
 private:
@@ -74,6 +78,7 @@ private:
   class KinematicsLoaderImpl;
   boost::shared_ptr<KinematicsLoaderImpl> loader_;
   std::vector<std::string> groups_;
+  std::map<std::string, double> ik_timeout_;
 };
 
 typedef boost::shared_ptr<KinematicsPluginLoader> KinematicsPluginLoaderPtr;

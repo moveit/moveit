@@ -115,9 +115,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   //Goal poses
   connect( ui_->new_goal_pose_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
   connect( ui_->remove_goal_pose_button, SIGNAL( clicked() ), this, SLOT( removeSelectedGoalsButtonClicked() ));
-  connect( ui_->load_from_db_button, SIGNAL( clicked() ), this, SLOT( loadFromDBButtonClicked() ));
-  connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveOnDBButtonClicked() ));
-  connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteOnDBButtonClicked() ));
+  connect( ui_->load_from_db_button, SIGNAL( clicked() ), this, SLOT( loadGoalsAndStatesFromDBButtonClicked() ));
+  connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveGoalsAndStatesOnDBButtonClicked() ));
+  connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteGoalsAndStatesOnDBButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
   
@@ -207,7 +207,13 @@ void MotionPlanningFrame::removeSelectedGoalsButtonClicked(void)
   populateGoalPosesList();
 }
 
-void MotionPlanningFrame::loadFromDBButtonClicked(void) 
+void MotionPlanningFrame::removeAllGoalsButtonClicked(void)
+{
+  goal_poses_.clear();
+  populateGoalPosesList();
+}
+
+void MotionPlanningFrame::loadGoalsAndStatesFromDBButtonClicked(void)
 {
   
   //Get all the constraints from the database, convert to goal pose markers
@@ -318,7 +324,7 @@ void MotionPlanningFrame::loadFromDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::saveOnDBButtonClicked(void)
+void MotionPlanningFrame::saveGoalsAndStatesOnDBButtonClicked(void)
 {  
   if (constraints_storage_ && robot_state_storage_) 
   {
@@ -383,40 +389,58 @@ void MotionPlanningFrame::saveOnDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::deleteOnDBButtonClicked(void) 
+void MotionPlanningFrame::deleteGoalsAndStatesOnDBButtonClicked(void) 
 {
-  //Go through the list of goal poses, and delete those selected
   if (constraints_storage_ && robot_state_storage_) 
   {
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
+    //Warn the user
+    QMessageBox msgBox;
+    msgBox.setText("All the selected items will be removed from the database");
+    msgBox.setInformativeText("Do you want to continue?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::No);
+    int ret = msgBox.exec();
+
+    switch (ret)
     {
-      if (it->second.selected) 
-        try
+      case QMessageBox::Yes:
+      {
+        //Go through the list of goal poses, and delete those selected
+        for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
         {
-          constraints_storage_->removeConstraints(it->second.imarker->getName());        
+          if (it->second.selected)
+            try
+          {
+              constraints_storage_->removeConstraints(it->second.imarker->getName());
+          }
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("%s", ex.what());
+          }
         }
-        catch (std::runtime_error &ex)
+
+        removeSelectedGoalsButtonClicked();
+
+        for (unsigned int i = 0; i < ui_->start_states_list->count() ; ++i)
         {
-          ROS_ERROR("%s", ex.what());
-        }      
-    }
-    
-    removeSelectedGoalsButtonClicked();
-    
-    for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it) 
-    {
-      if (it->second.selected) 
-        try
-        {
-          robot_state_storage_->removeRobotState(it->first);        
+          QListWidgetItem *item = ui_->start_states_list->item(i);
+          if ( item->isSelected() )
+          {
+            try
+            {
+              robot_state_storage_->removeRobotState(item->text().toStdString());
+            }
+            catch (std::runtime_error &ex)
+            {
+              ROS_ERROR("%s", ex.what());
+            }
+          }
         }
-        catch (std::runtime_error &ex)
-        {
-          ROS_ERROR("%s", ex.what());
-        }   
+
+        removeSelectedStatesButtonClicked();
+        break;
+      }
     }
-    
-    removeSelectedStatesButtonClicked();
   }
   else
   {
@@ -454,7 +478,7 @@ void MotionPlanningFrame::goalPoseSelectionChanged()
 
 void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 {
-  if ( planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! planning_display_->getQueryGoalState() )
+  if ( !planning_display_->getRobotInteraction() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! planning_display_->getQueryGoalState() )
     return;
   
   // Call to IK  
@@ -467,12 +491,12 @@ void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
   current_pose.orientation.y = imarker->getOrientation().y;
   current_pose.orientation.z = imarker->getOrientation().z;
   current_pose.orientation.w = imarker->getOrientation().w;
-
-  static const float timeout = 1.0;
-  static const unsigned int attempts = 1.0;
-
+  
   bool feasible = planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
-                                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], current_pose, timeout, attempts);
+                                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
+                                                                        current_pose,
+                                                                        planning_display_->getQueryGoalStateHandler()->getIKAttempts(),
+                                                                        planning_display_->getQueryGoalStateHandler()->getIKTimeout());
   if (feasible)
   {
     planning_display_->updateQueryGoalState();
@@ -551,13 +575,13 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marker_name) 
 {
   geometry_msgs::PoseStamped current_pose;
-  current_pose.pose.position.x=goal_poses_[marker_name].imarker->getPosition().x;
-  current_pose.pose.position.y=goal_poses_[marker_name].imarker->getPosition().y;
-  current_pose.pose.position.z=goal_poses_[marker_name].imarker->getPosition().z;
-  current_pose.pose.orientation.x=goal_poses_[marker_name].imarker->getOrientation().x;
-  current_pose.pose.orientation.y=goal_poses_[marker_name].imarker->getOrientation().y;
-  current_pose.pose.orientation.z=goal_poses_[marker_name].imarker->getOrientation().z;
-  current_pose.pose.orientation.w=goal_poses_[marker_name].imarker->getOrientation().w;
+  current_pose.pose.position.x = goal_poses_[marker_name].imarker->getPosition().x;
+  current_pose.pose.position.y = goal_poses_[marker_name].imarker->getPosition().y;
+  current_pose.pose.position.z = goal_poses_[marker_name].imarker->getPosition().z;
+  current_pose.pose.orientation.x = goal_poses_[marker_name].imarker->getOrientation().x;
+  current_pose.pose.orientation.y = goal_poses_[marker_name].imarker->getOrientation().y;
+  current_pose.pose.orientation.z = goal_poses_[marker_name].imarker->getOrientation().z;
+  current_pose.pose.orientation.w = goal_poses_[marker_name].imarker->getOrientation().w;
 
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.name = goal_poses_[marker_name].imarker->getName();
@@ -651,7 +675,7 @@ void MotionPlanningFrame::saveStartStateButtonClicked(void)
   bool ok = false;                
 
   std::stringstream ss;
-  ss << planning_display_->getPlanningScene()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << start_states_.size();
+  ss << planning_display_->getKinematicModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << start_states_.size();
 
   QString text = QInputDialog::getText(this, tr("Choose a name"),
                                        tr("Start state name:"), QLineEdit::Normal,
@@ -687,6 +711,12 @@ void MotionPlanningFrame::removeSelectedStatesButtonClicked(void)
   {
     start_states_.erase(found_items[i]->text().toStdString());    
   }
+  populateStartStatesList();
+}
+
+void MotionPlanningFrame::removeAllStatesButtonClicked(void)
+{
+  start_states_.clear();
   populateStartStatesList();
 }
 
@@ -2095,6 +2125,13 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
           }
           else
             planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
+
+          //Automatically load constraints from the db, filtered with the scene name
+          ui_->load_states_filter_text->setText((planning_display_->getKinematicModel()->getName() + ".*").c_str());
+          ui_->load_goals_filter_text->setText((scene + ".*").c_str());
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllGoalsButtonClicked, this));
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllStatesButtonClicked, this));
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadGoalsAndStatesFromDBButtonClicked, this));
         }
         else
           ROS_WARN("Failed to load scene '%s'. Has the message format changed since the scene was saved?", scene.c_str());
