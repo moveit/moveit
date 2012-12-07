@@ -413,16 +413,258 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
   return filename.empty() ? ompl_benchmark_.saveResultsToFile() : ompl_benchmark_.saveResultsToFile(filename.c_str());
 }
 
+/** @cond IGNORE */
+/*
+namespace ompl
+{
+namespace geometric
+{
+
+class Follower : private boost::noncopyable
+{
+public:
+  
+  Follower(const base::SpaceInformationPtr &si) : si_(si)
+  {
+  }
+
+  ~Follower(void)
+  {
+  }
+  
+  const base::SpaceInformationPtr &getSpaceInformation(void) const
+  {
+    return si_;
+  }
+  
+  const base::ProblemDefinitionPtr& getProblemDefinition(void) const
+  {
+    return pdef_;
+  }
+  
+  void setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
+  {
+    pdef_ = pdef;
+    pis_.use(si_, pdef_);
+  } 
+
+  base::ParamSet& params(void)
+  {
+    return params_;
+  }
+
+  const base::ParamSet& params(void) const
+  {
+    return params_;
+  }
+
+  base::PlannerStatus follow(const std::vector<base::ValidStateSamplerPtr> &samplers, const PlannerTerminationCondition &ptc);
+  
+private:
+
+  base::SpaceInformationPtr  si_;
+  base::ProblemDefinitionPtr pdef_;
+  PlannerInputStates         pis_;
+  ParamSet                   params_; 
+  RNG                        rng_;
+};
+
+base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPtr> &samplers, const PlannerTerminationCondition &ptc)
+{
+  if (!si_.isSetup())
+    si_->setup();
+  
+  pis_.checkValidity();
+
+  if (!pdef_->getGoal()->hasType(base::GOAL_SAMPLEABLE_REGION))
+  {
+    OMPL_ERROR("The goal region must be sampleable");
+    return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+  }
+  
+  std::vector<std::vector<base::State*> > sets(samplers.size() + 2);
+  
+  // fill in start states
+  while (const base::State *st = pis_.nextStart())
+    sets[0].push_back(si_->cloneState(st));
+  
+  if (sets[0].empty())
+  {
+    return OMPL_ERROR("No valid start states found.");
+    return base::PlannerStatus::INVALID_START;
+  }
+  
+  base::PlannerStatus result = base::PlannerStatus::EXACT_SOLUTION;
+  base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+  
+  base::State *work_area = si_->allocState();
+  
+  // try to generate at least one sample from every sampler
+  for (std::size_t i = 0 ; i < samplers.size() && !ptc ; ++i)
+  { 
+    while (sets[i + 1].empty() && !ptc)
+      if (samplers[i]->sample(work_area) && si_->isValid(work_area))
+        sets[i + 1].push_back(si_->cloneState(work_area));
+  }
+  
+  if (ptc)
+    result = base::PlannerStatus::TIMEOUT;
+  else
+  {
+    // add at least one goal state
+    if (const base::State *st = pis_.nextGoal(ptc))
+      sets.back().push_back(si_->cloneState(st));
+    else
+    {
+      OMPL_ERROR("Unable to sample any valid states for goal tree");
+      result = base::PlannerStatus::INVALID_GOAL;
+    }
+  }
+  
+  if (result == base::PlannerStatus::EXACT_SOLUTION)
+  {
+    std::vector<std::vector<std::vector<std::size_t> > > connections(sets.size() - 1);
+  
+    // check connections between first states (heuristic)
+    bool first_sample_worked = true;
+    for (std::size_t i = 0 ; i < connections.size() ; ++i)
+    {
+      connections[i].resize(sets[i].size());    
+      if (si_->checkMotion(sets[i][0], sets[i+1][0]))
+        connections[i][0].push_back(0);
+      else
+        first_sample_worked = false;
+    }
+    
+    if (first_sample_worked)
+      // we are done; we have a solution
+      computeSolution(sets, connections, 0);
+    else
+    {    
+      // create a PDF over the sampled states
+      PDF<unsigned int> pdf_sets;
+      std::vector<PDF::Element*> pdf_elements;      
+      const double weight_offset = 1.0 / (double)sets.size();
+      for (std::size_t i = 1 ; i < sets.size() ; ++i)
+        pdf_elements.push_back(pdf_sets.add(i, 1.0 / (weight_offset + (double)(sets[i].size()))));
+      
+      // remember which states are connected to the start
+      std::vector< std::vector<int> > is_start(sets.size());
+      is_start[0].resize(sets[0].size(), 1);
+      for (std::size_t i = 1 ; i < sets.size() ; ++i)
+        is_start[i].resize(sets[i].size(), 0);
+      for (std::size_t i = 0 ; i < sets[0].size() ; ++i)
+        propagateStartInfo(0, i, is_start, connections);
+
+      unsigned int goal_index = sets.size() - 1;
+      int solved = -1;
+      while (!ptc && solved < 0)
+      {
+        bool added = false;
+        unsigned int index = pdf_sets.sample(rng_.uniform01());
+        if (index == goal_index)
+        {
+          const ob::State *st = pis.nextGoal();
+          if (st)
+          {
+            sets[index].push_back(si_->cloneState(st));
+            is_start[index].push_back(0);
+            pdf_sets.update(pdf_elements.back(), 1.0 / (weight_offset + (double)(sets[index].size())));
+            added = true;
+          }
+        }
+        else
+        {
+          if (samplers[index - 1]->sample(work_area) && si_->isValid(work_area))
+          {
+            sets[index].push_back(si_->cloneState(work_area));
+            connections[index].resize(connections[index].size() + 1);
+            is_start[index].push_back(0);
+            pdf_sets.update(pdf_element[index - 1], 1.0 / (weight_offset + (double)(sets[index].size())));
+            added = true;
+          }
+        }
+        if (added)
+        {
+          const std::vector<base::State*> &prev = sets[index-1];          
+          std::size_t added_index = sets[index].size() - 1;
+          for (std::size_t i = 0 ; i < prev.size() ; ++i)
+            if (si_->checkMotion(prev[i], sets[index].back()))
+            {
+              connections[index-1][i].push_back(added_index);
+              if (is_start[index-1][i] == 1)
+              {
+                is_start[index][added_index] = 1;
+                propagateStartInfo(index, added_index, is_start, connections);
+              }
+            }
+          
+          if (index < goal_index)
+          {   
+            const std::vector<base::State*> &next = sets[index+1];          
+            for (std::size_t i = 0 ; i < next.size() ; ++i)
+              if (si_->checkMotion(sets[index].back(), next[i]))
+              {
+                connections[index][added_index].push_back(i);
+                if (is_start[index][added_index] == 1 && is_start[index + 1][i] == 0)
+                {
+                  is_start[index + 1][i] = 1;
+                  propagateStartInfo(index + 1, i, is_start, connections);
+                }
+              }
+          }
+          for (std::size_t i = 0 ; i < is_start[goal_index].size() ; ++i)
+            if (is_start[goal_index][i] == 1)
+            {
+              solved = i;
+              break;
+            }
+        }
+      }
+      if (solved >= 0)
+        computeSolution(sets, connections, solved);
+      else
+        result = base::PlannerStatus::TIMEOUT;
+    }
+  }
+  
+  for (std::size_t i = 0 ; i < sets.size() ; ++i)
+    si_->freeStates(sets[i]);
+  si_->freeState(work_area);
+  return result;
+}
+
+void Follower::computeSolution(const std::vector<std::vector<base::State*> > &sets,
+                               const std::vector< std::vector< std::vector<std::size_t> > > &connections,
+                               int elem_index)
+{
+  PathGeometric *pg = new PathGeometric(si_);
+  int goal_index = sets.size() - 1;
+  connections[goal_index - 1][elem_index]
+  
+  pg->reverse();
+  pdef_->addSolutionPath(base::PathPtr(pg));
+}
+
+}
+}
+*/
+/** @endcond */
+
 bool ompl_interface::ModelBasedPlanningContext::follow(double timeout, unsigned int count)
 {
   ot::Profiler::ScopedBlock sblock("PlanningContext:Follow");
   ompl::time::point start = ompl::time::now();
   preSolve();
-
   
+  if (!ompl_simple_setup_.getSpaceInformation()->isSetup())
+    ompl_simple_setup_.getSpaceInformation()->setup();
+  
+  bool result = false;
+
   postSolve();
   
-  return false;
+  return result;
 }
 
 void ompl_interface::ModelBasedPlanningContext::preSolve(void)
