@@ -92,7 +92,7 @@ public:
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
-   * @param consistency_limits the distance that any joint can be from the corresponding joints in the current seed state
+   * @param consistency_limits the distance that any joint in the solution can be from the corresponding joints in the current seed state
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
    * @return True if a valid solution was found, false otherwise
@@ -131,7 +131,7 @@ public:
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
-   * @param consistency_limit the distance that any joint can be from the current seed state
+   * @param consistency_limits the distance that any joint in the solution can be from the corresponding joints in the current seed state
    * @param solution the solution vector
    * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
    * @param solution_callback A callback solution for the IK solution
