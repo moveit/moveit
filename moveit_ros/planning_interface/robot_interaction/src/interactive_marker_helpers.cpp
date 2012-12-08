@@ -30,17 +30,19 @@
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
 #include <tf/transform_datatypes.h>
 
+#include <boost/math/constants/constants.hpp>
+
 namespace robot_interaction
 {
 
-void addArrowMarker(visualization_msgs::InteractiveMarker &im)
+void addTArrowMarker(visualization_msgs::InteractiveMarker &im)
 {
-  // create a grey box marker
+  // create an arrow marker
   visualization_msgs::Marker m;
   m.type = visualization_msgs::Marker::ARROW;
-  m.scale.x = 0.8 * im.scale;
-  m.scale.y = 0.15 * im.scale;
-  m.scale.z = 0.15 * im.scale;
+  m.scale.x = 0.6 * im.scale;
+  m.scale.y = 0.12 * im.scale;
+  m.scale.z = 0.12 * im.scale;
   m.ns = "goal_pose_arrow_marker";
   m.id = 1;
   m.action = visualization_msgs::Marker::ADD;
@@ -49,17 +51,39 @@ void addArrowMarker(visualization_msgs::InteractiveMarker &im)
   //Arrow points along Z
   tf::Quaternion imq;
   tf::quaternionMsgToTF(m.pose.orientation, imq);
-  imq=imq*tf::createQuaternionFromRPY(0, -M_PI_2, 0);
+  imq=imq*tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
   tf::quaternionTFToMsg(imq, m.pose.orientation);
   m.color.r = 0.0f;
   m.color.g = 1.0f;
   m.color.b = 0.0f;
   m.color.a = 1.0f;
   
+  visualization_msgs::Marker mc;
+  mc.type = visualization_msgs::Marker::CYLINDER;
+  mc.scale.x = 0.05 * im.scale;
+  mc.scale.y = 0.05 * im.scale;
+  mc.scale.z = 0.15 * im.scale;
+  mc.ns = "goal_pose_arrow_marker";
+  mc.id = 2;
+  mc.action = visualization_msgs::Marker::ADD;
+  mc.header = im.header;
+  mc.pose = im.pose;
+  //Cylinder points along Y
+  tf::quaternionMsgToTF(mc.pose.orientation, imq);
+  imq=imq*tf::createQuaternionFromRPY(boost::math::constants::pi<double>() / 2.0, 0, 0);
+  tf::quaternionTFToMsg(imq, mc.pose.orientation);
+  mc.pose.position.x -= 0.04;
+  mc.pose.position.z += 0.01;
+  mc.color.r = 0.0f;
+  mc.color.g = 1.0f;
+  mc.color.b = 0.0f;
+  mc.color.a = 1.0f;
+
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = true;
   m_control.interaction_mode=m_control.BUTTON;
   m_control.markers.push_back(m);
+  m_control.markers.push_back(mc);
 
   // add the control to the interactive marker
   im.controls.push_back(m_control);

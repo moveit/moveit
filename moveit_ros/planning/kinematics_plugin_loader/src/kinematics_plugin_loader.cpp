@@ -227,16 +227,9 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
         std::string ksolver_timeout_param_name;
         if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_timeout", ksolver_timeout_param_name))
         {
-          std::string ksolver_timeout;
+          double ksolver_timeout;
           if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout))
-          {
-            std::stringstream ss(ksolver_timeout);
-            if (ss.good() && !ss.eof())
-            {
-              double t; ss >> t;
-              ik_timeout_[known_groups[i].name_] = t;
-            }
-          }
+            ik_timeout_[known_groups[i].name_] = ksolver_timeout;
         }
         
         std::string ksolver_res_param_name;
