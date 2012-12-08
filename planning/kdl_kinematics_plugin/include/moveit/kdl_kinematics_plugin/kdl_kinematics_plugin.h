@@ -153,7 +153,6 @@ namespace kdl_kinematics_plugin
                           std::vector<double> &solution,
                           const IKCallbackFn &solution_callback,
                           moveit_msgs::MoveItErrorCodes &error_code,
-                          bool check_consistency,
                           const std::vector<double> &consistency_limits) const;
     
   private:

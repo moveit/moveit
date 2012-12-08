@@ -237,7 +237,6 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
                           solution,
                           solution_callback,
                           error_code,
-                          false,
                           consistency_limits);
 }
 
@@ -256,7 +255,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           solution,
                           solution_callback,
                           error_code,
-                          false,
                           consistency_limits);
 }
     
@@ -274,7 +272,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           solution,
                           solution_callback,
                           error_code,
-                          true,
                           consistency_limits);
 }
 
@@ -292,7 +289,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           solution,
                           solution_callback,
                           error_code,
-                          false,
                           consistency_limits);
 }
 
@@ -310,7 +306,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           solution,
                           solution_callback,
                           error_code,
-                          true,
                           consistency_limits);
 }
 
@@ -320,7 +315,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            std::vector<double> &solution,
                                            const IKCallbackFn &solution_callback,
                                            moveit_msgs::MoveItErrorCodes &error_code,
-                                           bool check_consistency,
                                            const std::vector<double> &consistency_limits) const
 {
   ros::WallTime n1 = ros::WallTime::now();
@@ -337,12 +331,14 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;    
   }
-  if(check_consistency && consistency_limits.size() != dimension_)
+
+  if(!consistency_limits.empty() && consistency_limits.size() != dimension_)
   {
-    ROS_ERROR_STREAM("Consistency limits must have size " << dimension_ << " instead of size " << consistency_limits.size());
+    ROS_ERROR_STREAM("Consistency limits be empty or must have size " << dimension_ << " instead of size " << consistency_limits.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;        
   }  
+
   solution.resize(dimension_);
   
   KDL::Frame pose_desired;
@@ -374,7 +370,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
       return false;      
     }    
     int ik_valid = ik_solver_pos_->CartToJnt(jnt_pos_in_,pose_desired,jnt_pos_out_);                     
-    if(check_consistency) 
+    if(!consistency_limits.empty()) 
     {
       getRandomConfiguration(jnt_seed_state_, consistency_limits, jnt_pos_in_);
       if(ik_valid < 0 || !checkConsistency(jnt_seed_state_, consistency_limits, jnt_pos_out_))
