@@ -189,6 +189,8 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
     groups_.clear();
     
     ros::NodeHandle nh("~");
+    ROS_DEBUG("node handle name: %s", nh.getNamespace().c_str());
+    
     std::map<std::string, std::vector<std::string> > possible_kinematics_solvers;
     std::map<std::string, std::vector<double> > search_res;
     if (srdf_model)
