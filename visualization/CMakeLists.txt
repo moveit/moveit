@@ -33,6 +33,9 @@ find_package(catkin COMPONENTS
   tf
   roscpp
   rosconsole
+  octomap_ros
+  octomap_msgs
+  octomap
   REQUIRED)
 
 include_directories(${catkin_INCLUDE_DIRS})

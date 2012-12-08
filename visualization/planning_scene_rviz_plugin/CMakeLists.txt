@@ -14,6 +14,7 @@ set(SOURCE_FILES
   src/planning_scene_render.cpp
   src/planning_link_updater.cpp
   src/planning_scene_display.cpp
+  src/octomap_render.cpp
 )
 
 set(MOVEIT_LIB_NAME moveit_planning_scene_rviz_plugin)
