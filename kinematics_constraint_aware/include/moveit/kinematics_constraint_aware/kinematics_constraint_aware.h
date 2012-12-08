@@ -40,6 +40,7 @@
 
 // System
 #include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
 
 // ROS msgs
 #include <moveit_msgs/GetConstraintAwarePositionIK.h>
@@ -60,6 +61,11 @@
 
 namespace kinematics_constraint_aware
 {
+
+class KinematicsConstraintAware;
+typedef boost::shared_ptr<KinematicsConstraintAware> KinematicsConstraintAwarePtr;
+typedef boost::shared_ptr<const KinematicsConstraintAware> KinematicsConstraintAwareConstPtr;
+
 /**
  * @class A kinematics solver that can be used with multiple arms
  */
@@ -67,7 +73,7 @@ class KinematicsConstraintAware
 {
   public:
 
-  /** @brief Initialize
+  /** @brief Default constructor
    * @param kinematic_model An instance of a kinematic model
    * @param group_name The name of the group to configure this solver for
    * @return False if any error occurs
@@ -75,6 +81,8 @@ class KinematicsConstraintAware
   KinematicsConstraintAware(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                             const std::string &group_name);
 
+  virtual ~KinematicsConstraintAware(){}
+  
   /** @brief Solve the planning problem
    * @param planning_scene A const reference to the planning scene
    * @param request A const reference to the kinematics request
@@ -97,10 +105,10 @@ class KinematicsConstraintAware
     
 protected:
 
-  std::vector<geometry_msgs::PoseStamped> transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                         const kinematic_state::KinematicState &kinematic_state,
-                                                         const std::vector<geometry_msgs::PoseStamped> &poses,
-                                                         const std::vector<std::string> &target_frames) const;
+  std::vector<Eigen::Affine3d> transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
+                                              const kinematic_state::KinematicState &kinematic_state,
+                                              const std::vector<geometry_msgs::PoseStamped> &poses,
+                                              const std::string &target_frame) const;
 
   bool convertServiceRequest(const planning_scene::PlanningSceneConstPtr &planning_scene,
                              const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
@@ -112,22 +120,26 @@ protected:
                                       const geometry_msgs::Pose &pose,
                                       const std::string &link_name,
                                       unsigned int sub_group_index) const;
-  
-  std::vector<kinematics::KinematicsBaseConstPtr> kinematics_solvers_;    
 
-  std::vector<std::string> sub_groups_names_, kinematics_base_frames_;
+  bool validityCallbackFn(const planning_scene::PlanningSceneConstPtr &planning_scene,
+                          const kinematics_constraint_aware::KinematicsRequest &request,
+                          kinematics_constraint_aware::KinematicsResponse &response,
+                          kinematic_state::JointStateGroup *joint_state_group,
+                          const std::vector<double> &joint_group_variable_values) const;  
+  
+  std::vector<std::string> sub_groups_names_;
 
   kinematic_model::KinematicModelConstPtr kinematic_model_;
   
-  bool has_sub_groups_;
-
   const kinematic_model::JointModelGroup *joint_model_group_;
   
   std::string group_name_;
-};
 
-typedef boost::shared_ptr<KinematicsConstraintAware> KinematicsSolverPtr;
-typedef boost::shared_ptr<const KinematicsConstraintAware> KinematicsSolverConstPtr;
+  bool has_sub_groups_;
+
+  unsigned int ik_attempts_;
+  
+};
 
 }
 

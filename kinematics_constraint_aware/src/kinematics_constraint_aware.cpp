@@ -40,6 +40,7 @@
 #include <moveit/kinematic_model/kinematic_model.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <boost/bind.hpp>
 
 namespace kinematics_constraint_aware
 {
@@ -53,7 +54,6 @@ KinematicsConstraintAware::KinematicsConstraintAware(const kinematic_model::Kine
     joint_model_group_ = NULL;
     return;    
   }  
-
   kinematic_model_ = kinematic_model;  
   group_name_ = group_name;
   joint_model_group_ = kinematic_model_->getJointModelGroup(group_name);
@@ -61,14 +61,12 @@ KinematicsConstraintAware::KinematicsConstraintAware(const kinematic_model::Kine
   {
     has_sub_groups_ = false;    
     sub_groups_names_.push_back(group_name_);
-    kinematics_solvers_.push_back(joint_model_group_->getSolverInstance());
-    kinematics_base_frames_.push_back(joint_model_group_->getSolverInstance()->getBaseFrame());    
   }   
   else
   {
     logDebug("No kinematics solver instance defined for group %s", group_name.c_str());
     bool is_solvable_group = true;
-    if(!joint_model_group_->getSubgroupNames().empty())
+    if(!(joint_model_group_->getSubgroupNames().empty()))
     {
       const std::vector<std::string> sub_groups_names = joint_model_group_->getSubgroupNames();
       for(std::size_t i=0; i < sub_groups_names.size(); ++i)
@@ -78,8 +76,6 @@ KinematicsConstraintAware::KinematicsConstraintAware(const kinematic_model::Kine
           is_solvable_group = false;
           break;
         }
-        kinematics_solvers_.push_back(kinematic_model_->getJointModelGroup(sub_groups_names[i])->getSolverInstance());        
-        kinematics_base_frames_.push_back(kinematic_model_->getJointModelGroup(sub_groups_names[i])->getSolverInstance()->getBaseFrame());
       }
       if(is_solvable_group)
       {
@@ -95,10 +91,11 @@ KinematicsConstraintAware::KinematicsConstraintAware(const kinematic_model::Kine
     else
     {
       joint_model_group_ = NULL;
-      logError("No solver allocated for group %s", group_name.c_str());
+      logInform("No solver allocated for group %s", group_name.c_str());
     }
     has_sub_groups_ = true;    
   }
+  ik_attempts_ = 10;  
 }
 
 bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPtr &planning_scene,
@@ -110,6 +107,17 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
     logError("This solver has not been constructed properly");
     return false;
   }
+
+  if(!planning_scene)
+  {
+    logError("Planning scene must be allocated");
+    return false;
+  }  
+
+  if(!response.solution_)
+  {
+    response.solution_.reset(new kinematic_state::KinematicState(planning_scene->getCurrentState()));
+  }
   
   ros::WallTime start_time = ros::WallTime::now();
   if(request.group_name_ != group_name_)
@@ -120,11 +128,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
   
   // Setup the seed and the values for all other joints in the robot
   kinematic_state::KinematicState kinematic_state = *request.robot_state_;
-
-  // Get a joint state group for each sub-group that we are dealing with
-  std::vector<kinematic_state::JointStateGroup*> joint_state_groups(sub_groups_names_.size());
-  for(std::size_t i=0; i < sub_groups_names_.size(); ++i)
-    joint_state_groups[i] = kinematic_state.getJointStateGroup(sub_groups_names_[i]);    
+  std::vector<std::string> ik_link_names = request.ik_link_names_;
 
   // Transform request to tip frame if necessary
   if(!request.ik_link_names_.empty())
@@ -141,6 +145,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
                                         request.pose_stamped_vector_[i].pose,
                                         request.ik_link_names_[i],
                                         i);       
+        ik_link_names[i] = kinematic_model_->getJointModelGroup(sub_groups_names_[i])->getSolverInstance()->getTipFrame();
       }      
       else if(!kinematic_model_->getJointModelGroup(sub_groups_names_[i])->canSetStateFromIK(request.ik_link_names_[i]))
       {
@@ -150,72 +155,90 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
     }    
   }  
     
-  // Transform the requests
-  std::vector<geometry_msgs::PoseStamped> goals = transformPoses(planning_scene,
-                                                                 kinematic_state,
-                                                                 request.pose_stamped_vector_,
-                                                                 kinematics_base_frames_);
+  // Transform the requests to the base frame of the kinematic model
+  std::vector<Eigen::Affine3d> goals = transformPoses(planning_scene,
+                                                      kinematic_state,
+                                                      request.pose_stamped_vector_,
+                                                      kinematic_model_->getModelFrame());
+
+  kinematic_state::IKValidityCallbackFn constraint_callback_fn = boost::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response, _1, _2);
   
-  // Do the Inverse kinematics
-  bool first_time = true;  
-  while( (ros::WallTime::now()-start_time) <= ros::WallDuration(request.timeout_.toSec()))
+  bool result = false;  
+  if(has_sub_groups_)
+  {   
+    result = kinematic_state.getJointStateGroup(group_name_)->setFromIK(goals, ik_link_names, 
+                                                                         ik_attempts_, request.timeout_.toSec(), 
+                                                                         constraint_callback_fn);
+  }
+  else
   {
-    bool success = true;    
-    if(!first_time)
-    {
-      for(unsigned int i=0; i < sub_groups_names_.size(); ++i)
-        joint_state_groups[i]->setToRandomValues();            
-    }
-    first_time = false;
+    result = ik_link_names.empty() ?
+      kinematic_state.getJointStateGroup(group_name_)->setFromIK(goals[0], ik_attempts_, 
+                                                                 request.timeout_.toSec(), 
+                                                                 constraint_callback_fn) :
+      kinematic_state.getJointStateGroup(group_name_)->setFromIK(goals[0], ik_link_names[0], ik_attempts_, 
+                                                                 request.timeout_.toSec(), 
+                                                                 constraint_callback_fn);
+  }
 
-    // Run through all sub-groups and try IK    
-    for(unsigned int i=0; i < sub_groups_names_.size(); ++i)
-    {
-      std::vector<double> joint_state_values, solutions;
-      joint_state_groups[i]->getVariableValues(joint_state_values);
-      joint_state_groups[i]->getVariableValues(solutions);
-      const kinematics::KinematicsBaseConstPtr kinematics_solver = kinematics_solvers_[i];
-      geometry_msgs::Pose ik_pose = goals[i].pose;
-      if(!kinematics_solver->getPositionIK(ik_pose,
-                                           joint_state_values,
-                                           solutions,
-                                           response.error_code_))
-      {
-          logDebug("getPositionIK failed with error code %d", response.error_code_.val);
-          success = false;
-          break;
-      }
-      joint_state_groups[i]->setVariableValues(solutions);
-    }      
-    if(!success)
-      continue;            
-
-    // Now check for collisions
-    collision_detection::CollisionRequest collision_request;
-    collision_detection::CollisionResult collision_result;  
-    collision_request.group_name = group_name_;
-    planning_scene->checkCollision(collision_request, collision_result, kinematic_state);    
-    if(collision_result.collision)
-    {
-      response.error_code_.val = response.error_code_.GOAL_IN_COLLISION;
-      continue;      
-    }    
- 
-    // Now check for constraints
-    kinematic_constraints::ConstraintEvaluationResult constraint_result;
-    constraint_result = request.constraints_->decide(kinematic_state, response.constraint_eval_results_);
-    if(!constraint_result.satisfied)
-    {
-      response.error_code_.val = response.error_code_.GOAL_VIOLATES_PATH_CONSTRAINTS;
-      continue;
-    }
-    // We are good
+  if(result)
+  {
     std::vector<double> solution_values;
     kinematic_state.getJointStateGroup(group_name_)->getVariableValues(solution_values);
     response.solution_->getJointStateGroup(group_name_)->setVariableValues(solution_values);
-    return true;
+    response.error_code_.val = response.error_code_.SUCCESS;    
+  }  
+  return result;
+}
+
+bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::PlanningSceneConstPtr &planning_scene,
+                                                   const kinematics_constraint_aware::KinematicsRequest &request,
+                                                   kinematics_constraint_aware::KinematicsResponse &response,
+                                                   kinematic_state::JointStateGroup *joint_state_group,
+                                                   const std::vector<double> &joint_group_variable_values) const
+{
+  joint_state_group->setVariableValues(joint_group_variable_values);  
+
+  // Now check for collisions
+  if(request.check_for_collisions_)
+  {
+    collision_detection::CollisionRequest collision_request;
+    collision_detection::CollisionResult collision_result;  
+    collision_request.group_name = request.group_name_;
+    planning_scene->checkCollision(collision_request, collision_result, *joint_state_group->getKinematicState());    
+    if(collision_result.collision)
+    {
+      response.error_code_.val = response.error_code_.GOAL_IN_COLLISION;
+      return false;      
+    }    
   }
-  return false;  
+  
+  // Now check for constraints
+  if(request.constraints_)
+  {
+    kinematic_constraints::ConstraintEvaluationResult constraint_result;
+    constraint_result = request.constraints_->decide(*joint_state_group->getKinematicState(), 
+                                                     response.constraint_eval_results_);
+    if(!constraint_result.satisfied)
+    {
+      logDebug("IK solution violates constraints");      
+      response.error_code_.val = response.error_code_.GOAL_VIOLATES_PATH_CONSTRAINTS;
+      return false;
+    }
+  }
+
+  // Now check for user specified constraints
+  if(request.constraint_callback_)
+  {
+    if(!request.constraint_callback_(joint_state_group, joint_group_variable_values))
+    {
+      logDebug("IK solution violates user specified constraints");      
+      response.error_code_.val = response.error_code_.GOAL_VIOLATES_PATH_CONSTRAINTS;
+      return false;
+    }
+  }
+
+  return true;  
 }
 
 bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPtr &planning_scene,
@@ -228,7 +251,12 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
     return false;
   }
 
-  ros::WallTime start_time = ros::WallTime::now();
+  if(!planning_scene)
+  {
+    logError("Planning scene must be allocated");
+    return false;
+  }  
+
   kinematics_constraint_aware::KinematicsRequest kinematics_request;
   kinematics_constraint_aware::KinematicsResponse kinematics_response;
 
@@ -264,6 +292,7 @@ bool KinematicsConstraintAware::convertServiceRequest(const planning_scene::Plan
     kinematics_response.error_code_.val = kinematics_response.error_code_.INVALID_GROUP_NAME;    
     return false;      
   }
+
   if(!request.ik_request.ik_link_names.empty() && request.ik_request.ik_link_names.size() != sub_groups_names_.size())
   {
     logError("Number of ik_link_names in request: %d must match number of sub groups %d in this group or must be zero", 
@@ -281,31 +310,31 @@ bool KinematicsConstraintAware::convertServiceRequest(const planning_scene::Plan
   kinematics_request.constraints_->add(request.constraints);
   kinematics_request.timeout_ = request.timeout;
   kinematics_request.group_name_ = request.ik_request.group_name;
+
+  kinematics_response.solution_.reset(new kinematic_state::KinematicState(planning_scene->getCurrentState()));
+
   return true;  
 }
 
-
-std::vector<geometry_msgs::PoseStamped> KinematicsConstraintAware::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                                                  const kinematic_state::KinematicState &kinematic_state,
-                                                                                  const std::vector<geometry_msgs::PoseStamped> &poses,
-                                                                                  const std::vector<std::string> &target_frames) const
+std::vector<Eigen::Affine3d> KinematicsConstraintAware::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
+                                                                       const kinematic_state::KinematicState &kinematic_state,
+                                                                       const std::vector<geometry_msgs::PoseStamped> &poses,
+                                                                       const std::string &target_frame) const
 {
   Eigen::Affine3d eigen_pose, eigen_pose_2;
-  std::vector<geometry_msgs::PoseStamped> result(sub_groups_names_.size());  
-  for(std::size_t i = 0; i <= poses.size(); ++i)
+  std::vector<Eigen::Affine3d> result(poses.size());  
+  bool target_frame_is_root_frame = (target_frame == kinematic_state.getKinematicModel()->getModelFrame());  
+  for(std::size_t i = 0; i < poses.size(); ++i)
   {    
-    bool target_frame_is_root_frame = (target_frames[i] == kinematic_state.getKinematicModel()->getModelFrame());  
-    geometry_msgs::PoseStamped pose_stamped = poses[i];    
-    tf::poseMsgToEigen(pose_stamped.pose, eigen_pose_2);
-    planning_scene->getTransforms()->transformPose(kinematic_state, pose_stamped.header.frame_id, eigen_pose_2, eigen_pose);
+    geometry_msgs::Pose pose = poses[i].pose;    
+    tf::poseMsgToEigen(pose, eigen_pose_2);
+    planning_scene->getTransforms()->transformPose(kinematic_state, poses[i].header.frame_id, eigen_pose_2, eigen_pose);
     if(!target_frame_is_root_frame)
     {
-      eigen_pose_2 = planning_scene->getTransforms()->getTransform(kinematic_state, target_frames[i]);
+      eigen_pose_2 = planning_scene->getTransforms()->getTransform(kinematic_state, target_frame);
       eigen_pose = eigen_pose_2.inverse()*eigen_pose;
-    }    
-    pose_stamped.header.frame_id = target_frames[i];
-    tf::poseEigenToMsg(eigen_pose, pose_stamped.pose);
-    result[i] = pose_stamped;    
+    }   
+    result[i] = eigen_pose;    
   }
   return result;  
 }
@@ -318,7 +347,7 @@ geometry_msgs::Pose KinematicsConstraintAware::getTipFramePose(const planning_sc
 {
   geometry_msgs::Pose result;  
   Eigen::Affine3d eigen_pose_in, eigen_pose_link, eigen_pose_tip;
-  std::string tip_name = kinematics_solvers_[sub_group_index]->getTipFrame();  
+  std::string tip_name = kinematic_model_->getJointModelGroup(sub_groups_names_[sub_group_index])->getSolverInstance()->getTipFrame();
   tf::poseMsgToEigen(pose, eigen_pose_in);
   eigen_pose_link = planning_scene->getTransforms()->getTransform(kinematic_state, link_name);
   eigen_pose_tip = planning_scene->getTransforms()->getTransform(kinematic_state, tip_name);

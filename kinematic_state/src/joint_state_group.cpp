@@ -299,10 +299,17 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, un
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
     return false;
-  return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint);
+  std::vector<double> consistency_limits;  
+  return setFromIK(pose, solver->getTipFrame(), attempts, consistency_limits, timeout, constraint);  
 }
 
 bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, const IKValidityCallbackFn &constraint)
+{
+  std::vector<double> consistency_limits;  
+  return setFromIK(pose_in, tip_in, attempts, consistency_limits, timeout, constraint);  
+}
+
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, const std::vector<double> &consistency_limits, double timeout, const IKValidityCallbackFn &constraint)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -321,7 +328,7 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
     pose = ls->getGlobalLinkTransform().inverse() * pose;
   }
 
-  // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
+    // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
   const std::string &tip_frame = solver->getTipFrame();
   if (tip != tip_frame)
   {
@@ -407,8 +414,8 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
     if (ik_callback_fn ?
-        solver->searchPositionIK(ik_query, seed, timeout, ik_sol, ik_callback_fn, error) : 
-        solver->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
+        solver->searchPositionIK(ik_query, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error) : 
+        solver->searchPositionIK(ik_query, seed, timeout, consistency_limits, ik_sol, error))
     {
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
@@ -422,8 +429,19 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
 
 bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine3d> &poses_in, 
                                                  const std::vector<std::string> &tips_in, 
-                                                 double timeout, 
                                                  unsigned int attempts, 
+                                                 double timeout, 
+                                                 const IKValidityCallbackFn &constraint)
+{
+  std::vector<std::vector<double> > consistency_limits;
+  return setFromIK(poses_in, tips_in, attempts, consistency_limits, timeout, constraint);  
+}
+
+bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine3d> &poses_in, 
+                                                 const std::vector<std::string> &tips_in, 
+                                                 unsigned int attempts, 
+                                                 const std::vector<std::vector<double> > &consistency_limits,
+                                                 double timeout, 
                                                  const IKValidityCallbackFn &constraint)
 {
   if(joint_model_group_->getSolverInstance())
@@ -446,6 +464,24 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
     return false;
   }
 
+  if(!consistency_limits.empty() && consistency_limits.size() != sub_group_names.size())
+  {
+    logError("Number of consistency limit vectors must be the same as number of sub-groups");
+    return false;
+  }
+    
+  if(!consistency_limits.empty())
+  {
+    for(std::size_t i=0; i < consistency_limits.size(); ++i)
+    {
+      if(consistency_limits[i].size() != joint_model_group_->getParentModel()->getJointModelGroup(sub_group_names[i])->getVariableCount())
+      {
+        logError("Number of joints in consistency_limits[%d] should be %d", i, joint_model_group_->getParentModel()->getJointModelGroup(sub_group_names[i])->getVariableCount());
+        return false;        
+      }      
+    }    
+  }
+  
   std::vector<kinematics::KinematicsBaseConstPtr> solvers;   
   for(std::size_t i=0; i < poses_in.size(); ++i)
   {
@@ -567,7 +603,9 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
       // compute the IK solution
       std::vector<double> ik_sol;
       moveit_msgs::MoveItErrorCodes error;
-      if(solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout, ik_sol, error))
+      if(!consistency_limits.empty() ? 
+         solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout, consistency_limits[sg], ik_sol, error) :
+         solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout, ik_sol, error))
       {
         std::vector<double> solution(bij.size());
         for (std::size_t i = 0 ; i < bij.size() ; ++i)

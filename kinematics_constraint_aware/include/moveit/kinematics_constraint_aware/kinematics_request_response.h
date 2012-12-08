@@ -75,6 +75,11 @@ class KinematicsRequest
   ros::Duration timeout_;  
 
   std::string group_name_;  
+
+  bool check_for_collisions_;
+
+  kinematic_state::IKValidityCallbackFn constraint_callback_;  
+  
 };
 
 /**

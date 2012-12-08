@@ -58,6 +58,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     planning_scene/include
     sensor_manager/include
     trajectory_processing/include
+    kinematics_constraint_aware/include
 )
 
 catkin_package(
@@ -81,6 +82,7 @@ catkin_package(
     moveit_dynamics_solver
     moveit_kinematics_cache
     moveit_kinematics_planner
+    moveit_kinematics_constraint_aware
     ${LIBFCL_LIBRARIES}
     ${LIBOCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
@@ -130,3 +132,4 @@ add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 add_subdirectory(kinematics_cache)
 add_subdirectory(kinematics_planner)
+add_subdirectory(kinematics_constraint_aware)
