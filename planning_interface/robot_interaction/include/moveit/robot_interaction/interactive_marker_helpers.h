@@ -46,7 +46,7 @@ visualization_msgs::InteractiveMarker make3DOFMarker(const std::string& name,
                                                      double scale,
                                                      bool fixed = false);
 
-void addArrowMarker(visualization_msgs::InteractiveMarker &im);
+void addTArrowMarker(visualization_msgs::InteractiveMarker &im);
 void addErrorMarker(visualization_msgs::InteractiveMarker &im);
 
 }
