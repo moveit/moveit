@@ -27,58 +27,67 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan */
+/* Author: Julius Kammerl */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
+#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_OCTOMAP_RENDER_
+#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_OCTOMAP_RENDER_
 
+#include <vector>
+#include <OGRE/OgreMovableObject.h>
 #include <geometric_shapes/shapes.h>
-#include <rviz/helpers/color.h>
-#include <OGRE/OgreMaterial.h>
-#include <Eigen/Geometry>
-#include <string>
-#include <boost/shared_ptr.hpp>
+
+#include "rviz/ogre_helpers/point_cloud.h"
+
+namespace octomap
+{
+class OcTree;
+}
 
 namespace Ogre
 {
-class Entity;
+class SceneManager;
 class SceneNode;
-class ManualObject;
-}
-
-namespace rviz
-{
-class DisplayContext;
-class Shape;
+class AxisAlignedBox;
 }
 
 namespace moveit_rviz_plugin
 {
 
-class RenderShapes
+class OcTreeRender : public Ogre::MovableObject
 {
+
 public:
+  OcTreeRender(const shapes::Shape *shape, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node = NULL);
+  virtual ~OcTreeRender();
 
-  RenderShapes(rviz::DisplayContext *context);
-  ~RenderShapes(void);
-  
-  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
-  void clear();
-  
+  virtual const Ogre::String& getMovableType() const;
+  virtual const Ogre::AxisAlignedBox& getBoundingBox() const;
+  virtual float getBoundingRadius() const;
+  virtual void getWorldTransforms( Ogre::Matrix4* xform ) const;
+  virtual void _updateRenderQueue( Ogre::RenderQueue* queue );
+  virtual void _notifyCurrentCamera( Ogre::Camera* camera );
+  virtual void _notifyAttached(Ogre::Node *parent, bool isTagPoint=false);
+#if (OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6)
+  virtual void visitRenderables(Ogre::Renderable::Visitor* visitor, bool debugRenderables);
+#endif
+
 private:
+  void setColor( double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
+  void octreeDecoding (boost::shared_ptr<const octomap::OcTree> octree);
 
-  rviz::DisplayContext *context_;
-  
-  std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
-  std::vector< Ogre::MovableObject* > movable_objects_;
-  Ogre::MaterialPtr material_;
-  std::string material_name_;
+  // Ogre-rviz point clouds
+  std::vector<rviz::PointCloud*> cloud_;
+
+  const shapes::Shape *shape_;
+  Ogre::SceneNode* scene_node_;
+  Ogre::SceneManager* scene_manager_;
+
+  Ogre::AxisAlignedBox bb_;
+
+  double colorFactor_;
+
 };
 
-typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
-typedef boost::shared_ptr<const RenderShapes> RenderShapesConstPtr;
-
 }
-
 #endif
 
