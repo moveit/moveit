@@ -53,6 +53,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     kinematic_state/include
     kinematics_planner/include
     kinematic_constraints/include
+    macros/include
     planning_interface/include
     planning_request_adapter/include
     planning_scene/include
@@ -113,6 +114,7 @@ link_directories(${FCL_LIBRARY_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
+add_subdirectory(macros)
 add_subdirectory(kinematics_base)
 add_subdirectory(controller_manager)
 add_subdirectory(sensor_manager)
