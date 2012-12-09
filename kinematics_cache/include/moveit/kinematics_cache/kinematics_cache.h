@@ -121,7 +121,7 @@ namespace kinematics_cache
       return options_;
     }
 
-    const std::string getGroupName()
+    const std::string& getGroupName() const
     {
       return kinematics_solver_->getGroupName();
     }
