@@ -65,9 +65,9 @@ bool KinematicsMetrics::getManipulabilityIndex(const kinematic_state::KinematicS
 {
   if (!joint_model_group)
   {    
-    logError("Joint model group does not exist");    
+    logError("Joint model group does not exist");
     return false;
-  }  
+  }
   Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
   Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
   // Get manipulability index
