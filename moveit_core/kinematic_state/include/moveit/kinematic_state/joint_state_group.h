@@ -274,11 +274,11 @@ public:
       to be in the same order as the order of the sub-groups in this group. Returns true on success.
       @param poses The poses the last link in each chain needs to achieve 
       @param tips The names of the frames for which IK is attempted. 
-      @param attempts The number of times IK is attempted
       @param consistency_limits This specifies the desired distance between the solution and the seed state
+      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, unsigned int attempts, const std::vector<std::vector<double> > &consistency_limits, double timeout = 0.0, const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts, double timeout = 0.0, const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
   JointStateGroup& operator=(const JointStateGroup &other);
 

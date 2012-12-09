@@ -1,8 +1,6 @@
 set(MOVEIT_LIB_NAME moveit_kinematics_constraint_aware)
 
-add_library(${MOVEIT_LIB_NAME}
-  src/kinematics_constraint_aware
-  )
+add_library(${MOVEIT_LIB_NAME} src/kinematics_constraint_aware.cpp)
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 

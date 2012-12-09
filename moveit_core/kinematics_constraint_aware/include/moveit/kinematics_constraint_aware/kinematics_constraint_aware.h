@@ -81,7 +81,9 @@ class KinematicsConstraintAware
   KinematicsConstraintAware(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                             const std::string &group_name);
 
-  virtual ~KinematicsConstraintAware(){}
+  ~KinematicsConstraintAware()
+  {
+  }
   
   /** @brief Solve the planning problem
    * @param planning_scene A const reference to the planning scene
@@ -103,7 +105,7 @@ class KinematicsConstraintAware
              const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
              moveit_msgs::GetConstraintAwarePositionIK::Response &response) const;
     
-protected:
+private:
 
   std::vector<Eigen::Affine3d> transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                               const kinematic_state::KinematicState &kinematic_state,
