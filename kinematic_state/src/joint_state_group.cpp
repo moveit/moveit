@@ -433,14 +433,14 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
                                                  double timeout, 
                                                  const IKValidityCallbackFn &constraint)
 {
-  std::vector<std::vector<double> > consistency_limits;
-  return setFromIK(poses_in, tips_in, attempts, consistency_limits, timeout, constraint);  
+  static const std::vector<std::vector<double> > consistency_limits;
+  return setFromIK(poses_in, tips_in, consistency_limits, attempts, timeout, constraint);  
 }
 
 bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine3d> &poses_in, 
                                                  const std::vector<std::string> &tips_in, 
-                                                 unsigned int attempts, 
                                                  const std::vector<std::vector<double> > &consistency_limits,
+                                                 unsigned int attempts, 
                                                  double timeout, 
                                                  const IKValidityCallbackFn &constraint)
 {
