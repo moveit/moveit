@@ -101,7 +101,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
     error_code->val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return context;
   }
-  
+
   *timeout = req.allowed_planning_time.toSec();
   if (*timeout <= 0.0)
   {
@@ -129,7 +129,9 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   if (req.trajectory_constraints.constraints.empty())
   {
     if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, error_code))
-      return ModelBasedPlanningContextPtr();
+      return ModelBasedPlanningContextPtr(); 
+    static const std::vector<ompl::base::ValidStateSamplerPtr> empty;
+    context->setFollowSamplers(empty);
   }
   else
   {  
@@ -150,12 +152,15 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
 
     // construct the valid state samplers we have to go through
     std::size_t n1 = req.trajectory_constraints.constraints.size() - 1;
+    logDebug("%s: Allocating %u constrained samplers.", context->getName().c_str(), (unsigned int)n1);
+
     std::vector<ompl::base::ValidStateSamplerPtr> samplers(n1);
     for (std::size_t i = 0 ; i < n1 ; ++i)
     {
       constraint_samplers::ConstraintSamplerPtr cs;
       if (constraint_sampler_manager_)
         cs = constraint_sampler_manager_->selectSampler(context->getPlanningScene(), context->getJointModelGroupName(), req.trajectory_constraints.constraints[i]);
+      
       kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(planning_scene->getKinematicModel(), planning_scene->getTransforms()));
       ks->add(req.trajectory_constraints.constraints[i]);
       samplers[i] = ob::ValidStateSamplerPtr(new ValidConstrainedSampler(context.get(), ks, cs));
@@ -177,7 +182,9 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 
   unsigned int attempts = 1;
   double timeout = 0.0;
+  
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &res.error_code, &attempts, &timeout);
+
   if (!context)
     return false;
 

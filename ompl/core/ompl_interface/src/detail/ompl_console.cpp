@@ -53,7 +53,7 @@ public:
     {
     case ompl::msg::LOG_INFO: 
       {
-        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Info, std::string(ROSCONSOLE_NAME_PREFIX) + ".ompl");
+        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Info, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
         if (ROS_UNLIKELY(enabled))
         {
           ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
@@ -62,7 +62,7 @@ public:
       break;
     case ompl::msg::LOG_WARN:
       {
-        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Warn, std::string(ROSCONSOLE_NAME_PREFIX) + ".ompl");
+        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Warn, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
         if (ROS_UNLIKELY(enabled))
         {
           ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
@@ -71,7 +71,7 @@ public:
       break;
     case ompl::msg::LOG_ERROR:
       {
-        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Error, std::string(ROSCONSOLE_NAME_PREFIX) + ".ompl");
+        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Error, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
         if (ROS_UNLIKELY(enabled))
         {
           ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
@@ -81,7 +81,7 @@ public:
     default:
       // debug
       {
-        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Debug, std::string(ROSCONSOLE_NAME_PREFIX) + ".ompl");
+        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Debug, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
         if (ROS_UNLIKELY(enabled))
         {
           ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
@@ -97,7 +97,8 @@ struct RegisterOH
   RegisterOH(void)
   {
     static OutputHandlerROS oh_ros;
-    useOutputHandler(&oh_ros);
+    ompl::msg::useOutputHandler(&oh_ros);
+    ompl::msg::setLogLevel(ompl::msg::LOG_DEBUG);    
   }
 };
 
