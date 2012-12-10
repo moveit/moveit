@@ -49,6 +49,7 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
+#include <ompl/datastructures/PDF.h>
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec) :
   spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getKinematicModel()),
@@ -167,7 +168,7 @@ void ompl_interface::ModelBasedPlanningContext::configure(void)
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
     
   useConfig();  
-  if (ompl_simple_setup_.getGoal())
+  if (ompl_simple_setup_.getGoal() && follow_samplers_.empty())
     ompl_simple_setup_.setup();
 }
 
@@ -414,7 +415,7 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
 }
 
 /** @cond IGNORE */
-/*
+
 namespace ompl
 {
 namespace geometric
@@ -424,7 +425,7 @@ class Follower : private boost::noncopyable
 {
 public:
   
-  Follower(const base::SpaceInformationPtr &si) : si_(si)
+  Follower(const base::SpaceInformationPtr &si) : si_(si), goalBias_(0.05)
   {
   }
 
@@ -458,20 +459,32 @@ public:
     return params_;
   }
 
-  base::PlannerStatus follow(const std::vector<base::ValidStateSamplerPtr> &samplers, const PlannerTerminationCondition &ptc);
+  base::PlannerStatus follow(const std::vector<base::ValidStateSamplerPtr> &samplers, const base::PlannerTerminationCondition &ptc);
   
 private:
 
+  void computeSolution(const std::vector<std::vector<base::State*> > &sets,
+                       const std::vector< std::vector< std::vector<std::size_t> > > &connections);
+
+  void propagateStartInfo(std::size_t set_index, std::size_t elem_index,
+                          std::vector<std::vector<int> > &is_start,
+                          const std::vector< std::vector< std::vector<std::size_t> > > &connections);
+  
+  bool findSolutionPath(PathGeometric &path, std::size_t set_index, std::size_t elem_index,
+                        const std::vector<std::vector<base::State*> > &sets,
+                        const std::vector< std::vector< std::vector<std::size_t> > > &connections);
+  
   base::SpaceInformationPtr  si_;
   base::ProblemDefinitionPtr pdef_;
-  PlannerInputStates         pis_;
-  ParamSet                   params_; 
+  base::PlannerInputStates   pis_;
+  base::ParamSet             params_; 
+  double                     goalBias_;
   RNG                        rng_;
 };
 
-base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPtr> &samplers, const PlannerTerminationCondition &ptc)
+base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPtr> &samplers, const base::PlannerTerminationCondition &ptc)
 {
-  if (!si_.isSetup())
+  if (!si_->isSetup())
     si_->setup();
   
   pis_.checkValidity();
@@ -490,7 +503,7 @@ base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPt
   
   if (sets[0].empty())
   {
-    return OMPL_ERROR("No valid start states found.");
+    OMPL_ERROR("No valid start states found.");
     return base::PlannerStatus::INVALID_START;
   }
   
@@ -500,14 +513,14 @@ base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPt
   base::State *work_area = si_->allocState();
   
   // try to generate at least one sample from every sampler
-  for (std::size_t i = 0 ; i < samplers.size() && !ptc ; ++i)
+  for (std::size_t i = 0 ; i < samplers.size() && !ptc() ; ++i)
   { 
-    while (sets[i + 1].empty() && !ptc)
+    while (sets[i + 1].empty() && !ptc())
       if (samplers[i]->sample(work_area) && si_->isValid(work_area))
         sets[i + 1].push_back(si_->cloneState(work_area));
   }
   
-  if (ptc)
+  if (ptc())
     result = base::PlannerStatus::TIMEOUT;
   else
   {
@@ -535,43 +548,58 @@ base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPt
       else
         first_sample_worked = false;
     }
+    first_sample_worked = false;
     
     if (first_sample_worked)
+    {
       // we are done; we have a solution
-      computeSolution(sets, connections, 0);
+      logDebug("First samples were successfully connected for all sets of constraints. Solution can be reported.");
+      computeSolution(sets, connections);
+    }
     else
     {    
       // create a PDF over the sampled states
       PDF<unsigned int> pdf_sets;
-      std::vector<PDF::Element*> pdf_elements;      
+      std::vector<PDF<unsigned int>::Element*> pdf_elements;
       const double weight_offset = 1.0 / (double)sets.size();
       for (std::size_t i = 1 ; i < sets.size() ; ++i)
         pdf_elements.push_back(pdf_sets.add(i, 1.0 / (weight_offset + (double)(sets[i].size()))));
       
+      // add further connections from start states (if any)
+      for (std::size_t i = 1 ; i < sets[0].size() ; ++i)
+        if (si_->checkMotion(sets[0][i], sets[1][0]))
+          connections[0][i].push_back(0);
+
       // remember which states are connected to the start
       std::vector< std::vector<int> > is_start(sets.size());
       is_start[0].resize(sets[0].size(), 1);
       for (std::size_t i = 1 ; i < sets.size() ; ++i)
         is_start[i].resize(sets[i].size(), 0);
+      
+      // propagate start info
       for (std::size_t i = 0 ; i < sets[0].size() ; ++i)
         propagateStartInfo(0, i, is_start, connections);
 
       unsigned int goal_index = sets.size() - 1;
-      int solved = -1;
-      while (!ptc && solved < 0)
+      bool solved = false;int steps = 0;
+      
+      bool adding_goals = true;
+      while (!ptc() && !solved)
       {
         bool added = false;
         unsigned int index = pdf_sets.sample(rng_.uniform01());
-        if (index == goal_index)
+        if (index == goal_index || (adding_goals && rng_.uniform01() < goalBias_))
         {
-          const ob::State *st = pis.nextGoal();
+          const base::State *st = pis_.nextGoal();
           if (st)
           {
-            sets[index].push_back(si_->cloneState(st));
-            is_start[index].push_back(0);
-            pdf_sets.update(pdf_elements.back(), 1.0 / (weight_offset + (double)(sets[index].size())));
+            sets[goal_index].push_back(si_->cloneState(st));
+            is_start[goal_index].push_back(0);
+            pdf_sets.update(pdf_elements.back(), 1.0 / (weight_offset + (double)(sets[goal_index].size())));
             added = true;
           }
+          else
+            adding_goals = false;
         }
         else
         {
@@ -580,22 +608,22 @@ base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPt
             sets[index].push_back(si_->cloneState(work_area));
             connections[index].resize(connections[index].size() + 1);
             is_start[index].push_back(0);
-            pdf_sets.update(pdf_element[index - 1], 1.0 / (weight_offset + (double)(sets[index].size())));
+            pdf_sets.update(pdf_elements[index - 1], 1.0 / (weight_offset + (double)(sets[index].size())));
             added = true;
           }
         }
         if (added)
-        {
+        {          
           const std::vector<base::State*> &prev = sets[index-1];          
-          std::size_t added_index = sets[index].size() - 1;
+          std::size_t added_elem_index = sets[index].size() - 1;
           for (std::size_t i = 0 ; i < prev.size() ; ++i)
             if (si_->checkMotion(prev[i], sets[index].back()))
             {
-              connections[index-1][i].push_back(added_index);
+              connections[index-1][i].push_back(added_elem_index);
               if (is_start[index-1][i] == 1)
               {
-                is_start[index][added_index] = 1;
-                propagateStartInfo(index, added_index, is_start, connections);
+                is_start[index][added_elem_index] = 1;
+                propagateStartInfo(index, added_elem_index, is_start, connections);
               }
             }
           
@@ -605,50 +633,98 @@ base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPt
             for (std::size_t i = 0 ; i < next.size() ; ++i)
               if (si_->checkMotion(sets[index].back(), next[i]))
               {
-                connections[index][added_index].push_back(i);
-                if (is_start[index][added_index] == 1 && is_start[index + 1][i] == 0)
+                connections[index][added_elem_index].push_back(i);
+                if (is_start[index][added_elem_index] == 1 && is_start[index + 1][i] == 0)
                 {
                   is_start[index + 1][i] = 1;
                   propagateStartInfo(index + 1, i, is_start, connections);
                 }
               }
           }
+
           for (std::size_t i = 0 ; i < is_start[goal_index].size() ; ++i)
             if (is_start[goal_index][i] == 1)
             {
-              solved = i;
+              solved = true;
               break;
             }
         }
       }
-      if (solved >= 0)
-        computeSolution(sets, connections, solved);
+      if (solved)
+        computeSolution(sets, connections);
       else
         result = base::PlannerStatus::TIMEOUT;
     }
   }
-  
+
   for (std::size_t i = 0 ; i < sets.size() ; ++i)
+  {
+    logDebug("Computed %u samples for constraints %u", (unsigned int)sets[i].size(), i);
     si_->freeStates(sets[i]);
+  }
   si_->freeState(work_area);
   return result;
 }
 
+void Follower::propagateStartInfo(std::size_t set_index, std::size_t elem_index,
+                                  std::vector<std::vector<int> > &is_start,
+                                  const std::vector< std::vector< std::vector<std::size_t> > > &connections)
+{
+  if (connections.size() <= set_index)
+    return;
+  
+  const std::vector<std::size_t> &c = connections[set_index][elem_index];
+  ++set_index;
+  for (std::size_t i = 0 ; i < c.size() ; ++i)
+  {
+    is_start[set_index][c[i]] = 1;
+    propagateStartInfo(set_index, c[i], is_start, connections);
+  }
+}
+
+bool Follower::findSolutionPath(PathGeometric &path, std::size_t set_index, std::size_t elem_index,
+                                const std::vector<std::vector<base::State*> > &sets,
+                                const std::vector< std::vector< std::vector<std::size_t> > > &connections)
+{ 
+  if (set_index == connections.size()) // we are at the goal
+  {
+    path.append(sets[set_index][elem_index]);
+    return true;
+  }
+  
+  const std::vector<std::size_t> &c = connections[set_index][elem_index];
+
+  for (std::size_t i = 0 ; i < c.size() ; ++i)
+    if (findSolutionPath(path, set_index + 1, c[i], sets, connections))
+    {
+      path.append(sets[set_index][elem_index]);
+      return true;
+    }  
+
+  return false;
+}
+
 void Follower::computeSolution(const std::vector<std::vector<base::State*> > &sets,
-                               const std::vector< std::vector< std::vector<std::size_t> > > &connections,
-                               int elem_index)
+                               const std::vector< std::vector< std::vector<std::size_t> > > &connections)
 {
   PathGeometric *pg = new PathGeometric(si_);
-  int goal_index = sets.size() - 1;
-  connections[goal_index - 1][elem_index]
-  
-  pg->reverse();
-  pdef_->addSolutionPath(base::PathPtr(pg));
+  bool found = false;
+  for (std::size_t i = 0 ; !found && i < sets[0].size() ; ++i)
+    found = findSolutionPath(*pg, 0, i, sets, connections);
+  if (found)
+  {
+    pg->reverse();
+    pdef_->addSolutionPath(base::PathPtr(pg));
+  }
+  else
+  {
+    delete pg;
+  }
 }
 
 }
 }
-*/
+
 /** @endcond */
 
 bool ompl_interface::ModelBasedPlanningContext::follow(double timeout, unsigned int count)
@@ -657,13 +733,19 @@ bool ompl_interface::ModelBasedPlanningContext::follow(double timeout, unsigned 
   ompl::time::point start = ompl::time::now();
   preSolve();
   
-  if (!ompl_simple_setup_.getSpaceInformation()->isSetup())
-    ompl_simple_setup_.getSpaceInformation()->setup();
-  
   bool result = false;
 
-  postSolve();
+  og::Follower f(ompl_simple_setup_.getSpaceInformation());
+  f.setProblemDefinition(ompl_simple_setup_.getProblemDefinition());  
+
+  ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(100 + timeout - ompl::time::seconds(ompl::time::now() - start));
+  registerTerminationCondition(ptc);
+  result = f.follow(follow_samplers_, ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+  last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
+  unregisterTerminationCondition();
   
+  postSolve();
+
   return result;
 }
 
