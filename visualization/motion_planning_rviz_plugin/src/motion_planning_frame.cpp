@@ -44,6 +44,7 @@
 
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
+#include <rviz/window_manager_interface.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
@@ -115,11 +116,11 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect(copy_object_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedCollisionObject() ) );
 
   //Goal poses
-  connect( ui_->new_goal_pose_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
-  connect( ui_->remove_goal_pose_button, SIGNAL( clicked() ), this, SLOT( removeSelectedGoalsButtonClicked() ));
-  connect( ui_->load_from_db_button, SIGNAL( clicked() ), this, SLOT( loadGoalsAndStatesFromDBButtonClicked() ));
-  connect( ui_->save_on_db_button, SIGNAL( clicked() ), this, SLOT( saveGoalsAndStatesOnDBButtonClicked() ));
-  connect( ui_->delete_on_db_button, SIGNAL( clicked() ), this, SLOT( deleteGoalsAndStatesOnDBButtonClicked() ));
+  connect( ui_->goal_poses_add_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
+  connect( ui_->goal_poses_remove_button, SIGNAL( clicked() ), this, SLOT( deleteGoalsOnDBButtonClicked() ));
+  connect( ui_->load_poses_filter_text, SIGNAL( returnPressed() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
+  connect( ui_->goal_poses_open_button, SIGNAL( clicked() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
+  connect( ui_->goal_poses_save_button, SIGNAL( clicked() ), this, SLOT( saveGoalsOnDBButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
   
@@ -127,8 +128,11 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
 
   //Start states
-  connect( ui_->save_start_state_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
-  connect( ui_->remove_start_state_button, SIGNAL( clicked() ), this, SLOT( removeSelectedStatesButtonClicked() ));
+  connect( ui_->start_states_add_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
+  connect( ui_->start_states_remove_button, SIGNAL( clicked() ), this, SLOT( deleteStatesOnDBButtonClicked() ));
+  connect( ui_->load_states_filter_text, SIGNAL( returnPressed() ), this, SLOT( loadStatesFromDBButtonClicked() ));
+  connect( ui_->start_states_open_button, SIGNAL( clicked() ), this, SLOT( loadStatesFromDBButtonClicked() ));
+  connect( ui_->start_states_save_button, SIGNAL( clicked() ), this, SLOT( saveStatesOnDBButtonClicked() ));
   connect( ui_->start_states_list, SIGNAL( itemDoubleClicked(QListWidgetItem*) ), this, SLOT( startStateItemDoubleClicked(QListWidgetItem*) ));
 
   ui_->tabWidget->setCurrentIndex(0); 
@@ -190,6 +194,50 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
 
         // Connect signals
         connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+
+        //If connected to a databse, store the constraint
+        if (constraints_storage_)
+        {
+          moveit_msgs::Constraints c;
+          c.name = name;
+
+          shape_msgs::SolidPrimitive sp;
+          sp.type = sp.BOX;
+          sp.dimensions.resize(3, std::numeric_limits<float>::epsilon() * 10.0);
+
+          moveit_msgs::PositionConstraint pc;
+          pc.constraint_region.primitives.push_back(sp);
+          geometry_msgs::Pose posemsg;
+          posemsg.position.x = imarker->getPosition().x;
+          posemsg.position.y = imarker->getPosition().y;
+          posemsg.position.z = imarker->getPosition().z;
+          posemsg.orientation.x = 0.0;
+          posemsg.orientation.y = 0.0;
+          posemsg.orientation.z = 0.0;
+          posemsg.orientation.w = 1.0;
+          pc.constraint_region.primitive_poses.push_back(posemsg);
+          pc.weight = 1.0;
+          c.position_constraints.push_back(pc);
+
+          moveit_msgs::OrientationConstraint oc;
+          oc.orientation.x = imarker->getOrientation().x;
+          oc.orientation.y = imarker->getOrientation().y;
+          oc.orientation.z = imarker->getOrientation().z;
+          oc.orientation.w = imarker->getOrientation().w;
+          oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
+              oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
+          oc.weight = 1.0;
+          c.orientation_constraints.push_back(oc);
+
+          try
+          {
+            constraints_storage_->addConstraints(c);
+          }
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("Cannot save constraint on database: %s", ex.what());
+          }
+        }
       }
     }
     else
@@ -215,16 +263,18 @@ void MotionPlanningFrame::removeAllGoalsButtonClicked(void)
   populateGoalPosesList();
 }
 
-void MotionPlanningFrame::loadGoalsAndStatesFromDBButtonClicked(void)
+void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
 {
-  
   //Get all the constraints from the database, convert to goal pose markers
-  if (constraints_storage_ && robot_state_storage_) 
+  if (constraints_storage_)
   {
+    //First clear the current list
+    removeAllGoalsButtonClicked();
+
     std::vector<std::string> names;
     try 
     {
-      constraints_storage_->getKnownConstraints(ui_->load_goals_filter_text->text().toStdString(), names);
+      constraints_storage_->getKnownConstraints(ui_->load_poses_filter_text->text().toStdString(), names);
     }
     catch (std::runtime_error &ex)
     {
@@ -281,54 +331,16 @@ void MotionPlanningFrame::loadGoalsAndStatesFromDBButtonClicked(void)
       }
     }
     populateGoalPosesList();
-    
-    //Now get all start states from the database
-    names.clear();
-    try 
-    {
-      robot_state_storage_->getKnownRobotStates(ui_->load_states_filter_text->text().toStdString(), names);
-    }
-    catch (std::runtime_error &ex)
-    {
-      QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for goal poses: ").append(ex.what()));
-      return;
-    }
-    
-    for ( unsigned int i = 0 ; i < names.size() ; i++ )
-    {
-      moveit_warehouse::RobotStateWithMetadata rs;
-      bool got_state = false;
-      try
-      {
-        got_state = robot_state_storage_->getRobotState(rs, names[i]);
-      }
-      catch(std::runtime_error &ex)
-      {
-        ROS_ERROR("%s", ex.what());        
-      }
-      if (!got_state)
-        continue;
-      
-      //Overwrite if exists.
-      if (start_states_.find(names[i]) != start_states_.end())
-      {
-        start_states_.erase(names[i]);
-      }
-      
-      //Store the current start state
-      start_states_.insert(StartStatePair(names[i],  StartState(*rs)));        
-    }
-    populateStartStatesList();
-  } 
+   }
   else 
   {
     QMessageBox::warning(this, "Warning", "Not connected to a database.");
   }
 }
 
-void MotionPlanningFrame::saveGoalsAndStatesOnDBButtonClicked(void)
+void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
 {  
-  if (constraints_storage_ && robot_state_storage_) 
+  if (constraints_storage_)
   {
     //Convert all goal pose markers into constraints and store them
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
@@ -373,17 +385,6 @@ void MotionPlanningFrame::saveGoalsAndStatesOnDBButtonClicked(void)
         ROS_ERROR("Cannot save constraint: %s", ex.what());
       }
     }
-    
-    //Store all start states
-    for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
-      try
-      {
-        robot_state_storage_->addRobotState(it->second.state_msg, it->first);
-      }
-      catch (std::runtime_error &ex)
-      {
-        ROS_ERROR("Cannot save robot state: %s", ex.what());
-      }
   }
   else
   {
@@ -391,9 +392,9 @@ void MotionPlanningFrame::saveGoalsAndStatesOnDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::deleteGoalsAndStatesOnDBButtonClicked(void) 
+void MotionPlanningFrame::deleteGoalsOnDBButtonClicked(void)
 {
-  if (constraints_storage_ && robot_state_storage_) 
+  if (constraints_storage_)
   {
     //Warn the user
     QMessageBox msgBox;
@@ -420,9 +421,103 @@ void MotionPlanningFrame::deleteGoalsAndStatesOnDBButtonClicked(void)
             ROS_ERROR("%s", ex.what());
           }
         }
+        break;
+      }
+    }
+  }
 
-        removeSelectedGoalsButtonClicked();
+  removeSelectedGoalsButtonClicked();
+}
 
+
+void MotionPlanningFrame::loadStatesFromDBButtonClicked(void)
+{
+  //Get all the start states from the database
+  if (robot_state_storage_)
+  {
+    //First clear the current list
+    removeAllStatesButtonClicked();
+
+    std::vector<std::string> names;
+    try
+    {
+      robot_state_storage_->getKnownRobotStates(ui_->load_states_filter_text->text().toStdString(), names);
+    }
+    catch (std::runtime_error &ex)
+    {
+      QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for goal poses: ").append(ex.what()));
+      return;
+    }
+
+    for ( unsigned int i = 0 ; i < names.size() ; i++ )
+    {
+      moveit_warehouse::RobotStateWithMetadata rs;
+      bool got_state = false;
+      try
+      {
+        got_state = robot_state_storage_->getRobotState(rs, names[i]);
+      }
+      catch(std::runtime_error &ex)
+      {
+        ROS_ERROR("%s", ex.what());
+      }
+      if (!got_state)
+        continue;
+
+      //Overwrite if exists.
+      if (start_states_.find(names[i]) != start_states_.end())
+      {
+        start_states_.erase(names[i]);
+      }
+
+      //Store the current start state
+      start_states_.insert(StartStatePair(names[i],  StartState(*rs)));
+    }
+    populateStartStatesList();
+  }
+  else
+  {
+    QMessageBox::warning(this, "Warning", "Not connected to a database.");
+  }
+}
+
+void MotionPlanningFrame::saveStatesOnDBButtonClicked(void)
+{
+  if (robot_state_storage_)
+  {
+    //Store all start states
+    for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
+      try
+      {
+        robot_state_storage_->addRobotState(it->second.state_msg, it->first);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("Cannot save robot state: %s", ex.what());
+      }
+  }
+  else
+  {
+    QMessageBox::warning(this, "Warning", "Not connected to a database.");
+  }
+}
+
+void MotionPlanningFrame::deleteStatesOnDBButtonClicked(void)
+{
+  if (robot_state_storage_)
+  {
+    //Warn the user
+    QMessageBox msgBox;
+    msgBox.setText("All the selected items will be removed from the database");
+    msgBox.setInformativeText("Do you want to continue?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::No);
+    int ret = msgBox.exec();
+
+    switch (ret)
+    {
+      case QMessageBox::Yes:
+      {
         for (unsigned int i = 0; i < ui_->start_states_list->count() ; ++i)
         {
           QListWidgetItem *item = ui_->start_states_list->item(i);
@@ -438,16 +533,12 @@ void MotionPlanningFrame::deleteGoalsAndStatesOnDBButtonClicked(void)
             }
           }
         }
-
-        removeSelectedStatesButtonClicked();
         break;
       }
     }
   }
-  else
-  {
-    QMessageBox::warning(this, "Warning", "Not connected to a database.");
-  }
+
+  removeSelectedStatesButtonClicked();
 }
 
 void MotionPlanningFrame::populateGoalPosesList(void) 
@@ -556,9 +647,14 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 
     //Display the pose in the ui
     Eigen::Vector3d v = current_pose_eigen.linear().eulerAngles(0,1,2);
-    ui_->goalrx->setText(QString().sprintf("%.1f", v(0) * 180.0 / boost::math::constants::pi<double>()));
-    ui_->goalry->setText(QString().sprintf("%.1f", v(1) * 180.0 / boost::math::constants::pi<double>()));
-    ui_->goalrz->setText(QString().sprintf("%.1f", v(2) * 180.0 / boost::math::constants::pi<double>()));
+    context_->getWindowManager()->setStatus(QString().sprintf(
+        "Position: %.2f %.2f %.2f   Orientation: %.2f %.2f %.2f",
+        current_pose_eigen(0,3),
+        current_pose_eigen(1,3),
+        current_pose_eigen(2,3),
+        v(0) * 180.0 / boost::math::constants::pi<double>(),
+        v(1) * 180.0 / boost::math::constants::pi<double>(),
+        v(2) * 180.0 / boost::math::constants::pi<double>()));
 
     //Update the rest of selected markers    
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
@@ -577,9 +673,6 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
   } else if (feedback.event_type == feedback.MOUSE_UP) 
   {
     dragging=false;
-    ui_->goalrx->setText("");
-    ui_->goalry->setText("");
-    ui_->goalrz->setText("");
   }
 }
 
@@ -706,7 +799,20 @@ void MotionPlanningFrame::saveStartStateButtonClicked(void)
         //Store the current start state
         moveit_msgs::RobotState msg;
         kinematic_state::kinematicStateToRobotState(*planning_display_->getQueryStartState(), msg);
-        start_states_.insert(StartStatePair(name,  StartState(msg)));        
+        start_states_.insert(StartStatePair(name,  StartState(msg)));
+
+        //Save to the database if connected
+        if (robot_state_storage_)
+        {
+          try
+          {
+              robot_state_storage_->addRobotState(msg, name);
+          }
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("Cannot save robot state on the database: %s", ex.what());
+          }
+        }
       }
     }
     else
@@ -2139,10 +2245,11 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
 
           //Automatically load constraints from the db, filtered with the scene name
           ui_->load_states_filter_text->setText((planning_display_->getKinematicModel()->getName() + ".*").c_str());
-          ui_->load_goals_filter_text->setText((scene + ".*").c_str());
+          ui_->load_poses_filter_text->setText((scene + ".*").c_str());
           planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllGoalsButtonClicked, this));
           planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllStatesButtonClicked, this));
-          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadGoalsAndStatesFromDBButtonClicked, this));
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadGoalsFromDBButtonClicked, this));
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadStatesFromDBButtonClicked, this));
         }
         else
           ROS_WARN("Failed to load scene '%s'. Has the message format changed since the scene was saved?", scene.c_str());

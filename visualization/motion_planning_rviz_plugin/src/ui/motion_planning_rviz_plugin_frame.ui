@@ -882,27 +882,104 @@
        <item>
         <widget class="QGroupBox" name="start_states_groupbox">
          <property name="toolTip">
-          <string>Press Ctrl+C to duplicate an object</string>
+          <string/>
          </property>
          <property name="title">
           <string>Start States</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="load_states_filter_text">
-            <property name="text">
-             <string>.*</string>
-            </property>
-           </widget>
+          <item row="8" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QLineEdit" name="load_states_filter_text">
+              <property name="text">
+               <string>.*</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="start_states_open_button">
+              <property name="toolTip">
+               <string>Load from database</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset theme="document-open">
+                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="start_states_add_button">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Store current start state</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset theme="list-add">
+                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="start_states_remove_button">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Remove selected start states</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset theme="list-remove">
+                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="start_states_save_button">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Apply changes</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset theme="document-save">
+                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_11">
-            <property name="text">
-             <string>Filter:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="2">
+          <item row="9" column="0">
            <widget class="QListWidget" name="start_states_list">
             <property name="editTriggers">
              <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
@@ -912,48 +989,23 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0" colspan="2">
-           <widget class="QPushButton" name="save_start_state_button">
-            <property name="text">
-             <string>Save Start State</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0" colspan="2">
-           <widget class="QPushButton" name="remove_start_state_button">
-            <property name="text">
-             <string>Remove Selected States</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="goal_poses_groupbox">
          <property name="toolTip">
-          <string>Press Ctrl+C to duplicate an object</string>
+          <string/>
          </property>
          <property name="title">
           <string>Goal Poses</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_7">
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="load_goals_filter_text">
-            <property name="text">
-             <string>.*</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>Filter:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="2">
+          <item row="7" column="0" colspan="2">
            <widget class="QListWidget" name="goal_poses_list">
+            <property name="toolTip">
+             <string>Press Ctrl+C to duplicate the selected goals</string>
+            </property>
             <property name="editTriggers">
              <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
             </property>
@@ -962,83 +1014,95 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0" colspan="2">
-           <widget class="QPushButton" name="new_goal_pose_button">
-            <property name="text">
-             <string>New Goal Pose</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0" colspan="2">
-           <widget class="QPushButton" name="remove_goal_pose_button">
-            <property name="text">
-             <string>Remove Selected Goals</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_6">
-         <property name="title">
-          <string>Database Options</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_15">
-          <item>
-           <widget class="QPushButton" name="load_from_db_button">
-            <property name="text">
-             <string>Load</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="save_on_db_button">
-            <property name="text">
-             <string>Save</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="delete_on_db_button">
-            <property name="text">
-             <string>Remove Selected</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item row="6" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_13">
             <item>
-             <widget class="QLabel" name="goalrx">
-              <property name="text">
+             <widget class="QLineEdit" name="load_poses_filter_text">
+              <property name="toolTip">
                <string/>
+              </property>
+              <property name="text">
+               <string>.*</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="goalry">
+             <widget class="QPushButton" name="goal_poses_open_button">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Load from database</string>
+              </property>
               <property name="text">
                <string/>
+              </property>
+              <property name="icon">
+               <iconset theme="document-open">
+                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="goalrz">
+             <widget class="QPushButton" name="goal_poses_add_button">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>New goal in the current end-effector pose</string>
+              </property>
               <property name="text">
                <string/>
+              </property>
+              <property name="icon">
+               <iconset theme="list-add">
+                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="goal_poses_remove_button">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Remove selected goals</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset theme="list-remove">
+                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="goal_poses_save_button">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Apply changes</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset theme="document-save">
+                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
               </property>
              </widget>
             </item>
