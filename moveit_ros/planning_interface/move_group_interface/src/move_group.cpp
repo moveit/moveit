@@ -1034,6 +1034,31 @@ std::vector<double> MoveGroup::getRandomJointValues(void)
   return r;
 }
 
+geometry_msgs::PoseStamped MoveGroup::getRandomPose(const std::string &end_effector_link)
+{    
+  const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
+  Eigen::Affine3d pose;
+  pose.setIdentity();
+  if (eef.empty())
+    ROS_ERROR("No end-effector specified");
+  else
+  {  
+    kinematic_state::KinematicStatePtr current_state;
+    if (impl_->getCurrentState(current_state))
+    {
+      current_state->getJointStateGroup(getName())->setToRandomValues();
+      const kinematic_state::LinkState *ls = current_state->getLinkState(eef);
+      if (ls)
+        pose = ls->getGlobalLinkTransform();
+    }
+  }
+  geometry_msgs::PoseStamped pose_msg;
+  pose_msg.header.stamp = ros::Time::now();
+  pose_msg.header.frame_id = impl_->getKinematicModel()->getModelFrame();
+  tf::poseEigenToMsg(pose, pose_msg.pose);
+  return pose_msg;
+}
+
 geometry_msgs::PoseStamped MoveGroup::getCurrentPose(const std::string &end_effector_link)
 {
   const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;

@@ -45,10 +45,12 @@ int main(int argc, char **argv)
   spinner.start();
   
   move_group_interface::MoveGroup group(argc > 1 ? argv[1] : "right_arm");
+  geometry_msgs::PoseStamped curr = group.getCurrentPose();
 
   std::vector<geometry_msgs::Pose> c(2);
-  c[0].orientation.w = 1.0;
+  c[0] = curr.pose;
   c[1] = c[0];
+  c[1].position.x -= 0.01;
   
   group.followConstraints(c);
   move_group_interface::MoveGroup::Plan p;  
