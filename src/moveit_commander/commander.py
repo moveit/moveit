@@ -105,7 +105,10 @@ class MoveGroupCommander:
             pose_msg.pose.orientation.y = pose_list[4]
             pose_msg.pose.orientation.z = pose_list[5]
             pose_msg.pose.orientation.w = pose_list[6]
-        elif len(pose_list) == 6:
+        elif len(pose_list) == 6: 
+            pose_msg.pose.position.x = pose_list[0]
+            pose_msg.pose.position.y = pose_list[1]
+            pose_msg.pose.position.z = pose_list[2]
             q = tf.transformations.quaternion_from_euler(pose_list[3], pose_list[4], pose_list[5])
             pose_msg.pose.orientation.x = q[0]
             pose_msg.pose.orientation.y = q[1]
@@ -162,7 +165,7 @@ class MoveGroupCommander:
         """ [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if type(pose) is Pose:
-                self._g.set_pose_target(__pose_to_list(pose), end_effector_link)
+                self._g.set_pose_target(self.__pose_to_list(pose), end_effector_link)
             else:
                 self._g.set_pose_target(pose, end_effector_link)
         else:
@@ -171,13 +174,13 @@ class MoveGroupCommander:
     def set_pose_targets(self, poses, end_effector_link = ""):
         """ Set the pose of the end-effector, if one is available. The expected input is a list of poses. Each pose can be 6 floats: [x, y, z, rot_x, rot_y, rot_z] or 7 floats [x, y, z, qx, qy, qz, qw] """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
-            self._g.set_pose_targets([__pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
+            self._g.set_pose_targets([self.__pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
         else:
             raise "There is no end effector to set poses for"
 
     def follow_pose_sequence(self, poses, end_effector_link = ""):  
         if len(end_effector_link) > 0 or self.has_end_effector_link():
-            self._g.follow_constraints([__pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
+            self._g.follow_constraints([self.__pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
         else:
             raise "There is no end effector to set poses for"
 

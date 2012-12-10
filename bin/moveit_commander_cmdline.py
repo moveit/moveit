@@ -117,7 +117,7 @@ def run_interactive(group_names):
         completer.set_options(get_context_keywords(c))
             
 def run_service(group_names): 
-    c = MoveGroupCommmander()
+    c = MoveGroupCommandInterpreter()
     for g in group_names:
         c.execute("use " + g)
     # add service stuff
