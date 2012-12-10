@@ -220,12 +220,13 @@ class MoveGroupCommandInterpreter:
                     else:
                         return (MoveGroupInfoLevel.FAIL, "Failed while moving to random target")
                 else:
-                    if g.set_named_target(clist[1]):
+                    try:
+                        g.set_named_target(clist[1])
                         if g.go():
                             return (MoveGroupInfoLevel.SUCCESS, "Moved to " + clist[1])
                         else:
                             return (MoveGroupInfoLevel.FAIL, "Failed while moving to " + clist[1])
-                    else:
+                    except:
                         return (MoveGroupInfoLevel.WARN, clist[1] + " is unknown")
             elif clist[0] == "record" or clist[0] == "rec":
                 g.remember_joint_values(clist[1])
@@ -249,9 +250,10 @@ class MoveGroupCommandInterpreter:
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to parse tolerance value '" + clist[1] + "'")
             elif clist[0] == "constrain":
-                if g.set_path_constraints(clist[1]):
+                try:
+                    g.set_path_constraints(clist[1])
                     return (MoveGroupInfoLevel.SUCCESS, "OK")
-                else:
+                except:
                     return (MoveGroupInfoLevel.WARN, "Constraint " + clist[1] + " is not known")
             elif clist[0] == "wait":
                 try:
@@ -305,16 +307,19 @@ class MoveGroupCommandInterpreter:
     def command_current(self, g):
         res = "joints = [" + " ".join([str(x) for x in g.get_current_joint_values()]) + "]"
         if len(g.get_end_effector_link()) > 0:
-            res = res + "\n" + g.get_end_effector_link() + " pose (xyz, rpy) = [" + " ".join([str(x) for x in g.get_current_pose()]) + "]"
+            res = res + "\n" + g.get_end_effector_link() + " pose = [\n" + str(g.get_current_pose()) + " ]"
         return (MoveGroupInfoLevel.INFO, res)
 
     def command_go_offset(self, g, offset, factor, dimension_index, direction_name):
         if g.has_end_effector_link():
-            g.shift_pose_target(dimension_index, factor * offset)
-            if g.go():
-                return (MoveGroupInfoLevel.SUCCESS, "Moved " + direction_name + " by " + str(offset) + " m")
-            else:
-                return (MoveGroupInfoLevel.FAIL, "Failed while moving " + direction_name)
+            try:
+                g.shift_pose_target(dimension_index, factor * offset)
+                if g.go():
+                    return (MoveGroupInfoLevel.SUCCESS, "Moved " + direction_name + " by " + str(offset) + " m")
+                else:
+                    return (MoveGroupInfoLevel.FAIL, "Failed while moving " + direction_name)
+            except:
+                return (MoveGroupInfoLevel.WARN, "Unable to process pose update")
         else:
             return (MoveGroupInfoLevel.WARN, "No known end effector. Cannot move " + direction_name)
 

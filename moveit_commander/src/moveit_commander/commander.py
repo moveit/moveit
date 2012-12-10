@@ -31,10 +31,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 # Author: Ioan Sucan, Sarah Elliott
+
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
 from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
+import rospy
 import tf
 from _moveit_move_group_interface import *
 
@@ -81,15 +83,54 @@ class MoveGroupCommander:
 
     def get_current_joint_values(self):
         return self._g.get_current_joint_values()
-    
+
+    def __pose_to_list(self, pose_msg):
+        pose = []
+        pose.append(pose_msg.position.x)
+        pose.append(pose_msg.position.y)
+        pose.append(pose_msg.position.z) 
+        pose.append(pose_msg.orientation.x)
+        pose.append(pose_msg.orientation.y)
+        pose.append(pose_msg.orientation.z)
+        pose.append(pose_msg.orientation.w)
+        return pose
+
+    def __list_to_pose(self, pose_list):
+        pose_msg = PoseStamped()
+        if len(pose_list) == 7:
+            pose_msg.pose.position.x = pose_list[0]
+            pose_msg.pose.position.y = pose_list[1]
+            pose_msg.pose.position.z = pose_list[2]
+            pose_msg.pose.orientation.x = pose_list[3]
+            pose_msg.pose.orientation.y = pose_list[4]
+            pose_msg.pose.orientation.z = pose_list[5]
+            pose_msg.pose.orientation.w = pose_list[6]
+        elif len(pose_list) == 6:
+            q = tf.transformations.quaternion_from_euler(pose_list[3], pose_list[4], pose_list[5])
+            pose_msg.pose.orientation.x = q[0]
+            pose_msg.pose.orientation.y = q[1]
+            pose_msg.pose.orientation.z = q[2]
+            pose_msg.pose.orientation.w = q[3]
+        else:
+            raise "Expected either 6 or 7 elements in list: (x,y,z,r,p,y) or (x,y,z,qx,qy,qz,qw)"
+        pose_msg.header.frame_id = self.get_pose_reference_frame() 
+        pose_msg.header.stamp = rospy.Time.now()
+        return pose_msg
+
     def get_current_pose(self, end_effector_link = ""):
-        if self.has_end_effector_link():
-            return self._g.get_current_pose(end_effector_link)
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            return self.__list_to_pose(self._g.get_current_pose(end_effector_link))
         else:
             raise "There is no end effector to get the pose of"
         
     def get_random_joint_values(self):
         return self._g.get_random_joint_values()
+
+    def get_random_pose(self, end_effector_link = ""):
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            return self.__list_to_pose(self._g.get_random_pose(end_effector_link))
+        else:
+            raise "There is no end effector to get the pose of"
 
     def set_joint_value_target(self, name, value = None):
         if value == None:
@@ -99,48 +140,66 @@ class MoveGroupCommander:
             self._g.set_joint_value_target(name, value)
 
     def set_orientation_target(self, xyz, end_effector_link = ""):
-        if self.has_end_effector_link():
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
             if len(xyz) == 3:
-                return self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], end_effector_link)
+                self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], end_effector_link)
             else:
                 if len(xyz) == 4:
-                    return self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], xyz[3], end_effector_link)
+                    self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], xyz[3], end_effector_link)
                 else:
                     raise "Expected either [roll, pitch, yaw] or [qx, qy, qz, qw]"
         else:
             raise "There is no end effector to set the pose for"
 
     def set_position_target(self, xyz, end_effector_link = ""):
-        if self.has_end_effector_link():
-            return self._g.set_position_target(xyz[0], xyz[1], xyz[2], end_effector_link)
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            self._g.set_position_target(xyz[0], xyz[1], xyz[2], end_effector_link)
         else:
             raise "There is no end effector to set the pose for"
 
     def set_pose_target(self, pose, end_effector_link = ""):
-        """ Set the pose of the end-effector, if one is available. The expected input is a list of 6 floats: [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
-        if self.has_end_effector_link():
-            return self._g.set_pose_target(pose, end_effector_link)
+        """ Set the pose of the end-effector, if one is available. The expected input is a list of 6 floats:"""
+        """ [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            if type(pose) is Pose:
+                self._g.set_pose_target(__pose_to_list(pose), end_effector_link)
+            else:
+                self._g.set_pose_target(pose, end_effector_link)
         else:
             raise "There is no end effector to set the pose for"
 
     def set_pose_targets(self, poses, end_effector_link = ""):
         """ Set the pose of the end-effector, if one is available. The expected input is a list of poses. Each pose can be 6 floats: [x, y, z, rot_x, rot_y, rot_z] or 7 floats [x, y, z, qx, qy, qz, qw] """
-        if self.has_end_effector_link():
-            return self._g.set_pose_targets(poses, end_effector_link)
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            self._g.set_pose_targets([__pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
         else:
             raise "There is no end effector to set poses for"
 
-    def follow_pose_sequence(self, poses, end_effector_link = ""):
-        if self.has_end_effector_link():
-            return self._g.follow_constraints(poses, end_effector_link)
+    def follow_pose_sequence(self, poses, end_effector_link = ""):  
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            self._g.follow_constraints([__pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
         else:
             raise "There is no end effector to set poses for"
 
     def shift_pose_target(self, axis, value, end_effector_link = ""):
-        """ Get the current pose of the end effector, add value to the corresponding axis and set the new pose as the pose target """
-        pose = self.get_current_pose(end_effector_link)
-        pose[axis] = pose[axis] + value
-        self.set_pose_target(pose, end_effector_link)
+        """ Get the current pose of the end effector, add value to the corresponding axis (0..5: X, Y, Z, R, P, Y) and set the new pose as the pose target """
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            pose = self._g.get_current_pose(end_effector_link)
+            print pose
+            print "A"
+            # by default we get orientation as a quaternion list
+            # if we are updating a rotation axis however, we convert the orientation to RPY
+            if axis > 2:
+                (r, p, y) = tf.transformations.euler_from_quaternion(pose[3:])
+                pose = [pose[0], pose[1], pose[2], r, p, y]
+            if axis >= 0 and axis < 6:
+                pose[axis] = pose[axis] + value
+                print pose
+                self._g.set_pose_target(pose, end_effector_link)
+            else:
+                raise "An axis value between 0 and 5 expected"
+        else:
+            raise "There is no end effector to set poses for"
 
     def clear_pose_target(self, end_effector_link):
         """ Clear the pose target for a particular end-effector """
@@ -154,7 +213,8 @@ class MoveGroupCommander:
         self._g.set_random_target()
 
     def set_named_target(self, name):
-        return self._g.set_named_target(name)
+        if not self._g.set_named_target(name):
+            raise "Unable to set target " + name
 
     def remember_joint_values(self, name, values = None):
         if values == None:
@@ -185,9 +245,9 @@ class MoveGroupCommander:
     def set_path_constraints(self, value):
         if value == None:
             self.clear_path_constraints()
-            return True
         else:
-            return self._g.set_path_constraints(value)
+            if not self._g.set_path_constraints(value):
+                raise "Unable to set path constraints " + value
 
     def clear_path_constraints(self):
         self._g.clear_path_constraints()
@@ -221,19 +281,7 @@ class MoveGroupCommander:
             self._g.set_joint_value_target(joints.position)
 
         elif type(joints) is Pose:
-            if self.has_end_effector_link():
-                pose = []
-                pose.append(joints.position.x)
-                pose.append(joints.position.y)
-                pose.append(joints.position.z)
-                (r, p, y) = tf.transformations.euler_from_quaternion([joints.orientation.x, joints.orientation.y,
-                            joints.orientation.z, joints.orientation.w])
-                pose.append(r)
-                pose.append(p)
-                pose.append(y)
-                self._g.set_pose_target(pose)
-            else:
-                raise "There is no end effector to get the pose of"
+            self.set_pose_target(joints)
 
         elif not joints == None:
             try:
@@ -251,19 +299,7 @@ class MoveGroupCommander:
             self._g.set_joint_value_target(joints.position)
 
         elif type(joints) is Pose:
-            if self.has_end_effector_link():
-                pose = []
-                pose.append(joints.position.x)
-                pose.append(joints.position.y)
-                pose.append(joints.position.z)
-                (r, p, y) = tf.transformations.euler_from_quaternion([joints.orientation.x, joints.orientation.y, 
-                            joints.orientation.z, joints.orientation.w])
-                pose.append(r)
-                pose.append(p)
-                pose.append(y)
-                self._g.set_pose_target(pose)
-            else:
-                raise "There is no end effector to get the pose of"
+            self.set_pose_target(joints)
 
         elif not joints == None:
             try:
