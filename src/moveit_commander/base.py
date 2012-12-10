@@ -45,9 +45,7 @@ import geometry_msgs.msg as gm
 import tf
 import moveit_commander.exceptions as ex
 import sensor_msgs.msg as sm
-#import arm_navigation_msgs.msg as anm
 import copy
-#import sbpl_3dnav_planner.srv as sbpl
 from math import sqrt
 
 class Base():

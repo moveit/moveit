@@ -8,6 +8,8 @@ find_package(catkin COMPONENTS
   moveit_ros_warehouse
 )
 
+catkin_python_setup()
+
 catkin_package(
   DEPENDS
     moveit_ros_planning
@@ -16,5 +18,3 @@ catkin_package(
     moveit_ros_warehouse
     )
 
-install(DIRECTORY src/moveit_commander DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
-install(PROGRAMS scripts/moveit_commander_cmdline.py DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
