@@ -62,6 +62,8 @@ public:
    */
   CurrentStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
   
+  ~CurrentStateMonitor(void);
+  
   /** @brief Start monitoring joint states on a particular topic
    *  @param joint_states_topic The topic name for joint states (defaults to "joint_states")
    */

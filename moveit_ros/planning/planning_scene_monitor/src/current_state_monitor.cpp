@@ -44,6 +44,11 @@ planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const kinematic
   kstate_.setToDefaultValues();
 }
 
+planning_scene_monitor::CurrentStateMonitor::~CurrentStateMonitor(void)
+{
+  stopStateMonitor();
+}
+
 kinematic_state::KinematicStatePtr planning_scene_monitor::CurrentStateMonitor::getCurrentState(void) const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
