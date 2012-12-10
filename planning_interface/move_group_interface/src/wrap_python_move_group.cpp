@@ -118,16 +118,14 @@ public:
   
   bp::list poseToList(const geometry_msgs::PoseStamped &pose)
   {
-    std::vector<double> v(6);
+    std::vector<double> v(7);
     v[0] = pose.pose.position.x;
     v[1] = pose.pose.position.y;
     v[2] = pose.pose.position.z;
-    Eigen::Quaterniond q;
-    tf::quaternionMsgToEigen(pose.pose.orientation, q);
-    Eigen::Vector3d r = Eigen::Matrix3d(q).eulerAngles(0, 1, 2); // XYZ
-    v[3] = r(0);
-    v[4] = r(1);
-    v[5] = r(2);
+    v[3] = pose.pose.orientation.x;
+    v[4] = pose.pose.orientation.y;
+    v[5] = pose.pose.orientation.z;
+    v[6] = pose.pose.orientation.w;
     return moveit_py_bindings_tools::listFromDouble(v);
   }
   
@@ -297,12 +295,6 @@ void wrap_move_group_interface()
   MoveGroupClass.def("get_end_effector_link", &MoveGroupWrapper::getEndEffectorLinkCStr);
   MoveGroupClass.def("get_pose_reference_frame", &MoveGroupWrapper::getPoseReferenceFrameCStr);
   
-  void (MoveGroupWrapper::*setPoseTarget_1)(const geometry_msgs::PoseStamped &, const std::string&) = &MoveGroupWrapper::setPoseTarget;
-  MoveGroupClass.def("set_pose_target", setPoseTarget_1);
-
-  void (MoveGroupWrapper::*setPoseTarget_2)(const geometry_msgs::Pose &, const std::string&) = &MoveGroupWrapper::setPoseTarget;
-  MoveGroupClass.def("set_pose_target", setPoseTarget_2);
-
   MoveGroupClass.def("set_pose_target", &MoveGroupWrapper::setPoseTargetPython);
 
   MoveGroupClass.def("set_pose_targets", &MoveGroupWrapper::setPoseTargetsPython);

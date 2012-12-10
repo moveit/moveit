@@ -270,6 +270,12 @@ public:
     }
   }
   
+  bool hasPoseTarget(const std::string &end_effector_link) const
+  {
+    const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link; 
+    return pose_targets_.find(eef) != pose_targets_.end();
+  }
+  
   const geometry_msgs::PoseStamped& getPoseTarget(const std::string &end_effector_link) const
   {    
     const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link; 
@@ -912,8 +918,21 @@ inline void transformPose(const tf::Transformer& tf, const std::string &desired_
 
 void MoveGroup::setPositionTarget(double x, double y, double z, const std::string &end_effector_link)
 {
-  geometry_msgs::PoseStamped target = getPoseTarget(end_effector_link);
-  transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  geometry_msgs::PoseStamped target;
+  if (impl_->hasPoseTarget(end_effector_link))
+  {
+    target = getPoseTarget(end_effector_link);
+    transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  }
+  else
+  {
+    target.pose.orientation.x = 0.0;
+    target.pose.orientation.y = 0.0;
+    target.pose.orientation.z = 0.0;
+    target.pose.orientation.w = 1.0;
+    target.header.frame_id = impl_->getPoseReferenceFrame();
+  }
+  
   target.pose.position.x = x;
   target.pose.position.y = y;
   target.pose.position.z = z;
@@ -922,16 +941,40 @@ void MoveGroup::setPositionTarget(double x, double y, double z, const std::strin
 
 void MoveGroup::setOrientationTarget(double x, double y, double z, const std::string &end_effector_link)
 {
-  geometry_msgs::PoseStamped target = getPoseTarget(end_effector_link);
-  transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  geometry_msgs::PoseStamped target;
+  if (impl_->hasPoseTarget(end_effector_link))
+  {
+    target = getPoseTarget(end_effector_link);
+    transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  }
+  else
+  {
+    target.pose.position.x = 0.0;
+    target.pose.position.y = 0.0;
+    target.pose.position.z = 0.0; 
+    target.header.frame_id = impl_->getPoseReferenceFrame();
+  }
+  
   tf::quaternionTFToMsg(tf::createQuaternionFromRPY(x, y, z), target.pose.orientation);
   setPoseTarget(target, end_effector_link);
 }
 
 void MoveGroup::setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link)
 {
-  geometry_msgs::PoseStamped target = getPoseTarget(end_effector_link);
-  transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  geometry_msgs::PoseStamped target;
+  if (impl_->hasPoseTarget(end_effector_link))
+  {
+    target = getPoseTarget(end_effector_link);
+    transformPose(*impl_->getTF(), impl_->getPoseReferenceFrame(), target);
+  }
+  else
+  {
+    target.pose.position.x = 0.0;
+    target.pose.position.y = 0.0;
+    target.pose.position.z = 0.0; 
+    target.header.frame_id = impl_->getPoseReferenceFrame();
+  }
+  
   target.pose.orientation.x = x;
   target.pose.orientation.y = y;
   target.pose.orientation.z = z;
