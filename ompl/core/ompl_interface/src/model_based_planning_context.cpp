@@ -662,6 +662,10 @@ base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPt
     si_->freeStates(sets[i]);
   }
   si_->freeState(work_area);
+  if (result)
+    logInform("Successfully computed follow plan");
+  else
+    logInform("Unable to compute follow plan");
   return result;
 }
 
