@@ -299,17 +299,17 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, un
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
     return false;
-  std::vector<double> consistency_limits;  
-  return setFromIK(pose, solver->getTipFrame(), attempts, consistency_limits, timeout, constraint);  
+  static std::vector<double> consistency_limits;  
+  return setFromIK(pose, solver->getTipFrame(), consistency_limits, attempts, timeout, constraint);  
 }
 
 bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, const IKValidityCallbackFn &constraint)
 {
-  std::vector<double> consistency_limits;  
-  return setFromIK(pose_in, tip_in, attempts, consistency_limits, timeout, constraint);  
+  static std::vector<double> consistency_limits;  
+  return setFromIK(pose_in, tip_in, consistency_limits, attempts, timeout, constraint);  
 }
 
-bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, const std::vector<double> &consistency_limits, double timeout, const IKValidityCallbackFn &constraint)
+bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, const std::vector<double> &consistency_limits, unsigned int attempts, double timeout, const IKValidityCallbackFn &constraint)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -444,39 +444,34 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
                                                  double timeout, 
                                                  const IKValidityCallbackFn &constraint)
 {
-  if(joint_model_group_->getSolverInstance())
-  {
-    logError("Cannot use this function for simple groups");
-    return false;
-  }
-  
   const std::vector<std::string>& sub_group_names = joint_model_group_->getSubgroupNames();
   
-  if(poses_in.size() != sub_group_names.size())
+  if (poses_in.size() != sub_group_names.size())
   {
     logError("Number of poses must be the same as number of sub-groups");
     return false;
   }
   
-  if(tips_in.size() != sub_group_names.size())
+  if (tips_in.size() != sub_group_names.size())
   {
     logError("Number of tip names must be the same as number of sub-groups");
     return false;
   }
 
-  if(!consistency_limits.empty() && consistency_limits.size() != sub_group_names.size())
+  if (!consistency_limits.empty() && consistency_limits.size() != sub_group_names.size())
   {
     logError("Number of consistency limit vectors must be the same as number of sub-groups");
     return false;
   }
     
-  if(!consistency_limits.empty())
+  if (!consistency_limits.empty())
   {
-    for(std::size_t i=0; i < consistency_limits.size(); ++i)
+    for (std::size_t i = 0 ; i < consistency_limits.size() ; ++i)
     {
-      if(consistency_limits[i].size() != joint_model_group_->getParentModel()->getJointModelGroup(sub_group_names[i])->getVariableCount())
+      if (consistency_limits[i].size() != joint_model_group_->getParentModel()->getJointModelGroup(sub_group_names[i])->getVariableCount())
       {
-        logError("Number of joints in consistency_limits[%d] should be %d", i, joint_model_group_->getParentModel()->getJointModelGroup(sub_group_names[i])->getVariableCount());
+        logError("Number of joints in consistency_limits is %u but it should be should be %u", (unsigned int)i,
+                 joint_model_group_->getParentModel()->getJointModelGroup(sub_group_names[i])->getVariableCount());
         return false;        
       }      
     }    
