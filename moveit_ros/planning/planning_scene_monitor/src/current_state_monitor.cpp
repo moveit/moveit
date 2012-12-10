@@ -232,7 +232,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
 {
   if (joint_state->name.size() != joint_state->position.size())
   {
-    ROS_ERROR("State monitor received invalid joint state");
+    ROS_ERROR_THROTTLE(1, "State monitor received invalid joint state");
     return;
   }
   
@@ -284,11 +284,11 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       }
       catch(tf::TransformException& ex)
       {
-        ROS_ERROR("Unable to lookup transform from %s to %s.  Exception: %s", parent_frame.c_str(), child_frame.c_str(), ex.what());
+        ROS_ERROR_THROTTLE(1, "Unable to lookup transform from %s to %s.  Exception: %s", parent_frame.c_str(), child_frame.c_str(), ex.what());
       }
     }
     else
-      ROS_DEBUG("Unable to lookup transform from %s to %s: no common time.", parent_frame.c_str(), child_frame.c_str());
+      ROS_DEBUG_THROTTLE(1, "Unable to lookup transform from %s to %s: no common time.", parent_frame.c_str(), child_frame.c_str());
     if (ok)
     {
       const std::vector<std::string> &vars = root_->getJointModel()->getVariableNames();
