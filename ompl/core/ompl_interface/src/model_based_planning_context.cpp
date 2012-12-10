@@ -548,7 +548,6 @@ base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPt
       else
         first_sample_worked = false;
     }
-    first_sample_worked = false;
     
     if (first_sample_worked)
     {
