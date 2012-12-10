@@ -186,9 +186,12 @@ private Q_SLOTS:
   void startStateItemDoubleClicked(QListWidgetItem * item);
 
   //Slots for goal poses and start states loading/storing/removing on the warehouse
-  void loadGoalsAndStatesFromDBButtonClicked(void);
-  void saveGoalsAndStatesOnDBButtonClicked(void);
-  void deleteGoalsAndStatesOnDBButtonClicked(void);
+  void loadGoalsFromDBButtonClicked(void);
+  void saveGoalsOnDBButtonClicked(void);
+  void deleteGoalsOnDBButtonClicked(void);
+  void loadStatesFromDBButtonClicked(void);
+  void saveStatesOnDBButtonClicked(void);
+  void deleteStatesOnDBButtonClicked(void);
 
 private:
 
