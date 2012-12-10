@@ -249,12 +249,12 @@ public:
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the last link in the chain needs to achieve 
       @param tip The name of the frame for which IK is attempted. 
-      @param attempts The number of times IK is attempted
       @param consistency_limits This specifies the desired distance between the solution and the seed state
+      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, unsigned int attempts, 
-                 const std::vector<double> &consistency_limits, double timeout = 0.0,
+  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, 
+                 const std::vector<double> &consistency_limits, unsigned int attempts, double timeout = 0.0,
                  const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
 
   /** \brief If the group consists of a set of sub-groups that are each a chain and a solver 
