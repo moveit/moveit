@@ -227,6 +227,7 @@ private:
   void populateGoalPosesList();
   void populateStartStatesList();
   void importResource(const std::string &path);
+  void computeGoalPoseDoubleClicked(QListWidgetItem * item);
   
   /** Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
@@ -240,6 +241,8 @@ private:
                                                                   double scale,
                                                                   bool selected = false);
  
+  void displayMessageBox(const QString &title, const QString &text);
+
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;

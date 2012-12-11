@@ -661,6 +661,11 @@ void MotionPlanningFrame::goalPoseSelectionChanged()
 
 void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 {
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeGoalPoseDoubleClicked, this, item));
+}
+
+void MotionPlanningFrame::computeGoalPoseDoubleClicked(QListWidgetItem * item)
+{
   if ( !planning_display_->getRobotInteraction() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! planning_display_->getQueryGoalState() )
     return;
   
@@ -686,9 +691,14 @@ void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
   }
   else
   {
-    QMessageBox::warning(this, "Goal not reachable" , "Could not find a solution to the inverse kinematics");
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::displayMessageBox, this, "Goal not reachable" , "Could not find a solution to the inverse kinematics"));
   }
 }
+
+void MotionPlanningFrame::displayMessageBox(const QString &title, const QString &text) {
+    QMessageBox::warning(this, title , text);
+}
+
 
 /* Receives feedback from the interactive marker attached to a goal pose */
 void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
