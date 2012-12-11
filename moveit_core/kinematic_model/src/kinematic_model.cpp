@@ -1110,6 +1110,11 @@ void kinematic_model::KinematicModel::setKinematicsAllocators(const std::map<std
       for (std::map<std::string, SolverAllocatorFn>::const_iterator kt = allocators.begin() ; kt != allocators.end() ; ++kt)
       {
         const JointModelGroup *sub = jmg->getParentModel()->getJointModelGroup(kt->first);
+        if (!sub)
+        {
+          subs.clear();
+          break;
+        }
         std::set<const JointModel*> sub_joints;
         sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
         
