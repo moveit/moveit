@@ -144,6 +144,111 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 {
 }
 
+rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const std::string& name,
+                                                                const geometry_msgs::Pose &pose,
+                                                                double scale,
+                                                                bool selected)
+{
+  visualization_msgs::InteractiveMarker int_marker;
+
+  geometry_msgs::PoseStamped tip_pose_msg;
+  Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
+  tf::poseEigenToMsg(tip_pose, tip_pose_msg.pose);
+  if (selected)
+  {
+    int_marker = robot_interaction::make6DOFMarker(name, tip_pose_msg, scale);
+  }
+  else
+  {
+    int_marker.scale = scale;
+    int_marker.name = name;
+    int_marker.pose = tip_pose_msg.pose;
+  }
+  int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
+
+  visualization_msgs::InteractiveMarkerControl m_control;
+  m_control.always_visible = true;
+  m_control.interaction_mode = m_control.BUTTON;
+  if (selected)
+  {
+    //If selected, display the actual end effector mesh
+    const kinematic_model::JointModelGroup *joint_model_group =  planning_display_->getKinematicModel()->getJointModelGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
+    std::vector<std::string> link_names = joint_model_group->getLinkModelNames();
+
+    const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
+    const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
+
+    visualization_msgs::MarkerArray marker_array;
+    kinematic_state->getRobotMarkers(marker_array, link_names);
+
+    for (int i = 0; i < marker_array.markers.size(); ++i)
+    {
+      visualization_msgs::Marker m;
+      m.type = visualization_msgs::Marker::MESH_RESOURCE;
+      m.scale = marker_array.markers[i].scale;
+      m.ns = "goal_pose_arrow_marker";
+      m.id = i;
+      m.action = visualization_msgs::Marker::ADD;
+      m.header = int_marker.header;
+      m.pose = marker_array.markers[i].pose;
+      m.color.r = 0.0f;
+      m.color.g = 1.0f;
+      m.color.b = 0.0f;
+      m.color.a = 1.0f;
+      m.mesh_resource = marker_array.markers[i].mesh_resource;
+
+      m_control.markers.push_back(m);
+    }
+  }
+  else
+  {
+    //If not selected, display a frame marker
+    visualization_msgs::Marker m;
+    m.type = visualization_msgs::Marker::ARROW;
+    m.scale.x = 0.3 * scale;
+    m.scale.y = 0.1 * m.scale.x;
+    m.scale.z = 0.1 * m.scale.x;
+    m.ns = "frame_marker";
+    m.id = 1;
+    m.action = visualization_msgs::Marker::ADD;
+    m.color.r = 1.0f;
+    m.color.g = 0.0f;
+    m.color.b = 0.0f;
+    m.color.a = 1.0f;
+    m_control.markers.push_back(m);
+
+    //Y axis
+    tf::Quaternion imq;
+    imq=tf::createQuaternionFromRPY(0, 0, boost::math::constants::pi<double>() / 2.0);
+    tf::quaternionTFToMsg(imq, m.pose.orientation);
+    m.color.r = 0.0f;
+    m.color.g = 1.0f;
+    m.color.b = 0.0f;
+    m.color.a = 1.0f;
+    m_control.markers.push_back(m);
+
+    //Z axis
+    imq=tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
+    tf::quaternionTFToMsg(imq, m.pose.orientation);
+    m.color.r = 0.0f;
+    m.color.g = 0.0f;
+    m.color.b = 1.0f;
+    m.color.a = 1.0f;
+    m_control.markers.push_back(m);
+  }
+  int_marker.controls.push_back(m_control);
+
+  rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
+  interactive_markers::autoComplete(int_marker);
+  imarker->processMessage(int_marker);
+  imarker->setShowAxes(false);
+  imarker->setShowDescription(false);
+  imarker->setPose(Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z),
+                           Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z), "");
+
+  return imarker;
+}
+
 void MotionPlanningFrame::createGoalPoseButtonClicked(void) 
 {
   std::stringstream ss;
@@ -174,55 +279,12 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
       {
         //Create the new goal pose at the current eef pose, and attach an interactive marker to it
         Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
-        visualization_msgs::InteractiveMarker int_marker;
-        int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
+        geometry_msgs::Pose marker_pose;
+        tf::poseEigenToMsg(tip_pose, marker_pose);
         static const float marker_scale = 0.35;
-        int_marker.scale = marker_scale;
-        tf::poseEigenToMsg(tip_pose, int_marker.pose);
+        rviz::InteractiveMarker* imarker = make6DOFEndEffectorMarker(name, marker_pose, marker_scale, true);
 
-        int_marker.name = name;
-
-        ROS_INFO_STREAM("Getting markers for group " << planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-        const kinematic_model::JointModelGroup *joint_model_group =  planning_display_->getKinematicModel()->getJointModelGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-        std::vector<std::string> link_names = joint_model_group->getLinkModelNames();
-
-        const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-        const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
-
-        visualization_msgs::MarkerArray marker_array;
-        kinematic_state->getRobotMarkers(marker_array, link_names);
-        ROS_INFO_STREAM("Got " <<  link_names.size() << " links");
-
-        visualization_msgs::InteractiveMarkerControl m_control;
-        m_control.always_visible = true;
-        m_control.interaction_mode = m_control.BUTTON;
-        for (int i = 0; i < marker_array.markers.size(); ++i)
-        {
-          visualization_msgs::Marker m;
-          m.type = visualization_msgs::Marker::MESH_RESOURCE;
-          m.scale = marker_array.markers[i].scale;
-          m.ns = "goal_pose_arrow_marker";
-          m.id = i;
-          m.action = visualization_msgs::Marker::ADD;
-          m.header = int_marker.header;
-          m.pose = marker_array.markers[i].pose;
-          m.color.r = 0.0f;
-          m.color.g = 1.0f;
-          m.color.b = 0.0f;
-          m.color.a = 1.0f;
-          m.mesh_resource = marker_array.markers[i].mesh_resource;
-
-          m_control.markers.push_back(m);
-        }
-        int_marker.controls.push_back(m_control);
-
-        rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
-        interactive_markers::autoComplete(int_marker);
-        imarker->processMessage(int_marker);
-        imarker->setShowAxes(false);			  
-        imarker->setShowDescription(false);
-
-        goal_poses_.insert(GoalPosePair(name,  GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker))));
+        goal_poses_.insert(GoalPosePair(name,  GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker), true)));
 
         // Connect signals
         connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
@@ -341,56 +403,8 @@ void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
         shape_pose.position = c->position_constraints[0].constraint_region.primitive_poses[0].position;
         shape_pose.orientation = c->orientation_constraints[0].orientation;
 
-        visualization_msgs::InteractiveMarker int_marker;
-        int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
         static const float marker_scale = 0.35;
-        int_marker.scale = marker_scale;
-        Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
-        tf::poseEigenToMsg(tip_pose, int_marker.pose);
-        int_marker.name = c->name;
-
-        ROS_INFO_STREAM("Getting markers for group " << planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-        const kinematic_model::JointModelGroup *joint_model_group =  planning_display_->getKinematicModel()->getJointModelGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-        std::vector<std::string> link_names = joint_model_group->getLinkModelNames();
-
-        const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-        const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
-
-        visualization_msgs::MarkerArray marker_array;
-        kinematic_state->getRobotMarkers(marker_array, link_names);
-        ROS_INFO_STREAM("Got " <<  link_names.size() << " links");
-
-        visualization_msgs::InteractiveMarkerControl m_control;
-        m_control.always_visible = true;
-        m_control.interaction_mode = m_control.BUTTON;
-        for (int i = 0; i < marker_array.markers.size(); ++i)
-        {
-          visualization_msgs::Marker m;
-          m.type = visualization_msgs::Marker::MESH_RESOURCE;
-          m.scale = marker_array.markers[i].scale;
-          m.ns = "goal_pose_arrow_marker";
-          m.id = i;
-          m.action = visualization_msgs::Marker::ADD;
-          m.header = int_marker.header;
-          m.pose = marker_array.markers[i].pose;
-          m.color.r = 0.0f;
-          m.color.g = 1.0f;
-          m.color.b = 0.0f;
-          m.color.a = 1.0f;
-          m.mesh_resource = marker_array.markers[i].mesh_resource;
-
-          m_control.markers.push_back(m);
-        }
-        int_marker.controls.push_back(m_control);
-
-        rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
-        interactive_markers::autoComplete(int_marker);
-        imarker->processMessage(int_marker);
-        imarker->setShowAxes(false);			  
-        imarker->setShowDescription(false);
-
-        imarker->setPose(Ogre::Vector3(shape_pose.position.x, shape_pose.position.y, shape_pose.position.z),
-                         Ogre::Quaternion(shape_pose.orientation.w, shape_pose.orientation.x, shape_pose.orientation.y, shape_pose.orientation.z), "");
+        rviz::InteractiveMarker* imarker = make6DOFEndEffectorMarker(c->name, shape_pose, marker_scale);
 
         goal_poses_.insert(GoalPosePair(c->name, GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker))));
 
@@ -673,8 +687,8 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 { 
   static Eigen::Affine3d initial_pose_eigen;
   static bool dragging = false;
-  
-  if (feedback.event_type == feedback.BUTTON_CLICK) 
+
+  if (feedback.event_type == feedback.BUTTON_CLICK)
   {
     //Unselect all but the clicked one
     for (unsigned int i = 0; i < ui_->goal_poses_list->count(); ++i)
@@ -685,8 +699,8 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
       else
         item->setSelected(false);
     }
-  } 
-  else if (feedback.event_type == feedback.MOUSE_DOWN) 
+  }
+  else if (feedback.event_type == feedback.MOUSE_DOWN)
   {
     //Store current poses
     goals_initial_pose_.clear();    
@@ -746,70 +760,36 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 
 void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marker_name) 
 {
-  Ogre::Vector3 original_position = goal_poses_[marker_name].imarker->getPosition();
-  Ogre::Quaternion original_orientation = goal_poses_[marker_name].imarker->getOrientation();
+  geometry_msgs::Pose marker_pose;
+  marker_pose.position.x = goal_poses_[marker_name].imarker->getPosition().x;
+  marker_pose.position.y = goal_poses_[marker_name].imarker->getPosition().y;
+  marker_pose.position.z = goal_poses_[marker_name].imarker->getPosition().z;
+  marker_pose.orientation.x = goal_poses_[marker_name].imarker->getOrientation().x;
+  marker_pose.orientation.y = goal_poses_[marker_name].imarker->getOrientation().y;
+  marker_pose.orientation.z = goal_poses_[marker_name].imarker->getOrientation().z;
+  marker_pose.orientation.w = goal_poses_[marker_name].imarker->getOrientation().w;
+  static const double marker_scale = 0.35;
 
-  geometry_msgs::PoseStamped current_pose;
-  Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
-  tf::poseEigenToMsg(tip_pose, current_pose.pose);
-
-  visualization_msgs::InteractiveMarker int_marker;
-  int_marker.name = goal_poses_[marker_name].imarker->getName();
+  rviz::InteractiveMarker* imarker;
   if (goal_poses_[marker_name].selected) 
   {
     //If selected, unselect
-    int_marker.pose = current_pose.pose;
     goal_poses_[marker_name].selected = false;
     setItemSelectionInList(marker_name, false, ui_->goal_poses_list);
+    imarker = make6DOFEndEffectorMarker(goal_poses_[marker_name].imarker->getName(), marker_pose, marker_scale, false);
   } 
   else 
   {
     //If unselected, select
-    int_marker = robot_interaction::make6DOFMarker(goal_poses_[marker_name].imarker->getName(), current_pose, 1.0);
     goal_poses_[marker_name].selected = true;
     setItemSelectionInList(marker_name, true, ui_->goal_poses_list);
+    imarker = make6DOFEndEffectorMarker(goal_poses_[marker_name].imarker->getName(), marker_pose, marker_scale, true);
   }
-  int_marker.header.frame_id = goal_poses_[marker_name].imarker->getReferenceFrame();
-  static const float marker_scale = 0.35;
-  int_marker.scale = marker_scale;
 
-  ROS_INFO_STREAM("Getting markers for group " << planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-  const kinematic_model::JointModelGroup *joint_model_group =  planning_display_->getKinematicModel()->getJointModelGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-  std::vector<std::string> link_names = joint_model_group->getLinkModelNames();
+  goal_poses_[marker_name].imarker.reset(imarker);
+  // Connect signals
+  connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
-  const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-  const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
-
-  visualization_msgs::MarkerArray marker_array;
-  kinematic_state->getRobotMarkers(marker_array, link_names);
-  ROS_INFO_STREAM("Got " <<  link_names.size() << " links");
-
-  visualization_msgs::InteractiveMarkerControl m_control;
-  m_control.always_visible = true;
-  m_control.interaction_mode = m_control.BUTTON;
-  for (int i = 0; i < marker_array.markers.size(); ++i)
-  {
-    visualization_msgs::Marker m;
-    m.type = visualization_msgs::Marker::MESH_RESOURCE;
-    m.scale = marker_array.markers[i].scale;
-    m.ns = "goal_pose_arrow_marker";
-    m.id = i;
-    m.action = visualization_msgs::Marker::ADD;
-    m.header = int_marker.header;
-    m.pose = marker_array.markers[i].pose;
-    m.color.r = 0.0f;
-    m.color.g = 1.0f;
-    m.color.b = 0.0f;
-    m.color.a = 1.0f;
-    m.mesh_resource = marker_array.markers[i].mesh_resource;
-
-    m_control.markers.push_back(m);
-  }
-  int_marker.controls.push_back(m_control);
-
-  interactive_markers::autoComplete(int_marker);
-  goal_poses_[marker_name].imarker->processMessage(int_marker);
-  goal_poses_[marker_name].imarker->setPose(original_position, original_orientation, "");
 }
 
 void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list) 
@@ -833,17 +813,6 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
     else
       scene_name = ps->getName();
   }
-  
-  ROS_INFO_STREAM("Getting markers for group " << planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-  const kinematic_model::JointModelGroup *joint_model_group =  planning_display_->getKinematicModel()->getJointModelGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-  std::vector<std::string> link_names = joint_model_group->getLinkModelNames();
-
-  const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-  const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
-
-  visualization_msgs::MarkerArray marker_array;
-  kinematic_state->getRobotMarkers(marker_array, link_names);
-  ROS_INFO_STREAM("Got " <<  link_names.size() << " links");
 
   for (int i = 0 ; i < sel.size() ; ++i)
   {
@@ -851,47 +820,18 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
     std::stringstream ss;
     ss << scene_name.c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
 
-    geometry_msgs::PoseStamped current_pose;
     Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
-    tf::poseEigenToMsg(tip_pose, current_pose.pose);
+    geometry_msgs::Pose marker_pose;
+    marker_pose.position.x = goal_poses_[name].imarker->getPosition().x;
+    marker_pose.position.y = goal_poses_[name].imarker->getPosition().y;
+    marker_pose.position.z = goal_poses_[name].imarker->getPosition().z;
+    marker_pose.orientation.x = goal_poses_[name].imarker->getOrientation().x;
+    marker_pose.orientation.y = goal_poses_[name].imarker->getOrientation().y;
+    marker_pose.orientation.z = goal_poses_[name].imarker->getOrientation().z;
+    marker_pose.orientation.w = goal_poses_[name].imarker->getOrientation().w;
 
-    visualization_msgs::InteractiveMarker int_marker;
-    int_marker = robot_interaction::make6DOFMarker(ss.str(), current_pose, 1.0);
-
-    int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
     static const float marker_scale = 0.35;
-    int_marker.scale = marker_scale;
-
-    visualization_msgs::InteractiveMarkerControl m_control;
-    m_control.always_visible = true;
-    m_control.interaction_mode = m_control.BUTTON;
-    for (int i = 0; i < marker_array.markers.size(); ++i)
-    {
-      visualization_msgs::Marker m;
-      m.type = visualization_msgs::Marker::MESH_RESOURCE;
-      m.scale = marker_array.markers[i].scale;
-      m.ns = "goal_pose_arrow_marker";
-      m.id = i;
-      m.action = visualization_msgs::Marker::ADD;
-      m.header = int_marker.header;
-      m.pose = marker_array.markers[i].pose;
-      m.color.r = 0.0f;
-      m.color.g = 1.0f;
-      m.color.b = 0.0f;
-      m.color.a = 1.0f;
-      m.mesh_resource = marker_array.markers[i].mesh_resource;
-
-      m_control.markers.push_back(m);
-    }
-    int_marker.controls.push_back(m_control);
-
-    interactive_markers::autoComplete(int_marker);
-
-    rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
-    imarker->processMessage(int_marker);
-    imarker->setShowAxes(false);
-    imarker->setShowDescription(false);
-    imarker->setPose(goal_poses_[name].imarker->getPosition(), goal_poses_[name].imarker->getOrientation(), "");
+    rviz::InteractiveMarker* imarker = make6DOFEndEffectorMarker(ss.str(), marker_pose, marker_scale, true);
 
     goal_poses_.insert(GoalPosePair(ss.str(), GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker), true)));
 

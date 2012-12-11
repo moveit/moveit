@@ -233,6 +233,12 @@ private:
   
   /** Switches the selection state of a goal pose marker */
   void switchGoalPoseMarkerSelection(const std::string &marker_name);
+
+  /** Creates an interactive marker with the end-effector links */
+  rviz::InteractiveMarker* make6DOFEndEffectorMarker(const std::string& name,
+                                                                  const geometry_msgs::Pose &pose,
+                                                                  double scale,
+                                                                  bool selected = false);
  
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
