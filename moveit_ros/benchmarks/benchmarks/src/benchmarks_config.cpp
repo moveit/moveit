@@ -194,7 +194,11 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
       ROS_WARN("No stored states matched the provided regex: '%s'", opt_.start_regex.c_str());
       return;
     }
+    else
+      ROS_INFO("Running benchmark using %u start states.", (unsigned int)start_states.size());
   }
+  else
+    ROS_INFO("No specified start state. Running benchmark once with the default start state.");
   
   bool have_more_start_states = true;
   boost::scoped_ptr<moveit_msgs::RobotState> start_state_to_use;
@@ -223,7 +227,10 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
       }
       
       if (got_robot_state)
+      {
         start_state_to_use.reset(new moveit_msgs::RobotState(*robot_state));
+        ROS_INFO("Loaded start state '%s'", state_name.c_str());
+      }
       else
         continue;
     }
