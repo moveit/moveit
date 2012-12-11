@@ -699,6 +699,10 @@ void MotionPlanningFrame::displayMessageBox(const QString &title, const QString 
     QMessageBox::warning(this, title , text);
 }
 
+void MotionPlanningFrame::selectItemJob(QListWidgetItem *item, bool flag)
+{
+  item->setSelected(flag);
+}
 
 /* Receives feedback from the interactive marker attached to a goal pose */
 void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
@@ -713,9 +717,9 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
     {
       QListWidgetItem *item = ui_->goal_poses_list->item(i);
       if (item->text().toStdString() == feedback.marker_name)
-        item->setSelected(true);
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::selectItemJob, this, item, true));
       else
-        item->setSelected(false);
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::selectItemJob, this, item, false));
     }
   }
   else if (feedback.event_type == feedback.MOUSE_DOWN)

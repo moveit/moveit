@@ -241,6 +241,7 @@ private:
                                                                   double scale,
                                                                   bool selected = false);
  
+  void selectItemJob(QListWidgetItem *item, bool flag);
   void displayMessageBox(const QString &title, const QString &text);
 
   ros::NodeHandle nh_;
