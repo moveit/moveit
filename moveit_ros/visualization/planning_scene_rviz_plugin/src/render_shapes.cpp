@@ -69,12 +69,14 @@ void RenderShapes::clear(void)
     Ogre::MaterialManager::getSingleton().remove(material_->getName());
     material_name_ = "";
   }
+
+  octree_voxel_grids_.clear();
 }
 
 void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha)
 {
   rviz::Shape* ogre_shape = NULL;
-  Ogre::MovableObject* octree = NULL;
+  boost::shared_ptr<OcTreeRender> octree;
 
   switch (s->type)
   {
@@ -158,8 +160,8 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
     break;
 
   case shapes::OCTREE:
-    octree = static_cast<Ogre::MovableObject*>(new OcTreeRender(s, context_->getSceneManager(), node));
-    movable_objects_.push_back(octree);
+    octree = boost::shared_ptr<OcTreeRender>(new OcTreeRender(s, context_->getSceneManager(), node));
+    octree_voxel_grids_.push_back(octree);
     break;
 
   default:
