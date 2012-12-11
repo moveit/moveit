@@ -144,15 +144,21 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 {
 }
 
+// @mario this function should return a shared ptr
+// can you pass planning_display_->getRobotInteraction()->getActiveEndEffectors()[0] as argment to this function?
 rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const std::string& name,
-                                                                const geometry_msgs::Pose &pose,
-                                                                double scale,
-                                                                bool selected)
+                                                                        const geometry_msgs::Pose &pose,
+                                                                        double scale,
+                                                                        bool selected)
 {
+  if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
+    return NULL;
+  
+  const robot_interaction::RobotInteraction::EndEffector &eef = planning_display_->getRobotInteraction()->getActiveEndEffectors()[0];
+  
   visualization_msgs::InteractiveMarker int_marker;
-
   geometry_msgs::PoseStamped tip_pose_msg;
-  Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
+  Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(eef.parent_link)->getGlobalLinkTransform();
   tf::poseEigenToMsg(tip_pose, tip_pose_msg.pose);
   if (selected)
   {
@@ -172,16 +178,18 @@ rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const st
   if (selected)
   {
     //If selected, display the actual end effector mesh
-    const kinematic_model::JointModelGroup *joint_model_group =  planning_display_->getKinematicModel()->getJointModelGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
-    std::vector<std::string> link_names = joint_model_group->getLinkModelNames();
-
-    const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].eef_group);
+    const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(eef.eef_group);
     const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
 
+    const kinematic_model::JointModelGroup *joint_model_group = joint_state_group->getJointModelGroup();
+    const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();
+    
     visualization_msgs::MarkerArray marker_array;
     kinematic_state->getRobotMarkers(marker_array, link_names);
 
-    for (int i = 0; i < marker_array.markers.size(); ++i)
+    // this mostly rewrites stuff getRobotMarkers() should do.
+    // @mario: Can you update getRobotMarkers() to make the code below simpler? (or go away)
+    for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
     {
       visualization_msgs::Marker m;
       m.type = visualization_msgs::Marker::MESH_RESOURCE;
@@ -219,7 +227,7 @@ rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const st
 
     //Y axis
     tf::Quaternion imq;
-    imq=tf::createQuaternionFromRPY(0, 0, boost::math::constants::pi<double>() / 2.0);
+    imq = tf::createQuaternionFromRPY(0, 0, boost::math::constants::pi<double>() / 2.0);
     tf::quaternionTFToMsg(imq, m.pose.orientation);
     m.color.r = 0.0f;
     m.color.g = 1.0f;
@@ -228,7 +236,7 @@ rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const st
     m_control.markers.push_back(m);
 
     //Z axis
-    imq=tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
+    imq = tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
     tf::quaternionTFToMsg(imq, m.pose.orientation);
     m.color.r = 0.0f;
     m.color.g = 0.0f;
@@ -244,7 +252,7 @@ rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const st
   imarker->setShowAxes(false);
   imarker->setShowDescription(false);
   imarker->setPose(Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z),
-                           Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z), "");
+                   Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z), "");
 
   return imarker;
 }
@@ -319,7 +327,7 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
           oc.orientation.z = imarker->getOrientation().z;
           oc.orientation.w = imarker->getOrientation().w;
           oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
-              oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
+            oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
           oc.weight = 1.0;
           c.orientation_constraints.push_back(oc);
 
