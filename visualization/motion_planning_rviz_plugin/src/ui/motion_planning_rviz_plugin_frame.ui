@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -483,7 +483,7 @@
      </widget>
      <widget class="QWidget" name="stored_plans">
       <attribute name="title">
-       <string>Stored Scenes and Queries</string>
+       <string>Stored Scenes</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="1" column="0">
@@ -625,7 +625,7 @@
      </widget>
      <widget class="QWidget" name="scene_collision_objects">
       <attribute name="title">
-       <string>Scene Collision Objects</string>
+       <string>Scene Objects</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="0" rowspan="2">
@@ -634,7 +634,7 @@
           <string>Press Ctrl+C to duplicate an object</string>
          </property>
          <property name="title">
-          <string>Scene Collision Objects</string>
+          <string>Current Scene Objects</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_8">
           <item row="1" column="1">
@@ -876,10 +876,10 @@
      </widget>
      <widget class="QWidget" name="goal_poses_and_states">
       <attribute name="title">
-       <string>Goal Poses and States</string>
+       <string>Queries</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
         <widget class="QGroupBox" name="start_states_groupbox">
          <property name="toolTip">
           <string/>
@@ -992,7 +992,7 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="0" column="1">
         <widget class="QGroupBox" name="goal_poses_groupbox">
          <property name="toolTip">
           <string/>
