@@ -144,18 +144,12 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 {
 }
 
-// @mario this function should return a shared ptr
-// can you pass planning_display_->getRobotInteraction()->getActiveEndEffectors()[0] as argment to this function?
-rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const std::string& name,
+boost::shared_ptr<rviz::InteractiveMarker> MotionPlanningFrame::make6DOFEndEffectorMarker(const std::string& name,
+                                                                        const robot_interaction::RobotInteraction::EndEffector &eef,
                                                                         const geometry_msgs::Pose &pose,
                                                                         double scale,
                                                                         bool selected)
 {
-  if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
-    return NULL;
-  
-  const robot_interaction::RobotInteraction::EndEffector &eef = planning_display_->getRobotInteraction()->getActiveEndEffectors()[0];
-  
   visualization_msgs::InteractiveMarker int_marker;
   geometry_msgs::PoseStamped tip_pose_msg;
   Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(eef.parent_link)->getGlobalLinkTransform();
@@ -184,28 +178,18 @@ rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const st
     const kinematic_model::JointModelGroup *joint_model_group = joint_state_group->getJointModelGroup();
     const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();
     
+    std_msgs::ColorRGBA marker_color;
+    marker_color.r = 0.0f;
+    marker_color.g = 1.0f;
+    marker_color.b = 0.0f;
+    marker_color.a = 1.0f;
     visualization_msgs::MarkerArray marker_array;
-    kinematic_state->getRobotMarkers(marker_array, link_names);
+    kinematic_state->getRobotMarkers(marker_color, "goal_pose_marker", ros::Duration(), marker_array, link_names);
 
-    // this mostly rewrites stuff getRobotMarkers() should do.
-    // @mario: Can you update getRobotMarkers() to make the code below simpler? (or go away)
     for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
     {
-      visualization_msgs::Marker m;
-      m.type = visualization_msgs::Marker::MESH_RESOURCE;
-      m.scale = marker_array.markers[i].scale;
-      m.ns = "goal_pose_arrow_marker";
-      m.id = i;
-      m.action = visualization_msgs::Marker::ADD;
-      m.header = int_marker.header;
-      m.pose = marker_array.markers[i].pose;
-      m.color.r = 0.0f;
-      m.color.g = 1.0f;
-      m.color.b = 0.0f;
-      m.color.a = 1.0f;
-      m.mesh_resource = marker_array.markers[i].mesh_resource;
-
-      m_control.markers.push_back(m);
+      marker_array.markers[i].header = int_marker.header;
+      m_control.markers.push_back(marker_array.markers[i]);
     }
   }
   else
@@ -254,7 +238,7 @@ rviz::InteractiveMarker* MotionPlanningFrame::make6DOFEndEffectorMarker(const st
   imarker->setPose(Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z),
                    Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z), "");
 
-  return imarker;
+  return boost::shared_ptr<rviz::InteractiveMarker>(imarker);
 }
 
 void MotionPlanningFrame::createGoalPoseButtonClicked(void) 
@@ -290,12 +274,12 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
         geometry_msgs::Pose marker_pose;
         tf::poseEigenToMsg(tip_pose, marker_pose);
         static const float marker_scale = 0.35;
-        rviz::InteractiveMarker* imarker = make6DOFEndEffectorMarker(name, marker_pose, marker_scale, true);
+        boost::shared_ptr<rviz::InteractiveMarker> imarker = make6DOFEndEffectorMarker(name, planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, true);
 
-        goal_poses_.insert(GoalPosePair(name,  GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker), true)));
+        goal_poses_.insert(GoalPosePair(name,  GoalPoseMarker(imarker, true)));
 
         // Connect signals
-        connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        connect( imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
         //If connected to a databse, store the constraint
         if (constraints_storage_)
@@ -368,7 +352,7 @@ void MotionPlanningFrame::removeAllGoalsButtonClicked(void)
 void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
 {
   //Get all the constraints from the database, convert to goal pose markers
-  if (constraints_storage_)
+  if (constraints_storage_ && ! planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
   {
     //First clear the current list
     removeAllGoalsButtonClicked();
@@ -412,12 +396,12 @@ void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
         shape_pose.orientation = c->orientation_constraints[0].orientation;
 
         static const float marker_scale = 0.35;
-        rviz::InteractiveMarker* imarker = make6DOFEndEffectorMarker(c->name, shape_pose, marker_scale);
+        boost::shared_ptr<rviz::InteractiveMarker> imarker = make6DOFEndEffectorMarker(c->name, planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], shape_pose, marker_scale);
 
-        goal_poses_.insert(GoalPosePair(c->name, GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker))));
+        goal_poses_.insert(GoalPosePair(c->name, GoalPoseMarker(imarker)));
 
         // Connect signals
-        connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        connect( imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
       }
     }
     populateGoalPosesList();
@@ -782,6 +766,9 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 
 void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marker_name) 
 {
+  if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
+    return;
+
   geometry_msgs::Pose marker_pose;
   marker_pose.position.x = goal_poses_[marker_name].imarker->getPosition().x;
   marker_pose.position.y = goal_poses_[marker_name].imarker->getPosition().y;
@@ -792,25 +779,27 @@ void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marke
   marker_pose.orientation.w = goal_poses_[marker_name].imarker->getOrientation().w;
   static const double marker_scale = 0.35;
 
-  rviz::InteractiveMarker* imarker;
+  boost::shared_ptr<rviz::InteractiveMarker> imarker;
   if (goal_poses_[marker_name].selected) 
   {
     //If selected, unselect
     goal_poses_[marker_name].selected = false;
     setItemSelectionInList(marker_name, false, ui_->goal_poses_list);
-    imarker = make6DOFEndEffectorMarker(goal_poses_[marker_name].imarker->getName(), marker_pose, marker_scale, false);
+    imarker = make6DOFEndEffectorMarker(goal_poses_[marker_name].imarker->getName(),
+                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, false);
   } 
   else 
   {
     //If unselected, select
     goal_poses_[marker_name].selected = true;
     setItemSelectionInList(marker_name, true, ui_->goal_poses_list);
-    imarker = make6DOFEndEffectorMarker(goal_poses_[marker_name].imarker->getName(), marker_pose, marker_scale, true);
+    imarker = make6DOFEndEffectorMarker(goal_poses_[marker_name].imarker->getName(),
+                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, true);
   }
 
-  goal_poses_[marker_name].imarker.reset(imarker);
+  goal_poses_[marker_name].imarker=imarker;
   // Connect signals
-  connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  connect( imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
 }
 
@@ -824,7 +813,7 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
 void MotionPlanningFrame::copySelectedGoalPoses(void)
 {
   QList<QListWidgetItem *> sel = ui_->goal_poses_list->selectedItems();
-  if (sel.empty())
+  if (sel.empty() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
     return;
   
   std::string scene_name;
@@ -853,12 +842,13 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
     marker_pose.orientation.w = goal_poses_[name].imarker->getOrientation().w;
 
     static const float marker_scale = 0.35;
-    rviz::InteractiveMarker* imarker = make6DOFEndEffectorMarker(ss.str(), marker_pose, marker_scale, true);
+    boost::shared_ptr<rviz::InteractiveMarker> imarker = make6DOFEndEffectorMarker(ss.str(),
+                                                                 planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, true);
 
-    goal_poses_.insert(GoalPosePair(ss.str(), GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker>(imarker), true)));
+    goal_poses_.insert(GoalPosePair(ss.str(), GoalPoseMarker(imarker, true)));
 
     // Connect signals
-    connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+    connect( imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
     //Unselect the marker source of the copy
     switchGoalPoseMarkerSelection(name);
@@ -1117,7 +1107,7 @@ void  MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMark
 void MotionPlanningFrame::createSceneInteractiveMarker(void)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
-  if (sel.empty())
+  if (sel.empty() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
     return;
 
   const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
