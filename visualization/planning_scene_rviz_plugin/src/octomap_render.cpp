@@ -20,10 +20,8 @@ namespace moveit_rviz_plugin
 typedef std::vector<rviz::PointCloud::Point> VPoint;
 typedef std::vector<VPoint> VVPoint;
 
-static Ogre::String movable_type ("OcTree");
-
 OcTreeRender::OcTreeRender(const shapes::Shape *shape, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node) :
-    Ogre::MovableObject(), shape_(shape), colorFactor_(0.8)
+    shape_(shape), colorFactor_(0.8)
 {
   std::size_t i;
 
@@ -110,58 +108,11 @@ void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double co
   }
 }
 
-void OcTreeRender::_notifyCurrentCamera(Ogre::Camera* camera)
-{
-  MovableObject::_notifyCurrentCamera( camera );
-}
-
-void OcTreeRender::_updateRenderQueue(Ogre::RenderQueue* queue)
-{
-  std::vector<rviz::PointCloud*>::iterator it = cloud_.begin();
-  std::vector<rviz::PointCloud*>::iterator end = cloud_.end();
-  for (; it != end; ++it)
-  {
-    (*it)->_updateRenderQueue(queue);
-  }
-}
-
-void OcTreeRender::_notifyAttached(Ogre::Node *parent, bool isTagPoint)
-{
-  MovableObject::_notifyAttached(parent, isTagPoint);
-}
-
-#if (OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6)
-void OcTreeRender::visitRenderables(Ogre::Renderable::Visitor* visitor, bool debugRenderables)
-{
-}
-#endif
-
-void OcTreeRender::getWorldTransforms(Ogre::Matrix4* xform) const
-{
-   *xform = scene_node_->_getFullTransform();
-}
-
-const Ogre::AxisAlignedBox& OcTreeRender::getBoundingBox() const
-{
-  return bb_;
-}
-
-float OcTreeRender::getBoundingRadius() const
-{
-  Ogre::AxisAlignedBox bb = getBoundingBox();
-  Ogre::Vector3 bb_hs = bb.getHalfSize();
-
-  return bb_hs.length();
-}
-
-const Ogre::String& OcTreeRender::getMovableType() const
-{
-  return movable_type;
-}
 
 void OcTreeRender::octreeDecoding (boost::shared_ptr<const octomap::OcTree> octree )
 {
   VVPoint pointBuf_;
+  pointBuf_.resize(16);
 
   // get dimensions of octree
   double minX, minY, minZ, maxX, maxY, maxZ;
@@ -229,13 +180,13 @@ void OcTreeRender::octreeDecoding (boost::shared_ptr<const octomap::OcTree> octr
   {
     double size = octree->getNodeSize(i+1);
 
+    std::cout<< "Level:" << i << " PS: " << pointBuf_[i].size() << std::endl;
+
     cloud_[i]->clear();
     cloud_[i]->setDimensions( size, size, size );
 
     cloud_[i]->addPoints(&pointBuf_[i].front(), pointBuf_[i].size());
     pointBuf_[i].clear();
-
-    bb_.merge(cloud_[i]->getBoundingBox());
   }
 
 }
