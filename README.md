@@ -1,4 +1,4 @@
 moveit-resources
 ================
 
-Resources for MoveIt!
+This repository includes various resources needed for MoveIt!
