@@ -51,11 +51,17 @@ moveit_warehouse::ConstraintsStorage::ConstraintsStorage(const std::string &host
 
 void moveit_warehouse::ConstraintsStorage::addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot, const std::string &group)
 {
+  bool replace = false;
+  if (hasConstraints(msg.name, robot, group))
+  {
+    removeConstraints(msg.name, robot, group);
+    replace = true;
+  }
   mongo_ros::Metadata metadata(CONSTRAINTS_ID_NAME, msg.name,
                                ROBOT_NAME, robot, 
                                CONSTRAINTS_GROUP_NAME, group);
   constraints_collection_->insert(msg, metadata);
-  ROS_DEBUG("Saved constraints '%s'", msg.name.c_str());
+  ROS_DEBUG("%s constraints '%s'", replace ? "Replaced" : "Added", msg.name.c_str());
 }
 
 bool moveit_warehouse::ConstraintsStorage::hasConstraints(const std::string &name, const std::string &robot, const std::string &group) const

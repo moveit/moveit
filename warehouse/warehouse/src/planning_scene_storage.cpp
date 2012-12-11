@@ -52,9 +52,15 @@ moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
 {
+  bool replace = false;
+  if (hasPlanningScene(scene.name))
+  {
+    removePlanningScene(scene.name);
+    replace = true;
+  }  
   mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene.name);
   planning_scene_collection_->insert(scene, metadata); 
-  ROS_DEBUG("Saved scene '%s'", scene.name.c_str());
+  ROS_DEBUG("%s scene '%s'", replace ? "Replaced" : "Added", scene.name.c_str());
 }
 
 bool moveit_warehouse::PlanningSceneStorage::hasPlanningScene(const std::string &name) const
