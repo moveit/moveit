@@ -9,6 +9,8 @@ add_library(${MOVEIT_LIB_NAME}
   src/allvalid/collision_robot.cpp
   src/allvalid/collision_world.cpp
 )
+# This line is needed to ensure that messages are done being built before this is built
+add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
 
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_kinematic_state ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
