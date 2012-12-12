@@ -254,7 +254,9 @@ private:
   ros::Publisher planning_scene_world_publisher_;
 
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
+  
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
+  long unsigned int known_collision_objects_version_;
   
   EigenSTL::map_string_Affine3d goals_initial_pose_;
 };
