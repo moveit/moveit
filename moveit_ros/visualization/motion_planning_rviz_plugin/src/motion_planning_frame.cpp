@@ -54,7 +54,6 @@
 #include <QShortcut>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
-#include "ui_motion_planning_rviz_plugin_attach_dialog.h"
 
 #include <boost/math/constants/constants.hpp>
 
@@ -151,10 +150,10 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 }
 
 boost::shared_ptr<rviz::InteractiveMarker> MotionPlanningFrame::make6DOFEndEffectorMarker(const std::string& name,
-                                                                        const robot_interaction::RobotInteraction::EndEffector &eef,
-                                                                        const geometry_msgs::Pose &pose,
-                                                                        double scale,
-                                                                        bool selected)
+                                                                                          const robot_interaction::RobotInteraction::EndEffector &eef,
+                                                                                          const geometry_msgs::Pose &pose,
+                                                                                          double scale,
+                                                                                          bool selected)
 {
   visualization_msgs::InteractiveMarker int_marker;
   geometry_msgs::PoseStamped tip_pose_msg;
@@ -1409,16 +1408,6 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
 
   if (checked) // we need to attach a known collision object
   {  
-    /*
-    QDialog *d = new QDialog(this);
-    Ui::SelectAttachLinkUI *dialog =  new Ui::SelectAttachLinkUI();
-    dialog->setupUi(d);
-    d->exec();
-    */
-
-    //    delete dialog;
-    
-    
     QStringList links;
     const std::vector<std::string> &links_std = planning_display_->getKinematicModel()->getLinkModelNames();
     for (std::size_t i = 0 ; i < links_std.size() ; ++i)
