@@ -9,6 +9,7 @@ COMPONENTS
   moveit_msgs
   resource_retriever
   urdfdom
+  urdfdom_headers
   srdfdom
   orocos_kdl
   kdl_parser
@@ -99,6 +100,7 @@ catkin_package(
     Boost
     Eigen
     urdfdom
+    urdfdom_headers
     )
 
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}

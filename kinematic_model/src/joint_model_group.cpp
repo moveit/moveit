@@ -40,9 +40,42 @@
 
 namespace kinematic_model
 {
-static bool orderLinksByIndex(const LinkModel *a, const LinkModel *b)
+namespace
+{
+
+bool orderLinksByIndex(const LinkModel *a, const LinkModel *b)
 {
   return a->getTreeIndex() < b->getTreeIndex();
+}
+
+bool includesParent(const JointModel *joint, const JointModelGroup *group)
+{
+  bool found = false;
+  // if we find that an ancestor is also in the group, then the joint is not a root
+  while (joint->getParentLinkModel() != NULL)
+  {
+    joint = joint->getParentLinkModel()->getParentJointModel();
+    if (group->hasJointModel(joint->getName()) && joint->getVariableCount() > 0 && joint->getMimic() == NULL)
+    {
+      found = true;
+      break;
+    }
+    else
+      if (joint->getMimic() != NULL)
+      {
+        const JointModel *mjoint = joint->getMimic();
+        if (group->hasJointModel(mjoint->getName()) && mjoint->getVariableCount() > 0 && mjoint->getMimic() == NULL)
+          found = true;
+        else
+          if (includesParent(mjoint, group))
+            found = true;
+        if (found)
+          break;
+      }
+  }
+  return found;
+}
+
 }
 }
 
@@ -78,17 +111,8 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
   {
     bool found = false;
     const JointModel *joint = joint_model_vector_[i];
-    //if we find that an ancestor is also in the group, then the joint is not a root
-    while (joint->getParentLinkModel() != NULL)
-    {
-      joint = joint->getParentLinkModel()->getParentJointModel();
-      if (hasJointModel(joint->getName()) && joint->getVariableCount() > 0 && joint->getMimic() == NULL)
-      {
-        found = true;
-        break;
-      }
-    }
-    if (!found)
+    // if we find that an ancestor is also in the group, then the joint is not a root
+    if (!includesParent(joint, this))
       joint_roots_.push_back(joint_model_vector_[i]);
   }
   
