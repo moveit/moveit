@@ -44,8 +44,20 @@ const std::string moveit_warehouse::RobotStateStorage::ROBOT_NAME = "robot_id";
 moveit_warehouse::RobotStateStorage::RobotStateStorage(const std::string &host, const unsigned int port, double wait_seconds) :
   MoveItMessageStorage(host, port, wait_seconds)
 {
-  state_collection_.reset(new RobotStateCollection::element_type(DATABASE_NAME, "robot_states", db_host_, db_port_, wait_seconds));
+  createCollections();
   ROS_DEBUG("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
+}
+
+void moveit_warehouse::RobotStateStorage::createCollections(void)
+{
+  state_collection_.reset(new RobotStateCollection::element_type(DATABASE_NAME, "robot_states", db_host_, db_port_, timeout_));
+}
+
+void moveit_warehouse::RobotStateStorage::reset(void)
+{
+  state_collection_.reset();
+  MoveItMessageStorage::drop(DATABASE_NAME);
+  createCollections();  
 }
 
 void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::RobotState &msg, const std::string &name, const std::string &robot)

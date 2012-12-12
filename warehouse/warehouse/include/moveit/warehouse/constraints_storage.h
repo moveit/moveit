@@ -76,7 +76,11 @@ public:
 
   void removeConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "");
   
+  void reset(void);
+  
 private:
+  
+  void createCollections(void);
   
   ConstraintsCollection constraints_collection_;
   

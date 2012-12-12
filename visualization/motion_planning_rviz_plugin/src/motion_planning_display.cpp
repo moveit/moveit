@@ -796,6 +796,13 @@ void MotionPlanningDisplay::updateLinkColors(void)
 
 void MotionPlanningDisplay::changedPlanningGroup(void)
 {
+  if (!planning_group_property_->getStdString().empty())
+    if (!getKinematicModel()->hasJointModelGroup(planning_group_property_->getStdString()))
+    {
+      planning_group_property_->setStdString("");
+      return;
+    }
+  
   if (robot_interaction_)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
   computeMetrics(metrics_set_payload_property_->getFloat());
@@ -868,6 +875,10 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   query_start_state_->setIKValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
   query_goal_state_->setIKValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
 
+  if (!planning_group_property_->getStdString().empty())
+    if (!getKinematicModel()->hasJointModelGroup(planning_group_property_->getStdString()))
+      planning_group_property_->setStdString("");
+  
   const std::vector<std::string> &groups = getKinematicModel()->getJointModelGroupNames();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     planning_group_property_->addOptionStd(groups[i]);

@@ -109,6 +109,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->collision_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( collisionObjectChanged( QListWidgetItem * ) ));
   connect( ui_->path_constraints_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( pathConstraintsIndexChanged( int ) ));
   connect( ui_->planning_scene_tree, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( warehouseItemNameChanged( QTreeWidgetItem *, int ) ));
+  connect( ui_->reset_db_button, SIGNAL( clicked() ), this, SLOT( resetDbButtonClicked() ));
 
   connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
 
@@ -135,7 +136,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->start_states_save_button, SIGNAL( clicked() ), this, SLOT( saveStatesOnDBButtonClicked() ));
   connect( ui_->start_states_list, SIGNAL( itemDoubleClicked(QListWidgetItem*) ), this, SLOT( startStateItemDoubleClicked(QListWidgetItem*) ));
 
-  ui_->tabWidget->setCurrentIndex(0); 
+  ui_->reset_db_button->hide();
+  ui_->tabWidget->setCurrentIndex(0);
+
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
@@ -1610,6 +1613,30 @@ void MotionPlanningFrame::selectedCollisionObjectChanged(void)
     }
 }
 
+void MotionPlanningFrame::resetDbButtonClicked(void)
+{
+  if (QMessageBox::warning(this, "Data about to be deleted", "The following dialog will allow you to drop a MoveIt Warehouse database. Are you sure you want to continue?",
+                           QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
+    return;
+  
+  QStringList dbs;
+  dbs.append("Planning Scenes");
+  dbs.append("Constraints");
+  dbs.append("Robot States");
+
+  bool ok = false;
+  QString response = QInputDialog::getItem(this, tr("Select Database"), tr("Choose the database to reset:"),
+                                           dbs, 2, false, &ok);
+  if (!ok)
+    return;
+  
+  if (QMessageBox::critical(this, "Data about to be deleted", QString("All data in database '").append(response).append("'. Are you sure you want to continue?"),
+                            QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
+    return;
+  
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeResetDbButtonClicked, this, response.toStdString()));
+}
+
 void MotionPlanningFrame::clearSceneButtonClicked(void)
 {    
   planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
@@ -1803,10 +1830,10 @@ void MotionPlanningFrame::pathConstraintsIndexChanged(int index)
 
 void MotionPlanningFrame::tabChanged(int index)
 {
-  if (scene_marker_ && index != 3)
+  if (scene_marker_ && index != 2)
     scene_marker_.reset();
   else
-    if (index == 3)
+    if (index == 2)
       selectedCollisionObjectChanged();
 }
 
@@ -2068,6 +2095,18 @@ void MotionPlanningFrame::updateGoalPoseMarkers(float wall_dt, float ros_dt)
     it->second.imarker->update(wall_dt);
 }
 
+void MotionPlanningFrame::computeResetDbButtonClicked(const std::string &db)
+{
+  if (db == "Constraints" && constraints_storage_)
+    constraints_storage_->reset();
+  else
+    if (db == "Robot States" && robot_state_storage_)
+      robot_state_storage_->reset();
+    else
+      if (db == "Planning Scenes")
+        planning_scene_storage_->reset();
+}
+
 void MotionPlanningFrame::computePlanButtonClicked(void)
 {
   if (!move_group_)
@@ -2195,7 +2234,8 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
     ui_->database_connect_button->setText(QString::fromStdString("Connect")); 
     ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
     ui_->database_connect_button->setUpdatesEnabled(true); 
-
+    ui_->reset_db_button->hide();
+    
     ui_->load_scene_button->setEnabled(false);
     ui_->load_query_button->setEnabled(false);
     ui_->save_query_button->setEnabled(false);
@@ -2216,16 +2256,18 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
         ui_->database_connect_button->setUpdatesEnabled(false); 
         ui_->database_connect_button->setText(QString::fromStdString("Connect"));   
         ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
-        ui_->database_connect_button->setUpdatesEnabled(true); 
+        ui_->database_connect_button->setUpdatesEnabled(true);
+        ui_->reset_db_button->hide();
       }
       else
         if (mode == 4)
         {
           ui_->database_connect_button->setUpdatesEnabled(false); 
           ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
-          ui_->database_connect_button->setStyleSheet("QPushButton { color : red }");
+          ui_->database_connect_button->setStyleSheet("QPushButton { color : darkBlue }");
           ui_->database_connect_button->setUpdatesEnabled(true); 
           ui_->save_scene_button->setEnabled(true);
+          ui_->reset_db_button->show();
           populatePlanningSceneTreeView();
         }
 }

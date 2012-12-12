@@ -45,8 +45,20 @@ const std::string moveit_warehouse::ConstraintsStorage::ROBOT_NAME = "robot_id";
 moveit_warehouse::ConstraintsStorage::ConstraintsStorage(const std::string &host, const unsigned int port, double wait_seconds) :
   MoveItMessageStorage(host, port, wait_seconds)
 {
-  constraints_collection_.reset(new ConstraintsCollection::element_type(DATABASE_NAME, "constraints", db_host_, db_port_, wait_seconds));
+  createCollections();
   ROS_DEBUG("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
+}
+
+void moveit_warehouse::ConstraintsStorage::createCollections(void)
+{
+  constraints_collection_.reset(new ConstraintsCollection::element_type(DATABASE_NAME, "constraints", db_host_, db_port_, timeout_));
+}
+
+void moveit_warehouse::ConstraintsStorage::reset(void)
+{
+  constraints_collection_.reset();
+  MoveItMessageStorage::drop(DATABASE_NAME);
+  createCollections();  
 }
 
 void moveit_warehouse::ConstraintsStorage::addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot, const std::string &group)
