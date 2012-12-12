@@ -39,6 +39,7 @@
 #ifndef Q_MOC_RUN
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_interaction/robot_interaction.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 #endif
@@ -230,6 +231,7 @@ private:
   void populateStartStatesList();
   void importResource(const std::string &path);
   void computeResetDbButtonClicked(const std::string &db);
+  void computeGoalPoseDoubleClicked(QListWidgetItem * item);
   
   /** Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
@@ -238,11 +240,15 @@ private:
   void switchGoalPoseMarkerSelection(const std::string &marker_name);
 
   /** Creates an interactive marker with the end-effector links */
-  rviz::InteractiveMarker* make6DOFEndEffectorMarker(const std::string& name,
-                                                                  const geometry_msgs::Pose &pose,
-                                                                  double scale,
-                                                                  bool selected = false);
+  boost::shared_ptr<rviz::InteractiveMarker> make6DOFEndEffectorMarker(const std::string& name,
+                                                         const robot_interaction::RobotInteraction::EndEffector &eef,
+                                                         const geometry_msgs::Pose &pose,
+                                                         double scale,
+                                                         bool selected = false);
  
+  void selectItemJob(QListWidgetItem *item, bool flag);
+  void displayMessageBox(const QString &title, const QString &text);
+
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
