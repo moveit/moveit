@@ -343,7 +343,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   
   KDL::Frame pose_desired;
   tf::poseMsgToKDL(ik_pose, pose_desired);
-
+  /*
   ROS_DEBUG_STREAM("searchPositionIK2: Position request pose is " <<
                    ik_pose.position.x << " " <<
                    ik_pose.position.y << " " <<
@@ -352,7 +352,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                    ik_pose.orientation.y << " " << 
                    ik_pose.orientation.z << " " << 
                    ik_pose.orientation.w);
-
+  */
   //Do the IK
   for(unsigned int i=0; i < dimension_; i++)
     jnt_seed_state_(i) = ik_seed_state[i]; 
@@ -361,11 +361,11 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   unsigned int counter(0);  
   while(1)  
   {
-    ROS_DEBUG("Iteration: %d, time: %f, Timeout: %f",counter,(ros::WallTime::now()-n1).toSec(),timeout);    
+    //    ROS_DEBUG("Iteration: %d, time: %f, Timeout: %f",counter,(ros::WallTime::now()-n1).toSec(),timeout);    
     counter++;    
     if(timedOut(n1,timeout))
     {
-      ROS_DEBUG("IK timed out");
+      //      ROS_DEBUG("IK timed out");
       error_code.val = error_code.TIMED_OUT;
       return false;      
     }    
