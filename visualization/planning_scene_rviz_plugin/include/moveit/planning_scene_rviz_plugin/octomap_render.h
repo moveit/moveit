@@ -33,9 +33,7 @@
 #define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_OCTOMAP_RENDER_
 
 #include <vector>
-#include <geometric_shapes/shapes.h>
-
-#include "rviz/ogre_helpers/point_cloud.h"
+#include <rviz/ogre_helpers/point_cloud.h>
 
 namespace octomap
 {
@@ -56,18 +54,17 @@ class OcTreeRender
 {
 
 public:
-  OcTreeRender(const shapes::Shape *shape, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node = NULL);
+  OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node = NULL);
   virtual ~OcTreeRender();
 
 private:
   void setColor( double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
-  void octreeDecoding (boost::shared_ptr<const octomap::OcTree> octree);
+  void octreeDecoding (const boost::shared_ptr<const octomap::OcTree> &octree);
 
   // Ogre-rviz point clouds
   std::vector<rviz::PointCloud*> cloud_;
-
-  const shapes::Shape *shape_;
-
+  boost::shared_ptr<const octomap::OcTree> octree_;
+  
   Ogre::SceneNode* scene_node_;
   Ogre::SceneManager* scene_manager_;
 

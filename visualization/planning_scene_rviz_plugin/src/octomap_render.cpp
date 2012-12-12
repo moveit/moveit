@@ -1,18 +1,43 @@
-#include "moveit/planning_scene_rviz_plugin/octomap_render.h"
+/*
+ * Copyright (c) 2012, Willow Garage, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Willow Garage, Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/* Author: Julius Kammerl */
+
+#include <moveit/planning_scene_rviz_plugin/octomap_render.h>
 
 #include <octomap_msgs/Octomap.h>
-#include <octomap_msgs/GetOctomap.h>
-#include <octomap_msgs/BoundingBoxQuery.h>
-
-//#include <octomap_ros/OctomapROS.h>
 #include <octomap/octomap.h>
-#include <octomap_ros/conversions.h>
-#include <octomap/OcTreeKey.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 
-#include "rviz/ogre_helpers/point_cloud.h"
+#include <rviz/ogre_helpers/point_cloud.h>
 
 namespace moveit_rviz_plugin
 {
@@ -20,11 +45,9 @@ namespace moveit_rviz_plugin
 typedef std::vector<rviz::PointCloud::Point> VPoint;
 typedef std::vector<VPoint> VVPoint;
 
-OcTreeRender::OcTreeRender(const shapes::Shape *shape, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node) :
-    shape_(shape), colorFactor_(0.8)
+OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node) :
+  octree_(octree), colorFactor_(0.8)
 {
-  std::size_t i;
-
   if (!parent_node)
   {
     parent_node = scene_manager_->getRootSceneNode();
@@ -34,7 +57,7 @@ OcTreeRender::OcTreeRender(const shapes::Shape *shape, Ogre::SceneManager* scene
 
   cloud_.resize(16);
 
-  for (i = 0; i < 16; ++i)
+  for (std::size_t i = 0 ; i < 16 ; ++i)
   {
     std::stringstream sname;
     sname << "PointCloud Nr." << i;
@@ -43,19 +66,15 @@ OcTreeRender::OcTreeRender(const shapes::Shape *shape, Ogre::SceneManager* scene
     cloud_[i]->setRenderMode(rviz::PointCloud::RM_BOXES);
     scene_node_->attachObject(cloud_[i]);
   }
-
-  boost::shared_ptr<const octomap::OcTree> octree = static_cast<const shapes::OcTree*>(shape)->octree;
-
+  
   octreeDecoding(octree);
 }
 
-OcTreeRender::~OcTreeRender()
+OcTreeRender::~OcTreeRender(void)
 {
-  std::size_t i;
-
   scene_node_->detachAllObjects();
 
-  for (i = 0; i < 16; ++i)
+  for (std::size_t i = 0 ; i < 16 ; ++i)
   {
     delete cloud_[i];
   }
@@ -109,7 +128,7 @@ void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double co
 }
 
 
-void OcTreeRender::octreeDecoding (boost::shared_ptr<const octomap::OcTree> octree )
+void OcTreeRender::octreeDecoding (const boost::shared_ptr<const octomap::OcTree> &octree )
 {
   VVPoint pointBuf_;
   pointBuf_.resize(16);
@@ -176,11 +195,11 @@ void OcTreeRender::octreeDecoding (boost::shared_ptr<const octomap::OcTree> octr
     }
   }
 
-  for (size_t i=0; i<16; ++i)
+  for (size_t i = 0; i < 16 ; ++i)
   {
     double size = octree->getNodeSize(i+1);
 
-    std::cout<< "Level:" << i << " PS: " << pointBuf_[i].size() << std::endl;
+    //    std::cout<< "Level:" << i << " PS: " << pointBuf_[i].size() << std::endl;
 
     cloud_[i]->clear();
     cloud_[i]->setDimensions( size, size, size );
