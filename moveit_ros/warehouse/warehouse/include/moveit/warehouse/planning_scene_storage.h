@@ -99,7 +99,11 @@ public:
   void removePlanningResults(const std::string &scene_name);
   void removePlanningResults(const std::string &scene_name, const std::string &query_name);
 
+  void reset(void);
+
 private:
+
+  void createCollections(void);
   
   std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
   std::string addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name);

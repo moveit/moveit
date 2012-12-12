@@ -193,6 +193,8 @@ private Q_SLOTS:
   void saveStatesOnDBButtonClicked(void);
   void deleteStatesOnDBButtonClicked(void);
 
+  void resetDbButtonClicked(void);
+  
 private:
 
   void computePlanButtonClicked(void);  
@@ -227,6 +229,7 @@ private:
   void populateGoalPosesList();
   void populateStartStatesList();
   void importResource(const std::string &path);
+  void computeResetDbButtonClicked(const std::string &db);
   
   /** Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);

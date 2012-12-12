@@ -73,8 +73,11 @@ protected:
   /// Keep only the \e names that match \e regex
   void filterNames(const std::string &regex, std::vector<std::string> &names) const;
   
+  void drop(const std::string &db);
+  
   std::string  db_host_;
   unsigned int db_port_;
+  double       timeout_;
 };
 }
 

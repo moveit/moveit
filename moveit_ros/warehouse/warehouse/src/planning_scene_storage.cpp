@@ -44,10 +44,24 @@ const std::string moveit_warehouse::PlanningSceneStorage::MOTION_PLAN_REQUEST_ID
 moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &host, const unsigned int port, double wait_seconds) :
   MoveItMessageStorage(host, port, wait_seconds)
 {
-  planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene", db_host_, db_port_, wait_seconds));
-  motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request", db_host_, db_port_, wait_seconds));
-  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_, wait_seconds));
+  createCollections();
   ROS_DEBUG("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
+}
+
+void moveit_warehouse::PlanningSceneStorage::createCollections(void)
+{
+  planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene", db_host_, db_port_, timeout_));
+  motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request", db_host_, db_port_, timeout_));
+  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_, timeout_));
+}
+
+void moveit_warehouse::PlanningSceneStorage::reset(void)
+{
+  planning_scene_collection_.reset();
+  motion_plan_request_collection_.reset();
+  robot_trajectory_collection_.reset();
+  MoveItMessageStorage::drop(DATABASE_NAME);
+  createCollections();  
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)

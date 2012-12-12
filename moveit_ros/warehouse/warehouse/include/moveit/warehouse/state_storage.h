@@ -73,8 +73,12 @@ public:
   void renameRobotState(const std::string &old_name, const std::string &new_name, const std::string &robot = "");
 
   void removeRobotState(const std::string &name, const std::string &robot = "");
+
+  void reset(void);
   
 private:
+
+  void createCollections(void);
   
   RobotStateCollection state_collection_;
   
