@@ -767,8 +767,10 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointMode
         else if (vjoints[i].type_ == "floating")
           result = new FloatingJointModel(vjoints[i].name_);
         if (result)
-        {
-          model_frame_ = vjoints[i].parent_frame_;
+        {   
+          // for fixed frames we still use the robot root link
+          if (vjoints[i].type_ != "fixed")
+            model_frame_ = vjoints[i].parent_frame_;
           break;
         }
       }
