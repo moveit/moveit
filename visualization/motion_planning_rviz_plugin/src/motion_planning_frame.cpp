@@ -1057,6 +1057,10 @@ void MotionPlanningFrame::populateCollisionObjectsList(void)
       const std::vector<std::string> &collision_object_names = world->getObjectIds();
       for (std::size_t i = 0 ; i < collision_object_names.size() ; ++i)
       {
+        if (collision_object_names[i] == planning_scene::PlanningScene::OCTOMAP_NS ||
+            collision_object_names[i] == planning_scene::PlanningScene::COLLISION_MAP_NS)
+          continue;
+        
         QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(collision_object_names[i]),
                                                     ui_->collision_objects_list, (int)i);
         item->setFlags(item->flags() | Qt::ItemIsEditable);
@@ -1392,6 +1396,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
 void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
 {
   bool checked = item->checkState() == Qt::Checked;
+  std::pair<std::string, bool> data = known_collision_objects_[item->type()];
   moveit_msgs::AttachedCollisionObject aco;
 
   if (checked) // we need to attach a known collision object
@@ -1409,13 +1414,13 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
       return;
     }
     aco.link_name = response.toStdString();
-    aco.object.id = known_collision_objects_[item->type()].first;
+    aco.object.id = data.first;
     aco.object.operation = moveit_msgs::CollisionObject::ADD;
   }
   else // we need to detach an attached object
   { 
     const planning_scene_monitor::LockedPlanningScene &ps = planning_display_->getPlanningScene();
-    const kinematic_state::AttachedBody *attached_body = ps->getCurrentState().getAttachedBody(known_collision_objects_[item->type()].first);
+    const kinematic_state::AttachedBody *attached_body = ps->getCurrentState().getAttachedBody(data.first);
     if (attached_body)
     {
       aco.link_name = attached_body->getAttachedLinkName();
@@ -1425,7 +1430,13 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
   }
   {
     planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
-    known_collision_objects_[item->type()].second = checked;
+    // we loop through the list in case updates were received since the start of the function
+    for (std::size_t i = 0 ; i < known_collision_objects_.size() ; ++i)
+      if (known_collision_objects_[i].first == data.first)
+      {
+        known_collision_objects_[i].second = checked;
+        break;
+      }
     ps->processAttachedCollisionObjectMsg(aco);
   }
   
