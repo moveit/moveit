@@ -10,7 +10,6 @@ qt4_wrap_cpp(MOC_SOURCES ${headers})
 
 qt4_wrap_ui(UIC_FILES
   src/ui/motion_planning_rviz_plugin_frame.ui
-  src/ui/motion_planning_rviz_plugin_attach_dialog.ui
 )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
