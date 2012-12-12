@@ -79,9 +79,12 @@ kinematic_model::KinematicModel::~KinematicModel(void)
 
 namespace kinematic_model
 {
-static bool orderJointsByIndex(const JointModel *a, const JointModel *b)
+namespace
+{
+bool orderJointsByIndex(const JointModel *a, const JointModel *b)
 {
   return a->getTreeIndex() < b->getTreeIndex();
+}
 }
 }
 
