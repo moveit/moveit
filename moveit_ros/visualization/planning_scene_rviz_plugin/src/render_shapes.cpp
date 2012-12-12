@@ -76,8 +76,7 @@ void RenderShapes::clear(void)
 void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha)
 {
   rviz::Shape* ogre_shape = NULL;
-  boost::shared_ptr<OcTreeRender> octree;
-
+  
   switch (s->type)
   {
   case shapes::SPHERE:
@@ -160,8 +159,10 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
     break;
 
   case shapes::OCTREE:
-    octree = boost::shared_ptr<OcTreeRender>(new OcTreeRender(s, context_->getSceneManager(), node));
-    octree_voxel_grids_.push_back(octree);
+    {
+      boost::shared_ptr<OcTreeRender> octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree, context_->getSceneManager(), node));
+      octree_voxel_grids_.push_back(octree);
+    }
     break;
 
   default:
