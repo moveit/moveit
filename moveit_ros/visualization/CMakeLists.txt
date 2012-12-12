@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_visualization)
 
-
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread date_time system filesystem)
 
@@ -25,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   roscpp
   rosconsole
+  octomap_ros
 )
 
 catkin_package(
