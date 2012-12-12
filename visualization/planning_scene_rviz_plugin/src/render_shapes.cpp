@@ -30,6 +30,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_scene_rviz_plugin/render_shapes.h>
+#include <moveit/planning_scene_rviz_plugin/octomap_render.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
@@ -58,21 +59,25 @@ RenderShapes::~RenderShapes(void)
 void RenderShapes::clear(void)
 {
   scene_shapes_.clear();
-  for (std::size_t i = 0 ; i < manual_objects_.size() ; ++i)
-    context_->getSceneManager()->destroyManualObject(manual_objects_[i]);
+  for (std::size_t i = 0 ; i < movable_objects_.size() ; ++i)
+    context_->getSceneManager()->destroyMovableObject(movable_objects_[i]);
 
-  manual_objects_.clear();
+  movable_objects_.clear();
   if (!material_name_.empty())
   {
     material_->unload();
     Ogre::MaterialManager::getSingleton().remove(material_->getName());
     material_name_ = "";
   }
+
+  octree_voxel_grids_.clear();
 }
 
 void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha)
 {
   rviz::Shape* ogre_shape = NULL;
+  boost::shared_ptr<OcTreeRender> octree;
+
   switch (s->type)
   {
   case shapes::SPHERE:
@@ -127,7 +132,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
           }
         }
 
-        std::string name = "Planning Scene Display Mesh " + boost::lexical_cast<std::string>(manual_objects_.size()) + " @" + boost::lexical_cast<std::string>(this);
+        std::string name = "Planning Scene Display Mesh " + boost::lexical_cast<std::string>(movable_objects_.size()) + " @" + boost::lexical_cast<std::string>(this);
         Ogre::ManualObject *manual_object = context_->getSceneManager()->createManualObject(name);
         manual_object->estimateVertexCount(mesh->triangle_count * 3);
         manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);
@@ -149,10 +154,16 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
         }
         manual_object->end();
         node->attachObject(manual_object);
-        manual_objects_.push_back(manual_object);
+        movable_objects_.push_back(manual_object);
       }
     }
     break;
+
+  case shapes::OCTREE:
+    octree = boost::shared_ptr<OcTreeRender>(new OcTreeRender(s, context_->getSceneManager(), node));
+    octree_voxel_grids_.push_back(octree);
+    break;
+
   default:
     break;
   }
