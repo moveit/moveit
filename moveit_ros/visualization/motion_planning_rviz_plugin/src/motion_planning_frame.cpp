@@ -54,6 +54,7 @@
 #include <QShortcut>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
+#include "ui_motion_planning_rviz_plugin_attach_dialog.h"
 
 #include <boost/math/constants/constants.hpp>
 
@@ -138,7 +139,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
 
   ui_->reset_db_button->hide();
   ui_->tabWidget->setCurrentIndex(0);
-
+  
+  known_collision_objects_version_ = 0;
+  
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
@@ -1042,13 +1045,14 @@ void MotionPlanningFrame::populateCollisionObjectsList(void)
   ui_->collision_objects_list->setUpdatesEnabled(false);
   bool oldState = ui_->collision_objects_list->blockSignals(true);  
 
-  { 
+  {
     QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
     std::set<std::string> to_select;
     for (int i = 0 ; i < sel.size() ; ++i)
       to_select.insert(sel[i]->text().toStdString());
     ui_->collision_objects_list->clear();
     known_collision_objects_.clear();
+    known_collision_objects_version_++;
     
     planning_scene_monitor::LockedPlanningScene ps = planning_display_->getPlanningScene();
     if (ps)
@@ -1339,11 +1343,13 @@ void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int co
 }
 
 void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
-{
+{    
+  long unsigned int version = known_collision_objects_version_;
   if (item->text().isEmpty())
   {
     QMessageBox::warning(this, "Invalid object name", "Cannot set an empty object name.");
-    item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
+    if (version == known_collision_objects_version_)
+      item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
     return;
   }
   
@@ -1352,7 +1358,8 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
   { 
     QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
                          append("' already exists. Not renaming object ").append((known_collision_objects_[item->type()].first.c_str())));
-    item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
+    if (version == known_collision_objects_version_)
+      item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
     return;
   }
 
@@ -1394,13 +1401,24 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
 }
 
 void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
-{
+{ 
+  long unsigned int version = known_collision_objects_version_;
   bool checked = item->checkState() == Qt::Checked;
   std::pair<std::string, bool> data = known_collision_objects_[item->type()];
   moveit_msgs::AttachedCollisionObject aco;
 
   if (checked) // we need to attach a known collision object
-  {
+  {  
+    /*
+    QDialog *d = new QDialog(this);
+    Ui::SelectAttachLinkUI *dialog =  new Ui::SelectAttachLinkUI();
+    dialog->setupUi(d);
+    d->exec();
+    */
+
+    //    delete dialog;
+    
+    
     QStringList links;
     const std::vector<std::string> &links_std = planning_display_->getKinematicModel()->getLinkModelNames();
     for (std::size_t i = 0 ; i < links_std.size() ; ++i)
@@ -1410,7 +1428,8 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
                                              links, 0, false, &ok);
     if (!ok)
     {
-      item->setCheckState(Qt::Unchecked);
+      if (version == known_collision_objects_version_)
+        item->setCheckState(Qt::Unchecked);
       return;
     }
     aco.link_name = response.toStdString();

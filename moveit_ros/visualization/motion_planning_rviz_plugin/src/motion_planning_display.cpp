@@ -929,7 +929,7 @@ void MotionPlanningDisplay::updateStateExceptGroup(kinematic_state::KinematicSta
     std::map<std::string, double> values_to_keep;
     jsg->getVariableValues(values_to_keep);
 
-    const std::vector<std::string> &links = jsg->getJointModelGroup()->getLinkModelNames();
+    const std::vector<std::string> &links = jsg->getJointModelGroup()->getUpdatedLinkModelNames();
 
     // remember the attached bodies to keep
     std::vector<AttachedBodyInfo*> ab_to_keep;
