@@ -211,10 +211,10 @@ void kinematic_state::JointStateGroup::getVariableValues(std::vector<double>& jo
   }
 }
 
-bool kinematic_state::JointStateGroup::satisfiesBounds(void) const
+bool kinematic_state::JointStateGroup::satisfiesBounds(double margin) const
 {
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
-    if (!joint_state_vector_[i]->satisfiesBounds())
+    if (!joint_state_vector_[i]->satisfiesBounds(margin))
       return false;
   return true;
 }
