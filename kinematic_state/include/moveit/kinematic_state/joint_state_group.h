@@ -160,7 +160,7 @@ public:
   void setToRandomValuesNearBy(const std::vector<double> &near, const std::vector<double> &distances);  
 
   /** \brief Checks if the current joint state values are all within the bounds set in the model */
-  bool satisfiesBounds(void) const;
+  bool satisfiesBounds(double margin = 0.0) const;
   
   /** \brief Force the joint to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
   void enforceBounds(void);
