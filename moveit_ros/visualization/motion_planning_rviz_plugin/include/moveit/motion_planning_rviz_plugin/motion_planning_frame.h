@@ -251,10 +251,10 @@ private:
   /** Creates an interactive marker with the end-effector links */
   typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
   MsgMarkerPair make6DOFEndEffectorMarker(const std::string& name,
-                                                         const robot_interaction::RobotInteraction::EndEffector &eef,
-                                                         const geometry_msgs::Pose &pose,
-                                                         double scale,
-                                                         bool selected = false);
+                                             const robot_interaction::RobotInteraction::EndEffector &eef,
+                                             const geometry_msgs::Pose &pose,
+                                             double scale,
+                                             bool selected = false);
  
   void selectItemJob(QListWidgetItem *item, bool flag);
   void displayMessageBox(const QString &title, const QString &text);
@@ -265,7 +265,9 @@ private:
   ros::Publisher planning_scene_world_publisher_;
 
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
+  
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
+  long unsigned int known_collision_objects_version_;
   
   EigenSTL::map_string_Affine3d goals_initial_pose_;
 };
