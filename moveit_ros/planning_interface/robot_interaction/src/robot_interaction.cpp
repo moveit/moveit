@@ -211,6 +211,8 @@ double RobotInteraction::computeGroupScale(const std::string &group)
 void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
 { 
   active_vj_.clear();
+
+  ROS_DEBUG("Deciding active virtual joints for group '%s'", group.c_str());
   
   if (group.empty())
     return;
@@ -253,6 +255,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
 {
   active_eef_.clear();
 
+  ROS_DEBUG("Deciding active end-effectors for group '%s'", group.c_str());
+  
   if (group.empty())
     return;
   
@@ -261,7 +265,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   
   if (!jmg || !srdf)
     return;
-
+  
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
   const std::pair<kinematic_model::SolverAllocatorFn, kinematic_model::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
   
@@ -269,7 +273,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   if (smap.first)
   {
     for (std::size_t i = 0 ; i < eef.size() ; ++i)
-      if (jmg->hasLinkModel(eef[i].parent_link_) && jmg->canSetStateFromIK(eef[i].parent_link_))
+      if ((jmg->hasLinkModel(eef[i].parent_link_) || jmg->getName() == eef[i].parent_group_) && jmg->canSetStateFromIK(eef[i].parent_link_))
       {
         // we found an end-effector for the selected group
         EndEffector ee;
@@ -287,7 +291,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
            it != smap.second.end() ; ++it)
       {
         for (std::size_t i = 0 ; i < eef.size() ; ++i)
-          if (it->first->hasLinkModel(eef[i].parent_link_) && it->first->canSetStateFromIK(eef[i].parent_link_))
+          if ((it->first->hasLinkModel(eef[i].parent_link_) || jmg->getName() == eef[i].parent_group_) && it->first->canSetStateFromIK(eef[i].parent_link_))
           {
             // we found an end-effector for the selected group;
             EndEffector ee;
