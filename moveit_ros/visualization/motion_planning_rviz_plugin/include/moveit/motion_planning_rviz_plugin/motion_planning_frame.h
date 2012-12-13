@@ -108,12 +108,21 @@ protected:
   class GoalPoseMarker
   {
   public:
+    visualization_msgs::InteractiveMarker imarker_msg;
     boost::shared_ptr<rviz::InteractiveMarker> imarker;
     bool selected;
+    enum {NOT_TESTED, PROCESSING, REACHABLE, NOT_REACHABLE} reachable;
     
     GoalPoseMarker(): selected(false) {}
-    GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker): imarker(marker), selected(false) {}
-    GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker, bool is_selected): imarker(marker), selected(is_selected) {}
+    GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker, visualization_msgs::InteractiveMarker &msg):
+      imarker(marker), imarker_msg(msg), selected(false), reachable(GoalPoseMarker::NOT_TESTED) {}
+    GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker, visualization_msgs::InteractiveMarker &msg, bool is_selected):
+      imarker(marker), imarker_msg(msg), selected(is_selected), reachable(GoalPoseMarker::NOT_TESTED) {}
+
+    void updateMarker()
+    {
+      imarker->processMessage(imarker_msg);
+    }
   };
   
   typedef std::map<std::string, GoalPoseMarker> GoalPoseMap;
@@ -240,14 +249,16 @@ private:
   void switchGoalPoseMarkerSelection(const std::string &marker_name);
 
   /** Creates an interactive marker with the end-effector links */
-  boost::shared_ptr<rviz::InteractiveMarker> make6DOFEndEffectorMarker(const std::string& name,
-                                                         const robot_interaction::RobotInteraction::EndEffector &eef,
-                                                         const geometry_msgs::Pose &pose,
-                                                         double scale,
-                                                         bool selected = false);
+  typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
+  MsgMarkerPair make6DOFEndEffectorMarker(const std::string& name,
+                                             const robot_interaction::RobotInteraction::EndEffector &eef,
+                                             const geometry_msgs::Pose &pose,
+                                             double scale,
+                                             bool selected = false);
  
   void selectItemJob(QListWidgetItem *item, bool flag);
   void displayMessageBox(const QString &title, const QString &text);
+  void updateMarkerColorFromName(const std::string & name, float r, float g, float b, float a);
 
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
