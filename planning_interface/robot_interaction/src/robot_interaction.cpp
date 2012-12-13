@@ -342,17 +342,15 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     shown_markers_[marker_name] = i;
 
     // Determine interactive maker size
-    if( marker_scale == 0)
-    {
+    if (marker_scale < std::numeric_limits<double>::epsilon())
       marker_scale = active_eef_[i].size;
-    }
-
+    
     visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, marker_scale);
     if (handler && handler->inError(active_eef_[i]))
       addErrorMarker(im);
     int_marker_server_->insert(im);
     int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-    ROS_DEBUG("Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_eef_[i].size);
+    ROS_DEBUG("Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
   }
   
   for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
