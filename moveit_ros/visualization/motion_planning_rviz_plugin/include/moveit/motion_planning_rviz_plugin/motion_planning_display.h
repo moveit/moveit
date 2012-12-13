@@ -169,6 +169,7 @@ private Q_SLOTS:
   void changedQueryStartAlpha();
   void changedQueryGoalAlpha();
   void changedQueryCollidingLinkColor();
+  void changedQueryJointViolationColor();  
   void changedPlanningGroup();
   void changedShowWeightLimit();
   void changedShowManipulabilityIndex();
@@ -247,8 +248,8 @@ protected:
   robot_interaction::RobotInteractionPtr robot_interaction_;
   robot_interaction::RobotInteraction::InteractionHandlerPtr query_start_state_;
   robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
-  std::vector<std::string> collision_links_start_;
-  std::vector<std::string> collision_links_goal_;
+  std::map<std::string, int> collision_links_start_;
+  std::map<std::string, int> collision_links_goal_;
 
   /// The metrics are pairs of name-value for each of the active end effectors, for both start & goal states.
   /// computed_metrics_[std::make_pair(IS_START_STATE, GROUP_NAME)] = a map of key-value pairs
@@ -275,6 +276,7 @@ protected:
   rviz::FloatProperty* query_start_alpha_property_;
   rviz::FloatProperty* query_goal_alpha_property_;
   rviz::ColorProperty* query_colliding_link_color_property_;
+  rviz::ColorProperty* query_outside_joint_limits_link_color_property_;
 
   rviz::BoolProperty* display_path_visual_enabled_property_;
   rviz::BoolProperty* display_path_collision_enabled_property_;
