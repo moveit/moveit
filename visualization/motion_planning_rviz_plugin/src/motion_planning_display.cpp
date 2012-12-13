@@ -174,6 +174,9 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
                                                                   plan_category_,
                                                                   SLOT( changedQueryCollidingLinkColor() ), this );
 
+  query_outside_joint_limits_link_color_property_ = new rviz::ColorProperty( "Joint Violation Color", QColor(255, 0, 255), "The highlight color for child links of joints that are outside bounds",
+                                                                             plan_category_,
+                                                                             SLOT( changedQueryJointViolationColor() ), this );
   // Path category ----------------------------------------------------------------------------------------------------
 
   trajectory_topic_property_ =
@@ -630,15 +633,61 @@ void MotionPlanningDisplay::changedQueryStartState(void)
       query_robot_start_->setVisible(true);
 
       // update link colors
-      getPlanningScene()->getCollidingLinks(collision_links_start_, *getQueryStartState());
+      std::vector<std::string> collision_links;
+      getPlanningScene()->getCollidingLinks(collision_links, *getQueryStartState());
+      collision_links_start_.clear();
+      for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
+        collision_links_start_[collision_links[i]] = 0;
+      
+      const std::vector<kinematic_state::JointState*> &jstates = getQueryStartState()->getJointStateVector();
+      for (std::size_t i = 0 ; i < jstates.size() ; ++i)
+        if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
+          collision_links_start_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
+      
       updateLinkColors();
-
+      
       // update metrics text
       displayMetrics(true);
     }
   }
   else
     query_robot_start_->setVisible(false);
+  context_->queueRender();
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+}
+
+void MotionPlanningDisplay::changedQueryGoalState(void)
+{
+  if (!planning_scene_monitor_)
+    return;
+  if (query_goal_state_property_->getBool())
+  {
+    if (isEnabled())
+    {
+      // update link poses
+      query_robot_goal_->update(getQueryGoalState());
+      query_robot_goal_->setVisible(true);
+
+      // update link colors 
+      std::vector<std::string> collision_links;
+      getPlanningScene()->getCollidingLinks(collision_links, *getQueryGoalState());
+      collision_links_goal_.clear();
+      for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
+        collision_links_goal_[collision_links[i]] = 0;
+
+      const std::vector<kinematic_state::JointState*> &jstates = getQueryGoalState()->getJointStateVector();
+      for (std::size_t i = 0 ; i < jstates.size() ; ++i)
+        if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
+          collision_links_goal_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
+      
+      updateLinkColors();
+
+      // update metrics text
+      displayMetrics(false);
+    }
+  }
+  else
+    query_robot_goal_->setVisible(false);
   context_->queueRender();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
 }
@@ -674,32 +723,6 @@ void MotionPlanningDisplay::changedQueryStartAlpha(void)
   changedQueryStartState();
 }
 
-void MotionPlanningDisplay::changedQueryGoalState(void)
-{
-  if (!planning_scene_monitor_)
-    return;
-  if (query_goal_state_property_->getBool())
-  {
-    if (isEnabled())
-    {
-      // update link poses
-      query_robot_goal_->update(getQueryGoalState());
-      query_robot_goal_->setVisible(true);
-
-      // update link colors
-      getPlanningScene()->getCollidingLinks(collision_links_goal_, *getQueryGoalState());
-      updateLinkColors();
-
-      // update metrics text
-      displayMetrics(false);
-    }
-  }
-  else
-    query_robot_goal_->setVisible(false);
-  context_->queueRender();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
-}
-
 void MotionPlanningDisplay::changedQueryMarkerScale(void)
 {
   if (!planning_scene_monitor_)
@@ -731,6 +754,12 @@ void MotionPlanningDisplay::changedQueryGoalAlpha(void)
 }
 
 void MotionPlanningDisplay::changedQueryCollidingLinkColor(void)
+{
+  changedQueryStartState();
+  changedQueryGoalState();
+}
+
+void MotionPlanningDisplay::changedQueryJointViolationColor(void)
 {
   changedQueryStartState();
   changedQueryGoalState();
@@ -802,10 +831,18 @@ void MotionPlanningDisplay::updateLinkColors(void)
   {
     setGroupColor(&query_robot_start_->getRobot(), group, query_start_color_property_->getColor());
     setGroupColor(&query_robot_goal_->getRobot(), group, query_goal_color_property_->getColor());
-    for (std::size_t i = 0 ; i < collision_links_start_.size() ; ++i)
-      setLinkColor(&query_robot_start_->getRobot(), collision_links_start_[i], query_colliding_link_color_property_->getColor());
-    for (std::size_t i = 0 ; i < collision_links_goal_.size() ; ++i)
-      setLinkColor(&query_robot_goal_->getRobot(), collision_links_goal_[i], query_colliding_link_color_property_->getColor());
+    
+    for (std::map<std::string, int>::const_iterator it = collision_links_start_.begin() ; it != collision_links_start_.end() ; ++it)
+      if (it->second == 0)
+        setLinkColor(&query_robot_start_->getRobot(), it->first, query_colliding_link_color_property_->getColor());
+      else
+        setLinkColor(&query_robot_start_->getRobot(), it->first, query_outside_joint_limits_link_color_property_->getColor());
+
+    for (std::map<std::string, int>::const_iterator it = collision_links_goal_.begin() ; it != collision_links_goal_.end() ; ++it)
+      if (it->second == 0)
+        setLinkColor(&query_robot_goal_->getRobot(), it->first, query_colliding_link_color_property_->getColor());
+      else
+        setLinkColor(&query_robot_goal_->getRobot(), it->first, query_outside_joint_limits_link_color_property_->getColor());
   }
 }
 
