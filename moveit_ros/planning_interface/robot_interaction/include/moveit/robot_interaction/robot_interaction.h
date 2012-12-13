@@ -176,7 +176,7 @@ public:
   
   void clear(void);
   
-  void addInteractiveMarkers(const InteractionHandlerPtr &handler);
+  void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0);
 
   void publishInteractiveMarkers(void);
   void clearInteractiveMarkers(void);
