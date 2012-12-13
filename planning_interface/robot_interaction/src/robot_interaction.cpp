@@ -325,8 +325,10 @@ void RobotInteraction::clearInteractiveMarkers(void)
   int_marker_server_->clear();
 }
 
-void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler)
+void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
 { 
+  // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
+
   //  ros::WallTime start = ros::WallTime::now();
   
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
@@ -338,7 +340,14 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
     std::string marker_name = "EE:" + handler->getName() + "_" + active_eef_[i].parent_link;
     shown_markers_[marker_name] = i;
-    visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, active_eef_[i].size);
+
+    // Determine interactive maker size
+    if( marker_scale == 0)
+    {
+      marker_scale = active_eef_[i].size;
+    }
+
+    visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, marker_scale);
     if (handler && handler->inError(active_eef_[i]))
       addErrorMarker(im);
     int_marker_server_->insert(im);

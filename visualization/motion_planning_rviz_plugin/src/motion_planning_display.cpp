@@ -71,24 +71,24 @@ namespace moveit_rviz_plugin
 MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message,
                                                                               const planning_scene::PlanningSceneConstPtr &scene)
 {
-    start_state_.reset(new kinematic_state::KinematicState(scene->getCurrentState()));
-    kinematic_state::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
-    trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory, *start_state_, scene->getTransforms());
+  start_state_.reset(new kinematic_state::KinematicState(scene->getCurrentState()));
+  kinematic_state::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
+  trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory, *start_state_, scene->getTransforms());
 
-    if (message->trajectory.joint_trajectory.points.size() > message->trajectory.multi_dof_joint_trajectory.points.size())
-        for (std::size_t i = 0 ; i < message->trajectory.joint_trajectory.points.size() ; ++i)
-            time_from_start_.push_back(message->trajectory.joint_trajectory.points[i].time_from_start.toSec());
-    else
-        for (std::size_t i = 0 ; i < message->trajectory.multi_dof_joint_trajectory.points.size() ; ++i)
-            time_from_start_.push_back(message->trajectory.multi_dof_joint_trajectory.points[i].time_from_start.toSec());
+  if (message->trajectory.joint_trajectory.points.size() > message->trajectory.multi_dof_joint_trajectory.points.size())
+    for (std::size_t i = 0 ; i < message->trajectory.joint_trajectory.points.size() ; ++i)
+      time_from_start_.push_back(message->trajectory.joint_trajectory.points[i].time_from_start.toSec());
+  else
+    for (std::size_t i = 0 ; i < message->trajectory.multi_dof_joint_trajectory.points.size() ; ++i)
+      time_from_start_.push_back(message->trajectory.multi_dof_joint_trajectory.points[i].time_from_start.toSec());
 
-    for (int i = (int)time_from_start_.size() - 1 ; i > 0 ; --i)
-        time_from_start_[i] -= time_from_start_[i - 1];
+  for (int i = (int)time_from_start_.size() - 1 ; i > 0 ; --i)
+    time_from_start_[i] -= time_from_start_[i - 1];
 }
 
 MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state,
                                                                               const std::vector<kinematic_state::KinematicStatePtr> &trajectory) :
-    start_state_(start_state), trajectory_(trajectory)
+  start_state_(start_state), trajectory_(trajectory)
 {
 }
 
@@ -106,32 +106,32 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   plan_category_  = new rviz::Property( "Planning Request",   QVariant(), "", this );
   metrics_category_ = new rviz::Property( "Planning Metrics", QVariant(), "", this );
   path_category_  = new rviz::Property( "Planned Path",   QVariant(), "", this );
-  
+
   // Metrics category -----------------------------------------------------------------------------------------
   compute_weight_limit_property_ = new rviz::BoolProperty( "Show Weight Limit", false, "Shows the weight limit at a particular pose for an end-effector",
                                                            metrics_category_,
                                                            SLOT( changedShowWeightLimit() ), this );
-  
+
   show_manipulability_index_property_ = new rviz::BoolProperty( "Show Manipulability Index", false, "Shows the manipulability index for an end-effector",
                                                                 metrics_category_,
                                                                 SLOT( changedShowManipulabilityIndex() ), this );
-  
+
   show_manipulability_property_ = new rviz::BoolProperty( "Show Manipulability", false, "Shows the manipulability for an end-effector",
                                                           metrics_category_,
                                                           SLOT( changedShowManipulability() ), this );
-  
+
   show_joint_torques_property_ = new rviz::BoolProperty( "Show Joint Torques", false, "Shows the joint torques for a given configuration and payload",
                                                          metrics_category_,
                                                          SLOT( changedShowJointTorques() ), this );
-  
+
   metrics_set_payload_property_ =
     new rviz::FloatProperty( "Payload", 1.0f, "Specify the payload at the end effector (kg)",
                              metrics_category_,
                              SLOT( changedMetricsSetPayload() ), this );
   metrics_set_payload_property_->setMin( 0.0 );
-  
+
   // Planning request category -----------------------------------------------------------------------------------------
-  
+
   planning_group_property_ = new rviz::EditableEnumProperty("Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
                                                             plan_category_,
                                                             SLOT( changedPlanningGroup() ), this );
@@ -144,59 +144,63 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   query_goal_state_property_ = new rviz::BoolProperty( "Query Goal State", true, "Shows the goal state for the motion planning query",
                                                        plan_category_,
                                                        SLOT( changedQueryGoalState() ), this );
-  
+  query_marker_scale_property_ = new rviz::FloatProperty( "Interactive Marker Size", 0.20f, "Specifies scale of the interactive marker overlayed on the robot",
+                                                          plan_category_,
+                                                          SLOT( changedQueryMarkerScale() ), this );
+  //query_marker_scale_property_->setMin( 0.1 );
+  //query_marker_scale_property_->setMax( 1.0 );
+
   query_start_color_property_ = new rviz::ColorProperty("Start State Color", QColor(0, 255, 0), "The highlight color for the start state",
                                                         plan_category_,
                                                         SLOT( changedQueryStartColor() ), this);
-  query_start_alpha_property_ =
-    new rviz::FloatProperty( "Start State Alpha", 1.0f, "Specifies the alpha for the robot links",
-                             plan_category_,
-                             SLOT( changedQueryStartAlpha() ), this );
+  query_start_alpha_property_ = new rviz::FloatProperty( "Start State Alpha", 1.0f, "Specifies the alpha for the robot links",
+                                                         plan_category_,
+                                                         SLOT( changedQueryStartAlpha() ), this );
   query_start_alpha_property_->setMin( 0.0 );
   query_start_alpha_property_->setMax( 1.0 );
-  
-  
+
+
   query_goal_color_property_ = new rviz::ColorProperty( "Goal State Color", QColor(250, 128, 0), "The highlight color for the goal state",
                                                         plan_category_,
                                                         SLOT( changedQueryGoalColor() ), this );
-  
+
   query_goal_alpha_property_ =
     new rviz::FloatProperty( "Goal State Alpha", 1.0f, "Specifies the alpha for the robot links",
                              plan_category_,
                              SLOT( changedQueryGoalAlpha() ), this );
   query_goal_alpha_property_->setMin( 0.0 );
   query_goal_alpha_property_->setMax( 1.0 );
-  
+
   query_colliding_link_color_property_ = new rviz::ColorProperty( "Colliding Link Color", QColor(255, 0, 0), "The highlight color for colliding links",
                                                                   plan_category_,
                                                                   SLOT( changedQueryCollidingLinkColor() ), this );
-  
+
   // Path category ----------------------------------------------------------------------------------------------------
-  
+
   trajectory_topic_property_ =
     new rviz::RosTopicProperty( "Trajectory Topic", "/move_group/display_planned_path",
                                 ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
                                 "The topic on which the moveit_msgs::DisplayTrajectory messages are received",
                                 path_category_,
                                 SLOT( changedTrajectoryTopic() ), this );
-  
+
   display_path_visual_enabled_property_ =
     new rviz::BoolProperty( "Show Robot Visual", true, "Indicates whether the geometry of the robot as defined for visualisation purposes should be displayed",
                             path_category_,
                             SLOT( changedDisplayPathVisualEnabled() ), this );
-  
+
   display_path_collision_enabled_property_ =
     new rviz::BoolProperty( "Show Robot Collision", false, "Indicates whether the geometry of the robot as defined for collision detection purposes should be displayed",
                             path_category_,
                             SLOT( changedDisplayPathCollisionEnabled() ), this );
-  
+
   robot_path_alpha_property_ =
     new rviz::FloatProperty( "Robot Alpha", 0.5f, "Specifies the alpha for the robot links",
                              path_category_,
                              SLOT( changedRobotPathAlpha() ), this );
   robot_path_alpha_property_->setMin( 0.0 );
   robot_path_alpha_property_->setMax( 1.0 );
-  
+
   state_display_time_property_ =  new rviz::EditableEnumProperty("State Display Time", "0.05 s", "The amount of wall-time to wait in between displaying states along a received trajectory path",
                                                                  path_category_,
                                                                  SLOT( changedStateDisplayTime() ), this );
@@ -204,12 +208,12 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   state_display_time_property_->addOptionStd("0.05 s");
   state_display_time_property_->addOptionStd("0.1 s");
   state_display_time_property_->addOptionStd("0.5 s");
-  
+
   loop_display_property_ =
     new rviz::BoolProperty( "Loop Animation", false, "Indicates whether the last received path is to be animated in a loop",
                             path_category_,
                             SLOT( changedLoopDisplay() ), this );
-  
+
   trail_display_property_ =
     new rviz::BoolProperty( "Show Trail", false, "Show a path trail",
                             path_category_,
@@ -230,14 +234,14 @@ MotionPlanningDisplay::~MotionPlanningDisplay()
 void MotionPlanningDisplay::onInitialize(void)
 {
   PlanningSceneDisplay::onInitialize();
-  
+
   text_display_scene_node_ = planning_scene_node_->createChildSceneNode();
-  
+
   display_path_robot_.reset(new KinematicStateVisualization(planning_scene_node_, context_, "Planned Path", path_category_));
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   display_path_robot_->setVisible(false);
-  
+
   query_robot_start_.reset(new KinematicStateVisualization(planning_scene_node_, context_, "Planning Request Start", NULL));
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
@@ -245,7 +249,7 @@ void MotionPlanningDisplay::onInitialize(void)
   std_msgs::ColorRGBA color; QColor qcolor = query_start_color_property_->getColor();
   color.r = qcolor.redF(); color.g = qcolor.greenF(); color.b = qcolor.blueF(); color.a = 1.0f;
   query_robot_start_->setDefaultAttachedObjectColor(color);
-  
+
   query_robot_goal_.reset(new KinematicStateVisualization(planning_scene_node_, context_, "Planning Request Goal", NULL ));
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
@@ -253,16 +257,16 @@ void MotionPlanningDisplay::onInitialize(void)
   qcolor = query_goal_color_property_->getColor();
   color.r = qcolor.redF(); color.g = qcolor.greenF(); color.b = qcolor.blueF();
   query_robot_goal_->setDefaultAttachedObjectColor(color);
-  
+
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
   frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : NULL);
   if (window_context)
     frame_dock_ = window_context->addPane("Motion Planning", frame_);
-  
+
   int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
   int_marker_display_->initialize(context_);
   int_marker_display_->subProp("Update Topic")->setValue(QString::fromStdString(robot_interaction::RobotInteraction::INTERACTIVE_MARKER_TOPIC + "/update"));
-  
+
   text_to_display_ = new rviz::MovableText("EMPTY");
   text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
   text_to_display_->setCharacterHeight(0.08);
@@ -279,16 +283,16 @@ void MotionPlanningDisplay::reset(void)
   trajectory_message_to_display_.reset();
   displaying_trajectory_message_.reset();
   animating_path_ = false;
-  
+
   display_path_robot_->clear();
   query_robot_start_->clear();
   query_robot_goal_->clear();
-  
+
   PlanningSceneDisplay::reset();
-  
+
   frame_->disable();
   frame_->enable();
-  
+
   query_robot_start_->setVisible( query_start_state_property_->getBool() );
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
@@ -386,18 +390,18 @@ void MotionPlanningDisplay::displayTable(const std::map<std::string, double> &va
   std::stringstream ss;
   for (std::map<std::string, double>::const_iterator it = values.begin() ; it != values.end() ; ++it)
     ss << boost::format("%-10s %-4.2f") % it->first % it->second << std::endl;
-  
+
   if (ss.str().empty())
   {
     text_to_display_->setVisible(false);
     return;
   }
-  
+
   text_to_display_->setCaption(ss.str());
   text_to_display_->setColor(color);
   text_display_scene_node_->setPosition(pos);
   text_display_scene_node_->setOrientation(orient);
-  
+
   // make sure the node is visible
   text_to_display_->setVisible(true);
 }
@@ -423,7 +427,7 @@ void MotionPlanningDisplay::changedShowTrail(void)
     t = displaying_trajectory_message_;
   if (!t)
     return;
-  
+
   trajectory_trail_.resize(t->trajectory_.size());
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
   {
@@ -452,14 +456,14 @@ void MotionPlanningDisplay::renderWorkspaceBox(void)
       workspace_box_.reset();
     return;
   }
-  
+
   if (!workspace_box_)
   {
     workspace_box_.reset(new rviz::Shape(rviz::Shape::Cube,
                                          context_->getSceneManager(), planning_scene_node_));
     workspace_box_->setColor(0.0f, 0.0f, 0.6f, 0.3f);
   }
-  
+
   Ogre::Vector3 center(frame_->ui_->wcenter_x->value(),
                        frame_->ui_->wcenter_y->value(),
                        frame_->ui_->wcenter_z->value());
@@ -512,7 +516,7 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
   std::map<std::string, dynamics_solver::DynamicsSolverPtr>::const_iterator it = dynamics_solver_.find(ee.parent_group);
   if (it != dynamics_solver_.end())
     ds = it->second;
-  
+
   // Max payload
   if (ds)
   {
@@ -537,7 +541,7 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
       }
     }
   }
-  
+
   if (kinematics_metrics_)
   {
     double manipulability_index, manipulability;
@@ -562,10 +566,10 @@ void MotionPlanningDisplay::displayMetrics(bool start)
 {
   if (!robot_interaction_ || !planning_scene_monitor_)
     return;
-  
+
   static const Ogre::Quaternion orientation( 1.0, 0.0, 0.0, 0.0 );
   const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
-  
+
   for (std::size_t i = 0 ; i < eef.size() ; ++i)
   {
     Ogre::Vector3 position(0.0, 0.0, 0.0);
@@ -590,7 +594,7 @@ void MotionPlanningDisplay::displayMetrics(bool start)
         copyItemIfExists(metrics_table, text_table, stream.str());
       }
     }
-    
+
     const kinematic_state::LinkState *ls = NULL;
     const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(eef[i].parent_group);
     if (jmg)
@@ -617,7 +621,7 @@ void MotionPlanningDisplay::changedQueryStartState(void)
 {
   if (!planning_scene_monitor_)
     return;
-  
+
   if (query_start_state_property_->getBool())
   {
     if (isEnabled())
@@ -625,11 +629,11 @@ void MotionPlanningDisplay::changedQueryStartState(void)
       // update link poses
       query_robot_start_->update(getQueryStartState());
       query_robot_start_->setVisible(true);
-      
+
       // update link colors
       getPlanningScene()->getCollidingLinks(collision_links_start_, *getQueryStartState());
       updateLinkColors();
-      
+
       // update metrics text
       displayMetrics(true);
     }
@@ -646,9 +650,9 @@ void MotionPlanningDisplay::publishInteractiveMarkers(void)
   {
     robot_interaction_->clearInteractiveMarkers();
     if (query_start_state_property_->getBool())
-      robot_interaction_->addInteractiveMarkers(query_start_state_);
+      robot_interaction_->addInteractiveMarkers(query_start_state_, query_marker_scale_property_->getFloat());
     if (query_goal_state_property_->getBool())
-      robot_interaction_->addInteractiveMarkers(query_goal_state_);
+      robot_interaction_->addInteractiveMarkers(query_goal_state_, query_marker_scale_property_->getFloat());
     robot_interaction_->publishInteractiveMarkers();
   }
 }
@@ -682,11 +686,11 @@ void MotionPlanningDisplay::changedQueryGoalState(void)
       // update link poses
       query_robot_goal_->update(getQueryGoalState());
       query_robot_goal_->setVisible(true);
-      
+
       // update link colors
       getPlanningScene()->getCollidingLinks(collision_links_goal_, *getQueryGoalState());
       updateLinkColors();
-      
+
       // update metrics text
       displayMetrics(false);
     }
@@ -695,6 +699,18 @@ void MotionPlanningDisplay::changedQueryGoalState(void)
     query_robot_goal_->setVisible(false);
   context_->queueRender();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+}
+
+void MotionPlanningDisplay::changedQueryMarkerScale(void)
+{
+  if (!planning_scene_monitor_)
+    return;
+
+  if (isEnabled())
+  {
+    // Clear the interactive markers and re-add them:
+    publishInteractiveMarkers();
+  }
 }
 
 void MotionPlanningDisplay::changedQueryGoalColor(void)
@@ -802,7 +818,7 @@ void MotionPlanningDisplay::changedPlanningGroup(void)
       planning_group_property_->setStdString("");
       return;
     }
-  
+
   if (robot_interaction_)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
   computeMetrics(metrics_set_payload_property_->getFloat());
@@ -861,12 +877,12 @@ void MotionPlanningDisplay::changedDisplayPathCollisionEnabled()
 void MotionPlanningDisplay::onRobotModelLoaded(void)
 {
   PlanningSceneDisplay::onRobotModelLoaded();
-  
+
   robot_interaction_.reset(new robot_interaction::RobotInteraction(getKinematicModel()));
   display_path_robot_->load(*getKinematicModel()->getURDF());
   query_robot_start_->load(*getKinematicModel()->getURDF());
   query_robot_goal_->load(*getKinematicModel()->getURDF());
-  
+
   kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(getPlanningScene()->getCurrentState()));
   query_start_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("start", *ks, planning_scene_monitor_->getTFClient()));
   query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
@@ -874,29 +890,29 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::updateQueryGoalState, this, _1));
   query_start_state_->setIKValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
   query_goal_state_->setIKValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
-  
+
   if (!planning_group_property_->getStdString().empty())
     if (!getKinematicModel()->hasJointModelGroup(planning_group_property_->getStdString()))
       planning_group_property_->setStdString("");
-  
-  const std::vector<std::string> &groups = getKinematicModel()->getJointModelGroupNames(); 
+
+  const std::vector<std::string> &groups = getKinematicModel()->getJointModelGroupNames();
   planning_group_property_->clearOptions();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     planning_group_property_->addOptionStd(groups[i]);
   planning_group_property_->sortOptions();
   if (!groups.empty() && planning_group_property_->getStdString().empty())
     planning_group_property_->setStdString(groups[0]);
-  
+
   robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
-  
+
   kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(getKinematicModel()));
   computeMetrics(metrics_set_payload_property_->getFloat());
-  
+
   geometry_msgs::Vector3 gravity_vector;
   gravity_vector.x = 0.0;
   gravity_vector.y = 0.0;
   gravity_vector.z = 9.81;
-  
+
   dynamics_solver_.clear();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     if (getKinematicModel()->getJointModelGroup(groups[i])->isChain())
@@ -912,7 +928,7 @@ namespace
 struct AttachedBodyInfo
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  
+
   std::string link;
   std::string id;
   std::vector<shapes::ShapeConstPtr> shapes;
@@ -929,9 +945,9 @@ void MotionPlanningDisplay::updateStateExceptGroup(kinematic_state::KinematicSta
     // remember the joint values for the group that should not be updated
     std::map<std::string, double> values_to_keep;
     jsg->getVariableValues(values_to_keep);
-    
+
     const std::vector<std::string> &links = jsg->getJointModelGroup()->getUpdatedLinkModelNames();
-    
+
     // remember the attached bodies to keep
     std::vector<AttachedBodyInfo*> ab_to_keep;
     for (std::size_t i = 0 ; i < links.size() ; ++i)
@@ -953,13 +969,13 @@ void MotionPlanningDisplay::updateStateExceptGroup(kinematic_state::KinematicSta
         }
       }
     }
-    
+
     // overwrite the destination state
     dest = src;
-    
+
     // restore the joint values we want to keep
     dest.setStateValues(values_to_keep);
-    
+
     // clear the attached bodies that may have been copied over, for the group we know
     for (std::size_t i = 0 ; i < links.size() ; ++i)
     {
@@ -967,7 +983,7 @@ void MotionPlanningDisplay::updateStateExceptGroup(kinematic_state::KinematicSta
       if (ls)
         ls->clearAttachedBodies();
     }
-    
+
     // set the attached bodies we wanted to keep
     for (std::size_t i = 0 ; i < ab_to_keep.size() ; ++i)
     {
@@ -984,19 +1000,19 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor:
   PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
   kinematic_state::KinematicState ks = getPlanningScene()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
-  
+
   if (query_start_state_property_->getBool() && !group.empty())
   {
     updateStateExceptGroup(*getQueryStartState(), ks, group);
     updateQueryStartState();
   }
-  
+
   if (query_goal_state_property_->getBool() && !group.empty())
   {
     updateStateExceptGroup(*getQueryGoalState(), ks, group);
     updateQueryGoalState();
   }
-  
+
   if (frame_)
     frame_->sceneUpdate(update_type);
 }
@@ -1007,7 +1023,7 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor:
 void MotionPlanningDisplay::onEnable()
 {
   PlanningSceneDisplay::onEnable();
-  
+
   display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   display_path_robot_->setVisible(displaying_trajectory_message_);
@@ -1017,15 +1033,15 @@ void MotionPlanningDisplay::onEnable()
     trajectory_trail_[i]->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
     trajectory_trail_[i]->setVisible(true);
   }
-  
+
   text_to_display_->setVisible(false);
-  
+
   query_robot_start_->setVisible(query_start_state_property_->getBool());
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
   frame_->enable();
-  
+
   int_marker_display_->setEnabled(true);
-  
+
   changedPlanningGroup();
   changedTrajectoryTopic(); // load topic at startup if default used
 }
@@ -1037,17 +1053,17 @@ void MotionPlanningDisplay::onDisable()
 {
   robot_interaction_->clear();
   int_marker_display_->setEnabled(false);
-  
+
   display_path_robot_->setVisible(false);
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
     trajectory_trail_[i]->setVisible(false);
   displaying_trajectory_message_.reset();
-  
+
   query_robot_start_->setVisible(false);
   query_robot_goal_->setVisible(false);
   frame_->disable();
   text_to_display_->setVisible(false);
-  
+
   PlanningSceneDisplay::onDisable();
 }
 
@@ -1111,21 +1127,21 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
   int_marker_display_->update(wall_dt, ros_dt);
   frame_->updateSceneMarkers(wall_dt, ros_dt);
   frame_->updateGoalPoseMarkers(wall_dt, ros_dt);
-  
+
   Display::update(wall_dt, ros_dt);
-  
+
   executeMainLoopJobs();
-  
+
   if (!planning_scene_monitor_)
     return;
-  
+
   if (!animating_path_ && !trajectory_message_to_display_ && loop_display_property_->getBool() && displaying_trajectory_message_)
   {
     animating_path_ = true;
     current_state_ = -1;
     current_state_time_ = std::numeric_limits<float>::infinity();
   }
-  
+
   if (!animating_path_ && trajectory_message_to_display_)
   {
     planning_scene_monitor_->updateFrameTransforms();
@@ -1137,7 +1153,7 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     current_state_time_ = std::numeric_limits<float>::infinity();
     display_path_robot_->update(displaying_trajectory_message_->start_state_);
   }
-  
+
   if (animating_path_)
   {
     float tm = getStateDisplayTime();
@@ -1159,14 +1175,14 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     }
     current_state_time_ += wall_dt;
   }
-  
+
   current_scene_time_ += wall_dt;
   if (current_scene_time_ > scene_display_time_property_->getFloat())
   {
     renderPlanningScene();
     current_scene_time_ = 0.0f;
   }
-  
+
   renderWorkspaceBox();
 }
 
@@ -1211,12 +1227,12 @@ void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::Display
     if (msg->model_id != getKinematicModel()->getName())
       ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
                msg->model_id.c_str(), getKinematicModel()->getName().c_str());
-  
+
   {
     const planning_scene_monitor::LockedPlanningScene &ps = getPlanningScene();
     trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, ps));
   }
-  
+
   if (trail_display_property_->getBool())
     changedShowTrail();
 }
