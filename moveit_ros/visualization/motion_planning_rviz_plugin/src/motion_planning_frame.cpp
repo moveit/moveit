@@ -1040,6 +1040,7 @@ void MotionPlanningFrame::copySelectedCollisionObject(void)
     world->addToObject(name, obj->shapes_, obj->shape_poses_);
     ROS_DEBUG("Copied collision object to '%s'", name.c_str());
   }
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
 
 void MotionPlanningFrame::changePlanningGroupHelper(void)
