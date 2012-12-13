@@ -167,8 +167,8 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
   if(has_sub_groups_)
   {   
     result = kinematic_state.getJointStateGroup(group_name_)->setFromIK(goals, ik_link_names, 
-                                                                         ik_attempts_, request.timeout_.toSec(), 
-                                                                         constraint_callback_fn);
+                                                                        ik_attempts_, request.timeout_.toSec(), 
+                                                                        constraint_callback_fn);
   }
   else
   {
@@ -198,7 +198,7 @@ bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::Plannin
                                                    const std::vector<double> &joint_group_variable_values) const
 {
   joint_state_group->setVariableValues(joint_group_variable_values);  
-
+  
   // Now check for collisions
   if(request.check_for_collisions_)
   {
@@ -208,6 +208,7 @@ bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::Plannin
     planning_scene->checkCollision(collision_request, collision_result, *joint_state_group->getKinematicState());    
     if(collision_result.collision)
     {
+      logDebug("IK solution is in collision");      
       response.error_code_.val = response.error_code_.GOAL_IN_COLLISION;
       return false;      
     }    

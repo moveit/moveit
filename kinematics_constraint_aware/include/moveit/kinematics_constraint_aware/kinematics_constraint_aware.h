@@ -80,10 +80,6 @@ class KinematicsConstraintAware
    */
   KinematicsConstraintAware(const kinematic_model::KinematicModelConstPtr &kinematic_model,
                             const std::string &group_name);
-
-  ~KinematicsConstraintAware()
-  {
-  }
   
   /** @brief Solve the planning problem
    * @param planning_scene A const reference to the planning scene
@@ -104,7 +100,18 @@ class KinematicsConstraintAware
   bool getIK(const planning_scene::PlanningSceneConstPtr &planning_scene,
              const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
              moveit_msgs::GetConstraintAwarePositionIK::Response &response) const;
-    
+
+  const std::string& getGroupName() const
+  {
+    return group_name_;
+  }  
+  
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  {
+    return kinematic_model_;
+  }
+  
+  
 private:
 
   std::vector<Eigen::Affine3d> transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
