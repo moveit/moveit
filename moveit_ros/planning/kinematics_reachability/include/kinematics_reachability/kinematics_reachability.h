@@ -54,7 +54,7 @@
 #include <geometry_msgs/Point.h>
 
 // MoveIt!
-#include <kinematics_planner_ros/kinematics_solver_ros.h>
+#include <kinematics_constraint_aware/kinematics_constraint_aware.h>
 #include <kinematics_cache/kinematics_cache.h>
 
 #include <planning_models/kinematic_state.h>
@@ -266,7 +266,7 @@ private:
   double default_cache_timeout_,kinematics_solver_timeout_;
   int max_fk_points_;
   kinematics_cache::KinematicsCachePtr kinematics_cache_;
-  kinematics_planner_ros::KinematicsSolverROS kinematics_solver_;
+  kinematics_constraint_aware::KinematicsConstraintAwarePtr kinematics_solver_;
   kinematics_cache::KinematicsCache::Options default_cache_options_;
   std_msgs::ColorRGBA reachable_color_, unreachable_color_, evaluating_color_, default_manipulability_color_, default_orientation_color_;
   

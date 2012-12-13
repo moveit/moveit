@@ -42,7 +42,10 @@ namespace kinematics_reachability
 
 const static unsigned int ARROW_MARKER_OFFSET = 4;
 
-KinematicsReachability::KinematicsReachability():node_handle_("~")
+KinematicsReachability::KinematicsReachability(const kinematics_constraint_aware::KinematicsConstraintAwarePtr &kinematics_solver,
+                                               const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor) : node_handle_("~"), 
+                                                                                                                             kinematics_solver_(kinematics_solver), 
+                                                                                                                             planning_scene_monitor_(planning_scene_monitor)
 {
 }
 
@@ -60,17 +63,6 @@ bool KinematicsReachability::initialize()
   progress_publisher_ = node_handle_.advertise<kinematics_reachability::Progress>("planner_progress", 0, false);
   tool_offset_.setIdentity();
   tool_offset_inverse_.setIdentity();
-  if(!kinematics_solver_.initialize())
-  {
-    ROS_ERROR("Could not initialize solver");  
-    return false;    
-  }
-
-  while(!kinematics_solver_.isActive())
-  {
-    ros::Duration sleep_wait(1.0);
-    sleep_wait.sleep();
-  }
   
   node_handle_.param("cache_origin/x", default_cache_options_.origin.x, 0.0);
   node_handle_.param("cache_origin/y", default_cache_options_.origin.y, 0.0);
@@ -114,6 +106,7 @@ bool KinematicsReachability::initialize()
 
   first_time_ = true;  
   use_cache_ = false;  
+
   ROS_INFO("Initialized: Waiting for request");  
   return true;  
 }
@@ -163,15 +156,14 @@ bool KinematicsReachability::computeWorkspace(kinematics_reachability::Workspace
 bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::WorkspacePoints &workspace,
                                                 double timeout)
 {
-  if(!kinematics_solver_.getKinematicsSolver(workspace.group_name))
+  if(workspace.group_name != kinematics_solver_->getGroupName())
   {
-    ROS_ERROR("Could not find group: %s",workspace.group_name.c_str());
+    ROS_ERROR("This solver is not configured for: %s",workspace.group_name.c_str());
     return false;    
   }
   
-  std::map<std::string,kinematics::KinematicsBaseConstPtr> my_solver_map = kinematics_solver_.getKinematicsSolver(workspace.group_name)->getKinematicsSolverMap();
-  kinematics::KinematicsBaseConstPtr my_solver = my_solver_map.find(workspace.group_name)->second;  
   ros::WallTime start_time = ros::WallTime::now();  
+
   std::vector<std::string> fk_names;
   std::vector<double> fk_values;  
   std::vector<geometry_msgs::Pose> poses;    
@@ -180,7 +172,7 @@ bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::Workspa
   fk_values.resize(my_solver->getJointNames().size(),0.0);
   poses.resize(1);    
 
-  planning_models::KinematicState kinematic_state = kinematics_solver_.getPlanningSceneMonitor()->getPlanningScene()->getCurrentState();
+  planning_models::KinematicState kinematic_state = planning_scene_monitor_->getPlanningScene()->getCurrentState();
   planning_models::KinematicState::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(workspace.group_name);  
 
   moveit_msgs::MoveItErrorCodes error_code;
@@ -413,7 +405,7 @@ void KinematicsReachability::findIK(const std::string &group_name,
       return;      
     }       
   }        
-  kinematics_solver_.getIK(request,response);
+  kinematics_solver_->getIK(request,response);
   error_code = response.error_code;
   robot_state = response.solution;  
 }
