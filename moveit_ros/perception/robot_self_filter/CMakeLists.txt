@@ -1,5 +1,9 @@
 set(MOVEIT_LIB_NAME moveit_robot_self_filter)
 
+# this is needed temporarily to suppress warnings due to a known
+# bug in PCL: http://www.pcl-users.org/warning-SHOT-is-deprecated-td4020565.html
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+
 add_library(${MOVEIT_LIB_NAME} src/self_mask.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
