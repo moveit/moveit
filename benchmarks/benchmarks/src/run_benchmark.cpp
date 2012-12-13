@@ -35,8 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <ros/ros.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/planning_models_loader/kinematic_model_loader.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <pluginlib/class_loader.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
@@ -59,58 +58,50 @@ class BenchmarkService
 {
 public:
   
-  BenchmarkService(void) : kml_(ROBOT_DESCRIPTION)
+  BenchmarkService(void) : scene_monitor_(ROBOT_DESCRIPTION)
   {
     // initialize a planning scene
     
-    if (kml_.getModel())
+    if (scene_monitor_.getPlanningScene())
     {
-      scene_.reset(new planning_scene::PlanningScene());
-      scene_->configure(kml_.getURDF(), kml_.getSRDF() ? kml_.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()), kml_.getModel());
-      if (scene_->isConfigured())
+      // load the planning plugins
+      try
       {
-        cscene_ = scene_;		
-        // load the planning plugins
+        planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
+      }
+      catch(pluginlib::PluginlibException& ex)
+      {
+        ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
+      }
+      
+      const std::vector<std::string> &classes = planner_plugin_loader_->getDeclaredClasses();
+      for (std::size_t i = 0 ; i < classes.size() ; ++i)
+      {
+        ROS_INFO("Attempting to load and configure %s", classes[i].c_str());
         try
         {
-          planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
+          boost::shared_ptr<planning_interface::Planner> p = planner_plugin_loader_->createInstance(classes[i]);
+          p->init(scene_monitor_.getKinematicModel());
+          planner_interfaces_[classes[i]] = p;
         }
-        catch(pluginlib::PluginlibException& ex)
+        catch (pluginlib::PluginlibException& ex)
         {
-          ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
-        }
-	
-        const std::vector<std::string> &classes = planner_plugin_loader_->getDeclaredClasses();
-        for (std::size_t i = 0 ; i < classes.size() ; ++i)
-        {
-          ROS_INFO("Attempting to load and configure %s", classes[i].c_str());
-          try
-          {
-            boost::shared_ptr<planning_interface::Planner> p = planner_plugin_loader_->createInstance(classes[i]);
-            p->init(scene_->getKinematicModel());
-            planner_interfaces_[classes[i]] = p;
-          }
-          catch (pluginlib::PluginlibException& ex)
-          {
-            ROS_ERROR_STREAM("Exception while loading planner '" << classes[i] << "': " << ex.what());
-          }
-        }
-	
-        if (planner_interfaces_.empty())
-          ROS_ERROR("No planning plugins have been loaded. Nothing to do for the benchmarking service.");
-        else
-        {
-          std::stringstream ss;
-          for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
-               it != planner_interfaces_.end(); ++it)
-            ss << it->first << " ";
-          ROS_INFO("Available planner instances: %s", ss.str().c_str());
-          benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &BenchmarkService::computeBenchmark, this);
-          query_service_ = nh_.advertiseService(QUERY_SERVICE_NAME, &BenchmarkService::queryInterfaces, this);
+          ROS_ERROR_STREAM("Exception while loading planner '" << classes[i] << "': " << ex.what());
         }
       }
+      
+      if (planner_interfaces_.empty())
+        ROS_ERROR("No planning plugins have been loaded. Nothing to do for the benchmarking service.");
       else
-        ROS_ERROR("Unable to configure planning scene");
+      {
+        std::stringstream ss;
+        for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
+             it != planner_interfaces_.end(); ++it)
+          ss << it->first << " ";
+        ROS_INFO("Available planner instances: %s", ss.str().c_str());
+        benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &BenchmarkService::computeBenchmark, this);
+        query_service_ = nh_.advertiseService(QUERY_SERVICE_NAME, &BenchmarkService::queryInterfaces, this);
+      }
     }
     else
       ROS_ERROR("Unable to construct planning model for parameter %s", ROBOT_DESCRIPTION.c_str());
@@ -148,7 +139,8 @@ public:
         smoothness = 0.0;
         std::vector<kinematic_state::KinematicStatePtr> p;
         trajectory_processing::convertToKinematicStates(p, mp_res.trajectory_start, mp_res.trajectory[j],
-                                                        scene_->getCurrentState(), scene_->getTransforms());
+                                                        scene_monitor_.getPlanningScene()->getCurrentState(),
+                                                        scene_monitor_.getPlanningScene()->getTransforms());
         
         // compute path length
         for (std::size_t k = 1 ; k < p.size() ; ++k)
@@ -159,12 +151,12 @@ public:
         for (std::size_t k = 0 ; k < p.size() ; ++k)
         {
           collision_detection::CollisionResult res;
-          scene_->checkCollisionUnpadded(req, res, *p[k]);
+          scene_monitor_.getPlanningScene()->checkCollisionUnpadded(req, res, *p[k]);
           if (res.collision)
             correct = false;
           if (!p[k]->satisfiesBounds())
             correct = false;
-          double d = scene_->distanceToCollisionUnpadded(*p[k]);
+          double d = scene_monitor_.getPlanningScene()->distanceToCollisionUnpadded(*p[k]);
           if (d > 0.0) // in case of collision, distance is negative
             clearance += d;
         }
@@ -307,19 +299,19 @@ public:
     
     // configure planning context
     
-    if (req.scene.robot_model_name != scene_->getKinematicModel()->getName())
+    if (req.scene.robot_model_name != scene_monitor_.getKinematicModel()->getName())
     {
       // if we have a different robot, use the world geometry only
       
       // clear all geometry from the scene
-      scene_->getCollisionWorld()->clearObjects();
-      scene_->getCurrentState().clearAttachedBodies();
-      scene_->getCurrentState().setToDefaultValues();
+      scene_monitor_.getPlanningScene()->getCollisionWorld()->clearObjects();
+      scene_monitor_.getPlanningScene()->getCurrentState().clearAttachedBodies();
+      scene_monitor_.getPlanningScene()->getCurrentState().setToDefaultValues();
       
-      scene_->processPlanningSceneWorldMsg(req.scene.world);
+      scene_monitor_.getPlanningScene()->processPlanningSceneWorldMsg(req.scene.world);
     }
     else
-      scene_->usePlanningSceneMsg(req.scene);
+      scene_monitor_.getPlanningScene()->usePlanningSceneMsg(req.scene);
     
     res.responses.resize(planner_interfaces_to_benchmark.size());
 
@@ -349,7 +341,7 @@ public:
           ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.motion_plan_request.planner_id.c_str());
           moveit_msgs::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
-          bool solved = planner_interfaces_to_benchmark[i]->solve(cscene_, mp_req, mp_res);
+          bool solved = planner_interfaces_to_benchmark[i]->solve(scene_monitor_.getPlanningScene(), mp_req, mp_res);
           double total_time = (ros::WallTime::now() - start).toSec();
           
           // collect data   
@@ -373,7 +365,7 @@ public:
     std::string host = getHostname();
     res.filename = req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log") : req.filename;
     std::ofstream out(res.filename.c_str());
-    out << "Experiment " << (cscene_->getName().empty() ? "NO_NAME" : cscene_->getName()) << std::endl;
+    out << "Experiment " << (scene_monitor_.getPlanningScene()->getName().empty() ? "NO_NAME" : scene_monitor_.getPlanningScene()->getName()) << std::endl;
     out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
     out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
@@ -441,9 +433,7 @@ private:
   }
   
   ros::NodeHandle nh_;
-  planning_models_loader::KinematicModelLoader kml_;
-  planning_scene::PlanningScenePtr scene_;
-  planning_scene::PlanningSceneConstPtr cscene_;
+  planning_scene_monitor::PlanningSceneMonitor scene_monitor_;
   boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
   std::map<std::string, boost::shared_ptr<planning_interface::Planner> > planner_interfaces_;
   ros::ServiceServer benchmark_service_;
