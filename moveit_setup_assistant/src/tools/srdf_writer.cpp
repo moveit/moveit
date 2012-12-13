@@ -321,7 +321,8 @@ void SRDFWriter::createEndEffectorsXML( TiXmlElement *root )
     effector->SetAttribute("name", effector_it->name_ );
     effector->SetAttribute("parent_link", effector_it->parent_link_ );
     effector->SetAttribute("group", effector_it->component_group_ );
-
+    if (!effector_it->parent_group_.empty())
+      effector->SetAttribute("parent_group", effector_it->parent_group_ );
     root->LinkEndChild( effector );
   }
 }
