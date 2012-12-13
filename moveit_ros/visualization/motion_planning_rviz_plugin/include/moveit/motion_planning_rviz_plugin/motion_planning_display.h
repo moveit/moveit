@@ -163,6 +163,7 @@ private Q_SLOTS:
   void changedTrajectoryTopic();
   void changedQueryStartState();
   void changedQueryGoalState();
+  void changedQueryMarkerScale();
   void changedQueryStartColor();
   void changedQueryGoalColor();
   void changedQueryStartAlpha();
@@ -268,6 +269,7 @@ protected:
   rviz::EditableEnumProperty* planning_group_property_;
   rviz::BoolProperty* query_start_state_property_;
   rviz::BoolProperty* query_goal_state_property_;
+  rviz::FloatProperty* query_marker_scale_property_;
   rviz::ColorProperty* query_start_color_property_;
   rviz::ColorProperty* query_goal_color_property_;  
   rviz::FloatProperty* query_start_alpha_property_;
