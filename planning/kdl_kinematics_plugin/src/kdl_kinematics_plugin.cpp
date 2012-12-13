@@ -365,7 +365,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     counter++;    
     if(timedOut(n1,timeout))
     {
-      //      ROS_DEBUG("IK timed out");
+      ROS_DEBUG("IK timed out");
       error_code.val = error_code.TIMED_OUT;
       return false;      
     }    
@@ -374,14 +374,17 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     {
       getRandomConfiguration(jnt_seed_state_, consistency_limits, jnt_pos_in_);
       if(ik_valid < 0 || !checkConsistency(jnt_seed_state_, consistency_limits, jnt_pos_out_))
+      {
+        ROS_DEBUG("Could not find IK solution\n");        
         continue;
+      } 
     }
     else
     {
       getRandomConfiguration(jnt_pos_in_);
       if(ik_valid < 0)
       {
-        ROS_DEBUG("Could not find IK solution");        
+        ROS_DEBUG("Could not find IK solution\n");        
         continue;
       }      
     }
