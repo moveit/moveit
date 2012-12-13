@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_planning)
 
+set(MSG_DEPS
+  std_msgs
+  actionlib_msgs
+  sensor_msgs
+  geometry_msgs
+  shape_msgs
+  moveit_msgs)
+
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time program_options signals thread)
 find_package(catkin REQUIRED COMPONENTS
@@ -16,7 +24,17 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   tf
   tf_conversions
+  genmsg 
+  ${MSG_DEPS}
 )
+
+set(MSG_FILES
+Progress.msg
+WorkspacePoint.msg
+WorkspacePoints.msg)
+
+add_message_files(DIRECTORY kinematics_reachability/msg FILES ${MSG_FILES})
+generate_messages(DEPENDENCIES ${MSG_DEPS})
 
 generate_dynamic_reconfigure_options("planning_scene_monitor/cfg/PublishSceneDR.cfg")
 generate_dynamic_reconfigure_options("plan_execution/cfg/PlanExecutionParamsDR.cfg")
@@ -30,6 +48,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     trajectory_execution_manager/include
     plan_execution/include
     kdl_kinematics_plugin/include
+    kinematics_reachability/include
 )
 
 catkin_package(
@@ -74,6 +93,7 @@ add_subdirectory(planning_scene_monitor_tools)
 add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
 add_subdirectory(move_group)
+add_subdirectory(kinematics_reachability)
 
 install(
   FILES

@@ -35,7 +35,7 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#include <kinematics_reachability/kinematics_reachability.h>
+#include <moveit/kinematics_reachability/kinematics_reachability.h>
 
 namespace kinematics_reachability
 {
@@ -44,8 +44,8 @@ const static unsigned int ARROW_MARKER_OFFSET = 4;
 
 KinematicsReachability::KinematicsReachability(const kinematics_constraint_aware::KinematicsConstraintAwarePtr &kinematics_solver,
                                                const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor) : node_handle_("~"), 
-                                                                                                                             kinematics_solver_(kinematics_solver), 
-                                                                                                                             planning_scene_monitor_(planning_scene_monitor)
+                                                                                                                                kinematics_solver_(kinematics_solver), 
+                                                                                                                                planning_scene_monitor_(planning_scene_monitor)
 {
 }
 
@@ -57,10 +57,10 @@ bool KinematicsReachability::initialize()
   visualization_evaluating_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("workspace_markers/evaluating",0,true);
   visualization_manipulability_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("workspace_markers/manipulability",0,true);
   visualization_orientation_success_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("workspace_markers/orientation_percentage",0,true); 
-  workspace_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace",0,true);
-  boundary_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace_boundary",0,true);
+  workspace_publisher_ = node_handle_.advertise<moveit_ros_planning::WorkspacePoints>("workspace",0,true);
+  boundary_publisher_ = node_handle_.advertise<moveit_ros_planning::WorkspacePoints>("workspace_boundary",0,true);
   robot_trajectory_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>("display_state",0,true);
-  progress_publisher_ = node_handle_.advertise<kinematics_reachability::Progress>("planner_progress", 0, false);
+  progress_publisher_ = node_handle_.advertise<moveit_ros_planning::Progress>("planner_progress", 0, false);
   tool_offset_.setIdentity();
   tool_offset_inverse_.setIdentity();
   
@@ -133,7 +133,7 @@ void KinematicsReachability::initializeColor(const std::string &color_name,
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool KinematicsReachability::computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
+bool KinematicsReachability::computeWorkspace(moveit_ros_planning::WorkspacePoints &workspace, 
                                               bool visualize)
 {
   if(first_time_)
@@ -153,47 +153,51 @@ bool KinematicsReachability::computeWorkspace(kinematics_reachability::Workspace
   return true;
 }
 
-bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::WorkspacePoints &workspace,
+bool KinematicsReachability::computeWorkspaceFK(moveit_ros_planning::WorkspacePoints &workspace,
                                                 double timeout)
 {
   if(workspace.group_name != kinematics_solver_->getGroupName())
   {
-    ROS_ERROR("This solver is not configured for: %s",workspace.group_name.c_str());
+    ROS_ERROR("This solver is not configured for: %s", workspace.group_name.c_str());
     return false;    
   }
   
   ros::WallTime start_time = ros::WallTime::now();  
+  kinematic_state::KinematicState kinematic_state = planning_scene_monitor_->getPlanningScene()->getCurrentState();
+  kinematic_state::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(workspace.group_name);  
 
-  std::vector<std::string> fk_names;
-  std::vector<double> fk_values;  
-  std::vector<geometry_msgs::Pose> poses;    
-
-  fk_names.push_back(my_solver->getTipFrame());
-  fk_values.resize(my_solver->getJointNames().size(),0.0);
-  poses.resize(1);    
-
-  planning_models::KinematicState kinematic_state = planning_scene_monitor_->getPlanningScene()->getCurrentState();
-  planning_models::KinematicState::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(workspace.group_name);  
-
-  moveit_msgs::MoveItErrorCodes error_code;
-  
+  moveit_msgs::MoveItErrorCodes error_code;  
   int points = 0;
+
+  collision_detection::CollisionRequest collision_request;
+  collision_detection::CollisionResult collision_result;  
+  collision_request.group_name = kinematics_solver_->getGroupName();
+  planning_scene_monitor_->getPlanningScene()->checkCollision(collision_request, collision_result, kinematic_state);    
+  std::string link_name = joint_state_group->getJointModelGroup()->getLinkModelNames().back();
 
   while(((ros::WallTime::now()-start_time).toSec() <= timeout) && (points < max_fk_points_))
   {
+    std::vector<double> joint_values;
     joint_state_group->setToRandomValues();
-    joint_state_group->getGroupStateValues(fk_values);    
-    if(!my_solver->getPositionFK(fk_names,fk_values,poses))
-    {
-      ROS_ERROR("Fk failed");      
-      return false;    
-    }    
-    kinematics_reachability::WorkspacePoint point;
-    point.pose = poses[0];    
-    point.robot_state.joint_state.position = fk_values;
-    point.robot_state.joint_state.name = my_solver->getJointNames();
+    joint_state_group->getVariableValues(joint_values);
+
+    moveit_ros_planning::WorkspacePoint point;
+    Eigen::Affine3d point_pose = kinematic_state.getLinkState(link_name)->getGlobalLinkTransform();    
+    Eigen::Quaterniond quat(point_pose.rotation());
+    Eigen::Vector3d point_trans(point_pose.translation());
+    point.pose.position.x = point_trans.x();
+    point.pose.position.y = point_trans.y();
+    point.pose.position.z = point_trans.z();
+    point.pose.orientation.x = quat.x();
+    point.pose.orientation.y = quat.y();
+    point.pose.orientation.z = quat.z();
+    point.pose.orientation.w = quat.w();
+
+    point.robot_state.joint_state.position = joint_values;
+    point.robot_state.joint_state.name = joint_state_group->getJointModelGroup()->getJointModelNames();
     point.solution_code.val = point.solution_code.SUCCESS;
-    if(!kinematics_solver_.getKinematicsSolver(workspace.group_name)->isValid(kinematic_state,kinematics_solver_.getPlanningSceneMonitor()->getPlanningScene(),error_code))
+
+    if(collision_result.collision)
     {
       point.solution_code.val = point.solution_code.NO_IK_SOLUTION;
     }    
@@ -203,7 +207,7 @@ bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::Workspa
   return true;  
 }
 
-bool KinematicsReachability::getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
+bool KinematicsReachability::getOnlyReachableWorkspace(moveit_ros_planning::WorkspacePoints &workspace, 
                                                        bool visualize)
 {
   if(!computeWorkspace(workspace, visualize))
@@ -212,9 +216,9 @@ bool KinematicsReachability::getOnlyReachableWorkspace(kinematics_reachability::
   return true;
 }
 
-bool KinematicsReachability::getManipulabilityIndex(const planning_models::KinematicState &kinematic_state,
-                                               const std::string &group_name,
-                                               double &manipulability_index) const
+bool KinematicsReachability::getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state,
+                                                    const std::string &group_name,
+                                                    double &manipulability_index) const
 {
   if(!checkState(kinematic_state,group_name))
     return false;
@@ -225,16 +229,16 @@ bool KinematicsReachability::getManipulabilityIndex(const planning_models::Kinem
   return true;
 }
 
-bool KinematicsReachability::checkState(const planning_models::KinematicState &kinematic_state,
-                                   const std::string &group_name) const
+bool KinematicsReachability::checkState(const kinematic_state::KinematicState &kinematic_state,
+                                        const std::string &group_name) const
 {
   if(!kinematic_state.hasJointStateGroup(group_name))
     return false;  
   return true;
 }
 
-Eigen::MatrixXd KinematicsReachability::getJacobian(const planning_models::KinematicState &kinematic_state,
-                                               const std::string &group_name) const
+Eigen::MatrixXd KinematicsReachability::getJacobian(const kinematic_state::KinematicState &kinematic_state,
+                                                    const std::string &group_name) const
 {
   Eigen::MatrixXd jcbian;
   Eigen::Vector3d reference_point_position(0.0,0.0,0.0);
@@ -247,12 +251,12 @@ Eigen::MatrixXd KinematicsReachability::getJacobian(const planning_models::Kinem
 // IK Functions //////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-kinematics_reachability::WorkspacePoints KinematicsReachability::computeRedundantSolutions(const std::string &group_name,
+moveit_ros_planning::WorkspacePoints KinematicsReachability::computeRedundantSolutions(const std::string &group_name,
                                                                                            const geometry_msgs::PoseStamped &pose_stamped,
                                                                                            double timeout,
                                                                                            bool visualize_workspace)
 {
-    kinematics_reachability::WorkspacePoints workspace;
+    moveit_ros_planning::WorkspacePoints workspace;
     workspace.header = pose_stamped.header;
     workspace.group_name = group_name;    
     setToolFrameOffset(workspace.tool_frame_offset);
@@ -264,7 +268,7 @@ kinematics_reachability::WorkspacePoints KinematicsReachability::computeRedundan
     {
       moveit_msgs::MoveItErrorCodes error_code;
       moveit_msgs::RobotState solution;
-      kinematics_reachability::WorkspacePoint point;
+      moveit_ros_planning::WorkspacePoint point;
       geometry_msgs::PoseStamped desired_pose = pose_stamped;    
       findIK(group_name,pose_stamped,error_code,solution);
       point.pose = pose_stamped.pose;
@@ -285,7 +289,7 @@ kinematics_reachability::WorkspacePoints KinematicsReachability::computeRedundan
 }
 
 
-void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::findIKSolutions(moveit_ros_planning::WorkspacePoints &workspace,
                                              bool visualize_workspace)
 {  
   double max_manipulability = 0.0;
@@ -333,7 +337,7 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     {
       visualize(workspace,"solutions");
       //visualization_msgs::Marker marker;
-      planning_models::KinematicState kinematic_state = kinematics_solver_.getPlanningSceneMonitor()->getPlanningScene()->getCurrentState();
+      kinematic_state::KinematicState kinematic_state = planning_scene_monitor_->getPlanningScene()->getCurrentState();
       double manipulability_index;
       std::string group_name = "arm";
       bool manipulability_success = getManipulabilityIndex(kinematic_state, group_name, manipulability_index); 
@@ -356,7 +360,7 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     if(i%1000 == 0 || workspace.points.size() <= 1000)
     {
       ROS_INFO("At sample %d, (%f,%f,%f)",i,workspace.points[i].pose.position.x,workspace.points[i].pose.position.y,workspace.points[i].pose.position.z);
-      kinematics_reachability::Progress progress;
+      moveit_ros_planning::Progress progress;
       progress.current = (int) i;
       progress.total = (int) workspace.points.size();
       progress_publisher_.publish(progress);
@@ -388,8 +392,8 @@ void KinematicsReachability::findIK(const std::string &group_name,
                                     moveit_msgs::MoveItErrorCodes &error_code,
                                     moveit_msgs::RobotState &robot_state)
 {
-  kinematics_msgs::GetConstraintAwarePositionIK::Request request;
-  kinematics_msgs::GetConstraintAwarePositionIK::Response response;
+  moveit_msgs::GetConstraintAwarePositionIK::Request request;
+  moveit_msgs::GetConstraintAwarePositionIK::Response response;
   getDefaultIKRequest(group_name,request);
   tf::Pose tmp_pose;
   geometry_msgs::PoseStamped transformed_pose = pose_stamped;  
@@ -405,35 +409,35 @@ void KinematicsReachability::findIK(const std::string &group_name,
       return;      
     }       
   }        
-  kinematics_solver_->getIK(request,response);
+  kinematics_solver_->getIK(planning_scene_monitor_->getPlanningScene(),request,response);
   error_code = response.error_code;
   robot_state = response.solution;  
 }
 
                                         
 void KinematicsReachability::getDefaultIKRequest(const std::string &group_name,
-                                                 kinematics_msgs::GetConstraintAwarePositionIK::Request &req)
+                                                 moveit_msgs::GetConstraintAwarePositionIK::Request &req)
 {
-  kinematics_msgs::GetKinematicSolverInfo::Request request;
-  kinematics_msgs::GetKinematicSolverInfo::Response response;
+  moveit_msgs::GetKinematicSolverInfo::Request request;
+  moveit_msgs::GetKinematicSolverInfo::Response response;
 
-  planning_models::KinematicModelConstPtr kinematic_model = kinematics_solver_.getKinematicModel();
-  planning_models::KinematicState kinematic_state(kinematic_model);
-  const planning_models::KinematicModel::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name);
-  planning_models::KinematicState::JointStateGroup joint_state_group(&kinematic_state,(const planning_models::KinematicModel::JointModelGroup*) joint_model_group);
-  joint_state_group.setToRandomValues();
+  kinematic_model::KinematicModelConstPtr kinematic_model = kinematics_solver_->getKinematicModel();
+  kinematic_state::KinematicState kinematic_state(kinematic_model);
+  const kinematic_model::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name);
+  kinematic_state::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(group_name);
+  joint_state_group->setToRandomValues();
   
   req.timeout = ros::Duration(kinematics_solver_timeout_);
   req.ik_request.ik_link_name = joint_model_group->getLinkModelNames().back();
   req.ik_request.robot_state.joint_state.name = joint_model_group->getJointModelNames();
-  joint_state_group.getGroupStateValues(req.ik_request.robot_state.joint_state.position);  
+  joint_state_group->getVariableValues(req.ik_request.robot_state.joint_state.position);  
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Cache Functions //////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-bool KinematicsReachability::updateFromCache(kinematics_msgs::GetConstraintAwarePositionIK::Request &request)
+bool KinematicsReachability::updateFromCache(moveit_msgs::GetConstraintAwarePositionIK::Request &request)
 {
   geometry_msgs::Pose pose = request.ik_request.pose_stamped.pose;
   double distance_squared = (pose.position.x*pose.position.x + pose.position.y*pose.position.y + pose.position.z*pose.position.z);
@@ -454,7 +458,7 @@ bool KinematicsReachability::generateCache(const std::string &group_name,
 {
   if(!kinematics_cache_ || kinematics_cache_->getGroupName()!= group_name)
   {    
-    std::map<std::string,kinematics::KinematicsBasePtr> kinematics_solver_map = kinematics_solver_.getPlanningSceneMonitor()->getKinematicModelLoader()->generateKinematicsSolversMap();
+    std::map<std::string,kinematics::KinematicsBasePtr> kinematics_solver_map = planning_scene_monitor_->getKinematicModelLoader()->generateKinematicsSolversMap();
     if(kinematics_solver_map.find(group_name) == kinematics_solver_map.end())
     {
       ROS_ERROR("Group name: %s incorrect",group_name.c_str());      
@@ -463,7 +467,7 @@ bool KinematicsReachability::generateCache(const std::string &group_name,
     kinematics::KinematicsBaseConstPtr kinematics_solver_local = kinematics_solver_map.find(group_name)->second;    
     kinematics_cache_.reset(new kinematics_cache::KinematicsCache());
     kinematics_cache_->initialize(kinematics_solver_local,
-                                  kinematics_solver_.getKinematicModel(),
+                                  kinematics_solver_->getKinematicModel(),
                                   options);    
   }  
   if(!kinematics_cache_->readFromFile(cache_filename))
@@ -497,7 +501,7 @@ bool KinematicsReachability::isEqual(const geometry_msgs::Quaternion &orientatio
   return false;
 }
 
-void KinematicsReachability::publishWorkspace(const kinematics_reachability::WorkspacePoints &workspace)
+void KinematicsReachability::publishWorkspace(const moveit_ros_planning::WorkspacePoints &workspace)
 {
   workspace_publisher_.publish(workspace); 
 }
@@ -506,7 +510,7 @@ void KinematicsReachability::publishWorkspace(const kinematics_reachability::Wor
 // Workspace Functions //////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void KinematicsReachability::getPositionIndex(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::getPositionIndex(const moveit_ros_planning::WorkspacePoints &workspace,
                                               std::vector<unsigned int> &reachable_workspace,
                                               std::vector<unsigned int> &unreachable_workspace)
 {
@@ -519,11 +523,11 @@ void KinematicsReachability::getPositionIndex(const kinematics_reachability::Wor
   }
 }
 
-void KinematicsReachability::removeUnreachableWorkspace(kinematics_reachability::WorkspacePoints &workspace)
+void KinematicsReachability::removeUnreachableWorkspace(moveit_ros_planning::WorkspacePoints &workspace)
 {
   unsigned int remove_counter = 0;
   moveit_msgs::MoveItErrorCodes error_code;
-  std::vector<kinematics_reachability::WorkspacePoint>::iterator it = workspace.points.begin();
+  std::vector<moveit_ros_planning::WorkspacePoint>::iterator it = workspace.points.begin();
   while(it != workspace.points.end())
   {
     if(it->solution_code.val != it->solution_code.SUCCESS)
@@ -538,7 +542,7 @@ void KinematicsReachability::removeUnreachableWorkspace(kinematics_reachability:
     ROS_DEBUG("Removed %d points from workspace",remove_counter);
 }
 
-std::vector<unsigned int> KinematicsReachability::getPointsAtOrientation(const kinematics_reachability::WorkspacePoints &workspace,
+std::vector<unsigned int> KinematicsReachability::getPointsAtOrientation(const moveit_ros_planning::WorkspacePoints &workspace,
                                                                                                            const geometry_msgs::Quaternion &orientation)
 {
   std::vector<unsigned int> wp;
@@ -550,7 +554,7 @@ std::vector<unsigned int> KinematicsReachability::getPointsAtOrientation(const k
   return wp;
 }
 
-std::vector<unsigned int> KinematicsReachability::getPointsWithinRange(const kinematics_reachability::WorkspacePoints &workspace,
+std::vector<unsigned int> KinematicsReachability::getPointsWithinRange(const moveit_ros_planning::WorkspacePoints &workspace,
                                                                        const double min_radius,
                                                                        const double max_radius)
 {
@@ -565,7 +569,7 @@ std::vector<unsigned int> KinematicsReachability::getPointsWithinRange(const kin
   return wp;
 }
 
-void KinematicsReachability::getNumPoints(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::getNumPoints(const moveit_ros_planning::WorkspacePoints &workspace,
                                           unsigned int &x_num_points,
                                           unsigned int &y_num_points,
                                           unsigned int &z_num_points)
@@ -584,7 +588,7 @@ void KinematicsReachability::getNumPoints(const kinematics_reachability::Workspa
 
 
 
-bool KinematicsReachability::sampleUniform(kinematics_reachability::WorkspacePoints &workspace)
+bool KinematicsReachability::sampleUniform(moveit_ros_planning::WorkspacePoints &workspace)
 {
   if(workspace.orientations.empty())
   {
@@ -601,7 +605,7 @@ bool KinematicsReachability::sampleUniform(kinematics_reachability::WorkspacePoi
   getNumPoints(workspace,x_num_points,y_num_points,z_num_points);
 
   unsigned int num_rotations = workspace.orientations.size();
-  kinematics_reachability::WorkspacePoint ws_point;
+  moveit_ros_planning::WorkspacePoint ws_point;
   geometry_msgs::Pose pose;
 
   for(unsigned int i=0; i < x_num_points; ++i)
@@ -638,7 +642,7 @@ void KinematicsReachability::setToolFrameOffset(const geometry_msgs::Pose &pose)
 // Visualization functions //////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void KinematicsReachability::getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::getMarkers(const moveit_ros_planning::WorkspacePoints &workspace,
                                         const std::string &marker_namespace,
                                         const std::vector<unsigned int> &points,
                                         std::vector<visualization_msgs::Marker> &markers)
@@ -668,7 +672,7 @@ void KinematicsReachability::getMarkers(const kinematics_reachability::Workspace
     //marker_array.markers.push_back(markers[i]);  
 }
 
-void KinematicsReachability::getOrientationSuccessMarkers(const kinematics_reachability::WorkspacePoints &workspace, visualization_msgs::Marker &marker)
+void KinematicsReachability::getOrientationSuccessMarkers(const moveit_ros_planning::WorkspacePoints &workspace, visualization_msgs::Marker &marker)
 {
 
   geometry_msgs::Point point;
@@ -739,7 +743,7 @@ void  KinematicsReachability::getColorFromSuccessList(std::vector<bool> successe
 }
 
 
-void KinematicsReachability::getManipulabilityMarkers(const kinematics_reachability::WorkspacePoints &workspace, visualization_msgs::Marker &marker, double max_manipulability)
+void KinematicsReachability::getManipulabilityMarkers(const moveit_ros_planning::WorkspacePoints &workspace, visualization_msgs::Marker &marker, double max_manipulability)
 {
   marker.type = marker.SPHERE_LIST;
   marker.action = 0;
@@ -791,7 +795,7 @@ void  KinematicsReachability::getColorFromManipulability(double manipulability_i
   //return color_msg;
 }
 
-std::vector<visualization_msgs::Marker> KinematicsReachability::getSphereMarker(const kinematics_reachability::WorkspacePoints &workspace,
+std::vector<visualization_msgs::Marker> KinematicsReachability::getSphereMarker(const moveit_ros_planning::WorkspacePoints &workspace,
                                                                                 const std::string &marker_namespace,
                                                                                 const std::vector<unsigned int> &indices,
                                                                                 const std::vector<std_msgs::ColorRGBA> &colors,
@@ -860,7 +864,7 @@ std::vector<visualization_msgs::Marker> KinematicsReachability::getSphereMarker(
   return markers;  
 }
 
-std_msgs::ColorRGBA KinematicsReachability::getMarkerColor(const kinematics_reachability::WorkspacePoint &workspace_point)
+std_msgs::ColorRGBA KinematicsReachability::getMarkerColor(const moveit_ros_planning::WorkspacePoint &workspace_point)
 {
   if(workspace_point.solution_code.val == workspace_point.solution_code.SUCCESS)
   {
@@ -876,7 +880,7 @@ std_msgs::ColorRGBA KinematicsReachability::getMarkerColor(const kinematics_reac
   }    
 }
 
-/*void KinematicsReachability::getOrientationSuccessMarkers(const kinematics_reachability::WorkspacePoints &workspace,
+/*void KinematicsReachability::getOrientationSuccessMarkers(const moveit_ros_planning::WorkspacePoints &workspace,
                                              visualization_msgs::Marker &marker)
 {
   marker.type = marker.SPHERE_LIST;
@@ -896,7 +900,7 @@ std_msgs::ColorRGBA KinematicsReachability::getMarkerColor(const kinematics_reac
 
 }*/
 
-void KinematicsReachability::getArrowMarkers(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::getArrowMarkers(const moveit_ros_planning::WorkspacePoints &workspace,
                                              const std::string &marker_namespace,
                                              const std::vector<unsigned int> &points,
                                              std::vector<visualization_msgs::Marker> &markers)
@@ -936,7 +940,7 @@ void KinematicsReachability::getArrowMarkers(const kinematics_reachability::Work
   }
 }
 
-bool KinematicsReachability::getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace,
+bool KinematicsReachability::getDisplayTrajectory(const moveit_ros_planning::WorkspacePoints &workspace,
                                                   moveit_msgs::DisplayTrajectory &display_trajectory)
 {
   if(workspace.points.empty())
@@ -961,7 +965,7 @@ bool KinematicsReachability::getDisplayTrajectory(const kinematics_reachability:
   return true;
 }
 
-bool KinematicsReachability::getDisplayTrajectory(const kinematics_reachability::WorkspacePoint &workspace_point,
+bool KinematicsReachability::getDisplayTrajectory(const moveit_ros_planning::WorkspacePoint &workspace_point,
                                                   moveit_msgs::DisplayTrajectory &display_trajectory)
 {
   trajectory_msgs::JointTrajectoryPoint point;
@@ -972,7 +976,7 @@ bool KinematicsReachability::getDisplayTrajectory(const kinematics_reachability:
   return true;
 }
 
-void KinematicsReachability::animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace)
+void KinematicsReachability::animateWorkspace(const moveit_ros_planning::WorkspacePoints &workspace)
 {
   moveit_msgs::DisplayTrajectory display_trajectory;
   if (!getDisplayTrajectory(workspace,display_trajectory))
@@ -984,7 +988,7 @@ void KinematicsReachability::animateWorkspace(const kinematics_reachability::Wor
   ROS_INFO("Animating trajectory");  
 }
 
-void KinematicsReachability::animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::animateWorkspace(const moveit_ros_planning::WorkspacePoints &workspace,
                                               unsigned int index)
 {
   moveit_msgs::DisplayTrajectory display_trajectory;
@@ -998,7 +1002,7 @@ void KinematicsReachability::animateWorkspace(const kinematics_reachability::Wor
   robot_trajectory_publisher_.publish(display_trajectory);
 }
 
-void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::visualize(const moveit_ros_planning::WorkspacePoints &workspace,
                                        const std::string &marker_namespace)
 {
   //visualization_msgs::MarkerArray marker_array;
@@ -1019,7 +1023,7 @@ void KinematicsReachability::visualize(const kinematics_reachability::WorkspaceP
   }
 }
 
-void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::visualize(const moveit_ros_planning::WorkspacePoints &workspace,
                                        const std::string &marker_namespace,
                                        const std::vector<geometry_msgs::Quaternion> &orientations)
 {
@@ -1045,7 +1049,7 @@ void KinematicsReachability::visualize(const kinematics_reachability::WorkspaceP
   }
 }
 
-void KinematicsReachability::visualizeWithArrows(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::visualizeWithArrows(const moveit_ros_planning::WorkspacePoints &workspace,
                                                  const std::string &marker_namespace)
 {
   //visualization_msgs::MarkerArray marker_array;
@@ -1064,9 +1068,9 @@ void KinematicsReachability::visualizeWithArrows(const kinematics_reachability::
   }
 }
 
-void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachability::WorkspacePoints &workspace_in)
+void KinematicsReachability::visualizeWorkspaceSamples(const moveit_ros_planning::WorkspacePoints &workspace_in)
 {
-  kinematics_reachability::WorkspacePoints workspace = workspace_in;
+  moveit_ros_planning::WorkspacePoints workspace = workspace_in;
   
   //visualization_msgs::MarkerArray marker_array;
 
