@@ -190,7 +190,7 @@ void GroupEditWidget::setSelected( const std::string &group_name )
   if( *timeout == 0 )
   {
     // Set default value
-    *timeout = 0.5;
+    *timeout = 0.05;
   }
   kinematics_timeout_field_->setText( QString::number( *timeout ) );
 
