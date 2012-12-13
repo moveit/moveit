@@ -444,6 +444,14 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
                                                  double timeout, 
                                                  const IKValidityCallbackFn &constraint)
 {
+  if (poses_in.size() == 1 && tips_in.size() == 1 && consistency_limits.size() <= 1)
+  {
+    if (consistency_limits.empty())
+      return setFromIK(poses_in[0], tips_in[0], attempts, timeout, constraint);
+    else
+      return setFromIK(poses_in[0], tips_in[0], consistency_limits[0], attempts, timeout, constraint);    
+  }
+  
   const std::vector<std::string>& sub_group_names = joint_model_group_->getSubgroupNames();
   
   if (poses_in.size() != sub_group_names.size())
@@ -478,7 +486,7 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
   }
   
   std::vector<kinematics::KinematicsBaseConstPtr> solvers;   
-  for(std::size_t i=0; i < poses_in.size(); ++i)
+  for(std::size_t i = 0; i < poses_in.size() ; ++i)
   {
     kinematics::KinematicsBaseConstPtr solver = joint_model_group_->getParentModel()->getJointModelGroup(sub_group_names[i])->getSolverInstance();   
     if (!solver)
@@ -492,7 +500,7 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
   std::vector<Eigen::Affine3d> transformed_poses = poses_in;
   std::vector<std::string> tip_names = tips_in;  
 
-  for(std::size_t i=0; i < poses_in.size(); ++i)
+  for(std::size_t i = 0 ; i < poses_in.size() ; ++i)
   {    
     Eigen::Affine3d pose = poses_in[i];
     std::string tip = tips_in[i];
