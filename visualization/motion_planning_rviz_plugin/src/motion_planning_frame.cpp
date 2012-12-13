@@ -1403,7 +1403,7 @@ void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int co
 }
 
 void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
-{    
+{
   long unsigned int version = known_collision_objects_version_;
   if (item->text().isEmpty())
   {
@@ -1412,10 +1412,13 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
       item->setText(QString::fromStdString(known_collision_objects_[item->type()].first));
     return;
   }
-  
-  if (planning_display_->getPlanningScene()->getCollisionWorld()->hasObject(item->text().toStdString()) ||
-      planning_display_->getPlanningScene()->getCurrentState().hasAttachedBody(item->text().toStdString()))
-  { 
+
+  std::string item_text = item->text().toStdString();
+  bool already_exists = planning_display_->getPlanningScene()->getCollisionWorld()->hasObject(item_text);
+  if (!already_exists)
+    already_exists = planning_display_->getPlanningScene()->getCurrentState().hasAttachedBody(item_text);
+  if (already_exists)
+  {
     QMessageBox::warning(this, "Duplicate object name", QString("The name '").append(item->text()).
                          append("' already exists. Not renaming object ").append((known_collision_objects_[item->type()].first.c_str())));
     if (version == known_collision_objects_version_)
@@ -1430,7 +1433,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
     collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(known_collision_objects_[item->type()].first);
     if (obj)
     {
-      known_collision_objects_[item->type()].first = item->text().toStdString();
+      known_collision_objects_[item->type()].first = item_text;
       world->removeObject(obj->id_);
       world->addToObject(known_collision_objects_[item->type()].first, obj->shapes_, obj->shape_poses_);
       if (scene_marker_)
@@ -1448,7 +1451,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
     const kinematic_state::AttachedBody *ab = cs.getAttachedBody(known_collision_objects_[item->type()].first);
     if (ab)
     {
-      known_collision_objects_[item->type()].first = item->text().toStdString();
+      known_collision_objects_[item->type()].first = item_text;
       std::vector<std::string> touch_links(ab->getTouchLinks().begin(), ab->getTouchLinks().end());
       kinematic_state::AttachedBody *new_ab = new kinematic_state::AttachedBody(cs.getLinkState(ab->getAttachedLinkName()),
                                                                                 known_collision_objects_[item->type()].first,
