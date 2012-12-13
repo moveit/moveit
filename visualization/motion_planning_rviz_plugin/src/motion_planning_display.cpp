@@ -879,7 +879,8 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
     if (!getKinematicModel()->hasJointModelGroup(planning_group_property_->getStdString()))
       planning_group_property_->setStdString("");
   
-  const std::vector<std::string> &groups = getKinematicModel()->getJointModelGroupNames();
+  const std::vector<std::string> &groups = getKinematicModel()->getJointModelGroupNames(); 
+  planning_group_property_->clearOptions();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     planning_group_property_->addOptionStd(groups[i]);
   planning_group_property_->sortOptions();
