@@ -53,10 +53,18 @@ const std::string PlanningScene::DEFAULT_SCENE_NAME = "(noname)";
 
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene &msg)
 {
-  return msg.name.empty() && msg.fixed_frame_transforms.empty() && msg.robot_state.multi_dof_joint_state.joint_names.empty() &&
-      msg.robot_state.joint_state.name.empty() && msg.robot_state.attached_collision_objects.empty() && msg.allowed_collision_matrix.entry_names.empty() &&
-      msg.link_padding.empty() && msg.link_scale.empty() && msg.world.collision_objects.empty() && msg.world.octomap.octomap.data.empty() &&
-      msg.world.collision_map.boxes.empty();
+  return msg.name.empty() && msg.fixed_frame_transforms.empty() && msg.allowed_collision_matrix.entry_names.empty() &&
+    msg.link_padding.empty() && msg.link_scale.empty() && isEmpty(msg.robot_state) && isEmpty(msg.world);
+}
+
+bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::RobotState &msg)
+{
+  return msg.multi_dof_joint_state.joint_names.empty() && msg.joint_state.name.empty() && msg.attached_collision_objects.empty();
+}
+
+bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorld &msg)
+{
+  return msg.collision_objects.empty() && msg.octomap.octomap.data.empty() && msg.collision_map.boxes.empty();
 }
 
 planning_scene::PlanningScenePtr planning_scene::PlanningScene::clone(const planning_scene::PlanningSceneConstPtr &scene)
