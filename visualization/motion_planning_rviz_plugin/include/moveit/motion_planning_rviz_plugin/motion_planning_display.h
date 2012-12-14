@@ -210,6 +210,8 @@ protected:
                               const kinematic_state::KinematicState &state, double payload);
   void updateStateExceptGroup(kinematic_state::KinematicState &dest, const kinematic_state::KinematicState &src, const std::string &group);
   float getStateDisplayTime(void);
+  void updateBackgroundJobProgressBar(void);
+  void backgroundJobCompleted(void);
   
   // overrides from Display  
   virtual void onInitialize();

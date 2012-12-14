@@ -47,16 +47,21 @@ public:
   ~BackgroundProcessing(void);
 
   void addJob(const boost::function<void(void)> &job);
+  std::size_t getJobCount(void) const;
   void clear(void);
+  
+  void setCompletionEvent(const boost::function<void(void)> &completion_event);
   
 private:
   
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
   
-  boost::mutex action_lock_;
+  mutable boost::mutex action_lock_;
   boost::condition_variable new_action_condition_;
   std::deque<boost::function<void(void)> > actions_;
+  boost::function<void(void)> completion_event_;
+  bool processing_;
   
   void processingThread(void);
 };
