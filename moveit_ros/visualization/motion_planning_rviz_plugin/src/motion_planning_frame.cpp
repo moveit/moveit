@@ -179,9 +179,9 @@ MotionPlanningFrame::MsgMarkerPair MotionPlanningFrame::make6DOFEndEffectorMarke
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = true;
   m_control.interaction_mode = m_control.BUTTON;
-  if (selected)
+  if (selected && ui_->goal_poses_list->selectedItems().size() == 1)
   {
-    //If selected, display the actual end effector mesh
+    //If selected (and only one selected), display the actual end effector mesh
     const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(eef.eef_group);
     const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
 
