@@ -188,6 +188,7 @@ private Q_SLOTS:
   void goalPoseSelectionChanged();
   void goalPoseDoubleClicked(QListWidgetItem *item);
   void copySelectedGoalPoses(void);
+  void visibleAxisChanged(int state);
 
   //Slots for start states
   void saveStartStateButtonClicked(void);
@@ -255,7 +256,7 @@ private:
                                              const geometry_msgs::Pose &pose,
                                              double scale,
                                              bool selected = false);
- 
+
   void selectItemJob(QListWidgetItem *item, bool flag);
   void displayMessageBox(const QString &title, const QString &text);
   void updateMarkerColorFromName(const std::string & name, float r, float g, float b, float a);
