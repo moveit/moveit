@@ -129,6 +129,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->goal_poses_save_button, SIGNAL( clicked() ), this, SLOT( saveGoalsOnDBButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
+  connect( ui_->show_x_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
+  connect( ui_->show_y_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
+  connect( ui_->show_z_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
   
   QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->goal_poses_list);
   connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
@@ -179,9 +182,9 @@ MotionPlanningFrame::MsgMarkerPair MotionPlanningFrame::make6DOFEndEffectorMarke
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = true;
   m_control.interaction_mode = m_control.BUTTON;
-  if (selected)
+  if (selected && ui_->goal_poses_list->selectedItems().size() == 1)
   {
-    //If selected, display the actual end effector mesh
+    //If selected (and only one selected), display the actual end effector mesh
     const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(eef.eef_group);
     const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
 
@@ -224,30 +227,40 @@ MotionPlanningFrame::MsgMarkerPair MotionPlanningFrame::make6DOFEndEffectorMarke
     m.scale.z = 0.1 * m.scale.x;
     m.ns = "goal_pose_marker";
     m.action = visualization_msgs::Marker::ADD;
-    m.color.r = 1.0f;
-    m.color.g = 0.0f;
-    m.color.b = 0.0f;
-    m.color.a = 1.0f;
-    m_control.markers.push_back(m);
+
+    if (ui_->show_x_checkbox->isChecked())
+    {
+      m.color.r = 1.0f;
+      m.color.g = 0.0f;
+      m.color.b = 0.0f;
+      m.color.a = 1.0f;
+      m_control.markers.push_back(m);
+    }
 
     //Y axis
-    tf::Quaternion imq;
-    imq = tf::createQuaternionFromRPY(0, 0, boost::math::constants::pi<double>() / 2.0);
-    tf::quaternionTFToMsg(imq, m.pose.orientation);
-    m.color.r = 0.0f;
-    m.color.g = 1.0f;
-    m.color.b = 0.0f;
-    m.color.a = 1.0f;
-    m_control.markers.push_back(m);
+    if (ui_->show_y_checkbox->isChecked())
+    {
+      tf::Quaternion imq;
+      imq = tf::createQuaternionFromRPY(0, 0, boost::math::constants::pi<double>() / 2.0);
+      tf::quaternionTFToMsg(imq, m.pose.orientation);
+      m.color.r = 0.0f;
+      m.color.g = 1.0f;
+      m.color.b = 0.0f;
+      m.color.a = 1.0f;
+      m_control.markers.push_back(m);
+    }
 
     //Z axis
-    imq = tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
-    tf::quaternionTFToMsg(imq, m.pose.orientation);
-    m.color.r = 0.0f;
-    m.color.g = 0.0f;
-    m.color.b = 1.0f;
-    m.color.a = 1.0f;
-    m_control.markers.push_back(m);
+    if (ui_->show_z_checkbox->isChecked()) {
+      tf::Quaternion imq;
+      imq = tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
+      tf::quaternionTFToMsg(imq, m.pose.orientation);
+      m.color.r = 0.0f;
+      m.color.g = 0.0f;
+      m.color.b = 1.0f;
+      m.color.a = 1.0f;
+      m_control.markers.push_back(m);
+    }
   }
   int_marker.controls.push_back(m_control);
 
@@ -636,6 +649,29 @@ void MotionPlanningFrame::deleteStatesOnDBButtonClicked(void)
   removeSelectedStatesButtonClicked();
 }
 
+void MotionPlanningFrame::visibleAxisChanged(int state)
+{
+  if ( ! planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() )
+  {
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+    {
+      Ogre::Vector3 position = it->second.imarker->getPosition();
+      Ogre::Quaternion orientation = it->second.imarker->getOrientation();
+
+      MsgMarkerPair marker_pair;
+      marker_pair = make6DOFEndEffectorMarker(it->first,
+                                              planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
+                                              it->second.imarker_msg.pose, it->second.imarker_msg.scale, it->second.selected);
+
+      connect( marker_pair.second.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+
+      marker_pair.second->setPose(position, orientation, "");
+      it->second.imarker_msg = marker_pair.first;
+      it->second.imarker = marker_pair.second;
+    }
+  }
+}
+
 void MotionPlanningFrame::populateGoalPosesList(void) 
 {
   ui_->goal_poses_list->clear();
@@ -751,14 +787,20 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
 
   if (feedback.event_type == feedback.BUTTON_CLICK)
   {
-    //Unselect all but the clicked one
+    //Unselect all but the clicked one. Needs to be in order, first unselect, then select.
+    QListWidgetItem *item = 0;
     for (unsigned int i = 0; i < ui_->goal_poses_list->count(); ++i)
     {
-      QListWidgetItem *item = ui_->goal_poses_list->item(i);
+      item = ui_->goal_poses_list->item(i);
+      if ( item->text().toStdString() != feedback.marker_name)
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::selectItemJob, this, item, false));
+    }
+
+    for (unsigned int i = 0; i < ui_->goal_poses_list->count(); ++i)
+    {
+      item = ui_->goal_poses_list->item(i);
       if (item->text().toStdString() == feedback.marker_name)
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::selectItemJob, this, item, true));
-      else
-        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::selectItemJob, this, item, false));
     }
   }
   else if (feedback.event_type == feedback.MOUSE_DOWN)
