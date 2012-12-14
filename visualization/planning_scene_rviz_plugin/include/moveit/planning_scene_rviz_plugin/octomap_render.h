@@ -54,7 +54,7 @@ class OcTreeRender
 {
 
 public:
-  OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node = NULL);
+  OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node = NULL, std::size_t max_octree_depth = 0);
   virtual ~OcTreeRender();
 
 private:
@@ -69,6 +69,8 @@ private:
   Ogre::SceneManager* scene_manager_;
 
   double colorFactor_;
+
+  std::size_t octree_depth_;
 
 };
 
