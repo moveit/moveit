@@ -88,14 +88,8 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
     std::vector<double> time_from_start_;
   };
   
-  /**
-   * \brief Contructor
-   */
   MotionPlanningDisplay();
   
-  /**
-   * \brief Destructor
-   */
   virtual ~MotionPlanningDisplay();
   
   virtual void load( const rviz::Config& config );

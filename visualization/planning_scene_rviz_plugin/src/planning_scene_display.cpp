@@ -231,12 +231,12 @@ void PlanningSceneDisplay::renderPlanningScene(void)
   }
 }
 
-void PlanningSceneDisplay::changedSceneAlpha()
+void PlanningSceneDisplay::changedSceneAlpha(void)
 {
   queueRenderSceneGeometry();
 }
 
-void PlanningSceneDisplay::changedRobotSceneAlpha()
+void PlanningSceneDisplay::changedRobotSceneAlpha(void)
 {
   planning_scene_robot_->setAlpha(robot_alpha_property_->getFloat());
   queueRenderSceneGeometry();
