@@ -340,9 +340,12 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
 {
   if (scene_)
   {
+    SceneUpdateType upd = UPDATE_SCENE;
+    std::string old_scene_name;
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);  
       last_update_time_ = ros::Time::now();
+      old_scene_name = scene_->getName();
       scene_->usePlanningSceneMsg(*scene);
 
       // if we just reset the scene completely but we were maintaining diffs, we need to fix that
@@ -354,7 +357,25 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
         scene_const_ = scene_;
       }
     }
-    processSceneUpdateEvent(UPDATE_SCENE);
+    // if we have a diff, try to more accuratelly determine the update type
+    if (scene->is_diff)
+    {
+      bool no_other_scene_upd = (scene->name.empty() || scene->name == old_scene_name) &&
+        scene->allowed_collision_matrix.entry_names.empty() && scene->link_padding.empty() && scene->link_scale.empty();
+      if (no_other_scene_upd)
+      {
+        upd = UPDATE_NONE;
+        if (!planning_scene::PlanningScene::isEmpty(scene->world))
+          upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
+        
+        if (!scene->fixed_frame_transforms.empty())
+          upd = (SceneUpdateType) ((int)upd | (int)UPDATE_TRANSFORMS);
+        
+        if (!planning_scene::PlanningScene::isEmpty(scene->robot_state))
+          upd = (SceneUpdateType) ((int)upd | (int)UPDATE_STATE);
+      }
+    }
+    processSceneUpdateEvent(upd);
   }
 }
 
