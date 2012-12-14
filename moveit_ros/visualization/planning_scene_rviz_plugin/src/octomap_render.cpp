@@ -45,19 +45,26 @@ namespace moveit_rviz_plugin
 typedef std::vector<rviz::PointCloud::Point> VPoint;
 typedef std::vector<VPoint> VVPoint;
 
-OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node) :
-  octree_(octree), colorFactor_(0.8)
+OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::size_t max_octree_depth) :
+  octree_(octree), colorFactor_(0.8), octree_depth_(max_octree_depth)
 {
   if (!parent_node)
   {
     parent_node = scene_manager_->getRootSceneNode();
   }
 
+  if (!octree_depth_)
+  {
+    octree_depth_ = octree->getTreeDepth();
+  }
+
+  octree_depth_ = std::min(octree_depth_, (std::size_t)octree->getTreeDepth());
+
   scene_node_ = parent_node->createChildSceneNode();
 
-  cloud_.resize(16);
+  cloud_.resize(octree_depth_);
 
-  for (std::size_t i = 0 ; i < 16 ; ++i)
+  for (std::size_t i = 0 ; i < octree_depth_ ; ++i)
   {
     std::stringstream sname;
     sname << "PointCloud Nr." << i;
@@ -74,7 +81,7 @@ OcTreeRender::~OcTreeRender(void)
 {
   scene_node_->detachAllObjects();
 
-  for (std::size_t i = 0 ; i < 16 ; ++i)
+  for (std::size_t i = 0 ; i < octree_depth_ ; ++i)
   {
     delete cloud_[i];
   }
@@ -141,8 +148,7 @@ void OcTreeRender::octreeDecoding (const boost::shared_ptr<const octomap::OcTree
   size_t pointCount = 0;
   {
     // traverse all leafs in the tree:
-    unsigned int treeDepth = octree->getTreeDepth();
-    for (octomap::OcTree::iterator it = octree->begin(treeDepth), end = octree->end(); it != end; ++it)
+    for (octomap::OcTree::iterator it = octree->begin(octree_depth_), end = octree->end(); it != end; ++it)
     {
 
       if (octree->isNodeOccupied(*it))
@@ -195,7 +201,7 @@ void OcTreeRender::octreeDecoding (const boost::shared_ptr<const octomap::OcTree
     }
   }
 
-  for (size_t i = 0; i < 16 ; ++i)
+  for (size_t i = 0; i < octree_depth_ ; ++i)
   {
     double size = octree->getNodeSize(i+1);
 
