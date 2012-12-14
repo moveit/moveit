@@ -13,8 +13,9 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit-core/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit-core</url>
 
-  <build_depend>catkin</build_depend>
-  <build_depend>pkg-config</build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>pkg-config</buildtool_depend>
+
   <build_depend>console_bridge</build_depend>
   <build_depend>random_numbers</build_depend>
   <build_depend>shape_tools</build_depend>
