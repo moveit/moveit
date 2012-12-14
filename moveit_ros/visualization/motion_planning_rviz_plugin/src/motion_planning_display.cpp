@@ -174,7 +174,8 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
                                                                   plan_category_,
                                                                   SLOT( changedQueryCollidingLinkColor() ), this );
 
-  query_outside_joint_limits_link_color_property_ = new rviz::ColorProperty( "Joint Violation Color", QColor(255, 0, 255), "The highlight color for child links of joints that are outside bounds",
+  query_outside_joint_limits_link_color_property_ = new rviz::ColorProperty( "Joint Violation Color", QColor(255, 0, 255), 
+                                                                             "The highlight color for child links of joints that are outside bounds",
                                                                              plan_category_,
                                                                              SLOT( changedQueryJointViolationColor() ), this );
   // Path category ----------------------------------------------------------------------------------------------------
@@ -203,7 +204,8 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   robot_path_alpha_property_->setMin( 0.0 );
   robot_path_alpha_property_->setMax( 1.0 );
 
-  state_display_time_property_ =  new rviz::EditableEnumProperty("State Display Time", "0.05 s", "The amount of wall-time to wait in between displaying states along a received trajectory path",
+  state_display_time_property_ =  new rviz::EditableEnumProperty("State Display Time", "0.05 s", 
+                                                                 "The amount of wall-time to wait in between displaying states along a received trajectory path",
                                                                  path_category_,
                                                                  SLOT( changedStateDisplayTime() ), this );
   state_display_time_property_->addOptionStd("REALTIME");
@@ -219,7 +221,9 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   trail_display_property_ =
     new rviz::BoolProperty( "Show Trail", false, "Show a path trail",
                             path_category_,
-                            SLOT( changedShowTrail() ), this );
+                            SLOT( changedShowTrail() ), this ); 
+  
+  background_process_.setCompletionEvent(boost::bind(&MotionPlanningDisplay::backgroundJobCompleted, this));
 }
 
 // ******************************************************************************************
@@ -305,6 +309,47 @@ void MotionPlanningDisplay::reset(void)
 void MotionPlanningDisplay::addBackgroundJob(const boost::function<void(void)> &job)
 {
   background_process_.addJob(job);
+  addMainLoopJob(boost::bind(&MotionPlanningDisplay::updateBackgroundJobProgressBar, this));
+}
+
+void MotionPlanningDisplay::backgroundJobCompleted(void)
+{
+  addMainLoopJob(boost::bind(&MotionPlanningDisplay::updateBackgroundJobProgressBar, this));
+}
+
+void MotionPlanningDisplay::updateBackgroundJobProgressBar(void)
+{
+  if (!frame_)
+    return;
+  QProgressBar *p = frame_->ui_->background_job_progress;
+  std::size_t n = background_process_.getJobCount();
+
+  if (n == 0)
+  {   
+    p->setValue(p->maximum());
+    p->update();
+    p->hide();
+    p->setMaximum(0);
+  }
+  else
+  { 
+    if (n == 1)
+    {
+      if (p->maximum() == 0)
+        p->setValue(0);
+      else
+        p->setValue(p->maximum() - 1);
+    }
+    else
+    {
+      if (p->maximum() < n)
+        p->setMaximum(n);
+      else  
+        p->setValue(p->maximum() - n);
+    }
+    p->show();
+    p->update();
+  }
 }
 
 void MotionPlanningDisplay::addMainLoopJob(const boost::function<void(void)> &job)

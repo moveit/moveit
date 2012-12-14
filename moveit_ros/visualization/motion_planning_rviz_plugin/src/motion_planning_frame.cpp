@@ -145,6 +145,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->start_states_list, SIGNAL( itemDoubleClicked(QListWidgetItem*) ), this, SLOT( startStateItemDoubleClicked(QListWidgetItem*) ));
 
   ui_->reset_db_button->hide();
+  ui_->background_job_progress->hide(); 
+  ui_->background_job_progress->setMaximum(0);
+
   ui_->tabWidget->setCurrentIndex(0);
   
   known_collision_objects_version_ = 0;

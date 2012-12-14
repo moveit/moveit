@@ -39,6 +39,7 @@ BackgroundProcessing::BackgroundProcessing(void)
 {
   // spin a thread that will process user events
   run_processing_thread_ = true;
+  processing_ = false;
   processing_thread_.reset(new boost::thread(boost::bind(&BackgroundProcessing::processingThread, this)));
 }
 
@@ -65,6 +66,7 @@ void BackgroundProcessing::processingThread(void)
       
       // make sure we are unlocked while we process the event
       action_lock_.unlock();
+      processing_ = true;
       try
       {
         fn();
@@ -77,6 +79,9 @@ void BackgroundProcessing::processingThread(void)
       {
         ROS_ERROR("Exception caught while processing event");
       }
+      processing_ = false;
+      if (completion_event_)
+        completion_event_();
       action_lock_.lock();
     }
   }
@@ -95,4 +100,17 @@ void BackgroundProcessing::clear(void)
   actions_.clear();
 }
 
+std::size_t BackgroundProcessing::getJobCount(void) const
+{
+  boost::mutex::scoped_lock slock(action_lock_);
+  return actions_.size() + (processing_ ? 1 : 0);
 }
+
+void BackgroundProcessing::setCompletionEvent(const boost::function<void(void)> &completion_event)
+{ 
+  boost::mutex::scoped_lock slock(action_lock_);
+  completion_event_ = completion_event;
+}
+
+}
+
