@@ -389,7 +389,7 @@ void MotionPlanningFrame::removeAllGoalsButtonClicked(void)
 void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
 {
   //Get all the constraints from the database, convert to goal pose markers
-  if (constraints_storage_ && ! planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
+  if (constraints_storage_ && !planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
   {
     //First clear the current list
     removeAllGoalsButtonClicked();
@@ -445,7 +445,8 @@ void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
    }
   else 
   {
-    QMessageBox::warning(this, "Warning", "Not connected to a database.");
+    if (!constraints_storage_)
+      QMessageBox::warning(this, "Warning", "Not connected to a database.");
   }
 }
 
