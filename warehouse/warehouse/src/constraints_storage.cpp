@@ -119,7 +119,9 @@ bool moveit_warehouse::ConstraintsStorage::getConstraints(ConstraintsWithMetadat
     return false;
   else
   {
-    msg_m = constr.front();
+    msg_m = constr.back();
+    // in case the constraints were renamed, the name in the message may be out of date
+    const_cast<moveit_msgs::Constraints*>(static_cast<const moveit_msgs::Constraints*>(msg_m.get()))->name = name;
     return true;
   }
 }
