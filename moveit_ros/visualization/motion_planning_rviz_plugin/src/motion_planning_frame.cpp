@@ -2066,7 +2066,13 @@ void MotionPlanningFrame::saveSceneButtonClicked(void)
           if (ok)
           {
             planning_display_->getPlanningScene()->setName(new_name.toStdString());
-            planning_display_->subProp("Planning Scene")->subProp("Scene Name")->setValue(new_name);
+            rviz::Property *prop = planning_display_->subProp("Scene Geometry")->subProp("Scene Name");
+            if (prop)
+            {
+              bool old = prop->blockSignals(true);
+              prop->setValue(new_name);
+              prop->blockSignals(old);
+            }
             saveSceneButtonClicked();
           }
           return;
@@ -2486,7 +2492,12 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked(void)
               ROS_INFO("Scene '%s' was saved for robot '%s' but we are using robot '%s'. Using scene geometry only",
                        scene.c_str(), scene_m->robot_model_name.c_str(),
                        planning_display_->getKinematicModel()->getName().c_str());
-              planning_scene_world_publisher_.publish(scene_m->world);
+              planning_scene_world_publisher_.publish(scene_m->world); 
+              // publish the parts that are not in the world
+              moveit_msgs::PlanningScene diff;
+              diff.is_diff = true;
+              diff.name = scene_m->name;
+              planning_scene_publisher_.publish(diff);
             }
             else
               planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));

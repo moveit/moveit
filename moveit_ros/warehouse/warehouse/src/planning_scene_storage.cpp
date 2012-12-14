@@ -201,6 +201,8 @@ bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithM
     return false;
   }
   scene_m = planning_scenes.back();
+  // in case the scene was renamed, the name in the message may be out of date  
+  const_cast<moveit_msgs::PlanningScene*>(static_cast<const moveit_msgs::PlanningScene*>(scene_m.get()))->name = scene_name; 
   return true;
 }
 
