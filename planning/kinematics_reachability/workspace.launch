@@ -1,6 +1,6 @@
 <launch>
 
-<node pkg="kinematics_reachability" type="workspace_gui" name="arm_workspace_tests" output="screen">
+<node pkg="moveit_ros_planning" type="kinematics_reachability" name="arm_workspace_tests" output="screen" >
  <param name="cache_filename" value="$(env ROS_LOG_DIR)/kinematics_workspace.cache"/>
  <param name="group" value="arm"/>
  <param name="frame_id" value="arm_base_link"/>

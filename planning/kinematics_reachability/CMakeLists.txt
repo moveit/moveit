@@ -3,6 +3,9 @@ set(MOVEIT_LIB_NAME moveit_kinematics_reachability)
 add_library(${MOVEIT_LIB_NAME} src/kinematics_reachability.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_scene_monitor ${catkin_LIBRARIES})
 
+add_executable(kinematics_reachability src/main.cpp)
+target_link_libraries(kinematics_reachability ${MOVEIT_LIB_NAME} moveit_planning_scene_monitor ${catkin_LIBRARIES})
+
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
 
