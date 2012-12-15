@@ -188,6 +188,11 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
     response.solution_->getJointStateGroup(group_name_)->setVariableValues(solution_values);
     response.error_code_.val = response.error_code_.SUCCESS;    
   }  
+
+  if(response.error_code_.val == 0)
+  {
+    response.error_code_.val = response.error_code_.NO_IK_SOLUTION;
+  }
   return result;
 }
 
@@ -269,7 +274,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
 
   bool result = getIK(planning_scene, kinematics_request, kinematics_response);
   response.error_code = kinematics_response.error_code_;
-  kinematics_response.solution_->setStateValues(response.solution.joint_state);
+  kinematics_response.solution_->getStateValues(response.solution.joint_state);
   return result;
 }
 
@@ -285,7 +290,7 @@ bool KinematicsConstraintAware::convertServiceRequest(const planning_scene::Plan
     return false;
   }
 
-  if(request.ik_request.pose_stamped_vector.size() != sub_groups_names_.size())
+  if(!request.ik_request.pose_stamped_vector.empty() && request.ik_request.pose_stamped_vector.size() != sub_groups_names_.size() )
   {
     logError("Number of poses in request: %d must match number of sub groups %d in this group", 
              request.ik_request.pose_stamped_vector.size(),
@@ -303,15 +308,24 @@ bool KinematicsConstraintAware::convertServiceRequest(const planning_scene::Plan
     return false;            
   }
 
-  kinematics_request.ik_link_names_ = request.ik_request.ik_link_names;
-  kinematics_request.pose_stamped_vector_ = request.ik_request.pose_stamped_vector;      
+  if(request.ik_request.ik_link_names.empty() && request.ik_request.ik_link_name != "")
+    kinematics_request.ik_link_names_.push_back(request.ik_request.ik_link_name);
+  else
+    kinematics_request.ik_link_names_ = request.ik_request.ik_link_names;
+
+  if(request.ik_request.pose_stamped_vector.empty())
+    kinematics_request.pose_stamped_vector_.push_back(request.ik_request.pose_stamped);
+  else
+    kinematics_request.pose_stamped_vector_ = request.ik_request.pose_stamped_vector;
+
   kinematics_request.robot_state_.reset(new kinematic_state::KinematicState(planning_scene->getCurrentState()));
   kinematics_request.robot_state_->setStateValues(request.ik_request.robot_state.joint_state);    
   kinematics_request.constraints_.reset(new kinematic_constraints::KinematicConstraintSet(kinematic_model_, planning_scene->getTransforms()));
   kinematics_request.constraints_->add(request.constraints);
   kinematics_request.timeout_ = request.timeout;
   kinematics_request.group_name_ = request.ik_request.group_name;
-
+  kinematics_request.check_for_collisions_ = true;
+  
   kinematics_response.solution_.reset(new kinematic_state::KinematicState(planning_scene->getCurrentState()));
 
   return true;  
