@@ -111,7 +111,7 @@ protected:
     visualization_msgs::InteractiveMarker imarker_msg;
     boost::shared_ptr<rviz::InteractiveMarker> imarker;
     bool selected;
-    enum {NOT_TESTED, PROCESSING, REACHABLE, NOT_REACHABLE} reachable;
+    enum {NOT_TESTED, PROCESSING, REACHABLE, NOT_REACHABLE, IN_COLLISION} reachable;
     
     GoalPoseMarker(): selected(false) {}
     GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker, visualization_msgs::InteractiveMarker &msg):
@@ -189,6 +189,7 @@ private Q_SLOTS:
   void goalPoseDoubleClicked(QListWidgetItem *item);
   void copySelectedGoalPoses(void);
   void visibleAxisChanged(int state);
+  void checkGoalsInCollision();
 
   //Slots for start states
   void saveStartStateButtonClicked(void);
@@ -260,6 +261,7 @@ private:
   void selectItemJob(QListWidgetItem *item, bool flag);
   void displayMessageBox(const QString &title, const QString &text);
   void updateMarkerColorFromName(const std::string & name, float r, float g, float b, float a);
+  bool checkIfGoalInCollision(const std::string & goal_name);
 
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
