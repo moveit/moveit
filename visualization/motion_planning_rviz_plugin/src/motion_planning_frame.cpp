@@ -134,7 +134,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->show_y_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
   connect( ui_->show_z_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
   connect( ui_->check_goal_collisions_button, SIGNAL( clicked( ) ), this, SLOT( checkGoalsInCollision( ) ));
-  
+  connect( ui_->check_goal_reachability_button, SIGNAL( clicked( ) ), this, SLOT( checkGoalsReachable( ) ));
+
   QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->goal_poses_list);
   connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
 
@@ -163,10 +164,10 @@ MotionPlanningFrame::~MotionPlanningFrame(void)
 }
 
 MotionPlanningFrame::MsgMarkerPair MotionPlanningFrame::make6DOFEndEffectorMarker(const std::string& name,
-                                                                                        const robot_interaction::RobotInteraction::EndEffector &eef,
-                                                                                        const geometry_msgs::Pose &pose,
-                                                                                        double scale,
-                                                                                        bool selected)
+                                                                                  const robot_interaction::RobotInteraction::EndEffector &eef,
+                                                                                  const geometry_msgs::Pose &pose,
+                                                                                  double scale,
+                                                                                  bool selected)
 {
   visualization_msgs::InteractiveMarker int_marker;
   geometry_msgs::PoseStamped tip_pose_msg;
@@ -737,48 +738,18 @@ void MotionPlanningFrame::updateMarkerColorFromName(const std::string & name, fl
 
 void MotionPlanningFrame::computeGoalPoseDoubleClicked(QListWidgetItem * item)
 {
-  if ( !planning_display_->getRobotInteraction() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! planning_display_->getQueryGoalState() )
+  if ( !planning_display_->getRobotInteraction() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || !planning_display_->getQueryGoalState() )
     return;
+
+  std::string item_text = item->text().toStdString();
   
   //Switch the marker color to processing color while processing
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, item->text().toStdString(), GOAL_PROCESSING_COLOR[0], GOAL_PROCESSING_COLOR[1], GOAL_PROCESSING_COLOR[2], GOAL_NOT_TESTED_COLOR[3]));
-  goal_poses_[item->text().toStdString()].reachable = GoalPoseMarker::PROCESSING;
-
-  // Call to IK
-  const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[item->text().toStdString()].imarker;
-
-  geometry_msgs::Pose current_pose;
-  current_pose.position.x = imarker->getPosition().x;
-  current_pose.position.y = imarker->getPosition().y;
-  current_pose.position.z = imarker->getPosition().z;
-  current_pose.orientation.x = imarker->getOrientation().x;
-  current_pose.orientation.y = imarker->getOrientation().y;
-  current_pose.orientation.z = imarker->getOrientation().z;
-  current_pose.orientation.w = imarker->getOrientation().w;
+  goal_poses_[item_text].reachable = GoalPoseMarker::PROCESSING;
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, item_text,
+                                                GOAL_PROCESSING_COLOR[0], GOAL_PROCESSING_COLOR[1], GOAL_PROCESSING_COLOR[2], GOAL_NOT_TESTED_COLOR[3]));
   
-  bool feasible = planning_display_->getRobotInteraction()->updateState(*planning_display_->getQueryGoalState(),
-                                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
-                                                                        current_pose,
-                                                                        planning_display_->getQueryGoalStateHandler()->getIKAttempts(),
-                                                                        planning_display_->getQueryGoalStateHandler()->getIKTimeout());
-  if (feasible)
-  {
-    //Switch the marker color to reachable
-    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, item->text().toStdString(), GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]));
-    goal_poses_[item->text().toStdString()].reachable = GoalPoseMarker::REACHABLE;
-    planning_display_->updateQueryGoalState();
-  }
-  else
-  {
-    //Switch the marker color to not-reachable
-    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, item->text().toStdString(), GOAL_NOT_REACHABLE_COLOR[0], GOAL_NOT_REACHABLE_COLOR[1], GOAL_NOT_REACHABLE_COLOR[2], GOAL_NOT_REACHABLE_COLOR[3]));
-    goal_poses_[item->text().toStdString()].reachable = GoalPoseMarker::NOT_REACHABLE;
-  }
-
-}
-
-void MotionPlanningFrame::displayMessageBox(const QString &title, const QString &text) {
-    QMessageBox::warning(this, title , text);
+  checkIfGoalReachable(planning_display_->getQueryGoalState(), item_text);
+  planning_display_->updateQueryGoalState();
 }
 
 void MotionPlanningFrame::selectItemJob(QListWidgetItem *item, bool flag)
@@ -816,16 +787,15 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
     goals_initial_pose_.clear();    
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
     {
-      Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x, it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
+      Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x,
+                                              it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
       pose(0,3) = it->second.imarker->getPosition().x;
       pose(1,3) = it->second.imarker->getPosition().y;
       pose(2,3) = it->second.imarker->getPosition().z;
       goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second.imarker->getName(), pose));
 
       if (it->second.imarker->getName() == feedback.marker_name) 
-      {
-        initial_pose_eigen=pose;
-      }
+        initial_pose_eigen = pose;
     }
     dragging=true;
   } 
@@ -849,7 +819,7 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
         v(2) * 180.0 / boost::math::constants::pi<double>()));
 
     //Update the rest of selected markers    
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it) 
     {
       if (it->second.imarker->getName() != feedback.marker_name && it->second.selected) 
       {
@@ -865,50 +835,80 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
   } else if (feedback.event_type == feedback.MOUSE_UP) 
   {
     dragging = false;
-    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::checkIfGoalInCollision, this, feedback.marker_name));
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::checkIfGoalInCollision, this, feedback.marker_name));
   }
 }
 
-void MotionPlanningFrame::checkGoalsInCollision()
-{
+void MotionPlanningFrame::checkGoalsReachable(void)
+{ 
+  kinematic_state::KinematicStatePtr tmp(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
-    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::checkIfGoalInCollision, this, it->first));
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::checkIfGoalReachable, this, tmp, it->first));
 }
 
-bool MotionPlanningFrame::checkIfGoalInCollision(const std::string & goal_name)
+void MotionPlanningFrame::checkGoalsInCollision(void)
+{  
+  kinematic_state::KinematicStatePtr tmp(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
+  for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::checkIfGoalInCollision, this, tmp, it->first));
+}
+
+void MotionPlanningFrame::checkIfGoalReachable(const kinematic_state::KinematicStatePtr &work_state, const std::string &goal_name)
 {
-  //Check if the end-effector is in collision at the current pose
-  kinematic_state::KinematicStatePtr ks = planning_display_->getQueryGoalState();
+  // Call to IK
+  const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[goal_name].imarker;
 
-  Eigen::Affine3d marker_pose_eigen, original_pose_eigen;
-  original_pose_eigen = ks->getLinkState(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
+  geometry_msgs::Pose current_pose;
+  current_pose.position.x = imarker->getPosition().x;
+  current_pose.position.y = imarker->getPosition().y;
+  current_pose.position.z = imarker->getPosition().z;
+  current_pose.orientation.x = imarker->getOrientation().x;
+  current_pose.orientation.y = imarker->getOrientation().y;
+  current_pose.orientation.z = imarker->getOrientation().z;
+  current_pose.orientation.w = imarker->getOrientation().w;
+  
+  bool feasible = planning_display_->getRobotInteraction()->updateState(*work_state,
+                                                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
+                                                                        current_pose,
+                                                                        planning_display_->getQueryGoalStateHandler()->getIKAttempts(),
+                                                                        planning_display_->getQueryGoalStateHandler()->getIKTimeout());
+  if (feasible)
+  {
+    //Switch the marker color to reachable
+    goal_poses_[goal_name].reachable = GoalPoseMarker::REACHABLE;
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
+                                                  GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]));
+  }
+  else
+  {
+    //Switch the marker color to not-reachable
+    goal_poses_[goal_name].reachable = GoalPoseMarker::NOT_REACHABLE;
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
+                                                  GOAL_NOT_REACHABLE_COLOR[0], GOAL_NOT_REACHABLE_COLOR[1], GOAL_NOT_REACHABLE_COLOR[2], GOAL_NOT_REACHABLE_COLOR[3]));
+  }
+}
 
-  geometry_msgs::Pose marker_pose_msg;
-  marker_pose_msg.position.x = goal_poses_[goal_name].imarker->getPosition().x;
-  marker_pose_msg.position.y = goal_poses_[goal_name].imarker->getPosition().y;
-  marker_pose_msg.position.z = goal_poses_[goal_name].imarker->getPosition().z;
-  marker_pose_msg.orientation.x = goal_poses_[goal_name].imarker->getOrientation().x;
-  marker_pose_msg.orientation.y = goal_poses_[goal_name].imarker->getOrientation().y;
-  marker_pose_msg.orientation.z = goal_poses_[goal_name].imarker->getOrientation().z;
-  marker_pose_msg.orientation.w = goal_poses_[goal_name].imarker->getOrientation().w;
-  tf::poseMsgToEigen(marker_pose_msg, marker_pose_eigen);
-
-  ks->updateStateWithLinkAt(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link, marker_pose_eigen);
-
-  std::vector<std::string> collision_links;
-  planning_display_->getPlanningScene()->getCollidingLinks(collision_links, *planning_display_->getQueryGoalState());
-
-  ks->updateStateWithLinkAt(planning_display_->getRobotInteraction()->getActiveEndEffectors()[0].parent_link, original_pose_eigen);
-
-  bool in_collision = ( collision_links.size() > 0 );
-
+void MotionPlanningFrame::checkIfGoalInCollision(const kinematic_state::KinematicStatePtr &work_state, const std::string & goal_name)
+{
+  // Check if the end-effector is in collision at the current pose
+  
+  const robot_interaction::RobotInteraction::EndEffector &eef = planning_display_->getRobotInteraction()->getActiveEndEffectors()[0];
+  
+  const boost::shared_ptr<rviz::InteractiveMarker> &im = goal_poses_[goal_name].imarker;  
+  Eigen::Affine3d marker_pose_eigen = Eigen::Translation3d(im->getPosition().x, im->getPosition().y, im->getPosition().z) * 
+    Eigen::Quaterniond(im->getOrientation().w, im->getOrientation().x, im->getOrientation().y, im->getOrientation().z);
+  
+  work_state->updateStateWithLinkAt(eef.parent_link, marker_pose_eigen);
+  bool in_collision = planning_display_->getPlanningScene()->isStateColliding(*work_state, eef.eef_group);
+  
   if ( in_collision )
   {
     //End effector in collision. Set the color accordingly
     if (goal_poses_[goal_name].reachable != GoalPoseMarker::IN_COLLISION)
     {
       goal_poses_[goal_name].reachable = GoalPoseMarker::IN_COLLISION;
-      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name, GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]));
+      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
+                                                    GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]));
     }
   }
   else
@@ -917,11 +917,16 @@ bool MotionPlanningFrame::checkIfGoalInCollision(const std::string & goal_name)
     if (goal_poses_[goal_name].reachable == GoalPoseMarker::IN_COLLISION)
     {
       goal_poses_[goal_name].reachable = GoalPoseMarker::NOT_TESTED;
-      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name, GOAL_NOT_TESTED_COLOR[0], GOAL_NOT_TESTED_COLOR[1], GOAL_NOT_TESTED_COLOR[2], GOAL_NOT_TESTED_COLOR[3]));
+      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
+                                                    GOAL_NOT_TESTED_COLOR[0], GOAL_NOT_TESTED_COLOR[1], GOAL_NOT_TESTED_COLOR[2], GOAL_NOT_TESTED_COLOR[3]));
     }
   }
+}
 
-  return in_collision;
+void MotionPlanningFrame::checkIfGoalInCollision(const std::string &goal_name)
+{  
+  kinematic_state::KinematicStatePtr tmp(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
+  checkIfGoalInCollision(tmp, goal_name);
 }
 
 void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marker_name) 
