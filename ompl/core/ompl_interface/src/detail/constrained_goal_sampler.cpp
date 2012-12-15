@@ -59,7 +59,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     return false;
   // terminate after a maximum number of samples
   if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
-    return false;  
+    return false;
   
   // terminate the sampling thread when a solution has been found
   if (planning_context_->getOMPLSimpleSetup().getProblemDefinition()->hasSolution())
@@ -73,16 +73,20 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
         if (kinematic_constraint_set_->decide(work_state_).satisfied)
         {
           planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, work_joint_group_state_);
-          return true;
+          if (si_->isValid(newGoal) && si_->satisfiesBounds(newGoal))
+            return true;
         }
       }
     }
     else
     {
-      default_sampler_->sampleUniform(newGoal); 
-      planning_context_->getOMPLStateSpace()->copyToKinematicState(work_joint_group_state_, newGoal);
-      if (kinematic_constraint_set_->decide(work_state_).satisfied)
-        return true;
+      default_sampler_->sampleUniform(newGoal);
+      if (si_->isValid(newGoal) && si_->satisfiesBounds(newGoal))
+      {
+        planning_context_->getOMPLStateSpace()->copyToKinematicState(work_joint_group_state_, newGoal);
+        if (kinematic_constraint_set_->decide(work_state_).satisfied)
+          return true;
+      }
     }
   
   return false;
