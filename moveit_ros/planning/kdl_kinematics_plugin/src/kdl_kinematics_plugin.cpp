@@ -343,7 +343,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   
   KDL::Frame pose_desired;
   tf::poseMsgToKDL(ik_pose, pose_desired);
-  /*
+  
   ROS_DEBUG_STREAM("searchPositionIK2: Position request pose is " <<
                    ik_pose.position.x << " " <<
                    ik_pose.position.y << " " <<
@@ -352,7 +352,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                    ik_pose.orientation.y << " " << 
                    ik_pose.orientation.z << " " << 
                    ik_pose.orientation.w);
-  */
   //Do the IK
   for(unsigned int i=0; i < dimension_; i++)
     jnt_seed_state_(i) = ik_seed_state[i]; 
@@ -375,7 +374,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
       getRandomConfiguration(jnt_seed_state_, consistency_limits, jnt_pos_in_);
       if(ik_valid < 0 || !checkConsistency(jnt_seed_state_, consistency_limits, jnt_pos_out_))
       {
-        ROS_DEBUG("Could not find IK solution\n");        
+        ROS_DEBUG("Could not find IK solution");        
         continue;
       } 
     }
@@ -384,11 +383,11 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
       getRandomConfiguration(jnt_pos_in_);
       if(ik_valid < 0)
       {
-        ROS_DEBUG("Could not find IK solution\n");        
+        ROS_DEBUG("Could not find IK solution");        
         continue;
       }      
     }
-    
+    ROS_DEBUG("Found IK solution");    
     for(unsigned int j=0; j < dimension_; j++)
       solution[j] = jnt_pos_out_(j);
     if(!solution_callback.empty())

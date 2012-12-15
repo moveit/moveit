@@ -171,6 +171,14 @@ public:
     canceled_ = canceled;
   }
 
+  /**
+   * @brief This method visualizes the workspace by publishing it to rviz using a set of arrows
+   * @param workspace The workspace message to visualize
+   * @param marker_namespace The namespace in which the markers are visualized
+   */
+  void visualizeWithArrows(const moveit_ros_planning::WorkspacePoints &workspace,
+                           const std::string &marker_namespace);
+
 protected:
 
   ros::NodeHandle node_handle_;
@@ -179,13 +187,6 @@ protected:
 
 private:
 
-  /**
-   * @brief This method visualizes the workspace by publishing it to rviz using a set of arrows
-   * @param workspace The workspace message to visualize
-   * @param marker_namespace The namespace in which the markers are visualized
-   */
-  void visualizeWithArrows(const moveit_ros_planning::WorkspacePoints &workspace,
-                           const std::string &marker_namespace);
 
   bool getDisplayTrajectory(const moveit_ros_planning::WorkspacePoints &workspace, 
                             moveit_msgs::DisplayTrajectory &display_trajectory);  

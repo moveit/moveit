@@ -34,7 +34,10 @@
 #include <ros/ros.h>
 #include <boost/thread.hpp>
 #include <tf/transform_datatypes.h>
-#include <kinematics_reachability/kinematics_reachability.h>
+#include <moveit/kinematics_reachability/kinematics_reachability.h>
+#include <moveit_ros_planning/WorkspacePoints.h>
+#include <moveit_ros_planning/WorkspacePoint.h>
+
 
 int main(int argc, char** argv)
 {
@@ -48,26 +51,35 @@ int main(int argc, char** argv)
   node_handle.param<std::string>("frame_id", frame_id, std::string());
   ros::NodeHandle root_handle;
 
+  planning_models_loader::KinematicModelLoader kinematic_model_loader("robot_description"); /** Used to load the robot model */  
+  kinematic_model::KinematicModelPtr kinematic_model = kinematic_model_loader.getModel();
+
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
+  planning_scene_monitor.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
+  kinematics_constraint_aware::KinematicsConstraintAwarePtr kinematics_constraint_aware;
+  kinematics_constraint_aware.reset(new kinematics_constraint_aware::KinematicsConstraintAware(kinematic_model, group_name));
+  
+
   /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
 region in the workspace for which reachability is to be computed****/
-  kinematics_reachability::KinematicsReachability reachability_solver;
+  kinematics_reachability::KinematicsReachability reachability_solver(kinematics_constraint_aware,
+                                                                      planning_scene_monitor);
   if(!reachability_solver.initialize())
     return 0;
- 
   
-  kinematics_reachability::WorkspacePoints workspace;
+  moveit_ros_planning::WorkspacePoints workspace;
   workspace.group_name = group_name;
   
-  workspace.position_resolution = 0.45;
-  workspace.header.frame_id = frame_id;
+  workspace.position_resolution = 0.20;
+  workspace.header.frame_id = kinematic_model->getModelFrame();
 
-  workspace.parameters.min_corner.x =  -0.9;
-  workspace.parameters.min_corner.y = -0.9;
-  workspace.parameters.min_corner.z = -0.9;
+  workspace.parameters.min_corner.x =  -0.45;
+  workspace.parameters.min_corner.y = -0.75;
+  workspace.parameters.min_corner.z = 0.0;
 
-  workspace.parameters.max_corner.x = 0.9;
-  workspace.parameters.max_corner.y = 0.9;
-  workspace.parameters.max_corner.z = 0.9;
+  workspace.parameters.max_corner.x = 0.75;
+  workspace.parameters.max_corner.y = 0.75;
+  workspace.parameters.max_corner.z = 1.5;
   
   //SET OF ORIENTATIONS TO TEST FOR REACHABILITY
 
@@ -75,9 +87,9 @@ region in the workspace for which reachability is to be computed****/
   quaternion.w = 1.0;
   workspace.orientations.push_back(quaternion);  
 
-  /*  quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,-M_PI/2.0);
+  quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,0.0);
   workspace.orientations.push_back(quaternion);
-
+  /*
   quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,M_PI/2.0);
   workspace.orientations.push_back(quaternion);
 
@@ -101,21 +113,16 @@ region in the workspace for which reachability is to be computed****/
   quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/4.0,-M_PI/4.0);
   workspace.orientations.push_back(quaternion);
   */
-  while(!reachability_solver.isActive())
-  {
-    sleep(1.0);
-    ROS_INFO("Waiting for planning scene to be set");
-  }
     
   geometry_msgs::Pose tool_frame_offset;
   tool_frame_offset.orientation.w = 1.0;
   workspace.tool_frame_offset = tool_frame_offset;  
 
-  reachability_solver.computeWorkspaceFK(workspace, 10.0);
+  //reachability_solver.computeWorkspaceFK(workspace, 10.0);
+  reachability_solver.computeWorkspace(workspace, 10.0);
   reachability_solver.visualize(workspace,"full");
   reachability_solver.animateWorkspace(workspace);
-  /*
-  reachability_solver.visualizeWithArrows(workspace,"full_arrows");*/
+  reachability_solver.visualizeWithArrows(workspace,"full_arrows");
   //  aw.visualize(workspace,"RPY(0,0,0)",zero_orientation);
   ROS_INFO("Success");
 

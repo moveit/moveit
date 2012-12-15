@@ -45,7 +45,8 @@ const static unsigned int ARROW_MARKER_OFFSET = 4;
 KinematicsReachability::KinematicsReachability(const kinematics_constraint_aware::KinematicsConstraintAwarePtr &kinematics_solver,
                                                const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor) : node_handle_("~"), 
                                                                                                                                 kinematics_solver_(kinematics_solver), 
-                                                                                                                                planning_scene_monitor_(planning_scene_monitor)
+                                                                                                                                planning_scene_monitor_(planning_scene_monitor),
+                                                                                                                                canceled_(false)
 {
 }
 
@@ -88,9 +89,9 @@ bool KinematicsReachability::initialize()
   node_handle_.param<int>("max_fk_points",max_fk_points_,5000);
 
   // Visualization
-  node_handle_.param("arrow_marker_scale/x", arrow_marker_scale_.x, 0.10);
-  node_handle_.param("arrow_marker_scale/y", arrow_marker_scale_.y, 0.04);
-  node_handle_.param("arrow_marker_scale/z", arrow_marker_scale_.z, 0.04);
+  node_handle_.param("arrow_marker_scale/x", arrow_marker_scale_.x, 0.07);
+  node_handle_.param("arrow_marker_scale/y", arrow_marker_scale_.y, 0.005);
+  node_handle_.param("arrow_marker_scale/z", arrow_marker_scale_.z, 0.005);
 
   double sphere_marker_radius;
   node_handle_.param("sphere_marker_radius", sphere_marker_radius, 0.02);
@@ -138,18 +139,28 @@ bool KinematicsReachability::computeWorkspace(moveit_ros_planning::WorkspacePoin
 {
   if(first_time_)
   {  
-    if(generateCache(workspace.group_name,default_cache_timeout_,default_cache_options_,cache_filename_))
+    /*    if(generateCache(workspace.group_name,default_cache_timeout_,default_cache_options_,cache_filename_))
       use_cache_ = true;    
     first_time_ = false;    
+    */
   }
-  
+
+  planning_scene_monitor_->updateFrameTransforms();
+  planning_scene_monitor_->lockScene();    
+
   setToolFrameOffset(workspace.tool_frame_offset);
   if(!sampleUniform(workspace))
+  {
+    planning_scene_monitor_->unlockScene();
     return false;
+  }
+  
   if(visualize)
     visualizeWorkspaceSamples(workspace);
   
   findIKSolutions(workspace,visualize);
+  planning_scene_monitor_->unlockScene();
+
   return true;
 }
 
@@ -172,8 +183,11 @@ bool KinematicsReachability::computeWorkspaceFK(moveit_ros_planning::WorkspacePo
   collision_detection::CollisionRequest collision_request;
   collision_detection::CollisionResult collision_result;  
   collision_request.group_name = kinematics_solver_->getGroupName();
-  planning_scene_monitor_->getPlanningScene()->checkCollision(collision_request, collision_result, kinematic_state);    
+
+  planning_scene_monitor_->updateFrameTransforms();
+  planning_scene_monitor_->lockScene();
   std::string link_name = joint_state_group->getJointModelGroup()->getLinkModelNames().back();
+  ROS_DEBUG("Link name: %s",link_name.c_str());
 
   while(((ros::WallTime::now()-start_time).toSec() <= timeout) && (points < max_fk_points_))
   {
@@ -192,18 +206,29 @@ bool KinematicsReachability::computeWorkspaceFK(moveit_ros_planning::WorkspacePo
     point.pose.orientation.y = quat.y();
     point.pose.orientation.z = quat.z();
     point.pose.orientation.w = quat.w();
+    ROS_DEBUG("Pose: %f %f %f, %f %f %f %f", point_trans.x(), 
+             point_trans.y(), 
+             point_trans.z(), 
+             quat.x(),
+             quat.y(),
+             quat.z(),
+             quat.w());
 
     point.robot_state.joint_state.position = joint_values;
     point.robot_state.joint_state.name = joint_state_group->getJointModelGroup()->getJointModelNames();
     point.solution_code.val = point.solution_code.SUCCESS;
 
+    planning_scene_monitor_->getPlanningScene()->checkCollision(collision_request, collision_result, kinematic_state);    
     if(collision_result.collision)
     {
       point.solution_code.val = point.solution_code.NO_IK_SOLUTION;
     }    
     workspace.points.push_back(point);
     points++;    
+    ROS_DEBUG("Points: %d", points);    
   }
+  workspace.header.frame_id = planning_scene_monitor_->getKinematicModel()->getModelFrame();  
+  planning_scene_monitor_->unlockScene();
   return true;  
 }
 
@@ -296,9 +321,6 @@ void KinematicsReachability::findIKSolutions(moveit_ros_planning::WorkspacePoint
 
   for(unsigned int i=0; i < workspace.points.size(); ++i)
   {
-
-    
-
     if (canceled_)
     {
       ROS_INFO("Computation canceled.");
@@ -323,7 +345,8 @@ void KinematicsReachability::findIKSolutions(moveit_ros_planning::WorkspacePoint
     {      
       ROS_DEBUG("Solution   : Point %d of %d",(int) i,(int) workspace.points.size());
       workspace.points[i].robot_state = solution;
-      kinematics_cache_->addToCache(workspace.points[i].pose,solution.joint_state.position,true);
+      if(use_cache_)
+        kinematics_cache_->addToCache(workspace.points[i].pose,solution.joint_state.position,true);
       point_map_[xyz].push_back(true);
 
     }
@@ -381,10 +404,13 @@ void KinematicsReachability::findIKSolutions(moveit_ros_planning::WorkspacePoint
   getOrientationSuccessMarkers(workspace, marker);
   visualization_orientation_success_publisher_.publish(marker);
 
-  if(!kinematics_cache_->writeToFile(cache_filename_))
+  if(use_cache_)
   {
-    ROS_WARN("Could not write cache to file");
-  }    
+    if(!kinematics_cache_->writeToFile(cache_filename_))
+    {
+      ROS_WARN("Could not write cache to file");
+    }    
+  }  
 }
 
 void KinematicsReachability::findIK(const std::string &group_name,
@@ -411,6 +437,7 @@ void KinematicsReachability::findIK(const std::string &group_name,
   }        
   kinematics_solver_->getIK(planning_scene_monitor_->getPlanningScene(),request,response);
   error_code = response.error_code;
+  ROS_INFO("Error code: %d", response.error_code.val);  
   robot_state = response.solution;  
 }
 
@@ -428,9 +455,10 @@ void KinematicsReachability::getDefaultIKRequest(const std::string &group_name,
   joint_state_group->setToRandomValues();
   
   req.timeout = ros::Duration(kinematics_solver_timeout_);
-  req.ik_request.ik_link_name = joint_model_group->getLinkModelNames().back();
+  //  req.ik_request.ik_link_name = joint_model_group->getLinkModelNames().back();
   req.ik_request.robot_state.joint_state.name = joint_model_group->getJointModelNames();
   joint_state_group->getVariableValues(req.ik_request.robot_state.joint_state.position);  
+  req.ik_request.group_name = group_name;  
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -831,9 +859,9 @@ std::vector<visualization_msgs::Marker> KinematicsReachability::getSphereMarker(
       else
       {         
         unsigned int marker_index = error_code_map.find(workspace.points[i].solution_code.val)->second;          
+        //        ROS_INFO("Point %d, marker index: %d", i, marker_index);        
         markers[marker_index].colors.push_back(colors[marker_index]);
         markers[marker_index].points.push_back(point); 
-
       }
     }    
   }
@@ -1009,7 +1037,7 @@ void KinematicsReachability::visualize(const moveit_ros_planning::WorkspacePoint
   std::vector<visualization_msgs::Marker> markers;
   std::vector<unsigned int> points;  
   getMarkers(workspace,marker_namespace,points,markers);
-  getArrowMarkers(workspace,marker_namespace,points,markers);
+  //  getArrowMarkers(workspace,marker_namespace,points,markers);
   for(std::vector<visualization_msgs::Marker>::const_iterator it = markers.begin() ; it != markers.end() ; ++it)
   { 
     /*if ((it->color.r == default_manipulability_color_.r) && (it->color.g == default_manipulability_color_.g) && (it->color.b == default_manipulability_color_.b))
