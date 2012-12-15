@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -915,8 +915,8 @@
          <property name="title">
           <string>Start States</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_6">
-          <item row="8" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_13">
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout_12">
             <item>
              <widget class="QLineEdit" name="load_states_filter_text">
@@ -1007,7 +1007,7 @@
             </item>
            </layout>
           </item>
-          <item row="9" column="0">
+          <item>
            <widget class="QListWidget" name="start_states_list">
             <property name="editTriggers">
              <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
@@ -1028,42 +1028,8 @@
          <property name="title">
           <string>End-Effector Goal Poses</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_7">
-          <item row="10" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QCheckBox" name="show_x_checkbox">
-              <property name="text">
-               <string>Show X</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="show_y_checkbox">
-              <property name="text">
-               <string>Show Y</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="show_z_checkbox">
-              <property name="text">
-               <string>Show Z</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="6" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout_13">
             <item>
              <widget class="QLineEdit" name="load_poses_filter_text">
@@ -1157,7 +1123,7 @@
             </item>
            </layout>
           </item>
-          <item row="7" column="0" colspan="2">
+          <item>
            <widget class="QListWidget" name="goal_poses_list">
             <property name="toolTip">
              <string>Press Ctrl+C to duplicate the selected goals</string>
@@ -1170,12 +1136,57 @@
             </property>
            </widget>
           </item>
-          <item row="11" column="0">
-           <widget class="QPushButton" name="check_goal_collisions_button">
-            <property name="text">
-             <string>Check collisions</string>
-            </property>
-           </widget>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QCheckBox" name="show_x_checkbox">
+              <property name="text">
+               <string>Show X</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="show_y_checkbox">
+              <property name="text">
+               <string>Show Y</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="show_z_checkbox">
+              <property name="text">
+               <string>Show Z</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item>
+             <widget class="QPushButton" name="check_goal_collisions_button">
+              <property name="text">
+               <string>Check collisions</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="check_goal_reachability_button">
+              <property name="text">
+               <string>Check reachability</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>

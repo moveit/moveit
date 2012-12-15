@@ -111,14 +111,17 @@ protected:
     visualization_msgs::InteractiveMarker imarker_msg;
     boost::shared_ptr<rviz::InteractiveMarker> imarker;
     bool selected;
-    enum {NOT_TESTED, PROCESSING, REACHABLE, NOT_REACHABLE, IN_COLLISION} reachable;
+    enum
+      {
+        NOT_TESTED, PROCESSING, REACHABLE, NOT_REACHABLE, IN_COLLISION
+      } reachable;
     
-    GoalPoseMarker(): selected(false) {}
-    GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker, visualization_msgs::InteractiveMarker &msg):
+    GoalPoseMarker(void): selected(false) {}
+    GoalPoseMarker(const boost::shared_ptr<rviz::InteractiveMarker> &marker, const visualization_msgs::InteractiveMarker &msg):
       imarker(marker), imarker_msg(msg), selected(false), reachable(GoalPoseMarker::NOT_TESTED) {}
-    GoalPoseMarker(boost::shared_ptr<rviz::InteractiveMarker> marker, visualization_msgs::InteractiveMarker &msg, bool is_selected):
+    GoalPoseMarker(const boost::shared_ptr<rviz::InteractiveMarker> &marker, const visualization_msgs::InteractiveMarker &msg, bool is_selected):
       imarker(marker), imarker_msg(msg), selected(is_selected), reachable(GoalPoseMarker::NOT_TESTED) {}
-
+    
     void updateMarker()
     {
       imarker->processMessage(imarker_msg);
@@ -136,8 +139,8 @@ protected:
     bool selected;
     
     StartState(): selected(false) {}
-    StartState(moveit_msgs::RobotState state): state_msg(state), selected(false) {}
-    StartState(moveit_msgs::RobotState state, bool is_selected): state_msg(state), selected(is_selected) {}
+    StartState(const moveit_msgs::RobotState &state): state_msg(state), selected(false) {}
+    StartState(const moveit_msgs::RobotState &state, bool is_selected): state_msg(state), selected(is_selected) {}
   };
   
   typedef std::map<std::string, StartState> StartStateMap;
@@ -190,6 +193,7 @@ private Q_SLOTS:
   void copySelectedGoalPoses(void);
   void visibleAxisChanged(int state);
   void checkGoalsInCollision();
+  void checkGoalsReachable();
 
   //Slots for start states
   void saveStartStateButtonClicked(void);
@@ -259,10 +263,11 @@ private:
                                              bool selected = false);
 
   void selectItemJob(QListWidgetItem *item, bool flag);
-  void displayMessageBox(const QString &title, const QString &text);
   void updateMarkerColorFromName(const std::string & name, float r, float g, float b, float a);
-  bool checkIfGoalInCollision(const std::string & goal_name);
-
+  void checkIfGoalInCollision(const std::string & goal_name);
+  void checkIfGoalInCollision(const kinematic_state::KinematicStatePtr &work_state, const std::string & goal_name);
+  void checkIfGoalReachable(const kinematic_state::KinematicStatePtr &work_state, const std::string &goal_name);
+  
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
