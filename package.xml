@@ -13,6 +13,6 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit-resources/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit-resources</url>
 
-  <build_depend>catkin</build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
 
 </package>
