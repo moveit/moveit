@@ -112,9 +112,10 @@ public:
         ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
 
       // Rerun in verbose mode
-      ROS_INFO("To aid in fixing this issue, we will redo the collision check with verbose mode on:");
-      creq.verbose = true;
-      planning_scene->checkCollision(creq, cres, start_state);
+      collision_detection::CollisionRequest vcreq = creq;
+      collision_detection::CollisionResult vcres;
+      vcreq.verbose = true;
+      planning_scene->checkCollision(vcreq, vcres, start_state);
       
       kinematic_state::KinematicState prefix_state = start_state;
       random_numbers::RandomNumberGenerator rng;
