@@ -24,7 +24,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   roscpp
   rosconsole
-  octomap_ros
 )
 
 catkin_package(
