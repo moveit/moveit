@@ -106,16 +106,16 @@ public:
     planning_scene->checkCollision(creq, cres, start_state);
     if (cres.collision)
     {
-      if (creq.group_name.empty())
-        ROS_INFO("Start state appears to be in collision");
-      else
-        ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
-
       // Rerun in verbose mode
       collision_detection::CollisionRequest vcreq = creq;
       collision_detection::CollisionResult vcres;
       vcreq.verbose = true;
       planning_scene->checkCollision(vcreq, vcres, start_state);
+
+      if (creq.group_name.empty())
+        ROS_INFO("Start state appears to be in collision");
+      else
+        ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
       
       kinematic_state::KinematicState prefix_state = start_state;
       random_numbers::RandomNumberGenerator rng;
