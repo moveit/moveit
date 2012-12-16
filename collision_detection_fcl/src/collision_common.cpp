@@ -176,21 +176,12 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
             if (cdata->req_->verbose)
               logInform("Found unacceptable contact between '%s' and '%s'. Contact was stored.",
                         cd1->getID().c_str(), cd2->getID().c_str());  
-            else
-              logDebug("Found unacceptable contact between '%s' and '%s'. Contact was stored.",
-                       cd1->getID().c_str(), cd2->getID().c_str());  
-            
           }
           else
             if (cdata->req_->verbose)
-              logInform("Found unacceptable contact between '%s' and '%s'. Contact was not stored.",
-                        cd1->getID().c_str(), cd2->getID().c_str());
-            else logDebug("Found unacceptable contact between '%s' (type '%s') and '%s' (type '%s'). Contact was stored.",
-                          cd1->getID().c_str(), 
-                          cd1->getTypeString().c_str(), 
-                          cd2->getID().c_str(),
-                          cd2->getTypeString().c_str());
-          
+              logInform("Found unacceptable contact between '%s' (type '%s') and '%s' (type '%s'). Contact was stored.",
+                        cd1->getID().c_str(), cd1->getTypeString().c_str(), 
+                        cd2->getID().c_str(), cd2->getTypeString().c_str());
           cdata->res_->collision = true;
           if (want_contact_count == 0)
             break;
@@ -198,7 +189,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       }
     }
     
-    if(enable_cost)
+    if (enable_cost)
     {
       std::vector<fcl::CostSource> cost_sources;
       col_result.getCostSources(cost_sources);
@@ -226,6 +217,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(want_contact_count, enable_contact, num_max_cost_sources, enable_cost), col_result);
       if (num_contacts > 0)
       {
+        int num_contacts_initial = num_contacts;
+        
         // make sure we don't get more contacts than we want
         if (want_contact_count >= (std::size_t)num_contacts)
           want_contact_count -= num_contacts;
@@ -236,16 +229,11 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         }
 	
         if (cdata->req_->verbose)
-          logInform("Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
-                    num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
-        else 
-          logDebug("Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), which constitute a collision. %d contacts will be stored",
-                   num_contacts, 
-                   cd1->getID().c_str(), 
-                   cd1->getTypeString().c_str(), 
-                   cd2->getID().c_str(), 
-                   cd2->getTypeString().c_str(), 
-                   (int)num_contacts);
+          logInform("Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), which constitute a collision. %d contacts will be stored",
+                    num_contacts_initial, 
+                    cd1->getID().c_str(), cd1->getTypeString().c_str(), 
+                    cd2->getID().c_str(), cd2->getTypeString().c_str(), 
+                    num_contacts);
         
         const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
           std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
@@ -259,7 +247,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         }
       }
       
-      if(enable_cost)
+      if (enable_cost)
       {
         std::vector<fcl::CostSource> cost_sources;
         col_result.getCostSources(cost_sources);
@@ -285,15 +273,11 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       {
         cdata->res_->collision = true;
         if (cdata->req_->verbose)
-          logInform("Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
-                    cd1->getID().c_str(), cd2->getID().c_str());
-        else 
-          logDebug("Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
-                   cd1->getID().c_str(), cd2->getID().c_str());
-        
+          logInform("Found a contact between '%s' (type '%s') and '%s' (type '%s'), which constitutes a collision. Contact information is not stored.",
+                    cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
       }
       
-      if(enable_cost)
+      if (enable_cost)
       {
         std::vector<fcl::CostSource> cost_sources;
         col_result.getCostSources(cost_sources);
@@ -314,19 +298,20 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   if (cdata->res_->collision)
     if (!cdata->req_->contacts || cdata->res_->contact_count >= cdata->req_->max_contacts)
     {
-      if(!cdata->req_->cost)
+      if (!cdata->req_->cost)
         cdata->done_ = true;
       if (cdata->req_->verbose) 
-        logInform("Collision checking is considered complete (collision was found and %d contacts are stored)",
+        logInform("Collision checking is considered complete (collision was found and %u contacts are stored)",
                   (unsigned int)cdata->res_->contact_count);
-      else 
-        logDebug("Collision checking is considered complete (collision was found and %d contacts are stored)",
-                 (unsigned int)cdata->res_->contact_count);
-      
     }
   
   if (!cdata->done_ && cdata->req_->is_done)
+  {
     cdata->done_ = cdata->req_->is_done(*cdata->res_);
+    if (cdata->done_ && cdata->req_->verbose)
+      logInform("Collision checking is considered complete due to external callback. %s was found. %u contacts are stored.",
+                cdata->res_->collision ? "Collision" : "No collision", (unsigned int)cdata->res_->contact_count);
+  }
   
   return cdata->done_;
 }
