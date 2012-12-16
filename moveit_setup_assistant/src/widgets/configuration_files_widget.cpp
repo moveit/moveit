@@ -69,7 +69,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   // Top Header Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "Generate Configuration Files",
-                                           "Create or update the configuration files package needed to run your robot with MoveIt.",
+                                           "Create or update the configuration files package needed to run your robot with MoveIt. Any generated files that are highlighted orange indicate they were skipped.",
                                            this);
   layout->addWidget( header );
 
@@ -220,7 +220,8 @@ bool ConfigurationFilesWidget::checkDependencies()
 // ******************************************************************************************
 // A function for showing progress and user feedback about what happened
 // ******************************************************************************************
-void ConfigurationFilesWidget::displayAction( const QString title, const QString desc )
+void ConfigurationFilesWidget::displayAction( const QString title, const QString desc,
+                                              bool skipped )
 {
   action_num++;
 
@@ -231,8 +232,16 @@ void ConfigurationFilesWidget::displayAction( const QString title, const QString
   // Calc percentage
   progress_bar_->setValue( double(action_num)/action_num_total*100 );
 
+  // Create a formatted row
+  QListWidgetItem *item = new QListWidgetItem( title, action_list_, 0 );
+
+  if( skipped )
+  {
+    item->setForeground( QBrush(QColor(255, 135, 0)));
+  }
+
   // Add actions to list
-  action_list_->addItem( title );
+  action_list_->addItem( item );
   action_desc_.append( desc );
 
   // allow the progress bar to be shown
@@ -262,6 +271,10 @@ void ConfigurationFilesWidget::savePackage()
 
   // Get path name
   std::string new_package_path = stack_path_->getPath();
+  
+  // Use these strings multiple times
+  QString skipped_pkg_msg = QString("<b>This file was not generated because it would over-write a user customized file with a blank template file. If this is the desired action then first manually delete the file and then re-generate your package by clicking the 'Generate Package' button.</b><br /><br />");
+  QString pkg_description;
 
   // Check that a valid stack package name has been given
   if( new_package_path.empty() )
@@ -359,7 +372,7 @@ void ConfigurationFilesWidget::savePackage()
     file_name = "package.xml";
     template_path = config_data_->appendPaths( config_data_->template_package_path_, "package.xml.disabled" );
     file_path = config_data_->appendPaths( new_package_path, file_name );
-    
+
     // Use generic template copy function
     if( !copyTemplate( template_path, file_path, new_package_name ) )
     {
@@ -375,7 +388,7 @@ void ConfigurationFilesWidget::savePackage()
     file_name = "CMakeLists.txt";
     template_path = config_data_->appendPaths( config_data_->template_package_path_, file_name );
     file_path = config_data_->appendPaths( new_package_path, file_name );
-    
+
     // Use generic template copy function
     if( !copyTemplate( template_path, file_path, new_package_name ) )
     {
@@ -387,7 +400,7 @@ void ConfigurationFilesWidget::savePackage()
     displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
                    "CMake build system.");
   }
-  
+
   // Create config folder ---------------------------------------------------------------
   const std::string config_path = config_data_->appendPaths( new_package_path, "config" );
   QString qconfig_path = QString("config/").prepend( qnew_package_name );
@@ -635,38 +648,56 @@ void ConfigurationFilesWidget::savePackage()
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
                  "Helper launch file that can choose between different sensor managers to be loaded.");
-  
+
   // Create Moveit_Controller_Manager Launch File  -----------------------------------------------------
   file_name = robot_name + "_moveit_controller_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
   template_path = config_data_->appendPaths( template_launch_path, "moveit_controller_manager.launch" );
-  // Use generic template copy function
-  if ( !copyTemplate( template_path, file_path, new_package_name ) )
-  {
-    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
-                           .append( " file at location " ).append( file_path.c_str() ) );
-    return;
-  }
-  // Feedback
-  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "Placeholder for settings specific to the MoveIt controller manager implemented for you robot.");
+  pkg_description = "Placeholder for settings specific to the MoveIt controller manager implemented for you robot.";
 
+  // Do not overwrite file if it already exists - user might have customized it
+  if( fs::is_regular_file( file_path ) )
+  {
+    // Skipped feedback
+    displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ), pkg_description.prepend(skipped_pkg_msg), true );
+  }
+  else
+  {
+    // Use generic template copy function
+    if ( !copyTemplate( template_path, file_path, new_package_name ) )
+    {
+      QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
+                             .append( " file at location " ).append( file_path.c_str() ) );
+      return;
+    }
+    // Feedback
+    displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ), pkg_description );
+  }
 
   // Create Moveit_Sensor_Manager Launch File  -----------------------------------------------------
   file_name = robot_name + "_moveit_sensor_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
   template_path = config_data_->appendPaths( template_launch_path, "moveit_sensor_manager.launch" );
-  // Use generic template copy function
-  if ( !copyTemplate( template_path, file_path, new_package_name ) )
-  {
-    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
-                           .append( " file at location " ).append( file_path.c_str() ) );
-    return;
-  }
-  // Feedback
-  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "Placeholder for settings specific to the MoveIt sensor manager implemented for you robot.");
+  pkg_description = "Placeholder for settings specific to the MoveIt sensor manager implemented for you robot.";
 
+  // Do not overwrite file if it already exists - user might have customized it
+  if( fs::is_regular_file( file_path ) )
+  {
+    // Skipped feedback
+    displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ), pkg_description.prepend(skipped_pkg_msg), true );
+  }
+  else
+  {
+    // Use generic template copy function
+    if ( !copyTemplate( template_path, file_path, new_package_name ) )
+    {
+      QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
+                             .append( " file at location " ).append( file_path.c_str() ) );
+      return;
+    }
+    // Feedback
+    displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ), pkg_description );
+  }
 
   // Create Trajectory_Execution Launch File  -----------------------------------------------------
   file_name = "trajectory_execution.launch";
@@ -798,7 +829,7 @@ bool ConfigurationFilesWidget::noGroupsEmpty()
 // Copy a template from location <template_path> to location <output_path> and replace package name
 // ******************************************************************************************
 bool ConfigurationFilesWidget::copyTemplate( const std::string& template_path, const std::string& output_path,
-                                             const std::string& new_package_name  )
+                                             const std::string& new_package_name )
 {
   // Error check file
   if( ! fs::is_regular_file( template_path ) )
@@ -834,7 +865,7 @@ bool ConfigurationFilesWidget::copyTemplate( const std::string& template_path, c
   {
     boost::replace_all( template_string, "[URDF_LOCATION]", "$(find " + config_data_->urdf_pkg_name_ + ")/" + config_data_->urdf_pkg_relative_path_);
   }
-  
+
   boost::replace_all( template_string, "[ROBOT_NAME]", config_data_->srdf_->robot_name_ );
 
   // Save string to new location -----------------------------------------------------------

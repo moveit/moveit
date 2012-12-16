@@ -113,7 +113,7 @@ private:
   bool checkDependencies();
 
   /// A function for showing progress and user feedback about what happened
-  void displayAction( const QString title, const QString desc );
+  void displayAction( const QString title, const QString desc, bool skipped = false );
 
   /// Get the last folder name in a directory path
   const std::string getPackageName( std::string package_path );
