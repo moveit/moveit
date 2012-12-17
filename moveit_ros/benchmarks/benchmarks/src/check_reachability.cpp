@@ -46,6 +46,8 @@
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <moveit/benchmarks/benchmarks_config.h>
 
+#include <fstream>
+
 int main(int argc, char** argv)
 {
   boost::program_options::options_description desc;
@@ -58,7 +60,7 @@ int main(int argc, char** argv)
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
 
-  if (vm.count("help"))
+  if (vm.count("help") || ! vm.count("host") || ! vm.count("port"))
   {
     std::cout << desc << std::endl;
     return 1;
@@ -73,7 +75,6 @@ int main(int argc, char** argv)
 
   std::string db_host = vm["host"].as<std::string>();
   int db_port = vm["port"].as<std::size_t>();
-
 
   planning_models_loader::KinematicModelLoader kinematic_model_loader("robot_description"); /** Used to load the robot model */  
   kinematic_model::KinematicModelPtr kinematic_model = kinematic_model_loader.getModel();
@@ -97,6 +98,11 @@ int main(int argc, char** argv)
       scene_name = bc.getOptions().scene;
       group_name = bc.getOptions().group_override;
       frame_id = bc.getOptions().planning_frame;
+      if (bc.getOptions().output.empty())
+      {
+        ROS_ERROR("output parameter cannot be empty. Review your config file");
+        return 0;
+      }
 
       moveit_warehouse::PlanningSceneStorage pss(db_host, db_port);
       moveit_warehouse::PlanningSceneWithMetadata pswm;
@@ -112,10 +118,10 @@ int main(int argc, char** argv)
       moveit_warehouse::ConstraintsStorage cs(db_host, db_port);
       std::vector<std::string> constraints_names;
       cs.getKnownConstraints(bc.getOptions().goal_regex, constraints_names);
-      for (int i=0; i<constraints_names.size(); i++)
+      for (int c = 0; c < constraints_names.size(); c++)
       {
         moveit_warehouse::ConstraintsWithMetadata cwm;
-        cs.getConstraints(cwm, constraints_names[i]);
+        cs.getConstraints(cwm, constraints_names[c]);
 
         geometry_msgs::PoseStamped ik_pose;
         ik_pose.header.frame_id = frame_id;
@@ -140,7 +146,7 @@ int main(int argc, char** argv)
         kinematic_state::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(group_name);
         joint_state_group->setToRandomValues();
 
-        request.timeout = ros::Duration(5.0);
+        request.timeout = ros::Duration(0.5);
         request.ik_request.robot_state.joint_state.name = joint_model_group->getJointModelNames();
         joint_state_group->getVariableValues(request.ik_request.robot_state.joint_state.position);
         request.ik_request.group_name = group_name;
@@ -149,13 +155,19 @@ int main(int argc, char** argv)
         //Compute IK
         kinematics_constraint_aware->getIK(planning_scene_monitor->getPlanningScene(),request,response);
 
+        std::string filename = bc.getOptions().output + "_kinematics." + boost::lexical_cast<std::string>(c+1) + ".log";
+        std::ofstream out(filename.c_str());
+
+        out << "REACHABLE" << std::endl;
         if (response.error_code.val == response.error_code.SUCCESS)
         {
-          ROS_INFO_STREAM(" Goal " << constraints_names[i] << " SUCCESS!");
+          ROS_INFO_STREAM(" Goal " << constraints_names[c] << " SUCCESS!");
+          out << "1" << std::endl;
         }
         else
         {
-          ROS_INFO_STREAM(" Goal " << constraints_names[i] << " FAIL with code " << (int)response.error_code.val);
+          ROS_INFO_STREAM(" Goal " << constraints_names[c] << " FAIL with code " << (int)response.error_code.val);
+          out << "0" << std::endl;
         }
       }
     }
