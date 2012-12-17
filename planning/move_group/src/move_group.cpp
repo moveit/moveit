@@ -69,13 +69,13 @@ public:
     plan_execution_.reset(new plan_execution::PlanExecution(psm, !allow_trajectory_execution_));
     
     // configure the planning pipeline
-    plan_execution_->getPlanningPipeline().displayComputedMotionPlans(true);
-    plan_execution_->getPlanningPipeline().checkSolutionPaths(true);
+    plan_execution_->getPlanningPipeline()->displayComputedMotionPlans(true);
+    plan_execution_->getPlanningPipeline()->checkSolutionPaths(true);
 
     if (debug)
     {
       plan_execution_->displayCostSources(true);
-      plan_execution_->getPlanningPipeline().publishReceivedRequests(true);
+      plan_execution_->getPlanningPipeline()->publishReceivedRequests(true);
     }
     
     // start the action server
@@ -100,11 +100,11 @@ public:
   
   void status(void)
   {
-    const planning_interface::PlannerPtr &planner_interface = plan_execution_->getPlanningPipeline().getPlannerInterface();
+    const planning_interface::PlannerPtr &planner_interface = plan_execution_->getPlanningPipeline()->getPlannerInterface();
     if (planner_interface)
-      ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_->getPlanningPipeline().getPlannerPluginName());
+      ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_->getPlanningPipeline()->getPlannerPluginName());
     else
-      ROS_WARN_STREAM("MoveGroup action running was unable to load " << plan_execution_->getPlanningPipeline().getPlannerPluginName());
+      ROS_WARN_STREAM("MoveGroup action running was unable to load " << plan_execution_->getPlanningPipeline()->getPlannerPluginName());
   }
   
 private:
@@ -159,14 +159,20 @@ private:
     action_res.planned_trajectory = res.planned_trajectory_;
     action_res.executed_trajectory = res.executed_trajectory_;
     action_res.error_code = res.error_code_;
-      
+    finalizeAction(action_res, goal->plan_only);
+    
+    setState(IDLE, 0.0);
+  }
+
+  void finalizeAction(const moveit_msgs::MoveGroupResult &action_res, bool plan_only)
+  {
     if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
       if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
         action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
       else
       {
-        if (goal->plan_only)
+        if (plan_only)
           action_server_->setSucceeded(action_res, "Motion plan was computed succesfully.");
         else
           action_server_->setSucceeded(action_res, "Solution was found and executed.");
@@ -175,38 +181,37 @@ private:
     else
       if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
         action_server_->setAborted(action_res, "Must specify group in motion plan request");
-    else
-      if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
-      {
-        if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
-          action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
-        else
-          action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
-      }
       else
-        if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
-          action_server_->setAborted(action_res, "Motion plan was found but it seems to be too costly and looking around did not help.");
-        else
-          if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
-            action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
+        if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
+        {
+          if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
+            action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
           else
-            if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
-              action_server_->setAborted(action_res, "Solution found but controller failed during execution");
+            action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
+        }
+        else
+          if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
+            action_server_->setAborted(action_res, "Motion plan was found but it seems to be too costly and looking around did not help.");
+          else
+            if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
+              action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
             else
-              if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
-                action_server_->setAborted(action_res, "Timeout reached");
+              if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
+                action_server_->setAborted(action_res, "Solution found but controller failed during execution");
               else
-                if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
-                  action_server_->setPreempted(action_res, "Preempted");
+                if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
+                  action_server_->setAborted(action_res, "Timeout reached");
                 else
-                  if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS)
-                    action_server_->setAborted(action_res, "Invalid goal constraints");
+                  if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
+                    action_server_->setPreempted(action_res, "Preempted");
                   else
-                    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
-                      action_server_->setAborted(action_res, "Invalid group name");
+                    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS)
+                      action_server_->setAborted(action_res, "Invalid goal constraints");
                     else
-                      action_server_->setAborted(action_res, "Unknown event");
-    setState(IDLE, 0.0);
+                      if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
+                        action_server_->setAborted(action_res, "Invalid group name");
+                      else
+                        action_server_->setAborted(action_res, "Unknown event");
   }
   
   void setState(MoveGroupState state, double duration)
@@ -241,7 +246,7 @@ private:
     
     try
     {
-      solved = plan_execution_->getPlanningPipeline().generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
+      solved = plan_execution_->getPlanningPipeline()->generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
     }
     catch(std::runtime_error &ex)
     {
@@ -300,7 +305,7 @@ private:
   
   bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
   {    
-    const planning_interface::PlannerPtr &planner_interface = plan_execution_->getPlanningPipeline().getPlannerInterface();
+    const planning_interface::PlannerPtr &planner_interface = plan_execution_->getPlanningPipeline()->getPlannerInterface();
     if (planner_interface)
     {
       std::vector<std::string> algs;
