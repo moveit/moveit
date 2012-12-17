@@ -146,12 +146,12 @@ bool KinematicsReachability::computeWorkspace(moveit_ros_planning::WorkspacePoin
   }
 
   planning_scene_monitor_->updateFrameTransforms();
-  planning_scene_monitor_->lockScene();    
+  planning_scene_monitor_->lockSceneRead();    
 
   setToolFrameOffset(workspace.tool_frame_offset);
   if(!sampleUniform(workspace))
   {
-    planning_scene_monitor_->unlockScene();
+    planning_scene_monitor_->unlockSceneRead();
     return false;
   }
   
@@ -159,7 +159,7 @@ bool KinematicsReachability::computeWorkspace(moveit_ros_planning::WorkspacePoin
     visualizeWorkspaceSamples(workspace);
   
   findIKSolutions(workspace,visualize);
-  planning_scene_monitor_->unlockScene();
+  planning_scene_monitor_->unlockSceneRead();
 
   return true;
 }
@@ -185,7 +185,7 @@ bool KinematicsReachability::computeWorkspaceFK(moveit_ros_planning::WorkspacePo
   collision_request.group_name = kinematics_solver_->getGroupName();
 
   planning_scene_monitor_->updateFrameTransforms();
-  planning_scene_monitor_->lockScene();
+  planning_scene_monitor_->lockSceneRead();
   std::string link_name = joint_state_group->getJointModelGroup()->getLinkModelNames().back();
   ROS_DEBUG("Link name: %s",link_name.c_str());
 
@@ -228,7 +228,7 @@ bool KinematicsReachability::computeWorkspaceFK(moveit_ros_planning::WorkspacePo
     ROS_DEBUG("Points: %d", points);    
   }
   workspace.header.frame_id = planning_scene_monitor_->getKinematicModel()->getModelFrame();  
-  planning_scene_monitor_->unlockScene();
+  planning_scene_monitor_->unlockSceneRead();
   return true;  
 }
 

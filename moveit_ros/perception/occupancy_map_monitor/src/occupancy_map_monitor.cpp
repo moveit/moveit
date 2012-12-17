@@ -142,7 +142,7 @@ void OccupancyMapMonitor::treeUpdateThread(void)
     {
       ROS_DEBUG("Calling updaters");
       {
-        boost::lock_guard<boost::mutex> _lock(tree_mutex_);
+        boost::unique_lock<boost::shared_mutex> ulock(tree_mutex_);
         for (std::set<OccupancyMapUpdater*>::iterator it = ready.begin() ; it != ready.end() ; ++it)
           (*it)->process(tree_);
       }
@@ -165,19 +165,29 @@ void OccupancyMapMonitor::updateReady(OccupancyMapUpdater *updater)
   update_cond_.notify_all();
 }
 
-void OccupancyMapMonitor::lockOcTree(void)
+void OccupancyMapMonitor::lockOcTreeRead(void)
+{
+  tree_mutex_.lock_shared();
+}
+
+void OccupancyMapMonitor::unlockOcTreeRead(void)
+{
+  tree_mutex_.unlock_shared();
+}
+
+void OccupancyMapMonitor::lockOcTreeWrite(void)
 {
   tree_mutex_.lock();
 }
 
-void OccupancyMapMonitor::unlockOcTree(void)
+void OccupancyMapMonitor::unlockOcTreeWrite(void)
 {
   tree_mutex_.unlock();
 }
 
 void OccupancyMapMonitor::publish_markers(void)
 {
-  boost::lock_guard<boost::mutex> _lock(tree_mutex_);
+  boost::shared_lock<boost::shared_mutex> ulock(tree_mutex_);
   
   visualization_msgs::MarkerArray occupied_nodes_arr, free_nodes_arr;
   

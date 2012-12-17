@@ -115,6 +115,11 @@ public:
     return trajectory_execution_manager_;
   }
 
+  bool isOnlyPlanning(void) const
+  {
+    return plan_only_;
+  }
+  
   double getMaxSafePathCost(void) const
   {
     return default_max_safe_path_cost_;

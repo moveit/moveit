@@ -181,7 +181,7 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
   {
     if (flag)
     {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       if (scene_)
       {
         scene_->decoupleParent();
@@ -198,7 +198,7 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
         stopPublishingPlanningScene();
       }
       {
-        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
         if (scene_)
         {
           scene_->decoupleParent();
@@ -259,7 +259,7 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
     have_full = false;
     ros::Rate rate(publish_planning_scene_frequency_);
     {
-      boost::unique_lock<boost::mutex> ulock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       while (new_scene_update_ == UPDATE_NONE && publish_planning_scene_)
         new_scene_update_condition_.wait(ulock);
       if (new_scene_update_ != UPDATE_NONE)
@@ -343,7 +343,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
     SceneUpdateType upd = UPDATE_SCENE;
     std::string old_scene_name;
     {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);  
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
       old_scene_name = scene_->getName();
       scene_->usePlanningSceneMsg(*scene);
@@ -385,7 +385,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
   {
     updateFrameTransforms();
     {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();  
       scene_->getCollisionWorld()->clearObjects();
       scene_->processPlanningSceneWorldMsg(*world);
@@ -399,7 +399,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
   if (scene_)
   {
     {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
       scene_->processCollisionObjectMsg(*obj);
     }
@@ -413,7 +413,7 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
   {    
     updateFrameTransforms();
     {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
       scene_->processAttachedCollisionObjectMsg(*obj);
     }
@@ -427,7 +427,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
   {  
     updateFrameTransforms();
     {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
       scene_->processCollisionMapMsg(*map);
     }
@@ -435,18 +435,32 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::lockScene(void)
+void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead(void)
+{
+  scene_update_mutex_.lock_shared();
+  if (octomap_monitor_)
+    octomap_monitor_->lockOcTreeRead();
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::unlockSceneRead(void)
+{
+  scene_update_mutex_.unlock_shared();  
+  if (octomap_monitor_)
+    octomap_monitor_->unlockOcTreeRead();
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::lockSceneWrite(void)
 {
   scene_update_mutex_.lock();
   if (octomap_monitor_)
-    octomap_monitor_->lockOcTree();
+    octomap_monitor_->lockOcTreeWrite();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
+void planning_scene_monitor::PlanningSceneMonitor::unlockSceneWrite(void)
 {
-  scene_update_mutex_.unlock();  
+  scene_update_mutex_.unlock();
   if (octomap_monitor_)
-    octomap_monitor_->unlockOcTree();
+    octomap_monitor_->unlockOcTreeWrite();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic)
@@ -596,17 +610,17 @@ void planning_scene_monitor::PlanningSceneMonitor::octomapUpdateCallback(void)
 {
   updateFrameTransforms();
   {
-    boost::mutex::scoped_lock slock(scene_update_mutex_);
+    boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
     last_update_time_ = ros::Time::now();
-    octomap_monitor_->lockOcTree();
+    octomap_monitor_->lockOcTreeWrite();
     try
     {
       scene_->processOctomapPtr(octomap_monitor_->getOcTreePtr(), Eigen::Affine3d::Identity());
-      octomap_monitor_->unlockOcTree();
+      octomap_monitor_->unlockOcTreeWrite();
     }
     catch(...)
     {
-      octomap_monitor_->unlockOcTree(); // unlock and rethrow
+      octomap_monitor_->unlockOcTreeWrite(); // unlock and rethrow
       throw;
     }    
   }
@@ -641,7 +655,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(v
     }
     
     {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
       scene_->getCurrentState().setStateValues(v);
       last_update_time_ = ros::Time::now();
@@ -730,7 +744,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
     std::vector<geometry_msgs::TransformStamped> transforms;
     getUpdatedFrameTransforms(scene_->getKinematicModel(), transforms);
     {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       scene_->getTransforms()->setTransforms(transforms);
       last_update_time_ = ros::Time::now();
     }

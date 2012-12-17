@@ -46,7 +46,7 @@
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <boost/noncopyable.hpp>
-#include <boost/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 namespace planning_scene_monitor
 {
@@ -283,11 +283,17 @@ public:
     return last_update_time_;
   }
 
-  /** \brief Lock the scene */
-  void lockScene(void);
+  /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
+  void lockSceneRead(void);
 
-  /** \brief Unlock the scene */
-  void unlockScene(void);
+  /** \brief Unlock the scene from reading (multiple threads can lock for reading at the same time) */
+  void unlockSceneRead(void);
+
+  /** \brief Lock the scene for writing (only one thread can lock for writing and no other thread can lock for reading) */
+  void lockSceneWrite(void);
+
+  /** \brief Lock the scene from writing (only one thread can lock for writing and no other thread can lock for reading) */
+  void unlockSceneWrite(void);
 
 protected:
   
@@ -327,7 +333,7 @@ protected:
   planning_scene::PlanningScenePtr      scene_;
   planning_scene::PlanningSceneConstPtr scene_const_;
   planning_scene::PlanningScenePtr      parent_scene_; /// if diffs are monitored, this is the pointer to the parent scene
-  boost::mutex                          scene_update_mutex_; /// mutex for stored scene
+  boost::shared_mutex                   scene_update_mutex_; /// mutex for stored scene
 
   ros::NodeHandle                       nh_;
   ros::NodeHandle                       root_nh_;
@@ -349,7 +355,7 @@ protected:
   double                                publish_planning_scene_frequency_;
   SceneUpdateType                       publish_update_types_;
   SceneUpdateType                       new_scene_update_;
-  boost::condition_variable             new_scene_update_condition_;
+  boost::condition_variable_any         new_scene_update_condition_;
   
   // subscribe to various sources of data
   ros::Subscriber                       planning_scene_subscriber_;
@@ -400,15 +406,14 @@ typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
 typedef boost::shared_ptr<const PlanningSceneMonitor> PlanningSceneMonitorConstPtr;
 
 /** \brief This is a convenience class for obtaining access to an instance of a locked PlanningScene */
-class LockedPlanningScene
+class LockedPlanningSceneRO
 {
 public:
-  
-  LockedPlanningScene(const PlanningSceneMonitorPtr &planning_scene_monitor) :
+
+  LockedPlanningSceneRO(const PlanningSceneMonitorPtr &planning_scene_monitor) :
     planning_scene_monitor_(planning_scene_monitor)
   {
-    if (planning_scene_monitor_)
-      lock_.reset(new SingleUnlock(planning_scene_monitor.get()));
+    initialize(true);
   }
   
   const PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)
@@ -416,51 +421,80 @@ public:
     return planning_scene_monitor_;
   }
   
-  operator const planning_scene::PlanningScenePtr&()
+  operator bool() const
   {
-    return planning_scene_monitor_->getPlanningScene();
+    return planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene();
   }
 
   operator const planning_scene::PlanningSceneConstPtr&() const
   {
-    return static_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
+    return const_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
+  }
+
+  const planning_scene::PlanningSceneConstPtr& operator->() const
+  {
+    return const_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
+  }
+
+protected:
+
+  LockedPlanningSceneRO(const PlanningSceneMonitorPtr &planning_scene_monitor, bool read_only) :
+    planning_scene_monitor_(planning_scene_monitor)
+  {
+    initialize(read_only);
+  }
+  
+  void initialize(bool read_only)
+  {
+    if (planning_scene_monitor_)
+      lock_.reset(new SingleUnlock(planning_scene_monitor_.get(), read_only));
+  }
+  
+  // we use this struct so that lock/unlock are called only once 
+  // even if the LockedPlanningScene instance is copied around
+  struct SingleUnlock
+  {
+    SingleUnlock(PlanningSceneMonitor *planning_scene_monitor, bool read_only) :
+      planning_scene_monitor_(planning_scene_monitor), read_only_(read_only)
+    {
+      if (read_only)
+        planning_scene_monitor_->lockSceneRead();
+      else
+        planning_scene_monitor_->lockSceneWrite();
+    }
+    ~SingleUnlock(void)
+    { 
+      if (read_only_)
+        planning_scene_monitor_->unlockSceneRead();
+      else
+        planning_scene_monitor_->unlockSceneWrite();
+    }
+    PlanningSceneMonitor *planning_scene_monitor_;
+    bool read_only_;
+  };
+  
+  PlanningSceneMonitorPtr planning_scene_monitor_;
+  boost::shared_ptr<SingleUnlock> lock_;
+};
+
+class LockedPlanningSceneRW : public LockedPlanningSceneRO
+{
+public:
+  
+  LockedPlanningSceneRW(const PlanningSceneMonitorPtr &planning_scene_monitor) :
+    LockedPlanningSceneRO(planning_scene_monitor, false)
+  {
+  }
+  
+  operator const planning_scene::PlanningScenePtr&()
+  {
+    return planning_scene_monitor_->getPlanningScene();
   }
 
   const planning_scene::PlanningScenePtr& operator->()
   {
     return planning_scene_monitor_->getPlanningScene();
   }
-  
-  const planning_scene::PlanningSceneConstPtr& operator->() const
-  {
-    return static_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
-  }
-  
-  operator bool() const
-  {
-    return planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene();
-  }
-  
-private:
-  
-  // we use this struct so that lock/unlock are called only once 
-  // even if the LockedPlanningScene instance is copied around
-  struct SingleUnlock
-  {
-    SingleUnlock(PlanningSceneMonitor *planning_scene_monitor) :
-      planning_scene_monitor_(planning_scene_monitor)
-    {
-      planning_scene_monitor_->lockScene();
-    }
-    ~SingleUnlock(void)
-    {
-      planning_scene_monitor_->unlockScene();
-    }
-    PlanningSceneMonitor *planning_scene_monitor_;
-  };
-  
-  PlanningSceneMonitorPtr planning_scene_monitor_;
-  boost::shared_ptr<SingleUnlock> lock_;  
 };
 
 }

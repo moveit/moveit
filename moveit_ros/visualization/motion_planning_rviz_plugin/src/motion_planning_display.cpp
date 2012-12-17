@@ -679,7 +679,7 @@ void MotionPlanningDisplay::changedQueryStartState(void)
 
       // update link colors
       std::vector<std::string> collision_links;
-      getPlanningScene()->getCollidingLinks(collision_links, *getQueryStartState());
+      getPlanningSceneRO()->getCollidingLinks(collision_links, *getQueryStartState());
       collision_links_start_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
         collision_links_start_[collision_links[i]] = 0;
@@ -715,7 +715,7 @@ void MotionPlanningDisplay::changedQueryGoalState(void)
 
       // update link colors 
       std::vector<std::string> collision_links;
-      getPlanningScene()->getCollidingLinks(collision_links, *getQueryGoalState());
+      getPlanningSceneRO()->getCollidingLinks(collision_links, *getQueryGoalState());
       collision_links_goal_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
         collision_links_goal_[collision_links[i]] = 0;
@@ -861,7 +861,7 @@ bool MotionPlanningDisplay::isIKSolutionCollisionFree(kinematic_state::JointStat
   if (frame_->ui_->collision_aware_ik->isChecked() && planning_scene_monitor_)
   {
     group->setVariableValues(ik_solution);
-    return !planning_scene_monitor_->getPlanningScene()->isStateColliding(*group->getKinematicState(), group->getName());
+    return !getPlanningSceneRO()->isStateColliding(*group->getKinematicState(), group->getName());
   }
   else
     return true;
@@ -964,7 +964,7 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   query_robot_start_->load(*getKinematicModel()->getURDF());
   query_robot_goal_->load(*getKinematicModel()->getURDF());
 
-  kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(getPlanningScene()->getCurrentState()));
+  kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(getPlanningSceneRO()->getCurrentState()));
   query_start_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("start", *ks, planning_scene_monitor_->getTFClient()));
   query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::updateQueryStartState, this, _1));
@@ -1079,7 +1079,7 @@ void MotionPlanningDisplay::updateStateExceptGroup(kinematic_state::KinematicSta
 void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
-  kinematic_state::KinematicState ks = getPlanningScene()->getCurrentState();
+  kinematic_state::KinematicState ks = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
 
   if (query_start_state_property_->getBool() && !group.empty())
@@ -1310,7 +1310,7 @@ void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::Display
                msg->model_id.c_str(), getKinematicModel()->getName().c_str());
 
   {
-    const planning_scene_monitor::LockedPlanningScene &ps = getPlanningScene();
+    const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
     trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, ps));
   }
 

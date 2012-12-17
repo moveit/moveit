@@ -242,7 +242,7 @@ private:
     planning_scene_monitor_->updateFrameTransforms();
     
     bool solved = false;   
-    planning_scene_monitor_->lockScene();
+    planning_scene_monitor_->lockSceneRead();
     
     try
     {
@@ -256,7 +256,7 @@ private:
     {
       ROS_ERROR("Planning pipeline threw an exception");
     }
-    planning_scene_monitor_->unlockScene();
+    planning_scene_monitor_->unlockSceneRead();
 
     return solved;
   }

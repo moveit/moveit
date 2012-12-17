@@ -173,9 +173,14 @@ const kinematic_model::KinematicModelConstPtr& PlanningSceneDisplay::getKinemati
   }
 }
 
-planning_scene_monitor::LockedPlanningScene PlanningSceneDisplay::getPlanningScene(void)
+planning_scene_monitor::LockedPlanningSceneRO PlanningSceneDisplay::getPlanningSceneRO(void) const
 {
-  return planning_scene_monitor::LockedPlanningScene(planning_scene_monitor_);
+  return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
+}
+
+planning_scene_monitor::LockedPlanningSceneRW PlanningSceneDisplay::getPlanningSceneRW(void)
+{
+  return planning_scene_monitor::LockedPlanningSceneRW(planning_scene_monitor_);
 }
 
 void PlanningSceneDisplay::changedAttachedBodyColor(void)
@@ -196,7 +201,7 @@ void PlanningSceneDisplay::changedRobotDescription()
 
 void PlanningSceneDisplay::changedSceneName(void)
 {
-  planning_scene_monitor::LockedPlanningScene ps = getPlanningScene();
+  planning_scene_monitor::LockedPlanningSceneRW ps = getPlanningSceneRW();
   if (ps)
     ps->setName(scene_name_property_->getStdString());
 }
@@ -218,7 +223,7 @@ void PlanningSceneDisplay::renderPlanningScene(void)
     
     try
     {
-      const planning_scene_monitor::LockedPlanningScene &ps = getPlanningScene();
+      const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
       planning_scene_render_->renderPlanningScene(ps, env_color, attached_color,
                                                   scene_alpha_property_->getFloat());
     }
@@ -358,7 +363,7 @@ void PlanningSceneDisplay::loadRobotModel(void)
 void PlanningSceneDisplay::onRobotModelLoaded(void)
 {
   planning_scene_robot_->load(*getKinematicModel()->getURDF());
-  const planning_scene_monitor::LockedPlanningScene &ps = getPlanningScene();
+  const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
   planning_scene_robot_->update(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(ps->getCurrentState())));
 
   bool oldState = scene_name_property_->blockSignals(true);
@@ -378,7 +383,7 @@ void PlanningSceneDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Pl
 void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   bool oldState = scene_name_property_->blockSignals(true);
-  scene_name_property_->setStdString(getPlanningScene()->getName());
+  scene_name_property_->setStdString(getPlanningSceneRO()->getName());
   scene_name_property_->blockSignals(oldState);
 
   oldState = root_link_name_property_->blockSignals(true);
