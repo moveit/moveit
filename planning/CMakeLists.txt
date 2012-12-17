@@ -43,6 +43,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     robot_model_loader/include
     kinematics_plugin_loader/include
     planning_models_loader/include
+    constraint_sampler_manager_loader/include
     planning_pipeline/include
     planning_scene_monitor/include
     trajectory_execution_manager/include
@@ -56,12 +57,13 @@ catkin_package(
     moveit_robot_model_loader
     moveit_kinematics_plugin_loader
     moveit_planning_models_loader
+    moveit_constraint_sampler_manager_loader
     moveit_planning_pipeline
     moveit_trajectory_execution_manager
     moveit_plan_execution
     moveit_planning_scene_monitor
   INCLUDE_DIRS
-      ${THIS_PACKAGE_INCLUDE_DIRS}
+    ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
     pluginlib
     moveit_core
@@ -86,6 +88,7 @@ add_subdirectory(robot_model_loader)
 add_subdirectory(kdl_kinematics_plugin)
 add_subdirectory(kinematics_plugin_loader)
 add_subdirectory(planning_models_loader)
+add_subdirectory(constraint_sampler_manager_loader)
 add_subdirectory(planning_pipeline)
 add_subdirectory(planning_request_adapter_plugins)
 add_subdirectory(planning_scene_monitor)
