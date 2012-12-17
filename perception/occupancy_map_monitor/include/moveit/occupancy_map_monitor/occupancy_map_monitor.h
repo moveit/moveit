@@ -40,7 +40,7 @@
 #include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
@@ -90,10 +90,17 @@ public:
     
   /** @brief lock the underlying octree. it will not be read or written by the
    *  monitor until unlockTree() is called */
-  void lockOcTree(void);
+  void lockOcTreeRead(void);
   
   /** @brief unlock the underlying octree. */
-  void unlockOcTree(void);
+  void unlockOcTreeRead(void);
+    
+  /** @brief lock the underlying octree. it will not be read or written by the
+   *  monitor until unlockTree() is called */
+  void lockOcTreeWrite(void);
+  
+  /** @brief unlock the underlying octree. */
+  void unlockOcTreeWrite(void);
   
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
   void setUpdateCallback(const boost::function<void(void)> &update_callback)
@@ -116,7 +123,7 @@ private:
   
   OccMapTreePtr tree_;
   OccMapTreeConstPtr tree_const_;
-  boost::mutex tree_mutex_;
+  boost::shared_mutex tree_mutex_;
   boost::scoped_ptr<boost::thread> tree_update_thread_;
   bool tree_update_thread_running_;
 

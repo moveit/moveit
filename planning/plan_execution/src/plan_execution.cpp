@@ -193,25 +193,25 @@ void plan_execution::PlanExecution::planOnly(const moveit_msgs::MotionPlanReques
 {
   planning_scene::PlanningSceneConstPtr the_scene = planning_scene_monitor_->getPlanningScene();
   if (!planning_scene::PlanningScene::isEmpty(scene_diff))
-  {    
-    planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
-    the_scene = lscene->diff(scene_diff); 
+  {
+    planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
+    the_scene = lscene->diff(scene_diff);
   }
   planOnly(mreq, the_scene);
 }
 
 void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const Options &opt)
-{
+{  
   planAndExecute(mreq, planning_scene_monitor_->getPlanningScene(), opt);
 }
 
 void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const moveit_msgs::PlanningScene &scene_diff, const Options &opt)
-{
+{ 
   planning_scene::PlanningSceneConstPtr the_scene = planning_scene_monitor_->getPlanningScene();
   if (!planning_scene::PlanningScene::isEmpty(scene_diff))
-  {    
-    planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
-    the_scene = lscene->diff(scene_diff); 
+  {
+    planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
+    the_scene = lscene->diff(scene_diff);
   }
   planAndExecute(mreq, the_scene, opt);
 }
@@ -233,10 +233,8 @@ void plan_execution::PlanExecution::planOnly(const moveit_msgs::MotionPlanReques
   result_.error_code_ = mres.error_code;
   result_.trajectory_start_ = mres.trajectory_start;
   result_.planned_trajectory_ = mres.trajectory; 
-
   {
-    planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_);
-    // convert the path to a sequence of kinematic states
+    planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
     trajectory_processing::convertToKinematicStates(result_.planned_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
   }
 }
@@ -253,21 +251,21 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
     result_.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return;
   }
-  
-  // check to see if the desired constraints are already met
+
   {
-    planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateConstrained() is called
+    planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
+    // check to see if the desired constraints are already met
     for (std::size_t i = 0 ; i < req.goal_constraints.size() ; ++i)
-      if (lscene->isStateConstrained(req.start_state,
-                                     kinematic_constraints::mergeConstraints(req.goal_constraints[i],
-                                                                             req.path_constraints)))
+      if (the_scene->isStateConstrained(req.start_state,
+                                        kinematic_constraints::mergeConstraints(req.goal_constraints[i],
+                                                                                req.path_constraints)))
       {
         ROS_INFO("Goal constraints are already satisfied. No need to plan or execute any motions");
         result_.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
         return;
       }
   }
-
+  
   // run the actual motion plan & execution
   unsigned int max_replan_attempts = opt.replan_attempts_ > 0 ? opt.replan_attempts_ : default_max_replan_attempts_;
   unsigned int replan_attempts = 0;
@@ -318,16 +316,16 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
     // abort if no plan was found
     if (!solved)
       break;
- 
+
     {
-      planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_);
+      planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
       // convert the path to a sequence of kinematic states
       trajectory_processing::convertToKinematicStates(result_.planned_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
     }
-
+    
     if (opt.look_around_)
     {       
-      planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_);
+      planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
       
       // determine the sources of cost for this path
       std::set<collision_detection::CostSource> cost_sources;
@@ -407,7 +405,7 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
 bool plan_execution::PlanExecution::computePlan(const planning_scene::PlanningSceneConstPtr &scene, const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
 {
   bool solved = false;   
-  planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_);
+  planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
   
   try
   {
@@ -452,7 +450,7 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
     bool path_became_invalid = false;
     boost::scoped_ptr<kinematic_constraints::KinematicConstraintSet> path_constraints_set;
     {    
-      planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while getTransforms() is called
+      planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while getTransforms() is called
       path_constraints_set.reset(new kinematic_constraints::KinematicConstraintSet(the_scene->getKinematicModel(), the_scene->getTransforms()));
       path_constraints_set->add(req.path_constraints);
     }
@@ -463,7 +461,7 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
       // check the path if there was an environment update in the meantime
       if (new_scene_update_)
       {
-        planning_scene_monitor::LockedPlanningScene lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
+        planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
         new_scene_update_ = false;
         for (std::size_t i = currently_executed_trajectory_index_ ; i < result_.planned_trajectory_states_.size() ; ++i)
           if (!the_scene->isStateValid(*result_.planned_trajectory_states_[i], *path_constraints_set, req.group_name, false))
