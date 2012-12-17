@@ -76,18 +76,27 @@ private:
 
 }
 
-plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, bool plan_only) :
-  node_handle_("~"), planning_scene_monitor_(planning_scene_monitor),
-  planning_pipeline_(planning_scene_monitor_->getKinematicModel()),
-  default_max_look_attempts_(3), default_max_safe_path_cost_(0.5), plan_only_(plan_only),
-  default_max_replan_attempts_(5), discard_overlapping_cost_sources_(0.8),
-  max_cost_sources_(100), preempt_requested_(false), new_scene_update_(false)
+void plan_execution::PlanExecution::initialize(bool plan_only)
 {
+  plan_only_ = plan_only;
+  if (!planning_pipeline_)
+    planning_pipeline_.reset(new planning_pipeline::PlanningPipeline(planning_scene_monitor_->getKinematicModel()));
   if (!plan_only_)
   {
-    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getKinematicModel()));
+    if (!trajectory_execution_manager_)
+      trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getKinematicModel()));
     trajectory_monitor_.reset(new planning_scene_monitor::TrajectoryMonitor(planning_scene_monitor_->getStateMonitor()));
   }
+  
+  default_max_look_attempts_ = 3;
+  default_max_safe_path_cost_ = 0.5;
+    
+  default_max_replan_attempts_ = 5;
+  discard_overlapping_cost_sources_ = 0.8;
+  max_cost_sources_ = 100;
+  preempt_requested_ = false;
+  new_scene_update_ = false;
+  
   
   // we want to be notified when new information is available
   planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanExecution::planningSceneUpdatedCallback, this, _1));
@@ -133,6 +142,30 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
 
   // start the dynamic-reconfigure server
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
+}
+
+plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, bool plan_only) :
+  node_handle_("~"), planning_scene_monitor_(planning_scene_monitor)
+{
+  initialize(plan_only);
+}
+
+plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, 
+                                             const planning_pipeline::PlanningPipelinePtr &planning_pipeline) : 
+  node_handle_("~"), planning_scene_monitor_(planning_scene_monitor),
+  planning_pipeline_(planning_pipeline)
+{
+  initialize(true);
+}
+
+plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, 
+                                             const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                                             const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution) :
+  node_handle_("~"), planning_scene_monitor_(planning_scene_monitor),
+  planning_pipeline_(planning_pipeline),
+  trajectory_execution_manager_(trajectory_execution)
+{ 
+  initialize(false);
 }
 
 plan_execution::PlanExecution::~PlanExecution(void)
@@ -378,7 +411,7 @@ bool plan_execution::PlanExecution::computePlan(const planning_scene::PlanningSc
   
   try
   {
-    solved = planning_pipeline_.generatePlan(scene, req, res);
+    solved = planning_pipeline_->generatePlan(scene, req, res);
     new_scene_update_ = false; // we just computed a plan with the latest scene (which was locked)
   }
   catch(std::runtime_error &ex)

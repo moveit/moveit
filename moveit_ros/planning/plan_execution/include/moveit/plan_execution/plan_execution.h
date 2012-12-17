@@ -93,6 +93,11 @@ public:
   };
 
   PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, bool plan_only = false);
+  PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, 
+                const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
+  PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, 
+                const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution);
   ~PlanExecution(void);
 
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void) const
@@ -100,12 +105,12 @@ public:
     return planning_scene_monitor_;
   }
   
-  planning_pipeline::PlanningPipeline& getPlanningPipeline(void)
+  const planning_pipeline::PlanningPipelinePtr& getPlanningPipeline(void) const
   {
     return planning_pipeline_;
   }
   
-  trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager(void)
+  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager(void) const
   {
     return trajectory_execution_manager_;
   }
@@ -190,7 +195,9 @@ public:
   void displayCostSources(bool flag);
 
 private:
-
+  
+  void initialize(bool plan_only);
+  
   void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const planning_scene::PlanningSceneConstPtr &the_scene, const Options &opt);
   void planOnly(const moveit_msgs::MotionPlanRequest &mreq, const planning_scene::PlanningSceneConstPtr &the_scene);
   bool computePlan(const planning_scene::PlanningSceneConstPtr &scene, const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
@@ -203,7 +210,7 @@ private:
   
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  planning_pipeline::PlanningPipeline planning_pipeline_;
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
   planning_scene_monitor::TrajectoryMonitorPtr trajectory_monitor_;
 

@@ -130,6 +130,9 @@ private:
   
 };
 
+typedef boost::shared_ptr<PlanningPipeline> PlanningPipelinePtr;
+typedef boost::shared_ptr<const PlanningPipeline> PlanningPipelineConstPtr;
+
 }
 
 #endif
