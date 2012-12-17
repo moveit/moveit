@@ -38,7 +38,7 @@
 #define MOVEIT_PLANNERS_OMPL_INTERFACE_ROS_
 
 #include <moveit/ompl_interface/ompl_interface.h>
-#include <pluginlib/class_loader.h>
+#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <ros/ros.h>
 
 namespace ompl_interface_ros
@@ -74,8 +74,8 @@ namespace ompl_interface_ros
       ros::NodeHandle nh_; /// The ROS node handle
 
     private:
-
-      boost::scoped_ptr<pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator> > constraint_sampler_plugin_loader_;
+      
+      constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
     };
 
 }

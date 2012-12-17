@@ -35,11 +35,10 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include <moveit/ompl_interface_ros/ompl_interface_ros.h>
-#include <boost/thread/mutex.hpp>
-#include <boost/tokenizer.hpp>
 
 ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const kinematic_model::KinematicModelConstPtr &kmodel) :
-  ompl_interface::OMPLInterface(kmodel), nh_("~")
+  ompl_interface::OMPLInterface(kmodel),
+  nh_("~")
 {
   loadParams();
 }
@@ -69,34 +68,7 @@ bool ompl_interface_ros::OMPLInterfaceROS::loadConstraintApproximations(void)
 
 void ompl_interface_ros::OMPLInterfaceROS::loadConstraintSamplers(void)
 {
-  std::string constraint_samplers;
-  if (nh_.getParam("constraint_samplers", constraint_samplers))
-  {      
-    try
-    {
-      constraint_sampler_plugin_loader_.reset(new pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator>("moveit_core", "constraint_samplers::ConstraintSamplerAllocator"));
-    }
-    catch(pluginlib::PluginlibException& ex)
-    {
-      ROS_ERROR_STREAM("Exception while creating constraint sampling plugin loader " << ex.what());
-      return;
-    }
-    boost::char_separator<char> sep(" ");
-    boost::tokenizer<boost::char_separator<char> > tok(constraint_samplers, sep);
-    for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
-    {
-      try
-      {
-        constraint_samplers::ConstraintSamplerAllocator *csa = constraint_sampler_plugin_loader_->createUnmanagedInstance(*beg);
-        OMPLInterface::getConstraintSamplerManager().registerSamplerAllocator(constraint_samplers::ConstraintSamplerAllocatorPtr(csa));
-        ROS_INFO("Loaded constraint sampling plugin %s", std::string(*beg).c_str());
-      }
-      catch (pluginlib::PluginlibException& ex)
-      {
-        ROS_ERROR_STREAM("Exception while planning adapter plugin '" << *beg << "': " << ex.what());
-      }
-    }
-  }
+  constraint_sampler_manager_loader_.reset(new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader(constraint_sampler_manager_));
 }
 
 void ompl_interface_ros::OMPLInterfaceROS::loadParams(void)
