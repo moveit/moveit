@@ -38,6 +38,7 @@
 #include <set>  
 #include <cassert>
 #include <eigen_conversions/eigen_msg.h>
+#include <boost/bind.hpp>
 
 bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::Constraints &constr)
 {  
@@ -439,6 +440,25 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
   return true;
 }
 
+namespace constraint_samplers
+{
+namespace
+{
+void samplingIkCallbackFnAdapter(kinematic_state::JointStateGroup *jsg, const kinematic_state::IKValidityCallbackFn &constraint,
+                                 const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
+{  
+  const std::vector<unsigned int> &bij = jsg->getJointModelGroup()->getKinematicsSolverJointBijection();
+  std::vector<double> solution(bij.size());
+  for (std::size_t i = 0 ; i < bij.size() ; ++i)
+    solution[i] = ik_sol[bij[i]];
+  if (constraint(jsg, solution))
+    error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  else
+    error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
+}
+}
+}
+
 bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
 {
   if (!is_valid_)
@@ -450,7 +470,11 @@ bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStat
             jsg->getName().c_str(), getGroupName().c_str());
     return false;
   }
-
+  
+  kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
+  if (ik_validity_callback_)
+    adapted_ik_validity_callback = boost::bind(&samplingIkCallbackFnAdapter, jsg, ik_validity_callback_, _1, _2, _3);
+  
   for (unsigned int a = 0 ; a < max_attempts ; ++a)
   {
     // sample a point in the constraint region
@@ -468,13 +492,14 @@ bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStat
     ik_query.orientation.z = quat.z();
     ik_query.orientation.w = quat.w();        
     
-    if (callIK(ik_query, ik_timeout_, jsg))
+    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, jsg))
       return true; 
   }
   return false;
 }
 
-bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, kinematic_state::JointStateGroup *jsg) 
+bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback,
+                                                      double timeout, kinematic_state::JointStateGroup *jsg) 
 {
   // sample a seed value
   std::vector<double> vals;
@@ -487,8 +512,10 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   
   std::vector<double> ik_sol;
   moveit_msgs::MoveItErrorCodes error;
- 
-  if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
+
+  if (adapted_ik_validity_callback ?
+      kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, adapted_ik_validity_callback, error) :
+      kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
   {
     assert(ik_sol.size() == ik_joint_bijection.size());
     std::vector<double> solution(ik_joint_bijection.size());
