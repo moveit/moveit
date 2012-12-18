@@ -34,9 +34,11 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/benchmarks/benchmark_utils.h>
 #include <pluginlib/class_loader.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <ros/console.h>
+#include <unistd.h>
 
 namespace moveit_benchmarks
 {
@@ -60,6 +62,20 @@ std::vector<std::string> benchmarkGetAvailablePluginNames(void)
     return planner_plugin_loader->getDeclaredClasses();
   else
     return std::vector<std::string>();
+}
+
+std::string getHostname(void) const
+{
+  static const int BUF_SIZE = 1024;
+  char buffer[BUF_SIZE];
+  int err = gethostname(buffer, sizeof(buffer));
+  if (err != 0)
+    return std::string();
+  else
+  {
+    buffer[BUF_SIZE - 1] = '\0';
+    return std::string(buffer);
+  }
 }
 
 }

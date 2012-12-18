@@ -32,55 +32,112 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Mario Prats */
 
 #include <ros/ros.h>
 #include <moveit/benchmarks/benchmarks_config.h>
+#include <moveit/benchmarks/benchmarks_utils.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <boost/program_options/variables_map.hpp>
 
-namespace moveit_benchmarks
+static const std::string BENCHMARK_SERVICE_NAME = "benchmark_planning_problem";
+
+static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, bool run_goal_existance,
+                                 moveit_msgs::ComputePlanningPluginsBenchmark::Request &req)
 {
-std::vector<std::string> benchmarkGetAvailablePluginNames(void);
-const std::string BENCHMARK_SERVICE_NAME = "benchmark_planning_problem";
+  bool goal_ok = true;
+  if (run_goal_existance)
+  {
+    ROS_INFO("Calling goal existance benchmark...");
+    req.evaluate_goal_existance_only = true;
+    std::string fnm_backup = req.filename;    
+    if (!req.filename.empty())
+    {
+      bool changed = false;
+      if (req.filename.length() > 3)
+        if (req.filename.substr(req.filename.length() - 4) == ".log")
+        {
+          changed = true;
+          req.filename = req.filename.substr(0, req.filename.length() - 4) + "_goal_only.log";
+        }
+      if (!changed)
+        req.filename = req.filename + "_goal_only.log";
+    }
+    moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
+    if (service->call(req, res))
+    {
+      ROS_INFO("Success!");
+    }
+    else
+    {
+      goal_ok = false;
+      ROS_ERROR("Failed");
+    }
+    req.filename = fnm_backup;
+  }
+  if (goal_ok && run_planner)
+  {
+    ROS_INFO("Calling planner benchmark...");
+    req.evaluate_goal_existance_only = false;    
+    moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
+    if (service->call(req, res))
+    {
+      ROS_INFO("Success!");
+    }
+    else
+      ROS_ERROR("Failed");
+  }
 }
 
-
 int main(int argc, char **argv)
-{  
+{
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
-  
+    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.")
+    ("goal-existance-only", "Benchmark the sampling of the goal region")
+    ("planners-only", "Benchmark only the planners");
+
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
-  
+
   if (vm.count("help"))
   {
     std::cout << desc << std::endl;
     return 1;
   }
 
+  bool planners_only = false;
+  if (vm.count("planners-only"))
+  {
+    planners_only = true;
+  }
+  bool goal_existance_only = false;
+  if (vm.count("goal-existance-only"))
+  {
+    goal_existance_only = true;
+  }
+  
   ros::init(argc, argv, "call_moveit_benchmark", ros::init_options::AnonymousName);
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   moveit_benchmarks::BenchmarkConfig bc(vm.count("host") ? vm["host"].as<std::string>() : "",
                                         vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-  
+
   std::vector<std::string> plugins = moveit_benchmarks::benchmarkGetAvailablePluginNames();
-  
-  ros::NodeHandle nh;
-  ros::service::waitForService(moveit_benchmarks::BENCHMARK_SERVICE_NAME);
-  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(moveit_benchmarks::BENCHMARK_SERVICE_NAME, true);
 
   if (plugins.empty())
     ROS_ERROR("There are no plugins to benchmark.");
   else
-  { 
+  {
+    ros::NodeHandle nh;
+    ros::service::waitForService(BENCHMARK_SERVICE_NAME);
+    ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_SERVICE_NAME, true);
+    moveit_benchmarks::BenchmarkCallFn fn = boost::bind(&callBenchmarkService, &benchmark_service_client, !goal_existance_only, !planners_only, _1);
+    
     unsigned int proc = 0;
     for (int i = 1 ; i < argc ; ++i)
     {
@@ -89,23 +146,13 @@ int main(int argc, char **argv)
         std::stringstream ss;
         bc.printOptions(ss);
         ROS_INFO("Calling benchmark with options:\n%s\n", ss.str().c_str());
-
-        const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request>& req_list = bc.getBenchmarkRequests();
-        for (std::size_t r = 0; r < req_list.size(); r++)
-        {
-          moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
-          ROS_INFO("Calling benchmark...");
-          if (benchmark_service_client.call(req_list[r], res))
-            ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());
-          else
-            ROS_ERROR("Failed!");
-        }
+        bc.runBenchmark(fn);
         proc++;
       }
     }
     ROS_INFO("Processed %u benchmark configuration files", proc);
   }
-  
+
   return 0;
 }
 

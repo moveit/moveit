@@ -88,10 +88,14 @@ moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std
 {  
 }
 
-const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> moveit_benchmarks::BenchmarkConfig::getBenchmarkRequests(void)
+void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &call)
 {
-  std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> req_list;
-
+  if (!call)
+  {
+    ROS_ERROR("No callback function specified for calling the benchmark");
+    return;
+  }
+  
   moveit_warehouse::PlanningSceneWithMetadata pswm;
   moveit_warehouse::PlanningSceneWorldWithMetadata pswwm;
   bool world_only = false;
@@ -110,13 +114,13 @@ const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> moveit_
         ROS_ERROR("%s", ex.what());
       }
       if (!ok)
-        return req_list;
+        return;
       world_only = true;
     }
     else
     {  
       ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
-      return req_list;
+      return;
     }
   }
   else
@@ -134,7 +138,7 @@ const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> moveit_
     if (!ok)
     {
       ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
-      return req_list;
+      return;
     }
   }
 
@@ -187,7 +191,7 @@ const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> moveit_
     if (start_states.empty())
     {
       ROS_WARN("No stored states matched the provided regex: '%s'", opt_.start_regex.c_str());
-      return req_list;
+      return;
     }
     else
       ROS_INFO("Running benchmark using %u start states.", (unsigned int)start_states.size());
@@ -264,8 +268,8 @@ const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> moveit_
             for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
               checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
           }
-
-          req_list.push_back(req);
+          
+          call(boost::ref(req));
         }
       }
     }
@@ -309,14 +313,12 @@ const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> moveit_
               checkHeader(req.motion_plan_request.goal_constraints[0], opt_.planning_frame);
             req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
             
-            req_list.push_back(req);
+            call(boost::ref(req));
           }
         }
       }
     }
   }
-
-  return req_list;
 }
 
 bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
