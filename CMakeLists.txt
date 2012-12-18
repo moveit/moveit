@@ -11,6 +11,8 @@ COMPONENTS
   urdfdom
   urdfdom_headers
   srdfdom
+  octomap
+  fcl
   orocos_kdl
   kdl_parser
   geometric_shapes
@@ -22,22 +24,6 @@ COMPONENTS
   visualization_msgs
   rostime
 )
-pkg_check_modules(FCL REQUIRED fcl)
-find_package(octomap REQUIRED)
-
-# Sets a variable for passing this along in catkin_package()
-find_library(LIBFCL_LIBRARIES NAMES ${FCL_LIBRARIES})
-
-# octomap does not follow the find_package convention, 
-# so we have to find the full paths and store in a variable; 
-# you SHOULD NOT use OCTOMAP_LIBRARIES as it will muck up dependent packages.
-# Also, this way we can manually pass it along in catkin_package()
-find_library(LIBOCTOMAP_LIBRARIES NAMES ${OCTOMAP_LIBRARIES})
-
-#message( STATUS "FCL found: " ${FCL_LIBRARIES} " at " ${LIBFCL_LIBRARIES})
-#message( STATUS "OCTOMAP found: " ${OCTOMAP_LIBRARIES} " at " ${LIBOCTOMAP_LIBRARIES})
-unset( OCTOMAP_LIBRARIES )
-unset( FCL_LIBRARIES )
 
 set(THIS_PACKAGE_INCLUDE_DIRS
     collision_detection/include
@@ -66,8 +52,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
-    ${FCL_INCLUDE_DIRS}
-    ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_kinematic_model
     moveit_kinematic_state
@@ -85,8 +69,6 @@ catkin_package(
     moveit_kinematics_cache
     moveit_kinematics_planner
     moveit_kinematics_constraint_aware
-    ${LIBFCL_LIBRARIES}
-    ${LIBOCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     geometric_shapes
     shape_tools
@@ -109,10 +91,8 @@ include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
                     ${catkin_INCLUDE_DIRS} 
-                    ${FCL_INCLUDE_DIRS}
                     )
 
-link_directories(${FCL_LIBRARY_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
