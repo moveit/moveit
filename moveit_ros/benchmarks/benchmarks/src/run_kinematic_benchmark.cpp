@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Mario Prats */
+/* Author: Ioan Sucan, Mario Prats */
 
 #include <ros/ros.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -50,13 +50,11 @@ class KinematicBenchmarkService
 {
 public:
 
-  KinematicBenchmarkService(void) : scene_monitor_(ROBOT_DESCRIPTION), kinematic_model_loader_(ROBOT_DESCRIPTION)
+  KinematicBenchmarkService(void) : scene_monitor_(ROBOT_DESCRIPTION)
   {
     // initialize a planning scene
     if (scene_monitor_.getPlanningScene())
     {
-      kinematic_model_= kinematic_model_loader_.getModel();
-
       benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &KinematicBenchmarkService::computeBenchmark, this);
     }
     else
@@ -104,22 +102,29 @@ public:
     ik_pose.orientation.z = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z;
     ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
 
-    kinematic_state::KinematicState kinematic_state(kinematic_model_);
+    kinematic_state::KinematicState kinematic_state(scene_monitor_.getPlanningScene()->getCurrentState());
 
     //Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
 //    ROS_INFO_STREAM("Position: " << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z);
 //    ROS_INFO_STREAM("Orientation: " << ik_pose.orientation.x << " " << ik_pose.orientation.y << " " << ik_pose.orientation.z << " " << ik_pose.orientation.w);
     ros::WallTime startTime = ros::WallTime::now();
-    bool success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, 50, 0.1, boost::bind(&KinematicBenchmarkService::isIKSolutionCollisionFree, this, _1, _2));
+    reachable_=false;
+    bool success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, 1,
+                                                                                                     req.motion_plan_request.allowed_planning_time.toSec(),
+                                                                                                     boost::bind(&KinematicBenchmarkService::isIKSolutionCollisionFree, this, _1, _2));
 
     if (success)
     {
-      ROS_INFO_STREAM("  SUCCESS!");
+      ROS_INFO("  Success!");
+    }
+    else if (reachable_)
+    {
+      ROS_INFO("  Reachable in collision");
     }
     else
     {
-      ROS_INFO_STREAM("  FAIL");
+      ROS_INFO("  Not reachable");
     }
 
     //Log
@@ -133,9 +138,10 @@ public:
     out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
     out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
     out << duration << " seconds spent to collect the data" << std::endl;
-    out << "solved BOOLEAN" << std::endl;
+    out << "reachable BOOLEAN" << std::endl;
+    out << "collision_free BOOLEAN" << std::endl;
     out << "total_time REAL" << std::endl;
-    out << success << "; " << duration << std::endl;
+    out << reachable_ << "; " << success << "; " << duration << std::endl;
     out.close();
     ROS_INFO("Results saved to '%s'", res.filename.c_str());
 
@@ -159,26 +165,13 @@ private:
     }
   }
 
-  bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
+  bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution)
   {
-    for (int i = 0; i < ik_solution.size(); i++)
-    {
-      ROS_INFO_STREAM(" " << ik_solution[i]);
-    }
-
     group->setVariableValues(ik_solution);
-    ROS_INFO_STREAM("Checking collision on group " << group->getName());
 
-    std::vector<std::string> colliding_links;
-    scene_monitor_.getPlanningScene()->getCollidingLinks(colliding_links);
-
-    if (scene_monitor_.getPlanningScene()->isStateColliding(*group->getKinematicState(), group->getName(), true))
+    reachable_ = true;
+    if (scene_monitor_.getPlanningScene()->isStateColliding(*group->getKinematicState(), group->getName(), false))
     {
-      for (int i = 0; i < colliding_links.size(); i++)
-      {
-        ROS_INFO_STREAM(" Colliding link " << colliding_links[i]);
-      }
-
       return false;
     }
     else
@@ -186,10 +179,9 @@ private:
   }
 
 
+  bool reachable_;
   ros::NodeHandle nh_;
   planning_scene_monitor::PlanningSceneMonitor scene_monitor_;
-  planning_models_loader::KinematicModelLoader kinematic_model_loader_;
-  kinematic_model::KinematicModelPtr kinematic_model_;
   ros::ServiceServer benchmark_service_;
 };
 

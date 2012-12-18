@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Mario Prats */
 
 #include <ros/ros.h>
 #include <moveit/benchmarks/benchmarks_config.h>
@@ -43,44 +43,58 @@ namespace moveit_benchmarks
 {
 std::vector<std::string> benchmarkGetAvailablePluginNames(void);
 const std::string BENCHMARK_SERVICE_NAME = "benchmark_planning_problem";
+const std::string BENCHMARK_KINEMATICS_SERVICE_NAME = "benchmark_kinematic_problem";
 }
 
 
 int main(int argc, char **argv)
-{  
+{
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
-  
+    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.")
+    ("include-planners", "Benchmark the planners if IK is successful");
+
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
-  
+
   if (vm.count("help"))
   {
     std::cout << desc << std::endl;
     return 1;
   }
 
-  ros::init(argc, argv, "call_moveit_benchmark", ros::init_options::AnonymousName);
+  bool include_planners = false;
+  if (vm.count("include-planners"))
+  {
+    include_planners = true;
+  }
+
+  ros::init(argc, argv, "call_moveit_kinematic_benchmark", ros::init_options::AnonymousName);
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   moveit_benchmarks::BenchmarkConfig bc(vm.count("host") ? vm["host"].as<std::string>() : "",
                                         vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-  
+
   std::vector<std::string> plugins = moveit_benchmarks::benchmarkGetAvailablePluginNames();
-  
+
   ros::NodeHandle nh;
-  ros::service::waitForService(moveit_benchmarks::BENCHMARK_SERVICE_NAME);
-  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(moveit_benchmarks::BENCHMARK_SERVICE_NAME, true);
+  ros::service::waitForService(moveit_benchmarks::BENCHMARK_KINEMATICS_SERVICE_NAME);
+  ros::ServiceClient benchmark_kinematics_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(moveit_benchmarks::BENCHMARK_KINEMATICS_SERVICE_NAME, true);
+  ros::ServiceClient benchmark_service_client;
+  if (include_planners)
+  {
+    ros::service::waitForService(moveit_benchmarks::BENCHMARK_SERVICE_NAME);
+    benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(moveit_benchmarks::BENCHMARK_SERVICE_NAME, true);
+  }
 
   if (plugins.empty())
     ROS_ERROR("There are no plugins to benchmark.");
   else
-  { 
+  {
     unsigned int proc = 0;
     for (int i = 1 ; i < argc ; ++i)
     {
@@ -88,24 +102,36 @@ int main(int argc, char **argv)
       {
         std::stringstream ss;
         bc.printOptions(ss);
-        ROS_INFO("Calling benchmark with options:\n%s\n", ss.str().c_str());
+        ROS_INFO("Calling kinematic benchmark with options:\n%s\n", ss.str().c_str());
 
         const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request>& req_list = bc.getBenchmarkRequests();
         for (std::size_t r = 0; r < req_list.size(); r++)
         {
           moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
-          ROS_INFO("Calling benchmark...");
-          if (benchmark_service_client.call(req_list[r], res))
-            ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());
+          ROS_INFO("Calling kinematic benchmark...");
+          if (benchmark_kinematics_service_client.call(req_list[r], res))
+          {
+            ROS_INFO("Success!");
+            if (include_planners)
+            {
+              ROS_INFO("Calling planner benchmark...");
+              if (benchmark_service_client.call(req_list[r], res))
+              {
+                ROS_INFO("Success!");
+              }
+              else
+                ROS_ERROR("Failed");
+            }
+          }
           else
-            ROS_ERROR("Failed!");
+            ROS_ERROR("Failed");
         }
         proc++;
       }
     }
     ROS_INFO("Processed %u benchmark configuration files", proc);
   }
-  
+
   return 0;
 }
 
