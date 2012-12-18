@@ -73,6 +73,7 @@ class BenchmarkConfig
 public:
   
   static const std::string BENCHMARK_SERVICE_NAME; // name of the advertised benchmarking service (within the ~ namespace)
+  static const std::string BENCHMARK_KINEMATICS_SERVICE_NAME; // name of the advertised benchmarking service (within the ~ namespace)
   
   BenchmarkConfig(const std::string &host, std::size_t port);
   
