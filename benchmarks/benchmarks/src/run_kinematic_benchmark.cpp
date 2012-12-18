@@ -43,8 +43,8 @@
 #include <unistd.h>
 #include <fstream>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
-static const std::string BENCHMARK_SERVICE_NAME="benchmark_kinematic_problem"; // name of the advertised benchmarking service
+static const std::string ROBOT_DESCRIPTION = "robot_description";      // name of the robot description (a param name, so it can be changed externally)
+static const std::string BENCHMARK_SERVICE_NAME = "benchmark_kinematic_problem"; // name of the advertised benchmarking service
 
 class KinematicBenchmarkService
 {
@@ -76,7 +76,6 @@ public:
       scene_monitor_.getPlanningScene()->getCurrentState().clearAttachedBodies();
       scene_monitor_.getPlanningScene()->getCurrentState().setToDefaultValues();
 
-      //ROS_INFO_STREAM("Importing from scene " << req.scene.name);
       scene_monitor_.getPlanningScene()->processPlanningSceneWorldMsg(req.scene.world);
       scene_monitor_.getPlanningScene()->setName(req.scene.name);
     }
@@ -106,8 +105,6 @@ public:
 
     //Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
-//    ROS_INFO_STREAM("Position: " << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z);
-//    ROS_INFO_STREAM("Orientation: " << ik_pose.orientation.x << " " << ik_pose.orientation.y << " " << ik_pose.orientation.z << " " << ik_pose.orientation.w);
     ros::WallTime startTime = ros::WallTime::now();
     reachable_=false;
     bool success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, 1,
