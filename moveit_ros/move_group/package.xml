@@ -1,0 +1,30 @@
+<package>
+  <name>moveit_ros_move_group</name>
+  <version>0.3.3</version>
+  <description>The move_group node for MoveIt</description>
+  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="sachinc@willowgarage.com">Sachin Chitta</author>
+
+  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-ros</url>
+
+  <buildtool_depend>catkin</buildtool_depend> 
+
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_ros_manipulation</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>tf</build_depend>
+
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_ros_manipulation</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>tf</run_depend>
+
+</package>

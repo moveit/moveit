@@ -95,7 +95,6 @@ add_subdirectory(planning_scene_monitor)
 add_subdirectory(planning_scene_monitor_tools)
 add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
-add_subdirectory(move_group)
 add_subdirectory(kinematics_reachability)
 
 install(
