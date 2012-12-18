@@ -307,7 +307,7 @@ public:
   /** \brief Get the default IK attempts */
   unsigned int getDefaultIKAttempts(void) const
   {
-    return default_ik_timeout_;
+    return default_ik_attempts_;
   }
 
   /** \brief Set the default IK attempts */
