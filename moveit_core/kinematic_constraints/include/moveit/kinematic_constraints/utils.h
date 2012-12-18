@@ -108,6 +108,23 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, 
 
 /** 
  * \brief Generates a constraint message intended to be used as a goal
+ * constraint for a given link.  The full constraint will contain a
+ * \ref PositionConstraint and a \ref OrientationConstraint,
+ * constructed from the pose. A box  will be used to represent the
+ * constraint region for the \ref PositionConstraint.
+ * 
+ * @param [in] link_name The link name for both constraints
+ * @param [in] pose The pose stamped to be used for the target region. 
+ * @param [in] tolerance_pos The dimensions of the box (xyz) associated with the target region of the \ref PositionConstraint
+ * @param [in] tolerance_angle The values to assign to the absolute tolerances (xyz) of the \ref OrientationConstraint
+ * 
+ * @return A full constraint message containing both constraints 
+ */
+moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
+                                                  const std::vector<double> &tolerance_pos, const std::vector<double> &tolerance_angle);
+
+/** 
+ * \brief Generates a constraint message intended to be used as a goal
  * constraint for a given link. The full constraint message will
  * contain only an \ref OrientationConstraint.
  * 

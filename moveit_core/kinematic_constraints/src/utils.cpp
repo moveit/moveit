@@ -172,6 +172,28 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     return goal;
 }
 
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
+                                                                         const std::vector<double> &tolerance_pos, const std::vector<double> &tolerance_angle)
+{
+  moveit_msgs::Constraints goal = constructGoalConstraints(link_name, pose);
+  if (tolerance_pos.size() == 3)
+  {
+    shape_msgs::SolidPrimitive &bv = goal.position_constraints[0].constraint_region.primitives[0];    
+    bv.type = shape_msgs::SolidPrimitive::BOX;
+    bv.dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+    bv.dimensions[shape_msgs::SolidPrimitive::BOX_X] = tolerance_pos[0];
+    bv.dimensions[shape_msgs::SolidPrimitive::BOX_Y] = tolerance_pos[1];
+    bv.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = tolerance_pos[2];
+  }
+  if (tolerance_angle.size() == 3)
+  {
+    moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
+    ocm.absolute_x_axis_tolerance = tolerance_angle[0];
+    ocm.absolute_y_axis_tolerance = tolerance_angle[1];
+    ocm.absolute_z_axis_tolerance = tolerance_angle[2];
+  }
+}
+
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::QuaternionStamped &quat, double tolerance)
 {
     moveit_msgs::Constraints goal;
