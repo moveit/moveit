@@ -34,71 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
-#define MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
-
-#include <moveit/warehouse/planning_scene_storage.h>
-#include <moveit/warehouse/planning_scene_world_storage.h>
-#include <moveit/warehouse/constraints_storage.h>
-#include <moveit/warehouse/state_storage.h>
-#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
-#include <boost/function.hpp>
+#include <vector>
+#include <string>
 
 namespace moveit_benchmarks
 {
-
-struct BenchmarkOptions
-{
-  std::string scene;
-  std::string output;
-  std::string start_regex;
-  std::string query_regex;
-  std::string goal_regex;
-  std::string group_override;
-  std::string planning_frame;
-  std::string default_constrained_link;
-  std::size_t default_run_count;
-  double timeout;
-
-  struct PluginOptions
-  {
-    std::string name;
-    std::vector<std::string> planners;
-    std::size_t runs;
-  };
-  
-  std::vector<PluginOptions> plugins;
-};
-
-typedef boost::function<bool(moveit_msgs::ComputePlanningPluginsBenchmark::Request&)> BenchmarkCallFn;
-
-class BenchmarkConfig
-{
-public:
-
-  BenchmarkConfig(const std::string &host, std::size_t port);
-  
-  bool readOptions(const char *filename);
-  
-  void runBenchmark(const BenchmarkCallFn &call);
-
-  const BenchmarkOptions& getOptions(void) const
-  {
-    return opt_;
-  }
-  
-  void printOptions(std::ostream &out);
-  
-private:
-  
-  BenchmarkOptions opt_;
-  moveit_warehouse::PlanningSceneStorage pss_; 
-  moveit_warehouse::PlanningSceneWorldStorage psws_;
-  moveit_warehouse::ConstraintsStorage cs_;
-  moveit_warehouse::RobotStateStorage rs_;
-};
-
-
+std::vector<std::string> benchmarkGetAvailablePluginNames(void);
+std::string getHostname(void);
 }
-
-#endif

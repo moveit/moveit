@@ -32,13 +32,14 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Mario Prats */
 
 #include <ros/ros.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <pluginlib/class_loader.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
+#include <moveit/benchmarks/benchmarks_utils.h>
 
 #include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
@@ -46,8 +47,6 @@
 #include <boost/progress.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/constants/constants.hpp>
-
-#include <unistd.h>
 #include <fstream>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
@@ -208,7 +207,15 @@ public:
   }
   
   bool computeBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
-  {      
+  {
+    if (req.evaluate_goal_existance_only)
+      return runGoalExistanceBenchmark(req, res);
+    else
+      return runPlanningBenchmark(req, res);
+  }
+  
+  bool runPlanningBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
+  {
     // figure out which planners to test
     if (!req.planner_interfaces.empty())
       for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
@@ -362,7 +369,7 @@ public:
     }
     
     double duration = (ros::WallTime::now() - startTime).toSec();
-    std::string host = getHostname();
+    std::string host = moveit_benchmarks::getHostname();
     res.filename = req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log") : req.filename;
     std::ofstream out(res.filename.c_str());
     out << "Experiment " << (scene_monitor_.getPlanningScene()->getName().empty() ? "NO_NAME" : scene_monitor_.getPlanningScene()->getName()) << std::endl;
@@ -411,6 +418,89 @@ public:
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return true;
   }
+
+  bool runGoalExistanceBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
+  {
+    // configure planning context
+    if (req.scene.robot_model_name != scene_monitor_.getKinematicModel()->getName())
+    {
+      // if we have a different robot, use the world geometry only
+      // clear all geometry from the scene
+      scene_monitor_.getPlanningScene()->getCollisionWorld()->clearObjects();
+      scene_monitor_.getPlanningScene()->getCurrentState().clearAttachedBodies();
+      scene_monitor_.getPlanningScene()->getCurrentState().setToDefaultValues();
+
+      scene_monitor_.getPlanningScene()->processPlanningSceneWorldMsg(req.scene.world);
+      scene_monitor_.getPlanningScene()->setName(req.scene.name);
+    }
+    else
+      scene_monitor_.getPlanningScene()->usePlanningSceneMsg(req.scene);
+
+    // \todo the code below needs to be replaced with using constraint samplers;
+
+    if (req.motion_plan_request.goal_constraints.size() == 0 ||
+        req.motion_plan_request.goal_constraints[0].position_constraints.size() == 0 ||
+        req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses.size() == 0 ||
+        req.motion_plan_request.goal_constraints[0].orientation_constraints.size() == 0)
+    {
+      ROS_ERROR("Invalid constraints");
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+      return false;
+    }
+    
+    geometry_msgs::Pose ik_pose;
+    ik_pose.position.x = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.x;
+    ik_pose.position.y = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.y;
+    ik_pose.position.z = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.z;
+    ik_pose.orientation.x = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.x;
+    ik_pose.orientation.y = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.y;
+    ik_pose.orientation.z = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z;
+    ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
+    
+    kinematic_state::KinematicState kinematic_state(scene_monitor_.getPlanningScene()->getCurrentState());
+    
+    // Compute IK
+    ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
+    ros::WallTime startTime = ros::WallTime::now();
+    bool reachable = false;
+    bool success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, 1,
+                                                                                                     req.motion_plan_request.allowed_planning_time.toSec(),
+                                                                                                     boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
+
+    if (success)
+    {
+      ROS_INFO("  Success!");
+    }
+    else if (reachable)
+    {
+      ROS_INFO("  Reachable, but in collision");
+    }
+    else
+    {
+      ROS_INFO("  Not reachable");
+    }
+
+    // Log
+    double duration = (ros::WallTime::now() - startTime).toSec();
+    std::string host = moveit_benchmarks::getHostname();
+    res.filename = req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log") : req.filename;
+    std::ofstream out(res.filename.c_str());
+    out << "Experiment " << (scene_monitor_.getPlanningScene()->getName().empty() ? "NO_NAME" : scene_monitor_.getPlanningScene()->getName()) << std::endl;
+    out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
+    out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
+    out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
+    out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
+    out << duration << " seconds spent to collect the data" << std::endl;
+    out << "reachable BOOLEAN" << std::endl;
+    out << "collision_free BOOLEAN" << std::endl;
+    out << "total_time REAL" << std::endl;
+    out << reachable << "; " << success << "; " << duration << std::endl;
+    out.close();
+    ROS_INFO("Results saved to '%s'", res.filename.c_str());
+
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return true;
+  }
   
   void status(void) const
   {
@@ -418,18 +508,14 @@ public:
   
 private:
   
-  std::string getHostname(void) const
+  bool isIKSolutionCollisionFree(bool *reachable, kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
   {
-    static const int BUF_SIZE = 1024;
-    char buffer[BUF_SIZE];
-    int err = gethostname(buffer, sizeof(buffer));
-    if (err != 0)
-      return std::string();
+    group->setVariableValues(ik_solution);
+    *reachable = true;
+    if (scene_monitor_.getPlanningScene()->isStateColliding(*group->getKinematicState(), group->getName(), false))
+      return false;
     else
-    {
-      buffer[BUF_SIZE - 1] = '\0';
-      return std::string(buffer);
-    }
+      return true;
   }
   
   ros::NodeHandle nh_;

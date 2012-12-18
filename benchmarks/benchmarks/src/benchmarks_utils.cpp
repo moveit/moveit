@@ -34,71 +34,48 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
-#define MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
-
-#include <moveit/warehouse/planning_scene_storage.h>
-#include <moveit/warehouse/planning_scene_world_storage.h>
-#include <moveit/warehouse/constraints_storage.h>
-#include <moveit/warehouse/state_storage.h>
-#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
-#include <boost/function.hpp>
+#include <moveit/benchmarks/benchmarks_utils.h>
+#include <pluginlib/class_loader.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <ros/console.h>
+#include <unistd.h>
 
 namespace moveit_benchmarks
 {
 
-struct BenchmarkOptions
+// keep this function in a separate file so we don't have the class_loader and mongoDB in the same namespace
+// as that couses boost::filesystem version issues (redefinition of symbols)
+std::vector<std::string> benchmarkGetAvailablePluginNames(void)
 {
-  std::string scene;
-  std::string output;
-  std::string start_regex;
-  std::string query_regex;
-  std::string goal_regex;
-  std::string group_override;
-  std::string planning_frame;
-  std::string default_constrained_link;
-  std::size_t default_run_count;
-  double timeout;
-
-  struct PluginOptions
+  // load the planning plugins
+  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader;
+  try
   {
-    std::string name;
-    std::vector<std::string> planners;
-    std::size_t runs;
-  };
-  
-  std::vector<PluginOptions> plugins;
-};
-
-typedef boost::function<bool(moveit_msgs::ComputePlanningPluginsBenchmark::Request&)> BenchmarkCallFn;
-
-class BenchmarkConfig
-{
-public:
-
-  BenchmarkConfig(const std::string &host, std::size_t port);
-  
-  bool readOptions(const char *filename);
-  
-  void runBenchmark(const BenchmarkCallFn &call);
-
-  const BenchmarkOptions& getOptions(void) const
-  {
-    return opt_;
+    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
   }
-  
-  void printOptions(std::ostream &out);
-  
-private:
-  
-  BenchmarkOptions opt_;
-  moveit_warehouse::PlanningSceneStorage pss_; 
-  moveit_warehouse::PlanningSceneWorldStorage psws_;
-  moveit_warehouse::ConstraintsStorage cs_;
-  moveit_warehouse::RobotStateStorage rs_;
-};
+  catch(pluginlib::PluginlibException& ex)
+  {
+    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
+  }
 
-
+  if (planner_plugin_loader)
+    return planner_plugin_loader->getDeclaredClasses();
+  else
+    return std::vector<std::string>();
 }
 
-#endif
+std::string getHostname(void)
+{
+  static const int BUF_SIZE = 1024;
+  char buffer[BUF_SIZE];
+  int err = gethostname(buffer, sizeof(buffer));
+  if (err != 0)
+    return std::string();
+  else
+  {
+    buffer[BUF_SIZE - 1] = '\0';
+    return std::string(buffer);
+  }
+}
+
+}
