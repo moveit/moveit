@@ -48,6 +48,7 @@
 namespace moveit_benchmarks
 {
 const std::string BenchmarkConfig::BENCHMARK_SERVICE_NAME = "benchmark_planning_problem"; // name of the advertised benchmarking service (within the ~ namespace)
+const std::string BenchmarkConfig::BENCHMARK_KINEMATICS_SERVICE_NAME = "benchmark_kinematic_problem"; // name of the advertised benchmarking service (within the ~ namespace)
 
 namespace
 {
@@ -173,6 +174,8 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
   ros::NodeHandle nh;
   ros::service::waitForService(BENCHMARK_SERVICE_NAME);
   ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_SERVICE_NAME, true);
+  ros::service::waitForService(BENCHMARK_KINEMATICS_SERVICE_NAME);
+  ros::ServiceClient benchmark_kinematics_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_KINEMATICS_SERVICE_NAME, true);
   
   unsigned int n_call = 0;
   
@@ -319,7 +322,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
             req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
             
             ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
-            if (benchmark_service_client.call(req, res))
+            if (benchmark_kinematics_service_client.call(req, res))
               ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
             else
               ROS_ERROR("Failed!");
