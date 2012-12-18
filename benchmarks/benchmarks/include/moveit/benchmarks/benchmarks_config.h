@@ -41,6 +41,7 @@
 #include <moveit/warehouse/planning_scene_world_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
+#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 
 namespace moveit_benchmarks
 {
@@ -71,14 +72,12 @@ struct BenchmarkOptions
 class BenchmarkConfig
 {
 public:
-  
-  static const std::string BENCHMARK_SERVICE_NAME; // name of the advertised benchmarking service (within the ~ namespace)
-  
+
   BenchmarkConfig(const std::string &host, std::size_t port);
   
   bool readOptions(const char *filename);
   
-  void runBenchmark(void);
+  const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> getBenchmarkRequests(void);
 
   const BenchmarkOptions& getOptions(void) const
   {

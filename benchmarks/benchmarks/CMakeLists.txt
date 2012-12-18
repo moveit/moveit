@@ -6,10 +6,16 @@ target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_executable(moveit_run_benchmark src/run_benchmark.cpp)
 target_link_libraries(moveit_run_benchmark ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
+add_executable(moveit_run_kinematic_benchmark src/run_kinematic_benchmark.cpp)
+target_link_libraries(moveit_run_kinematic_benchmark ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 add_executable(moveit_call_benchmark src/call_benchmark.cpp)
 target_link_libraries(moveit_call_benchmark ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS ${MOVEIT_LIB_NAME} moveit_run_benchmark moveit_call_benchmark
+add_executable(moveit_call_kinematic_benchmark src/call_kinematic_benchmark.cpp)
+target_link_libraries(moveit_call_kinematic_benchmark ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+install(TARGETS ${MOVEIT_LIB_NAME} moveit_run_benchmark moveit_run_kinematic_benchmark moveit_call_benchmark moveit_call_kinematic_benchmark 
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
