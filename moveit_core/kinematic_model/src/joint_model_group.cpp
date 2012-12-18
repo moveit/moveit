@@ -84,7 +84,7 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
                                                   const KinematicModel* parent_model) :
   parent_model_(parent_model), name_(group_name),
   variable_count_(0), is_end_effector_(false), is_chain_(false),
-  default_ik_timeout_(0.5)
+  default_ik_timeout_(0.5), default_ik_attempts_(2)
 {
   for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
   {

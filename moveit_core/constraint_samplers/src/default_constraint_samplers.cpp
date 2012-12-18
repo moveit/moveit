@@ -305,7 +305,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
   {
     logError("No IK solver");
     return false;
-  }  
+  }
   
   // check if we need to transform the request into the coordinate frame expected by IK
   ik_frame_ = kb_->getBaseFrame();
