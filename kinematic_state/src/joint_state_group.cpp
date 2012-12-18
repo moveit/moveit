@@ -370,6 +370,9 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
   if (timeout < std::numeric_limits<double>::epsilon())
     timeout = joint_model_group_->getDefaultIKTimeout();
   
+  if (attempts == 0)
+    attempts = joint_model_group_->getDefaultIKAttempts();
+  
   const std::vector<unsigned int> &bij = joint_model_group_->getKinematicsSolverJointBijection();
   Eigen::Quaterniond quat(pose.rotation());
   Eigen::Vector3d point(pose.translation());
@@ -573,7 +576,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
     ik_queries[i].orientation.z = quat.z();
     ik_queries[i].orientation.w = quat.w();
   }
-    
+
+  if (attempts == 0)
+    attempts = joint_model_group_->getDefaultIKAttempts();
+
   bool first_seed = true;  
   for (unsigned int st = 0 ; st < attempts ; ++st)
   {    
@@ -606,9 +612,11 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
       // compute the IK solution
       std::vector<double> ik_sol;
       moveit_msgs::MoveItErrorCodes error;
-      if(!consistency_limits.empty() ? 
-         solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout, consistency_limits[sg], ik_sol, error) :
-         solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout, ik_sol, error))
+      if (!consistency_limits.empty() ? 
+         solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout < std::numeric_limits<double>::epsilon() ? joint_state_group->getDefaultIKTimeout() : timeout,
+                                       consistency_limits[sg], ik_sol, error) :
+         solvers[sg]->searchPositionIK(ik_queries[sg], seed,  timeout < std::numeric_limits<double>::epsilon() ? joint_state_group->getDefaultIKTimeout() : timeout,
+                                       ik_sol, error))
       {
         std::vector<double> solution(bij.size());
         for (std::size_t i = 0 ; i < bij.size() ; ++i)
