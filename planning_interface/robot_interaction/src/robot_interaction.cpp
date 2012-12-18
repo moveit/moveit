@@ -67,7 +67,7 @@ void RobotInteraction::InteractionHandler::setup(void)
 {
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name  
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
-  ik_attempts_ = 3;
+  ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
 }
 
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,

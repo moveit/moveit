@@ -186,6 +186,14 @@ void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
     {
       kinematic_model::JointModelGroup *jmg = model_->getJointModelGroup(it->first);
       jmg->setDefaultIKTimeout(it->second);
+    } 
+
+    // set the default IK attempts
+    const std::map<std::string, unsigned int> &attempts = kinematics_loader_->getIKAttempts();
+    for (std::map<std::string, unsigned int>::const_iterator it = attempts.begin() ; it != attempts.end() ; ++it)
+    {
+      kinematic_model::JointModelGroup *jmg = model_->getJointModelGroup(it->first);
+      jmg->setDefaultIKAttempts(it->second);
     }
   }
 }

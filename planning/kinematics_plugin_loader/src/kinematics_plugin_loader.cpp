@@ -230,6 +230,20 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
           double ksolver_timeout;
           if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout))
             ik_timeout_[known_groups[i].name_] = ksolver_timeout;
+          else
+          {// just in case this is an int
+            int ksolver_timeout_i;
+            if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout_i))
+              ik_timeout_[known_groups[i].name_] = ksolver_timeout_i;
+          }
+        }
+
+        std::string ksolver_attempts_param_name;
+        if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_attempts", ksolver_attempts_param_name))
+        {
+          int ksolver_attempts;
+          if (nh.getParam(ksolver_attempts_param_name, ksolver_attempts))
+            ik_attempts_[known_groups[i].name_] = ksolver_attempts;
         }
         
         std::string ksolver_res_param_name;
