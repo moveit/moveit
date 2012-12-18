@@ -776,7 +776,7 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointMode
       }
     if (!result)
     {
-      logWarn("No root joint specified. Assuming fixed joint");
+      logInform("No root joint specified. Assuming fixed joint");
       result = new FixedJointModel("ASSUMED_FIXED_ROOT_JOINT");
     }
   }
