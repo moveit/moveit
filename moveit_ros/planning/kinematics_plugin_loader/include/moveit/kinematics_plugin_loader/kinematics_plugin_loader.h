@@ -70,6 +70,11 @@ public:
     return ik_timeout_;
   }
 
+  const std::map<std::string, unsigned int>& getIKAttempts(void) const
+  {
+    return ik_attempts_;
+  }
+
   void status(void) const;
   
 private:
@@ -79,6 +84,7 @@ private:
   boost::shared_ptr<KinematicsLoaderImpl> loader_;
   std::vector<std::string> groups_;
   std::map<std::string, double> ik_timeout_;
+  std::map<std::string, unsigned int> ik_attempts_;
 };
 
 typedef boost::shared_ptr<KinematicsPluginLoader> KinematicsPluginLoaderPtr;

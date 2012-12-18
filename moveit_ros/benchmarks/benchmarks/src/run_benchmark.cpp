@@ -463,7 +463,7 @@ public:
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
     ros::WallTime startTime = ros::WallTime::now();
     bool reachable = false;
-    bool success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, 1,
+    bool success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts,
                                                                                                      req.motion_plan_request.allowed_planning_time.toSec(),
                                                                                                      boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
 
