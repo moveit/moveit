@@ -41,13 +41,11 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
-#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <ros/ros.h>
 #include <fstream>
 
 namespace moveit_benchmarks
 {
-const std::string BenchmarkConfig::BENCHMARK_SERVICE_NAME = "benchmark_planning_problem"; // name of the advertised benchmarking service (within the ~ namespace)
 
 namespace
 {
@@ -90,8 +88,10 @@ moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std
 {  
 }
 
-void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
+const std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> moveit_benchmarks::BenchmarkConfig::getBenchmarkRequests(void)
 {
+  std::vector<moveit_msgs::ComputePlanningPluginsBenchmark::Request> req_list;
+
   moveit_warehouse::PlanningSceneWithMetadata pswm;
   moveit_warehouse::PlanningSceneWorldWithMetadata pswwm;
   bool world_only = false;
@@ -110,13 +110,13 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
         ROS_ERROR("%s", ex.what());
       }
       if (!ok)
-        return;
+        return req_list;
       world_only = true;
     }
     else
     {  
       ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
-      return;
+      return req_list;
     }
   }
   else
@@ -134,12 +134,11 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
     if (!ok)
     {
       ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
-      return;
+      return req_list;
     }
   }
-  
+
   moveit_msgs::ComputePlanningPluginsBenchmark::Request req;
-  moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
   if (world_only)
   {
     req.scene.world = static_cast<const moveit_msgs::PlanningSceneWorld&>(*pswwm);
@@ -169,11 +168,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
     req.planner_interfaces[i].planner_ids = opt_.plugins[i].planners;
     req.average_count[i] = opt_.plugins[i].runs;
   }
-  
-  ros::NodeHandle nh;
-  ros::service::waitForService(BENCHMARK_SERVICE_NAME);
-  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_SERVICE_NAME, true);
-  
+
   unsigned int n_call = 0;
   
   // see if we have any start states specified
@@ -192,7 +187,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
     if (start_states.empty())
     {
       ROS_WARN("No stored states matched the provided regex: '%s'", opt_.start_regex.c_str());
-      return;
+      return req_list;
     }
     else
       ROS_INFO("Running benchmark using %u start states.", (unsigned int)start_states.size());
@@ -270,11 +265,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
               checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
           }
 
-          ROS_INFO("Calling benchmark with planning query '%s' for scene '%s' ...", query_name.c_str(), opt_.scene.c_str());
-          if (benchmark_service_client.call(req, res))
-            ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
-          else
-            ROS_ERROR("Failed!");
+          req_list.push_back(req);
         }
       }
     }
@@ -318,16 +309,14 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(void)
               checkHeader(req.motion_plan_request.goal_constraints[0], opt_.planning_frame);
             req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
             
-            ROS_INFO("Calling benchmark for goal constraints '%s' for scene '%s' ...", cnames[i].c_str(), opt_.scene.c_str());
-            if (benchmark_service_client.call(req, res))
-              ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
-            else
-              ROS_ERROR("Failed!");
+            req_list.push_back(req);
           }
         }
       }
     }
   }
+
+  return req_list;
 }
 
 bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
