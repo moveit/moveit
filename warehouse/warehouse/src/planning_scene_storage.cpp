@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/warehouse/planning_scene_storage.h>
+#include <boost/regex.hpp>
 
 const std::string moveit_warehouse::PlanningSceneStorage::DATABASE_NAME = "moveit_planning_scenes";
 
@@ -237,6 +238,30 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(std::vector
   for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
     if (planning_queries[i]->metadata.hasField(MOTION_PLAN_REQUEST_ID_NAME.c_str()))
       query_names.push_back(planning_queries[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME));
+}
+
+void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(const std::string &regex, std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const
+{
+  getPlanningQueries(planning_queries, query_names, scene_name);
+
+  if (!regex.empty())
+  {
+    std::vector<std::string> fnames;
+    std::vector<MotionPlanRequestWithMetadata> fplanning_queries;
+
+    boost::regex r(regex);
+    for (std::size_t i = 0; i < query_names.size() ; ++i)
+    {
+      boost::cmatch match;
+      if (boost::regex_match(query_names[i].c_str(), match, r))
+      {
+        fnames.push_back(query_names[i]);
+        fplanning_queries.push_back(planning_queries[i]);
+      }
+    }
+    query_names.swap(fnames);
+    planning_queries.swap(fplanning_queries);
+  }
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const

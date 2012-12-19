@@ -152,9 +152,10 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
     req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
   req.scene.name = opt_.scene;
   std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
+  std::vector<std::string> planning_queries_names;
   try
   {
-    pss_.getPlanningQueries(planning_queries, opt_.scene);
+    pss_.getPlanningQueries(opt_.query_regex, planning_queries, planning_queries_names, opt_.scene);
   }
   catch (std::runtime_error &ex)
   {
@@ -236,85 +237,76 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
     
     if (!opt_.query_regex.empty())
     {
-      boost::regex query_regex(opt_.query_regex);
       for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
       {
-        std::string query_name = planning_queries[i]->lookupString(moveit_warehouse::PlanningSceneStorage::MOTION_PLAN_REQUEST_ID_NAME);
-        boost::cmatch match;
-        if (boost::regex_match(query_name.c_str(), match, query_regex))
+        // read request from db
+        req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
+
+        // update request given .cfg options
+        if (start_state_to_use)
+          req.motion_plan_request.start_state = *start_state_to_use;
+        req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+        if (!opt_.group_override.empty())
+          req.motion_plan_request.group_name = opt_.group_override;
+
+        if (opt_.timeout > 0.0)
+          req.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+
+        if (!opt_.default_constrained_link.empty())
         {
-          // read request from db
-          req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
-          
-          // update request given .cfg options
-          if (start_state_to_use)
-            req.motion_plan_request.start_state = *start_state_to_use;
-          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
-          if (!opt_.group_override.empty())
-            req.motion_plan_request.group_name = opt_.group_override;
-          
-          if (opt_.timeout > 0.0)
-            req.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
-          
-          if (!opt_.default_constrained_link.empty())
-          {
-            checkConstrainedLink(req.motion_plan_request.path_constraints, opt_.default_constrained_link);
-            for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
-              checkConstrainedLink(req.motion_plan_request.goal_constraints[j], opt_.default_constrained_link);
-          }
-          if (!opt_.planning_frame.empty())
-          {
-            checkHeader(req.motion_plan_request.path_constraints, opt_.planning_frame);
-            for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
-              checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
-          }
-          
-          call(boost::ref(req));
+          checkConstrainedLink(req.motion_plan_request.path_constraints, opt_.default_constrained_link);
+          for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
+            checkConstrainedLink(req.motion_plan_request.goal_constraints[j], opt_.default_constrained_link);
         }
+        if (!opt_.planning_frame.empty())
+        {
+          checkHeader(req.motion_plan_request.path_constraints, opt_.planning_frame);
+          for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
+            checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
+        }
+
+        ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i+1, (int)planning_queries.size());
+        call(boost::ref(req));
       }
     }
     
     if (!opt_.goal_regex.empty())
     {
-      boost::regex goal_regex(opt_.goal_regex);
       std::vector<std::string> cnames;
-      cs_.getKnownConstraints(cnames);
+      cs_.getKnownConstraints(opt_.goal_regex, cnames);
       for (std::size_t i = 0 ; i < cnames.size() ; ++i)
       {
-        boost::cmatch match;
-        if (boost::regex_match(cnames[i].c_str(), match, goal_regex))
+        moveit_warehouse::ConstraintsWithMetadata constr;
+        bool got_constraints = false;
+        try
         {
-          moveit_warehouse::ConstraintsWithMetadata constr;
-          bool got_constraints = false;
-          try
-          {
-            got_constraints = cs_.getConstraints(constr, cnames[i]);
-          }
-          catch (std::runtime_error &ex)
-          {
-            ROS_ERROR("%s", ex.what());
-          }
-          
-          if (got_constraints)
-          {
-            // construct a planning request from the constraints message
-            req.motion_plan_request = moveit_msgs::MotionPlanRequest();
-            req.motion_plan_request.goal_constraints.resize(1);          
-            if (start_state_to_use)
-              req.motion_plan_request.start_state = *start_state_to_use;
-            req.motion_plan_request.goal_constraints[0] = *constr;
-            if (!opt_.group_override.empty())
-              req.motion_plan_request.group_name = opt_.group_override;
-            if (opt_.timeout > 0.0)
-              req.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
-            if (!opt_.default_constrained_link.empty())
-              checkConstrainedLink(req.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
-            if (!opt_.planning_frame.empty())
-              checkHeader(req.motion_plan_request.goal_constraints[0], opt_.planning_frame);
-            req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
-            
-            call(boost::ref(req));
-          }
+          got_constraints = cs_.getConstraints(constr, cnames[i]);
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
+
+        if (got_constraints)
+        {
+          // construct a planning request from the constraints message
+          req.motion_plan_request = moveit_msgs::MotionPlanRequest();
+          req.motion_plan_request.goal_constraints.resize(1);
+          if (start_state_to_use)
+            req.motion_plan_request.start_state = *start_state_to_use;
+          req.motion_plan_request.goal_constraints[0] = *constr;
+          if (!opt_.group_override.empty())
+            req.motion_plan_request.group_name = opt_.group_override;
+          if (opt_.timeout > 0.0)
+            req.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+          if (!opt_.default_constrained_link.empty())
+            checkConstrainedLink(req.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
+          if (!opt_.planning_frame.empty())
+            checkHeader(req.motion_plan_request.goal_constraints[0], opt_.planning_frame);
+          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+
+          ROS_INFO("Benckmarking goal '%s' (%d of %d)", cnames[i].c_str(), (int)i+1, (int)cnames.size());
+          call(boost::ref(req));
         }
       }
     }
