@@ -304,9 +304,9 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
                                   constr->orientation_constraints[0].orientation.x,
                                   constr->orientation_constraints[0].orientation.y,
                                   constr->orientation_constraints[0].orientation.z);
-          Eigen::Quaternionf R = Eigen::AngleAxisf(opt_.offsets[0], Eigen::Vector3f::UnitX()) *
-                                 Eigen::AngleAxisf(opt_.offsets[1], Eigen::Vector3f::UnitY()) *
-                                 Eigen::AngleAxisf(opt_.offsets[2], Eigen::Vector3f::UnitZ());
+          Eigen::Quaternionf R = Eigen::AngleAxisf(opt_.offsets[3], Eigen::Vector3f::UnitX()) *
+                                 Eigen::AngleAxisf(opt_.offsets[4], Eigen::Vector3f::UnitY()) *
+                                 Eigen::AngleAxisf(opt_.offsets[5], Eigen::Vector3f::UnitZ());
           quat = quat * R;
           req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.x = quat.x();
           req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.y = quat.y();
@@ -356,9 +356,12 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       ("scene.planning_frame", boost::program_options::value<std::string>()->default_value(""), "Override the planning frame to use")
       ("scene.default_constrained_link", boost::program_options::value<std::string>()->default_value(""),
        "Specify the default link to consider as constrained when one is not specified in a moveit_msgs::Constraints message")
-      ("scene.goal_offset_roll", boost::program_options::value<std::string>(), "Goal offset in roll")
-      ("scene.goal_offset_pitch", boost::program_options::value<std::string>(), "Goal offset in pitch")
-      ("scene.goal_offset_yaw", boost::program_options::value<std::string>(), "Goal offset in yaw")
+      ("scene.goal_offset_x", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in x")
+      ("scene.goal_offset_y", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in y")
+      ("scene.goal_offset_z", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in z")
+      ("scene.goal_offset_roll", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in roll")
+      ("scene.goal_offset_pitch", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in pitch")
+      ("scene.goal_offset_yaw", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in yaw")
       ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
     
     boost::program_options::variables_map vm;
@@ -380,9 +383,12 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.planning_frame = declared_options["scene.planning_frame"];
     try
     {
-      opt_.offsets[0] = boost::lexical_cast<double>(declared_options["scene.goal_offset_roll"]);
-      opt_.offsets[1] = boost::lexical_cast<double>(declared_options["scene.goal_offset_pitch"]);
-      opt_.offsets[2] = boost::lexical_cast<double>(declared_options["scene.goal_offset_yaw"]);
+      opt_.offsets[0] = boost::lexical_cast<double>(declared_options["scene.goal_offset_x"]);
+      opt_.offsets[1] = boost::lexical_cast<double>(declared_options["scene.goal_offset_y"]);
+      opt_.offsets[2] = boost::lexical_cast<double>(declared_options["scene.goal_offset_z"]);
+      opt_.offsets[3] = boost::lexical_cast<double>(declared_options["scene.goal_offset_roll"]);
+      opt_.offsets[4] = boost::lexical_cast<double>(declared_options["scene.goal_offset_pitch"]);
+      opt_.offsets[5] = boost::lexical_cast<double>(declared_options["scene.goal_offset_yaw"]);
     }
     catch(boost::bad_lexical_cast &ex)
     {
