@@ -207,6 +207,12 @@ public:
     return joint_model_group_->getDefaultIKTimeout();
   }
 
+  /** \brief Get the default number of ik attempts */
+  unsigned getDefaultIKAttempts(void) const
+  {
+    return joint_model_group_->getDefaultIKAttempts();
+  }
+  
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the \e tip  link in the chain needs to achieve 
