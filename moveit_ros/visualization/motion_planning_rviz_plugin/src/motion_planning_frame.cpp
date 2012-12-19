@@ -1995,6 +1995,9 @@ void MotionPlanningFrame::enable(void)
 
   changePlanningGroup();
 
+  for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
+      it->second.imarker->setShowAxes(false);
+
   // activate the frame
   show();
 }
