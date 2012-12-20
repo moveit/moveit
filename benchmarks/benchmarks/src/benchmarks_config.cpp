@@ -44,6 +44,11 @@
 #include <ros/ros.h>
 #include <fstream>
 
+#include <eigen_conversions/eigen_msg.h>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
 namespace moveit_benchmarks
 {
 
@@ -151,18 +156,17 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
   else
     req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
   req.scene.name = opt_.scene;
-  std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
   std::vector<std::string> planning_queries_names;
   try
   {
-    pss_.getPlanningQueries(opt_.query_regex, planning_queries, planning_queries_names, opt_.scene);
+    pss_.getPlanningQueriesNames(opt_.query_regex, planning_queries_names, opt_.scene);
   }
   catch (std::runtime_error &ex)
   {
     ROS_ERROR("%s", ex.what());
   }
   
-  if (planning_queries.empty())
+  if (planning_queries_names.empty())
     ROS_INFO("Scene '%s' has no associated queries", opt_.scene.c_str());
   req.default_average_count = opt_.default_run_count;
   req.planner_interfaces.resize(opt_.plugins.size());
@@ -237,10 +241,13 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
     
     if (!opt_.query_regex.empty())
     {
-      for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+      for (std::size_t i = 0 ; i < planning_queries_names.size() ; ++i)
       {
+        moveit_warehouse::MotionPlanRequestWithMetadata planning_query;
+        pss_.getPlanningQuery(planning_query, opt_.scene, planning_queries_names[i]);
+
         // read request from db
-        req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
+        req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_query);
 
         // update request given .cfg options
         if (start_state_to_use)
@@ -265,7 +272,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
             checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
         }
 
-        ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i+1, (int)planning_queries.size());
+        ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i+1, (int)planning_queries_names.size());
         call(boost::ref(req));
       }
     }
@@ -295,6 +302,27 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
           if (start_state_to_use)
             req.motion_plan_request.start_state = *start_state_to_use;
           req.motion_plan_request.goal_constraints[0] = *constr;
+
+          //Apply the goal offset
+          geometry_msgs::Pose wMc_msg, wMnc_msg;
+          wMc_msg.position = constr->position_constraints[0].constraint_region.primitive_poses[0].position;
+          wMc_msg.orientation = constr->orientation_constraints[0].orientation;
+          Eigen::Affine3d wMc, wMnc;
+          tf::poseMsgToEigen(wMc_msg, wMc);
+
+          Eigen::Affine3d cMnc;
+          cMnc = Eigen::AngleAxis<double>(opt_.offsets[3], Eigen::Vector3d::UnitX()) *
+                 Eigen::AngleAxis<double>(opt_.offsets[4], Eigen::Vector3d::UnitY()) *
+                 Eigen::AngleAxis<double>(opt_.offsets[5], Eigen::Vector3d::UnitZ());
+
+          cMnc.translation() = Eigen::Vector3d(opt_.offsets[0], opt_.offsets[1], opt_.offsets[2]);
+
+          wMnc = wMc * cMnc;
+          tf::poseEigenToMsg(wMnc, wMnc_msg);
+
+          req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position = wMnc_msg.position;
+          req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation = wMnc_msg.orientation;
+
           if (!opt_.group_override.empty())
             req.motion_plan_request.group_name = opt_.group_override;
           if (opt_.timeout > 0.0)
@@ -338,6 +366,12 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       ("scene.planning_frame", boost::program_options::value<std::string>()->default_value(""), "Override the planning frame to use")
       ("scene.default_constrained_link", boost::program_options::value<std::string>()->default_value(""),
        "Specify the default link to consider as constrained when one is not specified in a moveit_msgs::Constraints message")
+      ("scene.goal_offset_x", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in x")
+      ("scene.goal_offset_y", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in y")
+      ("scene.goal_offset_z", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in z")
+      ("scene.goal_offset_roll", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in roll")
+      ("scene.goal_offset_pitch", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in pitch")
+      ("scene.goal_offset_yaw", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in yaw")
       ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
     
     boost::program_options::variables_map vm;
@@ -357,6 +391,27 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.group_override = declared_options["scene.group"];
     opt_.default_constrained_link = declared_options["scene.default_constrained_link"];
     opt_.planning_frame = declared_options["scene.planning_frame"];
+    try
+    {
+      memset(opt_.offsets, 0, 6*sizeof(double));
+      if (!declared_options["scene.goal_offset_x"].empty())
+        opt_.offsets[0] = boost::lexical_cast<double>(declared_options["scene.goal_offset_x"]);
+      if (!declared_options["scene.goal_offset_y"].empty())
+        opt_.offsets[1] = boost::lexical_cast<double>(declared_options["scene.goal_offset_y"]);
+      if (!declared_options["scene.goal_offset_z"].empty())
+        opt_.offsets[2] = boost::lexical_cast<double>(declared_options["scene.goal_offset_z"]);
+      if (!declared_options["scene.goal_offset_roll"].empty())
+        opt_.offsets[3] = boost::lexical_cast<double>(declared_options["scene.goal_offset_roll"]);
+      if (!declared_options["scene.goal_offset_pitch"].empty())
+        opt_.offsets[4] = boost::lexical_cast<double>(declared_options["scene.goal_offset_pitch"]);
+      if (!declared_options["scene.goal_offset_yaw"].empty())
+        opt_.offsets[5] = boost::lexical_cast<double>(declared_options["scene.goal_offset_yaw"]);
+    }
+    catch(boost::bad_lexical_cast &ex)
+    {
+      ROS_WARN("%s", ex.what());
+    }
+
     
     if (opt_.output.empty())
       opt_.output = std::string(filename);

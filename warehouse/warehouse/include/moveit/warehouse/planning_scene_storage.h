@@ -85,8 +85,8 @@ public:
   bool getPlanningQuery(MotionPlanRequestWithMetadata &query_m, const std::string &scene_name, const std::string &query_name);
   void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;  
   void getPlanningQueriesNames(std::vector<std::string> &query_names, const std::string &scene_name) const;
+  void getPlanningQueriesNames(const std::string &regex, std::vector<std::string> &query_names, const std::string &scene_name) const;
   void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const;
-  void getPlanningQueries(const std::string &regex, std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const;
 
   void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &scene_name, const moveit_msgs::MotionPlanRequest &planning_query) const;
   void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &scene_name, const std::string &query_name) const;
