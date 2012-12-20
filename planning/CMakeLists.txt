@@ -36,7 +36,9 @@ find_package(catkin REQUIRED COMPONENTS
 #add_message_files(DIRECTORY kinematics_reachability/msg FILES ${MSG_FILES})
 #generate_messages(DEPENDENCIES ${MSG_DEPS})
 
-generate_dynamic_reconfigure_options("planning_scene_monitor/cfg/PublishSceneDR.cfg" "plan_execution/cfg/PlanExecutionParamsDR.cfg")
+generate_dynamic_reconfigure_options(
+  "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"
+  "plan_execution/cfg/PlanExecutionDynamicReconfigure.cfg")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
     robot_model_loader/include
