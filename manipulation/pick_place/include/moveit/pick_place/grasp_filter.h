@@ -37,7 +37,7 @@
 #ifndef MOVEIT_PICK_PLACE_GRASP_FILTER_
 #define MOVEIT_PICK_PLACE_GRASP_FILTER_
 
-#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/pick_place/grasp.h>
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
@@ -47,10 +47,6 @@
 namespace pick_place
 {
 
-struct Grasp
-{
-};
-
 class GraspFilter;
 typedef boost::shared_ptr<GraspFilter> GraspFilterPtr;
 typedef boost::shared_ptr<const GraspFilter> GraspFilterConstPtr;
@@ -58,9 +54,8 @@ typedef boost::shared_ptr<const GraspFilter> GraspFilterConstPtr;
 class GraspFilter
 {
 public:
-  typedef boost::function<void(void)> SuccessCallback;
   
-  GraspFilter(const planning_scene::PlanningSceneConstPtr &scene, unsigned int nthreads = 4);
+  GraspFilter(unsigned int nthreads);
   virtual ~GraspFilter(void);
     
   const GraspFilterPtr& follow(const GraspFilterPtr &next)
@@ -69,16 +64,11 @@ public:
     return next;
   }
   
-  void setSuccessCallback(const SuccessCallback &callback)
-  {
-    callback_ = callback;
-  }
-  
   void start(void);
   
   void stop(void);
   
-  void push(const Grasp &grasp);
+  virtual void push(const Grasp &grasp);
   
   virtual bool evaluate(unsigned int thread_id, const Grasp &grasp) const = 0;
   
@@ -108,11 +98,9 @@ protected:
     boost::scoped_ptr<boost::thread> thread_;
   };
   
-  planning_scene::PlanningSceneConstPtr planning_scene_;
   unsigned int nthreads_;
   std::vector< std::deque<Grasp> > processing_queues_;
   std::vector< ProcessingThread* > processing_threads_;
-  SuccessCallback callback_;
   bool stop_processing_;
   GraspFilterPtr next_;
 };

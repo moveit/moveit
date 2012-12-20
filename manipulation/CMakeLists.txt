@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
+  INCLUDE_DIRS
+    pick_place/include
   LIBRARIES
     moveit_pick_place_planner
   CATKIN_DEPENDS
@@ -22,7 +24,6 @@ catkin_package(
 
 include_directories(pick_place/include)
 
-#include_directories(pick_place_planner/include)
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM
                     ${EIGEN_INCLUDE_DIRS}
@@ -32,6 +33,3 @@ link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(pick_place)
-
-#add_subdirectory(pick_place_planner)
-#add_subdirectory(moveit_manipulation_testing)

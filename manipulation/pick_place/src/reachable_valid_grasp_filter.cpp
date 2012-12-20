@@ -37,15 +37,19 @@
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
 #include <moveit/constraint_samplers/default_constraint_samplers.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <ros/console.h>
 
 namespace pick_place
 {
 
-ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const Options &opt,
+ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const Options &opt, 
                                                            const planning_scene::PlanningSceneConstPtr &scene,
+                                                           const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
                                                            unsigned int nthreads) :
-  GraspFilter(scene, nthreads),
-  opt_(opt)
+  GraspFilter(nthreads),
+  opt_(opt),
+  planning_scene_(scene),
+  constraints_sampler_manager_(constraints_sampler_manager)
 {
   states_.resize(nthreads_);
   for (std::size_t i = 0 ; i < states_.size() ; ++i)
@@ -55,13 +59,35 @@ ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const Options &opt,
   }
 }
 
+bool ReachableAndValidGraspFilter::isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
+                                                        const std::vector<double> &joint_group_variable_values) const
+{
+  joint_state_group->setVariableValues(joint_group_variable_values);
+  return !planning_scene_->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName());
+}
+
 bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Grasp &grasp) const
 {
-  geometry_msgs::Pose pose;
+  // \todo get a pose somehow from the representation of the grasp
+  geometry_msgs::PoseStamped pose;
   
-  if (joint_state_groups_[thread_id]->setFromIK(pose, opt_.ik_link_))
-    if (next_)
-      next_->push(grasp);
+  // convert the pose we want to reach to a set of constraints
+  moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(opt_.ik_link_, pose,
+                                                                               opt_.tolerance_position_xyz_,
+                                                                               opt_.tolerance_rotation_xyz_);
+  // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
+  // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
+  constraint_samplers::ConstraintSamplerPtr sampler = constraints_sampler_manager_->selectSampler(planning_scene_, opt_.planning_group_, c);
+  if (sampler)
+  {
+    sampler->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, _1, _2));
+    
+    if (sampler->sample(joint_state_groups_[thread_id], *states_[thread_id], 1))
+      if (next_)
+        next_->push(grasp);
+  }
+  else
+    ROS_ERROR_THROTTLE(1, "No sampler was constructed");
 }
 
 }

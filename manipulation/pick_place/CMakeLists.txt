@@ -3,6 +3,7 @@ set(MOVEIT_LIB_NAME moveit_pick_place_planner)
 add_library(${MOVEIT_LIB_NAME}
   src/grasp_filter.cpp
   src/reachable_valid_grasp_filter.cpp
+  src/output_grasp_filter.cpp
   src/pick_place.cpp
   )
 
