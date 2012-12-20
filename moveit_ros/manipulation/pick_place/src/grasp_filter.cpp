@@ -40,8 +40,7 @@
 namespace pick_place
 {
 
-GraspFilter::GraspFilter(const planning_scene::PlanningSceneConstPtr &scene, unsigned int nthreads) :
-  planning_scene_(scene),
+GraspFilter::GraspFilter(unsigned int nthreads) :
   nthreads_(nthreads),
   stop_processing_(true)
 {
@@ -68,7 +67,9 @@ void GraspFilter::start(void)
 }
 
 void GraspFilter::stop(void)
-{
+{  
+  if (stop_processing_)
+    return;
   stop_processing_ = true;
   if (next_)
     next_->stop();
@@ -105,10 +106,8 @@ void GraspFilter::processingThread(unsigned int index)
       {
         if (evaluate(index, g))
         {
-          if (next_)
+          if (next_ && !stop_processing_)
             next_->push(g);
-          if (callback_)
-            callback_();
         }
       }
       catch (std::runtime_error &ex)
@@ -126,6 +125,9 @@ void GraspFilter::processingThread(unsigned int index)
 
 void GraspFilter::push(const Grasp &grasp)
 {
+  if (stop_processing_)
+    return;
+  
   // the detection of the smallest queue is not perfect, i.e., it can find a
   // queue that is not the smallest, since we do not lock, but it should be good enough
   // for what we need

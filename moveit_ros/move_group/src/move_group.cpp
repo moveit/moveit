@@ -40,6 +40,7 @@
 #include <tf/transform_listener.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
+#include <moveit/pick_place/pick_place.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";                   // name of node

@@ -34,56 +34,28 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PICK_PLACE_REACHABLE_VALID_GRASP_FILTER_
-#define MOVEIT_PICK_PLACE_REACHABLE_VALID_GRASP_FILTER_
-
-#include <moveit/pick_place/grasp_filter.h>
-#include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/pick_place/output_grasp_filter.h>
+#include <ros/console.h>
 
 namespace pick_place
 {
 
-class ReachableAndValidGraspFilter : public GraspFilter
-{
-public:
-  
-  struct Options
-  {
-    Options(const std::string &planning_group, const std::string &ik_link) :
-      planning_group_(planning_group),
-      ik_link_(ik_link),
-      tolerance_position_xyz_(3, 1e-3), // 1mm tolerance
-      tolerance_rotation_xyz_(3, 1e-2) // approx 0.573 degrees tolerance
-    {
-    };
-    
-    std::string planning_group_;
-    std::string ik_link_;
-    std::vector<double> tolerance_position_xyz_;
-    std::vector<double> tolerance_rotation_xyz_;
-  };
-  
-  ReachableAndValidGraspFilter(const Options &opt,
-                               const planning_scene::PlanningSceneConstPtr &scene,
-                               const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                               unsigned int nthreads = 4);
-  
-  virtual bool evaluate(unsigned int thread_id, const Grasp &grasp) const;
-  
-private:
-
-  bool isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
-                            const std::vector<double> &joint_group_variable_values) const;
-  
-  Options opt_;
-  planning_scene::PlanningSceneConstPtr planning_scene_;
-  const constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
-  std::vector<kinematic_state::KinematicStatePtr> states_;
-  std::vector<kinematic_state::JointStateGroup*> joint_state_groups_;
-};
-
+bool OutputGraspFilter::evaluate(unsigned int thread_id, const Grasp &grasp) const
+{  
+  ROS_ERROR_THROTTLE(1, "Cannot evaluate grasps in output filter");
+  return false;
 }
 
-#endif
+void OutputGraspFilter::push(const Grasp &grasp)
+{
+  output_.push_back(grasp);
+  if (callback_)
+    callback_(boost::cref(grasp));
+}
 
+bool OutputGraspFilter::done(void) const
+{
+  return output_.size() > 0;
+}
+
+}

@@ -38,9 +38,29 @@
 #define MOVEIT_PICK_PLACE_PICK_PLACE_
 
 #include <moveit/pick_place/grasp_filter.h>
+#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
+#include <moveit_msgs/PickupAction.h>
+#include <moveit_msgs/PlaceAction.h>
 
 namespace pick_place
 {
+
+class PickPlace
+{
+public:
+  PickPlace(void);
+  
+  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager(void) const
+  {
+    return constraint_sampler_manager_loader_->getConstraintSamplerManager();
+  }
+
+  void planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout) const;
+
+private:
+  
+  constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
+};
 
 }
 
