@@ -39,6 +39,7 @@
 
 #include <moveit/pick_place/grasp_filter.h>
 #include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
+#include <moveit/plan_execution/plan_execution.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
 
@@ -47,18 +48,47 @@ namespace pick_place
 
 class PickPlace
 {
-public:
-  PickPlace(void);
+public: 
+
+  struct Plan
+  {
+    // The full starting state of the robot at the start of the trajectory
+    moveit_msgs::RobotState trajectory_start_;
+
+    // The trajectory that moved group produced for execution
+    std::vector<moveit_msgs::RobotTrajectory> planned_trajectory_;
+    
+    // An error code reflecting what went wrong (if anything)
+    moveit_msgs::MoveItErrorCodes error_code_;
+  };
+  
+  PickPlace(const plan_execution::PlanExecutionPtr &plan_execution);
   
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager(void) const
   {
     return constraint_sampler_manager_loader_->getConstraintSamplerManager();
   }
+  
+  const plan_execution::PlanExecutionPtr &getPlanExecution(void) const
+  {
+    return plan_execution_;
+  }
+  
+  /** \brief Plan the sequence of motions that perform a pickup action */
+  bool planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, Plan &plan, double timeout) const;
 
-  void planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout) const;
+  /** \brief Plan the sequence of motions that perform a placement action */
+  bool planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal, Plan &plan, double timeout) const;
+
+  /** \brief Plan and execute the sequence of motions that perform a placement action */
+  bool executePick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout) const;
+
+  /** \brief Plan and execute the sequence of motions that perform a placement action */
+  bool executePlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal, double timeout) const;
 
 private:
   
+  plan_execution::PlanExecutionPtr plan_execution_;  
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
 };
 
