@@ -161,7 +161,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
                                                       request.pose_stamped_vector_,
                                                       kinematic_model_->getModelFrame());
 
-  kinematic_state::IKValidityCallbackFn constraint_callback_fn = boost::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response, _1, _2);
+  kinematic_state::StateValidityCallbackFn constraint_callback_fn = boost::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response, _1, _2);
   
   bool result = false;  
   if(has_sub_groups_)

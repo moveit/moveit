@@ -78,7 +78,7 @@ class KinematicsRequest
 
   bool check_for_collisions_;
 
-  kinematic_state::IKValidityCallbackFn constraint_callback_;  
+  kinematic_state::StateValidityCallbackFn constraint_callback_;  
   
 };
 
