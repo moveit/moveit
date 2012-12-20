@@ -44,6 +44,8 @@
 #include <ros/ros.h>
 #include <fstream>
 
+#include <eigen_conversions/eigen_msg.h>
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -300,18 +302,24 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
           req.motion_plan_request.goal_constraints[0] = *constr;
 
           //Apply the goal offset
-          Eigen::Quaternionf quat(constr->orientation_constraints[0].orientation.w,
-                                  constr->orientation_constraints[0].orientation.x,
-                                  constr->orientation_constraints[0].orientation.y,
-                                  constr->orientation_constraints[0].orientation.z);
-          Eigen::Quaternionf R = Eigen::AngleAxisf(opt_.offsets[3], Eigen::Vector3f::UnitX()) *
-                                 Eigen::AngleAxisf(opt_.offsets[4], Eigen::Vector3f::UnitY()) *
-                                 Eigen::AngleAxisf(opt_.offsets[5], Eigen::Vector3f::UnitZ());
-          quat = quat * R;
-          req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.x = quat.x();
-          req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.y = quat.y();
-          req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z = quat.z();
-          req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w = quat.w();
+          geometry_msgs::Pose wMc_msg, wMnc_msg;
+          wMc_msg.position = constr->position_constraints[0].constraint_region.primitive_poses[0].position;
+          wMc_msg.orientation = constr->orientation_constraints[0].orientation;
+          Eigen::Affine3d wMc, wMnc;
+          tf::poseMsgToEigen(wMc_msg, wMc);
+
+          Eigen::Affine3d cMnc;
+          cMnc = Eigen::AngleAxis<double>(opt_.offsets[3], Eigen::Vector3d::UnitX()) *
+                 Eigen::AngleAxis<double>(opt_.offsets[4], Eigen::Vector3d::UnitY()) *
+                 Eigen::AngleAxis<double>(opt_.offsets[5], Eigen::Vector3d::UnitZ());
+
+          cMnc.translation() = Eigen::Vector3d(opt_.offsets[0], opt_.offsets[1], opt_.offsets[2]);
+
+          wMnc = wMc * cMnc;
+          tf::poseEigenToMsg(wMnc, wMnc_msg);
+
+          req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position = wMnc_msg.position;
+          req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation = wMnc_msg.orientation;
 
           if (!opt_.group_override.empty())
             req.motion_plan_request.group_name = opt_.group_override;
@@ -383,12 +391,19 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.planning_frame = declared_options["scene.planning_frame"];
     try
     {
-      opt_.offsets[0] = boost::lexical_cast<double>(declared_options["scene.goal_offset_x"]);
-      opt_.offsets[1] = boost::lexical_cast<double>(declared_options["scene.goal_offset_y"]);
-      opt_.offsets[2] = boost::lexical_cast<double>(declared_options["scene.goal_offset_z"]);
-      opt_.offsets[3] = boost::lexical_cast<double>(declared_options["scene.goal_offset_roll"]);
-      opt_.offsets[4] = boost::lexical_cast<double>(declared_options["scene.goal_offset_pitch"]);
-      opt_.offsets[5] = boost::lexical_cast<double>(declared_options["scene.goal_offset_yaw"]);
+      memset(opt_.offsets, 0, 6*sizeof(double));
+      if (!declared_options["scene.goal_offset_x"].empty())
+        opt_.offsets[0] = boost::lexical_cast<double>(declared_options["scene.goal_offset_x"]);
+      if (!declared_options["scene.goal_offset_y"].empty())
+        opt_.offsets[1] = boost::lexical_cast<double>(declared_options["scene.goal_offset_y"]);
+      if (!declared_options["scene.goal_offset_z"].empty())
+        opt_.offsets[2] = boost::lexical_cast<double>(declared_options["scene.goal_offset_z"]);
+      if (!declared_options["scene.goal_offset_roll"].empty())
+        opt_.offsets[3] = boost::lexical_cast<double>(declared_options["scene.goal_offset_roll"]);
+      if (!declared_options["scene.goal_offset_pitch"].empty())
+        opt_.offsets[4] = boost::lexical_cast<double>(declared_options["scene.goal_offset_pitch"]);
+      if (!declared_options["scene.goal_offset_yaw"].empty())
+        opt_.offsets[5] = boost::lexical_cast<double>(declared_options["scene.goal_offset_yaw"]);
     }
     catch(boost::bad_lexical_cast &ex)
     {
