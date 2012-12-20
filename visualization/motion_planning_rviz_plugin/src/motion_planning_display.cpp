@@ -969,8 +969,8 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::updateQueryStartState, this, _1));
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::updateQueryGoalState, this, _1));
-  query_start_state_->setIKValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
-  query_goal_state_->setIKValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
+  query_start_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
+  query_goal_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
 
   if (!planning_group_property_->getStdString().empty())
     if (!getKinematicModel()->hasJointModelGroup(planning_group_property_->getStdString()))

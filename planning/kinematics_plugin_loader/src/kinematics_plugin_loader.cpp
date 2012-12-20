@@ -52,8 +52,11 @@ class KinematicsPluginLoader::KinematicsLoaderImpl
 {
 public:
   KinematicsLoaderImpl(const std::map<std::string, std::vector<std::string> > &possible_kinematics_solvers, 
-                       const std::map<std::string, std::vector<double> > &search_res) :
-    possible_kinematics_solvers_(possible_kinematics_solvers), search_res_(search_res)
+                       const std::map<std::string, std::vector<double> > &search_res,
+                       const std::map<std::string, std::string> &ik_links) :
+    possible_kinematics_solvers_(possible_kinematics_solvers),
+    search_res_(search_res),
+    ik_links_(ik_links)
   {
     try
     {
@@ -96,7 +99,8 @@ public:
               {
                 const std::string &base = links.front()->getParentJointModel()->getParentLinkModel() ?
                   links.front()->getParentJointModel()->getParentLinkModel()->getName() : jmg->getParentModel()->getModelFrame();
-                const std::string &tip = links.back()->getName();
+                std::map<std::string, std::string>::const_iterator ik_it = ik_links_.find(jmg->getName());
+                const std::string &tip = ik_it != ik_links_.end() ? ik_it->second : links.back()->getName();
                 double search_res = search_res_.find(jmg->getName())->second[i]; // we know this exists, by construction
                 if (!result->initialize(jmg->getName(), base, tip, search_res))
                 {
@@ -159,6 +163,7 @@ private:
   
   std::map<std::string, std::vector<std::string> >                       possible_kinematics_solvers_;
   std::map<std::string, std::vector<double> >                            search_res_;
+  std::map<std::string, std::string>                                     ik_links_;
   boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
   std::map<const kinematic_model::JointModelGroup*,
            std::vector<boost::shared_ptr<kinematics::KinematicsBase> > > instances_;
@@ -189,10 +194,10 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
     groups_.clear();
     
     ros::NodeHandle nh("~");
-    ROS_DEBUG("node handle name: %s", nh.getNamespace().c_str());
     
     std::map<std::string, std::vector<std::string> > possible_kinematics_solvers;
     std::map<std::string, std::vector<double> > search_res;
+    std::map<std::string, std::string> ik_links;
     if (srdf_model)
     {      
       const std::vector<srdf::Model::Group> &known_groups = srdf_model->getGroups();
@@ -217,7 +222,7 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
                 first = false;
                 groups_.push_back(known_groups[i].name_);
               }
-              std::string solver; ss >> solver >> std::ws;          
+              std::string solver; ss >> solver >> std::ws;
               possible_kinematics_solvers[known_groups[i].name_].push_back(solver);
               ROS_DEBUG("Using kinematics solver '%s' for group '%s'.", solver.c_str(), known_groups[i].name_.c_str());
             }
@@ -272,6 +277,14 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
             }
           }
         }
+
+        std::string ksolver_ik_link_param_name;
+        if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_ik_link", ksolver_ik_link_param_name))
+        {
+          std::string ksolver_ik_link;
+          if (nh.getParam(ksolver_ik_link_param_name, ksolver_ik_link))
+            ik_links[known_groups[i].name_] = ksolver_ik_link;
+        }
         
         // make sure there is a default resolution at least specified for every solver (in case it was not specified on the param server)
         while (search_res[known_groups[i].name_].size() < possible_kinematics_solvers[known_groups[i].name_].size())
@@ -279,7 +292,7 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
       }
     }
     
-    loader_.reset(new KinematicsLoaderImpl(possible_kinematics_solvers, search_res));
+    loader_.reset(new KinematicsLoaderImpl(possible_kinematics_solvers, search_res, ik_links));
   }
   
   return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
