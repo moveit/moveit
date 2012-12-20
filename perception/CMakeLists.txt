@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
   pcl_ros
+  octomap
 )
 
 catkin_package(
