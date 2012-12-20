@@ -379,24 +379,6 @@ public:
   }
 
   /** 
-   * \brief Gets the callback used to determine state validity during IK
-   */
-  const kinematic_state::IKValidityCallbackFn& getIKValidityCallback(void) const
-  {
-    return ik_validity_callback_;
-  }
-
-  /** 
-   * \brief Sets the callback used to determine the state validity during IK
-   * 
-   * @param callback The callback to set
-   */
-  void setIKValidityCallback(const kinematic_state::IKValidityCallbackFn &callback)
-  {
-    ik_validity_callback_ = callback;
-  }
-  
-  /** 
    * \brief Gets the position constraint associated with this sampler.  
    * 
    * 
@@ -514,7 +496,6 @@ protected:
   kinematics::KinematicsBaseConstPtr    kb_; /**< \brief Holds the kinematics solver */
   double                                ik_timeout_; /**< \brief Holds the timeout associated with IK */
   std::string                           ik_frame_; /**< \brief Holds the base from of the IK solver */
-  kinematic_state::IKValidityCallbackFn ik_validity_callback_; /**< \brief Holds the callback for IK validity */
   bool                                  transform_ik_; /**< \brief True if the frame associated with the kinematic model is different than the base frame of the IK solver */
 };
 

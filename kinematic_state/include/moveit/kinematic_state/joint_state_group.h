@@ -49,7 +49,7 @@ namespace kinematic_state
 
 class JointStateGroup;
 
-typedef boost::function<bool(JointStateGroup *joint_state_group, const std::vector<double> &joint_group_variable_values)> IKValidityCallbackFn;
+typedef boost::function<bool(JointStateGroup *joint_state_group, const std::vector<double> &joint_group_variable_values)> StateValidityCallbackFn;
 
 class KinematicState;
 
@@ -221,7 +221,7 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, unsigned int attempts = 0, double timeout = 0.0, 
-                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
   
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -230,7 +230,7 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts = 0, double timeout = 0.0,
-                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -239,7 +239,7 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const Eigen::Affine3d &pose, unsigned int attempts = 0, double timeout = 0.0, 
-                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -249,7 +249,7 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, unsigned int attempts = 0, double timeout = 0.0, 
-                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -261,7 +261,7 @@ public:
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, 
                  const std::vector<double> &consistency_limits, unsigned int attempts = 0, double timeout = 0.0,
-                 const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
   /** \brief If the group consists of a set of sub-groups that are each a chain and a solver 
       is available for each sub-group, then the joint values can be set by computing inverse kinematics.
@@ -272,7 +272,7 @@ public:
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, unsigned int attempts = 0, double timeout = 0.0, const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
   /** \brief If the group consists of a set of sub-groups that are each a chain and a solver 
       is available for each sub-group, then the joint values can be set by computing inverse kinematics.
@@ -284,7 +284,7 @@ public:
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const IKValidityCallbackFn &constraint = IKValidityCallbackFn());
+  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
   JointStateGroup& operator=(const JointStateGroup &other);
 
@@ -294,7 +294,7 @@ private:
   void copyFrom(const JointStateGroup &other_jsg);
   
   /** \brief This function converts output from the IK plugin to the proper ordering of values expected by this group and passes it to \e constraint */
-  void ikCallbackFnAdapter(const IKValidityCallbackFn &constraint, const geometry_msgs::Pose &ik_pose,
+  void ikCallbackFnAdapter(const StateValidityCallbackFn &constraint, const geometry_msgs::Pose &ik_pose,
                            const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code);
   
   /** \brief The kinematic state this group is part of */

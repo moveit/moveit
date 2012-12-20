@@ -444,7 +444,7 @@ namespace constraint_samplers
 {
 namespace
 {
-void samplingIkCallbackFnAdapter(kinematic_state::JointStateGroup *jsg, const kinematic_state::IKValidityCallbackFn &constraint,
+void samplingIkCallbackFnAdapter(kinematic_state::JointStateGroup *jsg, const kinematic_state::StateValidityCallbackFn &constraint,
                                  const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
 {  
   const std::vector<unsigned int> &bij = jsg->getJointModelGroup()->getKinematicsSolverJointBijection();
@@ -472,8 +472,8 @@ bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStat
   }
   
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
-  if (ik_validity_callback_)
-    adapted_ik_validity_callback = boost::bind(&samplingIkCallbackFnAdapter, jsg, ik_validity_callback_, _1, _2, _3);
+  if (state_validity_callback_)
+    adapted_ik_validity_callback = boost::bind(&samplingIkCallbackFnAdapter, jsg, state_validity_callback_, _1, _2, _3);
   
   for (unsigned int a = 0 ; a < max_attempts ; ++a)
   {
