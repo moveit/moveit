@@ -32,30 +32,43 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#include <moveit/pick_place/output_grasp_filter.h>
-#include <ros/console.h>
+#ifndef MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
+#define MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
+
+#include <boost/shared_ptr.hpp>
+#include <manipulation_msgs/Grasp.h>
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
+#include <string>
+#include <vector>
 
 namespace pick_place
 {
 
-bool OutputGraspFilter::evaluate(unsigned int thread_id, const Grasp &grasp) const
-{  
-  ROS_ERROR_THROTTLE(1, "Cannot evaluate grasps in output filter");
-  return false;
-}
-
-void OutputGraspFilter::push(const Grasp &grasp)
+struct ManipulationPlan
 {
-  output_.push_back(grasp);
-  if (callback_)
-    callback_(boost::cref(grasp));
+  // The grasp that is attempted
+  manipulation_msgs::Grasp grasp_;
+  
+  // The full starting state of the robot at the start of the trajectory
+  moveit_msgs::RobotState trajectory_start_;
+  
+  // The sequence of trajectories produced for execution
+  std::vector<moveit_msgs::RobotTrajectory> trajectories_;
+  
+  // String descriptors of the trajectories
+  std::vector<std::string> trajectory_descriptions_;
+  
+  // An error code reflecting what went wrong (if anything)
+  moveit_msgs::MoveItErrorCodes error_code_;
+};
+
+typedef boost::shared_ptr<ManipulationPlan> ManipulationPlanPtr;
+typedef boost::shared_ptr<const ManipulationPlan> ManipulationPlanConstPtr;
+
 }
 
-bool OutputGraspFilter::done(void) const
-{
-  return output_.size() > 0;
-}
-
-}
+#endif

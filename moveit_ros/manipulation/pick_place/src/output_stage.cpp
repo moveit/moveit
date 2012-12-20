@@ -34,43 +34,28 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PICK_PLACE_OUTPUT_GRASP_FILTER_
-#define MOVEIT_PICK_PLACE_OUTPUT_GRASP_FILTER_
-
-#include <moveit/pick_place/grasp_filter.h>
-#include <boost/function.hpp>
+#include <moveit/pick_place/output_stage.h>
+#include <ros/console.h>
 
 namespace pick_place
 {
 
-class OutputGraspFilter : public GraspFilter
-{
-public:
-
-  typedef boost::function<void(const Grasp&)> ReceiveOutputCallback;
-  
-  OutputGraspFilter(const ReceiveOutputCallback &callback = ReceiveOutputCallback()) :
-    GraspFilter(1),
-    callback_(callback)
-  {
-  }
-
-  virtual bool evaluate(unsigned int thread_id, const Grasp &grasp) const;
-  virtual void push(const Grasp &grasp);
-  virtual bool done(void) const;
-  
-  const std::vector<Grasp>& getOutput(void) const
-  {
-    return output_;
-  }
-  
-private:
-
-  std::vector<Grasp> output_;
-  ReceiveOutputCallback callback_;
-};
-
+bool OutputStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &grasp) const
+{  
+  ROS_ERROR_THROTTLE(1, "Cannot evaluate grasps in output filter");
+  return false;
 }
 
-#endif
+void OutputStage::push(const ManipulationPlanPtr &plan)
+{
+  output_.push_back(plan);
+  if (callback_)
+    callback_(plan);
+}
 
+bool OutputStage::done(void) const
+{
+  return output_.size() > 0;
+}
+
+}

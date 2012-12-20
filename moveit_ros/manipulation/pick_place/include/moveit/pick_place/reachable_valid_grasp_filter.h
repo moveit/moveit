@@ -32,19 +32,19 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
 #ifndef MOVEIT_PICK_PLACE_REACHABLE_VALID_GRASP_FILTER_
 #define MOVEIT_PICK_PLACE_REACHABLE_VALID_GRASP_FILTER_
 
-#include <moveit/pick_place/grasp_filter.h>
+#include <moveit/pick_place/manipulation_stage.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/planning_scene/planning_scene.h>
 
 namespace pick_place
 {
 
-class ReachableAndValidGraspFilter : public GraspFilter
+class ReachableAndValidGraspFilter : public ManipulationStage
 {
 public:
   
@@ -69,7 +69,7 @@ public:
                                const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
                                unsigned int nthreads = 4);
   
-  virtual bool evaluate(unsigned int thread_id, const Grasp &grasp) const;
+  virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
   
 private:
 
