@@ -446,7 +446,7 @@ public:
   void setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
   {
     pdef_ = pdef;
-    pis_.use(si_, pdef_);
+    pis_.use(pdef_);
   } 
 
   base::ParamSet& params(void)
