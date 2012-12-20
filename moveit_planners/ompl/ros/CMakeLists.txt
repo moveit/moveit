@@ -12,7 +12,7 @@ find_package(catkin COMPONENTS
   dynamic_reconfigure
   REQUIRED)
 
-generate_dynamic_reconfigure_options("ompl_interface_ros/cfg/OMPLParamsDR.cfg")
+generate_dynamic_reconfigure_options("ompl_interface_ros/cfg/OMPLDynamicReconfigure.cfg")
 
 catkin_package(
   LIBRARIES
@@ -30,11 +30,6 @@ include_directories(SYSTEM
 
 include_directories(ompl_interface_ros/include 
                     ${catkin_INCLUDE_DIRS})
-
-# for buildspace as a single package
-include_directories(cfg/cpp)
-# for buildspace in a workspace
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/stamps/${PROJECT_NAME}/cfg/cpp)
 
 link_directories(${catkin_LIBRARY_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
