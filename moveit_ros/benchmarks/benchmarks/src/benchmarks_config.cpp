@@ -156,18 +156,17 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
   else
     req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
   req.scene.name = opt_.scene;
-  std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
   std::vector<std::string> planning_queries_names;
   try
   {
-    pss_.getPlanningQueries(opt_.query_regex, planning_queries, planning_queries_names, opt_.scene);
+    pss_.getPlanningQueriesNames(opt_.query_regex, planning_queries_names, opt_.scene);
   }
   catch (std::runtime_error &ex)
   {
     ROS_ERROR("%s", ex.what());
   }
   
-  if (planning_queries.empty())
+  if (planning_queries_names.empty())
     ROS_INFO("Scene '%s' has no associated queries", opt_.scene.c_str());
   req.default_average_count = opt_.default_run_count;
   req.planner_interfaces.resize(opt_.plugins.size());
@@ -242,10 +241,13 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
     
     if (!opt_.query_regex.empty())
     {
-      for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+      for (std::size_t i = 0 ; i < planning_queries_names.size() ; ++i)
       {
+        moveit_warehouse::MotionPlanRequestWithMetadata planning_query;
+        pss_.getPlanningQuery(planning_query, opt_.scene, planning_queries_names[i]);
+
         // read request from db
-        req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
+        req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_query);
 
         // update request given .cfg options
         if (start_state_to_use)
@@ -270,7 +272,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
             checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
         }
 
-        ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i+1, (int)planning_queries.size());
+        ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i+1, (int)planning_queries_names.size());
         call(boost::ref(req));
       }
     }
