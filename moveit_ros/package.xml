@@ -22,6 +22,7 @@
   <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>moveit_ros_visualization</build_depend>
   <build_depend>moveit_ros_manipulation</build_depend>
+  <build_depend>moveit_ros_move_group</build_depend>
 
   <run_depend>moveit_ros_perception</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
@@ -30,6 +31,7 @@
   <run_depend>moveit_ros_planning_interface</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>
   <run_depend>moveit_ros_manipulation</run_depend>
+  <run_depend>moveit_ros_move_group</run_depend>
 
   <export>
     <metapackage/>
