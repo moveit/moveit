@@ -42,7 +42,7 @@
 namespace pick_place
 {
 
-PickPlace::PickPlace(void)
+PickPlace::PickPlace(const plan_execution::PlanExecutionPtr &plan_execution) : plan_execution_(plan_execution)
 {
   constraint_sampler_manager_loader_.reset(new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader());
 }
@@ -57,7 +57,7 @@ public:
   {
   }
   
-  Grasp plan(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout)
+  const std::vector<Grasp>& plan(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout)
   {   
     ros::WallTime endtime = ros::WallTime::now() + ros::WallDuration(timeout);
     
@@ -83,11 +83,8 @@ public:
     root_->stop();
     
     // read the output of the last filter
-    const std::vector<Grasp> &out = static_cast<OutputGraspFilter*>(f1.get())->getOutput();
-    
-    return out.empty() ? Grasp() : out.front();
-  } 
-
+    return static_cast<OutputGraspFilter*>(f1.get())->getOutput();
+  }
   
 private:
 
@@ -106,13 +103,43 @@ private:
   GraspFilterPtr root_;
 };
 
-void PickPlace::planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout) const
+bool PickPlace::planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, Plan &plan, double timeout) const
 {    
   ros::WallTime start = ros::WallTime::now();
   PickPlan p(this);
-  const Grasp &g = p.plan(planning_scene, goal, timeout);
+  const std::vector<Grasp> &g = p.plan(planning_scene, goal, timeout);
   double dt = (ros::WallTime::now() - start).toSec();
   ROS_INFO("Pick plan took %lf seconds", dt);
+  return !g.empty();  
+}
+
+bool PickPlace::planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal, Plan &plan, double timeout) const
+{
+  return false;
+}
+
+bool PickPlace::executePick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout) const
+{
+  Plan plan;
+  if (planPick(planning_scene, goal, plan, timeout))
+  {
+    // execute plan using plan_execution_
+    return false;
+  }
+  else
+    return false;
+}
+
+bool PickPlace::executePlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal, double timeout) const
+{
+  Plan plan;
+  if (planPlace(planning_scene, goal, plan, timeout))
+  {
+    // execute plan using plan_execution_
+    return false;
+  }
+  else
+    return false;
 }
 
 }
