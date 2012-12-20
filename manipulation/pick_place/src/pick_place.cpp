@@ -73,7 +73,7 @@ public:
       //      jmg->
     }
     
-    planning_scene->getKinematicModel()->getEndEffector(goal.end_effector);
+    // planning_scene->getKinematicModel()->getEndEffector(goal.end_effector);
     
     done_ = false;
     ReachableAndValidGraspFilter::Options opt(goal.group_name, "this shold be specified in the action?");
