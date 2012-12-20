@@ -32,15 +32,15 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#include <moveit/pick_place/grasp_filter.h>
+#include <moveit/pick_place/manipulation_stage.h>
 #include <ros/console.h>
 
 namespace pick_place
 {
 
-GraspFilter::GraspFilter(unsigned int nthreads) :
+ManipulationStage::ManipulationStage(unsigned int nthreads) :
   nthreads_(nthreads),
   stop_processing_(true)
 {
@@ -50,23 +50,23 @@ GraspFilter::GraspFilter(unsigned int nthreads) :
     processing_threads_[i] = new ProcessingThread();
 }
 
-GraspFilter::~GraspFilter(void)
+ManipulationStage::~ManipulationStage(void)
 {  
   for (unsigned int i = 0 ; i < nthreads_ ; ++i)
     delete processing_threads_[i];
 }
 
-void GraspFilter::start(void)
+void ManipulationStage::start(void)
 {
   stop_processing_ = false;
   for (std::size_t i = 0; i < processing_threads_.size() ; ++i)
     if (!processing_threads_[i]->thread_)
-      processing_threads_[i]->thread_.reset(new boost::thread(boost::bind(&GraspFilter::processingThread, this, i)));
+      processing_threads_[i]->thread_.reset(new boost::thread(boost::bind(&ManipulationStage::processingThread, this, i)));
   if (next_)
     next_->start();
 }
 
-void GraspFilter::stop(void)
+void ManipulationStage::stop(void)
 {  
   if (stop_processing_)
     return;
@@ -86,9 +86,9 @@ void GraspFilter::stop(void)
     }
 }
 
-void GraspFilter::processingThread(unsigned int index)
+void ManipulationStage::processingThread(unsigned int index)
 {
-  std::deque<Grasp> &q = processing_queues_[index];
+  std::deque<ManipulationPlanPtr> &q = processing_queues_[index];
   ProcessingThread &p = *processing_threads_[index];
 
   while (!stop_processing_)
@@ -98,7 +98,7 @@ void GraspFilter::processingThread(unsigned int index)
       p.cond_.wait(ulock);
     if (!stop_processing_ && !q.empty())
     {
-      Grasp g = q.front();
+      ManipulationPlanPtr g = q.front();
       q.pop_front();
       
       p.mutex_.unlock();
@@ -116,14 +116,14 @@ void GraspFilter::processingThread(unsigned int index)
       }
       catch (...)
       {
-        ROS_ERROR("Caught unknown exception while filtering grasp poses");
+        ROS_ERROR("Caught unknown exception while processing manipulation stage");
       }
       p.mutex_.lock();
     }
   }
 }
 
-void GraspFilter::push(const Grasp &grasp)
+void ManipulationStage::push(const ManipulationPlanPtr &plan)
 {
   if (stop_processing_)
     return;
@@ -141,7 +141,7 @@ void GraspFilter::push(const Grasp &grasp)
     }
   
   boost::mutex::scoped_lock slock(processing_threads_[index]->mutex_);
-  processing_queues_[index].push_back(grasp);
+  processing_queues_[index].push_back(plan);
   processing_threads_[index]->cond_.notify_all();
 }
 

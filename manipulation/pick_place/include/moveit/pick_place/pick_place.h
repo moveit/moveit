@@ -32,14 +32,14 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
 #ifndef MOVEIT_PICK_PLACE_PICK_PLACE_
 #define MOVEIT_PICK_PLACE_PICK_PLACE_
 
-#include <moveit/pick_place/grasp_filter.h>
+#include <moveit/pick_place/manipulation_stage.h>
 #include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
-#include <moveit/plan_execution/plan_execution.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
 
@@ -50,45 +50,27 @@ class PickPlace
 {
 public: 
 
-  struct Plan
-  {
-    // The full starting state of the robot at the start of the trajectory
-    moveit_msgs::RobotState trajectory_start_;
-
-    // The trajectory that moved group produced for execution
-    std::vector<moveit_msgs::RobotTrajectory> planned_trajectory_;
-    
-    // An error code reflecting what went wrong (if anything)
-    moveit_msgs::MoveItErrorCodes error_code_;
-  };
-  
-  PickPlace(const plan_execution::PlanExecutionPtr &plan_execution);
+  PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
   
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager(void) const
   {
     return constraint_sampler_manager_loader_->getConstraintSamplerManager();
   }
   
-  const plan_execution::PlanExecutionPtr &getPlanExecution(void) const
+  const planning_pipeline::PlanningPipelinePtr& getPlanningPipeline(void) const
   {
-    return plan_execution_;
+    return planning_pipeline_;
   }
   
   /** \brief Plan the sequence of motions that perform a pickup action */
-  bool planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, Plan &plan, double timeout) const;
+  ManipulationPlanPtr planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout) const;
 
   /** \brief Plan the sequence of motions that perform a placement action */
-  bool planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal, Plan &plan, double timeout) const;
-
-  /** \brief Plan and execute the sequence of motions that perform a placement action */
-  bool executePick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout) const;
-
-  /** \brief Plan and execute the sequence of motions that perform a placement action */
-  bool executePlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal, double timeout) const;
+  ManipulationPlanPtr planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal, double timeout) const;
 
 private:
   
-  plan_execution::PlanExecutionPtr plan_execution_;  
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;  
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
 };
 

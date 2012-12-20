@@ -46,7 +46,7 @@ ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const Options &opt,
                                                            const planning_scene::PlanningSceneConstPtr &scene,
                                                            const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
                                                            unsigned int nthreads) :
-  GraspFilter(nthreads),
+  ManipulationStage(nthreads),
   opt_(opt),
   planning_scene_(scene),
   constraints_sampler_manager_(constraints_sampler_manager)
@@ -66,7 +66,7 @@ bool ReachableAndValidGraspFilter::isStateCollisionFree(kinematic_state::JointSt
   return !planning_scene_->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName());
 }
 
-bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Grasp &grasp) const
+bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
 {
   // \todo get a pose somehow from the representation of the grasp
   geometry_msgs::PoseStamped pose;
@@ -84,7 +84,7 @@ bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Grasp 
     
     if (sampler->sample(joint_state_groups_[thread_id], *states_[thread_id], 1))
       if (next_)
-        next_->push(grasp);
+        next_->push(plan);
   }
   else
     ROS_ERROR_THROTTLE(1, "No sampler was constructed");

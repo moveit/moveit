@@ -34,75 +34,40 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PICK_PLACE_GRASP_FILTER_
-#define MOVEIT_PICK_PLACE_GRASP_FILTER_
+#ifndef MOVEIT_PICK_PLACE_OUTPUT_STAGE_
+#define MOVEIT_PICK_PLACE_OUTPUT_STAGE_
 
-#include <moveit/pick_place/grasp.h>
-#include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
+#include <moveit/pick_place/manipulation_stage.h>
 #include <boost/function.hpp>
-#include <vector>
-#include <deque>
 
 namespace pick_place
 {
 
-class GraspFilter;
-typedef boost::shared_ptr<GraspFilter> GraspFilterPtr;
-typedef boost::shared_ptr<const GraspFilter> GraspFilterConstPtr;
-
-class GraspFilter
+class OutputStage : public ManipulationStage
 {
 public:
+
+  typedef boost::function<void(const ManipulationPlanPtr&)> ReceiveOutputCallback;
   
-  GraspFilter(unsigned int nthreads);
-  virtual ~GraspFilter(void);
-    
-  const GraspFilterPtr& follow(const GraspFilterPtr &next)
+  OutputStage(const ReceiveOutputCallback &callback = ReceiveOutputCallback()) :
+    ManipulationStage(1),
+    callback_(callback)
   {
-    next_ = next;
-    return next;
+  }
+
+  virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &grasp) const;
+  virtual void push(const ManipulationPlanPtr &plan);
+  virtual bool done(void) const;
+  
+  const std::vector<ManipulationPlanPtr>& getOutput(void) const
+  {
+    return output_;
   }
   
-  void start(void);
-  
-  void stop(void);
-  
-  virtual void push(const Grasp &grasp);
-  
-  virtual bool evaluate(unsigned int thread_id, const Grasp &grasp) const = 0;
-  
-  virtual bool done(void) const
-  {
-    return next_ ? next_->done() : false;
-  }
-  
-protected:
-  
-  void processingThread(unsigned int index);
-  
-  struct ProcessingThread
-  {
-    ProcessingThread(void)
-    {
-    }
-    
-    ~ProcessingThread(void)
-    {
-      if (thread_)
-        thread_->join();
-    }
-    
-    boost::mutex mutex_;
-    boost::condition_variable cond_;
-    boost::scoped_ptr<boost::thread> thread_;
-  };
-  
-  unsigned int nthreads_;
-  std::vector< std::deque<Grasp> > processing_queues_;
-  std::vector< ProcessingThread* > processing_threads_;
-  bool stop_processing_;
-  GraspFilterPtr next_;
+private:
+
+  std::vector<ManipulationPlanPtr> output_;
+  ReceiveOutputCallback callback_;
 };
 
 }
