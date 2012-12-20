@@ -116,9 +116,9 @@ public:
       update_callback_ = callback;
     }
     
-    void setIKValidityCallback(const kinematic_state::IKValidityCallbackFn &callback)
+    void setStateValidityCallback(const kinematic_state::StateValidityCallbackFn &callback)
     {
-      ik_validity_callback_fn_ = callback;
+      state_validity_callback_fn_ = callback;
     }
     
     void setIKTimeout(double timeout)
@@ -155,7 +155,7 @@ public:
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
     boost::function<void(InteractionHandler*)> update_callback_;
-    kinematic_state::IKValidityCallbackFn ik_validity_callback_fn_;
+    kinematic_state::StateValidityCallbackFn state_validity_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
     
@@ -192,7 +192,7 @@ public:
   }
   
   static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
-                          unsigned int attempts, double ik_timeout, const kinematic_state::IKValidityCallbackFn &validity_callback = kinematic_state::IKValidityCallbackFn());
+                          unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
 
 private:
