@@ -1,0 +1,22 @@
+<package>
+  <description brief="kinematics_planner_ros">
+
+     kinematics_planner_ros
+
+  </description>
+  <author>Sachin Chitta</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/kinematics_planner_ros</url>
+  <depend package="kinematics_planner"/>
+  <depend package="planning_scene_monitor"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="kinematics_base"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkinematics_planner_ros `rosboost-cfg --lflags thread`"/>
+  </export>
+
+</package>
+
+
