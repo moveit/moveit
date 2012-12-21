@@ -32,51 +32,18 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+#include <string>
 
-#ifndef MOVEIT_PICK_PLACE_PICK_PLACE_
-#define MOVEIT_PICK_PLACE_PICK_PLACE_
-
-#include <moveit/pick_place/manipulation_stage.h>
-#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
-#include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit_msgs/PickupAction.h>
-#include <moveit_msgs/PlaceAction.h>
-
-namespace pick_place
+namespace move_group
 {
 
-class PickPlace
-{
-public: 
-
-  PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
-  
-  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager(void) const
-  {
-    return constraint_sampler_manager_loader_->getConstraintSamplerManager();
-  }
-  
-  const planning_pipeline::PlanningPipelinePtr& getPlanningPipeline(void) const
-  {
-    return planning_pipeline_;
-  }
-  
-  /** \brief Plan the sequence of motions that perform a pickup action */
-  ManipulationPlanPtr planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal) const;
-
-  /** \brief Plan the sequence of motions that perform a placement action */
-  ManipulationPlanPtr planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const;
-
-private:
-  
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;  
-  constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
-};
-
-typedef boost::shared_ptr<PickPlace> PickPlacePtr;
-typedef boost::shared_ptr<const PickPlace> PickPlaceConstPtr;
+static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
+static const std::string NODE_NAME = "move_group";                   // name of node
+static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
+static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
+static const std::string QUERY_SERVICE_NAME = "query_planner_interface"; // name of the advertised query service
+static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
+static const std::string PICKUP_ACTION = "pickup"; // name of 'pickup' action
+static const std::string PLACE_ACTION = "place"; // name of 'place' action
 
 }
-
-#endif

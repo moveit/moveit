@@ -35,11 +35,14 @@
 /* Author: Ioan Sucan */
 
 #include <stdexcept>
+#include <moveit/move_group/names.h>
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_models_loader/kinematic_model_loader.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
+#include <moveit_msgs/PickupAction.h>
+#include <moveit_msgs/PlaceAction.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
 
@@ -136,38 +139,12 @@ public:
       trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
       
       current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
-      action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>("move_group", false));
-      ROS_INFO_STREAM("Waiting for MoveGroup action server...");
 
-      // in case ROS time is published, wait for the time data to arrive
-      ros::Time start_time = ros::Time::now();
-      while (start_time == ros::Time::now())
-      {
-        ros::WallDuration(0.01).sleep();
-        ros::spinOnce();
-      }
-      
-      // wait for the server (and spin as needed)
-      if (wait_for_server == ros::Duration(0, 0))
-      {
-        while (node_handle_.ok() && !action_client_->isServerConnected())
-        {
-          ros::WallDuration(0.02).sleep();
-          ros::spinOnce();
-        }
-      }
-      else
-      {
-        ros::Time final_time = ros::Time::now() + wait_for_server;
-        while (node_handle_.ok() && !action_client_->isServerConnected() && final_time > ros::Time::now())
-        {
-          ros::WallDuration(0.02).sleep();
-          ros::spinOnce();
-        }
-      }
-      
-      if (!action_client_->isServerConnected())
-        throw std::runtime_error("Unable to connect to action server within allotted time");
+      move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>(move_group::MOVE_ACTION, false));
+      waitForAction(move_action_client_, wait_for_server, move_group::MOVE_ACTION);
+
+      pick_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PickupAction>(move_group::PICKUP_ACTION, false));
+      waitForAction(pick_action_client_, wait_for_server, move_group::PICKUP_ACTION);
       
       execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
       query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>("query_planner_interface");
@@ -178,6 +155,42 @@ public:
       ROS_ERROR("Unable to initialize MoveGroup interface.");
   }
 
+  template<typename T>
+  void waitForAction(const T &action, const ros::Duration &wait_for_server, const std::string &name)
+  {
+    ROS_INFO("Waiting for MoveGroup action server (%s)...", name.c_str());
+    
+    // in case ROS time is published, wait for the time data to arrive
+    ros::Time start_time = ros::Time::now();
+    while (start_time == ros::Time::now())
+    {
+      ros::WallDuration(0.01).sleep();
+      ros::spinOnce();
+    }
+    
+    // wait for the server (and spin as needed)
+    if (wait_for_server == ros::Duration(0, 0))
+    {
+      while (node_handle_.ok() && !action->isServerConnected())
+      {
+        ros::WallDuration(0.02).sleep();
+        ros::spinOnce();
+      }
+    }
+    else
+    {
+      ros::Time final_time = ros::Time::now() + wait_for_server;
+      while (node_handle_.ok() && !action->isServerConnected() && final_time > ros::Time::now())
+      {
+        ros::WallDuration(0.02).sleep();
+        ros::spinOnce();
+      }
+    }
+    
+    if (!action->isServerConnected())
+      throw std::runtime_error("Unable to connect to action server within allotted time");
+  }
+  
   ~MoveGroupImpl(void)
   {
     if (constraints_init_thread_)
@@ -389,9 +402,9 @@ public:
   
   bool plan(Plan &plan)
   {
-    if (!action_client_)
+    if (!move_action_client_)
       return false;
-    if (!action_client_->isServerConnected())
+    if (!move_action_client_->isServerConnected())
       return false;
 
     moveit_msgs::MoveGroupGoal goal;
@@ -399,29 +412,29 @@ public:
     goal.plan_only = true;
     goal.look_around = false;
     goal.replan = false;
-    action_client_->sendGoal(goal); 
-    if (!action_client_->waitForResult())
+    move_action_client_->sendGoal(goal); 
+    if (!move_action_client_->waitForResult())
     {
       ROS_INFO_STREAM("MoveGroup action returned early");
     }
-    if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    if (move_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      plan.trajectory_ = action_client_->getResult()->planned_trajectory;
-      plan.start_state_ = action_client_->getResult()->trajectory_start;
+      plan.trajectory_ = move_action_client_->getResult()->planned_trajectory;
+      plan.start_state_ = move_action_client_->getResult()->trajectory_start;
       return true;
     }
     else
     {
-      ROS_WARN_STREAM("Fail: " << action_client_->getState().toString() << ": " << action_client_->getState().getText());
+      ROS_WARN_STREAM("Fail: " << move_action_client_->getState().toString() << ": " << move_action_client_->getState().getText());
       return false;
     }
   }
   
   bool move(bool wait)
   {  
-    if (!action_client_)
+    if (!move_action_client_)
       return false;
-    if (!action_client_->isServerConnected())
+    if (!move_action_client_->isServerConnected())
       return false;
 
     moveit_msgs::MoveGroupGoal goal;
@@ -430,20 +443,20 @@ public:
     goal.look_around = can_look_;  
     goal.replan = can_replan_;
 
-    action_client_->sendGoal(goal);
+    move_action_client_->sendGoal(goal);
     if (!wait)
       return true;
     
-    if (!action_client_->waitForResult())
+    if (!move_action_client_->waitForResult())
     {
       ROS_INFO_STREAM("MoveGroup action returned early");
     }
     
-    if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    if (move_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
       return true;
     else
     {
-      ROS_INFO_STREAM(action_client_->getState().toString() << ": " << action_client_->getState().getText());
+      ROS_INFO_STREAM(move_action_client_->getState().toString() << ": " << move_action_client_->getState().getText());
       return false;
     }
   }
@@ -617,7 +630,8 @@ private:
   boost::shared_ptr<tf::Transformer> tf_;
   kinematic_model::KinematicModelConstPtr kinematic_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
-  boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > action_client_;
+  boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
+  boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
 
   // general planning params
   kinematic_state::KinematicStatePtr considered_start_state_;
