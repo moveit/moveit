@@ -933,11 +933,7 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset theme="document-open">
-                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
-              </property>
-             </widget>
+            </widget>
             </item>
             <item>
              <widget class="QPushButton" name="start_states_add_button">
@@ -959,11 +955,7 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset theme="list-add">
-                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
-              </property>
-             </widget>
+            </widget>
             </item>
             <item>
              <widget class="QPushButton" name="start_states_remove_button">
@@ -979,11 +971,7 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset theme="list-remove">
-                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
-              </property>
-             </widget>
+            </widget>
             </item>
             <item>
              <widget class="QPushButton" name="start_states_save_button">
@@ -999,11 +987,7 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset theme="document-save">
-                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
-              </property>
-             </widget>
+            </widget>
             </item>
            </layout>
           </item>
@@ -1055,11 +1039,7 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset theme="document-open">
-                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
-              </property>
-             </widget>
+            </widget>
             </item>
             <item>
              <widget class="QPushButton" name="goal_poses_add_button">
@@ -1075,11 +1055,7 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset theme="list-add">
-                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
-              </property>
-             </widget>
+            </widget>
             </item>
             <item>
              <widget class="QPushButton" name="goal_poses_remove_button">
@@ -1095,11 +1071,7 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset theme="list-remove">
-                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
-              </property>
-             </widget>
+            </widget>
             </item>
             <item>
              <widget class="QPushButton" name="goal_poses_save_button">
@@ -1115,11 +1087,7 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset theme="document-save">
-                <normaloff>../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../.designer/backup</iconset>
-              </property>
-             </widget>
+            </widget>
             </item>
            </layout>
           </item>
