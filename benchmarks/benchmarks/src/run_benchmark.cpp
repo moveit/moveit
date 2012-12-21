@@ -40,6 +40,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/benchmarks/benchmarks_utils.h>
+#include <moveit/kinematic_state/conversions.h>
 
 #include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
@@ -458,6 +459,7 @@ public:
     ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
     
     kinematic_state::KinematicState kinematic_state(scene_monitor_.getPlanningScene()->getCurrentState());
+    kinematic_state::robotStateToKinematicState(req.motion_plan_request.start_state, kinematic_state);
     
     // Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
