@@ -335,6 +335,33 @@ void kinematic_model::KinematicModel::buildMimic(const boost::shared_ptr<const u
         joint_model_vector_[i]->mimic_->mimic_requests_.push_back(joint_model_vector_[i]);
 }
 
+bool kinematic_model::KinematicModel::hasEndEffector(const std::string& eef) const
+{
+  return end_effectors_.find(eef) != end_effectors_.end();
+}
+
+const kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getEndEffector(const std::string& name) const
+{ 
+  std::map<std::string, JointModelGroup*>::const_iterator it = end_effectors_.find(name);
+  if (it == end_effectors_.end())
+  {
+    logError("End-effector '%s' not found in model %s", name.c_str(), model_name_.c_str());
+    return NULL;
+  }
+  return it->second;
+}
+
+kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getEndEffector(const std::string& name)
+{ 
+  std::map<std::string, JointModelGroup*>::const_iterator it = end_effectors_.find(name);
+  if (it == end_effectors_.end())
+  {
+    logError("End-effector '%s' not found in model %s", name.c_str(), model_name_.c_str());
+    return NULL;
+  }
+  return it->second;
+}
+
 bool kinematic_model::KinematicModel::hasJointModelGroup(const std::string &name) const
 {
   return joint_model_group_map_.find(name) != joint_model_group_map_.end();
@@ -442,7 +469,9 @@ void kinematic_model::KinematicModel::buildGroupsInfo_EndEffectors(const boost::
       {
         // if it is, mark it as such
         it->second->is_end_effector_ = true;
-
+        it->second->end_effector_name_ = eefs[k].name_;
+        end_effectors_[eefs[k].name_] = it->second;
+        
         JointModelGroup *eef_parent_group = NULL;
         
         // if a parent group is specified in SRDF, try to use it
@@ -491,7 +520,7 @@ void kinematic_model::KinematicModel::buildGroupsInfo_EndEffectors(const boost::
         }
         if (eef_parent_group)
         {
-          eef_parent_group->attached_end_effector_group_name_ = it->first;
+          eef_parent_group->attached_end_effector_names_.push_back(eefs[k].name_);
           it->second->end_effector_parent_.first = eef_parent_group->getName();
         }
         else
