@@ -233,7 +233,7 @@ public:
   
   /** \brief Get a joint group from this model (by name) */
   JointModelGroup* getJointModelGroup(const std::string& name);
-  
+
   /** \brief Get the map between joint group names and the groups */
   const std::map<std::string, JointModelGroup*>& getJointModelGroupMap(void) const
   {
@@ -250,6 +250,21 @@ public:
   const std::map<std::string, srdf::Model::Group>& getJointModelGroupConfigMap(void) const
   {
     return joint_model_group_config_map_;
+  }
+  
+  /** \brief Check if an end effector exists */
+  bool hasEndEffector(const std::string& eef) const;
+
+  /** \brief Get the joint group that corresponds to a given end-effector name */
+  const JointModelGroup* getEndEffector(const std::string& name) const;
+  
+  /** \brief Get the joint group that corresponds to a given end-effector name */
+  JointModelGroup* getEndEffector(const std::string& name);
+  
+  /** \brief Get the map between end effector names and the groups they correspond to */
+  const std::map<std::string, JointModelGroup*>& getEndEffectorsMap(void) const
+  {
+    return end_effectors_;
   }
   
   /** \brief Get the number of variables that describe this model */
@@ -354,9 +369,12 @@ protected:
   /** \brief A vector of all group names */
   std::vector<std::string>                      joint_model_group_names_;
   
-  /** \brief A vector of all group names */
+  /** \brief A map of all group names */
   std::map<std::string, srdf::Model::Group>     joint_model_group_config_map_;
 
+  /** \brief The known end effectors */
+  std::map<std::string, JointModelGroup*>       end_effectors_;
+  
   boost::shared_ptr<const srdf::Model>          srdf_;
 
   boost::shared_ptr<const urdf::ModelInterface> urdf_;

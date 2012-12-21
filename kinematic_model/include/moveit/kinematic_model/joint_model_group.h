@@ -252,16 +252,22 @@ public:
     return is_end_effector_;
   }
 
+  /** \brief Return the name of the end effector, if this group is an end-effector */
+  const std::string& getEndEffectorName(void) const
+  {
+    return end_effector_name_;
+  }
+  
   /** \brief Get the name of the group this end-effector attaches to (first) and the name of the link in that group (second) */
   const std::pair<std::string, std::string>& getEndEffectorParentGroup(void) const
   {
     return end_effector_parent_;
   }
 
-  /** \brief Get the name of the group that makes up the end effector attached to this group's */
-  const std::string& getAttachedEndEffectorGroupName(void) const
+  /** \brief Get the names of the end effectors attached to this group */
+  const std::vector<std::string>& getAttachedEndEffectorNames(void) const
   {
-    return attached_end_effector_group_name_;
+    return attached_end_effector_names_;
   }
 
   /** \brief Get the joint limits as read from the URDF */
@@ -403,11 +409,14 @@ protected:
   /** \brief Flag indicating whether this group is an end effector */
   bool                                                  is_end_effector_;
   
-  /** \brief If a group that is in fact an end-effector is attached to this one, the name of that group is stored in this variable */
-  std::string                                           attached_end_effector_group_name_;
+  /** \brief If an end-effector is attached to this group, the name of that end-effector is stored in this variable */
+  std::vector<std::string>                              attached_end_effector_names_;
   
-  /***\brief First: name of the group that is parent to this end-effector group; Second: the link this in the parent group that this group attaches to */
+  /** \brief First: name of the group that is parent to this end-effector group; Second: the link this in the parent group that this group attaches to */
   std::pair<std::string, std::string>                   end_effector_parent_;
+  
+  /** \brief The name of the end effector, if this group is an end-effector */
+  std::string                                           end_effector_name_;
   
   bool                                                  is_chain_;
 
