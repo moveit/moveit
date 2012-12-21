@@ -35,7 +35,6 @@
 #include "test_moveit_controller_manager.h"
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_DECLARE_CLASS(test_moveit_controller_manager, TestMoveItControllerManager,
-                        test_moveit_controller_manager::TestMoveItControllerManager,
-                        moveit_controller_manager::MoveItControllerManager);
+PLUGINLIB_EXPORT_CLASS(test_moveit_controller_manager::TestMoveItControllerManager,
+                       moveit_controller_manager::MoveItControllerManager);
 
