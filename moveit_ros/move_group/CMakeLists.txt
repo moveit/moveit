@@ -14,11 +14,13 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   LIBRARIES
   INCLUDE_DIRS
+    include
   CATKIN_DEPENDS
     moveit_core
     moveit_ros_planning
     moveit_ros_manipulation)
 
+include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM
                     ${Boost_INCLUDE_DIRS}
@@ -31,3 +33,4 @@ add_executable(move_group_action_server src/move_group.cpp)
 target_link_libraries(move_group_action_server ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS move_group_action_server RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(DIRECTORY include/ DESTINATION include)

@@ -121,11 +121,11 @@ private:
   ManipulationStagePtr root_;
 };
 
-ManipulationPlanPtr PickPlace::planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal, double timeout) const
+ManipulationPlanPtr PickPlace::planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
 {    
   ros::WallTime start = ros::WallTime::now();
   PickPlan p(this);
-  const std::vector<ManipulationPlanPtr> &g = p.plan(planning_scene, goal, timeout);
+  const std::vector<ManipulationPlanPtr> &g = p.plan(planning_scene, goal, 99.0);
   double dt = (ros::WallTime::now() - start).toSec();
   ROS_INFO("Pick plan took %lf seconds", dt);
   if (g.empty())
@@ -137,7 +137,7 @@ ManipulationPlanPtr PickPlace::planPick(const planning_scene::PlanningScenePtr &
     return g.back();
 }
 
-ManipulationPlanPtr PickPlace::planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal, double timeout) const
+ManipulationPlanPtr PickPlace::planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const
 {
   
 }

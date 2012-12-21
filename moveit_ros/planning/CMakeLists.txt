@@ -28,13 +28,13 @@ find_package(catkin REQUIRED COMPONENTS
   ${MSG_DEPS}
 )
 
-#set(MSG_FILES
-#Progress.msg
-#WorkspacePoint.msg
-#WorkspacePoints.msg)
+set(MSG_FILES
+  Progress.msg
+  WorkspacePoint.msg
+  WorkspacePoints.msg)
 
-#add_message_files(DIRECTORY kinematics_reachability/msg FILES ${MSG_FILES})
-#generate_messages(DEPENDENCIES ${MSG_DEPS})
+add_message_files(DIRECTORY kinematics_reachability/msg FILES ${MSG_FILES})
+generate_messages(DEPENDENCIES ${MSG_DEPS})
 
 generate_dynamic_reconfigure_options(
   "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"
@@ -50,6 +50,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     trajectory_execution_manager/include
     plan_execution/include
     kdl_kinematics_plugin/include
+    kinematics_reachability/include
 )
 
 catkin_package(
@@ -90,7 +91,7 @@ add_subdirectory(planning_scene_monitor)
 add_subdirectory(planning_scene_monitor_tools)
 add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
-#add_subdirectory(kinematics_reachability)
+add_subdirectory(kinematics_reachability)
 
 install(
   FILES

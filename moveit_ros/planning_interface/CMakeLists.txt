@@ -7,6 +7,7 @@ find_package(PythonLibs)
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
+  moveit_ros_move_group
   eigen_conversions
   interactive_markers
   tf
@@ -31,7 +32,8 @@ catkin_package(
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
     moveit_ros_planning
-    moveit_ros_warehouse
+    moveit_ros_warehouse 
+    moveit_ros_move_group
     )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
