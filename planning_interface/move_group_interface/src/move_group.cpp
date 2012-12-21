@@ -400,6 +400,32 @@ public:
     return true;
   }
   
+  bool pick(const std::string &object)
+  {
+    if (!pick_action_client_)
+      return false;
+    if (!pick_action_client_->isServerConnected())
+      return false;
+    moveit_msgs::PickupGoal goal;
+    constructGoal(goal, object);
+    goal.plan_only = false;
+    pick_action_client_->sendGoal(goal); 
+    if (!pick_action_client_->waitForResult())
+    {
+      ROS_INFO_STREAM("Pickup action returned early");
+    }
+    if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    {
+      
+      return true;
+    }
+    else
+    {
+      ROS_WARN_STREAM("Fail: " << pick_action_client_->getState().toString() << ": " << pick_action_client_->getState().getText());
+      return false;
+    }
+  }
+  
   bool plan(Plan &plan)
   {
     if (!move_action_client_)
@@ -541,6 +567,15 @@ public:
     
     if (path_constraints_)
       goal.request.path_constraints = *path_constraints_;
+    goal_out = goal;
+  }
+
+  void constructGoal(moveit_msgs::PickupGoal &goal_out, const std::string &object)
+  {
+    moveit_msgs::PickupGoal goal;
+    goal.target_name = object;
+    goal.group_name = opt_.group_name_;
+    goal.end_effector = getEndEffector();
     goal_out = goal;
   }
   
@@ -721,6 +756,11 @@ bool MoveGroup::execute(const Plan &plan)
 bool MoveGroup::plan(Plan &plan)
 {
   return impl_->plan(plan);
+}
+
+bool MoveGroup::pick(const std::string &object)
+{
+  return impl_->pick(object);
 }
 
 void MoveGroup::stop(void)

@@ -134,6 +134,9 @@ public:
   /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
   bool execute(const Plan &plan);
 
+  /** \brief Pick up an object */
+  bool pick(const std::string &object);
+  
   /** \brief Stop any trajectory execution, if one is active */
   void stop(void);
   
