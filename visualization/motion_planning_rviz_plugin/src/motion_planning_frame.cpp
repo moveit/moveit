@@ -128,6 +128,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->load_poses_filter_text, SIGNAL( returnPressed() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
   connect( ui_->goal_poses_open_button, SIGNAL( clicked() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
   connect( ui_->goal_poses_save_button, SIGNAL( clicked() ), this, SLOT( saveGoalsOnDBButtonClicked() ));
+  connect( ui_->goal_switch_visibility_button, SIGNAL( clicked() ), this, SLOT( switchGoalVisibilityButtonClicked() ));
   connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
   connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
   connect( ui_->show_x_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
@@ -144,6 +145,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   ui_->goal_poses_add_button->setIcon(QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
   ui_->goal_poses_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
   ui_->goal_poses_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
+  ui_->goal_switch_visibility_button->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton));
 
   //Start states
   connect( ui_->start_states_add_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
@@ -473,7 +475,7 @@ void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
       moveit_msgs::Constraints c;
-      c.name = it->second.imarker->getName();
+      c.name = it->first;
 
       shape_msgs::SolidPrimitive sp;
       sp.type = sp.BOX;
@@ -482,9 +484,7 @@ void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
       moveit_msgs::PositionConstraint pc;
       pc.constraint_region.primitives.push_back(sp);
       geometry_msgs::Pose posemsg;
-      posemsg.position.x = it->second.imarker->getPosition().x;
-      posemsg.position.y = it->second.imarker->getPosition().y;
-      posemsg.position.z = it->second.imarker->getPosition().z;
+      it->second.getPosition(posemsg.position);
       posemsg.orientation.x = 0.0;
       posemsg.orientation.y = 0.0;
       posemsg.orientation.z = 0.0;
@@ -494,10 +494,7 @@ void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
       c.position_constraints.push_back(pc);
 
       moveit_msgs::OrientationConstraint oc;
-      oc.orientation.x = it->second.imarker->getOrientation().x;
-      oc.orientation.y = it->second.imarker->getOrientation().y;
-      oc.orientation.z = it->second.imarker->getOrientation().z;
-      oc.orientation.w = it->second.imarker->getOrientation().w;
+      it->second.getOrientation(oc.orientation);
       oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance = 
         oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
       oc.weight = 1.0;
@@ -536,12 +533,13 @@ void MotionPlanningFrame::deleteGoalsOnDBButtonClicked(void)
       case QMessageBox::Yes:
       {
         //Go through the list of goal poses, and delete those selected
-        for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+        QList<QListWidgetItem*> found_items = ui_->goal_poses_list->selectedItems();
+        for ( std::size_t i = 0 ; i < found_items.size() ; i++ )
         {
-          if (it->second.selected)
-            try
+          try
           {
-              constraints_storage_->removeConstraints(it->second.imarker->getName());
+            constraints_storage_->removeConstraints(found_items[i]->text().toStdString());
+            removeSelectedGoalsButtonClicked();
           }
           catch (std::runtime_error &ex)
           {
@@ -552,8 +550,6 @@ void MotionPlanningFrame::deleteGoalsOnDBButtonClicked(void)
       }
     }
   }
-
-  removeSelectedGoalsButtonClicked();
 }
 
 
@@ -653,6 +649,7 @@ void MotionPlanningFrame::deleteStatesOnDBButtonClicked(void)
             try
             {
               robot_state_storage_->removeRobotState(item->text().toStdString());
+              removeSelectedStatesButtonClicked();
             }
             catch (std::runtime_error &ex)
             {
@@ -664,8 +661,6 @@ void MotionPlanningFrame::deleteStatesOnDBButtonClicked(void)
       }
     }
   }
-
-  removeSelectedStatesButtonClicked();
 }
 
 void MotionPlanningFrame::visibleAxisChanged(int state)
@@ -674,19 +669,22 @@ void MotionPlanningFrame::visibleAxisChanged(int state)
   {
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
-      Ogre::Vector3 position = it->second.imarker->getPosition();
-      Ogre::Quaternion orientation = it->second.imarker->getOrientation();
+      if (it->second.isVisible())
+      {
+        Ogre::Vector3 position = it->second.imarker->getPosition();
+        Ogre::Quaternion orientation = it->second.imarker->getOrientation();
 
-      MsgMarkerPair marker_pair;
-      marker_pair = make6DOFEndEffectorMarker(it->first,
-                                              planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
-                                              it->second.imarker_msg.pose, it->second.imarker_msg.scale, it->second.selected);
+        MsgMarkerPair marker_pair;
+        marker_pair = make6DOFEndEffectorMarker(it->first,
+                                                planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
+                                                it->second.imarker_msg.pose, it->second.imarker_msg.scale, it->second.selected);
 
-      connect( marker_pair.second.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        connect( marker_pair.second.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
-      marker_pair.second->setPose(position, orientation, "");
-      it->second.imarker_msg = marker_pair.first;
-      it->second.imarker = marker_pair.second;
+        marker_pair.second->setPose(position, orientation, "");
+        it->second.imarker_msg = marker_pair.first;
+        it->second.imarker = marker_pair.second;
+      }
     }
   }
 }
@@ -698,7 +696,11 @@ void MotionPlanningFrame::populateGoalPosesList(void)
   {
     QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_->goal_poses_list->addItem(item);
-    if (it->second.selected) 
+    if (! it->second.isVisible())
+    {
+      item->setBackground(QBrush(Qt::Dense4Pattern));
+    }
+    else if (it->second.selected)
     {
       //If selected, highlight in the list
       item->setSelected(true);
@@ -706,7 +708,81 @@ void MotionPlanningFrame::populateGoalPosesList(void)
   }
 }
 
-void MotionPlanningFrame::goalPoseSelectionChanged()
+void MotionPlanningFrame::GoalPoseMarker::hide(void)
+{
+  if (imarker)
+  {
+    position_ = imarker->getPosition();
+    orientation_ = imarker->getOrientation();
+  }
+  imarker.reset();
+}
+
+void MotionPlanningFrame::GoalPoseMarker::show(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context)
+{
+  imarker.reset(new rviz::InteractiveMarker(pdisplay->getSceneNode(), context ));
+  updateMarker();
+  imarker->setShowAxes(false);
+  imarker->setShowDescription(false);
+  imarker->setPose(position_, orientation_, "");
+}
+
+void MotionPlanningFrame::GoalPoseMarker::getPosition(geometry_msgs::Point &position)
+{
+  if (imarker)
+  {
+    position.x = imarker->getPosition().x;
+    position.y = imarker->getPosition().y;
+    position.z = imarker->getPosition().z;
+  }
+  else
+  {
+    position.x = position_.x;
+    position.y = position_.x;
+    position.z = position_.z;
+  }
+}
+
+void MotionPlanningFrame::GoalPoseMarker::getOrientation(geometry_msgs::Quaternion &orientation)
+{
+  if (imarker)
+  {
+    orientation.x = imarker->getOrientation().x;
+    orientation.y = imarker->getOrientation().y;
+    orientation.z = imarker->getOrientation().z;
+    orientation.w = imarker->getOrientation().w;
+  }
+  else
+  {
+    orientation.x = orientation_.x;
+    orientation.y = orientation_.y;
+    orientation.z = orientation_.z;
+    orientation.w = orientation_.w;
+  }
+}
+
+void MotionPlanningFrame::switchGoalVisibilityButtonClicked(void)
+{
+  QList<QListWidgetItem*> selection = ui_->goal_poses_list->selectedItems();
+  for (std::size_t i = 0; i < selection.size() ; ++i)
+  {
+    std::string name = selection[i]->text().toStdString();
+    if (goal_poses_[name].isVisible())
+    {
+      //Set invisible
+      goal_poses_[name].hide();
+      selection[i]->setBackground(QBrush(Qt::Dense4Pattern));
+    }
+    else
+    {
+      //Set visible
+      goal_poses_[name].show(planning_display_, context_);
+      selection[i]->setBackground(QBrush(Qt::NoBrush));
+    }
+  }
+}
+
+void MotionPlanningFrame::goalPoseSelectionChanged(void)
 {
   for (unsigned int i = 0; i < ui_->goal_poses_list->count() ; ++i)
   {
@@ -742,10 +818,13 @@ void MotionPlanningFrame::updateMarkerColorFromName(const std::string & name, fl
     }
   }
 
-  Ogre::Vector3 position = goal_poses_[name].imarker->getPosition();
-  Ogre::Quaternion orientation = goal_poses_[name].imarker->getOrientation();
-  goal_poses_[name].updateMarker();
-  goal_poses_[name].imarker->setPose(position, orientation, "");
+  if (goal_poses_[name].isVisible())
+  {
+    Ogre::Vector3 position = goal_poses_[name].imarker->getPosition();
+    Ogre::Quaternion orientation = goal_poses_[name].imarker->getOrientation();
+    goal_poses_[name].updateMarker();
+    goal_poses_[name].imarker->setPose(position, orientation, "");
+  }
 }
 
 void MotionPlanningFrame::computeGoalPoseDoubleClicked(QListWidgetItem * item)
@@ -799,15 +878,18 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
     goals_initial_pose_.clear();    
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it) 
     {
-      Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x,
-                                              it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
-      pose(0,3) = it->second.imarker->getPosition().x;
-      pose(1,3) = it->second.imarker->getPosition().y;
-      pose(2,3) = it->second.imarker->getPosition().z;
-      goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second.imarker->getName(), pose));
+      if (it->second.selected && it->second.isVisible())
+      {
+        Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x,
+                                                it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
+        pose(0,3) = it->second.imarker->getPosition().x;
+        pose(1,3) = it->second.imarker->getPosition().y;
+        pose(2,3) = it->second.imarker->getPosition().z;
+        goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second.imarker->getName(), pose));
 
-      if (it->second.imarker->getName() == feedback.marker_name) 
-        initial_pose_eigen = pose;
+        if (it->second.imarker->getName() == feedback.marker_name)
+          initial_pose_eigen = pose;
+      }
     }
     dragging=true;
   } 
@@ -833,7 +915,7 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
     //Update the rest of selected markers    
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it) 
     {
-      if (it->second.imarker->getName() != feedback.marker_name && it->second.selected) 
+      if (it->second.isVisible() && it->second.imarker->getName() != feedback.marker_name && it->second.selected)
       {
         visualization_msgs::InteractiveMarkerPose impose;
 
@@ -867,7 +949,9 @@ void MotionPlanningFrame::checkGoalsInCollision(void)
 
 void MotionPlanningFrame::checkIfGoalReachable(const kinematic_state::KinematicStatePtr &work_state, const std::string &goal_name)
 {
-  // Call to IK
+  if ( ! goal_poses_[goal_name].isVisible())
+    return;
+
   const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[goal_name].imarker;
 
   geometry_msgs::Pose current_pose;
@@ -878,7 +962,8 @@ void MotionPlanningFrame::checkIfGoalReachable(const kinematic_state::KinematicS
   current_pose.orientation.y = imarker->getOrientation().y;
   current_pose.orientation.z = imarker->getOrientation().z;
   current_pose.orientation.w = imarker->getOrientation().w;
-  
+
+  // Call to IK
   bool feasible = planning_display_->getRobotInteraction()->updateState(*work_state,
                                                                         planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
                                                                         current_pose,
@@ -903,6 +988,8 @@ void MotionPlanningFrame::checkIfGoalReachable(const kinematic_state::KinematicS
 void MotionPlanningFrame::checkIfGoalInCollision(const kinematic_state::KinematicStatePtr &work_state, const std::string & goal_name)
 {
   // Check if the end-effector is in collision at the current pose
+  if ( ! goal_poses_[goal_name].isVisible())
+    return;
   
   const robot_interaction::RobotInteraction::EndEffector &eef = planning_display_->getRobotInteraction()->getActiveEndEffectors()[0];
   
@@ -943,7 +1030,7 @@ void MotionPlanningFrame::checkIfGoalInCollision(const std::string &goal_name)
 
 void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marker_name) 
 {
-  if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
+  if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! goal_poses_[marker_name].isVisible())
     return;
 
   geometry_msgs::Pose marker_pose;
@@ -1018,6 +1105,9 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
   for (int i = 0 ; i < sel.size() ; ++i)
   {
     std::string name = sel[i]->text().toStdString();
+    if (! goal_poses_[name].isVisible())
+      continue;
+
     std::stringstream ss;
     ss << scene_name.c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
 
@@ -2008,6 +2098,7 @@ void MotionPlanningFrame::enable(void)
   changePlanningGroup();
 
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
+    if (it->second.isVisible())
       it->second.imarker->setShowAxes(false);
 
   // activate the frame
@@ -2313,7 +2404,8 @@ void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
 void MotionPlanningFrame::updateGoalPoseMarkers(float wall_dt, float ros_dt)
 {
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
-    it->second.imarker->update(wall_dt);
+    if (it->second.isVisible())
+      it->second.imarker->update(wall_dt);
 }
 
 void MotionPlanningFrame::computeResetDbButtonClicked(const std::string &db)
