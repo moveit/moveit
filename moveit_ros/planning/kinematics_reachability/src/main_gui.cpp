@@ -1,7 +1,8 @@
-#include <QtGui/QApplication>
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include <moveit/kinematics_reachability/mainwindow.h>
+//#include <moveit/kinematics_reachability/ui_mainwindow.h>
+#include <ui_mainwindow.h>
 #include <ros/ros.h>
+#include <QtGui/QApplication>
 int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "arm_workspace_tests"); 

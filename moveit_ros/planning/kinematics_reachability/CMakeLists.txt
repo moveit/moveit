@@ -1,5 +1,37 @@
 set(MOVEIT_LIB_NAME moveit_kinematics_reachability)
 
+set(workspace_gui_SRCS
+  src/main_gui.cpp
+  src/mainwindow.cpp
+  src/kinematics_thread.cpp
+)
+
+set(workspace_gui_HDRS
+  include/moveit/kinematics_reachability/mainwindow.h
+  include/moveit/kinematics_reachability/kinematics_thread.h
+)
+
+set(workspace_gui_UIS
+  src/mainwindow.ui
+)
+
+
+
+set(workspace_gui_INCLUDE_DIRECTORIES
+  include
+  ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+qt4_wrap_cpp(workspace_gui_MOCS ${workspace_gui_HDRS})
+qt4_wrap_ui(workspace_gui_UIS_H ${workspace_gui_UIS})
+
+add_library(moveit_kinematics_thread src/kinematics_thread.cpp)
+
+
+include_directories(${workspace_gui_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
+add_executable(workspace_gui ${workspace_gui_SRCS} ${workspace_gui_MOCS} ${workspace_gui_UIS_H})
+target_link_libraries(workspace_gui ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} moveit_kinematics_thread ${MOVEIT_LIB_NAME})
+
 add_library(${MOVEIT_LIB_NAME} src/kinematics_reachability.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_scene_monitor ${catkin_LIBRARIES})
 
@@ -14,7 +46,6 @@ install(DIRECTORY include/ DESTINATION include)
 #set(MOVEIT_LIB_NAME moveit_kinematics_reachability)
 #cmake_minimum_required(VERSION 2.8.3)
 #project(kinematics_reachability)
-
 #find_package(Qt4 REQUIRED)
 #include(${QT_USE_FILE})
 #add_definitions(-DQT_NO_KEYWORDS)

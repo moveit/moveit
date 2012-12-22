@@ -1,19 +1,20 @@
 #include <ros/ros.h>
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include <moveit/kinematics_reachability/mainwindow.h>
+//#include <moveit/kinematics_reachability/ui_mainwindow.h>
+#include <ui_mainwindow.h>
 #include <tf/transform_datatypes.h>
 #include <iostream>
 #include "angles/angles.h"
-#include <qapplication.h>
-#include "kinematics_thread.h"
+#include <moveit/kinematics_reachability/kinematics_thread.h>
 #include <QThread>
+#include <qapplication.h>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui_(new Ui::MainWindow)
 {
   ui_->setupUi(this);
 
-  qRegisterMetaType<kinematics_reachability::WorkspacePoints>("kinematics_reachability::WorkspacePoints");
+  qRegisterMetaType<moveit_ros_planning::WorkspacePoints>("moveit_ros_planning::WorkspacePoints");
 
   kinematics_thread_.moveToThread(&thread_);
   thread_.start();
@@ -22,13 +23,13 @@ MainWindow::MainWindow(QWidget *parent) :
   QObject::connect(&kinematics_thread_,SIGNAL(maxProgressSignal(int)),ui_->progress_bar,SLOT(setMaximum(int)));
   QObject::connect(&kinematics_thread_,SIGNAL(setFrameIdLabel(QString)),ui_->frame_id_label,SLOT(setText(QString)));
   QObject::connect(&kinematics_thread_,SIGNAL(setNameLabel(QString)),ui_->name_label,SLOT(setText(QString)));
-  QObject::connect(&kinematics_thread_,SIGNAL(setUISignal(const kinematics_reachability::WorkspacePoints&)),this,SLOT(setUIFromWorkspace(kinematics_reachability::WorkspacePoints)));
+  QObject::connect(&kinematics_thread_,SIGNAL(setUISignal(const moveit_ros_planning::WorkspacePoints&)),this,SLOT(setUIFromWorkspace(moveit_ros_planning::WorkspacePoints)));
   QObject::connect(&kinematics_thread_,SIGNAL(doneComputing()),this,SLOT(Success()));
-  QObject::connect(&kinematics_thread_,SIGNAL(sendWorkspace(const kinematics_reachability::WorkspacePoints&)),this,SLOT(receiveWorkspace(const kinematics_reachability::WorkspacePoints&)));
+  QObject::connect(&kinematics_thread_,SIGNAL(sendWorkspace(const moveit_ros_planning::WorkspacePoints&)),this,SLOT(receiveWorkspace(const moveit_ros_planning::WorkspacePoints&)));
   //  QObject::connect(this,SIGNAL(addRowSignal(QString, QString, QString)),&kinematics_thread_,SLOT(addOrientation(QString, QString, QString)));
-  QObject::connect(this,SIGNAL(startComputation(const kinematics_reachability::WorkspacePoints&)),&kinematics_thread_,SLOT(computeKinematics(const kinematics_reachability::WorkspacePoints&)));
-  QObject::connect(this,SIGNAL(startVisualisation(const kinematics_reachability::WorkspacePoints&)),&kinematics_thread_,SLOT(visualise(const kinematics_reachability::WorkspacePoints&)));
-  QObject::connect(this,SIGNAL(startFKComputation(const kinematics_reachability::WorkspacePoints&, double)),&kinematics_thread_,SLOT(computeFK(const kinematics_reachability::WorkspacePoints&, double)));
+  QObject::connect(this,SIGNAL(startComputation(const moveit_ros_planning::WorkspacePoints&)),&kinematics_thread_,SLOT(computeKinematics(const moveit_ros_planning::WorkspacePoints&)));
+  QObject::connect(this,SIGNAL(startVisualisation(const moveit_ros_planning::WorkspacePoints&)),&kinematics_thread_,SLOT(visualise(const moveit_ros_planning::WorkspacePoints&)));
+  QObject::connect(this,SIGNAL(startFKComputation(const moveit_ros_planning::WorkspacePointkinematics_reachability::WorkspacePoints&, double)),&kinematics_thread_,SLOT(computeFK(const moveit_ros_planning::WorkspacePoints&, double)));
   //QObject::connect(this,SIGNAL(cancelComputationIK()),&kinematics_thread_,SLOT(stopSolver()));
 
   kinematics_thread_.initialise();
@@ -133,7 +134,7 @@ void MainWindow::visualiseWorkspace()
   Q_EMIT startVisualisation(workspace_);
 }
 
-void MainWindow::setUIFromWorkspace(const kinematics_reachability::WorkspacePoints &workspace)
+void MainWindow::setUIFromWorkspace(const moveit_ros_planning::WorkspacePoints &workspace)
 {
 
   workspace_.orientations.clear();
@@ -275,7 +276,7 @@ void MainWindow::computeFK()
   Q_EMIT startFKComputation(workspace_, timeout);
 }
 
-void MainWindow::receiveWorkspace(const kinematics_reachability::WorkspacePoints& workspace)
+void MainWindow::receiveWorkspace(const moveit_ros_planning::WorkspacePoints& workspace)
 {
   workspace_ = workspace;
 
