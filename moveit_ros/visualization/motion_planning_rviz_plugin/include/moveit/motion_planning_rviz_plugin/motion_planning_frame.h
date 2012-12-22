@@ -122,10 +122,24 @@ protected:
     GoalPoseMarker(const boost::shared_ptr<rviz::InteractiveMarker> &marker, const visualization_msgs::InteractiveMarker &msg, bool is_selected):
       imarker(marker), imarker_msg(msg), selected(is_selected), reachable(GoalPoseMarker::NOT_TESTED) {}
     
-    void updateMarker()
+    void updateMarker(void)
     {
       imarker->processMessage(imarker_msg);
     }
+
+    void hide(void);
+    void show(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context);
+    void getPosition(geometry_msgs::Point &position);
+    void getOrientation(geometry_msgs::Quaternion &orientation);
+
+    bool isVisible()
+    {
+      return (imarker);
+    }
+
+  private:
+    Ogre::Vector3 position_;
+    Ogre::Quaternion orientation_;
   };
   
   typedef std::map<std::string, GoalPoseMarker> GoalPoseMap;
@@ -188,12 +202,13 @@ private Q_SLOTS:
   void createGoalPoseButtonClicked(void);
   void removeSelectedGoalsButtonClicked(void);
   void removeAllGoalsButtonClicked(void);
-  void goalPoseSelectionChanged();
+  void goalPoseSelectionChanged(void);
+  void switchGoalVisibilityButtonClicked(void);
   void goalPoseDoubleClicked(QListWidgetItem *item);
   void copySelectedGoalPoses(void);
   void visibleAxisChanged(int state);
-  void checkGoalsInCollision();
-  void checkGoalsReachable();
+  void checkGoalsInCollision(void);
+  void checkGoalsReachable(void);
 
   //Slots for start states
   void saveStartStateButtonClicked(void);

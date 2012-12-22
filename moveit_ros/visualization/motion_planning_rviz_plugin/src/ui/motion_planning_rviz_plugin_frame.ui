@@ -927,13 +927,19 @@
             </item>
             <item>
              <widget class="QPushButton" name="start_states_open_button">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Load from database</string>
               </property>
               <property name="text">
                <string/>
               </property>
-            </widget>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="start_states_add_button">
@@ -955,7 +961,7 @@
               <property name="text">
                <string/>
               </property>
-            </widget>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="start_states_remove_button">
@@ -971,7 +977,7 @@
               <property name="text">
                <string/>
               </property>
-            </widget>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="start_states_save_button">
@@ -987,7 +993,7 @@
               <property name="text">
                <string/>
               </property>
-            </widget>
+             </widget>
             </item>
            </layout>
           </item>
@@ -1039,7 +1045,7 @@
               <property name="text">
                <string/>
               </property>
-            </widget>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="goal_poses_add_button">
@@ -1055,7 +1061,7 @@
               <property name="text">
                <string/>
               </property>
-            </widget>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="goal_poses_remove_button">
@@ -1071,7 +1077,7 @@
               <property name="text">
                <string/>
               </property>
-            </widget>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="goal_poses_save_button">
@@ -1087,7 +1093,23 @@
               <property name="text">
                <string/>
               </property>
-            </widget>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="goal_switch_visibility_button">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Switch vibility of selected goals</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
