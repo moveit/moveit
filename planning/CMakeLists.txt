@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_planning)
 
+
 set(MSG_DEPS
   std_msgs
   actionlib_msgs
@@ -24,9 +25,15 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   tf
   tf_conversions
-  genmsg 
+  genmsg
+  rqt_gui
+  rqt_gui_cpp 
   ${MSG_DEPS}
 )
+
+find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+
+include(${QT_USE_FILE})
 
 set(MSG_FILES
   Progress.msg
@@ -68,7 +75,10 @@ catkin_package(
   CATKIN_DEPENDS
     pluginlib
     moveit_core
-    moveit_ros_perception)
+    moveit_ros_perception
+    rqt_gui
+    rqt_gui_cpp
+)
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
                     ${catkin_INCLUDE_DIRS})
