@@ -30,59 +30,68 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Sarah Elliott
+# Author: Bhaskara Marthi
 
-# Functions to control the gripper
+# Functions for moving the torso
 
 import roslib
 roslib.load_manifest('moveit_commander')
 import rospy
-import actionlib
+#import actionlib
+
 #import moveit_commander.exceptions as ex
-import pr2_controllers_msgs.msg as pr2c
-import actionlib_msgs.msg as am
+#import pr2_controllers_msgs.msg as pr2c
+from std_msgs.msg import Float64
+#import actionlib_msgs.msg as am
+#import actionlib as al
 
+class Torso(object):
 
-class Gripper(object):
-    """
-    Represents a gripper of the PR2
-    """
-
-    def __init__(self, side):
+    def __init__(self, topic_name):
         """
-        :param side: A string, either 'left_arm' or 'right_arm'
+        Represents the torso of the pr2.
         """
-        assert side in ['left_arm', 'right_arm']
-        self._side = side
-        #action_name = '{0}_gripper_controller/gripper_action'.\
-        #              format('l' if side=='left_arm' else 'r')
-        action_name = 'low_cost_gripper_controller/gripper_action'
-        self._ac = actionlib.SimpleActionClient(action_name,
-                                                pr2c.Pr2GripperCommandAction)
-        rospy.loginfo("Waiting for action server {0}...".format(action_name))
-        self._ac.wait_for_server()
-        rospy.loginfo("Connected to action server {0}".format(action_name))
+        self._pub = rospy.Publisher(topic_name, Float64)
+        rospy.sleep(2.0)
 
-    def open(self, max_effort=5):
-        """
-        Open this gripper
-        """
-        self.move(0.135, max_effort)
+        #pr2_controllers_msgs not catkinized
 
-    def close(self, max_effort=5):
-        """
-        Close this gripper
-        """
-        self.move(0.0, max_effort)
+        #rospy.init_node('torso_lift')
 
-    def move(self, position, max_effort=5):
-        goal = pr2c.Pr2GripperCommandGoal(
-            pr2c.Pr2GripperCommand(position=position, max_effort=max_effort))
-        self._ac.send_goal(goal)
-        rospy.loginfo("Sending goal to gripper and waiting for result...")
-        self._ac.wait_for_result()
-        rospy.loginfo("Gripper action returned")
-        if self._ac.get_state() != am.GoalStatus.SUCCEEDED:
-            #raise ex.ActionFailedError()
-            print "Action Failed"
+        #name = 'torso_controller/position_joint_action'
+        #self._ac = al.SimpleActionClient(name,pr2c.SingleJointPositionAction)
+        #rospy.loginfo("Waiting for torso controller action server")
+        #self._ac.wait_for_server()
+        #rospy.loginfo("Torso control action client ready")
 
+    def move(self, pos):
+        """
+        Move torso to a given height
+
+        :param position: Desired height (m)
+        """
+        self._pub.publish(Float64(pos))
+
+        #pr2_controllers_msgs not catkinized
+
+        #goal = pr2c.SingleJointPositionGoal(position=pos,
+        #                                    min_duration=rospy.Duration(2),
+        #                                    max_velocity=1)
+        #rospy.loginfo("Sending torso goal and waiting for result")
+        #self._ac.send_goal_and_wait(goal)
+        #res = self._ac.get_result()
+        #if self._ac.get_state() != am.GoalStatus.SUCCEEDED:
+        #    raise ex.ActionFailedError()
+
+    def up(self):
+        """
+        Move torso to max height (0.3)
+        """
+        self.move(0.3)
+
+    def down(self):
+        """
+        Move torso to min height (0)
+        """
+        self.move(0.01)
+        

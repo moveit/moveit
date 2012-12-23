@@ -43,7 +43,7 @@ import actionlib as al
 import actionlib_msgs.msg as am
 import geometry_msgs.msg as gm
 import tf
-import moveit_commander.exceptions as ex
+#import moveit_commander.exceptions as ex
 import sensor_msgs.msg as sm
 import copy
 from math import sqrt

@@ -26,6 +26,7 @@
   <build_depend>tf</build_depend>
   <build_depend>eigen_conversions</build_depend>
   <build_depend>python</build_depend>
+  <build_depend>object_recognition_msgs</build_depend>
 
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_planning_interface</run_depend>
@@ -38,5 +39,6 @@
   <run_depend>tf</run_depend>
   <run_depend>eigen_conversions</run_depend>
   <run_depend>python</run_depend>
+  <run_depend>object_recognition_msgs</run_depend>
 
 </package>

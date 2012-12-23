@@ -40,27 +40,10 @@ import rospy
 import actionlib
 import actionlib_msgs.msg
 import tf
-#import arm_navigation_msgs.msg
-#from arm_navigation_msgs.msg import ArmNavigationErrorCodes as ArmNavErrorCodes
-#from arm_navigation_msgs.srv import GetStateValidityRequest
-#from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-#from pr2_controllers_msgs.msg import JointTrajectoryGoal, JointTrajectoryAction
 from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
-#from moveit_msgs.msg import RobotTrajectory
-#import moveit_msgs_boost as mmb
-#from pr2_python.world_interface import WorldInterface
-#from pr2_python.hand_description import HandDescription
-#from pr2_python.controller_manager_client import ControllerManagerClient
-#from pr2_python.cartesian_controller_interface import CartesianControllerInterface
-#from moveit_python_interface.arm_planner import ArmPlanner
-#from moveit_python_interface import conversions
-#from moveit_python_interface import trajectory_tools
-#from pr2_python.exceptions import ArmNavError, ActionFailedError
-
-#roslib.load_manifest('move_group_interface')
 from _moveit_planning_scene_interface import PlanningSceneInterface
 
 #DEFAULT_PLANNER_SERVICE_NAME = 'ompl_planning/plan_kinematic_path'
@@ -71,9 +54,16 @@ class PlanningScene:
         self._g = PlanningSceneInterface()
 
     def add_sphere(self, id_name, frame_id, position, orientation, radius):
+        """
+        Add sphere to the planning scene in specified frame
+        position: [x,y,z]
+        orientation: [x,y,z,w]
+        
+        """
         self._g.add_sphere(id_name, frame_id, position, orientation, radius)
 
     def add_cylinder(self, id_name, frame_id, position, orientation, height, radius):
+        
         self._g.add_cylinder(id_name, frame_id, position, orientation, height, radius)
 
     def add_box(self, id_name, frame_id, position, orientation, length, width, height):
@@ -83,9 +73,21 @@ class PlanningScene:
         self._g.add_cone(id_name, frame_id, position, orientation, height, radius)
 
     def remove_simple_object(self, id_name, frame_id):
+        """
+        Remove object from planning scene with id_name and frame_id
+        
+        """
         self._g.remove_simple_object(id_name, frame_id)
 
     def attach_sphere(self, id_name, frame_id, link_name, touch_links, position, orientation, radius):
+        """
+        Add sphere to the planning scene in attached to specified link
+        touch_links: [link1, link2, link3, etc] <- links that object can touch
+        position: [x,y,z]
+        orientation: [x,y,z,w]
+        
+        """
+
         self._g.attach_sphere(id_name, frame_id, link_name, touch_links, position, orientation, radius)
 
     def attach_cylinder(self, id_name, frame_id, link_name, touch_links, position, orientation, height, radius):
@@ -98,8 +100,11 @@ class PlanningScene:
         self._g.attach_cone(id_name, frame_id, link_name, touch_links, position, orientation, height, radius)
 
     def remove_simple_attached_object(self, id_name, frame_id, link_name):
+        """
+        Detach object from link, add it back into planning scene
+        
+        """
+
         self._g.remove_simple_attached_object(id_name, frame_id, link_name)
 
 
-    #def add_simple_object(self, filepath):
-    #    self._g.add_simple_object(filepath)
