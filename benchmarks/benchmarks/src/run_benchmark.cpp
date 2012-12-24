@@ -209,8 +209,8 @@ public:
   
   bool computeBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
   {
-    if (req.evaluate_goal_existance_only)
-      return runGoalExistanceBenchmark(req, res);
+    if (req.evaluate_goal_existence_only)
+      return runGoalExistenceBenchmark(req, res);
     else
       return runPlanningBenchmark(req, res);
   }
@@ -420,7 +420,7 @@ public:
     return true;
   }
 
-  bool runGoalExistanceBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
+  bool runGoalExistenceBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
   {
     // configure planning context
     if (req.scene.robot_model_name != scene_monitor_.getKinematicModel()->getName())
