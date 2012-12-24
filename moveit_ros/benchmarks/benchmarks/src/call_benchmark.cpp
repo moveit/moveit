@@ -42,14 +42,14 @@
 
 static const std::string BENCHMARK_SERVICE_NAME = "benchmark_planning_problem";
 
-static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, bool run_goal_existance,
+static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, bool run_goal_existence,
                                  moveit_msgs::ComputePlanningPluginsBenchmark::Request &req)
 {
   bool goal_ok = true;
-  if (run_goal_existance)
+  if (run_goal_existence)
   {
-    ROS_INFO("Calling goal existance benchmark...");
-    req.evaluate_goal_existance_only = true;
+    ROS_INFO("Calling goal existence benchmark...");
+    req.evaluate_goal_existence_only = true;
     std::string fnm_backup = req.filename;    
     if (!req.filename.empty())
     {
@@ -78,7 +78,7 @@ static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, 
   if (goal_ok && run_planner)
   {
     ROS_INFO("Calling planner benchmark...");
-    req.evaluate_goal_existance_only = false;    
+    req.evaluate_goal_existence_only = false;    
     moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
     if (service->call(req, res))
     {
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     ("help", "Show help message")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
     ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.")
-    ("goal-existance-only", "Benchmark the sampling of the goal region")
+    ("goal-existence-only", "Benchmark the sampling of the goal region")
     ("planners-only", "Benchmark only the planners");
 
   boost::program_options::variables_map vm;
@@ -114,10 +114,10 @@ int main(int argc, char **argv)
   {
     planners_only = true;
   }
-  bool goal_existance_only = false;
-  if (vm.count("goal-existance-only"))
+  bool goal_existence_only = false;
+  if (vm.count("goal-existence-only"))
   {
-    goal_existance_only = true;
+    goal_existence_only = true;
   }
   
   ros::init(argc, argv, "call_moveit_benchmark", ros::init_options::AnonymousName);
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::service::waitForService(BENCHMARK_SERVICE_NAME);
     ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_SERVICE_NAME, true);
-    moveit_benchmarks::BenchmarkCallFn fn = boost::bind(&callBenchmarkService, &benchmark_service_client, !goal_existance_only, !planners_only, _1);
+    moveit_benchmarks::BenchmarkCallFn fn = boost::bind(&callBenchmarkService, &benchmark_service_client, !goal_existence_only, !planners_only, _1);
     
     unsigned int proc = 0;
     for (int i = 1 ; i < argc ; ++i)
