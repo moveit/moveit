@@ -370,7 +370,7 @@ void ConfigurationFilesWidget::savePackage()
     // Note: we call the file package.xml.disabled so that it isn't automatically indexed by rosprofile
     // in the scenario where we want to disabled the setup_assistant by renaming its root package.xml
     file_name = "package.xml";
-    template_path = config_data_->appendPaths( config_data_->template_package_path_, "package.xml.disabled" );
+    template_path = config_data_->appendPaths( config_data_->template_package_path_, "package.xml.template" );
     file_path = config_data_->appendPaths( new_package_path, file_name );
 
     // Use generic template copy function
