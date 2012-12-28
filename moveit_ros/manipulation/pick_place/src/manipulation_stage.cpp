@@ -58,6 +58,8 @@ ManipulationStage::~ManipulationStage(void)
 
 void ManipulationStage::start(void)
 {
+  if (!stop_processing_)
+    return;
   stop_processing_ = false;
   for (std::size_t i = 0; i < processing_threads_.size() ; ++i)
     if (!processing_threads_[i]->thread_)
@@ -66,13 +68,18 @@ void ManipulationStage::start(void)
     next_->start();
 }
 
+void ManipulationStage::startAll(void)
+{
+  start();
+  if (next_)
+    next_->startAll();
+}
+
 void ManipulationStage::stop(void)
 {  
   if (stop_processing_)
     return;
   stop_processing_ = true;
-  if (next_)
-    next_->stop();
   
   for (std::size_t i = 0; i < processing_threads_.size() ; ++i)
     if (processing_threads_[i]->thread_)
@@ -86,16 +93,26 @@ void ManipulationStage::stop(void)
     }
 }
 
+void ManipulationStage::stopAll(void)
+{  
+  if (next_)
+    next_->stopAll();
+  stop();
+}
+
 void ManipulationStage::processingThread(unsigned int index)
 {
   std::deque<ManipulationPlanPtr> &q = processing_queues_[index];
   ProcessingThread &p = *processing_threads_[index];
-
+  ROS_ERROR_STREAM("Start " << index << " on " << name_);
+  
   while (!stop_processing_)
   {
     boost::unique_lock<boost::mutex> ulock(p.mutex_);
+    
     while (q.empty() && !stop_processing_)
-      p.cond_.wait(ulock);
+      p.cond_.wait(ulock); 
+
     if (!stop_processing_ && !q.empty())
     {
       ManipulationPlanPtr g = q.front();
@@ -104,6 +121,7 @@ void ManipulationStage::processingThread(unsigned int index)
       p.mutex_.unlock();
       try
       {
+        ROS_INFO_STREAM("Call evaluate for stage " << name_ << " with thread index " << index << ". queue is of size " << q.size());
         if (evaluate(index, g))
         {
           if (next_ && !stop_processing_)
