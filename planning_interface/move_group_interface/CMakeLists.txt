@@ -13,3 +13,7 @@ install(TARGETS ${MOVEIT_LIB_NAME}_python LIBRARY DESTINATION ${CATKIN_GLOBAL_PY
 
 add_executable(demo src/demo.cpp)
 target_link_libraries(demo ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+
+#add_executable(test_pick_place src/test.cpp)
+#target_link_libraries(test_pick_place ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})

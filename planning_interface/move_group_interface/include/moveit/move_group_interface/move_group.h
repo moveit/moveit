@@ -136,6 +136,9 @@ public:
 
   /** \brief Pick up an object */
   bool pick(const std::string &object);
+
+  /** \brief Hack; remove this function */
+  bool pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop(void);
@@ -259,9 +262,12 @@ public:
   /// Specify which reference frame to assume for poses specified without a reference frame.
   void setPoseReferenceFrame(const std::string &pose_reference_frame);
 
-  /// Specify what the current end-effector should be
+  /// Specify the link the end-effector to be considered is attached to
   void setEndEffectorLink(const std::string &link_name);
 
+  /// Specify the name of the end-effector to use
+  void setEndEffector(const std::string &eef_name);
+  
   /// Forget pose specified for the end-effector \e end_effector_link
   void clearPoseTarget(const std::string &end_effector_link = "");
 
@@ -282,6 +288,11 @@ public:
       of an end-effector attached to this group. If there are multiple end-effectors, one of them is returned.
       If no such link is known, the empty string is returned. */
   const std::string& getEndEffectorLink(void) const;
+
+  /** \brief Get the current end-effector name. This returns the value set by setEndEffector().
+      If setEndEffector() was not called, this function reports an end-effector attached to this group.
+      If there are multiple end-effectors, one of them is returned. If no end-effector is known, the empty string is returned. */
+  const std::string& getEndEffector(void) const;
   
   /** \brief Get the reference frame set by setPoseReferenceFrame(). By default this is the reference frame of the kinematic model */
   const std::string& getPoseReferenceFrame(void) const;

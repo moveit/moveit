@@ -70,35 +70,54 @@ public:
       const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(planning_group);
       if (!jmg)
         return empty_result;
-      //      jmg->
+      const std::vector<std::string> &eefs = jmg->getAttachedEndEffectorNames();
+      if (!eefs.empty())
+      {
+        end_effector = eefs.front();
+        if (eefs.size() > 1)
+          ROS_WARN_STREAM("Choice of end-effector for group '" << planning_group << "' is ambiguous. Assuming '" << end_effector << "'");
+      }
+    }
+    else
+      if (!end_effector.empty() && planning_group.empty())
+      {
+        const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getEndEffector(end_effector);
+        if (!jmg)
+          return empty_result;
+        planning_group = jmg->getEndEffectorParentGroup().first;
+        ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
+      }      
+    const kinematic_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getKinematicModel()->getEndEffector(end_effector);
+    if (!eef)
+    {
+      ROS_ERROR("No end-effector specified for pick action");
+      return empty_result;
     }
     
-    // planning_scene->getKinematicModel()->getEndEffector(goal.end_effector);
-    
     done_ = false;
-    ReachableAndValidGraspFilter::Options opt(goal.group_name, "this shold be specified in the action?");
+    ReachableAndValidGraspFilter::Options opt(planning_group, eef->getEndEffectorParentGroup().second);
     root_.reset(new ReachableAndValidGraspFilter(opt, planning_scene, pick_place_->getConstraintsSamplerManager(), 4));
     ManipulationStagePtr f1 = root_->follow(ManipulationStagePtr(new OutputStage(boost::bind(&PickPlan::foundSolution, this, _1))));
 
-    root_->start();
+    root_->startAll();
 
     // feed the available grasps to the filter we set up
     for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
     {
-      //      Grasp g;
-      //     goal.possible_grasps[i]
+      ManipulationPlanPtr p(new ManipulationPlan());
+      p->grasp_ = goal.possible_grasps[i];
+      root_->push(p);
     }
     
     // .......
     
-
     // wait till we're done
     boost::unique_lock<boost::mutex> lock(mut_);
     while (!done_ && endtime > ros::WallTime::now())
       cond_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
 
     // make sure we stopped
-    root_->stop();
+    root_->stopAll();
     
     // read the output of the last filter
     return static_cast<OutputStage*>(f1.get())->getOutput();
@@ -122,10 +141,12 @@ private:
 };
 
 ManipulationPlanPtr PickPlace::planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
-{    
+{
+  ROS_INFO_STREAM("Begin pick: " << goal);
+  
   ros::WallTime start = ros::WallTime::now();
   PickPlan p(this);
-  const std::vector<ManipulationPlanPtr> &g = p.plan(planning_scene, goal, 99.0);
+  const std::vector<ManipulationPlanPtr> &g = p.plan(planning_scene, goal, 1.0);
   double dt = (ros::WallTime::now() - start).toSec();
   ROS_INFO("Pick plan took %lf seconds", dt);
   if (g.empty())

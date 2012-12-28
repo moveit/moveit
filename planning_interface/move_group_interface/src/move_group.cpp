@@ -133,7 +133,7 @@ public:
     if (joint_model_group)
     {
       if (joint_model_group->isChain())
-        end_effector_ = joint_model_group->getLinkModelNames().back();
+        end_effector_link_ = joint_model_group->getLinkModelNames().back();
       pose_reference_frame_ = getKinematicModel()->getModelFrame();
       
       trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
@@ -210,7 +210,7 @@ public:
     return opt_;
   }
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void)
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return kinematic_model_;
   }
@@ -248,9 +248,9 @@ public:
     considered_start_state_.reset();
   }
   
-  void setEndEffector(const std::string &end_effector)
+  void setEndEffectorLink(const std::string &end_effector)
   {
-    end_effector_ = end_effector;
+    end_effector_link_ = end_effector;
   }
   
   void clearPoseTarget(const std::string &end_effector_link)
@@ -263,14 +263,27 @@ public:
     pose_targets_.clear();
   }
   
-  const std::string &getEndEffector(void) const
+  const std::string &getEndEffectorLink(void) const
   {
-    return end_effector_;
+    return end_effector_link_;
   }
-  
+
+  const std::string& getEndEffector(void) const
+  {
+    if (!end_effector_link_.empty())
+    {   
+      const std::vector<std::string> &possible_eefs = getKinematicModel()->getJointModelGroup(opt_.group_name_)->getAttachedEndEffectorNames();
+      for (std::size_t i = 0 ; i < possible_eefs.size() ; ++i)
+        if (getKinematicModel()->getEndEffector(possible_eefs[i])->hasLinkModel(end_effector_link_))
+          return possible_eefs[i];
+    }  
+    static std::string empty;
+    return empty;
+  }
+
   void setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &poses, const std::string &end_effector_link)
   {  
-    const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link;
+    const std::string &eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link;
     if (eef.empty())
       ROS_ERROR("No end-effector to set the pose for");
     else
@@ -285,13 +298,13 @@ public:
   
   bool hasPoseTarget(const std::string &end_effector_link) const
   {
-    const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link; 
+    const std::string &eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link; 
     return pose_targets_.find(eef) != pose_targets_.end();
   }
   
   const geometry_msgs::PoseStamped& getPoseTarget(const std::string &end_effector_link) const
   {    
-    const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link; 
+    const std::string &eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link; 
     
     // if multiple pose targets are set, return the first one
     std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator jt = pose_targets_.find(eef);
@@ -307,7 +320,7 @@ public:
   
   const std::vector<geometry_msgs::PoseStamped>& getPoseTargets(const std::string &end_effector_link) const
   {
-    const std::string &eef = end_effector_link.empty() ? end_effector_ : end_effector_link; 
+    const std::string &eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link; 
     
     std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator jt = pose_targets_.find(eef);
     if (jt != pose_targets_.end())
@@ -398,6 +411,39 @@ public:
     
     current_state = current_state_monitor_->getCurrentState();
     return true;
+  }
+  
+  // remove this hack
+  bool pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
+  {
+    if (!pick_action_client_)
+      return false;
+    if (!pick_action_client_->isServerConnected())
+      return false;
+    moveit_msgs::PickupGoal goal;
+    constructGoal(goal, object);
+    goal.possible_grasps.resize(poses.size());
+    for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
+    {
+      goal.possible_grasps[i].grasp_pose = poses[i].pose;
+      goal.possible_grasps[i].header = poses[i].header;
+    }
+    goal.plan_only = false;
+    pick_action_client_->sendGoal(goal); 
+    if (!pick_action_client_->waitForResult())
+    {
+      ROS_INFO_STREAM("Pickup action returned early");
+    }
+    if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    {
+      
+      return true;
+    }
+    else
+    {
+      ROS_WARN_STREAM("Fail: " << pick_action_client_->getState().toString() << ": " << pick_action_client_->getState().getText());
+      return false;
+    }
   }
   
   bool pick(const std::string &object)
@@ -689,7 +735,7 @@ private:
   // common properties for goals
   ActiveTarget active_target_;
   boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
-  std::string end_effector_;
+  std::string end_effector_link_;
   std::string pose_reference_frame_; 
   
   // ROS communication
@@ -761,6 +807,11 @@ bool MoveGroup::plan(Plan &plan)
 bool MoveGroup::pick(const std::string &object)
 {
   return impl_->pick(object);
+}
+
+bool MoveGroup::pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
+{
+  return impl_->pick(object, poses); // remove this
 }
 
 void MoveGroup::stop(void)
@@ -860,13 +911,25 @@ const kinematic_state::JointStateGroup& MoveGroup::getJointValueTarget(void) con
 
 const std::string& MoveGroup::getEndEffectorLink(void) const
 {
+  return impl_->getEndEffectorLink();
+}
+
+const std::string& MoveGroup::getEndEffector(void) const
+{
   return impl_->getEndEffector();
 }
 
 void MoveGroup::setEndEffectorLink(const std::string &link_name)
 {
-  impl_->setEndEffector(link_name);  
+  impl_->setEndEffectorLink(link_name);  
   impl_->usePoseTarget();
+}
+
+void MoveGroup::setEndEffector(const std::string &eef_name)
+{
+  const kinematic_model::JointModelGroup *jmg = impl_->getKinematicModel()->getEndEffector(eef_name);
+  if (jmg)
+    setEndEffectorLink(jmg->getEndEffectorParentGroup().second);
 }
 
 void MoveGroup::clearPoseTarget(const std::string &end_effector_link)

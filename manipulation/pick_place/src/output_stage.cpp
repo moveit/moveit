@@ -40,6 +40,13 @@
 namespace pick_place
 {
 
+OutputStage::OutputStage(const ReceiveOutputCallback &callback) :
+  ManipulationStage(1),
+  callback_(callback)
+{
+  name_ = "output";
+}
+
 bool OutputStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &grasp) const
 {  
   ROS_ERROR_THROTTLE(1, "Cannot evaluate grasps in output filter");
