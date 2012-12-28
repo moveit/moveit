@@ -14,8 +14,8 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit-setup-assistant/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit-setup-assistant</url>
 
-  <build_depend>catkin</build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
   
-  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_ros_move_group</run_depend>
 
 </package>
