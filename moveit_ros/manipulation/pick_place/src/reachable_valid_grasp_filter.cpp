@@ -51,12 +51,15 @@ ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const Options &opt,
   planning_scene_(scene),
   constraints_sampler_manager_(constraints_sampler_manager)
 {
+  name_ = "reachable and valid grasp filter";
   states_.resize(nthreads_);
+  joint_state_groups_.resize(nthreads_);
   for (std::size_t i = 0 ; i < states_.size() ; ++i)
   {
     states_[i].reset(new kinematic_state::KinematicState(scene->getCurrentState()));
     joint_state_groups_[i] = states_[i]->getJointStateGroup(opt_.planning_group_);
   }
+  sampling_attempts_ = scene->getKinematicModel()->getJointModelGroup(opt_.planning_group_)->getDefaultIKAttempts();
 }
 
 bool ReachableAndValidGraspFilter::isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
@@ -70,11 +73,14 @@ bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Manipu
 {
   // \todo get a pose somehow from the representation of the grasp
   geometry_msgs::PoseStamped pose;
+  pose.header = plan->grasp_.header;
+  pose.pose = plan->grasp_.grasp_pose;
   
   // convert the pose we want to reach to a set of constraints
   moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(opt_.ik_link_, pose,
                                                                                opt_.tolerance_position_xyz_,
                                                                                opt_.tolerance_rotation_xyz_);
+  
   // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
   // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
   constraint_samplers::ConstraintSamplerPtr sampler = constraints_sampler_manager_->selectSampler(planning_scene_, opt_.planning_group_, c);
@@ -82,7 +88,7 @@ bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Manipu
   {
     sampler->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, _1, _2));
     
-    if (sampler->sample(joint_state_groups_[thread_id], *states_[thread_id], 1))
+    if (sampler->sample(joint_state_groups_[thread_id], *states_[thread_id], sampling_attempts_))
       if (next_)
         next_->push(plan);
   }

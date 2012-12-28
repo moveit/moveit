@@ -281,7 +281,7 @@ void wrap_move_group_interface()
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
   MoveGroupClass.def("move", &MoveGroupWrapper::move);
   MoveGroupClass.def("execute", &MoveGroupWrapper::execute);
-  MoveGroupClass.def("pick", &MoveGroupWrapper::pick);
+  //  MoveGroupClass.def("pick", &MoveGroupWrapper::pick);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
   MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);
