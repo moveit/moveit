@@ -81,6 +81,7 @@ private:
   const constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
   std::vector<kinematic_state::KinematicStatePtr> states_;
   std::vector<kinematic_state::JointStateGroup*> joint_state_groups_;
+  unsigned int sampling_attempts_;
 };
 
 }

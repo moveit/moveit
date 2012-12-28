@@ -49,11 +49,7 @@ public:
 
   typedef boost::function<void(const ManipulationPlanPtr&)> ReceiveOutputCallback;
   
-  OutputStage(const ReceiveOutputCallback &callback = ReceiveOutputCallback()) :
-    ManipulationStage(1),
-    callback_(callback)
-  {
-  }
+  OutputStage(const ReceiveOutputCallback &callback = ReceiveOutputCallback());
 
   virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &grasp) const;
   virtual void push(const ManipulationPlanPtr &plan);

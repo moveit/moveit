@@ -57,16 +57,23 @@ public:
   
   ManipulationStage(unsigned int nthreads);
   virtual ~ManipulationStage(void);
-    
+  
+  const std::string& getName(void) const
+  {
+    return name_;
+  }
+  
   const ManipulationStagePtr& follow(const ManipulationStagePtr &next)
   {
     next_ = next;
     return next;
   }
   
-  void start(void);
-  
-  void stop(void);
+  void start(void);  
+  void startAll(void);
+
+  void stop(void);  
+  void stopAll(void);
   
   virtual void push(const ManipulationPlanPtr &grasp);
   
@@ -102,6 +109,7 @@ protected:
   std::vector< std::deque<ManipulationPlanPtr> > processing_queues_;
   std::vector< ProcessingThread* > processing_threads_;
   bool stop_processing_;
+  std::string name_;
   ManipulationStagePtr next_;
 };
 
