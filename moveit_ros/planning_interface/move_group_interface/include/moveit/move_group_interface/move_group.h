@@ -138,7 +138,7 @@ public:
   bool pick(const std::string &object);
 
   /** \brief Hack; remove this function */
-  bool pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
+  //  bool pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop(void);
