@@ -39,7 +39,8 @@
 namespace distance_field
 {
 
-DistanceField::DistanceField(double resolution) :
+DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution,
+                             double origin_x, double origin_y, double origin_z) :
   resolution_(resolution),
   inv_twice_resolution_(1.0/(2.0*resolution_))
 {

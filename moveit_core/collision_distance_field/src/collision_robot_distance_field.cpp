@@ -685,14 +685,14 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
     //ros::WallTime before_create = ros::WallTime::now();
     if(use_signed_distance_field_)
     {
-      dfce->distance_field_.reset(new distance_field::SignedPropagationDistanceField(size_x_,
-                                                                                     size_y_, 
-                                                                                     size_z_, 
-                                                                                     resolution_, 
-                                                                                     -(size_x_/2.0), 
-                                                                                     -(size_y_/2.0), 
-                                                                                     -(size_z_/2.0), 
-                                                                                     max_propogation_distance_));
+      dfce->distance_field_.reset(new distance_field::PropagationDistanceField(size_x_,
+                                                                               size_y_, 
+                                                                               size_z_, 
+                                                                               resolution_, 
+                                                                               -(size_x_/2.0), 
+                                                                               -(size_y_/2.0), 
+                                                                               -(size_z_/2.0), 
+                                                                               max_propogation_distance_, true));
     }
     else
     {
@@ -704,7 +704,7 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
                                                                                -(size_x_/2.0), 
                                                                                -(size_y_/2.0), 
                                                                                -(size_z_/2.0), 
-                                                                               max_propogation_distance_));
+                                                                               max_propogation_distance_, false));
     }
     //ROS_INFO_STREAM("Creation took " << (ros::WallTime::now()-before_create).toSec());
     //TODO - deal with AllowedCollisionMatrix

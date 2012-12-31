@@ -47,20 +47,20 @@
 namespace distance_field
 {
 
-// less-than Comparison
-bool lessThan(int3 loc_1, int3 loc_2);
-
-int equal(int3 loc_1, int3 loc_2);
-
 // Class
-struct compareInt3
+struct compareEigen_Vector3i
 {
-  bool operator()(int3 loc_1, int3 loc_2) const
+  bool operator()(Eigen::Vector3i loc_1, Eigen::Vector3i loc_2) const
   {
-    return lessThan(loc_1,loc_2);
+    if( loc_1.z() != loc_2.z() )
+      return ( loc_1.z() < loc_2.z() );
+    else if( loc_1.y() != loc_2.y() )
+      return ( loc_1.y() < loc_2.y() );
+    else if( loc_1.x() != loc_2.x() )
+      return ( loc_1.x() < loc_2.x() );
+    return false;
   }
 };
-
 
 /**
  * \brief Structure that holds voxel information for the DistanceField.
@@ -68,25 +68,16 @@ struct compareInt3
 struct PropDistanceFieldVoxel
 {
   PropDistanceFieldVoxel();
-  PropDistanceFieldVoxel(int distance_sq);
+  PropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative);
 
   int distance_square_;         /**< Squared distance from the closest obstacle */
-  int3 closest_point_;	        /**< Closes obstacle from this voxel */
+  int negative_distance_square_;
+  Eigen::Vector3i closest_point_;	        /**< Closes obstacle from this voxel */
+  Eigen::Vector3i closest_negative_point_;
   int update_direction_;        /**< Direction from which this voxel was updated */
+  int negative_update_direction_;        /**< Direction from which this voxel was updated */
 
   static const int UNINITIALIZED=-1;
-};
-
-struct SignedPropDistanceFieldVoxel : public PropDistanceFieldVoxel
-{
-    SignedPropDistanceFieldVoxel();
-    SignedPropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative);
-    int positive_distance_square_;
-    int negative_distance_square_;
-    int3 closest_positive_point_;
-    int3 closest_negative_point_;
-
-    static const int UNINITIALIZED=-999;
 };
 
 /**
@@ -105,14 +96,17 @@ public:
   /**
    * \brief Constructor for the DistanceField.
    */
-  PropagationDistanceField(double size_x, double size_y, double size_z, double resolution,
-                           double origin_x, double origin_y, double origin_z, double max_distance);
+  PropagationDistanceField(double size_x, double size_y, double size_z, 
+                           double resolution,
+                           double origin_x, double origin_y, double origin_z, 
+                           double max_distance,
+                           bool propagate_negative_distances=false);
   
   virtual ~PropagationDistanceField();
   
   /**
    * \brief Change the set of obstacle points and recalculate the distance field (if there are any changes).
-   * \param iterative Calculate the changes in the object voxels, and propogate the changes outward.
+   * \param iterative Calculate the changes in the object voxels, and propagate the changes outward.
    *        Otherwise, clear the distance map and recalculate the entire voxel map.
    */
   virtual void updatePointsInField(const EigenSTL::vector_Vector3d& points, const bool iterative=true);
@@ -156,14 +150,17 @@ public:
 
 private:
 
+  bool propagate_negative_;
+
   VoxelGrid<PropDistanceFieldVoxel> voxel_grid_;
 
   /// \brief The set of all the obstacle voxels
-  typedef std::set<int3, compareInt3> VoxelSet;
+  typedef std::set<Eigen::Vector3i, compareEigen_Vector3i> VoxelSet;
   VoxelSet object_voxel_locations_;
 
   /// \brief Structure used to hold propogation frontier
-  std::vector<std::vector<int3> > bucket_queue_;
+  std::vector<std::vector<Eigen::Vector3i> > bucket_queue_;
+  std::vector<std::vector<Eigen::Vector3i> > negative_bucket_queue_;
   double max_distance_;
   int max_distance_sq_;
 
@@ -174,31 +171,36 @@ private:
   // [1] - for expansion of d>=1
   // Under this, we have the 27 directions
   // Then, a list of neighborhoods for each direction
-  std::vector<std::vector<std::vector<int3 > > > neighborhoods_;
+  std::vector<std::vector<std::vector<Eigen::Vector3i > > > neighborhoods_;
 
-  std::vector<int3 > direction_number_to_direction_;
+  std::vector<Eigen::Vector3i > direction_number_to_direction_;
 
   void addNewObstacleVoxels(const VoxelSet& points);
   void removeObstacleVoxels(const VoxelSet& points);
-  // starting with the voxels on the queue, propogate values to neighbors up to a certain distance.
-  void propogate();
+  // starting with the voxels on the queue, propagate values to neighbors up to a certain distance.
+  void propagatePositive();
+  void propagateNegative();
   virtual double getDistance(const PropDistanceFieldVoxel& object) const;
   int getDirectionNumber(int dx, int dy, int dz) const;
-  int3 getLocationDifference(int directionNumber) const;	// TODO- separate out neighborhoods
+  Eigen::Vector3i getLocationDifference(int directionNumber) const;	// TODO- separate out neighborhoods
   void initNeighborhoods();
-  static int eucDistSq(int3 point1, int3 point2);
+  static int eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i point2);
   void print(const VoxelSet & set);
   void print(const EigenSTL::vector_Vector3d& points);
 };
 
 ////////////////////////// inline functions follow ////////////////////////////////////////
 
-inline PropDistanceFieldVoxel::PropDistanceFieldVoxel(int distance_sq):
-  distance_square_(distance_sq)
+inline PropDistanceFieldVoxel::PropDistanceFieldVoxel(int distance_sq, int negative_distance_sq):
+  distance_square_(distance_sq),
+  negative_distance_square_(negative_distance_sq)
 {
   closest_point_.x() = PropDistanceFieldVoxel::UNINITIALIZED;
   closest_point_.y() = PropDistanceFieldVoxel::UNINITIALIZED;
   closest_point_.z() = PropDistanceFieldVoxel::UNINITIALIZED;
+  closest_negative_point_.x() = PropDistanceFieldVoxel::UNINITIALIZED;
+  closest_negative_point_.y() = PropDistanceFieldVoxel::UNINITIALIZED;
+  closest_negative_point_.z() = PropDistanceFieldVoxel::UNINITIALIZED;
 }
 
 inline PropDistanceFieldVoxel::PropDistanceFieldVoxel()
@@ -207,91 +209,7 @@ inline PropDistanceFieldVoxel::PropDistanceFieldVoxel()
 
 inline double PropagationDistanceField::getDistance(const PropDistanceFieldVoxel& object) const
 {
-  return sqrt_table_[object.distance_square_];
-}
-
-
-class SignedPropagationDistanceField : public DistanceField
-{
-  public:
-  
-  SignedPropagationDistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
-                                 double origin_y, double origin_z, double max_distance);
-  virtual ~SignedPropagationDistanceField();
-  
-  virtual void addPointsToField(const EigenSTL::vector_Vector3d &points);
-
-  virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)
-  {
-    reset();
-  }
-  
-  virtual void reset();
-
-  /**
-   * \brief Gets the distance to the closest obstacle at the given location.
-   */
-  virtual double getDistance(double x, double y, double z) const;
-
-  /**
-   * \brief Gets the distance to the closest obstacle at the given integer cell location.
-   */
-  virtual double getDistanceFromCell(int x, int y, int z) const;
-
-  //pass-throughs to voxel grid
-  virtual bool isCellValid(int x, int y, int z) const;
-  virtual int getXNumCells() const;
-  virtual int getYNumCells() const;
-  virtual int getZNumCells() const;
-  virtual bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
-  virtual bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
-
-private:
-
-  VoxelGrid<SignedPropDistanceFieldVoxel> voxel_grid_;
-
-  std::vector<std::vector<int3> > positive_bucket_queue_;
-  std::vector<std::vector<int3> > negative_bucket_queue_;
-  double max_distance_;
-  int max_distance_sq_;
-  
-  std::vector<double> sqrt_table_;
-  
-  // [0] - for expansion of d=0
-  // [1] - for expansion of d>=1
-  // Under this, we have the 27 directions
-  // Then, a list of neighborhoods for each direction
-  std::vector<std::vector<std::vector<int3 > > > neighborhoods_;
-  
-  std::vector<int3 > direction_number_to_direction_;
-  
-  virtual double getDistance(const SignedPropDistanceFieldVoxel& object) const;
-  int getDirectionNumber(int dx, int dy, int dz) const;
-  void initNeighborhoods();
-  static int eucDistSq(int3 point1, int3 point2);
-};
-
-
-
-inline SignedPropDistanceFieldVoxel::SignedPropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative):
-  positive_distance_square_(distance_sq_positive),
-  negative_distance_square_(distance_sq_negative),
-  closest_positive_point_(SignedPropDistanceFieldVoxel::UNINITIALIZED),
-  closest_negative_point_(SignedPropDistanceFieldVoxel::UNINITIALIZED)
-{
-}
-
-inline SignedPropDistanceFieldVoxel::SignedPropDistanceFieldVoxel()
-{
-}
-
-inline double SignedPropagationDistanceField::getDistance(const SignedPropDistanceFieldVoxel& object) const
-{
-  if(object.negative_distance_square_ != 0)
-  {
-    //ROS_INFO("Positive Distance %d, Negative Distance %d",object.positive_distance_square_,object.negative_distance_square_ );
-  }
-  return sqrt_table_[object.positive_distance_square_] - sqrt_table_[object.negative_distance_square_];
+  return sqrt_table_[object.distance_square_]-sqrt_table_[object.negative_distance_square_];
 }
 
 }

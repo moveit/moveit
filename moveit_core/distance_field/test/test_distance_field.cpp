@@ -42,9 +42,9 @@
 
 using namespace distance_field;
 
-static const double width = 0.5;//2.0;
-static const double height = 0.5;//2.0;
-static const double depth = 0.5;//1.0;
+static const double width = 1.0;
+static const double height = 1.0;
+static const double depth = 1.0;
 static const double resolution = 0.1;
 static const double origin_x = 0.0;
 static const double origin_y = 0.0;
@@ -57,7 +57,6 @@ static const int max_dist_sq_in_voxels = max_dist_in_voxels*max_dist_in_voxels;
 static const Eigen::Vector3d point1(0.0,0.0,0.0);
 static const Eigen::Vector3d point2(0.0,0.1,0.2);
 static const Eigen::Vector3d point3(0.4,0.0,0.0);
-
 
 int dist_sq(int x, int y, int z)
 {
@@ -76,6 +75,20 @@ void print( PropagationDistanceField& pdf, int numX, int numY, int numZ)
     std::cout << std::endl;
   }
 }
+
+void printNeg(PropagationDistanceField& pdf, int numX, int numY, int numZ)
+{
+  for (int x=0; x<numX; x++) {
+    for (int y=0; y<numY; y++) {
+      for (int z=0; z<numZ; z++) {
+        std::cout << pdf.getCell(x,y,z).negative_distance_square_ << " ";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
+}
+
 
 
 void check_distance_field(const PropagationDistanceField & df, const EigenSTL::vector_Vector3d& points, int numX, int numY, int numZ)
@@ -102,7 +115,6 @@ void check_distance_field(const PropagationDistanceField & df, const EigenSTL::v
 
 TEST(TestPropagationDistanceField, TestAddPoints)
 {
-
   PropagationDistanceField df( width, height, depth, resolution, origin_x, origin_y, origin_z, max_dist);
 
   // Check size
@@ -164,6 +176,64 @@ TEST(TestPropagationDistanceField, TestAddPoints)
   // TODO - test gradient and closest point location
 
 }
+
+TEST(TestSignedPropagationDistanceField, TestAddPoints)
+{
+
+  PropagationDistanceField df( width, height, depth, resolution, origin_x, origin_y, origin_z, max_dist, true);
+
+  // Check size
+  int numX = df.getXNumCells();
+  int numY = df.getYNumCells();
+  int numZ = df.getZNumCells();
+  
+  EXPECT_EQ( numX, (int)(width/resolution+0.5) );
+  EXPECT_EQ( numY, (int)(height/resolution+0.5) );
+  EXPECT_EQ( numZ, (int)(depth/resolution+0.5) );
+
+  // Error checking
+  //print(df, numX, numY, numZ);
+
+  // TODO - check initial values
+  //EXPECT_EQ( df.getCell(0,0,0).distance_square_, max_dist_sq_in_voxels );
+
+  // Add points to the grid
+  double lwx, lwy, lwz;
+  double hwx, hwy, hwz;
+  df.gridToWorld(1,1,1,lwx,lwy,lwz);
+  df.gridToWorld(8,8,8,hwx,hwy,hwz);
+
+  EigenSTL::vector_Vector3d points;
+  for(double x = lwx; x <= hwx; x+= .1) {
+    for(double y = lwy; y <= hwy; y+= .1) {
+      for(double z = lwz; z <= hwz; z+= .1) {
+        points.push_back(Eigen::Vector3d(x,y,z));
+        std::cout << "Adding " << x << " " << y << " " << z << std::endl;
+      }
+    }
+  }
+
+  df.reset();
+  logInform("Adding %u points", points.size());
+  df.addPointsToField(points);
+  print(df, numX, numY, numZ);
+  printNeg(df, numX, numY, numZ);
+
+  double cx, cy, cz;
+  df.gridToWorld(5,5,5,cx,cy,cz);
+
+  Eigen::Vector3d center_point(cx,cy,cz);
+
+  EigenSTL::vector_Vector3d rem_points;
+  rem_points.push_back(center_point);
+  df.removePointsFromField(rem_points);
+  std::cout << "Pos "<< std::endl;
+  print(df, numX, numY, numZ);
+  std::cout << "Neg "<< std::endl;
+  printNeg(df, numX, numY, numZ);
+
+}
+
 
 int main(int argc, char **argv){
   testing::InitGoogleTest(&argc, argv);
