@@ -49,9 +49,6 @@
 namespace distance_field
 {
 
-/// \brief Structure the holds the location of voxels withing the voxel map
-typedef Eigen::Vector3i int3;
-
 /// \brief The plane to visualize
 enum PlaneVisualizationType
 {
@@ -61,38 +58,55 @@ enum PlaneVisualizationType
 };
 
 /**
-* \brief A VoxelGrid that can convert a set of obstacle points into a distance field.
+* \brief DistanceField is an abstract base class for computing
+* distances from sets of 3D obstacle points.  The distance assigned to
+* a freespace cell should be the distance to the closest obstacle
+* cell.  
 *
-* It computes the distance transform of the input points, and stores the distance to
-* the closest obstacle in each voxel. Also available is the location of the closest point,
-* and the gradient of the field at a point. Expansion of obstacles is performed upto a given
-* radius.
+* Inherited classes must contain methods for holding a dense set of 3D
+* voxels as well as methods for computing the required distances.
 *
-* This is an abstract base class, current implementations include PropagationDistanceField
-* and PFDistanceField.
 */
 class DistanceField
 {
 public:
 
-  /**
-   * \brief Constructor for distance field
-   *
+  /** 
+   * \brief Constructor
+   * 
+   * @param [in] size_x The X dimension of the volume to represent
+   * @param [in] size_y The Y dimension of the volume to represent
+   * @param [in] size_z The Z dimension of the volume to represent
+   * @param [in] resolution The resolution of the volume
+   * @param [in] origin_x The lower X corner of the volume
+   * @param [in] origin_y The lower Y corner of the volume
+   * @param [in] origin_z The lower Z corner of the volume
    */
-  DistanceField(double resolution);
+  DistanceField(double size_x, double size_y, double size_z, double resolution,
+                double origin_x, double origin_y, double origin_z);
 
   virtual ~DistanceField();
 
-
-  /**
-   * \brief Add (and expand) a set of points to the distance field.
+  /** 
+   * \brief Add a set of points to the distance field, updating distance values accordingly
+   * 
+   * This function will incrementally add the given points and update
+   * the distance field correspondingly. Use the \ref reset() function
+   * if you need to remove all points and start afresh.
    *
-   * This function will incrementally add the given points and update the distance field
-   * correspondingly. Use the reset() function if you need to remove all points and start
-   * afresh.
+   * @param [in] points The set of points to add
    */
   virtual void addPointsToField(const EigenSTL::vector_Vector3d &points)=0;
 
+  /** 
+   * \brief Removes a set of points to the distance field, updating distance values accordingly
+   * 
+   * This function will remove the given points and update the
+   * distance field correspondingly. Use the \ref reset() function if
+   * you need to remove all points and start afresh.
+   *
+   * @param [in] points The set of points to remove
+   */
   virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)=0;
 
   /**
@@ -101,32 +115,53 @@ public:
   void addCollisionMapToField(const moveit_msgs::CollisionMap &collision_map);
 
   /**
-   * \brief Resets the distance field to the max_distance.
+   * \brief Resets the distance field to an unitialized value
    */
   virtual void reset()=0;
-
-  /**
+  
+  /** 
    * \brief Gets the distance to the closest obstacle at the given location.
+   * 
+   * The particular implementation may return a max distance value if
+   * a cell is far away from all obstacles.  Values of 0.0 should
+   * represent that a cell is an obstacle, and some implementations
+   * may return a signed value representing distance to the surface
+   * when a cell is deep inside an obstacle volume.  An implementation
+   * may also return some value to represent when a location is
+   * outside the represented volume.
+   *
+   * @param [in] x The cell's X value
+   * @param [in] y The cell's Y value
+   * @param [in] z The cell's Z value
+   * 
+   * @return The distance to the closest obstacle
    */
   virtual double getDistance(double x, double y, double z) const = 0;
-
+  
   /**
    * \brief Gets the distance at a location and the gradient of the field.
    */
-  double getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z, bool& in_bounds) const;
-
+  double getDistanceGradient(double x, double y, double z, 
+                             double& gradient_x, double& gradient_y, double& gradient_z, 
+                             bool& in_bounds) const;
   /**
    * \brief Gets the distance to the closest obstacle at the given integer cell location.
    */
   virtual double getDistanceFromCell(int x, int y, int z) const = 0;
 
-  //pass-throughs to voxel grid
+  //pass-throughs to underlying container
   virtual bool isCellValid(int x, int y, int z) const = 0;
+
   virtual int getXNumCells() const = 0;
+
   virtual int getYNumCells() const = 0;
+
   virtual int getZNumCells() const = 0;
-  virtual bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const = 0;
-  virtual bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const = 0;
+
+  virtual bool gridToWorld(int x, int y, int z, 
+                           double& world_x, double& world_y, double& world_z) const = 0;
+  virtual bool worldToGrid(double world_x, double world_y, double world_z, 
+                           int& x, int& y, int& z) const = 0;
 
   /**
    * \brief Get an iso-surface for visualizaion in rviz.
