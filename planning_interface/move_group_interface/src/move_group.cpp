@@ -809,10 +809,10 @@ bool MoveGroup::pick(const std::string &object)
   return impl_->pick(object);
 }
 
-bool MoveGroup::pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
-{
-  return impl_->pick(object, poses); // remove this
-}
+//bool MoveGroup::pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
+//{
+//  return impl_->pick(object, poses); // remove this
+//}
 
 void MoveGroup::stop(void)
 {
