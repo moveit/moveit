@@ -46,6 +46,7 @@ ManipulationStage::ManipulationStage(unsigned int nthreads) :
 {
   processing_queues_.resize(nthreads_);
   processing_threads_.resize(processing_queues_.size());
+  failed_.resize(processing_queues_.size());
   for (unsigned int i = 0 ; i < nthreads ; ++i)
     processing_threads_[i] = new ProcessingThread();
 }
@@ -104,7 +105,7 @@ void ManipulationStage::processingThread(unsigned int index)
 {
   std::deque<ManipulationPlanPtr> &q = processing_queues_[index];
   ProcessingThread &p = *processing_threads_[index];
-  ROS_ERROR_STREAM("Start " << index << " on " << name_);
+  ROS_DEBUG_STREAM("Start thread " << index << " on '" << name_ << "'");
   
   while (!stop_processing_)
   {
@@ -113,7 +114,7 @@ void ManipulationStage::processingThread(unsigned int index)
     while (q.empty() && !stop_processing_)
       p.cond_.wait(ulock); 
 
-    if (!stop_processing_ && !q.empty())
+    while (!stop_processing_ && !q.empty())
     {
       ManipulationPlanPtr g = q.front();
       q.pop_front();
@@ -121,21 +122,32 @@ void ManipulationStage::processingThread(unsigned int index)
       p.mutex_.unlock();
       try
       {
-        ROS_INFO_STREAM("Call evaluate for stage " << name_ << " with thread index " << index << ". queue is of size " << q.size());
+        ROS_INFO_STREAM("Calling evaluate for stage '" << name_ << "' with thread index " << index << " (queue is of size " << q.size() << ")");
         if (evaluate(index, g))
-        {
+        {       
           if (next_ && !stop_processing_)
+          {
+            ROS_INFO_STREAM("Evaluation of stage '" << name_ << "' with thread index " << index << " was succesful. Forwarding.");
             next_->push(g);
+          }
+        }
+        else
+        {
+          if (!stop_processing_)
+          {
+            ROS_INFO_STREAM("Manipulation plan failed at stage '" << name_ << "' on thread " << index);
+            failed_[index].push_back(g);
+          }
         }
       }
       catch (std::runtime_error &ex)
       {
-        ROS_ERROR("%s", ex.what());
+        ROS_ERROR("[%s:%u] %s", name_.c_str(), index, ex.what());
       }
       catch (...)
       {
-        ROS_ERROR("Caught unknown exception while processing manipulation stage");
-      }
+        ROS_ERROR("[%s:%u] Caught unknown exception while processing manipulation stage", name_.c_str(), index);
+      }  
       p.mutex_.lock();
     }
   }
@@ -145,7 +157,7 @@ void ManipulationStage::push(const ManipulationPlanPtr &plan)
 {
   if (stop_processing_)
     return;
-  
+
   // the detection of the smallest queue is not perfect, i.e., it can find a
   // queue that is not the smallest, since we do not lock, but it should be good enough
   // for what we need
@@ -160,6 +172,7 @@ void ManipulationStage::push(const ManipulationPlanPtr &plan)
   
   boost::mutex::scoped_lock slock(processing_threads_[index]->mutex_);
   processing_queues_[index].push_back(plan);
+  ROS_INFO_STREAM("Added plan for stage '" << name_ << "' at thread index " << index << " (queue is now of size " << processing_queues_[index].size() << ")");
   processing_threads_[index]->cond_.notify_all();
 }
 

@@ -108,6 +108,7 @@ protected:
   unsigned int nthreads_;
   std::vector< std::deque<ManipulationPlanPtr> > processing_queues_;
   std::vector< ProcessingThread* > processing_threads_;
+  std::vector< std::vector<ManipulationPlanPtr> > failed_;
   bool stop_processing_;
   std::string name_;
   ManipulationStagePtr next_;
