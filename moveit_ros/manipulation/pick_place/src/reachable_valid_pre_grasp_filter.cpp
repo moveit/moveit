@@ -34,17 +34,16 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/pick_place/reachable_valid_grasp_filter.h>
-#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/pick_place/reachable_valid_pre_grasp_filter.h>
 #include <ros/console.h>
 
 namespace pick_place
 {
 
-ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const Options &opt, 
-                                                           const planning_scene::PlanningSceneConstPtr &scene,
-                                                           const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                                                           unsigned int nthreads) :
+ReachableAndValidPreGraspFilter::ReachableAndValidPreGraspFilter(const ReachableAndValidGraspFilter::Options &opt, 
+                                                                 const planning_scene::PlanningSceneConstPtr &scene,
+                                                                 const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
+                                                                 unsigned int nthreads) :
   ManipulationStage(nthreads),
   opt_(opt),
   planning_scene_(scene),
@@ -53,40 +52,36 @@ ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const Options &opt,
   name_ = "reachable & valid grasp filter";
 }
 
-bool ReachableAndValidGraspFilter::isStateCollisionFree(const sensor_msgs::JointState *pre_grasp_posture, 
-                                                        kinematic_state::JointStateGroup *joint_state_group,
-                                                        const std::vector<double> &joint_group_variable_values) const
+bool ReachableAndValidPreGraspFilter::isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
+                                                           const std::vector<double> &joint_group_variable_values) const
 {
   joint_state_group->setVariableValues(joint_group_variable_values);  
-  // apply pre-grasp pose for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-  joint_state_group->getKinematicState()->setStateValues(*pre_grasp_posture);
   return !planning_scene_->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName());
 }
 
-bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
+bool ReachableAndValidPreGraspFilter::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
 {
-  geometry_msgs::PoseStamped pose;
-  pose.header = plan->grasp_.header;
-  pose.pose = plan->grasp_.grasp_pose;
-  
-  // convert the pose we want to reach to a set of constraints
-  plan->goal_constraints_ = kinematic_constraints::constructGoalConstraints(opt_.ik_link_, pose,
-                                                                            opt_.tolerance_position_xyz_,
-                                                                            opt_.tolerance_rotation_xyz_);
+  plan->intermediate_goal_constraints_ = plan->goal_constraints_;
+
+  // apply the minimum approach distance
+  plan->intermediate_goal_constraints_.position_constraints[0].target_point_offset.x += plan->grasp_.min_approach_distance * plan->grasp_.approach_direction.x;
+  plan->intermediate_goal_constraints_.position_constraints[0].target_point_offset.y += plan->grasp_.min_approach_distance * plan->grasp_.approach_direction.y;
+  plan->intermediate_goal_constraints_.position_constraints[0].target_point_offset.z += plan->grasp_.min_approach_distance * plan->grasp_.approach_direction.z;
   
   // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
   // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
-  plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, opt_.planning_group_, plan->goal_constraints_);
-  if (plan->goal_sampler_)
+  plan->intermediate_goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, opt_.planning_group_, plan->intermediate_goal_constraints_);
+  
+  if (plan->intermediate_goal_sampler_)
   {
-    plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, &plan->grasp_.pre_grasp_posture, _1, _2));
-
-    // initialize with scene state 
-    plan->token_goal_state_.reset(new kinematic_state::KinematicState(planning_scene_->getCurrentState()));
+    plan->intermediate_goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidPreGraspFilter::isStateCollisionFree, this, _1, _2));
     
-    if (plan->goal_sampler_->sample(plan->token_goal_state_->getJointStateGroup(opt_.planning_group_),
-                                    *plan->token_goal_state_,
-                                    planning_scene_->getKinematicModel()->getJointModelGroup(opt_.planning_group_)->getDefaultIKAttempts()))
+    // initialize with scene state 
+    plan->token_intermediate_state_.reset(new kinematic_state::KinematicState(planning_scene_->getCurrentState()));
+    
+    if (plan->intermediate_goal_sampler_->sample(plan->token_intermediate_state_->getJointStateGroup(opt_.planning_group_),
+                                                 *plan->token_intermediate_state_,
+                                                 planning_scene_->getKinematicModel()->getJointModelGroup(opt_.planning_group_)->getDefaultIKAttempts()))
     {
       return true;
     }

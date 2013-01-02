@@ -38,10 +38,13 @@
 #define MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
 
 #include <boost/shared_ptr.hpp>
+#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/constraint_samplers/constraint_sampler.h>
 #include <manipulation_msgs/Grasp.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
+#include <moveit_msgs/Constraints.h>
 #include <string>
 #include <vector>
 
@@ -52,6 +55,18 @@ struct ManipulationPlan
 {
   // The grasp that is attempted
   manipulation_msgs::Grasp grasp_;
+
+  moveit_msgs::Constraints goal_constraints_;
+
+  moveit_msgs::Constraints intermediate_goal_constraints_;
+  
+  constraint_samplers::ConstraintSamplerPtr goal_sampler_;
+
+  constraint_samplers::ConstraintSamplerPtr intermediate_goal_sampler_;
+  
+  kinematic_state::KinematicStatePtr token_goal_state_;
+  
+  kinematic_state::KinematicStatePtr token_intermediate_state_;
   
   // The full starting state of the robot at the start of the trajectory
   moveit_msgs::RobotState trajectory_start_;

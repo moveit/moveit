@@ -34,51 +34,34 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_PICK_PLACE_REACHABLE_VALID_GRASP_FILTER_
-#define MOVEIT_PICK_PLACE_REACHABLE_VALID_GRASP_FILTER_
+#ifndef MOVEIT_PICK_PLACE_APPROACH_STAGE_
+#define MOVEIT_PICK_PLACE_APPROACH_STAGE_
 
 #include <moveit/pick_place/manipulation_stage.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit/planning_scene/planning_scene.h>
 
 namespace pick_place
 {
 
-class ReachableAndValidGraspFilter : public ManipulationStage
+class ApproachStage : public ManipulationStage
 {
-public:
+public:  
   
-  struct Options
-  {
-    Options(const std::string &planning_group, const std::string &ik_link) :
-      planning_group_(planning_group),
-      ik_link_(ik_link),
-      tolerance_position_xyz_(3, 1e-3), // 1mm tolerance
-      tolerance_rotation_xyz_(3, 1e-2) // approx 0.573 degrees tolerance
-    {
-    };
-    
-    std::string planning_group_;
-    std::string ik_link_;
-    std::vector<double> tolerance_position_xyz_;
-    std::vector<double> tolerance_rotation_xyz_;
-  };
-  
-  ReachableAndValidGraspFilter(const Options &opt,
-                               const planning_scene::PlanningSceneConstPtr &scene,
-                               const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                               unsigned int nthreads = 4);
+  ApproachStage(const planning_scene::PlanningSceneConstPtr &scene,
+                const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
+                unsigned int nthreads = 4);
   
   virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
   
 private:
 
-  bool isStateCollisionFree(const sensor_msgs::JointState *pre_grasp_posture,
-                            kinematic_state::JointStateGroup *joint_state_group,
+  bool isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
                             const std::vector<double> &joint_group_variable_values) const;
   
-  Options opt_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
   constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
 };
 

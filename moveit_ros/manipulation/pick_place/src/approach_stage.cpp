@@ -32,57 +32,47 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PICK_PLACE_REACHABLE_VALID_GRASP_FILTER_
-#define MOVEIT_PICK_PLACE_REACHABLE_VALID_GRASP_FILTER_
-
-#include <moveit/pick_place/manipulation_stage.h>
-#include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/pick_place/approach_stage.h>
+#include <moveit/constraint_samplers/default_constraint_samplers.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <ros/console.h>
 
 namespace pick_place
 {
 
-class ReachableAndValidGraspFilter : public ManipulationStage
+ApproachStage::ApproachStage(const planning_scene::PlanningSceneConstPtr &scene,
+                             const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                             const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
+                             unsigned int nthreads) :
+  ManipulationStage(nthreads),
+  planning_scene_(scene),
+  planning_pipeline_(planning_pipeline),
+  constraints_sampler_manager_(constraints_sampler_manager)
 {
-public:
-  
-  struct Options
-  {
-    Options(const std::string &planning_group, const std::string &ik_link) :
-      planning_group_(planning_group),
-      ik_link_(ik_link),
-      tolerance_position_xyz_(3, 1e-3), // 1mm tolerance
-      tolerance_rotation_xyz_(3, 1e-2) // approx 0.573 degrees tolerance
-    {
-    };
-    
-    std::string planning_group_;
-    std::string ik_link_;
-    std::vector<double> tolerance_position_xyz_;
-    std::vector<double> tolerance_rotation_xyz_;
-  };
-  
-  ReachableAndValidGraspFilter(const Options &opt,
-                               const planning_scene::PlanningSceneConstPtr &scene,
-                               const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                               unsigned int nthreads = 4);
-  
-  virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
-  
-private:
-
-  bool isStateCollisionFree(const sensor_msgs::JointState *pre_grasp_posture,
-                            kinematic_state::JointStateGroup *joint_state_group,
-                            const std::vector<double> &joint_group_variable_values) const;
-  
-  Options opt_;
-  planning_scene::PlanningSceneConstPtr planning_scene_;
-  constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
-};
-
+  name_ = "approach";
 }
 
-#endif
+bool ApproachStage::isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
+                                         const std::vector<double> &joint_group_variable_values) const
+{
+  joint_state_group->setVariableValues(joint_group_variable_values);
+  return !planning_scene_->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName());
+}
 
+bool ApproachStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
+{
+  moveit_msgs::GetMotionPlan::Request req;
+  moveit_msgs::GetMotionPlan::Response res;
+  
+  if (planning_pipeline_->generatePlan(planning_scene_, req, res))
+  {
+    
+    return true;
+  }
+  
+  return false;
+}
+
+}
