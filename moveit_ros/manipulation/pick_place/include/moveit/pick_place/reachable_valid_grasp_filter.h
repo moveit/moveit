@@ -50,15 +50,13 @@ public:
   
   struct Options
   {
-    Options(const std::string &planning_group, const std::string &ik_link) :
-      planning_group_(planning_group),
+    Options(const std::string &ik_link) :
       ik_link_(ik_link),
       tolerance_position_xyz_(3, 1e-3), // 1mm tolerance
       tolerance_rotation_xyz_(3, 1e-2) // approx 0.573 degrees tolerance
     {
     };
     
-    std::string planning_group_;
     std::string ik_link_;
     std::vector<double> tolerance_position_xyz_;
     std::vector<double> tolerance_rotation_xyz_;

@@ -76,7 +76,7 @@ bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Manipu
   
   // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
   // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
-  plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, opt_.planning_group_, plan->goal_constraints_);
+  plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, plan->planning_group_, plan->goal_constraints_);
   if (plan->goal_sampler_)
   {
     plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, &plan->grasp_.pre_grasp_posture, _1, _2));
@@ -84,9 +84,9 @@ bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Manipu
     // initialize with scene state 
     plan->token_goal_state_.reset(new kinematic_state::KinematicState(planning_scene_->getCurrentState()));
     
-    if (plan->goal_sampler_->sample(plan->token_goal_state_->getJointStateGroup(opt_.planning_group_),
+    if (plan->goal_sampler_->sample(plan->token_goal_state_->getJointStateGroup(plan->planning_group_),
                                     *plan->token_goal_state_,
-                                    planning_scene_->getKinematicModel()->getJointModelGroup(opt_.planning_group_)->getDefaultIKAttempts()))
+                                    planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts()))
     {
       return true;
     }

@@ -48,8 +48,7 @@ class ReachableAndValidPreGraspFilter : public ManipulationStage
 {
 public:
   
-  ReachableAndValidPreGraspFilter(const ReachableAndValidGraspFilter::Options &opt,
-                                  const planning_scene::PlanningSceneConstPtr &scene,
+  ReachableAndValidPreGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
                                   const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
                                   unsigned int nthreads = 4);
   
@@ -60,7 +59,6 @@ private:
   bool isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
                             const std::vector<double> &joint_group_variable_values) const;
   
-  ReachableAndValidGraspFilter::Options opt_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
 };
