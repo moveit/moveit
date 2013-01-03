@@ -45,6 +45,7 @@
 #include <Eigen/Geometry>
 #include <moveit_msgs/CollisionMap.h>
 #include <eigen_stl_containers/eigen_stl_containers.h>
+#include <geometric_shapes/shape_messages.h>
 
 namespace distance_field
 {
@@ -87,6 +88,9 @@ public:
 
   virtual ~DistanceField();
 
+  virtual void updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
+                                   const EigenSTL::vector_Vector3d& new_points) = 0;
+
   /** 
    * \brief Add a set of points to the distance field, updating distance values accordingly
    * 
@@ -113,6 +117,16 @@ public:
    * \brief Adds the points in a collision map to the distance field.
    */
   void addCollisionMapToField(const moveit_msgs::CollisionMap &collision_map);
+
+  void addShapeToField(const shapes::ShapeMsg& shape,
+                       const geometry_msgs::Pose& pose);
+
+  void moveShapeInField(const shapes::ShapeMsg& shape,
+                        const geometry_msgs::Pose& old_pose,
+                        const geometry_msgs::Pose& new_pose);
+  
+  void removeShapeFromField(const shapes::ShapeMsg& shape,
+                            const geometry_msgs::Pose& pose);
 
   /**
    * \brief Resets the distance field to an unitialized value

@@ -103,79 +103,55 @@ void PropagationDistanceField::print(const EigenSTL::vector_Vector3d& points)
 }
 
 
-void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector3d& points, bool iterative)
+void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
+                                                   const EigenSTL::vector_Vector3d& new_points)
 {
-  VoxelSet points_added;
-  VoxelSet points_removed(object_voxel_locations_);
-
-  logDebug( "obstacle_voxel_locations_=" );
-  print(object_voxel_locations_);
-  logDebug( "points=" );
-  print(points);
-
-  if( iterative )
-  {
-
-    // Compare and figure out what points are new,
-    // and what points are to be deleted
-    for( unsigned int i=0; i<points.size(); i++)
+  VoxelSet old_point_set;
+  for(unsigned int i = 0; i < old_points.size(); i++) {
+    Eigen::Vector3i voxel_loc;
+    bool valid = worldToGrid(old_points[i].x(), old_points[i].y(), old_points[i].z(),
+                             voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+    if( valid )
     {
-      // Convert to voxel coordinates
-      Eigen::Vector3i voxel_loc;
-      bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
-                               voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
-      if( valid )
-      {
-        logDebug( " checking for %d, %d, %d\n", voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
-        bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
-        if( !already_obstacle_voxel )
-        {
-          logDebug( " didn't find it" );
-          // Not already in set of existing obstacles, so add to voxel list
-          object_voxel_locations_.insert(voxel_loc);
-
-          // Add point to the set for expansion
-          points_added.insert(voxel_loc);
-        }
-        else
-        {
-          logDebug( " found it" );
-          // Already an existing obstacle, so take off removal list
-          points_removed.erase(voxel_loc);
-        }
-      }
+      old_point_set.insert(voxel_loc);
     }
-
-    removeObstacleVoxels( points_removed );
-    addNewObstacleVoxels( points_added );
   }
 
-  else	// !iterative
-  {
-    reset();
-
-    for( unsigned int i=0; i<points.size(); i++)
+  VoxelSet new_point_set;
+  for(unsigned int i = 0; i < new_points.size(); i++) {
+    Eigen::Vector3i voxel_loc;
+    bool valid = worldToGrid(new_points[i].x(), new_points[i].y(), new_points[i].z(),
+                             voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+    if( valid )
     {
-      // Convert to voxel coordinates
-      Eigen::Vector3i voxel_loc;
-      bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
-                               voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
-      if( valid )
-      {
-        object_voxel_locations_.insert(voxel_loc);
-        points_added.insert(voxel_loc);
-      }
+      new_point_set.insert(voxel_loc);
     }
-    addNewObstacleVoxels( points_added );
+  }
+  compareEigen_Vector3i comp;
+
+  VoxelSet old_not_new;
+  std::set_difference(old_point_set.begin(), old_point_set.end(), new_point_set.begin(), new_point_set.end(), std::inserter(old_not_new, old_not_new.end()), comp);
+  
+  VoxelSet new_not_old;
+  std::set_difference(new_point_set.begin(), new_point_set.end(), old_point_set.begin(), old_point_set.end(), std::inserter(new_not_old, new_not_old.end()), comp);
+
+  for(VoxelSet::iterator it = new_not_old.begin(); 
+      it != new_not_old.end();
+      it++) {
+    object_voxel_locations_.insert(*it);
   }
 
-  logDebug( "new=" );
-  print(points_added);
-  logDebug( "removed=" );
-  print(points_removed);
-  logDebug( "obstacle_voxel_locations_=" );
-  print(object_voxel_locations_);
-  logDebug("");  
+  std::cout << "old " << old_not_new.size() << " new " << new_not_old.size() << " orig " << old_points.size()+new_points.size() << std::endl;
+  removeObstacleVoxels(old_not_new);
+  addNewObstacleVoxels(new_not_old);
+
+  // logDebug( "new=" );
+  // print(points_added);
+  // logDebug( "removed=" );
+  // print(points_removed);
+  // logDebug( "obstacle_voxel_locations_=" );
+  // print(object_voxel_locations_);
+  // logDebug("");  
 }
 
 void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
@@ -283,7 +259,7 @@ void PropagationDistanceField::addNewObstacleVoxels(const VoxelSet& locations)
           PropDistanceFieldVoxel& nvoxel = voxel_grid_.getCell(nloc.x(), nloc.y(), nloc.z());
           if(nvoxel.closest_negative_point_.x() != PropDistanceFieldVoxel::UNINITIALIZED)
           {
-            std::cout << "Adding neighbor " << nloc.x() << " " << nloc.y() << " " << nloc.z() << std::endl;
+            //std::cout << "Adding neighbor " << nloc.x() << " " << nloc.y() << " " << nloc.z() << std::endl;
             nvoxel.negative_update_direction_ = initial_update_direction;
             nvoxel.closest_negative_point_.x() == PropDistanceFieldVoxel::UNINITIALIZED;
             nvoxel.closest_negative_point_.y() == PropDistanceFieldVoxel::UNINITIALIZED;
@@ -411,38 +387,7 @@ void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
       }
     }
     propagateNegative();
-  }
-    
-  //   VoxelSet::const_iterator it = locations.begin();
-  //   for( it=locations.begin(); it!=locations.end(); ++it)
-  //   {
-  //     Eigen::Vector3i loc = *it;
-  //     bool valid = isCellValid( loc.x(), loc.y(), loc.z());
-  //     if (!valid)
-  //       continue;
-  //     PropDistanceFieldVoxel& voxel = voxel_grid_.getCell(loc.x(), loc.y(), loc.z());
-  //     for( int neighbor=0; neighbor<27; neighbor++ )
-  //     {
-  //       Eigen::Vector3i diff = getLocationDifference(neighbor);
-  //       Eigen::Vector3i nloc( loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z() );
-        
-  //       if( isCellValid(nloc.x(), nloc.y(), nloc.z()) )
-  //       {
-  //         PropDistanceFieldVoxel& nvoxel = voxel_grid_.getCell(nloc.x(), nloc.y(), nloc.z());
-  //         if(nvoxel.negative_distance_square_ != 0 && nvoxel.negative_distance_square_ != PropDistanceFieldVoxel::UNINITIALIZED)
-  //         {
-  //           std::cout << "Adding neighbor " << nloc.x() << " " << nloc.y() << " " << nloc.z() << std::endl;
-  //           //all neighbors are now one if they weren't 0 before
-  //           nvoxel.negative_distance_square_ = 1;
-  //           nvoxel.negative_update_direction_ = initial_update_direction;
-  //           nvoxel.closest_negative_point_ = loc;
-  //           negative_bucket_queue_[0].push_back(nloc);
-  //         }
-  //       }
-  //     }
-  //   }
-  //   propagateNegative();
-  // }
+  }    
 }
 
 void PropagationDistanceField::propagatePositive()
@@ -548,7 +493,7 @@ void PropagationDistanceField::propagateNegative()
         //std::cout << "Looking at " << nloc.x() << " " << nloc.y() << " " << nloc.z() << " " << new_distance_sq << " " << neighbor->negative_distance_square_ << std::endl;
         if (new_distance_sq < neighbor->negative_distance_square_)
         {
-          std::cout << "Updating " << nloc.x() << " " << nloc.y() << " " << nloc.z() << " " << new_distance_sq << std::endl;
+          //std::cout << "Updating " << nloc.x() << " " << nloc.y() << " " << nloc.z() << " " << new_distance_sq << std::endl;
           // update the neighboring voxel
           neighbor->negative_distance_square_ = new_distance_sq;
           neighbor->closest_negative_point_ = vptr->closest_negative_point_;
