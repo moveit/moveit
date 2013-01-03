@@ -106,10 +106,9 @@ public:
   
   /**
    * \brief Change the set of obstacle points and recalculate the distance field (if there are any changes).
-   * \param iterative Calculate the changes in the object voxels, and propagate the changes outward.
-   *        Otherwise, clear the distance map and recalculate the entire voxel map.
    */
-  virtual void updatePointsInField(const EigenSTL::vector_Vector3d& points, const bool iterative=true);
+  virtual void updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
+                                   const EigenSTL::vector_Vector3d& new_points);
 
   /**
    * \brief Add (and expand) a set of points to the distance field.

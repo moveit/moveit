@@ -35,6 +35,9 @@
 /* Author: Mrinal Kalakrishnan, Ken Anderson, E. Gil Jones */
 
 #include <moveit/distance_field/distance_field.h>
+#include <moveit/distance_field/distance_field_common.h>
+#include <geometric_shapes/body_operations.h>
+#include <eigen_conversions/eigen_msg.h>
 
 namespace distance_field
 {
@@ -202,6 +205,40 @@ void DistanceField::addCollisionMapToField(const moveit_msgs::CollisionMap &coll
                                      ));
   }
   addPointsToField(points);
+}
+
+void DistanceField::addShapeToField(const shapes::ShapeMsg& shape,
+                                    const geometry_msgs::Pose& pose)
+{
+  bodies::Body* body = bodies::constructBodyFromMsg(shape, pose);
+  EigenSTL::vector_Vector3d point_vec = determineCollisionPoints(body, resolution_);
+  delete body;
+  addPointsToField(point_vec);
+}
+
+void DistanceField::moveShapeInField(const shapes::ShapeMsg& shape,
+                                     const geometry_msgs::Pose& old_pose,
+                                     const geometry_msgs::Pose& new_pose)
+{
+  bodies::Body* body = bodies::constructBodyFromMsg(shape, old_pose);
+  EigenSTL::vector_Vector3d old_point_vec = determineCollisionPoints(body, resolution_);
+  Eigen::Affine3d new_pose_e;
+  tf::poseMsgToEigen(new_pose, new_pose_e);
+  body->setPose(new_pose_e);
+  EigenSTL::vector_Vector3d new_point_vec = determineCollisionPoints(body, resolution_);
+  delete body;
+  std::cout << "Old set " << old_point_vec.size() << " new set " << new_point_vec.size() << std::endl;
+  updatePointsInField(old_point_vec,
+                      new_point_vec);
+}
+
+void DistanceField::removeShapeFromField(const shapes::ShapeMsg& shape,
+                                         const geometry_msgs::Pose& pose)
+{
+  bodies::Body* body = bodies::constructBodyFromMsg(shape, pose);
+  EigenSTL::vector_Vector3d point_vec = determineCollisionPoints(body, resolution_);
+  delete body;
+  removePointsFromField(point_vec);
 }
 
 void DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type, double length, double width,
