@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_move_group)
 
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
 find_package(Boost REQUIRED system filesystem date_time program_options signals thread)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
