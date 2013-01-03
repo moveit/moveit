@@ -77,6 +77,7 @@ catkin_package(
     random_numbers
     console_bridge
     moveit_msgs
+    kdl_parser
     srdfdom
   DEPENDS
     Boost
