@@ -83,10 +83,11 @@ protected:
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true));
 
-    crobot_.reset(new DefaultCRobotType(kmodel_));
+    std::map<std::string, std::vector<collision_detection::CollisionSphere> > link_body_decompositions;
+    crobot_.reset(new DefaultCRobotType(kmodel_, link_body_decompositions));
     cworld_.reset(new DefaultCWorldType());
-
   }
+
 
   virtual void TearDown()
   {
@@ -117,6 +118,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
 {
   kinematic_state::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
+
+  ASSERT_TRUE(urdf_ok_ && srdf_ok_);
 
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
