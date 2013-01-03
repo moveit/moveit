@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_planning_interface)
 
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread date_time system filesystem program_options python)
 find_package(PythonLibs)

@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_ros_planning)
 
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
 set(MSG_DEPS
   std_msgs
   actionlib_msgs
