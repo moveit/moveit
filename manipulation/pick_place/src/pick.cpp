@@ -94,9 +94,9 @@ public:
     }
     
     done_ = false;
-    ReachableAndValidGraspFilter::Options opt(planning_group, eef->getEndEffectorParentGroup().second);
+    ReachableAndValidGraspFilter::Options opt(eef->getEndEffectorParentGroup().second);
     root_.reset(new ReachableAndValidGraspFilter(opt, planning_scene, pick_place_->getConstraintsSamplerManager(), 4));
-    ManipulationStagePtr f0 = root_->follow(ManipulationStagePtr(new ReachableAndValidPreGraspFilter(opt, planning_scene, pick_place_->getConstraintsSamplerManager(), 4)));
+    ManipulationStagePtr f0 = root_->follow(ManipulationStagePtr(new ReachableAndValidPreGraspFilter(planning_scene, pick_place_->getConstraintsSamplerManager(), 4)));
     ManipulationStagePtr f1 = f0->follow(ManipulationStagePtr(new OutputStage(boost::bind(&PickPlan::foundSolution, this, _1))));
 
     root_->startAll();
@@ -106,6 +106,8 @@ public:
     {
       ManipulationPlanPtr p(new ManipulationPlan());
       p->grasp_ = goal.possible_grasps[i];
+      p->planning_group_ = planning_group;
+      p->timeout_ = endtime;
       root_->push(p);
     }
     

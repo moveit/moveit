@@ -56,6 +56,10 @@ struct ManipulationPlan
   // The grasp that is attempted
   manipulation_msgs::Grasp grasp_;
 
+  std::string planning_group_;
+  
+  ros::WallTime timeout_;
+  
   moveit_msgs::Constraints goal_constraints_;
 
   moveit_msgs::Constraints intermediate_goal_constraints_;

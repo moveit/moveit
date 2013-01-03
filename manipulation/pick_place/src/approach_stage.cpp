@@ -62,13 +62,32 @@ bool ApproachStage::isStateCollisionFree(kinematic_state::JointStateGroup *joint
 }
 
 bool ApproachStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
-{
+{ 
   moveit_msgs::GetMotionPlan::Request req;
   moveit_msgs::GetMotionPlan::Response res;
-  
-  if (planning_pipeline_->generatePlan(planning_scene_, req, res))
+  req.motion_plan_request.group_name = plan->planning_group_;
+  req.motion_plan_request.num_planning_attempts = 1;
+  req.motion_plan_request.allowed_planning_time = ros::Duration((plan->timeout_ - ros::WallTime::now()).toSec() * 0.5);
+
+  // construct the approach motion requests for desired approach distance
+  unsigned int steps = (unsigned int)floor(plan->grasp_.desired_approach_distance / 0.01 + 0.5);
+  req.motion_plan_request.trajectory_constraints.constraints.resize(steps);
+  for (unsigned int i = 1 ; i < steps ; ++i)
   {
-    
+    moveit_msgs::Constraints &c = req.motion_plan_request.trajectory_constraints.constraints[i - 1];
+    c = plan->goal_constraints_;
+    double factor = plan->grasp_.desired_approach_distance * ((double)i / (double)steps);
+    // apply the approach distance
+    c.position_constraints[0].target_point_offset.x += factor * plan->grasp_.approach_direction.x;
+    c.position_constraints[0].target_point_offset.y += factor * plan->grasp_.approach_direction.y;
+    c.position_constraints[0].target_point_offset.z += factor * plan->grasp_.approach_direction.z;
+  }
+  req.motion_plan_request.trajectory_constraints.constraints.back() = plan->goal_constraints_;
+  
+  if (planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  {
+    plan->trajectories_.push_back(res.trajectory);
+    plan->trajectory_descriptions_.push_back(name_);
     return true;
   }
   

@@ -40,16 +40,14 @@
 namespace pick_place
 {
 
-ReachableAndValidPreGraspFilter::ReachableAndValidPreGraspFilter(const ReachableAndValidGraspFilter::Options &opt, 
-                                                                 const planning_scene::PlanningSceneConstPtr &scene,
+ReachableAndValidPreGraspFilter::ReachableAndValidPreGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
                                                                  const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
                                                                  unsigned int nthreads) :
   ManipulationStage(nthreads),
-  opt_(opt),
   planning_scene_(scene),
   constraints_sampler_manager_(constraints_sampler_manager)
 {
-  name_ = "reachable & valid grasp filter";
+  name_ = "reachable & valid pre-grasp filter";
 }
 
 bool ReachableAndValidPreGraspFilter::isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
@@ -70,7 +68,7 @@ bool ReachableAndValidPreGraspFilter::evaluate(unsigned int thread_id, const Man
   
   // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
   // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
-  plan->intermediate_goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, opt_.planning_group_, plan->intermediate_goal_constraints_);
+  plan->intermediate_goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, plan->planning_group_, plan->intermediate_goal_constraints_);
   
   if (plan->intermediate_goal_sampler_)
   {
@@ -79,9 +77,9 @@ bool ReachableAndValidPreGraspFilter::evaluate(unsigned int thread_id, const Man
     // initialize with scene state 
     plan->token_intermediate_state_.reset(new kinematic_state::KinematicState(planning_scene_->getCurrentState()));
     
-    if (plan->intermediate_goal_sampler_->sample(plan->token_intermediate_state_->getJointStateGroup(opt_.planning_group_),
+    if (plan->intermediate_goal_sampler_->sample(plan->token_intermediate_state_->getJointStateGroup(plan->planning_group_),
                                                  *plan->token_intermediate_state_,
-                                                 planning_scene_->getKinematicModel()->getJointModelGroup(opt_.planning_group_)->getDefaultIKAttempts()))
+                                                 planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts()))
     {
       return true;
     }
