@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Mario Prats */
 
 #include <moveit/benchmarks/benchmarks_config.h>
 #include <boost/regex.hpp>
