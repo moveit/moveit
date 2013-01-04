@@ -54,9 +54,11 @@ class KinematicState
   friend class LinkState;
   friend class JointState;
 public:
-  
+
+  /// \cond IGNORE
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  
+  /// \endcond 
+
   /** \brief Create a state corresponding to a given kinematic model */
   KinematicState(const kinematic_model::KinematicModelConstPtr &kinematic_model);
   
@@ -80,6 +82,8 @@ public:
   /** @brief Set the joint state values from a joint state message */
   void setStateValues(const sensor_msgs::JointState& msg);
 
+  /** @brief Set the joint state values for an array of variable names, given the values are specified in the same order as the names.
+      This is just a convenience call equivalent to passing a map from string to double. */
   void setStateValues(const std::vector<std::string>& joint_names,
                       const std::vector<double>& joint_values);
   
@@ -171,11 +175,12 @@ public:
   /** \brief Get the names of all joint groups in the model corresponding to this state*/
   void getJointStateGroupNames(std::vector<std::string>& names) const;
   
+  /** \brief Attach a body to this state */
+  void attachBody(AttachedBody *attached_body);
+    
   /** \brief Get all bodies attached to the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
-  
-  void attachBody(AttachedBody *body);
-  
+    
   /** \brief Remove the attached body named \e id. Return false if the object was not found (and thus not removed). Return true on success. */
   bool clearAttachedBody(const std::string &id);
   
@@ -203,8 +208,6 @@ public:
   
   /** \brief Print the pose of every link */
   void printTransforms(std::ostream &out = std::cout) const;
-  
-  void printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out = std::cout) const;
   
   /** \brief Get the global transform applied to the entire tree of links */
   const Eigen::Affine3d& getRootTransform(void) const;
@@ -259,14 +262,16 @@ public:
   
   /** \brief Get the distance between this state and another one. This distance does not consider topology -- it is only the L2 norm on the joint vector */
   double distance(const KinematicState &state) const;
-    
+  
+  /** \brief Assignment operator. Copies everything, including attached bodies (clones them) */
   KinematicState& operator=(const KinematicState &other);
   
 private:
 
   void buildState(void);
   void copyFrom(const KinematicState &ks);
-  
+  void printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out = std::cout) const;
+
   kinematic_model::KinematicModelConstPtr kinematic_model_;
   
   std::vector<JointState*>                joint_state_vector_;
