@@ -66,7 +66,13 @@ public:
   const ManipulationStagePtr& follow(const ManipulationStagePtr &next)
   {
     next_ = next;
+    //    next_->previous_ = this;
     return next;
+  } 
+
+  const ManipulationStagePtr& getNextStage(void) const
+  {
+    return next_;
   }
   
   void start(void);  
@@ -83,6 +89,8 @@ public:
   {
     return next_ ? next_->done() : false;
   }
+  
+  void getFailedPlans(std::vector<ManipulationPlanPtr> &failed) const;
   
 protected:
   
@@ -112,6 +120,7 @@ protected:
   bool stop_processing_;
   std::string name_;
   ManipulationStagePtr next_;
+  //  ManipulationStage* previous_;
 };
 
 }

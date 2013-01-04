@@ -35,6 +35,8 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/pick_place/pick_place.h>
+#include <moveit/kinematic_state/conversions.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -43,9 +45,41 @@ namespace pick_place
 // functionality specific to pick-only is in pick.cpp;
 // functionality specific to place-only is in place.cpp;
 
-PickPlace::PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline) : planning_pipeline_(planning_pipeline)
+PickPlace::PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline) :
+  nh_("~"),
+  planning_pipeline_(planning_pipeline)
 {
   constraint_sampler_manager_loader_.reset(new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader());
+  display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_grasp_info", 10, true);
+}
+
+void PickPlace::displayPlan(const ManipulationPlanPtr &plan) const
+{
+  if (plan->token_goal_state_)
+  {
+    moveit_msgs::DisplayTrajectory dtraj;
+    kinematic_state::kinematicStateToRobotState(*plan->token_goal_state_, dtraj.trajectory_start);
+    display_path_publisher_.publish(dtraj);
+  } 
+  sleep(1);
+  if (plan->token_intermediate_state_)
+  {
+    moveit_msgs::DisplayTrajectory dtraj;
+    kinematic_state::kinematicStateToRobotState(*plan->token_intermediate_state_, dtraj.trajectory_start);
+    display_path_publisher_.publish(dtraj);
+  } 
+  
+  if (!plan->trajectories_.empty())
+  {   
+    moveit_msgs::DisplayTrajectory dtraj;
+    dtraj.trajectory_start = plan->trajectory_start_;
+    for (std::size_t i = 0 ; i < plan->trajectories_.size() ; ++i)
+    {
+      dtraj.trajectory = plan->trajectories_[i];
+      sleep(1);
+      display_path_publisher_.publish(dtraj);
+    }
+  }
 }
 
 }

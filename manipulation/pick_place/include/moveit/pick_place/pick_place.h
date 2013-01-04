@@ -68,8 +68,12 @@ public:
   /** \brief Plan the sequence of motions that perform a placement action */
   ManipulationPlanPtr planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const;
 
+  void displayPlan(const ManipulationPlanPtr &plan) const;
+  
 private:
   
+  ros::NodeHandle nh_;
+  ros::Publisher display_path_publisher_;
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;  
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
 };

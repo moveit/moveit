@@ -37,7 +37,9 @@
 #include <moveit/pick_place/pick_place.h>
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
 #include <moveit/pick_place/reachable_valid_pre_grasp_filter.h>
+#include <moveit/pick_place/approach_stage.h>
 #include <moveit/pick_place/output_stage.h>
+#include <moveit/kinematic_state/conversions.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -45,6 +47,20 @@ namespace pick_place
 
 namespace
 {
+
+struct OrderGraspQuality
+{
+  OrderGraspQuality(const std::vector<manipulation_msgs::Grasp> &grasps) : grasps_(grasps)
+  {
+  }
+  
+  bool operator()(const std::size_t a, const std::size_t b) const
+  {
+    return grasps_[a].grasp_quality > grasps_[b].grasp_quality;
+  }
+  
+  const std::vector<manipulation_msgs::Grasp> &grasps_;
+};
   
 class PickPlan
 {
@@ -97,17 +113,28 @@ public:
     ReachableAndValidGraspFilter::Options opt(eef->getEndEffectorParentGroup().second);
     root_.reset(new ReachableAndValidGraspFilter(opt, planning_scene, pick_place_->getConstraintsSamplerManager(), 4));
     ManipulationStagePtr f0 = root_->follow(ManipulationStagePtr(new ReachableAndValidPreGraspFilter(planning_scene, pick_place_->getConstraintsSamplerManager(), 4)));
-    ManipulationStagePtr f1 = f0->follow(ManipulationStagePtr(new OutputStage(boost::bind(&PickPlan::foundSolution, this, _1))));
-
+    ManipulationStagePtr f1 = f0->follow(ManipulationStagePtr(new ApproachStage(planning_scene, pick_place_->getPlanningPipeline(), pick_place_->getConstraintsSamplerManager(), 4)));
+    ManipulationStagePtr last = f1->follow(ManipulationStagePtr(new OutputStage(boost::bind(&PickPlan::foundSolution, this, _1))));
+    
     root_->startAll();
 
-    // feed the available grasps to the filter we set up
+    // order the grasps by quality
+    std::vector<std::size_t> grasp_order(goal.possible_grasps.size());
+    for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
+      grasp_order[i] = i;
+    OrderGraspQuality oq(goal.possible_grasps);
+    std::sort(grasp_order.begin(), grasp_order.end(), oq);
+    moveit_msgs::RobotState start;
+    kinematic_state::kinematicStateToRobotState(planning_scene->getCurrentState(), start);
+
+    // feed the available grasps to the stages we set up
     for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
     {
       ManipulationPlanPtr p(new ManipulationPlan());
-      p->grasp_ = goal.possible_grasps[i];
+      p->grasp_ = goal.possible_grasps[grasp_order[i]];
       p->planning_group_ = planning_group;
       p->timeout_ = endtime;
+      p->trajectory_start_ = start;
       root_->push(p);
     }
     
@@ -122,7 +149,17 @@ public:
     root_->stopAll();
 
     // read the output of the last filter
-    return static_cast<OutputStage*>(f1.get())->getOutput();
+    return static_cast<OutputStage*>(last.get())->getOutput();
+  }
+  
+  void getFailedPlans(std::vector<ManipulationPlanPtr> &plans)
+  {
+    ManipulationStagePtr stage = root_;
+    while (stage)
+    {
+      stage->getFailedPlans(plans);
+      stage = stage->getNextStage();
+    }
   }
   
 private:
@@ -147,16 +184,33 @@ ManipulationPlanPtr PickPlace::planPick(const planning_scene::PlanningScenePtr &
 {
   ros::WallTime start = ros::WallTime::now();
   PickPlan p(this);
-  const std::vector<ManipulationPlanPtr> &g = p.plan(planning_scene, goal, 1.0);
+  const std::vector<ManipulationPlanPtr> &g = p.plan(planning_scene, goal, 5.0);
   double dt = (ros::WallTime::now() - start).toSec();
-  ROS_INFO("Pick plan took %lf seconds", dt);
+  if (g.empty())
+  {
+    std::vector<ManipulationPlanPtr> failed;
+    p.getFailedPlans(failed);
+    if (failed.empty())
+      ROS_WARN("No plans were evaluated within %lf seconds", dt);
+    else
+    {
+      ROS_WARN("No pick plan found within %lf seconds", dt);
+      displayPlan(failed.front());
+    }
+  }
+  else
+    ROS_INFO("Pick plan took %lf seconds", dt);
+  
   if (g.empty())
   {
     static const ManipulationPlanPtr empty;
     return empty;
   }
-  else
+  else 
+  { 
+    displayPlan(g.back());
     return g.back();
+  }
 }
 
 }

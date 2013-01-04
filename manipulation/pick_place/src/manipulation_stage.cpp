@@ -43,6 +43,7 @@ namespace pick_place
 ManipulationStage::ManipulationStage(unsigned int nthreads) :
   nthreads_(nthreads),
   stop_processing_(true)
+  //  previous_(NULL)
 {
   processing_queues_.resize(nthreads_);
   processing_threads_.resize(processing_queues_.size());
@@ -53,6 +54,7 @@ ManipulationStage::ManipulationStage(unsigned int nthreads) :
 
 ManipulationStage::~ManipulationStage(void)
 {  
+  stopAll();
   for (unsigned int i = 0 ; i < nthreads_ ; ++i)
     delete processing_threads_[i];
 }
@@ -127,8 +129,18 @@ void ManipulationStage::processingThread(unsigned int index)
         {       
           if (next_ && !stop_processing_)
           {
-            ROS_INFO_STREAM("Evaluation of stage '" << name_ << "' with thread index " << index << " was succesful. Forwarding.");
-            next_->push(g);
+            /*
+            {
+              boost::unique_lock<boost::mutex> ulock2(p.mutex_);
+              while (next_->isSaturated() && !stop_processing_)
+                p.cond_.wait(ulock2);
+            }
+            */
+            if (!stop_processing_)
+            {
+              ROS_INFO_STREAM("Evaluation of stage '" << name_ << "' with thread index " << index << " was succesful. Forwarding.");
+              next_->push(g);
+            }
           }
         }
         else
@@ -149,6 +161,7 @@ void ManipulationStage::processingThread(unsigned int index)
         ROS_ERROR("[%s:%u] Caught unknown exception while processing manipulation stage", name_.c_str(), index);
       }  
       p.mutex_.lock();
+      //      previous_-> // notify somehow the parent condition? which thread ? 
     }
   }
 }
@@ -174,6 +187,12 @@ void ManipulationStage::push(const ManipulationPlanPtr &plan)
   processing_queues_[index].push_back(plan);
   ROS_INFO_STREAM("Added plan for stage '" << name_ << "' at thread index " << index << " (queue is now of size " << processing_queues_[index].size() << ")");
   processing_threads_[index]->cond_.notify_all();
+}
+
+void ManipulationStage::getFailedPlans(std::vector<ManipulationPlanPtr> &failed) const
+{
+  for (std::size_t i = 0 ; i < failed_.size() ; ++i)
+    failed.insert(failed.end(), failed_[i].begin(), failed_[i].end());
 }
 
 }
