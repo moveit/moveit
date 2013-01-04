@@ -43,6 +43,7 @@
 #include <std_msgs/ColorRGBA.h>
 #include <visualization_msgs/MarkerArray.h>
 
+/** \brief This namespace includes the classes in the kinematic_state library. */
 namespace kinematic_state
 {
 
