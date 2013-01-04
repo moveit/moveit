@@ -192,21 +192,6 @@ void DistanceField::getGradientMarkers( double min_radius, double max_radius,
   }
 }
 
-void DistanceField::addCollisionMapToField(const moveit_msgs::CollisionMap &collision_map)
-{
-  size_t num_boxes = collision_map.boxes.size();
-  EigenSTL::vector_Vector3d points;
-  points.reserve(num_boxes);
-  for (size_t i=0; i<num_boxes; ++i)
-  {
-    points.push_back(Eigen::Vector3d(collision_map.boxes[i].pose.position.x,
-                                     collision_map.boxes[i].pose.position.y,
-                                     collision_map.boxes[i].pose.position.z
-                                     ));
-  }
-  addPointsToField(points);
-}
-
 void DistanceField::addShapeToField(const shapes::ShapeMsg& shape,
                                     const geometry_msgs::Pose& pose)
 {

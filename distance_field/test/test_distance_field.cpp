@@ -346,6 +346,7 @@ static const double PERF_ORIGIN_X = 0.0;
 static const double PERF_ORIGIN_Y = 0.0;
 static const double PERF_ORIGIN_Z = 0.0;
 static const double PERF_MAX_DIST = .5;
+static const unsigned int UNIFORM_DISTANCE = 10;
 
 TEST(TestSignedPropagationDistanceField, TestPerformance)
 {
@@ -442,6 +443,35 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
   sdf.moveShapeInField(small_table, p, np);
   std::cout << "Moving in signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
 
+  //uniformly spaced points - a worst case scenario
+  PropagationDistanceField worstdf(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+                                   PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, true);
+  
+  
+  EigenSTL::vector_Vector3d bad_vec;
+  unsigned int count = 0;
+  for(unsigned int z = UNIFORM_DISTANCE; z < worstdf.getZNumCells()-UNIFORM_DISTANCE; z += UNIFORM_DISTANCE) {
+    for(unsigned int x = UNIFORM_DISTANCE; x < worstdf.getXNumCells()-UNIFORM_DISTANCE; x += UNIFORM_DISTANCE) {
+      for(unsigned int y = UNIFORM_DISTANCE; y < worstdf.getYNumCells()-UNIFORM_DISTANCE; y += UNIFORM_DISTANCE) {
+        count++;
+        Eigen::Vector3d loc;
+        bool valid = df.gridToWorld(x,y,z,
+                                    loc.x(), loc.y(), loc.z());
+        
+        if(!valid) {
+          logWarn("Something wrong");
+          continue;
+        }
+        bad_vec.push_back(loc);
+      }
+    }
+  }
+  
+  dt = ros::WallTime::now();
+  worstdf.addPointsToField(bad_vec);
+  ros::WallDuration wd = ros::WallTime::now()-dt; 
+  logInform("Time for adding %d uniform points is %g average %g", bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
+  
 }
 
 

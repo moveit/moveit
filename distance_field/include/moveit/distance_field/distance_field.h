@@ -113,11 +113,6 @@ public:
    */
   virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)=0;
 
-  /**
-   * \brief Adds the points in a collision map to the distance field.
-   */
-  void addCollisionMapToField(const moveit_msgs::CollisionMap &collision_map);
-
   void addShapeToField(const shapes::ShapeMsg& shape,
                        const geometry_msgs::Pose& pose);
 
