@@ -460,7 +460,7 @@ bool kinematic_state::KinematicState::clearAttachedBody(const std::string &id)
     return false;
 }
 
-namespace kinematic_state
+namespace 
 {
 static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e, std::vector<double> &aabb)
 {

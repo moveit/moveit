@@ -40,6 +40,10 @@
 
 namespace kinematic_state
 {
+
+namespace
+{
+
 static bool jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state, std::set<std::string> *missing)
 {
   if (joint_state.name.size() != joint_state.position.size())
@@ -361,6 +365,7 @@ static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_
     return false;
 }
 
+}
 }
 
 bool kinematic_state::jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state)
