@@ -155,7 +155,7 @@ private:
 
   /// \brief The set of all the obstacle voxels
   typedef std::set<Eigen::Vector3i, compareEigen_Vector3i> VoxelSet;
-  VoxelSet object_voxel_locations_;
+  //VoxelSet object_voxel_locations_;
 
   /// \brief Structure used to hold propogation frontier
   std::vector<std::vector<Eigen::Vector3i> > bucket_queue_;
@@ -174,8 +174,10 @@ private:
 
   std::vector<Eigen::Vector3i > direction_number_to_direction_;
 
-  void addNewObstacleVoxels(const VoxelSet& points);
-  void removeObstacleVoxels(const VoxelSet& points);
+  void addNewObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points);
+  //void removeObstacleVoxels(const VoxelSet& points);
+  void removeObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points);
+
   // starting with the voxels on the queue, propagate values to neighbors up to a certain distance.
   void propagatePositive();
   void propagateNegative();

@@ -345,7 +345,7 @@ static const double PERF_RESOLUTION = 0.02;
 static const double PERF_ORIGIN_X = 0.0;
 static const double PERF_ORIGIN_Y = 0.0;
 static const double PERF_ORIGIN_Z = 0.0;
-static const double PERF_MAX_DIST = .5;
+static const double PERF_MAX_DIST = .25;
 static const unsigned int UNIFORM_DISTANCE = 10;
 
 TEST(TestSignedPropagationDistanceField, TestPerformance)
