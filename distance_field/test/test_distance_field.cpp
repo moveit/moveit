@@ -384,11 +384,16 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
   np.position.y = p.position.y;
   np.position.z = p.position.z;
 
-  std::cout << "Adding " << (ceil(2.0/PERF_RESOLUTION)*ceil(2.0/PERF_RESOLUTION)*ceil(.5/PERF_RESOLUTION)) << " points" << std::endl;
+  unsigned int big_num_points = ceil(2.0/PERF_RESOLUTION)*ceil(2.0/PERF_RESOLUTION)*ceil(.5/PERF_RESOLUTION);
+
+  std::cout << "Adding " << big_num_points << " points" << std::endl; 
 
   dt = ros::WallTime::now();
   df.addShapeToField(big_table, p);
-  std::cout << "Adding to unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Adding to unsigned took " 
+            << (ros::WallTime::now()-dt).toSec() 
+            << " avg " << (ros::WallTime::now()-dt).toSec()/(big_num_points*1.0) 
+            << std::endl;  
 
   dt = ros::WallTime::now();
   df.addShapeToField(big_table, p);
@@ -396,7 +401,10 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
   dt = ros::WallTime::now();
   sdf.addShapeToField(big_table, p);
-  std::cout << "Adding to signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Adding to signed took " 
+            << (ros::WallTime::now()-dt).toSec() 
+            << " avg " << (ros::WallTime::now()-dt).toSec()/(big_num_points*1.0) 
+            << std::endl;  
 
   dt = ros::WallTime::now();
   df.moveShapeInField(big_table, p, np);
@@ -424,16 +432,24 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
   small_table.dimensions[shape_msgs::SolidPrimitive::BOX_Y] = .25;
   small_table.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = .05;
 
-  std::cout << "Adding " << (13)*(13)*(3) << " points" << std::endl;
+  unsigned int small_num_points = (13)*(13)*(3);
+
+  std::cout << "Adding " << small_num_points << " points" << std::endl;
   df.addShapeToField(big_table, p);
 
   dt = ros::WallTime::now();
   df.addShapeToField(small_table, p);
-  std::cout << "Adding to unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Adding to unsigned took " 
+            << (ros::WallTime::now()-dt).toSec() 
+            << " avg " << (ros::WallTime::now()-dt).toSec()/(small_num_points*1.0) 
+            << std::endl;  
 
   dt = ros::WallTime::now();
   sdf.addShapeToField(small_table, p);
-  std::cout << "Adding to signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Adding to signed took " 
+            << (ros::WallTime::now()-dt).toSec() 
+            << " avg " << (ros::WallTime::now()-dt).toSec()/(small_num_points*1.0) 
+            << std::endl;  
 
   dt = ros::WallTime::now();
   df.moveShapeInField(small_table, p, np);
@@ -444,19 +460,23 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
   std::cout << "Moving in signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
 
   //uniformly spaced points - a worst case scenario
-  PropagationDistanceField worstdf(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+  PropagationDistanceField worstdfu(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+                                   PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
+
+  PropagationDistanceField worstdfs(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
                                    PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, true);
+
   
   
   EigenSTL::vector_Vector3d bad_vec;
   unsigned int count = 0;
-  for(unsigned int z = UNIFORM_DISTANCE; z < worstdf.getZNumCells()-UNIFORM_DISTANCE; z += UNIFORM_DISTANCE) {
-    for(unsigned int x = UNIFORM_DISTANCE; x < worstdf.getXNumCells()-UNIFORM_DISTANCE; x += UNIFORM_DISTANCE) {
-      for(unsigned int y = UNIFORM_DISTANCE; y < worstdf.getYNumCells()-UNIFORM_DISTANCE; y += UNIFORM_DISTANCE) {
+  for(unsigned int z = UNIFORM_DISTANCE; z < worstdfu.getZNumCells()-UNIFORM_DISTANCE; z += UNIFORM_DISTANCE) {
+    for(unsigned int x = UNIFORM_DISTANCE; x < worstdfu.getXNumCells()-UNIFORM_DISTANCE; x += UNIFORM_DISTANCE) {
+      for(unsigned int y = UNIFORM_DISTANCE; y < worstdfu.getYNumCells()-UNIFORM_DISTANCE; y += UNIFORM_DISTANCE) {
         count++;
         Eigen::Vector3d loc;
-        bool valid = df.gridToWorld(x,y,z,
-                                    loc.x(), loc.y(), loc.z());
+        bool valid = worstdfu.gridToWorld(x,y,z,
+                                          loc.x(), loc.y(), loc.z());
         
         if(!valid) {
           logWarn("Something wrong");
@@ -468,10 +488,14 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
   }
   
   dt = ros::WallTime::now();
-  worstdf.addPointsToField(bad_vec);
+  worstdfu.addPointsToField(bad_vec);
   ros::WallDuration wd = ros::WallTime::now()-dt; 
-  logInform("Time for adding %d uniform points is %g average %g", bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
-  
+  printf("Time for unsigned adding %d uniform points is %g average %g\n", bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
+  dt = ros::WallTime::now();
+  worstdfs.addPointsToField(bad_vec);
+  wd = ros::WallTime::now()-dt; 
+  printf("Time for signed adding %d uniform points is %g average %g\n", bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
+
 }
 
 
