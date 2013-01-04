@@ -129,28 +129,23 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
   }
   compareEigen_Vector3i comp;
 
-  VoxelSet old_not_new;
+  std::vector<Eigen::Vector3i> old_not_new;
   std::set_difference(old_point_set.begin(), old_point_set.end(), 
                       new_point_set.begin(), new_point_set.end(), 
                       std::inserter(old_not_new, old_not_new.end()), 
                       comp);
   
-  VoxelSet new_not_old;
+  std::vector<Eigen::Vector3i> new_not_old;
   std::set_difference(new_point_set.begin(), new_point_set.end(), 
                       old_point_set.begin(), old_point_set.end(), 
                       std::inserter(new_not_old, new_not_old.end()), 
                       comp);
 
-  VoxelSet new_not_in_current;
-  std::set_difference(new_not_old.begin(), new_not_old.end(), 
-                      object_voxel_locations_.begin(), object_voxel_locations_.end(), 
-                      std::inserter(new_not_in_current, new_not_in_current.end()), comp);
-
-
-  for(VoxelSet::iterator it = new_not_in_current.begin(); 
-      it != new_not_in_current.end();
-      it++) {
-    object_voxel_locations_.insert(*it);
+  std::vector<Eigen::Vector3i> new_not_in_current;
+  for(unsigned int i = 0; i < new_not_old.size(); i++) {
+    if(voxel_grid_.getCell(new_not_old[i].x(),new_not_old[i].y(),new_not_old[i].z()).distance_square_ != 0) {
+      new_not_in_current.push_back(new_not_old[i]);
+    }
     //logInform("Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
   }
 
@@ -172,7 +167,7 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
 
 void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
 {
-  VoxelSet voxel_locs;
+  std::vector<Eigen::Vector3i> voxel_points;
 
   for( unsigned int i=0; i<points.size(); i++)
   {
@@ -184,20 +179,17 @@ void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d&
     if( valid )
     {
       if(voxel_grid_.getCell(voxel_loc.x(),voxel_loc.y(),voxel_loc.z()).distance_square_ > 0) {
-        // Not already in set of existing obstacles, so add to voxel list
-        object_voxel_locations_.insert(voxel_loc);
-
-        // Add point to the queue for expansion
-        voxel_locs.insert(voxel_loc);
+        voxel_points.push_back(voxel_loc);
       }
     }
   }
-  addNewObstacleVoxels( voxel_locs );
+  addNewObstacleVoxels(voxel_points);
 }
 
 void PropagationDistanceField::removePointsFromField(const EigenSTL::vector_Vector3d& points)
 {
-  VoxelSet voxel_locs;
+  std::vector<Eigen::Vector3i> voxel_points;
+  //VoxelSet voxel_locs;
 
   for( unsigned int i=0; i<points.size(); i++)
   {
@@ -208,34 +200,29 @@ void PropagationDistanceField::removePointsFromField(const EigenSTL::vector_Vect
 
     if( valid )
     {
-      if(voxel_grid_.getCell(voxel_loc.x(),voxel_loc.y(),voxel_loc.z()).distance_square_ == 0) {
-        voxel_locs.insert(voxel_loc);
-      }
+      voxel_points.push_back(voxel_loc);
+      //if(voxel_grid_.getCell(voxel_loc.x(),voxel_loc.y(),voxel_loc.z()).distance_square_ == 0) {
+      //  voxel_locs.insert(voxel_loc);
+      //}
     }
   }
 
-  removeObstacleVoxels( voxel_locs );
+  removeObstacleVoxels( voxel_points );
 }
 
-void PropagationDistanceField::addNewObstacleVoxels(const VoxelSet& locations)
+void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points)
 {
   int initial_update_direction = getDirectionNumber(0,0,0);
-  bucket_queue_[0].reserve(locations.size());
+  bucket_queue_[0].reserve(voxel_points.size());
   std::vector<Eigen::Vector3i> negative_stack;
   if(propagate_negative_) {
     negative_stack.reserve(getXNumCells() * getYNumCells() * getZNumCells());
-    negative_bucket_queue_[0].reserve(locations.size());
+    negative_bucket_queue_[0].reserve(voxel_points.size());
   }
 
-  VoxelSet::const_iterator it = locations.begin();
-  for( it=locations.begin(); it!=locations.end(); ++it)
-  {
-    Eigen::Vector3i loc = (*it);
-    bool valid = isCellValid( loc.x(),loc.y(),loc.z() );
-    if (!valid) {
-      continue;
-    }
-    PropDistanceFieldVoxel& voxel = voxel_grid_.getCell( loc.x(),loc.y(),loc.z() );
+  for(unsigned int i = 0; i < voxel_points.size(); i++) {
+    PropDistanceFieldVoxel& voxel = voxel_grid_.getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
+    Eigen::Vector3i loc = voxel_points[i];
     voxel.distance_square_ = 0;
     voxel.closest_point_ = loc;
     voxel.update_direction_ = initial_update_direction;
@@ -296,38 +283,39 @@ void PropagationDistanceField::addNewObstacleVoxels(const VoxelSet& locations)
   }
 }
 
-void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
+void PropagationDistanceField::removeObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points)
+//const VoxelSet& locations )
 {
   std::vector<Eigen::Vector3i> stack;
   std::vector<Eigen::Vector3i> negative_stack;
   int initial_update_direction = getDirectionNumber(0,0,0);
 
   stack.reserve(getXNumCells() * getYNumCells() * getZNumCells());
-  bucket_queue_[0].reserve(locations.size());
+  bucket_queue_[0].reserve(voxel_points.size());
   if(propagate_negative_) {
     negative_stack.reserve(getXNumCells() * getYNumCells() * getZNumCells());
-    negative_bucket_queue_[0].reserve(locations.size());
+    negative_bucket_queue_[0].reserve(voxel_points.size());
   }
 
   // First reset the obstacle voxels,
-  VoxelSet::const_iterator it = locations.begin();
-  for( it=locations.begin(); it!=locations.end(); ++it)
-  {
-    Eigen::Vector3i loc = *it;
-    bool valid = isCellValid( loc.x(), loc.y(), loc.z());
-    if (!valid)
-      continue;
-    PropDistanceFieldVoxel& voxel = voxel_grid_.getCell(loc.x(), loc.y(), loc.z());
+  // VoxelSet::const_iterator it = locations.begin();
+  // for( it=locations.begin(); it!=locations.end(); ++it)
+  // {
+  //   Eigen::Vector3i loc = *it;
+  //   bool valid = isCellValid( loc.x(), loc.y(), loc.z());
+  //   if (!valid)
+  //     continue;
+  for(unsigned int i = 0; i < voxel_points.size(); i++) {
+    PropDistanceFieldVoxel& voxel = voxel_grid_.getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
     voxel.distance_square_ = max_distance_sq_;
-    voxel.closest_point_ = loc;
+    voxel.closest_point_ = voxel_points[i];
     voxel.update_direction_ = initial_update_direction;
-    stack.push_back(loc);
-    object_voxel_locations_.erase(loc);
+    stack.push_back(voxel_points[i]);
     if(propagate_negative_) {
       voxel.negative_distance_square_ = 0.0;
-      voxel.closest_negative_point_ = loc;
+      voxel.closest_negative_point_ = voxel_points[i];
       voxel.negative_update_direction_ = initial_update_direction;
-      negative_bucket_queue_[0].push_back(loc);
+      negative_bucket_queue_[0].push_back(voxel_points[i]);
     }
   }
 
@@ -513,7 +501,7 @@ void PropagationDistanceField::reset()
       }
     }
   }
-  object_voxel_locations_.clear();
+  //object_voxel_locations_.clear();
 }
 
 void PropagationDistanceField::initNeighborhoods()
