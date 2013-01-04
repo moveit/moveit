@@ -430,6 +430,17 @@ const kinematic_state::AttachedBody* kinematic_state::KinematicState::getAttache
     return it->second;
 }
 
+void kinematic_state::KinematicState::attachBody(AttachedBody *attached_body)
+{
+  LinkState *ls = getLinkState(attached_body->getAttachedLinkName());
+  if (ls)
+  {
+    attached_body_map_[attached_body->getName()] = attached_body;
+    ls->attached_body_map_[attached_body->getName()] = attached_body;
+    attached_body->computeTransform();
+  }
+}
+
 void kinematic_state::KinematicState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
 {
   attached_bodies.clear();
