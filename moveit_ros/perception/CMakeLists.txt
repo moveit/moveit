@@ -16,16 +16,19 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
   pcl_ros
-  octomap
 )
 
+find_package(octomap REQUIRED)
+
 catkin_package(
-  LIBRARIES  
-    moveit_robot_self_filter
-    moveit_occupancy_map_monitor
   INCLUDE_DIRS
     robot_self_filter/include
     occupancy_map_monitor/include
+    ${OCTOMAP_INCLUDE_DIRS}
+  LIBRARIES  
+    moveit_robot_self_filter
+    moveit_occupancy_map_monitor
+    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core)
 
