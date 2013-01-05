@@ -38,6 +38,8 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 
+#include <Eigen/SVD>
+
 kinematic_state::JointStateGroup::JointStateGroup(KinematicState *state,
                                                   const kinematic_model::JointModelGroup *jmg) :
   kinematic_state_(state), joint_model_group_(jmg)
@@ -120,6 +122,16 @@ bool kinematic_state::JointStateGroup::setVariableValues(const std::vector<doubl
   }
   updateLinkTransforms();
   return true;
+}
+
+bool kinematic_state::JointStateGroup::setVariableValues(const Eigen::VectorXd &joint_state_values)
+{
+  std::vector<double> values;
+  for (std::size_t i = 0; i < joint_state_values.rows(); i++)
+  {
+    values.push_back(joint_state_values(i));
+  }
+  setVariableValues(values);
 }
 
 void kinematic_state::JointStateGroup::setVariableValues(const std::map<std::string, double>& joint_state_map)
@@ -208,6 +220,20 @@ void kinematic_state::JointStateGroup::getVariableValues(std::vector<double>& jo
   {
     const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
     joint_state_values.insert(joint_state_values.end(), jv.begin(), jv.end());
+  }
+}
+
+void kinematic_state::JointStateGroup::getVariableValues(Eigen::VectorXd& joint_state_values) const
+{
+  joint_state_values.resize(getVariableCount());
+  unsigned int count = 0;
+  for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
+  {
+    const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
+    for(unsigned int j = 0; j < jv.size(); j++)
+    {
+      joint_state_values(count++) = jv[j];
+    }
   }
 }
 
@@ -651,6 +677,83 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
     }    
   }
   return false;
+}
+
+bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st)
+{
+  //Get the Jacobian of the group at the current configuration
+  Eigen::MatrixXd J(6, getVariableCount());
+  J = Eigen::ArrayXXd::Zero(6, getVariableCount());
+  Eigen::Vector3d reference_point(0.0,0.0,0.0);
+  getJacobian(tip, reference_point, J);
+
+  //Transform the jacobian to the end-effector frame via a twist transformation matrix
+  Eigen::Affine3d bMe, eMb;
+  bMe = getKinematicState()->getLinkState(tip)->getGlobalLinkTransform();
+  eMb = bMe.inverse();
+  Eigen::MatrixXd eWb(6, 6);
+  eWb = Eigen::ArrayXXd::Zero(6, 6);
+  eWb.block(0, 0, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
+  eWb.block(3, 3, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
+
+  Eigen::MatrixXd skew_matrix(3,3);
+  skew_matrix(0,0) = 0;    skew_matrix(0,1) = -bMe(2,3);   skew_matrix(0,2) = bMe(1,3);
+  skew_matrix(1,0) = bMe(2,3);    skew_matrix(1,1) = 0;   skew_matrix(1,2) = -bMe(0,3);
+  skew_matrix(2,0) = -bMe(1,3);    skew_matrix(2,1) = bMe(0,3);   skew_matrix(2,2) = 0;
+
+  std::cout << "skew_matrix:\n" << skew_matrix << std::endl;
+
+  std::cout << "translation:\n" << eMb.matrix().block(0, 0, 3, 3) << std::endl;
+
+  std::cout << "upper block:\n" << skew_matrix * eMb.matrix().block(0, 0, 3, 3) << std::endl;
+
+  eWb.block(0, 3, 3, 3) = skew_matrix * eMb.matrix().block(0, 0, 3, 3);
+
+  std::cout << "eWb:\n" << eWb << std::endl;
+
+  J = eWb * J;
+  std::cout << "MoveIt J:\n" << J << std::endl;
+
+  //Do the Jacobian moore-penrose pseudo-inverse
+  Eigen::MatrixXd Jtinv(getVariableCount(), 6);
+  Eigen::MatrixXd Jt = J.transpose(); //Eigen SVD only works for matrices with rows>cols. Need to compute the inverse of the transpose, and transpose again at the end
+
+  Eigen::VectorXd b = Eigen::VectorXd::Random(Jt.rows());
+  Eigen::VectorXd x(Jt.cols());
+  Eigen::SVD<Eigen::MatrixXd> svdOfJt(Jt);
+  svdOfJt.solve(b, &x);
+
+  const Eigen::MatrixXd U = svdOfJt.matrixU();
+  const Eigen::MatrixXd V = svdOfJt.matrixV();
+  const Eigen::VectorXd S = svdOfJt.singularValues();
+
+  double pinvtoler=1.e-6;
+  Eigen::VectorXd Sinv = S;
+  for ( std::size_t i = 0; i < S.cols(); ++i) {
+    if ( S(i) > pinvtoler )
+      Sinv(i) = 1.0 / S(i);
+    else Sinv(i) = 0;
+  }
+  Jtinv = ( V * Sinv.asDiagonal() * U.transpose() );
+  Eigen::MatrixXd Jinv = Jtinv.transpose();
+  std::cout << "MoveIt Jinv:\n" << Jinv << std::endl;
+
+  //Compute qdot = Jinv * xdot
+  Eigen::VectorXd qdot(getVariableCount());
+  qdot = Jinv * twist;
+
+  std::cout << "twist:\n" << twist << std::endl;
+  std::cout << "qdot:\n" << qdot << std::endl;
+
+  //Integrate qdot on dt
+  Eigen::VectorXd q(getVariableCount());
+  getVariableValues(q);
+  q = q + dt * qdot;
+
+  setVariableValues(q);
+  enforceBounds();
+
+  return true;
 }
 
 void kinematic_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
