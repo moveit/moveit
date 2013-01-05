@@ -135,6 +135,9 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   planning_group_property_ = new rviz::EditableEnumProperty("Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
                                                             plan_category_,
                                                             SLOT( changedPlanningGroup() ), this );
+  cartesian_teleop_property_ = new rviz::BoolProperty( "Cartesian teleop", false, "Sets cartesian teleoperation interaction mode",
+                                                            plan_category_,
+                                                            SLOT( changedCartesianTeleopState() ), this);
   show_workspace_property_ = new rviz::BoolProperty( "Show Workspace", false, "Shows the axis-aligned bounding box for the workspace allowed for planning",
                                                      plan_category_,
                                                      SLOT( changedWorkspace() ), this );
@@ -664,7 +667,7 @@ void MotionPlanningDisplay::displayMetrics(bool start)
   }
 }
 
-void MotionPlanningDisplay::changedQueryStartState(void)
+void MotionPlanningDisplay::drawQueryStartState(void)
 {
   if (!planning_scene_monitor_)
     return;
@@ -673,6 +676,7 @@ void MotionPlanningDisplay::changedQueryStartState(void)
   {
     if (isEnabled())
     {
+      std::cerr << "drawQueryStartState" << std::endl;
       // update link poses
       query_robot_start_->update(getQueryStartState());
       query_robot_start_->setVisible(true);
@@ -698,10 +702,18 @@ void MotionPlanningDisplay::changedQueryStartState(void)
   else
     query_robot_start_->setVisible(false);
   context_->queueRender();
+}
+
+void MotionPlanningDisplay::changedQueryStartState(void)
+{
+  if (!planning_scene_monitor_)
+    return;
+
+  drawQueryStartState();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
 }
 
-void MotionPlanningDisplay::changedQueryGoalState(void)
+void MotionPlanningDisplay::drawQueryGoalState(void)
 {
   if (!planning_scene_monitor_)
     return;
@@ -734,6 +746,14 @@ void MotionPlanningDisplay::changedQueryGoalState(void)
   else
     query_robot_goal_->setVisible(false);
   context_->queueRender();
+}
+
+void MotionPlanningDisplay::changedQueryGoalState(void)
+{
+  if (!planning_scene_monitor_)
+    return;
+
+  drawQueryGoalState();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
 }
 
@@ -909,6 +929,21 @@ void MotionPlanningDisplay::changedPlanningGroup(void)
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
 }
 
+void MotionPlanningDisplay::changedCartesianTeleopState(void)
+{
+  ROS_INFO("Clicked cartesian teleop property");
+  if (cartesian_teleop_property_->getBool())
+  {
+    query_start_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::VELOCITY_IK);
+    query_goal_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::VELOCITY_IK);
+  }
+  else
+  {
+    query_start_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::POSITION_IK);
+    query_goal_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::POSITION_IK);
+  }
+}
+
 void MotionPlanningDisplay::changedWorkspace(void)
 {
   renderWorkspaceBox();
@@ -967,8 +1002,8 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(getPlanningSceneRO()->getCurrentState()));
   query_start_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("start", *ks, planning_scene_monitor_->getTFClient()));
   query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
-  query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::updateQueryStartState, this, _1));
-  query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::updateQueryGoalState, this, _1));
+  query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::drawQueryStartState, this));
+  query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::drawQueryGoalState, this));
   query_start_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
   query_goal_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
 

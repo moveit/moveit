@@ -85,6 +85,8 @@ public:
   class InteractionHandler
   {
   public:
+    typedef enum {POSITION_IK, VELOCITY_IK} InteractionModeType;
+
     InteractionHandler(const std::string &name,
                        const kinematic_state::KinematicState &kstate,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
@@ -141,6 +143,12 @@ public:
       return ik_attempts_;
     }
     
+    void setInteractionMode(InteractionModeType imode)
+    {
+      ROS_INFO_STREAM("SetInteractionMode " << imode);
+      interaction_mode_ = imode;
+    }
+
     virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
     virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
     virtual bool inError(const RobotInteraction::EndEffector& eef);
@@ -156,8 +164,10 @@ public:
     std::set<std::string> error_state_;
     boost::function<void(InteractionHandler*)> update_callback_;
     kinematic_state::StateValidityCallbackFn state_validity_callback_fn_;
+    kinematic_state::SecondaryTaskCallbackFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
+    InteractionModeType interaction_mode_;
     
   private:
     
@@ -194,6 +204,7 @@ public:
   static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskCallbackFn &st_callback);
 
 private:
   
