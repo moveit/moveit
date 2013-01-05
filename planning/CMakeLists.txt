@@ -29,8 +29,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
   genmsg
-  rqt_gui
-  rqt_gui_cpp 
   ${MSG_DEPS}
 )
 
@@ -79,8 +77,6 @@ catkin_package(
     pluginlib
     moveit_core
     moveit_ros_perception
-    rqt_gui
-    rqt_gui_cpp
 )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
