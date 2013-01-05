@@ -283,7 +283,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
+  {
+    logError("No kinematics solver instantiated for this group");    
     return false;
+  }  
   return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint);
 }
 
@@ -298,7 +301,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, un
 { 
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
+  {
+    logError("No kinematics solver instantiated for this group");    
     return false;
+  }  
   static std::vector<double> consistency_limits;  
   return setFromIK(pose, solver->getTipFrame(), consistency_limits, attempts, timeout, constraint);  
 }
@@ -313,7 +319,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
+  {
+    logError("No kinematics solver instantiated for this group");    
     return false;
+  }  
 
   Eigen::Affine3d pose = pose_in;
   std::string tip = tip_in;
