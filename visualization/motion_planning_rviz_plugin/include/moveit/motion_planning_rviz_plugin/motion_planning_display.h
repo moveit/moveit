@@ -170,6 +170,7 @@ private Q_SLOTS:
   void changedShowManipulability();
   void changedShowJointTorques();
   void changedMetricsSetPayload();
+  void changedCartesianTeleopState();
   void changedWorkspace();
   
 protected:
@@ -195,6 +196,8 @@ protected:
   void publishInteractiveMarkers(void);
   void updateQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
   void updateQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+  void drawQueryStartState(void);
+  void drawQueryGoalState(void);
   bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const;
   
   void computeMetrics(double payload);
@@ -264,6 +267,7 @@ protected:
   rviz::Property* metrics_category_;
   
   rviz::EditableEnumProperty* planning_group_property_;
+  rviz::BoolProperty* cartesian_teleop_property_;
   rviz::BoolProperty* query_start_state_property_;
   rviz::BoolProperty* query_goal_state_property_;
   rviz::FloatProperty* query_marker_scale_property_;

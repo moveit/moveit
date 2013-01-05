@@ -38,6 +38,18 @@
 #include <algorithm>
 #include <limits>
 
+#include <moveit/robot_model_loader/robot_model_loader.h>
+
+#include <kdl_parser/kdl_parser.hpp>
+
+#include <kdl/chainjnttojacsolver.hpp>
+#include <kdl/chain.hpp>
+#include <kdl/tree.hpp>
+#include <kdl/frames_io.hpp>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
 namespace robot_interaction
 {
 
@@ -73,22 +85,44 @@ void RobotInteraction::InteractionHandler::setup(void)
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
-  if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-    error_state_.clear();
-  
-  geometry_msgs::PoseStamped tpose;
-  if (!transformFeedbackPose(feedback, tpose))
-    return;
-  
-  if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_))
+  if (interaction_mode_ == POSITION_IK)
   {
-    if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-      error_state_.insert(eef.parent_group);
+    if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+      error_state_.clear();
+
+    geometry_msgs::PoseStamped tpose;
+    if (!transformFeedbackPose(feedback, tpose))
+      return;
+
+    if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_))
+    {
+      if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+        error_state_.insert(eef.parent_group);
+    }
+    else
+      error_state_.erase(eef.parent_group);
+    if (update_callback_)
+      update_callback_(this);
   }
-  else
-    error_state_.erase(eef.parent_group);
-  if (update_callback_)
-    update_callback_(this);
+  else if (interaction_mode_ == VELOCITY_IK)
+  {
+    if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+      error_state_.clear();
+
+    geometry_msgs::PoseStamped tpose;
+    if (!transformFeedbackPose(feedback, tpose))
+      return;
+
+    if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, secondary_task_callback_fn_))
+    {
+      if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+        error_state_.insert(eef.parent_group);
+    }
+    else
+      error_state_.erase(eef.parent_group);
+    if (update_callback_)
+      update_callback_(this);
+  }
 }
 
 void RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint& vj,
@@ -334,8 +368,9 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
     geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = kmodel_->getModelFrame();
-    pose.header.stamp = ros::Time::now();
+    //pose.header.frame_id = kmodel_->getModelFrame();
+    pose.header.frame_id = "base_link";
+    //pose.header.stamp = ros::Time::now();
     const kinematic_state::LinkState *ls = handler->getState()->getLinkState(active_eef_[i].parent_link);
     tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
     std::string marker_name = "EE:" + handler->getName() + "_" + active_eef_[i].parent_link;
@@ -397,6 +432,65 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
                                    unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback)
 { 
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
+}
+
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskCallbackFn &st_callback)
+{
+  ROS_INFO("Call to updateState velocity version");
+
+//  robot_model_loader::RobotModelLoader robot_model_loader_;
+//  const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_.getSRDF();
+//  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader_.getURDF();
+//
+//  KDL::Tree kdl_tree;
+//  KDL::Chain kdl_chain;
+//
+//  if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
+//  {
+//    ROS_ERROR("Could not initialize tree object");
+//    return false;
+//  }
+//
+//  std::cerr << "Base frame: torso_rotate_link" << std::endl;
+//  std::cerr << "Tip frame: " << eef.parent_link << std::endl;
+//  if (!kdl_tree.getChain("torso_rotate_link", eef.parent_link, kdl_chain))
+//  {
+//    ROS_ERROR("Could not initialize chain object");
+//    return false;
+//  }
+//
+//  KDL::ChainJntToJacSolver jacsolver(kdl_chain);
+//  std::vector<double> q_eigen;
+//  state.getJointStateGroup(eef.parent_group)->getVariableValues(q_eigen);
+//
+//  KDL::JntArray q_kdl(q_eigen.size());
+//  for (int r=0; r< q_eigen.size(); r++)
+//  {
+//    q_kdl(r)=q_eigen[r];
+//  }
+//  std::cout << "q_kdl: " << q_kdl.data << std::endl;
+//
+//  KDL::Jacobian jacobian_kdl(q_eigen.size());
+//  jacobian_kdl.data = Eigen::ArrayXXd::Zero(6, q_eigen.size());
+//  jacsolver.JntToJac(q_kdl, jacobian_kdl);
+//  std::cout << "KDL Jacobian\n" << jacobian_kdl.data << std::endl;
+//
+
+  //Compute velocity from current pose to goal pose
+  Eigen::VectorXd twist(6);
+  twist = Eigen::ArrayXd::Zero(6);
+
+  Eigen::Affine3d tip_pose = state.getLinkState(eef.parent_link)->getGlobalLinkTransform();
+  Eigen::Affine3d target_pose;
+  tf::poseMsgToEigen(pose, target_pose);
+
+  //twist(0) = target_pose(0,3) - tip_pose(0,3);
+  //twist(1) = target_pose(1,3) - tip_pose(1,3);
+  //twist(2) = target_pose(2,3) - tip_pose(2,3);
+  twist(0) = 0.1;
+
+  std::cerr << "eef parent group: " << eef.parent_group << std::endl;
+  return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, 0.04, st_callback);
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
