@@ -46,7 +46,7 @@ namespace kinematics_metrics
 {
 
 /**
- * @brief Compute different kinds of metrics for kinematics evaluation. Currently includes
+ * \brief Compute different kinds of metrics for kinematics evaluation. Currently includes
  * manipulability.
  */
 class KinematicsMetrics
