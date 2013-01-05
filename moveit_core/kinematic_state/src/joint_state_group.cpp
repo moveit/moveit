@@ -34,9 +34,20 @@
 
 /* Author: Ioan Sucan, E. Gil Jones, Sachin Chitta */
 
+#include <ros/ros.h>
+
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
+
+#include <moveit/robot_model_loader/robot_model_loader.h>
+
+#include <kdl_parser/kdl_parser.hpp>
+
+#include <kdl/chainjnttojacsolver.hpp>
+#include <kdl/chain.hpp>
+#include <kdl/tree.hpp>
+#include <kdl/frames_io.hpp>
 
 #include <Eigen/SVD>
 
@@ -681,11 +692,56 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
 
 bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st)
 {
-  //Get the Jacobian of the group at the current configuration
+
+  //Get the Jacobian of the group at the current configuration: KDL version
+  robot_model_loader::RobotModelLoader robot_model_loader_;
+  const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_.getSRDF();
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader_.getURDF();
+
+  KDL::Tree kdl_tree;
+  KDL::Chain kdl_chain;
+
+  if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
+  {
+    ROS_ERROR("Could not initialize tree object");
+    return false;
+  }
+
+  std::cerr << "Base frame: arm_base_link" << std::endl;
+  std::cerr << "Tip frame: " << tip << std::endl;
+  if (!kdl_tree.getChain("arm_base_link", tip, kdl_chain))
+  {
+    ROS_ERROR("Could not initialize chain object");
+    return false;
+  }
+
+  std::cerr << "jac solver" << std::endl;
+  KDL::ChainJntToJacSolver jacsolver(kdl_chain);
+  std::vector<double> q_eigen;
+  std::cerr << "getVariableValues" << std::endl;
+  getVariableValues(q_eigen);
+
+  std::cerr << "fill q_kdl" << std::endl;
+  KDL::JntArray q_kdl(q_eigen.size());
+  for (int r=0; r< q_eigen.size(); r++)
+  {
+    q_kdl(r)=q_eigen[r];
+  }
+  std::cout << "q_kdl: " << q_kdl.data << std::endl;
+
+  KDL::Jacobian jacobian_kdl(q_eigen.size());
+  jacobian_kdl.data = Eigen::ArrayXXd::Zero(6, q_eigen.size());
+  jacsolver.JntToJac(q_kdl, jacobian_kdl);
   Eigen::MatrixXd J(6, getVariableCount());
-  J = Eigen::ArrayXXd::Zero(6, getVariableCount());
-  Eigen::Vector3d reference_point(0.0,0.0,0.0);
-  getJacobian(tip, reference_point, J);
+  J = jacobian_kdl.data;
+  std::cout << "KDL Jacobian\n" << J << std::endl;
+
+
+  //Get the Jacobian of the group at the current configuration: MoveIt version
+  //Eigen::MatrixXd J(6, getVariableCount());
+  //J = Eigen::ArrayXXd::Zero(6, getVariableCount());
+  //Eigen::Vector3d reference_point(0.0,0.0,0.0);
+  //getJacobian(tip, reference_point, J);
 
   //Transform the jacobian to the end-effector frame via a twist transformation matrix
   Eigen::Affine3d bMe, eMb;
@@ -711,14 +767,13 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
 
   std::cout << "eWb:\n" << eWb << std::endl;
 
-  J = eWb * J;
-  std::cout << "MoveIt J:\n" << J << std::endl;
+  //J = eWb * J;
 
   //Do the Jacobian moore-penrose pseudo-inverse
   Eigen::MatrixXd Jtinv(getVariableCount(), 6);
   Eigen::MatrixXd Jt = J.transpose(); //Eigen SVD only works for matrices with rows>cols. Need to compute the inverse of the transpose, and transpose again at the end
 
-  Eigen::VectorXd b = Eigen::VectorXd::Random(Jt.rows());
+  Eigen::VectorXd b = Eigen::ArrayXd::Zero(Jt.rows());
   Eigen::VectorXd x(Jt.cols());
   Eigen::SVD<Eigen::MatrixXd> svdOfJt(Jt);
   svdOfJt.solve(b, &x);
