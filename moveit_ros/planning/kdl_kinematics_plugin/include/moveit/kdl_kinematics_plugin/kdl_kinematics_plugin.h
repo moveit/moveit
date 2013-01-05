@@ -73,8 +73,8 @@ namespace kdl_kinematics_plugin
   {
     public:
 
-    /** @class
-     *  @brief Plugin-able interface to a generic version of arm kinematics
+    /** 
+     *  @brief Default constructor
      */
     KDLKinematicsPlugin();
 
