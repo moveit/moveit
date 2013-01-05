@@ -15,7 +15,6 @@ COMPONENTS
   urdfdom
   urdfdom_headers
   srdfdom
-  octomap
   fcl
   orocos_kdl
   kdl_parser
@@ -28,6 +27,8 @@ COMPONENTS
   visualization_msgs
   rostime
 )
+
+find_package(octomap REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
     collision_detection/include
@@ -51,11 +52,12 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     sensor_manager/include
     trajectory_processing/include
     kinematics_constraint_aware/include
+    ${OCTOMAP_INCLUDE_DIRS}
 )
 
 catkin_package(
   INCLUDE_DIRS
-    ${THIS_PACKAGE_INCLUDE_DIRS}
+    ${THIS_PACKAGE_INCLUDE_DIRS} 
   LIBRARIES
     moveit_kinematic_model
     moveit_kinematic_state
@@ -73,6 +75,7 @@ catkin_package(
     moveit_kinematics_cache
     moveit_kinematics_planner
     moveit_kinematics_constraint_aware
+    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     geometric_shapes
     shape_tools
