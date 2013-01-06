@@ -36,8 +36,8 @@
 
 #include <moveit/pick_place/pick_place.h>
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
-#include <moveit/pick_place/reachable_valid_pre_grasp_filter.h>
 #include <moveit/pick_place/approach_stage.h>
+#include <moveit/pick_place/plan_stage.h>
 #include <moveit/pick_place/output_stage.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <ros/console.h>
@@ -112,8 +112,8 @@ public:
     done_ = false;
     ReachableAndValidGraspFilter::Options opt(eef->getEndEffectorParentGroup().second);
     root_.reset(new ReachableAndValidGraspFilter(opt, planning_scene, pick_place_->getConstraintsSamplerManager(), 4));
-    ManipulationStagePtr f0 = root_->follow(ManipulationStagePtr(new ReachableAndValidPreGraspFilter(planning_scene, pick_place_->getConstraintsSamplerManager(), 4)));
-    ManipulationStagePtr f1 = f0->follow(ManipulationStagePtr(new ApproachStage(planning_scene, pick_place_->getPlanningPipeline(), pick_place_->getConstraintsSamplerManager(), 4)));
+    ManipulationStagePtr f0 = root_->follow(ManipulationStagePtr(new ApproachStage(planning_scene, pick_place_->getPlanningPipeline(), pick_place_->getConstraintsSamplerManager(), 2)));
+    ManipulationStagePtr f1 = f0->follow(ManipulationStagePtr(new PlanStage(planning_scene, pick_place_->getPlanningPipeline(), 2)));
     ManipulationStagePtr last = f1->follow(ManipulationStagePtr(new OutputStage(boost::bind(&PickPlan::foundSolution, this, _1))));
     
     root_->startAll();
