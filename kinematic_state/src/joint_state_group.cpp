@@ -731,7 +731,7 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   if (st)
   {
     Eigen::VectorXd cost_vector = Eigen::VectorXd::Zero(qdot.rows());
-    st(this, cost_vector);
+    st(*this, cost_vector);
     qdot += (Eigen::MatrixXd::Identity(qdot.rows(), qdot.rows()) - Jinv * J) * cost_vector;
   }
 
