@@ -50,7 +50,7 @@ namespace kinematic_state
 class JointStateGroup;
 
 typedef boost::function<bool(JointStateGroup *joint_state_group, const std::vector<double> &joint_group_variable_values)> StateValidityCallbackFn;
-typedef boost::function<bool(JointStateGroup *joint_state_group, Eigen::VectorXd &stvector)> SecondaryTaskCallbackFn;
+typedef boost::function<bool(const JointStateGroup &joint_state_group, Eigen::VectorXd &stvector)> SecondaryTaskCallbackFn;
 
 class KinematicState;
 
