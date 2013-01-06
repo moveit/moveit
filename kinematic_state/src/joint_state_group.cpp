@@ -40,8 +40,6 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
-
 #include <kdl_parser/kdl_parser.hpp>
 
 #include <kdl/chainjnttojacsolver.hpp>
@@ -692,115 +690,52 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
 
 bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st)
 {
-
-  //Get the Jacobian of the group at the current configuration: KDL version
-  robot_model_loader::RobotModelLoader robot_model_loader_;
-  const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader_.getURDF();
-
-  KDL::Tree kdl_tree;
-  KDL::Chain kdl_chain;
-
-  if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
-  {
-    ROS_ERROR("Could not initialize tree object");
-    return false;
-  }
-
-  std::cerr << "Base frame: arm_base_link" << std::endl;
-  std::cerr << "Tip frame: " << tip << std::endl;
-  if (!kdl_tree.getChain("arm_base_link", tip, kdl_chain))
-  {
-    ROS_ERROR("Could not initialize chain object");
-    return false;
-  }
-
-  std::cerr << "jac solver" << std::endl;
-  KDL::ChainJntToJacSolver jacsolver(kdl_chain);
-  std::vector<double> q_eigen;
-  std::cerr << "getVariableValues" << std::endl;
-  getVariableValues(q_eigen);
-
-  std::cerr << "fill q_kdl" << std::endl;
-  KDL::JntArray q_kdl(q_eigen.size());
-  for (int r=0; r< q_eigen.size(); r++)
-  {
-    q_kdl(r)=q_eigen[r];
-  }
-  std::cout << "q_kdl: " << q_kdl.data << std::endl;
-
-  KDL::Jacobian jacobian_kdl(q_eigen.size());
-  jacobian_kdl.data = Eigen::ArrayXXd::Zero(6, q_eigen.size());
-  jacsolver.JntToJac(q_kdl, jacobian_kdl);
+  //Get the Jacobian of the group at the current configuration
   Eigen::MatrixXd J(6, getVariableCount());
-  J = jacobian_kdl.data;
-  std::cout << "KDL Jacobian\n" << J << std::endl;
+  Eigen::Vector3d reference_point(0.0,0.0,0.0);
+  getJacobian(tip, reference_point, J);
 
-
-  //Get the Jacobian of the group at the current configuration: MoveIt version
-  //Eigen::MatrixXd J(6, getVariableCount());
-  //J = Eigen::ArrayXXd::Zero(6, getVariableCount());
-  //Eigen::Vector3d reference_point(0.0,0.0,0.0);
-  //getJacobian(tip, reference_point, J);
-
-  //Transform the jacobian to the end-effector frame via a twist transformation matrix
+  //Rotate the jacobian to the end-effector frame
   Eigen::Affine3d bMe, eMb;
   bMe = getKinematicState()->getLinkState(tip)->getGlobalLinkTransform();
   eMb = bMe.inverse();
-  Eigen::MatrixXd eWb(6, 6);
-  eWb = Eigen::ArrayXXd::Zero(6, 6);
+  Eigen::MatrixXd eWb = Eigen::ArrayXXd::Zero(6, 6);
   eWb.block(0, 0, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
   eWb.block(3, 3, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
-
-  Eigen::MatrixXd skew_matrix(3,3);
-  skew_matrix(0,0) = 0;    skew_matrix(0,1) = -bMe(2,3);   skew_matrix(0,2) = bMe(1,3);
-  skew_matrix(1,0) = bMe(2,3);    skew_matrix(1,1) = 0;   skew_matrix(1,2) = -bMe(0,3);
-  skew_matrix(2,0) = -bMe(1,3);    skew_matrix(2,1) = bMe(0,3);   skew_matrix(2,2) = 0;
-
-  std::cout << "skew_matrix:\n" << skew_matrix << std::endl;
-
-  std::cout << "translation:\n" << eMb.matrix().block(0, 0, 3, 3) << std::endl;
-
-  std::cout << "upper block:\n" << skew_matrix * eMb.matrix().block(0, 0, 3, 3) << std::endl;
-
-  eWb.block(0, 3, 3, 3) = skew_matrix * eMb.matrix().block(0, 0, 3, 3);
-
-  std::cout << "eWb:\n" << eWb << std::endl;
-
-  //J = eWb * J;
+  J = eWb * J;
 
   //Do the Jacobian moore-penrose pseudo-inverse
-  Eigen::MatrixXd Jtinv(getVariableCount(), 6);
-  Eigen::MatrixXd Jt = J.transpose(); //Eigen SVD only works for matrices with rows>cols. Need to compute the inverse of the transpose, and transpose again at the end
+  Eigen::JacobiSVD<Eigen::MatrixXd> svdOfJ(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  const Eigen::MatrixXd U = svdOfJ.matrixU();
+  const Eigen::MatrixXd V = svdOfJ.matrixV();
+  const Eigen::VectorXd S = svdOfJ.singularValues();
 
-  Eigen::VectorXd b = Eigen::ArrayXd::Zero(Jt.rows());
-  Eigen::VectorXd x(Jt.cols());
-  Eigen::SVD<Eigen::MatrixXd> svdOfJt(Jt);
-  svdOfJt.solve(b, &x);
-
-  const Eigen::MatrixXd U = svdOfJt.matrixU();
-  const Eigen::MatrixXd V = svdOfJt.matrixV();
-  const Eigen::VectorXd S = svdOfJt.singularValues();
-
-  double pinvtoler=1.e-6;
   Eigen::VectorXd Sinv = S;
-  for ( std::size_t i = 0; i < S.cols(); ++i) {
-    if ( S(i) > pinvtoler )
+  static const double pinvtoler=1.e-6;
+  double maxsv = 0 ;
+  for (std::size_t i = 0; i < S.rows(); ++i)
+    if (fabs(S(i)) > maxsv) maxsv = fabs(S(i));
+  for (std::size_t i = 0; i < S.rows(); ++i)
+  {
+    //Those singular values smaller than a percentage of the maximum singular value are removed
+    if ( fabs(S(i)) > maxsv * pinvtoler )
       Sinv(i) = 1.0 / S(i);
     else Sinv(i) = 0;
   }
-  Jtinv = ( V * Sinv.asDiagonal() * U.transpose() );
-  Eigen::MatrixXd Jinv = Jtinv.transpose();
-  std::cout << "MoveIt Jinv:\n" << Jinv << std::endl;
+  Eigen::MatrixXd Jinv = ( V * Sinv.asDiagonal() * U.transpose() );
 
-  //Compute qdot = Jinv * xdot
-  Eigen::VectorXd qdot(getVariableCount());
-  qdot = Jinv * twist;
+  //Compute joint velocity
+  Eigen::VectorXd qdot = Jinv * twist;
 
-  std::cout << "twist:\n" << twist << std::endl;
-  std::cout << "qdot:\n" << qdot << std::endl;
+  //Project the secondary task
+  if (st)
+  {
+    Eigen::VectorXd cost_vector = Eigen::VectorXd::Zero(qdot.rows());
+    st(this, cost_vector);
+    qdot += (Eigen::MatrixXd::Identity(qdot.rows(), qdot.rows()) - Jinv * J) * cost_vector;
+  }
 
-  //Integrate qdot on dt
+  //Integrate qdot for dt
   Eigen::VectorXd q(getVariableCount());
   getVariableValues(q);
   q = q + dt * qdot;
