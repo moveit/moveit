@@ -434,63 +434,75 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
 }
 
+//TODO: move functions like this into an eigen_utils package
+void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose)
+{
+  pose.resize(6);
+
+  //fill translation
+  pose.matrix().block(0,0,3,1) = M.matrix().block(0,3,3,1);
+
+  //Compute and fill rotation (theta-u convention)
+  //Most of this code is adapted from ViSP vpThetaUVector::build_from(vpRotationMatrix)
+  const Eigen::Matrix3d R = M.matrix().block(0, 0, 3, 3);
+
+  double s,c,theta,sinc;
+  s = (R(1,0) - R(0,1)) * (R(1,0) - R(0,1))
+    + (R(2,0) - R(0,2)) * (R(2,0) - R(0,2))
+    + (R(2,1) - R(1,2)) * (R(2,1) - R(1,2));
+  s = sqrt(s) / 2.0;
+  c = (R(0,0) + R(1,1) + R(2,2) - 1.0) / 2.0;
+  theta = atan2(s,c);  /* theta in [0, PI] since s > 0 */
+
+  // General case when theta != pi. If theta=pi, c=-1
+  static const double minimum = 0.0001;
+  if ( (1 + c) > minimum) // Since -1 <= c <= 1, no fabs(1+c) is required
+  {
+    static const double threshold = 1.0e-8;
+    if (fabs(theta) < threshold) sinc = 1.0 ;
+    else  sinc = (s / theta) ;
+
+    pose(3) = (R(2,1) - R(1,2)) / (2*sinc);
+    pose(4) = (R(0,2) - R(2,0)) / (2*sinc);
+    pose(5) = (R(1,0) - R(0,1)) / (2*sinc);
+  }
+  else /* theta near PI */
+  {
+    if ( (R(0,0) - c) < std::numeric_limits<double>::epsilon() )
+      pose(3) = 0.;
+    else
+      pose(3) = theta * (sqrt((R(0,0) - c) / (1 - c)));
+    if ((R(2,1) - R(1,2)) < 0) pose(3) = -pose(3);
+
+    if ( (R(1,1) - c) < std::numeric_limits<double>::epsilon() )
+      pose(4) = 0.;
+    else
+      pose(4) = theta * (sqrt((R(1,1) - c) / (1 - c)));
+
+    if ((R(0,2) - R(2,0)) < 0) pose(4) = -pose(4);
+
+    if ( (R(2,2) - c) < std::numeric_limits<double>::epsilon() )
+      pose(5) = 0.;
+    else
+      pose(5) = theta * (sqrt((R(2,2) - c) / (1 - c)));
+
+    if ((R(1,0) - R(0,1)) < 0) pose(5) = -pose(5);
+  }
+}
+
 bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskCallbackFn &st_callback)
 {
-  ROS_INFO("Call to updateState velocity version");
+  //Compute velocity from current pose to goal pose, in the current end-effector frame
+  const Eigen::Affine3d &wMe = state.getLinkState(eef.parent_link)->getGlobalLinkTransform();
+  Eigen::Affine3d wMt;
+  tf::poseMsgToEigen(pose, wMt);
+  Eigen::Affine3d eMt = wMe.inverse() * wMt;
 
-//  robot_model_loader::RobotModelLoader robot_model_loader_;
-//  const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_.getSRDF();
-//  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader_.getURDF();
-//
-//  KDL::Tree kdl_tree;
-//  KDL::Chain kdl_chain;
-//
-//  if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
-//  {
-//    ROS_ERROR("Could not initialize tree object");
-//    return false;
-//  }
-//
-//  std::cerr << "Base frame: torso_rotate_link" << std::endl;
-//  std::cerr << "Tip frame: " << eef.parent_link << std::endl;
-//  if (!kdl_tree.getChain("torso_rotate_link", eef.parent_link, kdl_chain))
-//  {
-//    ROS_ERROR("Could not initialize chain object");
-//    return false;
-//  }
-//
-//  KDL::ChainJntToJacSolver jacsolver(kdl_chain);
-//  std::vector<double> q_eigen;
-//  state.getJointStateGroup(eef.parent_group)->getVariableValues(q_eigen);
-//
-//  KDL::JntArray q_kdl(q_eigen.size());
-//  for (int r=0; r< q_eigen.size(); r++)
-//  {
-//    q_kdl(r)=q_eigen[r];
-//  }
-//  std::cout << "q_kdl: " << q_kdl.data << std::endl;
-//
-//  KDL::Jacobian jacobian_kdl(q_eigen.size());
-//  jacobian_kdl.data = Eigen::ArrayXXd::Zero(6, q_eigen.size());
-//  jacsolver.JntToJac(q_kdl, jacobian_kdl);
-//  std::cout << "KDL Jacobian\n" << jacobian_kdl.data << std::endl;
-//
-
-  //Compute velocity from current pose to goal pose
   Eigen::VectorXd twist(6);
-  twist = Eigen::ArrayXd::Zero(6);
+  eigenTransformToEigenVector(eMt, twist);
 
-  Eigen::Affine3d tip_pose = state.getLinkState(eef.parent_link)->getGlobalLinkTransform();
-  Eigen::Affine3d target_pose;
-  tf::poseMsgToEigen(pose, target_pose);
-
-  //twist(0) = target_pose(0,3) - tip_pose(0,3);
-  //twist(1) = target_pose(1,3) - tip_pose(1,3);
-  //twist(2) = target_pose(2,3) - tip_pose(2,3);
-  twist(0) = 0.1;
-
-  std::cerr << "eef parent group: " << eef.parent_group << std::endl;
-  return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, 0.04, st_callback);
+  static const double gain = 0.1;
+  return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, st_callback);
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
