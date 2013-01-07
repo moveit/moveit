@@ -420,6 +420,7 @@ namespace ompl
 {
 namespace geometric
 {
+using namespace ompl_interface;
 
 class Follower : private boost::noncopyable
 {
@@ -459,7 +460,7 @@ public:
     return params_;
   }
 
-  base::PlannerStatus follow(const std::vector<base::ValidStateSamplerPtr> &samplers, const base::PlannerTerminationCondition &ptc);
+  base::PlannerStatus follow(const std::vector<ValidConstrainedSamplerPtr> &samplers, const base::PlannerTerminationCondition &ptc);
   
 private:
 
@@ -482,7 +483,7 @@ private:
   RNG                        rng_;
 };
 
-base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPtr> &samplers, const base::PlannerTerminationCondition &ptc)
+base::PlannerStatus Follower::follow(const std::vector<ValidConstrainedSamplerPtr> &samplers, const base::PlannerTerminationCondition &ptc)
 {
   if (!si_->isSetup())
     si_->setup();
@@ -516,8 +517,17 @@ base::PlannerStatus Follower::follow(const std::vector<base::ValidStateSamplerPt
   for (std::size_t i = 0 ; i < samplers.size() && !ptc() ; ++i)
   { 
     while (sets[i + 1].empty() && !ptc())
-      if (samplers[i]->sample(work_area) && si_->isValid(work_area))
-        sets[i + 1].push_back(si_->cloneState(work_area));
+      if (sets[i].empty())
+      {
+        if (samplers[i]->sample(work_area) && si_->isValid(work_area))
+          sets[i + 1].push_back(si_->cloneState(work_area));
+      }
+      else
+      {
+        si_->copyState(work_area, sets[i].back());
+        if ((samplers[i]->project(work_area) || samplers[i]->sample(work_area)) && si_->isValid(work_area))
+          sets[i + 1].push_back(si_->cloneState(work_area));
+      }
   }
   
   if (ptc())

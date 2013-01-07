@@ -50,6 +50,23 @@ ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBase
   logDebug("Constructed a ValidConstrainedSampler instance at address %p", this);
 }
 
+bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State *state)
+{
+  if (constraint_sampler_)
+  {   
+    planning_context_->getOMPLStateSpace()->copyToKinematicState(work_joint_group_state_, state);
+    if (constraint_sampler_->project(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
+    {
+      if (kinematic_constraint_set_->decide(work_state_).satisfied)
+      {  
+        planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool ompl_interface::ValidConstrainedSampler::sample(ob::State *state)
 {
   if (constraint_sampler_)
