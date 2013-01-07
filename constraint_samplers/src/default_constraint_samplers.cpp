@@ -132,13 +132,13 @@ bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointS
                                                          const kinematic_state::KinematicState & /* ks */,
                                                          unsigned int /* max_attempts */)
 {
-  if(!is_valid_) 
+  if (!is_valid_) 
   {
     logWarn("JointConstraintSampler not configured, won't sample");
     return false;
   }
 
-  if(jsg->getName() != getGroupName()) 
+  if (jsg->getName() != getGroupName()) 
   {
     logWarn("JointConstraintSampler sample function called with name %s which is not the group %s for which it was configured",
             jsg->getName().c_str(), getGroupName().c_str());
@@ -163,8 +163,15 @@ bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointS
   // we are always successful
   return true;
 }
- 
-void constraint_samplers::JointConstraintSampler::clear()
+
+bool constraint_samplers::JointConstraintSampler::project(kinematic_state::JointStateGroup *jsg, 
+                                                          const kinematic_state::KinematicState &reference_state, 
+                                                          unsigned int max_attempts)
+{
+  return sample(jsg, reference_state, max_attempts);
+}
+
+void constraint_samplers::JointConstraintSampler::clear(void)
 {
   ConstraintSampler::clear();
   bounds_.clear();
@@ -461,10 +468,15 @@ void samplingIkCallbackFnAdapter(kinematic_state::JointStateGroup *jsg, const ki
 
 bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
 {
+  return sampleHelper(jsg, ks, max_attempts, false);
+}
+
+bool constraint_samplers::IKConstraintSampler::sampleHelper(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts, bool project)
+{
   if (!is_valid_)
     return false;
   
-  if(jsg->getName() != getGroupName()) 
+  if (jsg->getName() != getGroupName()) 
   {
     logWarn("IKConstraintSampler sample function called with name %s which is not the group %s for which it was configured",
             jsg->getName().c_str(), getGroupName().c_str());
@@ -492,21 +504,33 @@ bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStat
     ik_query.orientation.z = quat.z();
     ik_query.orientation.w = quat.w();        
     
-    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, jsg))
+    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, jsg, project))
       return true; 
   }
   return false;
 }
 
-bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback,
-                                                      double timeout, kinematic_state::JointStateGroup *jsg) 
+bool constraint_samplers::IKConstraintSampler::project(kinematic_state::JointStateGroup *jsg, 
+                                                       const kinematic_state::KinematicState &reference_state, 
+                                                       unsigned int max_attempts)
 {
-  // sample a seed value
-  std::vector<double> vals;
-  jmg_->getVariableRandomValues(random_number_generator_, vals);
+  return sampleHelper(jsg, reference_state, max_attempts, true);
+}
+
+bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback,
+                                                      double timeout, kinematic_state::JointStateGroup *jsg, bool use_as_seed)
+{ 
   const std::vector<unsigned int>& ik_joint_bijection = jmg_->getKinematicsSolverJointBijection();
+  std::vector<double> seed(ik_joint_bijection.size(), 0.0); 
+  std::vector<double> vals;
+  
+  if (use_as_seed)
+    jsg->getVariableValues(vals);
+  else
+    // sample a seed value
+    jmg_->getVariableRandomValues(random_number_generator_, vals);
+  
   assert(vals.size() == ik_joint_bijection.size());
-  std::vector<double> seed(ik_joint_bijection.size(), 0.0);
   for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
     seed[ik_joint_bijection[i]] = vals[i];
   
