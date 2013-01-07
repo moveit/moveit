@@ -34,18 +34,9 @@
 
 /* Author: Ioan Sucan, E. Gil Jones, Sachin Chitta */
 
-#include <ros/ros.h>
-
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
-
-#include <kdl_parser/kdl_parser.hpp>
-
-#include <kdl/chainjnttojacsolver.hpp>
-#include <kdl/chain.hpp>
-#include <kdl/tree.hpp>
-#include <kdl/frames_io.hpp>
 
 #include <Eigen/SVD>
 
