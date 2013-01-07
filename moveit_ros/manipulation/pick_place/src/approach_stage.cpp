@@ -75,7 +75,8 @@ bool ApproachStage::tryDistance(const ManipulationPlanPtr &plan, double dist) co
   
   // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
   // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
-  constraint_samplers::ConstraintSamplerPtr desired_intermediate_goal_sampler = constraints_sampler_manager_->selectSampler(planning_scene_, plan->planning_group_, plan->intermediate_goal_constraints_);
+  constraint_samplers::ConstraintSamplerPtr desired_intermediate_goal_sampler =
+    constraints_sampler_manager_->selectSampler(planning_scene_, plan->planning_group_, plan->intermediate_goal_constraints_);
   
   if (desired_intermediate_goal_sampler)
   {
@@ -102,8 +103,6 @@ bool ApproachStage::tryApproach(const ManipulationPlanPtr &plan, double dist) co
 {
   if (tryDistance(plan, dist))
   {
-    ROS_ERROR("EVAL 0");
-    
     moveit_msgs::GetMotionPlan::Request req;
     moveit_msgs::GetMotionPlan::Response res;
     req.motion_plan_request.group_name = plan->planning_group_;
@@ -115,32 +114,30 @@ bool ApproachStage::tryApproach(const ManipulationPlanPtr &plan, double dist) co
     
     // construct the approach motion requests for desired approach distance
     unsigned int steps = std::min(max_approach_segments_,(unsigned int)floor(dist / max_approach_segment_length_ + 0.5));
-    ROS_ERROR("Using %u steps", steps);
+    ROS_DEBUG("Using %u steps in approach", steps);
     
     req.motion_plan_request.trajectory_constraints.constraints.resize(steps);
     for (unsigned int i = 1 ; i < steps ; ++i)
     {
       moveit_msgs::Constraints &c = req.motion_plan_request.trajectory_constraints.constraints[i - 1];
       c = plan->goal_constraints_;
-      double factor = dist * ((double)i / (double)steps);
+      double factor = dist * ((double)(steps - i) / (double)steps);
       // apply the approach distance
       c.position_constraints[0].target_point_offset.x += factor * plan->grasp_.approach_direction.x;
       c.position_constraints[0].target_point_offset.y += factor * plan->grasp_.approach_direction.y;
       c.position_constraints[0].target_point_offset.z += factor * plan->grasp_.approach_direction.z;
     }
     req.motion_plan_request.trajectory_constraints.constraints.back() = plan->goal_constraints_;
-    ROS_ERROR("EVAL 1");
     
     if (planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
       plan->trajectories_.push_back(res.trajectory);
-      plan->trajectory_descriptions_.push_back(name_);
-      ROS_ERROR("EVAL 2 - A");
+      plan->trajectory_descriptions_.push_back(name_);  
+      plan->trajectory_start_ = res.trajectory_start;
       return true;
     }
-    ROS_ERROR("EVAL 2 - B");
-    return false;
   }
+  return false;
 }
 
 bool ApproachStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
