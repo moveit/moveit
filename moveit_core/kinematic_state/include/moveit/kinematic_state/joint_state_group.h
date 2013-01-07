@@ -297,8 +297,9 @@ public:
   bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
-   * @param twist a cartesian velocity on the end-effector
-   * @param dt a time interval
+   * @param twist a cartesian velocity on the 'tip' frame
+   * @param tip the frame for which the twist is given
+   * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
   bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st = SecondaryTaskCallbackFn());
