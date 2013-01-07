@@ -130,7 +130,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   {
     if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, error_code))
       return ModelBasedPlanningContextPtr(); 
-    static const std::vector<ompl::base::ValidStateSamplerPtr> empty;
+    static const std::vector<ValidConstrainedSamplerPtr> empty;
     context->setFollowSamplers(empty);
   }
   else
@@ -153,17 +153,19 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
     // construct the valid state samplers we have to go through
     std::size_t n1 = req.trajectory_constraints.constraints.size() - 1;
     logDebug("%s: Allocating %u constrained samplers.", context->getName().c_str(), (unsigned int)n1);
-
-    std::vector<ompl::base::ValidStateSamplerPtr> samplers(n1);
+    std::vector<ValidConstrainedSamplerPtr> samplers(n1);
     for (std::size_t i = 0 ; i < n1 ; ++i)
     {
       constraint_samplers::ConstraintSamplerPtr cs;
-      if (constraint_sampler_manager_)
-        cs = constraint_sampler_manager_->selectSampler(context->getPlanningScene(), context->getJointModelGroupName(), req.trajectory_constraints.constraints[i]);
+      if (constraint_sampler_manager_) 
+      {
+        moveit_msgs::Constraints combined_constraints = kinematic_constraints::mergeConstraints(req.path_constraints, req.trajectory_constraints.constraints[i]);
+        cs = constraint_sampler_manager_->selectSampler(context->getPlanningScene(), context->getJointModelGroupName(), combined_constraints);
+      }
       
       kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(planning_scene->getKinematicModel(), planning_scene->getTransforms()));
       ks->add(req.trajectory_constraints.constraints[i]);
-      samplers[i] = ob::ValidStateSamplerPtr(new ValidConstrainedSampler(context.get(), ks, cs));
+      samplers[i] = ValidConstrainedSamplerPtr(new ValidConstrainedSampler(context.get(), ks, cs));
     }
     context->setFollowSamplers(samplers);
   }

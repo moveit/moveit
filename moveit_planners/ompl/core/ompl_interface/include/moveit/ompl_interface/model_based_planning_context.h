@@ -38,6 +38,7 @@
 #define MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
+#include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit_msgs/MotionPlanRequest.h>
@@ -78,7 +79,7 @@ struct ModelBasedPlanningContextSpecification
   
 class ModelBasedPlanningContext
 {  
-public:  
+public:
   
   ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec);
   
@@ -241,7 +242,7 @@ public:
     spec_.constraints_library_ = constraints_library;
   }
   
-  void setFollowSamplers(const std::vector<ompl::base::ValidStateSamplerPtr> &samplers)
+  void setFollowSamplers(const std::vector<ValidConstrainedSamplerPtr> &samplers)
   {
     follow_samplers_ = samplers;
   }
@@ -334,7 +335,7 @@ protected:
   kinematic_constraints::KinematicConstraintSetPtr              path_constraints_;
   moveit_msgs::Constraints                                      path_constraints_msg_;
   std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
-  std::vector<ompl::base::ValidStateSamplerPtr>                 follow_samplers_;
+  std::vector<ValidConstrainedSamplerPtr>                       follow_samplers_;
   
   const ob::PlannerTerminationCondition *ptc_;
   boost::mutex ptc_lock_;
