@@ -676,7 +676,6 @@ void MotionPlanningDisplay::drawQueryStartState(void)
   {
     if (isEnabled())
     {
-      std::cerr << "drawQueryStartState" << std::endl;
       // update link poses
       query_robot_start_->update(getQueryStartState());
       query_robot_start_->setVisible(true);
@@ -931,7 +930,6 @@ void MotionPlanningDisplay::changedPlanningGroup(void)
 
 void MotionPlanningDisplay::changedCartesianTeleopState(void)
 {
-  ROS_INFO("Clicked cartesian teleop property");
   if (cartesian_teleop_property_->getBool())
   {
     query_start_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::VELOCITY_IK);

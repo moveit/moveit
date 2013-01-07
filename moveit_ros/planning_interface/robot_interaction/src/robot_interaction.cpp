@@ -38,15 +38,6 @@
 #include <algorithm>
 #include <limits>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
-
-#include <kdl_parser/kdl_parser.hpp>
-
-#include <kdl/chainjnttojacsolver.hpp>
-#include <kdl/chain.hpp>
-#include <kdl/tree.hpp>
-#include <kdl/frames_io.hpp>
-
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -87,45 +78,33 @@ void RobotInteraction::InteractionHandler::setup(void)
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
+  if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+    error_state_.clear();
+
+  geometry_msgs::PoseStamped tpose;
+  if (!transformFeedbackPose(feedback, tpose))
+    return;
+
+  bool update_state_result;
   if (interaction_mode_ == POSITION_IK)
   {
-    if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-      error_state_.clear();
-
-    geometry_msgs::PoseStamped tpose;
-    if (!transformFeedbackPose(feedback, tpose))
-      return;
-
-    if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_))
-    {
-      if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-        error_state_.insert(eef.parent_group);
-    }
-    else
-      error_state_.erase(eef.parent_group);
-    if (update_callback_)
-      update_callback_(this);
+    update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
   }
   else if (interaction_mode_ == VELOCITY_IK)
   {
-    if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-      error_state_.clear();
-
-    geometry_msgs::PoseStamped tpose;
-    if (!transformFeedbackPose(feedback, tpose))
-      return;
-
-    if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose,
-                                                          boost::bind(&RobotInteraction::InteractionHandler::avoidJointLimitsSecTask, this, _1, _2, 0.3, 1.0)))
-    {
-      if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-        error_state_.insert(eef.parent_group);
-    }
-    else
-      error_state_.erase(eef.parent_group);
-    if (update_callback_)
-      update_callback_(this);
+    update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose,
+                                                                           boost::bind(&RobotInteraction::InteractionHandler::avoidJointLimitsSecTask, this, _1, _2, 0.3, 0.5));
   }
+
+  if (!update_state_result)
+  {
+    if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+      error_state_.insert(eef.parent_group);
+  }
+  else
+    error_state_.erase(eef.parent_group);
+  if (update_callback_)
+    update_callback_(this);
 }
 
 void RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint& vj,
@@ -371,9 +350,8 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
     geometry_msgs::PoseStamped pose;
-    //pose.header.frame_id = kmodel_->getModelFrame();
-    pose.header.frame_id = "base_link";
-    //pose.header.stamp = ros::Time::now();
+    pose.header.frame_id = kmodel_->getModelFrame();
+    pose.header.stamp = ros::Time::now();
     const kinematic_state::LinkState *ls = handler->getState()->getLinkState(active_eef_[i].parent_link);
     tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
     std::string marker_name = "EE:" + handler->getName() + "_" + active_eef_[i].parent_link;
