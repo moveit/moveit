@@ -34,33 +34,30 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_PICK_PLACE_REACHABLE_VALID_PRE_GRASP_FILTER_
-#define MOVEIT_PICK_PLACE_REACHABLE_VALID_PRE_GRASP_FILTER_
+#ifndef MOVEIT_PICK_PLACE_PLAN_STAGE_
+#define MOVEIT_PICK_PLACE_PLAN_STAGE_
 
-#include <moveit/pick_place/reachable_valid_grasp_filter.h>
+#include <moveit/pick_place/manipulation_stage.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit/planning_scene/planning_scene.h>
 
 namespace pick_place
 {
 
-class ReachableAndValidPreGraspFilter : public ManipulationStage
+class PlanStage : public ManipulationStage
 {
-public:
+public:  
   
-  ReachableAndValidPreGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
-                                  const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                                  unsigned int nthreads = 4);
+  PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
+            const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+            unsigned int nthreads = 2);
   
   virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
   
 private:
 
-  bool isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
-                            const std::vector<double> &joint_group_variable_values) const;
-  
   planning_scene::PlanningSceneConstPtr planning_scene_;
-  constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
 };
 
 }

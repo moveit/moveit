@@ -32,44 +32,42 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PICK_PLACE_APPROACH_STAGE_
-#define MOVEIT_PICK_PLACE_APPROACH_STAGE_
-
-#include <moveit/pick_place/manipulation_stage.h>
-#include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/pick_place/plan_stage.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <ros/console.h>
 
 namespace pick_place
 {
 
-class ApproachStage : public ManipulationStage
+PlanStage::PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
+                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                     unsigned int nthreads) :
+  ManipulationStage(nthreads),
+  planning_scene_(scene),
+  planning_pipeline_(planning_pipeline)
 {
-public:  
-  
-  ApproachStage(const planning_scene::PlanningSceneConstPtr &scene,
-                const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                unsigned int nthreads = 4);
-  
-  virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
-  
-private:
-
-  bool tryDistance(const ManipulationPlanPtr &plan, double dist) const;
-  bool tryApproach(const ManipulationPlanPtr &plan, double dist) const;
-  bool isStateCollisionFree(kinematic_state::JointStateGroup *joint_state_group,
-                            const std::vector<double> &joint_group_variable_values) const;
-  
-  planning_scene::PlanningSceneConstPtr planning_scene_;
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
-  constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
-  double max_approach_segment_length_;
-  unsigned int max_approach_segments_;
-};
-
+  name_ = "plan";
 }
 
-#endif
+bool PlanStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
+{
+  moveit_msgs::GetMotionPlan::Request req;
+  moveit_msgs::GetMotionPlan::Response res;
+  req.motion_plan_request.group_name = plan->planning_group_;
+  req.motion_plan_request.num_planning_attempts = 1;
+  req.motion_plan_request.allowed_planning_time = ros::Duration((plan->timeout_ - ros::WallTime::now()).toSec());
 
+  req.motion_plan_request.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->token_intermediate_state_->getJointStateGroup(plan->planning_group_)));
+  
+  if (planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  {
+    plan->trajectories_.push_back(res.trajectory);
+    plan->trajectory_descriptions_.push_back(name_);
+    return true;
+  }
+  return false;
+}
+
+}
