@@ -506,7 +506,7 @@ base::PlannerStatus Follower::follow(const std::vector<ValidConstrainedSamplerPt
   {
     OMPL_ERROR("No valid start states found.");
     return base::PlannerStatus::INVALID_START;
-  }
+  } 
   
   base::PlannerStatus result = base::PlannerStatus::EXACT_SOLUTION;
   base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -543,7 +543,6 @@ base::PlannerStatus Follower::follow(const std::vector<ValidConstrainedSamplerPt
       result = base::PlannerStatus::INVALID_GOAL;
     }
   }
-  
   if (result == base::PlannerStatus::EXACT_SOLUTION)
   {
     std::vector<std::vector<std::vector<std::size_t> > > connections(sets.size() - 1);
@@ -558,7 +557,7 @@ base::PlannerStatus Follower::follow(const std::vector<ValidConstrainedSamplerPt
       else
         first_sample_worked = false;
     }
-    
+
     if (first_sample_worked)
     {
       // we are done; we have a solution
@@ -566,7 +565,7 @@ base::PlannerStatus Follower::follow(const std::vector<ValidConstrainedSamplerPt
       computeSolution(sets, connections);
     }
     else
-    {    
+    {
       // create a PDF over the sampled states
       PDF<unsigned int> pdf_sets;
       std::vector<PDF<unsigned int>::Element*> pdf_elements;
@@ -584,7 +583,7 @@ base::PlannerStatus Follower::follow(const std::vector<ValidConstrainedSamplerPt
       is_start[0].resize(sets[0].size(), 1);
       for (std::size_t i = 1 ; i < sets.size() ; ++i)
         is_start[i].resize(sets[i].size(), 0);
-      
+
       // propagate start info
       for (std::size_t i = 0 ; i < sets[0].size() ; ++i)
         propagateStartInfo(0, i, is_start, connections);
@@ -751,7 +750,7 @@ bool ompl_interface::ModelBasedPlanningContext::follow(double timeout, unsigned 
   og::Follower f(ompl_simple_setup_.getSpaceInformation());
   f.setProblemDefinition(ompl_simple_setup_.getProblemDefinition());  
 
-  ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(100 + timeout - ompl::time::seconds(ompl::time::now() - start));
+  ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);
   registerTerminationCondition(ptc);
   result = f.follow(follow_samplers_, ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
   last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
