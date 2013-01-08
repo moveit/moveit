@@ -63,6 +63,8 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <QShortcut>
+
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
 namespace moveit_rviz_plugin
@@ -283,6 +285,12 @@ void MotionPlanningDisplay::onInitialize(void)
   text_to_display_->setVisible(false);
   text_display_for_start_ = false;
   text_display_scene_node_->attachObject(text_to_display_);
+
+  if (context_ && context_->getWindowManager() && context_->getWindowManager()->getParentWindow())
+  {
+    QShortcut *im_reset_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), context_->getWindowManager()->getParentWindow());
+    connect(im_reset_shortcut, SIGNAL( activated() ), this, SLOT( changedQueryStartState() ) );
+  }
 }
 
 void MotionPlanningDisplay::reset(void)
