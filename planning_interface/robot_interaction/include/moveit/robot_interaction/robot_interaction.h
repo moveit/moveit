@@ -85,7 +85,7 @@ public:
   class InteractionHandler
   {
   public:
-    typedef enum {POSITION_IK, VELOCITY_IK} InteractionModeType;
+    typedef enum {POSITION_IK, VELOCITY_IK} IKInteractionType;
 
     InteractionHandler(const std::string &name,
                        const kinematic_state::KinematicState &kstate,
@@ -143,7 +143,7 @@ public:
       return ik_attempts_;
     }
     
-    void setInteractionMode(InteractionModeType imode)
+    void setInteractionMode(IKInteractionType imode)
     {
       interaction_mode_ = imode;
     }
@@ -175,7 +175,7 @@ public:
     kinematic_state::SecondaryTaskFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
-    InteractionModeType interaction_mode_;
+    IKInteractionType interaction_mode_;
     
   private:
     
