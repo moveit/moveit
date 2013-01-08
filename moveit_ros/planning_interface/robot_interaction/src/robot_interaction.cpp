@@ -35,6 +35,7 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <algorithm>
 #include <limits>
 
@@ -510,9 +511,11 @@ bool RobotInteraction::InteractionHandler::avoidJointLimitsSecTask(const kinemat
     qrange(i) = qmax(i) - qmin(i);
 
     //Fill in stvector with the gradient of a joint avoidance cost function
-    if (qrange(i) == 0)
+    const std::vector<const kinematic_model::JointModel*> joint_models = joint_state_group->getJointModelGroup()->getJointModels();
+    if (qrange(i) == 0 ||
+        (joint_models[i]->getType() == kinematic_model::JointModel::REVOLUTE && qmax(i) == boost::math::constants::pi<double>() && qmin(i) == -boost::math::constants::pi<double>()))
     {
-      //If joint range is zero, do not compute the cost. TODO: Is this always the case for continuous joints? should be set to zero too
+      //If the joint range is zero or is continuous, do not compute the cost
       stvector(i) = 0;
     }
     else
