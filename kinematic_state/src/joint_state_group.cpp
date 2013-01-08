@@ -737,6 +737,14 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   return true;
 }
 
+bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st)
+{
+  Eigen::Matrix<double, 6, 1> t;
+  tf::twistMsgToEigen(twist, t);
+
+  return setFromDiffIK(t, tip, dt, st);
+}
+
 void kinematic_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
                                                            const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
 {  
