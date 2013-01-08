@@ -54,7 +54,7 @@ void convertToKinematicStates(std::vector<kinematic_state::KinematicStatePtr> &s
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
     moveit_msgs::RobotState rs;
-    kinematic_state::robotTrajectoryPointToRobotState(trajectory, i, rs);
+    robotTrajectoryPointToRobotState(trajectory, i, rs);
     kinematic_state::KinematicStatePtr st(new kinematic_state::KinematicState(start));
     kinematic_state::robotStateToKinematicState(*transforms, rs, *st);
     states[i] = st;
@@ -232,5 +232,37 @@ double averageSegmentDuration(const moveit_msgs::RobotTrajectory &trajectory)
     return 0.0;
 }
 
+std::size_t trajectoryPointCount(const moveit_msgs::RobotTrajectory &trajectory)
+{
+  return std::max(trajectory.joint_trajectory.points.size(), trajectory.multi_dof_joint_trajectory.points.size());
+}
+
+bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, std::size_t index, moveit_msgs::RobotState &rs)
+{
+  bool result = false;
+  if (rt.joint_trajectory.points.size() > index)
+  {
+    rs.joint_state.header = rt.joint_trajectory.header;
+    rs.joint_state.header.stamp = rs.joint_state.header.stamp + rt.joint_trajectory.points[index].time_from_start;
+    rs.joint_state.name = rt.joint_trajectory.joint_names;
+    rs.joint_state.position = rt.joint_trajectory.points[index].positions;
+    rs.joint_state.velocity = rt.joint_trajectory.points[index].velocities;
+    result = true;
+  }
+  else
+    rs.joint_state = sensor_msgs::JointState();
+  if (rt.multi_dof_joint_trajectory.points.size() > index)
+  {
+    rs.multi_dof_joint_state.joint_names = rt.multi_dof_joint_trajectory.joint_names;
+    rs.multi_dof_joint_state.frame_ids = rt.multi_dof_joint_trajectory.frame_ids;
+    rs.multi_dof_joint_state.child_frame_ids = rt.multi_dof_joint_trajectory.child_frame_ids;
+    rs.multi_dof_joint_state.stamp = rt.joint_trajectory.header.stamp + rt.multi_dof_joint_trajectory.points[index].time_from_start;
+    rs.multi_dof_joint_state.poses = rt.multi_dof_joint_trajectory.points[index].poses;
+    result = true;
+  }
+  else
+    rs.multi_dof_joint_state = moveit_msgs::MultiDOFJointState();
+  return result;
+}
 
 }
