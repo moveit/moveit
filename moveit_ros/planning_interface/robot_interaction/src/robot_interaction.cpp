@@ -35,8 +35,12 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <algorithm>
 #include <limits>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 namespace robot_interaction
 {
@@ -48,7 +52,8 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
                                                          const boost::shared_ptr<tf::Transformer> &tf) :
   name_(name),
   kstate_(new kinematic_state::KinematicState(kstate)),
-  tf_(tf)
+  tf_(tf),
+  interaction_mode_(POSITION_IK)
 {
   setup();
 }
@@ -58,7 +63,8 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
                                                          const boost::shared_ptr<tf::Transformer> &tf) :
   name_(name),
   kstate_(new kinematic_state::KinematicState(kmodel)),
-  tf_(tf)
+  tf_(tf),
+  interaction_mode_(POSITION_IK)
 {
   setup();
 }
@@ -70,17 +76,95 @@ void RobotInteraction::InteractionHandler::setup(void)
   ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
 }
 
+//TODO: move functions like this into an eigen_utils package
+void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose)
+{
+  pose.resize(6);
+
+  //fill translation
+  pose.matrix().block(0,0,3,1) = M.matrix().block(0,3,3,1);
+
+  //Compute and fill rotation (theta-u convention)
+  //Most of this code is adapted from ViSP vpThetaUVector::build_from(vpRotationMatrix)
+  const Eigen::Matrix3d R = M.matrix().block(0, 0, 3, 3);
+
+  double s,c,theta,sinc;
+  s = (R(1,0) - R(0,1)) * (R(1,0) - R(0,1))
+    + (R(2,0) - R(0,2)) * (R(2,0) - R(0,2))
+    + (R(2,1) - R(1,2)) * (R(2,1) - R(1,2));
+  s = sqrt(s) / 2.0;
+  c = (R(0,0) + R(1,1) + R(2,2) - 1.0) / 2.0;
+  theta = atan2(s,c);  /* theta in [0, PI] since s > 0 */
+
+  // General case when theta != pi. If theta=pi, c=-1
+  static const double minimum = 0.0001;
+  if ( (1 + c) > minimum) // Since -1 <= c <= 1, no fabs(1+c) is required
+  {
+    static const double threshold = 1.0e-8;
+    if (fabs(theta) < threshold) sinc = 1.0 ;
+    else  sinc = (s / theta) ;
+
+    pose(3) = (R(2,1) - R(1,2)) / (2*sinc);
+    pose(4) = (R(0,2) - R(2,0)) / (2*sinc);
+    pose(5) = (R(1,0) - R(0,1)) / (2*sinc);
+  }
+  else /* theta near PI */
+  {
+    if ( (R(0,0) - c) < std::numeric_limits<double>::epsilon() )
+      pose(3) = 0.;
+    else
+      pose(3) = theta * (sqrt((R(0,0) - c) / (1 - c)));
+    if ((R(2,1) - R(1,2)) < 0) pose(3) = -pose(3);
+
+    if ( (R(1,1) - c) < std::numeric_limits<double>::epsilon() )
+      pose(4) = 0.;
+    else
+      pose(4) = theta * (sqrt((R(1,1) - c) / (1 - c)));
+
+    if ((R(0,2) - R(2,0)) < 0) pose(4) = -pose(4);
+
+    if ( (R(2,2) - c) < std::numeric_limits<double>::epsilon() )
+      pose(5) = 0.;
+    else
+      pose(5) = theta * (sqrt((R(2,2) - c) / (1 - c)));
+
+    if ((R(1,0) - R(0,1)) < 0) pose(5) = -pose(5);
+  }
+}
+
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
     error_state_.clear();
-  
+
   geometry_msgs::PoseStamped tpose;
   if (!transformFeedbackPose(feedback, tpose))
     return;
-  
-  if (!robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_))
+
+  bool update_state_result;
+  if (interaction_mode_ == POSITION_IK)
+  {
+    update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
+  }
+  else if (interaction_mode_ == VELOCITY_IK)
+  {
+    //Compute velocity from current pose to goal pose, in the current end-effector frame
+    const Eigen::Affine3d &wMe = kstate_->getLinkState(eef.parent_link)->getGlobalLinkTransform();
+    Eigen::Affine3d wMt;
+    tf::poseMsgToEigen(tpose.pose, wMt);
+    Eigen::Affine3d eMt = wMe.inverse() * wMt;
+
+    Eigen::VectorXd twist(6);
+    eigenTransformToEigenVector(eMt, twist);
+
+    geometry_msgs::Twist twist_msg;
+    tf::twistEigenToMsg(twist, twist_msg);
+    update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, twist_msg,
+                                                                           boost::bind(&RobotInteraction::InteractionHandler::avoidJointLimitsSecTask, this, _1, _2, 0.3, 0.5));
+  }
+
+  if (!update_state_result)
   {
     if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
       error_state_.insert(eef.parent_group);
@@ -397,6 +481,63 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
                                    unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback)
 { 
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
+}
+
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, const kinematic_state::SecondaryTaskFn &st_callback)
+{
+  static const double gain = 0.1;
+  return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, st_callback);
+}
+
+bool RobotInteraction::InteractionHandler::avoidJointLimitsSecTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
+                                                                            double activation_threshold, double gain) const
+{
+  //Get current joint values (q)
+  Eigen::VectorXd q;
+  joint_state_group->getVariableValues(q);
+
+  //Get joint lower and upper limits (qmin and qmax)
+  const std::vector<moveit_msgs::JointLimits> &qlimits = joint_state_group->getJointModelGroup()->getVariableLimits();
+  Eigen::VectorXd qmin(qlimits.size());
+  Eigen::VectorXd qmax(qlimits.size());
+  Eigen::VectorXd qrange(qlimits.size());
+  stvector.resize(qlimits.size());
+  stvector = Eigen::ArrayXd::Zero(qlimits.size());
+
+  for (std::size_t i = 0; i < qlimits.size(); ++i)
+  {
+    qmin(i) = qlimits[i].min_position;
+    qmax(i) = qlimits[i].max_position;
+    qrange(i) = qmax(i) - qmin(i);
+
+    //Fill in stvector with the gradient of a joint avoidance cost function
+    const std::vector<const kinematic_model::JointModel*> joint_models = joint_state_group->getJointModelGroup()->getJointModels();
+    if (qrange(i) == 0)
+    {
+      //If the joint range is zero do not compute the cost
+      stvector(i) = 0;
+    }
+    else if (joint_models[i]->getType() == kinematic_model::JointModel::REVOLUTE)
+    {
+      //If the joint is continuous do not compute the cost
+      const kinematic_model::RevoluteJointModel *rjoint = static_cast<const kinematic_model::RevoluteJointModel*>(joint_models[i]);
+      if (rjoint->isContinuous())
+        stvector(i) = 0;
+    }
+    else
+    {
+      if (q(i) > (qmax(i) - qrange(i) * activation_threshold))
+      {
+        stvector(i) = -gain * (q(i) - (qmax(i) - qrange(i) * activation_threshold)) / qrange(i);
+      }
+      else if (q(i) < (qmin(i) + qrange(i) * activation_threshold))
+      {
+        stvector(i) = -gain * (q(i) - (qmin(i) + qrange(i) * activation_threshold)) / qrange(i);
+      }
+    }
+  }
+
+  return true;
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
