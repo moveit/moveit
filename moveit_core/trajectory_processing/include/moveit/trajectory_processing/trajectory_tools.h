@@ -67,6 +67,17 @@ double getTrajectoryDuration(const moveit_msgs::RobotTrajectory &trajectory);
 
 double averageSegmentDuration(const moveit_msgs::RobotTrajectory &trajectory);
 
+std::size_t trajectoryPointCount(const moveit_msgs::RobotTrajectory &trajectory);
+
+/**
+ * @brief Convert a RobotTrajectoryPoint (in a RobotTrajectory) to a RobotState message
+ * @param rt The input RobotTrajectory
+ * @param index The index of the point that we want to convert
+ * @param rs The resultant robot state
+ * @return True if any data was copied to \e rs. If \e index is out of range, no data is copied and false is returned.
+ */
+bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &trajectory, std::size_t index, moveit_msgs::RobotState &rs);
+
 }
 
 #endif

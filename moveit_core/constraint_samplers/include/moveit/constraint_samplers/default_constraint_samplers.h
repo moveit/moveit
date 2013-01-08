@@ -117,19 +117,14 @@ public:
    */  
   bool configure(const std::vector<kinematic_constraints::JointConstraint> &jc);
 
-  /** 
-   * \brief Takes a sample given the constraints, populating joint state group.
-   * 
-   * @param [out] jsg A joint state group.  The name must match the group passed through the constructor.
-   * @param [in] ks A reference, state, unused in this function
-   * @param [in] max_attempts The max attempts to take a constraint, unused in this function as all attempt will be successful
-   * 
-   * @return True if the constraint is valid and the joint state group matches the configured group.  Otherwise false.
-   */
   virtual bool sample(kinematic_state::JointStateGroup *jsg, 
                       const kinematic_state::KinematicState &ks,  
                       unsigned int max_attempts);
-  
+
+  virtual bool project(kinematic_state::JointStateGroup *jsg, 
+                       const kinematic_state::KinematicState &reference_state, 
+                       unsigned int max_attempts);
+
   /** 
    * \brief Gets the number of constrained joints - joints that have an
    * additional bound beyond the joint limits.
@@ -445,6 +440,9 @@ public:
    */
   virtual bool sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts);
 
+  virtual bool project(kinematic_state::JointStateGroup *jsg, 
+                       const kinematic_state::KinematicState &reference_state, 
+                       unsigned int max_attempts);
   /** 
    * \brief Returns a pose that falls within the constraint regions. 
    * 
@@ -486,10 +484,14 @@ protected:
    * @param ik_query The pose for solving IK, assumed to be for the tip frame in the base frame
    * @param timeout The timeout for the IK search 
    * @param jsg The joint state group into which to place the solution
+   * @param use_as_seed If true, the state values in jsg are used as seed for the IK
    * 
    * @return True if IK returns successfully with the timeout, and otherwise false.
    */
-  bool callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback, double timeout, kinematic_state::JointStateGroup *jsg);
+  bool callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback, double timeout,
+              kinematic_state::JointStateGroup *jsg, bool use_as_seed);
+
+  bool sampleHelper(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts, bool project);
 
   random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random generator used by the sampler */
   IKSamplingPose                        sampling_pose_; /**< \brief Holder for the pose used for sampling */
