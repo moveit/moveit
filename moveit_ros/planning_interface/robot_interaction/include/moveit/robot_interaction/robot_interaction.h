@@ -212,7 +212,7 @@ public:
   static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskFn &st_callback);
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, const kinematic_state::SecondaryTaskFn &st_callback);
 
 private:
   

@@ -75,6 +75,62 @@ void RobotInteraction::InteractionHandler::setup(void)
   ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
 }
 
+//TODO: move functions like this into an eigen_utils package
+void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose)
+{
+  pose.resize(6);
+
+  //fill translation
+  pose.matrix().block(0,0,3,1) = M.matrix().block(0,3,3,1);
+
+  //Compute and fill rotation (theta-u convention)
+  //Most of this code is adapted from ViSP vpThetaUVector::build_from(vpRotationMatrix)
+  const Eigen::Matrix3d R = M.matrix().block(0, 0, 3, 3);
+
+  double s,c,theta,sinc;
+  s = (R(1,0) - R(0,1)) * (R(1,0) - R(0,1))
+    + (R(2,0) - R(0,2)) * (R(2,0) - R(0,2))
+    + (R(2,1) - R(1,2)) * (R(2,1) - R(1,2));
+  s = sqrt(s) / 2.0;
+  c = (R(0,0) + R(1,1) + R(2,2) - 1.0) / 2.0;
+  theta = atan2(s,c);  /* theta in [0, PI] since s > 0 */
+
+  // General case when theta != pi. If theta=pi, c=-1
+  static const double minimum = 0.0001;
+  if ( (1 + c) > minimum) // Since -1 <= c <= 1, no fabs(1+c) is required
+  {
+    static const double threshold = 1.0e-8;
+    if (fabs(theta) < threshold) sinc = 1.0 ;
+    else  sinc = (s / theta) ;
+
+    pose(3) = (R(2,1) - R(1,2)) / (2*sinc);
+    pose(4) = (R(0,2) - R(2,0)) / (2*sinc);
+    pose(5) = (R(1,0) - R(0,1)) / (2*sinc);
+  }
+  else /* theta near PI */
+  {
+    if ( (R(0,0) - c) < std::numeric_limits<double>::epsilon() )
+      pose(3) = 0.;
+    else
+      pose(3) = theta * (sqrt((R(0,0) - c) / (1 - c)));
+    if ((R(2,1) - R(1,2)) < 0) pose(3) = -pose(3);
+
+    if ( (R(1,1) - c) < std::numeric_limits<double>::epsilon() )
+      pose(4) = 0.;
+    else
+      pose(4) = theta * (sqrt((R(1,1) - c) / (1 - c)));
+
+    if ((R(0,2) - R(2,0)) < 0) pose(4) = -pose(4);
+
+    if ( (R(2,2) - c) < std::numeric_limits<double>::epsilon() )
+      pose(5) = 0.;
+    else
+      pose(5) = theta * (sqrt((R(2,2) - c) / (1 - c)));
+
+    if ((R(1,0) - R(0,1)) < 0) pose(5) = -pose(5);
+  }
+}
+
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
@@ -92,7 +148,18 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   }
   else if (interaction_mode_ == VELOCITY_IK)
   {
-    update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose,
+    //Compute velocity from current pose to goal pose, in the current end-effector frame
+    const Eigen::Affine3d &wMe = kstate_->getLinkState(eef.parent_link)->getGlobalLinkTransform();
+    Eigen::Affine3d wMt;
+    tf::poseMsgToEigen(tpose.pose, wMt);
+    Eigen::Affine3d eMt = wMe.inverse() * wMt;
+
+    Eigen::VectorXd twist(6);
+    eigenTransformToEigenVector(eMt, twist);
+
+    geometry_msgs::Twist twist_msg;
+    tf::twistEigenToMsg(twist, twist_msg);
+    update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, twist_msg,
                                                                            boost::bind(&RobotInteraction::InteractionHandler::avoidJointLimitsSecTask, this, _1, _2, 0.3, 0.5));
   }
 
@@ -415,73 +482,8 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
 }
 
-//TODO: move functions like this into an eigen_utils package
-void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose)
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, const kinematic_state::SecondaryTaskFn &st_callback)
 {
-  pose.resize(6);
-
-  //fill translation
-  pose.matrix().block(0,0,3,1) = M.matrix().block(0,3,3,1);
-
-  //Compute and fill rotation (theta-u convention)
-  //Most of this code is adapted from ViSP vpThetaUVector::build_from(vpRotationMatrix)
-  const Eigen::Matrix3d R = M.matrix().block(0, 0, 3, 3);
-
-  double s,c,theta,sinc;
-  s = (R(1,0) - R(0,1)) * (R(1,0) - R(0,1))
-    + (R(2,0) - R(0,2)) * (R(2,0) - R(0,2))
-    + (R(2,1) - R(1,2)) * (R(2,1) - R(1,2));
-  s = sqrt(s) / 2.0;
-  c = (R(0,0) + R(1,1) + R(2,2) - 1.0) / 2.0;
-  theta = atan2(s,c);  /* theta in [0, PI] since s > 0 */
-
-  // General case when theta != pi. If theta=pi, c=-1
-  static const double minimum = 0.0001;
-  if ( (1 + c) > minimum) // Since -1 <= c <= 1, no fabs(1+c) is required
-  {
-    static const double threshold = 1.0e-8;
-    if (fabs(theta) < threshold) sinc = 1.0 ;
-    else  sinc = (s / theta) ;
-
-    pose(3) = (R(2,1) - R(1,2)) / (2*sinc);
-    pose(4) = (R(0,2) - R(2,0)) / (2*sinc);
-    pose(5) = (R(1,0) - R(0,1)) / (2*sinc);
-  }
-  else /* theta near PI */
-  {
-    if ( (R(0,0) - c) < std::numeric_limits<double>::epsilon() )
-      pose(3) = 0.;
-    else
-      pose(3) = theta * (sqrt((R(0,0) - c) / (1 - c)));
-    if ((R(2,1) - R(1,2)) < 0) pose(3) = -pose(3);
-
-    if ( (R(1,1) - c) < std::numeric_limits<double>::epsilon() )
-      pose(4) = 0.;
-    else
-      pose(4) = theta * (sqrt((R(1,1) - c) / (1 - c)));
-
-    if ((R(0,2) - R(2,0)) < 0) pose(4) = -pose(4);
-
-    if ( (R(2,2) - c) < std::numeric_limits<double>::epsilon() )
-      pose(5) = 0.;
-    else
-      pose(5) = theta * (sqrt((R(2,2) - c) / (1 - c)));
-
-    if ((R(1,0) - R(0,1)) < 0) pose(5) = -pose(5);
-  }
-}
-
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskFn &st_callback)
-{
-  //Compute velocity from current pose to goal pose, in the current end-effector frame
-  const Eigen::Affine3d &wMe = state.getLinkState(eef.parent_link)->getGlobalLinkTransform();
-  Eigen::Affine3d wMt;
-  tf::poseMsgToEigen(pose, wMt);
-  Eigen::Affine3d eMt = wMe.inverse() * wMt;
-
-  Eigen::VectorXd twist(6);
-  eigenTransformToEigenVector(eMt, twist);
-
   static const double gain = 0.1;
   return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, st_callback);
 }
