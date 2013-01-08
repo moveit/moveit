@@ -39,6 +39,7 @@
 #include <moveit/collision_detection_fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/collision_detection/collision_tools.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <octomap_msgs/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -1484,14 +1485,13 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_state::Kinematic
   bool result = true;
   if (invalid_index)
     invalid_index->clear();
-  std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
-                                     trajectory.multi_dof_joint_trajectory.points.size());
+  std::size_t state_count = trajectory_processing::trajectoryPointCount(trajectory);
   kinematic_constraints::KinematicConstraintSet ks_p(getKinematicModel(), getTransforms());
   ks_p.add(path_constraints);
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
     moveit_msgs::RobotState rs;
-    kinematic_state::robotTrajectoryPointToRobotState(trajectory, i, rs);
+    trajectory_processing::robotTrajectoryPointToRobotState(trajectory, i, rs);
     kinematic_state::KinematicStatePtr st(new kinematic_state::KinematicState(start));
     kinematic_state::robotStateToKinematicState(*getTransforms(), rs, *st);
 
