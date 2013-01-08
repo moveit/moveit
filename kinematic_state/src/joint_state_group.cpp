@@ -38,6 +38,8 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 
+#include <Eigen/SVD>
+
 kinematic_state::JointStateGroup::JointStateGroup(KinematicState *state,
                                                   const kinematic_model::JointModelGroup *jmg) :
   kinematic_state_(state), joint_model_group_(jmg)
@@ -120,6 +122,16 @@ bool kinematic_state::JointStateGroup::setVariableValues(const std::vector<doubl
   }
   updateLinkTransforms();
   return true;
+}
+
+bool kinematic_state::JointStateGroup::setVariableValues(const Eigen::VectorXd &joint_state_values)
+{
+  std::vector<double> values;
+  for (std::size_t i = 0; i < joint_state_values.rows(); i++)
+  {
+    values.push_back(joint_state_values(i));
+  }
+  setVariableValues(values);
 }
 
 void kinematic_state::JointStateGroup::setVariableValues(const std::map<std::string, double>& joint_state_map)
@@ -208,6 +220,20 @@ void kinematic_state::JointStateGroup::getVariableValues(std::vector<double>& jo
   {
     const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
     joint_state_values.insert(joint_state_values.end(), jv.begin(), jv.end());
+  }
+}
+
+void kinematic_state::JointStateGroup::getVariableValues(Eigen::VectorXd& joint_state_values) const
+{
+  joint_state_values.resize(getVariableCount());
+  unsigned int count = 0;
+  for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
+  {
+    const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
+    for(unsigned int j = 0; j < jv.size(); j++)
+    {
+      joint_state_values(count++) = jv[j];
+    }
   }
 }
 
@@ -651,6 +677,72 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
     }    
   }
   return false;
+}
+
+bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st)
+{
+  //Get the Jacobian of the group at the current configuration
+  Eigen::MatrixXd J(6, getVariableCount());
+  Eigen::Vector3d reference_point(0.0,0.0,0.0);
+  getJacobian(tip, reference_point, J);
+
+  //Rotate the jacobian to the end-effector frame
+  Eigen::Affine3d bMe, eMb;
+  bMe = getKinematicState()->getLinkState(tip)->getGlobalLinkTransform();
+  eMb = bMe.inverse();
+  Eigen::MatrixXd eWb = Eigen::ArrayXXd::Zero(6, 6);
+  eWb.block(0, 0, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
+  eWb.block(3, 3, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
+  J = eWb * J;
+
+  //Do the Jacobian moore-penrose pseudo-inverse
+  Eigen::JacobiSVD<Eigen::MatrixXd> svdOfJ(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  const Eigen::MatrixXd U = svdOfJ.matrixU();
+  const Eigen::MatrixXd V = svdOfJ.matrixV();
+  const Eigen::VectorXd S = svdOfJ.singularValues();
+
+  Eigen::VectorXd Sinv = S;
+  static const double pinvtoler = 1.e-6;
+  double maxsv = 0.0 ;
+  for (std::size_t i = 0; i < S.rows(); ++i)
+    if (fabs(S(i)) > maxsv) maxsv = fabs(S(i));
+  for (std::size_t i = 0; i < S.rows(); ++i)
+  {
+    //Those singular values smaller than a percentage of the maximum singular value are removed
+    if ( fabs(S(i)) > maxsv * pinvtoler )
+      Sinv(i) = 1.0 / S(i);
+    else Sinv(i) = 0.0;
+  }
+  Eigen::MatrixXd Jinv = ( V * Sinv.asDiagonal() * U.transpose() );
+
+  //Compute joint velocity
+  Eigen::VectorXd qdot = Jinv * twist;
+
+  //Project the secondary task
+  if (st)
+  {
+    Eigen::VectorXd cost_vector = Eigen::VectorXd::Zero(qdot.rows());
+    st(this, cost_vector);
+    qdot += (Eigen::MatrixXd::Identity(qdot.rows(), qdot.rows()) - Jinv * J) * cost_vector;
+  }
+
+  //Integrate qdot for dt
+  Eigen::VectorXd q(getVariableCount());
+  getVariableValues(q);
+  q = q + dt * qdot;
+
+  setVariableValues(q);
+  enforceBounds();
+
+  return true;
+}
+
+bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st)
+{
+  Eigen::Matrix<double, 6, 1> t;
+  tf::twistMsgToEigen(twist, t);
+
+  return setFromDiffIK(t, tip, dt, st);
 }
 
 void kinematic_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,

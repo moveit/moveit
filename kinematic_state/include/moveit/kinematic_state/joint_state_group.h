@@ -41,6 +41,7 @@
 #include <moveit/kinematic_state/link_state.h>
 #include <moveit/kinematic_state/joint_state.h>
 #include <sensor_msgs/JointState.h>
+#include <geometry_msgs/Twist.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/function.hpp>
 
@@ -50,6 +51,7 @@ namespace kinematic_state
 class JointStateGroup;
 
 typedef boost::function<bool(JointStateGroup *joint_state_group, const std::vector<double> &joint_group_variable_values)> StateValidityCallbackFn;
+typedef boost::function<bool(const JointStateGroup *joint_state_group, Eigen::VectorXd &stvector)> SecondaryTaskFn;
 
 class KinematicState;
 
@@ -110,6 +112,12 @@ public:
       within a group. Links that are not in the group are also
       updated, but transforms for joints that are not in the
       group are not recomputed.  */
+  bool setVariableValues(const Eigen::VectorXd& joint_state_values);
+
+  /** \brief Perform forward kinematics starting at the roots
+      within a group. Links that are not in the group are also
+      updated, but transforms for joints that are not in the
+      group are not recomputed.  */
   void setVariableValues(const std::map<std::string, double>& joint_state_map);
   
   /** \brief Perform forward kinematics starting at the roots
@@ -132,6 +140,9 @@ public:
   
   /** \brief Get current joint values */
   void getVariableValues(std::vector<double>& joint_state_values) const;
+
+  /** \brief Get current joint values */
+  void getVariableValues(Eigen::VectorXd& joint_state_values) const;
   
   /** \brief Get a map between variable names and joint state values */
   void getVariableValues(std::map<std::string, double>& joint_state_values) const;
@@ -285,6 +296,22 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
+
+  /** \brief Set the joint values from a cartesian velocity applied during a time dt
+   * @param twist a cartesian velocity on the 'tip' frame
+   * @param tip the frame for which the twist is given
+   * @param dt a time interval (seconds)
+   * @param st a secondary task computation function
+   */
+  bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st = SecondaryTaskFn());
+
+  /** \brief Set the joint values from a cartesian velocity applied during a time dt
+   * @param twist a cartesian velocity on the 'tip' frame
+   * @param tip the frame for which the twist is given
+   * @param dt a time interval (seconds)
+   * @param st a secondary task computation function
+   */
+  bool setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st = SecondaryTaskFn());
 
   JointStateGroup& operator=(const JointStateGroup &other);
 
