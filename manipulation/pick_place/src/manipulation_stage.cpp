@@ -126,7 +126,7 @@ void ManipulationStage::processingThread(unsigned int index)
       {
         ROS_INFO_STREAM("Calling evaluate for stage '" << name_ << "' with thread index " << index << " (queue is of size " << q.size() << ")");
         if (evaluate(index, g))
-        {       
+        {   
           if (next_ && !stop_processing_)
           {
             /*
@@ -159,7 +159,7 @@ void ManipulationStage::processingThread(unsigned int index)
       catch (...)
       {
         ROS_ERROR("[%s:%u] Caught unknown exception while processing manipulation stage", name_.c_str(), index);
-      }  
+      }
       p.mutex_.lock();
       //      previous_-> // notify somehow the parent condition? which thread ? 
     }

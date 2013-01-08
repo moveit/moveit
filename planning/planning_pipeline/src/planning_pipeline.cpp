@@ -35,6 +35,7 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <moveit/collision_detection/collision_tools.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <boost/tokenizer.hpp>
@@ -284,7 +285,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             {
               // compute the full kinematic state
               moveit_msgs::RobotState rs;
-              kinematic_state::robotTrajectoryPointToRobotState(res.trajectory, index[i], rs);
+              trajectory_processing::robotTrajectoryPointToRobotState(res.trajectory, index[i], rs);
               kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), rs, kstate);
               // check validity with verbose on
               planning_scene->isStateValid(kstate, req.motion_plan_request.group_name, true);

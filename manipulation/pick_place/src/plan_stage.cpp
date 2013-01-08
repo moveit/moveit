@@ -63,9 +63,9 @@ bool PlanStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan
   
   if (planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
-    plan->trajectories_.push_back(res.trajectory);
+    plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory);
     plan->trajectory_start_ = res.trajectory_start;
-    plan->trajectory_descriptions_.push_back(name_);
+    plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), name_);
     return true;
   }
   return false;
