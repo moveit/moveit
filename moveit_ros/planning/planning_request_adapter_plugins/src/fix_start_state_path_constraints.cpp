@@ -82,13 +82,12 @@ public:
       if (solved1)
       { 
         moveit_msgs::GetMotionPlan::Request req3 = req;
-        std::size_t last_index = std::max(res2.trajectory.joint_trajectory.points.size(),
-                                          res2.trajectory.multi_dof_joint_trajectory.points.size());
+        std::size_t last_index = trajectory_processing::trajectoryPointCount(res2.trajectory);
         ROS_DEBUG("Planned to path constraints. Resuming original planning request.");
         assert(last_index > 0);
         // extract the last state of the computed motion plan and set it as the new start state
         moveit_msgs::RobotState new_start;
-        kinematic_state::robotTrajectoryPointToRobotState(res2.trajectory, last_index - 1, new_start);
+        trajectory_processing::robotTrajectoryPointToRobotState(res2.trajectory, last_index - 1, new_start);
         kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), new_start, start_state);
         kinematic_state::kinematicStateToRobotState(start_state, req3.motion_plan_request.start_state);
                 
@@ -134,7 +133,7 @@ public:
               {
                 // take states from the first path one by one, in reverse, and add them as prefix
                 moveit_msgs::RobotState temp;
-                kinematic_state::robotTrajectoryPointToRobotState(res2.trajectory, i, temp);
+                trajectory_processing::robotTrajectoryPointToRobotState(res2.trajectory, i, temp);
                 kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), temp, st);
                 double dt = ((int)res.trajectory.joint_trajectory.points.size() > i + 1) ?
                   (res.trajectory.joint_trajectory.points[i + 1].time_from_start - res.trajectory.joint_trajectory.points[i].time_from_start).toSec() : 

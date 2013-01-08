@@ -34,66 +34,43 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
-#define MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
+#ifndef MOVEIT_PICK_PLACE_TRANSLATION_STAGE_
+#define MOVEIT_PICK_PLACE_TRANSLATION_STAGE_
 
-#include <boost/shared_ptr.hpp>
-#include <moveit/kinematic_state/kinematic_state.h>
-#include <moveit/constraint_samplers/constraint_sampler.h>
-#include <manipulation_msgs/Grasp.h>
-#include <moveit_msgs/RobotState.h>
-#include <moveit_msgs/RobotTrajectory.h>
-#include <moveit_msgs/MoveItErrorCodes.h>
-#include <moveit_msgs/Constraints.h>
-#include <string>
-#include <vector>
+#include <moveit/pick_place/manipulation_stage.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
 
 namespace pick_place
 {
 
-struct ManipulationPlan
+class TranslationStage : public ManipulationStage
 {
-  // The grasp that is attempted
-  manipulation_msgs::Grasp grasp_;
-
-  std::string planning_group_;
+public:  
   
-  ros::WallTime timeout_;
+  TranslationStage(const planning_scene::PlanningSceneConstPtr &scene,
+                   const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                   const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
+                   unsigned int nthreads = 4);
   
-  moveit_msgs::Constraints goal_constraints_;
-
-  moveit_msgs::Constraints intermediate_goal_constraints_;
+  virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
   
-  moveit_msgs::Constraints translated_goal_constraints_;
+private:
   
-  constraint_samplers::ConstraintSamplerPtr goal_sampler_;
-
-  constraint_samplers::ConstraintSamplerPtr intermediate_goal_sampler_;
-
-  constraint_samplers::ConstraintSamplerPtr translated_goal_sampler_;
+  bool tryDistance(const ManipulationPlanPtr &plan, double dist) const;
+  bool tryTranslation(const ManipulationPlanPtr &plan, double dist) const;
+  bool isStateCollisionFree(const sensor_msgs::JointState *post_grasp_posture, 
+                            kinematic_state::JointStateGroup *joint_state_group,
+                            const std::vector<double> &joint_group_variable_values) const;
   
-  kinematic_state::KinematicStatePtr token_goal_state_;
-  
-  kinematic_state::KinematicStatePtr token_intermediate_state_;
-
-  kinematic_state::KinematicStatePtr token_translated_state_;
-  
-  // The full starting state of the robot at the start of the trajectory
-  moveit_msgs::RobotState trajectory_start_;
-  
-  // The sequence of trajectories produced for execution
-  std::vector<moveit_msgs::RobotTrajectory> trajectories_;
-  
-  // String descriptors of the trajectories
-  std::vector<std::string> trajectory_descriptions_;
-  
-  // An error code reflecting what went wrong (if anything)
-  moveit_msgs::MoveItErrorCodes error_code_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
+  constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
+  double max_translation_segment_length_;
+  unsigned int max_translation_segments_;
 };
-
-typedef boost::shared_ptr<ManipulationPlan> ManipulationPlanPtr;
-typedef boost::shared_ptr<const ManipulationPlan> ManipulationPlanConstPtr;
 
 }
 
 #endif
+

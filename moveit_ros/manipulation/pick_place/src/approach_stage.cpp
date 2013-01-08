@@ -142,7 +142,23 @@ bool ApproachStage::tryApproach(const ManipulationPlanPtr &plan, double dist) co
 
 bool ApproachStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
 { 
-  return tryApproach(plan, plan->grasp_.desired_approach_distance) || tryApproach(plan, plan->grasp_.min_approach_distance);
+  bool zero1 = false;
+  if (fabs(plan->grasp_.desired_approach_distance) > 0.0)
+  {
+    if (tryApproach(plan, plan->grasp_.desired_approach_distance))
+      return true;
+  }
+  else
+    zero1 = true;
+  bool zero2 = false;
+  if (fabs(plan->grasp_.min_approach_distance) > 0.0)
+  {
+    if (tryApproach(plan, plan->grasp_.min_approach_distance))
+      return true;
+  }
+  else
+    zero2 = true;
+  return zero1 && zero2;
 }
 
 }

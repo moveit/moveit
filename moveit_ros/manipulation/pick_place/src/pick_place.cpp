@@ -55,7 +55,7 @@ PickPlace::PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipe
 
 void PickPlace::displayPlan(const ManipulationPlanPtr &plan) const
 { 
-
+  /*
   {
     moveit_msgs::DisplayTrajectory dtraj;
     dtraj.trajectory_start = plan->trajectory_start_;
@@ -79,7 +79,7 @@ void PickPlace::displayPlan(const ManipulationPlanPtr &plan) const
     display_path_publisher_.publish(dtraj);   
     sleep(3);
   } 
-  
+  */
   if (!plan->trajectories_.empty())
   {   
     moveit_msgs::DisplayTrajectory dtraj;
