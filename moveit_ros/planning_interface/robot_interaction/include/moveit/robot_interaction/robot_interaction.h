@@ -163,7 +163,7 @@ public:
      * @param activation_threshold A percentage of the range from which the task is activated, i.e. activate if q > qmax - range * threshold. Typically between 0 and 0.5
      * @param gain a gain for this task, multiplies the output velocities
      */
-    bool avoidJointLimitsSecTask(const kinematic_state::JointStateGroup &joint_state_group, Eigen::VectorXd &stvector,
+    bool avoidJointLimitsSecTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
                                      double activation_threshold, double gain) const;
 
     std::string name_;
@@ -172,7 +172,7 @@ public:
     std::set<std::string> error_state_;
     boost::function<void(InteractionHandler*)> update_callback_;
     kinematic_state::StateValidityCallbackFn state_validity_callback_fn_;
-    kinematic_state::SecondaryTaskCallbackFn secondary_task_callback_fn_;
+    kinematic_state::SecondaryTaskFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
     InteractionModeType interaction_mode_;
@@ -212,7 +212,7 @@ public:
   static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskCallbackFn &st_callback);
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskFn &st_callback);
 
 private:
   

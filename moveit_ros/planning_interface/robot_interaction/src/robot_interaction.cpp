@@ -471,7 +471,7 @@ void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose
   }
 }
 
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskCallbackFn &st_callback)
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose, const kinematic_state::SecondaryTaskFn &st_callback)
 {
   //Compute velocity from current pose to goal pose, in the current end-effector frame
   const Eigen::Affine3d &wMe = state.getLinkState(eef.parent_link)->getGlobalLinkTransform();
@@ -486,15 +486,15 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
   return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, st_callback);
 }
 
-bool RobotInteraction::InteractionHandler::avoidJointLimitsSecTask(const kinematic_state::JointStateGroup &joint_state_group, Eigen::VectorXd &stvector,
+bool RobotInteraction::InteractionHandler::avoidJointLimitsSecTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
                                                                             double activation_threshold, double gain) const
 {
   //Get current joint values (q)
   Eigen::VectorXd q;
-  joint_state_group.getVariableValues(q);
+  joint_state_group->getVariableValues(q);
 
   //Get joint lower and upper limits (qmin and qmax)
-  const std::vector<moveit_msgs::JointLimits> &qlimits = joint_state_group.getJointModelGroup()->getVariableLimits();
+  const std::vector<moveit_msgs::JointLimits> &qlimits = joint_state_group->getJointModelGroup()->getVariableLimits();
   Eigen::VectorXd qmin(qlimits.size());
   Eigen::VectorXd qmax(qlimits.size());
   Eigen::VectorXd qrange(qlimits.size());
