@@ -512,11 +512,17 @@ bool RobotInteraction::InteractionHandler::avoidJointLimitsSecTask(const kinemat
 
     //Fill in stvector with the gradient of a joint avoidance cost function
     const std::vector<const kinematic_model::JointModel*> joint_models = joint_state_group->getJointModelGroup()->getJointModels();
-    if (qrange(i) == 0 ||
-        (joint_models[i]->getType() == kinematic_model::JointModel::REVOLUTE && qmax(i) == boost::math::constants::pi<double>() && qmin(i) == -boost::math::constants::pi<double>()))
+    if (qrange(i) == 0)
     {
-      //If the joint range is zero or is continuous, do not compute the cost
+      //If the joint range is zero do not compute the cost
       stvector(i) = 0;
+    }
+    else if (joint_models[i]->getType() == kinematic_model::JointModel::REVOLUTE)
+    {
+      //If the joint is continuous do not compute the cost
+      const kinematic_model::RevoluteJointModel *rjoint = static_cast<const kinematic_model::RevoluteJointModel*>(joint_models[i]);
+      if (rjoint->isContinuous())
+        stvector(i) = 0;
     }
     else
     {
