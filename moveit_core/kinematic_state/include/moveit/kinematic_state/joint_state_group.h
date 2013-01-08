@@ -51,7 +51,7 @@ namespace kinematic_state
 class JointStateGroup;
 
 typedef boost::function<bool(JointStateGroup *joint_state_group, const std::vector<double> &joint_group_variable_values)> StateValidityCallbackFn;
-typedef boost::function<bool(const JointStateGroup &joint_state_group, Eigen::VectorXd &stvector)> SecondaryTaskCallbackFn;
+typedef boost::function<bool(const JointStateGroup *joint_state_group, Eigen::VectorXd &stvector)> SecondaryTaskFn;
 
 class KinematicState;
 
@@ -303,7 +303,7 @@ public:
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st = SecondaryTaskCallbackFn());
+  bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st = SecondaryTaskFn());
 
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
    * @param twist a cartesian velocity on the 'tip' frame
@@ -311,7 +311,7 @@ public:
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st = SecondaryTaskCallbackFn());
+  bool setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st = SecondaryTaskFn());
 
   JointStateGroup& operator=(const JointStateGroup &other);
 

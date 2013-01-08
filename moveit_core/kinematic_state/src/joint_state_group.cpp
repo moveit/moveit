@@ -679,7 +679,7 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
   return false;
 }
 
-bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st)
+bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st)
 {
   //Get the Jacobian of the group at the current configuration
   Eigen::MatrixXd J(6, getVariableCount());
@@ -702,8 +702,8 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   const Eigen::VectorXd S = svdOfJ.singularValues();
 
   Eigen::VectorXd Sinv = S;
-  static const double pinvtoler=1.e-6;
-  double maxsv = 0 ;
+  static const double pinvtoler = 1.e-6;
+  double maxsv = 0.0 ;
   for (std::size_t i = 0; i < S.rows(); ++i)
     if (fabs(S(i)) > maxsv) maxsv = fabs(S(i));
   for (std::size_t i = 0; i < S.rows(); ++i)
@@ -711,7 +711,7 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
     //Those singular values smaller than a percentage of the maximum singular value are removed
     if ( fabs(S(i)) > maxsv * pinvtoler )
       Sinv(i) = 1.0 / S(i);
-    else Sinv(i) = 0;
+    else Sinv(i) = 0.0;
   }
   Eigen::MatrixXd Jinv = ( V * Sinv.asDiagonal() * U.transpose() );
 
@@ -722,7 +722,7 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   if (st)
   {
     Eigen::VectorXd cost_vector = Eigen::VectorXd::Zero(qdot.rows());
-    st(*this, cost_vector);
+    st(this, cost_vector);
     qdot += (Eigen::MatrixXd::Identity(qdot.rows(), qdot.rows()) - Jinv * J) * cost_vector;
   }
 
@@ -737,7 +737,7 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   return true;
 }
 
-bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskCallbackFn &st)
+bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st)
 {
   Eigen::Matrix<double, 6, 1> t;
   tf::twistMsgToEigen(twist, t);
