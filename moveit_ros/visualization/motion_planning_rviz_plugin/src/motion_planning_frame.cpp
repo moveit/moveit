@@ -93,6 +93,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->path_constraints_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( pathConstraintsIndexChanged( int ) ));
   connect( ui_->planning_scene_tree, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( warehouseItemNameChanged( QTreeWidgetItem *, int ) ));
   connect( ui_->reset_db_button, SIGNAL( clicked() ), this, SLOT( resetDbButtonClicked() ));
+  connect( ui_->export_scene_text_button, SIGNAL( clicked() ), this, SLOT( exportAsTextButtonClicked() ));
+  connect( ui_->import_scene_text_button, SIGNAL( clicked() ), this, SLOT( importFromTextButtonClicked() ));
 
   connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
 
