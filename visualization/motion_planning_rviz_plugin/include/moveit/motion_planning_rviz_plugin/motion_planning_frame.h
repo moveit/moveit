@@ -194,6 +194,8 @@ private Q_SLOTS:
   void collisionObjectChanged(QListWidgetItem *item);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
   void copySelectedCollisionObject(void);
+  void exportAsTextButtonClicked(void);
+  void importFromTextButtonClicked(void);
   
   //Stored scenes tab
   void saveSceneButtonClicked(void);
@@ -268,7 +270,9 @@ private:
   void renameCollisionObject(QListWidgetItem *item);
   void attachDetachCollisionObject(QListWidgetItem *item);
   void populateCollisionObjectsList(void);
-
+  void computeImportFromText(const std::string &path);
+  void computeExportAsText(const std::string &path);
+    
   //Stored scenes tab
   void populatePlanningSceneTreeView(void);
 

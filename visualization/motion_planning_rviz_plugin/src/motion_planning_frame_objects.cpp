@@ -42,6 +42,7 @@
 #include <rviz/window_manager_interface.h>
 
 #include <eigen_conversions/eigen_msg.h>
+#include <geometric_shapes/shape_operations.h>
 
 #include <QMessageBox>
 #include <QInputDialog>
@@ -54,7 +55,7 @@ namespace moveit_rviz_plugin
 
 void MotionPlanningFrame::importFileButtonClicked(void)
 {
-  QString path = QFileDialog::getOpenFileName(this, "Import Scene");
+  QString path = QFileDialog::getOpenFileName(this, tr("Import Object"));
   if (!path.isEmpty())
     importResource("file://" + path.toStdString());
 }
@@ -62,7 +63,7 @@ void MotionPlanningFrame::importFileButtonClicked(void)
 void MotionPlanningFrame::importUrlButtonClicked(void)
 {
   bool ok = false;
-  QString url = QInputDialog::getText(this, tr("Import Scene"),
+  QString url = QInputDialog::getText(this, tr("Import Object"),
                                       tr("URL for file to import:"), QLineEdit::Normal,
                                       QString("http://"), &ok);
   if (ok && !url.isEmpty())
@@ -159,33 +160,7 @@ static QString decideStatusText(const collision_detection::CollisionWorld::Objec
   {
     std::vector<QString> shape_names;
     for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
-      switch (obj->shapes_[i]->type)
-      {
-        case shapes::SPHERE:
-          shape_names.push_back("sphere");
-          break;
-        case shapes::CYLINDER:
-          shape_names.push_back("cylinder");
-          break;
-        case shapes::CONE:
-          shape_names.push_back("cone");
-          break;
-        case shapes::BOX:
-          shape_names.push_back("box");
-          break;
-        case shapes::PLANE:
-          shape_names.push_back("plane");
-          break;
-        case shapes::MESH:
-          shape_names.push_back("mesh");
-          break;
-        case shapes::OCTREE:
-          shape_names.push_back("octree");
-          break;
-        default:
-          shape_names.push_back("unknown");
-          break;
-      }
+      shape_names.push_back(QString::fromStdString(shapes::shapeStringName(obj->shapes_[i].get())));
     if (shape_names.size() == 1)
       status_text += "one " + shape_names[0];
     else
@@ -903,5 +878,56 @@ void MotionPlanningFrame::populateCollisionObjectsList(void)
   ui_->collision_objects_list->setUpdatesEnabled(true);
   selectedCollisionObjectChanged();
 }
+
+void MotionPlanningFrame::exportAsTextButtonClicked(void)
+{ 
+  QString path = QFileDialog::getSaveFileName(this, tr("Export Scene Geometry"), tr(""), tr("Scene Geometry (*.scene)"));
+  if (!path.isEmpty())
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeExportAsText, this, path.toStdString()));
+}
+
+void MotionPlanningFrame::computeExportAsText(const std::string &path)
+{
+  planning_scene_monitor::LockedPlanningSceneRO ps = planning_display_->getPlanningSceneRO();
+  if (ps)
+  {
+    std::ofstream fout(path.c_str());
+    if (fout.good())
+    {
+      ps->saveGeometryToStream(fout);
+      fout.close();
+      ROS_INFO("Saved current scene geometry to '%s'", path.c_str());
+    }
+    else
+      ROS_WARN("Unable to save current scene geometry to '%s'", path.c_str());
+  }
+}
+
+void MotionPlanningFrame::computeImportFromText(const std::string &path)
+{
+  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+  if (ps)
+  {
+    std::ifstream fin(path.c_str());
+    if (fin.good())
+    {
+      ps->loadGeometryFromStream(fin);
+      fin.close();
+      ROS_INFO("Loaded scene geometry from '%s'", path.c_str()); 
+      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));  
+      planning_display_->queueRenderSceneGeometry();
+    }
+    else
+      ROS_WARN("Unable to load scene geometry from '%s'", path.c_str());
+  }
+}
+
+void MotionPlanningFrame::importFromTextButtonClicked(void)
+{ 
+  QString path = QFileDialog::getOpenFileName(this, tr("Import Scene Geometry"), tr(""), tr("Scene Geometry (*.scene)"));
+  if (!path.isEmpty()) 
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeImportFromText, this, path.toStdString()));
+}
+
 
 }
