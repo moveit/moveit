@@ -42,14 +42,70 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
+#include <boost/noncopyable.hpp>
+#include <boost/enable_shared_from_this.hpp>
 
 namespace pick_place
 {
 
-class PickPlace
+class PickPlace;
+typedef boost::shared_ptr<PickPlace> PickPlacePtr;
+typedef boost::shared_ptr<const PickPlace> PickPlaceConstPtr;
+
+class PickPlan
+{
+public:
+  
+  PickPlan(const PickPlaceConstPtr &pick_place);
+  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal);
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlan(void) const;
+  void getFailedPlans(std::vector<ManipulationPlanPtr> &plans);
+  
+private:
+  
+  void foundSolution(const ManipulationPlanPtr &plan);
+  
+  PickPlaceConstPtr pick_place_;  
+  double last_plan_time_;
+  bool done_;
+  boost::condition_variable cond_;
+  boost::mutex mut_;
+  ManipulationStagePtr root_;
+  ManipulationStagePtr last_;
+};
+
+typedef boost::shared_ptr<PickPlan> PickPlanPtr;
+typedef boost::shared_ptr<const PickPlan> PickPlanConstPtr;
+
+class PlacePlan
+{
+public:
+  
+  PlacePlan(const PickPlaceConstPtr &pick_place);
+  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlan(void) const;
+  void getFailedPlans(std::vector<ManipulationPlanPtr> &plans);
+  
+private:
+  
+  void foundSolution(const ManipulationPlanPtr &plan);
+  
+  PickPlaceConstPtr pick_place_;  
+  bool done_;
+  boost::condition_variable cond_;
+  boost::mutex mut_;
+  ManipulationStagePtr root_; 
+  ManipulationStagePtr last_;
+};
+
+typedef boost::shared_ptr<PlacePlan> PlacePlanPtr;
+typedef boost::shared_ptr<const PlacePlan> PlacePlanConstPtr;
+
+class PickPlace : private boost::noncopyable,
+                  public boost::enable_shared_from_this<PickPlace>
 {
 public: 
-
+  
   PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
   
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager(void) const
@@ -63,10 +119,10 @@ public:
   }
   
   /** \brief Plan the sequence of motions that perform a pickup action */
-  ManipulationPlanPtr planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal) const;
+  PickPlanPtr planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal) const;
 
   /** \brief Plan the sequence of motions that perform a placement action */
-  ManipulationPlanPtr planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const;
+  PlacePlanPtr planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const;
 
   void displayPlan(const ManipulationPlanPtr &plan) const;
   
@@ -77,9 +133,6 @@ private:
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;  
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
 };
-
-typedef boost::shared_ptr<PickPlace> PickPlacePtr;
-typedef boost::shared_ptr<const PickPlace> PickPlaceConstPtr;
 
 }
 
