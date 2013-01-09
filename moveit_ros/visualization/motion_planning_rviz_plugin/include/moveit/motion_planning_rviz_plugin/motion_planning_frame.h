@@ -311,6 +311,7 @@ private:
   long unsigned int known_collision_objects_version_;
   
   EigenSTL::map_string_Affine3d goals_initial_pose_;
+  bool goal_pose_dragging_;
 };
 
 }

@@ -50,7 +50,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   QWidget(parent),
   planning_display_(pdisplay),
   context_(context),
-  ui_(new Ui::MotionPlanningUI())
+  ui_(new Ui::MotionPlanningUI()),
+  goal_pose_dragging_(false)
 {
   // set up the GUI
   ui_->setupUi(this);
@@ -346,9 +347,10 @@ void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
 
 void MotionPlanningFrame::updateGoalPoseMarkers(float wall_dt, float ros_dt)
 {
-  for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
-    if (it->second.isVisible())
-      it->second.imarker->update(wall_dt);
+  if (goal_pose_dragging_)
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
+      if (it->second.isVisible())
+        it->second.imarker->update(wall_dt);
 }
 
 } // namespace
