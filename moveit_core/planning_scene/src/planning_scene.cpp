@@ -546,7 +546,9 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
 }
 
 namespace planning_scene
-{         
+{
+namespace
+{
 class ShapeVisitorAddToCollisionObject : public boost::static_visitor<void>
 {
 public:
@@ -584,6 +586,7 @@ private:
   moveit_msgs::CollisionObject *obj_;
   const geometry_msgs::Pose *pose_;
 };
+}
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
@@ -683,6 +686,34 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 
   // get the collision map
   getPlanningSceneMsgCollisionMap(scene);
+}
+
+void planning_scene::PlanningScene::saveGeometryToStream(std::ostream &out) const
+{
+  out << name_ << std::endl;
+  const std::vector<std::string> &ns = getCollisionWorld()->getObjectIds();
+  for (std::size_t i = 0 ; i < ns.size() ; ++i)
+    if (ns[i] != COLLISION_MAP_NS && ns[i] != OCTOMAP_NS)
+    {
+      collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns[i]);
+      if (obj)
+      {
+        out << ns[i] << std::endl;
+        out << obj->shapes_.size() << std::endl;
+        for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
+        {
+          //          obj->shapes_[j]->saveAsText(out);
+          out << obj->shape_poses_[i].translation().x() << " " << obj->shape_poses_[i].translation().y() << " " << obj->shape_poses_[i].translation().z() << std::endl;
+          Eigen::Quaterniond r(obj->shape_poses_[i].rotation());
+          out << r.x() << " " << r.y() << " " << r.z() << " " << r.w() << std::endl;
+        }
+      }
+    }
+}
+
+
+void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
+{
 }
 
 void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotState &state)
