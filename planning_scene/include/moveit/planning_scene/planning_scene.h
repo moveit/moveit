@@ -299,7 +299,13 @@ public:
   {
     return parent_ ? configured_ && parent_->isConfigured() : configured_;
   }
+  
+  /** \brief Save the geometry of the planning scene to a stream, as plain text */
+  void saveGeometryToStream(std::ostream &out) const;
 
+  /** \brief Load the geometry of the planning scene from a stream */
+  void loadGeometryFromStream(std::istream &in);
+  
   /** \brief Fill the message \e scene with the differences between this instance of PlanningScene with respect to the parent.
       If there is no parent, everything is considered to be a diff and the function behaves like getPlanningSceneMsg() */
   void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const;
