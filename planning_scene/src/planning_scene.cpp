@@ -698,22 +698,70 @@ void planning_scene::PlanningScene::saveGeometryToStream(std::ostream &out) cons
       collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns[i]);
       if (obj)
       {
-        out << ns[i] << std::endl;
+        out << "* " << ns[i] << std::endl;
         out << obj->shapes_.size() << std::endl;
         for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
         {
-          //          obj->shapes_[j]->saveAsText(out);
-          out << obj->shape_poses_[i].translation().x() << " " << obj->shape_poses_[i].translation().y() << " " << obj->shape_poses_[i].translation().z() << std::endl;
-          Eigen::Quaterniond r(obj->shape_poses_[i].rotation());
+          shapes::saveAsText(obj->shapes_[j].get(), out);
+          out << obj->shape_poses_[j].translation().x() << " " << obj->shape_poses_[j].translation().y() << " " << obj->shape_poses_[j].translation().z() << std::endl;
+          Eigen::Quaterniond r(obj->shape_poses_[j].rotation());
           out << r.x() << " " << r.y() << " " << r.z() << " " << r.w() << std::endl;
+          if (hasColor(ns[i]))
+          {
+            const std_msgs::ColorRGBA &c = getColor(ns[i]);
+            out << c.r << " " << c.g << " " << c.b << " " << c.a << std::endl;
+          }
+          else
+            out << "0 0 0 0" << std::endl;
         }
       }
     }
+  out << "." << std::endl;
 }
-
 
 void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
 {
+  if (!in.good() || in.eof())
+    return;  
+  in >> name_;
+  do
+  {
+    std::string marker;
+    in >> marker;
+    if (!in.good() || in.eof())
+      return;
+    if (marker == "*")
+    {
+      std::string ns;
+      in >> ns;
+      if (!in.good() || in.eof())
+        return;  
+      unsigned int shape_count;
+      in >> shape_count;
+      for (std::size_t i = 0 ; i < shape_count && in.good() && !in.eof() ; ++i)
+      {
+        shapes::Shape *s = shapes::constructShapeFromText(in);
+        double x, y, z, rx, ry, rz, rw;
+        in >> x >> y >> z;
+        in >> rx >> ry >> rz >> rw;
+        float r, g, b, a;
+        in >> r >> g >> b >> a;
+        if (s)
+        {
+          Eigen::Affine3d pose = Eigen::Translation3d(x, y, z) * Eigen::Quaterniond(rw, rx, ry, rz);          
+          getCollisionWorld()->addToObject(ns, shapes::ShapePtr(s), pose);
+          if (r > 0.0f || g > 0.0f || b > 0.0f || a > 0.0f)
+          {
+            std_msgs::ColorRGBA color;
+            color.r = r; color.g = g; color.b = b; color.a = a;
+            setColor(ns, color);
+          }
+        }
+      }
+    }
+    else
+      break;
+  } while (true);
 }
 
 void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotState &state)
