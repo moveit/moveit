@@ -41,7 +41,7 @@
 namespace pick_place
 {
 
-ManipulationPlanPtr PickPlace::planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const
+PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const
 {
 
 }
