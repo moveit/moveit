@@ -730,7 +730,6 @@ void MotionPlanningFrame::computeGoalPoseDoubleClicked(QListWidgetItem * item)
 void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
   static Eigen::Affine3d initial_pose_eigen;
-  static bool dragging = false;
 
   if (feedback.event_type == feedback.BUTTON_CLICK)
   {
@@ -769,9 +768,9 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
           initial_pose_eigen = pose;
       }
     }
-    dragging=true;
+    goal_pose_dragging_=true;
   }
-  else if (feedback.event_type == feedback.POSE_UPDATE && dragging)
+  else if (feedback.event_type == feedback.POSE_UPDATE && goal_pose_dragging_)
   {
     //Compute displacement from stored pose, and apply to the rest of selected markers
     Eigen::Affine3d current_pose_eigen;
@@ -806,7 +805,7 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
     }
   } else if (feedback.event_type == feedback.MOUSE_UP)
   {
-    dragging = false;
+    goal_pose_dragging_ = false;
     planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::checkIfGoalInCollision, this, feedback.marker_name));
   }
 }
