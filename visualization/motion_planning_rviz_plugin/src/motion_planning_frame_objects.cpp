@@ -891,15 +891,16 @@ void MotionPlanningFrame::computeExportAsText(const std::string &path)
   planning_scene_monitor::LockedPlanningSceneRO ps = planning_display_->getPlanningSceneRO();
   if (ps)
   {
-    std::ofstream fout(path.c_str());
+    std::string p = (path.length() < 7 || path.substr(path.length() - 6) != ".scene") ? path + ".scene" : path;
+    std::ofstream fout(p.c_str());
     if (fout.good())
     {
       ps->saveGeometryToStream(fout);
       fout.close();
-      ROS_INFO("Saved current scene geometry to '%s'", path.c_str());
+      ROS_INFO("Saved current scene geometry to '%s'", p.c_str());
     }
     else
-      ROS_WARN("Unable to save current scene geometry to '%s'", path.c_str());
+      ROS_WARN("Unable to save current scene geometry to '%s'", p.c_str());
   }
 }
 
