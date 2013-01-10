@@ -106,6 +106,5 @@ private:
 
 } // ompl_interface_ros
 
-PLUGINLIB_DECLARE_CLASS(chomp_interface_ros, CHOMPPlanner,
-                        chomp_interface_ros::CHOMPPlanner, 
-                        planning_interface::Planner);
+PLUGINLIB_EXPORT_CLASS( chomp_interface_ros::CHOMPPlanner, planning_interface::Planner);
+                      
