@@ -422,7 +422,6 @@ void MotionPlanningFrame::deleteGoalsOnDBButtonClicked(void)
           try
           {
             constraints_storage_->removeConstraints(found_items[i]->text().toStdString());
-            removeSelectedGoalsButtonClicked();
           }
           catch (std::runtime_error &ex)
           {
@@ -433,6 +432,7 @@ void MotionPlanningFrame::deleteGoalsOnDBButtonClicked(void)
       }
     }
   }
+  removeSelectedGoalsButtonClicked();
 }
 
 
@@ -524,26 +524,23 @@ void MotionPlanningFrame::deleteStatesOnDBButtonClicked(void)
     {
       case QMessageBox::Yes:
       {
-        for (unsigned int i = 0; i < ui_->start_states_list->count() ; ++i)
+        QList<QListWidgetItem*> found_items =  ui_->start_states_list->selectedItems();
+        for (unsigned int i = 0; i < found_items.size() ; ++i)
         {
-          QListWidgetItem *item = ui_->start_states_list->item(i);
-          if ( item->isSelected() )
+          try
           {
-            try
-            {
-              robot_state_storage_->removeRobotState(item->text().toStdString());
-              removeSelectedStatesButtonClicked();
-            }
-            catch (std::runtime_error &ex)
-            {
-              ROS_ERROR("%s", ex.what());
-            }
+            robot_state_storage_->removeRobotState(found_items[i]->text().toStdString());
+          }
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("%s", ex.what());
           }
         }
         break;
       }
     }
   }
+  removeSelectedStatesButtonClicked();
 }
 
 void MotionPlanningFrame::visibleAxisChanged(int state)
