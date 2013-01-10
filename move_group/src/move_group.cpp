@@ -59,8 +59,11 @@ public:
     };
   
   MoveGroupServer(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : 
-    node_handle_("~"), planning_scene_monitor_(psm),
-    allow_trajectory_execution_(true), state_(IDLE)
+    node_handle_("~"),
+    planning_scene_monitor_(psm),
+    allow_trajectory_execution_(true),
+    move_state_(IDLE),
+    pickup_state_(IDLE)
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution_, true);
@@ -222,42 +225,82 @@ private:
                         move_action_server_->setAborted(action_res, "Unknown event");
   }
   
-  void setMoveState(MoveGroupState state, double duration)
+  std::string stateToStr(MoveGroupState state) const
   {
-    state_ = state;
-    switch (state_)
+    switch (state)
     {
     case IDLE:
-      move_feedback_.state = "IDLE";
-      break;
+      return "IDLE";
     case PLANNING:
-      move_feedback_.state = "PLANNING";
-      break;
+      return "PLANNING";
     case MONITOR:
-      move_feedback_.state = "MONITOR";
-      break;
+      return "MONITOR";
     case LOOK:
-      move_feedback_.state = "LOOK";
-      break;
-    }      
+      return "LOOK";
+    default:
+      return "UNKNOWN";
+    }
+  }
+  
+  void setMoveState(MoveGroupState state, double duration)
+  {
+    move_state_ = state;
+    move_feedback_.state = stateToStr(state);
     move_feedback_.time_to_completion = ros::Duration(duration);
     move_action_server_->publishFeedback(move_feedback_);
   }
   
   void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal)
   {
+    setPickupState(PLANNING);
+
     planning_scene_monitor_->updateFrameTransforms();
-    planning_scene_monitor_->lockSceneRead();
-    pick_place_->planPick(planning_scene_monitor_->getPlanningScene(), *goal);
-    planning_scene_monitor_->unlockSceneRead();
+    pick_place::PickPlanPtr plan;
+    try
+    {
+      planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+      plan = pick_place_->planPick(ps, *goal);
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Pick&place threw an exception: %s", ex.what());
+    }
+    catch(...)
+    {
+      ROS_ERROR("Pick&place threw an exception");
+    }
+    
+    moveit_msgs::PickupResult action_res;
+    if (plan)
+    {
+      const std::vector<pick_place::ManipulationPlanPtr> &success = plan->getSuccessfulManipulationPlan();
+      if (success.empty())
+      {
+        pickup_action_server_->setAborted(action_res, "No pickup plan was found.");
+      }
+      else
+      {
+        const pick_place::ManipulationPlanPtr &result = success.back();
+        action_res.trajectory_start = result->trajectory_start_;
+        action_res.trajectory_stages = result->trajectories_;
+        action_res.trajectory_descriptions = result->trajectory_descriptions_;
+        pickup_action_server_->setSucceeded(action_res, "Pickup plan was successfully computed.");
+      }
+    }
+    else
+      pickup_action_server_->setAborted(action_res, "No plan was attempted.");
+    
+    setPickupState(IDLE);
   }  
 
   void preemptPickupCallback(void)
   {
   }
 
-  void setPickupState(void)
-  {
+  void setPickupState(MoveGroupState state)
+  {  
+    pickup_state_ = state;
+    pickup_feedback_.state = stateToStr(state);
     pickup_action_server_->publishFeedback(pickup_feedback_);
   }
   
@@ -360,7 +403,8 @@ private:
   ros::ServiceServer execute_service_;
   ros::ServiceServer query_service_;
   
-  MoveGroupState state_;
+  MoveGroupState move_state_;
+  MoveGroupState pickup_state_;
 };
 
 }
