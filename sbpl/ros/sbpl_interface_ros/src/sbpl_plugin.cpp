@@ -119,6 +119,4 @@ private:
 
 } // ompl_interface_ros
 
-PLUGINLIB_DECLARE_CLASS(sbpl_interface_ros, SBPLPlanner,
-                        sbpl_interface_ros::SBPLPlanner, 
-                        planning_interface::Planner);
+PLUGINLIB_EXPORT_CLASS( sbpl_interface_ros::SBPLPlanner, planning_interface::Planner);
