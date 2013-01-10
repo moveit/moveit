@@ -61,6 +61,8 @@ int main(int argc, char **argv)
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
+    ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
+    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.")
     ("scene", boost::program_options::value<std::string>(), "Name of scene to publish.") 
     ("planning_requests", "Also publish the planning requests that correspond to the scene")
     ("planning_results", "Also publish the planning results that correspond to the scene")
@@ -105,7 +107,8 @@ int main(int argc, char **argv)
     if (res)
       pub_res = nh.advertise<moveit_msgs::RobotTrajectory>(PLANNING_RESULTS_TOPIC, 100); 
     
-    moveit_warehouse::PlanningSceneStorage pss;
+    moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                               vm.count("port") ? vm["port"].as<std::size_t>() : 0);
     ros::spinOnce();
     
     std::vector<std::string> scene_names;
@@ -156,7 +159,8 @@ int main(int argc, char **argv)
   // publish constraints
   if (vm.count("constraint"))
   {
-    moveit_warehouse::ConstraintsStorage cs;
+    moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                            vm.count("port") ? vm["port"].as<std::size_t>() : 0);
     pub_constr = nh.advertise<moveit_msgs::Constraints>(CONSTRAINTS_TOPIC, 100); 
     std::vector<std::string> cnames;
     cs.getKnownConstraints(vm["constraint"].as<std::string>(), cnames);
@@ -177,7 +181,8 @@ int main(int argc, char **argv)
   // publish constraints
   if (vm.count("state"))
   {
-    moveit_warehouse::RobotStateStorage rs;
+    moveit_warehouse::RobotStateStorage rs(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                           vm.count("port") ? vm["port"].as<std::size_t>() : 0);
     pub_state = nh.advertise<moveit_msgs::RobotState>(STATES_TOPIC, 100);
     std::vector<std::string> rnames;
     rs.getKnownRobotStates(vm["state"].as<std::string>(), rnames);
