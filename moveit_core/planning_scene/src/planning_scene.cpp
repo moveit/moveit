@@ -504,7 +504,19 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
     scene.link_padding.clear();
     scene.link_scale.clear();
   }
-
+  
+  scene.object_colors.clear();
+  if (colors_)
+  {
+    unsigned int i = 0;
+    scene.object_colors.resize(colors_->size());
+    for (ColorMap::const_iterator it = colors_->begin() ; it != colors_->end() ; ++it, ++i)
+    {
+      scene.object_colors[i].id = it->first;
+      scene.object_colors[i].color = it->second;
+    }
+  }
+  
   scene.world.collision_objects.clear();
   scene.world.collision_map = moveit_msgs::CollisionMap();
   scene.world.octomap = octomap_msgs::OctomapWithPose();
@@ -677,6 +689,14 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
   getCollisionRobot()->getPadding(scene.link_padding);
   getCollisionRobot()->getScale(scene.link_scale);
+  scene.object_colors.clear();
+  unsigned int i = 0;
+  scene.object_colors.resize(colors_->size());
+  for (ColorMap::const_iterator it = colors_->begin() ; it != colors_->end() ; ++it, ++i)
+  {
+    scene.object_colors[i].id = it->first;
+    scene.object_colors[i].color = it->second;
+  }
 
   // add collision objects
   getPlanningSceneMsgCollisionObjects(scene);
@@ -897,7 +917,11 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
     }
     crobot_->setPadding(scene.link_padding);
     crobot_->setScale(scene.link_scale);
-  }
+  }  
+  
+  for (std::size_t i = 0 ; i < scene.object_colors.size() ; ++i)
+    setColor(scene.object_colors[i].id, scene.object_colors[i].color);
+
   processPlanningSceneWorldMsg(scene.world);
 }
 
@@ -950,6 +974,8 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   crobot_->setPadding(scene.link_padding);
   crobot_->setScale(scene.link_scale);
   colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
+  for (std::size_t i = 0 ; i < scene.object_colors.size() ; ++i)
+    setColor(scene.object_colors[i].id, scene.object_colors[i].color);
   cworld_->clearObjects();
   processPlanningSceneWorldMsg(scene.world);
 }
