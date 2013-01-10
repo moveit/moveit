@@ -18,10 +18,19 @@ target_link_libraries(moveit_warehouse_broadcast ${catkin_LIBRARIES} ${MOVEIT_LI
 add_executable(moveit_save_to_warehouse src/save_to_warehouse.cpp)
 target_link_libraries(moveit_save_to_warehouse ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 
+add_executable(moveit_warehouse_import_from_text src/import_from_text.cpp)
+target_link_libraries(moveit_warehouse_import_from_text ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+
 add_executable(moveit_init_demo_warehouse src/initialize_demo_db.cpp)
 target_link_libraries(moveit_init_demo_warehouse ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 
-install(TARGETS ${MOVEIT_LIB_NAME} moveit_save_to_warehouse moveit_warehouse_broadcast moveit_init_demo_warehouse
+install(
+  TARGETS
+    ${MOVEIT_LIB_NAME} 
+    moveit_save_to_warehouse
+    moveit_warehouse_broadcast
+    moveit_warehouse_import_from_text
+    moveit_init_demo_warehouse
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION include)
