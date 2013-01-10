@@ -76,7 +76,7 @@ const std::vector<ManipulationPlanPtr>& PickPlan::getSuccessfulManipulationPlan(
   return static_cast<OutputStage*>(last_.get())->getOutput();
 }
 
-const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal)
+const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
 {
   static const std::vector<ManipulationPlanPtr> empty_result;
   double timeout = goal.allowed_planning_time.toSec();
@@ -174,7 +174,7 @@ void PickPlan::foundSolution(const ManipulationPlanPtr &plan)
   cond_.notify_all();
 }
 
-PickPlanPtr PickPlace::planPick(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
+PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
 {
   PickPlanPtr p(new PickPlan(shared_from_this()));
   p->plan(planning_scene, goal);
