@@ -337,6 +337,21 @@ void MotionPlanningFrame::tabChanged(int index)
   else
     if (index == 2)
       selectedCollisionObjectChanged();
+
+  //Create goals when entering the goals tab. Destroy them when exiting that tab
+  if (index != 4)
+  {
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it !=  goal_poses_.end(); it++)
+      it->second.hide();
+  }
+  else
+    if (index == 4)
+      for (unsigned int i = 0; i < ui_->goal_poses_list->count() ; ++i)
+      {
+        QListWidgetItem *item = ui_->goal_poses_list->item(i);
+        item->setBackground(QBrush(Qt::NoBrush));
+        goal_poses_[item->text().toStdString()].show(planning_display_, context_);
+      }
 }
 
 void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
