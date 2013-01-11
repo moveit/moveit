@@ -745,7 +745,7 @@ void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
 {
   if (!in.good() || in.eof())
     return;  
-  in.getline(name_);
+  std::getline(in, name_);
   do
   {
     std::string marker;
@@ -755,7 +755,7 @@ void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
     if (marker == "*")
     {
       std::string ns;
-      in.getline(ns);
+      std::getline(in, ns);
       if (!in.good() || in.eof())
         return;  
       unsigned int shape_count;
