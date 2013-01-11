@@ -690,14 +690,16 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   getCollisionRobot()->getPadding(scene.link_padding);
   getCollisionRobot()->getScale(scene.link_scale);
   scene.object_colors.clear();
+
   unsigned int i = 0;
-  scene.object_colors.resize(colors_->size());
-  for (ColorMap::const_iterator it = colors_->begin() ; it != colors_->end() ; ++it, ++i)
+  const ColorMap &cmap = getObjectColors();
+  scene.object_colors.resize(cmap.size());
+  for (ColorMap::const_iterator it = cmap.begin() ; it != cmap.end() ; ++it, ++i)
   {
     scene.object_colors[i].id = it->first;
     scene.object_colors[i].color = it->second;
   }
-
+  
   // add collision objects
   getPlanningSceneMsgCollisionObjects(scene);
 
