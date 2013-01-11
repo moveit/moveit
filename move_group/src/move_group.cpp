@@ -143,7 +143,7 @@ private:
     if (goal->plan_only || !allow_trajectory_execution_)
     {
       if (!goal->plan_only)
-        ROS_WARN("This instance of MoveGroup is now allowed to execute trajectories but the goal request has plan_only set to false. Only a motion plan will be computed anyway.");
+        ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the goal request has plan_only set to false. Only a motion plan will be computed anyway.");
       plan_execution_->planOnly(goal->request, goal->planning_scene_diff);
     }
     else
