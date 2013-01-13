@@ -219,6 +219,7 @@ private Q_SLOTS:
   void visibleAxisChanged(int state);
   void checkGoalsInCollision(void);
   void checkGoalsReachable(void);
+  void loadBenchmarkResults(void);
 
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
@@ -291,6 +292,7 @@ private:
   void checkIfGoalInCollision(const std::string & goal_name);
   void checkIfGoalInCollision(const kinematic_state::KinematicStatePtr &work_state, const std::string & goal_name);
   void checkIfGoalReachable(const kinematic_state::KinematicStatePtr &work_state, const std::string &goal_name);
+  void computeLoadBenchmarkResults(const std::string &file);
 
   //General
   void changePlanningGroupHelper(void);
