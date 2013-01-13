@@ -1096,16 +1096,7 @@ void MotionPlanningFrame::loadBenchmarkResults(void)
   QString path = QFileDialog::getOpenFileName(this, tr("Select a log file in the set"), tr(""), tr("Log files (*.log)"));
   if (!path.isEmpty())
   {
-    std::string robot_scene_name = planning_display_->getKinematicModel()->getName() + "_" + planning_display_->getPlanningSceneRO()->getName();
-    std::replace( robot_scene_name.begin(), robot_scene_name.end(), ' ', '_');
-    if (path.toStdString().find(robot_scene_name.c_str()) != std::string::npos)
-    {
-      planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadBenchmarkResults, this, path.toStdString()));
-    }
-    else
-    {
-      QMessageBox::warning(this, "Cannot load results", QString("The results where not generated for the robot and scene currently loaded'"));
-    }
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadBenchmarkResults, this, path.toStdString()));
   }
 }
 
@@ -1132,15 +1123,25 @@ void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
       static std::streamsize text_line_length = 512;
       bool valid_file = false;
       ifile.getline(text_line, text_line_length);
-      while (ifile.good())
-      {
-        if ( strstr(text_line, "total_time REAL") != NULL)
-        {
-          valid_file = true;
-          break;
-        }
 
-        ifile.getline(text_line, text_line_length);
+      //Check if the file is valid. The first line must contain "Experiment <scene>". There must be a "total_time" line, followed by the results
+      if (ifile.good() && strstr(text_line, "Experiment") != NULL && strlen(text_line) > 11
+          && strncmp(&text_line[11], planning_display_->getPlanningSceneRO()->getName().c_str(), planning_display_->getPlanningSceneRO()->getName().length()) == 0)
+      {
+        while (ifile.good())
+        {
+          if ( strstr(text_line, "total_time REAL") != NULL)
+          {
+            valid_file = true;
+            break;
+          }
+
+          ifile.getline(text_line, text_line_length);
+        }
+      }
+      else
+      {
+        ROS_ERROR("Not a valid log file, or a different planning scene loaded");
       }
 
       if (valid_file)
@@ -1155,30 +1156,33 @@ void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
             bool collision_free = boost::lexical_cast<bool>(text_line[3]);
 
             //Update colors accordingly
-            std::string goal_name = ui_->goal_poses_list->item(count-1)->text().toStdString();
-            if (reachable)
+            if (count <= goal_poses_.size())
             {
-              if (collision_free)
+              std::string goal_name = ui_->goal_poses_list->item(count-1)->text().toStdString();
+              if (reachable)
               {
-                //Reachable and collision-free
-                goal_poses_[goal_name].reachable = GoalPoseMarker::REACHABLE;
-                planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                              GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]));
+                if (collision_free)
+                {
+                  //Reachable and collision-free
+                  goal_poses_[goal_name].reachable = GoalPoseMarker::REACHABLE;
+                  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
+                                                                GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]));
+                }
+                else
+                {
+                  //Reachable, but in collision
+                  goal_poses_[goal_name].reachable = GoalPoseMarker::IN_COLLISION;
+                  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
+                                                                GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]));
+                }
               }
               else
               {
-                //Reachable, but in collision
-                goal_poses_[goal_name].reachable = GoalPoseMarker::IN_COLLISION;
+                //Not reachable
+                goal_poses_[goal_name].reachable = GoalPoseMarker::NOT_REACHABLE;
                 planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                              GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]));
+                                                              GOAL_NOT_REACHABLE_COLOR[0], GOAL_NOT_REACHABLE_COLOR[1], GOAL_NOT_REACHABLE_COLOR[2], GOAL_NOT_REACHABLE_COLOR[3]));
               }
-            }
-            else
-            {
-              //Not reachable
-              goal_poses_[goal_name].reachable = GoalPoseMarker::NOT_REACHABLE;
-              planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                            GOAL_NOT_REACHABLE_COLOR[0], GOAL_NOT_REACHABLE_COLOR[1], GOAL_NOT_REACHABLE_COLOR[2], GOAL_NOT_REACHABLE_COLOR[3]));
             }
           }
           catch (...)
@@ -1189,7 +1193,7 @@ void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
       }
       else
       {
-        ROS_ERROR("Invalid benchmark log file");
+        ROS_ERROR("Invalid benchmark log file. Cannot load results.");
       }
 
       ifile.close();
