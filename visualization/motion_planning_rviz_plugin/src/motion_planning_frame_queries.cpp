@@ -1094,10 +1094,12 @@ void MotionPlanningFrame::loadBenchmarkResults(void)
 {
   //Select a log file of the set.
   QString path = QFileDialog::getOpenFileName(this, tr("Select a log file in the set"), tr(""), tr("Log files (*.log)"));
-  if (!path.isEmpty()) {
+  if (!path.isEmpty())
+  {
     std::string robot_scene_name = planning_display_->getKinematicModel()->getName() + "_" + planning_display_->getPlanningSceneRO()->getName();
     std::replace( robot_scene_name.begin(), robot_scene_name.end(), ' ', '_');
-    if (path.toStdString().find(robot_scene_name.c_str()) != std::string::npos) {
+    if (path.toStdString().find(robot_scene_name.c_str()) != std::string::npos)
+    {
       planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadBenchmarkResults, this, path.toStdString()));
     }
     else
@@ -1109,25 +1111,22 @@ void MotionPlanningFrame::loadBenchmarkResults(void)
 
 void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
 {
-  file.find_last_of(".", file.length()-5);
-
   std::string logid = file.substr( file.find_last_of(".", file.length()-5) + 1, file.find_last_of(".") - file.find_last_of(".", file.length()-5) - 1 );
   std::string basename = file.substr(0, file.find_last_of(".", file.length()-5));
-
-  std::string logid_number = logid.substr(0, logid.find_first_of("_"));
   std::string logid_text = logid.substr(logid.find_first_of("_"), logid.length() - logid.find_first_of("_"));
 
   int count = 1;
   bool more_files = true;
-  //Parse all of the set
-  do
+  //Parse all the log files in the set
+  while (more_files)
   {
     std::ifstream ifile;
     std::stringstream file_to_load;
     file_to_load << basename << "." << count << logid_text << ".log";
 
     ifile.open(file_to_load.str().c_str());
-    if (ifile.good()) {
+    if (ifile.good())
+    {
       //Parse results
       char text_line[512];
       static std::streamsize text_line_length = 512;
@@ -1135,8 +1134,7 @@ void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
       ifile.getline(text_line, text_line_length);
       while (ifile.good())
       {
-        std::string line(text_line);
-        if (line.find("total_time REAL") != std::string::npos)
+        if ( strstr(text_line, "total_time REAL") != NULL)
         {
           valid_file = true;
           break;
@@ -1145,40 +1143,47 @@ void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
         ifile.getline(text_line, text_line_length);
       }
 
-      if (valid_file && ifile.good())
+      if (valid_file)
       {
         ifile.getline(text_line, text_line_length);
-        if (ifile.good())
+        if (ifile.good() && strlen(text_line) > 6)
         {
           //This should be the reachability results line composed of reachable, collision-free and time fields (bool; bool; float)
-          bool reachable = boost::lexical_cast<bool>(text_line[0]);
-          bool collision_free = boost::lexical_cast<bool>(text_line[3]);
-
-          //Update colors accordingly
-          std::string goal_name = ui_->goal_poses_list->item(count-1)->text().toStdString();
-          if (reachable)
+          try
           {
-            if (collision_free)
+            bool reachable = boost::lexical_cast<bool>(text_line[0]);
+            bool collision_free = boost::lexical_cast<bool>(text_line[3]);
+
+            //Update colors accordingly
+            std::string goal_name = ui_->goal_poses_list->item(count-1)->text().toStdString();
+            if (reachable)
             {
-              //Reachable and collision-free
-              goal_poses_[goal_name].reachable = GoalPoseMarker::REACHABLE;
-              planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                            GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]));
+              if (collision_free)
+              {
+                //Reachable and collision-free
+                goal_poses_[goal_name].reachable = GoalPoseMarker::REACHABLE;
+                planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
+                                                              GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]));
+              }
+              else
+              {
+                //Reachable, but in collision
+                goal_poses_[goal_name].reachable = GoalPoseMarker::IN_COLLISION;
+                planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
+                                                              GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]));
+              }
             }
             else
             {
-              //Reachable, but in collision
-              goal_poses_[goal_name].reachable = GoalPoseMarker::IN_COLLISION;
-              planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                            GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]));
-            }
-          }
-          else
-          {
-            //Not reachable
+              //Not reachable
               goal_poses_[goal_name].reachable = GoalPoseMarker::NOT_REACHABLE;
               planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
                                                             GOAL_NOT_REACHABLE_COLOR[0], GOAL_NOT_REACHABLE_COLOR[1], GOAL_NOT_REACHABLE_COLOR[2], GOAL_NOT_REACHABLE_COLOR[3]));
+            }
+          }
+          catch (...)
+          {
+            ROS_ERROR("Error parsing the log file");
           }
         }
       }
@@ -1194,7 +1199,7 @@ void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
       more_files = false;
     }
     count++;
-  } while (more_files);
+  }
 }
 
 }
