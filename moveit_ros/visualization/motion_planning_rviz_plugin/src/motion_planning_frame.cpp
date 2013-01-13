@@ -332,20 +332,20 @@ void MotionPlanningFrame::disable(void)
 
 void MotionPlanningFrame::tabChanged(int index)
 {
-  if (scene_marker_ && index != 2)
+  if (scene_marker_ && ui_->tabWidget->tabText(index) != "Scene Objects")
     scene_marker_.reset();
   else
-    if (index == 2)
+    if (ui_->tabWidget->tabText(index) == "Scene Objects")
       selectedCollisionObjectChanged();
 
   //Create goals when entering the goals tab. Destroy them when exiting that tab
-  if (index != 4)
+  if (ui_->tabWidget->tabText(index) != "Stored Queries")
   {
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it !=  goal_poses_.end(); it++)
       it->second.hide();
   }
   else
-    if (index == 4)
+    if (ui_->tabWidget->tabText(index) == "Stored Queries")
       for (unsigned int i = 0; i < ui_->goal_poses_list->count() ; ++i)
       {
         QListWidgetItem *item = ui_->goal_poses_list->item(i);
