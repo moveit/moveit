@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>338</height>
+    <height>354</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -696,7 +696,7 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QGroupBox" name="">
+        <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string>Scene Geometry</string>
          </property>
@@ -1201,14 +1201,24 @@
             <item>
              <widget class="QPushButton" name="check_goal_collisions_button">
               <property name="text">
-               <string>Check collisions</string>
+               <string>Check
+collisions</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="check_goal_reachability_button">
               <property name="text">
-               <string>Check reachability</string>
+               <string>Check
+reachability</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="load_results_button">
+              <property name="text">
+               <string>Load
+results</string>
               </property>
              </widget>
             </item>
