@@ -1102,9 +1102,18 @@ void MotionPlanningFrame::loadBenchmarkResults(void)
 
 void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
 {
-  std::string logid = file.substr( file.find_last_of(".", file.length()-5) + 1, file.find_last_of(".") - file.find_last_of(".", file.length()-5) - 1 );
-  std::string basename = file.substr(0, file.find_last_of(".", file.length()-5));
-  std::string logid_text = logid.substr(logid.find_first_of("_"), logid.length() - logid.find_first_of("_"));
+  std::string logid, basename, logid_text;
+  try
+  {
+    logid = file.substr( file.find_last_of(".", file.length()-5) + 1, file.find_last_of(".") - file.find_last_of(".", file.length()-5) - 1 );
+    basename = file.substr(0, file.find_last_of(".", file.length()-5));
+    logid_text = logid.substr(logid.find_first_of("_"), logid.length() - logid.find_first_of("_"));
+  }
+  catch (...)
+  {
+    ROS_ERROR("Invalid benchmark log file. Cannot load results.");
+    return;
+  }
 
   int count = 1;
   bool more_files = true;
