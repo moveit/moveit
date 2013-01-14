@@ -1201,14 +1201,24 @@
             <item>
              <widget class="QPushButton" name="check_goal_collisions_button">
               <property name="text">
-               <string>Check collisions</string>
+               <string>Check
+collisions</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="check_goal_reachability_button">
               <property name="text">
-               <string>Check reachability</string>
+               <string>Check
+reachability</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="load_results_button">
+              <property name="text">
+               <string>Load
+results</string>
               </property>
              </widget>
             </item>
