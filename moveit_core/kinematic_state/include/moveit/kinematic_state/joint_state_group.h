@@ -303,7 +303,7 @@ public:
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st = SecondaryTaskFn());
+  bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const SecondaryTaskFn &st = SecondaryTaskFn());
 
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
    * @param twist a cartesian velocity on the 'tip' frame
@@ -311,8 +311,22 @@ public:
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st = SecondaryTaskFn());
-
+  bool setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const SecondaryTaskFn &st = SecondaryTaskFn());
+  
+  /** \brief Given a twist for a particular link (\e tip), and an optional secondary task (\e st), compute the corresponding joint velocity and store it in \e qdot */
+  void computeJointVelocity(Eigen::VectorXd &qdot, const Eigen::VectorXd &twist, const std::string &tip, const SecondaryTaskFn &st = SecondaryTaskFn()) const;
+  
+  /** \brief Compute the sequence of joint values that correspond to a Cartesian path. The Cartesian path to be followed is specified
+      as a direction of motion (\e direction) for the origin of a robot link (\e link_name).  The link needs to move in a straight
+      line, following the specified direction, for the desired \e distance. The resulting joint values are stored in the vector \e states,
+      one by one. The maximum distance in Cartesian space between consecutive points on the resulting path is specified by \e max_step.
+      If a \e validCallback is specified, this is passed to the internal call to setFromIK(). In case of failure, the computation of the path
+      stops and the value returned corresponds to the distance that was computed and for which corresponding states were added to the path. 
+      At the end of the function call, the state of the group corresponds to the last attempted Cartesian pose */
+  double computeCartesianPath(std::vector< std::vector<double> > &states,
+                              const std::string &link_name, const Eigen::Vector3d &direction, double distance, 
+                              double max_step, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
+  
   JointStateGroup& operator=(const JointStateGroup &other);
 
 private:
