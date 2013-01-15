@@ -342,13 +342,7 @@ public:
 
   /** \brief Set the current robot state */
   void setCurrentState(const kinematic_state::KinematicState &state);
-  
-  /** \brief Get the colors associated to the various objects in the scene */
-  const ColorMap& getObjectColors(void) const
-  {
-    return colors_ ? *colors_ : parent_->getObjectColors();
-  }
-  
+    
   bool hasColor(const std::string &id) const;
 
   const std_msgs::ColorRGBA& getColor(const std::string &id) const;
