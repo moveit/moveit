@@ -132,12 +132,12 @@ public:
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The kinematic model constructed from the parsed descriptions is also passed in. */
-  virtual bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                         const boost::shared_ptr<const srdf::Model> &srdf_model,
-                         const kinematic_model::KinematicModelPtr &kmodel);
+  bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+                 const boost::shared_ptr<const srdf::Model> &srdf_model,
+                 const kinematic_model::KinematicModelPtr &kmodel);
 
   /** \brief Return a new planning scene that uses this one as parent. */
-  virtual PlanningScenePtr diff(void) const;
+  PlanningScenePtr diff(void) const;
   
   /** \brief Return a new planning scene that uses this one as parent and has the diffs specified by \e msg applied. */
   PlanningScenePtr diff(const moveit_msgs::PlanningScene &msg) const;
