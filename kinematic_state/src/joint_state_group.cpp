@@ -679,17 +679,15 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
   return false;
 }
 
-bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st)
+void kinematic_state::JointStateGroup::computeJointVelocity(Eigen::VectorXd &qdot, const Eigen::VectorXd &twist, const std::string &tip, const SecondaryTaskFn &st) const
 {
   //Get the Jacobian of the group at the current configuration
   Eigen::MatrixXd J(6, getVariableCount());
-  Eigen::Vector3d reference_point(0.0,0.0,0.0);
+  Eigen::Vector3d reference_point(0.0, 0.0, 0.0);
   getJacobian(tip, reference_point, J);
 
   //Rotate the jacobian to the end-effector frame
-  Eigen::Affine3d bMe, eMb;
-  bMe = getKinematicState()->getLinkState(tip)->getGlobalLinkTransform();
-  eMb = bMe.inverse();
+  Eigen::Affine3d eMb = getKinematicState()->getLinkState(tip)->getGlobalLinkTransform().inverse();
   Eigen::MatrixXd eWb = Eigen::ArrayXXd::Zero(6, 6);
   eWb.block(0, 0, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
   eWb.block(3, 3, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
@@ -702,7 +700,7 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   const Eigen::VectorXd S = svdOfJ.singularValues();
 
   Eigen::VectorXd Sinv = S;
-  static const double pinvtoler = 1.e-6;
+  static const double pinvtoler = std::numeric_limits<float>::epsilon();
   double maxsv = 0.0 ;
   for (std::size_t i = 0; i < S.rows(); ++i)
     if (fabs(S(i)) > maxsv) maxsv = fabs(S(i));
@@ -716,7 +714,7 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   Eigen::MatrixXd Jinv = ( V * Sinv.asDiagonal() * U.transpose() );
 
   //Compute joint velocity
-  Eigen::VectorXd qdot = Jinv * twist;
+  qdot = Jinv * twist;
 
   //Project the secondary task
   if (st)
@@ -725,7 +723,13 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
     st(this, cost_vector);
     qdot += (Eigen::MatrixXd::Identity(qdot.rows(), qdot.rows()) - Jinv * J) * cost_vector;
   }
+}
 
+bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const SecondaryTaskFn &st)
+{
+  Eigen::VectorXd qdot;
+  computeJointVelocity(qdot, twist, tip, st);
+  
   //Integrate qdot for dt
   Eigen::VectorXd q(getVariableCount());
   getVariableValues(q);
@@ -737,12 +741,39 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   return true;
 }
 
-bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st)
+bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const SecondaryTaskFn &st)
 {
   Eigen::Matrix<double, 6, 1> t;
   tf::twistMsgToEigen(twist, t);
 
   return setFromDiffIK(t, tip, dt, st);
+}
+
+double kinematic_state::JointStateGroup::computeCartesianPath(std::vector< std::vector<double> > &states, const std::string &link_name, const Eigen::Vector3d &direction, double distance, 
+                                                              double max_step, const StateValidityCallbackFn &validCallback)
+{
+  const LinkState *link_state = kinematic_state_->getLinkState(link_name);
+  if (!link_state)
+    return 0.0;
+  Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
+  
+  unsigned int steps = 1 + (unsigned int)floor(distance / max_step);
+  states.resize(steps + 1);
+  getVariableValues(states[0]);
+  
+  double last_valid_distance = 0.0;
+  for (unsigned int i = 1; i <= steps ; ++i)
+  {
+    double d = distance * (double)i / (double)steps;
+    Eigen::Affine3d pose = start_pose;
+    pose.translation() = pose.translation() + direction * d;
+    if (setFromIK(pose, link_name, 0, 0.0, validCallback))
+      getVariableValues(states[i]);
+    else
+      break;
+    last_valid_distance = d;
+  }
+  return last_valid_distance;
 }
 
 void kinematic_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
