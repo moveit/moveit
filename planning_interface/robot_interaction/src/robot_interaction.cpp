@@ -225,10 +225,10 @@ bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualiza
   return true;
 }
 
-RobotInteraction::RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel) :
+RobotInteraction::RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel, const std::string &ns) :
   kmodel_(kmodel)
 {  
-  int_marker_server_ = new interactive_markers::InteractiveMarkerServer(INTERACTIVE_MARKER_TOPIC);
+  int_marker_server_ = new interactive_markers::InteractiveMarkerServer(ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC);
 }
 
 RobotInteraction::~RobotInteraction(void)
