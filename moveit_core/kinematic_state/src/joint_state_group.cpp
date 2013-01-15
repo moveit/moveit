@@ -767,7 +767,7 @@ double kinematic_state::JointStateGroup::computeCartesianPath(std::vector< std::
     double d = distance * (double)i / (double)steps;
     Eigen::Affine3d pose = start_pose;
     pose.translation() = pose.translation() + direction * d;
-    if (setFromIK(pose, link_name, 0, 0.0, validCallback))
+    if (setFromIK(pose, link_name, 1, 0.0, validCallback))
       getVariableValues(states[i]);
     else
       break;
