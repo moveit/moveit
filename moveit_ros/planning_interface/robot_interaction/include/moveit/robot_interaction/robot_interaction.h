@@ -185,7 +185,7 @@ public:
   typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
   typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
   
-  RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel);
+  RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel, const std::string &ns = "");
   ~RobotInteraction(void);
   
   void decideActiveComponents(const std::string &group);
