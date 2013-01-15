@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <NXUSTREAM2>
+    <NxuPhysicsCollection id="beshon" sdkVersion="244" nxuVersion="100">
+      <NxPhysicsSDKDesc id="SDK">
+        <hwPageSize>65536</hwPageSize>
+        <hwPageMax>256</hwPageMax>
+        <hwConvexMax>2048</hwConvexMax>
+      </NxPhysicsSDKDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/gripper_v0/convex/l_finger_0">
+    <points>
+      0.078675002 0.031989001 0.010756  0.010452 0.045752 -0.019524001  0.005322 0.043173999 0.021422001  0.041949 0.014687 0.02775  
+      0.093354002 0.002474 0.011866  0.094388001 0.00481 -0.012383  -0.000886 -0.008792 0.026133001  -0.00347 -0.004895 -0.02775  
+      0.075759999 0.033098001 -0.011661  -0.006916 0.021212 -0.025356  -0.008125 0.016356001 0.025357001  0.044213999 0.019609001 -0.02723  
+    </points>
+    <triangles>
+      0 1 2  0 2 3  4 5 0  4 0 3  
+      4 3 6  4 6 7  4 7 5  8 1 0  
+      8 0 5  9 2 1  10 2 9  10 7 6  
+      10 9 7  10 6 3  10 3 2  11 8 5  
+      11 5 7  11 7 9  11 1 8  11 9 1  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxSceneDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/gripper_v0/convex/l_finger">
+        <filterBool>false</filterBool>
+        <filterOp0>NX_FILTEROP_AND</filterOp0>
+        <filterOp1>NX_FILTEROP_AND</filterOp1>
+        <filterOp2>NX_FILTEROP_AND</filterOp2>
+        <NxGroupsMask id="groupMask0" bits0="0" bits1="0" bits2="0" bits3="0"/>
+        <NxGroupsMask id="groupMask1" bits0="0" bits1="0" bits2="0" bits3="0"/>
+        <gravity>0 -9.800000191 0</gravity>
+        <maxTimestep>0.016666668</maxTimestep>
+        <maxIter>8</maxIter>
+        <timeStepMethod>NX_TIMESTEP_FIXED</timeStepMethod>
+        <maxBounds>FLT_MIN FLT_MIN FLT_MIN  FLT_MAX FLT_MAX FLT_MAX</maxBounds>
+        <NxSceneLimits id="limits">
+          <maxNbActors>0</maxNbActors>
+          <maxNbBodies>0</maxNbBodies>
+          <maxNbStaticShapes>0</maxNbStaticShapes>
+          <maxNbDynamicShapes>0</maxNbDynamicShapes>
+          <maxNbJoints>0</maxNbJoints>
+        </NxSceneLimits>
+        <simType>NX_SIMULATION_SW</simType>
+        <groundPlane>true</groundPlane>
+        <boundsPlanes>false</boundsPlanes>
+        <NxSceneFlags id="flags">
+          <NX_SF_DISABLE_SSE>false</NX_SF_DISABLE_SSE>
+          <NX_SF_DISABLE_COLLISIONS>false</NX_SF_DISABLE_COLLISIONS>
+          <NX_SF_SIMULATE_SEPARATE_THREAD>true</NX_SF_SIMULATE_SEPARATE_THREAD>
+          <NX_SF_ENABLE_MULTITHREAD>false</NX_SF_ENABLE_MULTITHREAD>
+        </NxSceneFlags>
+        <internalThreadCount>0</internalThreadCount>
+        <backgroundThreadCount>0</backgroundThreadCount>
+        <threadMask>1431655764</threadMask>
+        <backgroundThreadMask>1431655764</backgroundThreadMask>
+        <NxMaterialDesc id="Material_0" userProperties="" hasSpring="false" materialIndex="0">
+          <dynamicFriction>0.5</dynamicFriction>
+          <staticFriction>0.5</staticFriction>
+          <restitution>0</restitution>
+          <dynamicFrictionV>0</dynamicFrictionV>
+          <staticFrictionV>0</staticFrictionV>
+          <frictionCombineMode>NX_CM_AVERAGE</frictionCombineMode>
+          <restitutionCombineMode>NX_CM_AVERAGE</restitutionCombineMode>
+          <dirOfAnisotropy>1 0 0</dirOfAnisotropy>
+          <NxMaterialFlag id="flags">
+            <NX_MF_ANISOTROPIC>false</NX_MF_ANISOTROPIC>
+            <NX_MF_DISABLE_FRICTION>false</NX_MF_DISABLE_FRICTION>
+            <NX_MF_DISABLE_STRONG_FRICTION>false</NX_MF_DISABLE_STRONG_FRICTION>
+          </NxMaterialFlag>
+        </NxMaterialDesc>
+    <NxActorDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/gripper_v0/convex/l_finger" userProperties="" hasBody="true" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/gripper_v0/convex/l_finger">
+      <globalPose>1 0 0    0 1 0    0 0 1    0 0 0 </globalPose>
+			<NxBodyDesc>
+        <mass>1</mass>
+        <linearDamping>0</linearDamping>
+        <angularDamping>0</angularDamping>
+        <solverIterationCount>32</solverIterationCount>
+        <NxBodyFlag id="flags">
+          <NX_BF_POSE_SLEEP_TEST>true</NX_BF_POSE_SLEEP_TEST>
+          <NX_AF_DISABLE_COLLISION>false</NX_AF_DISABLE_COLLISION>
+        </NxBodyFlag>
+      </NxBodyDesc>
+      <name>Bip01 Pelvis</name>
+      <NxConvexShapeDesc id="Shape_0" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/gripper_v0/convex/l_finger_0">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+    </NxActorDesc>
+  </NxSceneDesc>
+	 <NxSceneInstance id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/gripper_v0/convex/l_finger">
+	 	 <sceneName>beshon</sceneName>
+	 	 <NxuUserProperties></NxuUserProperties>
+	 	 <rootNode>1	0	0	0	1	0	0	0	1	0	0 0</rootNode>
+	 	 <newScene>false</newScene>
+	 	 <ignorePlane>true</ignorePlane>
+	 	 <numSceneInstances>0</numSceneInstances>
+	 </NxSceneInstance>
+  </NxuPhysicsCollection>
+</NXUSTREAM2>

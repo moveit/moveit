@@ -44,7 +44,7 @@
               <color>0 0 0 1</color>
             </emission>
             <ambient>
-              <color>0 0 0 1</color>
+              <color>1 1 1 1</color>
             </ambient>
             <diffuse>
               <texture texture="file1-sampler" texcoord="TEX0">

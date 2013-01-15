@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <NXUSTREAM2>
+    <NxuPhysicsCollection id="beshon" sdkVersion="244" nxuVersion="100">
+      <NxPhysicsSDKDesc id="SDK">
+        <hwPageSize>65536</hwPageSize>
+        <hwPageMax>256</hwPageMax>
+        <hwConvexMax>2048</hwConvexMax>
+      </NxPhysicsSDKDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_0">
+    <points>
+      0.051127419 -0.018777369 -0.059424665  0.052312445 -0.00079664 -0.073473759  0.051118325 0.018373715 -0.059316866  0.051950939 0.011156802 -0.069187909  
+      0.033280998 -0.017666999 -0.072603002  0.0063595 -0.017197309 -0.079622112  0.05194851 -0.011591083 -0.069159113  0.032427002 0.018056 -0.072167002  
+      0.0063595 0.017996501 -0.078800365  0.0063595 -0.018726481 -0.077889815  0.019595999 0.016743001 -0.077538997  0.052214947 0.005975334 -0.072317854  
+    </points>
+    <triangles>
+      0 1 2  3 2 1  4 5 1  6 1 0  
+      6 0 4  6 4 1  7 8 2  7 2 3  
+      9 5 4  9 4 0  9 0 2  9 2 8  
+      9 8 5  10 8 7  10 1 5  10 5 8  
+      11 7 3  11 10 7  11 3 1  11 1 10  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_1">
+    <points>
+      0.020657999 -0.017633 0.077179998  0.037388001 0.016741 0.070699997  0.0063595 0.016944282 0.079623669  0.059863001 0.018286999 0.050232001  
+      0.0063595 -0.01871199 0.07783816  0.059750542 -0.0187054 0.050079759  0.042851999 -0.017472001 0.067474  0.052420001 0.016744001 0.060401  
+      0.057069 -0.017472001 0.055966001  0.061130766 -0.017490538 0.051459979  0.06114671 0.017050114 0.051475924  0.0063595 -0.01747787 0.079591319  
+    </points>
+    <triangles>
+      0 1 2  3 2 1  4 2 3  4 3 5  
+      6 0 4  6 4 5  6 1 0  7 3 1  
+      7 1 6  8 6 5  8 7 6  9 8 5  
+      10 5 3  10 9 5  10 7 8  10 8 9  
+      10 3 7  11 0 2  11 2 4  11 4 0  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_2">
+    <points>
+      -0.063653 0.016744001 -0.048416998  -0.054932728 -0.017623616 -0.05799944  -0.072976999 -0.017155999 -0.032717999  -0.077109002 0.016764 -0.021190001  
+      -0.07804434 0.018275682 0.000015  -0.053751312 0.01826831 -0.056818023  -0.078420997 -0.01747 -0.01545  -0.078044012 -0.018690674 0.000015  
+      -0.079850003 0.017085001 -0.003061  -0.079865158 -0.017484322 0.000015  -0.053715166 -0.018708646 -0.056781877  -0.054932728 0.017208617 -0.05799944  
+    </points>
+    <triangles>
+      0 1 2  3 4 5  3 5 0  3 0 2  
+      6 2 7  6 3 2  8 4 3  8 3 6  
+      9 6 7  9 8 6  9 7 4  9 4 8  
+      10 1 5  10 4 7  10 5 4  10 2 1  
+      10 7 2  11 1 0  11 0 5  11 5 1  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_3">
+    <points>
+      -0.054113559 -0.01853529 0.057180066  -0.072838001 -0.01747 0.032912001  -0.078827925 -0.018579001 0.000015  -0.07804434 0.018275682 0.000015  
+      -0.070201002 0.017085001 0.038174  -0.078446999 0.017085001 0.015214  -0.078446999 -0.0175 0.015214  -0.063552998 -0.017159 0.048548002  
+      -0.054919973 0.01718951 0.057986479  -0.079865158 0.017069323 0.000015  -0.053715266 0.018293647 0.056781769  -0.055656001 -0.01763 0.057317998  
+    </points>
+    <triangles>
+      0 1 2  3 0 2  4 3 5  4 5 1  
+      6 2 1  6 1 5  7 1 0  7 4 1  
+      7 8 4  9 2 6  9 6 5  9 5 3  
+      9 3 2  10 3 4  10 4 8  10 8 0  
+      10 0 3  11 0 8  11 8 7  11 7 0  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_4">
+    <points>
+      0.0063595 0.01830118 -0.077919714  0.0063595 -0.018726481 -0.077889815  0.001645 -0.017238 -0.079970002  -0.053707499 0.017028229 -0.05677421  
+      -0.053715166 -0.018708646 -0.056781877  -0.030098001 -0.01747 -0.074046001  -0.024050999 0.016744001 -0.076272003  -0.046013001 0.016741 -0.065412998  
+      -0.005757 0.017216001 -0.079686001  -0.045791 -0.01747 -0.065512002  -0.054932728 0.017208617 -0.05799944  -0.054932728 -0.017623616 -0.05799944  
+    </points>
+    <triangles>
+      0 1 2  1 0 3  4 1 3  5 6 2  
+      5 2 1  5 1 4  7 6 5  8 0 2  
+      8 2 6  8 6 0  9 5 4  9 7 5  
+      10 0 6  10 6 7  10 3 0  10 4 3  
+      11 9 4  11 4 10  11 7 9  11 10 7  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_5">
+    <points>
+      0.0063595 0.018286342 0.077834964  0.0063595 -0.018675955 0.078037255  -0.053707149 -0.018693129 0.056773655  0.001205 0.016576 0.080004998  
+      -0.053715266 0.018293647 0.056781769  -0.024050999 -0.017159 0.076272003  -0.029658999 0.017054999 0.074221998  -0.046013001 -0.017155999 0.065412998  
+      -0.045791 0.017054999 0.065512002  -0.005758 -0.017631 0.079686001  -0.054919973 -0.017604509 0.057986479  -0.054919973 0.01718951 0.057986479  
+    </points>
+    <triangles>
+      0 1 2  1 0 3  4 0 2  5 2 1  
+      6 5 3  6 3 0  6 0 4  7 2 5  
+      7 5 6  8 6 4  8 7 6  9 1 3  
+      9 3 5  9 5 1  10 4 2  10 2 7  
+      11 8 4  11 4 10  11 7 8  11 10 7  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_6">
+    <points>
+      0.060299043 -0.018593302 0.050628256  0.078120001 0.045981873 -0.000015204  0.078106999 -0.046374343 -0.000015204  0.06114671 0.016261702 0.051475924  
+      0.092592999 -0.003256 0.045164  0.091923997 -0.037323002 0.027167  0.092588 0.044913482 -0.000015204  0.09257859 -0.045535587 -0.000015204  
+      0.075264998 0.041168999 0.020895001  0.091922 0.033858001 0.030937999  0.075213 -0.041492 0.021055  0.092306003 0.014874 0.043228999  
+    </points>
+    <triangles>
+      0 1 2  1 0 3  4 3 0  5 4 0  
+      6 2 1  7 4 5  7 6 4  7 2 6  
+      8 9 6  8 6 1  8 1 3  8 3 9  
+      10 2 7  10 7 5  10 0 2  10 5 0  
+      11 4 6  11 6 9  11 3 4  11 9 3  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_7">
+    <points>
+      0.078120001 0.045981873 -0.000015204  0.084540479 -0.046298813 -0.000015204  0.09196955 0.045764685 -0.000015204  0.090888001 0.013857 -0.064911999  
+      0.092357002 -0.003201 -0.071543001  0.052312445 -0.00079664 -0.073473759  0.051288348 0.017738592 -0.061332561  0.051127419 -0.018777369 -0.059424665  
+      0.09257859 -0.045535587 -0.000015204  0.091875002 -0.040100999 -0.022918001  0.078106999 -0.046374343 -0.000015204  0.091746002 0.040042002 -0.022384999  
+    </points>
+    <triangles>
+      0 1 2  3 4 5  6 3 5  7 0 6  
+      7 6 5  7 5 4  8 2 1  8 4 2  
+      9 7 4  9 4 8  9 8 1  10 7 9  
+      10 9 1  10 1 0  10 0 7  11 3 6  
+      11 0 2  11 6 0  11 2 4  11 4 3  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxSceneDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex">
+        <filterBool>false</filterBool>
+        <filterOp0>NX_FILTEROP_AND</filterOp0>
+        <filterOp1>NX_FILTEROP_AND</filterOp1>
+        <filterOp2>NX_FILTEROP_AND</filterOp2>
+        <NxGroupsMask id="groupMask0" bits0="0" bits1="0" bits2="0" bits3="0"/>
+        <NxGroupsMask id="groupMask1" bits0="0" bits1="0" bits2="0" bits3="0"/>
+        <gravity>0 -9.800000191 0</gravity>
+        <maxTimestep>0.016666668</maxTimestep>
+        <maxIter>8</maxIter>
+        <timeStepMethod>NX_TIMESTEP_FIXED</timeStepMethod>
+        <maxBounds>FLT_MIN FLT_MIN FLT_MIN  FLT_MAX FLT_MAX FLT_MAX</maxBounds>
+        <NxSceneLimits id="limits">
+          <maxNbActors>0</maxNbActors>
+          <maxNbBodies>0</maxNbBodies>
+          <maxNbStaticShapes>0</maxNbStaticShapes>
+          <maxNbDynamicShapes>0</maxNbDynamicShapes>
+          <maxNbJoints>0</maxNbJoints>
+        </NxSceneLimits>
+        <simType>NX_SIMULATION_SW</simType>
+        <groundPlane>true</groundPlane>
+        <boundsPlanes>false</boundsPlanes>
+        <NxSceneFlags id="flags">
+          <NX_SF_DISABLE_SSE>false</NX_SF_DISABLE_SSE>
+          <NX_SF_DISABLE_COLLISIONS>false</NX_SF_DISABLE_COLLISIONS>
+          <NX_SF_SIMULATE_SEPARATE_THREAD>true</NX_SF_SIMULATE_SEPARATE_THREAD>
+          <NX_SF_ENABLE_MULTITHREAD>false</NX_SF_ENABLE_MULTITHREAD>
+        </NxSceneFlags>
+        <internalThreadCount>0</internalThreadCount>
+        <backgroundThreadCount>0</backgroundThreadCount>
+        <threadMask>1431655764</threadMask>
+        <backgroundThreadMask>1431655764</backgroundThreadMask>
+        <NxMaterialDesc id="Material_0" userProperties="" hasSpring="false" materialIndex="0">
+          <dynamicFriction>0.5</dynamicFriction>
+          <staticFriction>0.5</staticFriction>
+          <restitution>0</restitution>
+          <dynamicFrictionV>0</dynamicFrictionV>
+          <staticFrictionV>0</staticFrictionV>
+          <frictionCombineMode>NX_CM_AVERAGE</frictionCombineMode>
+          <restitutionCombineMode>NX_CM_AVERAGE</restitutionCombineMode>
+          <dirOfAnisotropy>1 0 0</dirOfAnisotropy>
+          <NxMaterialFlag id="flags">
+            <NX_MF_ANISOTROPIC>false</NX_MF_ANISOTROPIC>
+            <NX_MF_DISABLE_FRICTION>false</NX_MF_DISABLE_FRICTION>
+            <NX_MF_DISABLE_STRONG_FRICTION>false</NX_MF_DISABLE_STRONG_FRICTION>
+          </NxMaterialFlag>
+        </NxMaterialDesc>
+    <NxActorDesc id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex" userProperties="" hasBody="true" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex">
+      <globalPose>1 0 0    0 1 0    0 0 1    0 0 0 </globalPose>
+			<NxBodyDesc>
+        <mass>1</mass>
+        <linearDamping>0</linearDamping>
+        <angularDamping>0</angularDamping>
+        <solverIterationCount>32</solverIterationCount>
+        <NxBodyFlag id="flags">
+          <NX_BF_POSE_SLEEP_TEST>true</NX_BF_POSE_SLEEP_TEST>
+          <NX_AF_DISABLE_COLLISION>false</NX_AF_DISABLE_COLLISION>
+        </NxBodyFlag>
+      </NxBodyDesc>
+      <name>Bip01 Pelvis</name>
+      <NxConvexShapeDesc id="Shape_0" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_0">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_1" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_1">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_2" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_2">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_3" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_3">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_4" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_4">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_5" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_5">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_6" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_6">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_7" meshData="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex_7">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+    </NxActorDesc>
+  </NxSceneDesc>
+	 <NxSceneInstance id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/upper_arm_v0/convex/elbow_flex">
+	 	 <sceneName>beshon</sceneName>
+	 	 <NxuUserProperties></NxuUserProperties>
+	 	 <rootNode>1	0	0	0	1	0	0	0	1	0	0 0</rootNode>
+	 	 <newScene>false</newScene>
+	 	 <ignorePlane>true</ignorePlane>
+	 	 <numSceneInstances>0</numSceneInstances>
+	 </NxSceneInstance>
+  </NxuPhysicsCollection>
+</NXUSTREAM2>

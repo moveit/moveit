@@ -44,7 +44,7 @@
               <color>0 0 0 1</color>
             </emission>
             <ambient>
-              <color>0 0 0 1</color>
+              <color>1 1 1 1</color>
             </ambient>
             <diffuse>
               <texture texture="PSD_float_color_proj1_color-sampler" texcoord="TEX0">
