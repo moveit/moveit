@@ -35,9 +35,6 @@
 #include <moveit/kinematic_state/conversions.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
-#include <moveit/robot_interaction/interactive_marker_helpers.h>
-
-#include <interactive_markers/tools.h>
 
 #include <rviz/display_context.h>
 #include <rviz/window_manager_interface.h>
@@ -54,130 +51,6 @@
 
 namespace moveit_rviz_plugin
 {
-
-static const float GOAL_NOT_TESTED_COLOR[4] = { 0.75, 0.75, 0.75, 1.0};
-static const float GOAL_PROCESSING_COLOR[4] = { 0.9, 0.9, 0.9, 1.0};
-static const float GOAL_NOT_REACHABLE_COLOR[4] = { 1.0, 0.0, 0.0, 1.0};
-static const float GOAL_REACHABLE_COLOR[4] = { 0.0, 1.0, 0.0, 1.0};
-static const float GOAL_COLLISION_COLOR[4] = { 1.0, 1.0, 0.0, 1.0};
-
-MotionPlanningFrame::MsgMarkerPair MotionPlanningFrame::make6DOFEndEffectorMarker(const std::string& name,
-                                                                                  const robot_interaction::RobotInteraction::EndEffector &eef,
-                                                                                  const geometry_msgs::Pose &pose,
-                                                                                  double scale,
-                                                                                  bool selected)
-{
-  visualization_msgs::InteractiveMarker int_marker;
-  geometry_msgs::PoseStamped tip_pose_msg;
-  Eigen::Affine3d tip_pose = planning_display_->getQueryGoalState()->getLinkState(eef.parent_link)->getGlobalLinkTransform();
-  tf::poseEigenToMsg(tip_pose, tip_pose_msg.pose);
-  if (selected)
-  {
-    int_marker = robot_interaction::make6DOFMarker(name, tip_pose_msg, scale);
-  }
-  else
-  {
-    int_marker.scale = scale;
-    int_marker.name = name;
-    int_marker.pose = tip_pose_msg.pose;
-  }
-  int_marker.header.frame_id = planning_display_->getKinematicModel()->getModelFrame();
-
-  visualization_msgs::InteractiveMarkerControl m_control;
-  m_control.always_visible = true;
-  m_control.interaction_mode = m_control.BUTTON;
-  if (selected && ui_->goal_poses_list->selectedItems().size() == 1)
-  {
-    //If selected (and only one selected), display the actual end effector mesh
-    const kinematic_state::JointStateGroup *joint_state_group = planning_display_->getQueryGoalState()->getJointStateGroup(eef.eef_group);
-    const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
-
-    const kinematic_model::JointModelGroup *joint_model_group = joint_state_group->getJointModelGroup();
-    const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();
-
-    std_msgs::ColorRGBA marker_color;
-    marker_color.r = GOAL_NOT_TESTED_COLOR[0];
-    marker_color.g = GOAL_NOT_TESTED_COLOR[1];
-    marker_color.b = GOAL_NOT_TESTED_COLOR[2];
-    marker_color.a = GOAL_NOT_TESTED_COLOR[3];
-    visualization_msgs::MarkerArray marker_array;
-    kinematic_state->getRobotMarkers(marker_color, "goal_pose_marker", ros::Duration(), marker_array, link_names);
-
-    for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
-    {
-      marker_array.markers[i].header = int_marker.header;
-      m_control.markers.push_back(marker_array.markers[i]);
-    }
-  }
-  else
-  {
-    //If not selected, display a frame marker with an sphere in the origin
-    visualization_msgs::Marker m;
-    m.type = visualization_msgs::Marker::SPHERE;
-    m.scale.x = 0.1 * scale;
-    m.scale.y = 0.1 * scale;
-    m.scale.z = 0.1 * scale;
-    m.ns = "goal_pose_marker";
-    m.action = visualization_msgs::Marker::ADD;
-    m.color.r = GOAL_NOT_TESTED_COLOR[0];
-    m.color.g = GOAL_NOT_TESTED_COLOR[1];
-    m.color.b = GOAL_NOT_TESTED_COLOR[2];
-    m.color.a = GOAL_NOT_TESTED_COLOR[3];
-    m_control.markers.push_back(m);
-
-    m.type = visualization_msgs::Marker::ARROW;
-    m.scale.x = 0.3 * scale;
-    m.scale.y = 0.1 * m.scale.x;
-    m.scale.z = 0.1 * m.scale.x;
-    m.ns = "goal_pose_marker";
-    m.action = visualization_msgs::Marker::ADD;
-
-    if (ui_->show_x_checkbox->isChecked())
-    {
-      m.color.r = 1.0f;
-      m.color.g = 0.0f;
-      m.color.b = 0.0f;
-      m.color.a = 1.0f;
-      m_control.markers.push_back(m);
-    }
-
-    //Y axis
-    if (ui_->show_y_checkbox->isChecked())
-    {
-      tf::Quaternion imq;
-      imq = tf::createQuaternionFromRPY(0, 0, boost::math::constants::pi<double>() / 2.0);
-      tf::quaternionTFToMsg(imq, m.pose.orientation);
-      m.color.r = 0.0f;
-      m.color.g = 1.0f;
-      m.color.b = 0.0f;
-      m.color.a = 1.0f;
-      m_control.markers.push_back(m);
-    }
-
-    //Z axis
-    if (ui_->show_z_checkbox->isChecked()) {
-      tf::Quaternion imq;
-      imq = tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
-      tf::quaternionTFToMsg(imq, m.pose.orientation);
-      m.color.r = 0.0f;
-      m.color.g = 0.0f;
-      m.color.b = 1.0f;
-      m.color.a = 1.0f;
-      m_control.markers.push_back(m);
-    }
-  }
-  int_marker.controls.push_back(m_control);
-
-  rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
-  interactive_markers::autoComplete(int_marker);
-  imarker->processMessage(int_marker);
-  imarker->setShowAxes(false);
-  imarker->setShowDescription(false);
-  imarker->setPose(Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z),
-                   Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z), "");
-
-  return MsgMarkerPair(int_marker, boost::shared_ptr<rviz::InteractiveMarker>(imarker));
-}
 
 void MotionPlanningFrame::createGoalPoseButtonClicked(void)
 {
@@ -212,14 +85,15 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
         geometry_msgs::Pose marker_pose;
         tf::poseEigenToMsg(tip_pose, marker_pose);
         static const float marker_scale = 0.35;
-        MsgMarkerPair imarker = make6DOFEndEffectorMarker(name, planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, true);
 
-        goal_poses_.insert(GoalPosePair(name,  GoalPoseMarker(imarker.second, imarker.first, true)));
+        GripperMarker goal_pose(planning_display_->getQueryGoalState(), planning_display_->getSceneNode(), context_, name, planning_display_->getKinematicModel()->getModelFrame(),
+                                planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED);
+        goal_poses_.insert(GoalPosePair(name,  goal_pose));
 
         // Connect signals
-        connect( imarker.second.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        connect( goal_pose.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
-        //If connected to a databse, store the constraint
+        //If connected to a database, store the constraint
         if (constraints_storage_)
         {
           moveit_msgs::Constraints c;
@@ -232,9 +106,9 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
           moveit_msgs::PositionConstraint pc;
           pc.constraint_region.primitives.push_back(sp);
           geometry_msgs::Pose posemsg;
-          posemsg.position.x = imarker.second->getPosition().x;
-          posemsg.position.y = imarker.second->getPosition().y;
-          posemsg.position.z = imarker.second->getPosition().z;
+          posemsg.position.x = goal_pose.imarker->getPosition().x;
+          posemsg.position.y = goal_pose.imarker->getPosition().y;
+          posemsg.position.z = goal_pose.imarker->getPosition().z;
           posemsg.orientation.x = 0.0;
           posemsg.orientation.y = 0.0;
           posemsg.orientation.z = 0.0;
@@ -244,10 +118,10 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
           c.position_constraints.push_back(pc);
 
           moveit_msgs::OrientationConstraint oc;
-          oc.orientation.x = imarker.second->getOrientation().x;
-          oc.orientation.y = imarker.second->getOrientation().y;
-          oc.orientation.z = imarker.second->getOrientation().z;
-          oc.orientation.w = imarker.second->getOrientation().w;
+          oc.orientation.x = goal_pose.imarker->getOrientation().x;
+          oc.orientation.y = goal_pose.imarker->getOrientation().y;
+          oc.orientation.z = goal_pose.imarker->getOrientation().z;
+          oc.orientation.w = goal_pose.imarker->getOrientation().w;
           oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
             oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
           oc.weight = 1.0;
@@ -334,12 +208,14 @@ void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
         shape_pose.orientation = c->orientation_constraints[0].orientation;
 
         static const float marker_scale = 0.35;
-        MsgMarkerPair imarker = make6DOFEndEffectorMarker(c->name, planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], shape_pose, marker_scale);
-
-        goal_poses_.insert(GoalPosePair(c->name, GoalPoseMarker(imarker.second, imarker.first)));
-
+        GripperMarker goal_pose(planning_display_->getQueryGoalState(), planning_display_->getSceneNode(), context_, c->name, planning_display_->getKinematicModel()->getModelFrame(),
+                                planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED, false,
+                                ui_->show_x_checkbox->isChecked(), ui_->show_y_checkbox->isChecked(), ui_->show_z_checkbox->isChecked());
         // Connect signals
-        connect( imarker.second.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        connect( goal_pose.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        goal_pose.hide();
+
+        goal_poses_.insert(GoalPosePair(c->name, goal_pose));
       }
     }
     populateGoalPosesList();
@@ -552,19 +428,8 @@ void MotionPlanningFrame::visibleAxisChanged(int state)
     {
       if (it->second.isVisible())
       {
-        Ogre::Vector3 position = it->second.imarker->getPosition();
-        Ogre::Quaternion orientation = it->second.imarker->getOrientation();
-
-        MsgMarkerPair marker_pair;
-        marker_pair = make6DOFEndEffectorMarker(it->first,
-                                                planning_display_->getRobotInteraction()->getActiveEndEffectors()[0],
-                                                it->second.imarker_msg.pose, it->second.imarker_msg.scale, it->second.selected);
-
-        connect( marker_pair.second.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
-
-        marker_pair.second->setPose(position, orientation, "");
-        it->second.imarker_msg = marker_pair.first;
-        it->second.imarker = marker_pair.second;
+        it->second.setAxisVisibility(ui_->show_x_checkbox->isChecked(), ui_->show_y_checkbox->isChecked(), ui_->show_z_checkbox->isChecked());
+        connect( it->second.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
       }
     }
   }
@@ -581,64 +446,11 @@ void MotionPlanningFrame::populateGoalPosesList(void)
     {
       item->setBackground(QBrush(Qt::Dense4Pattern));
     }
-    else if (it->second.selected)
+    else if (it->second.isSelected())
     {
       //If selected, highlight in the list
       item->setSelected(true);
     }
-  }
-}
-
-void MotionPlanningFrame::GoalPoseMarker::hide(void)
-{
-  if (imarker)
-  {
-    position_ = imarker->getPosition();
-    orientation_ = imarker->getOrientation();
-  }
-  imarker.reset();
-}
-
-void MotionPlanningFrame::GoalPoseMarker::show(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context)
-{
-  imarker.reset(new rviz::InteractiveMarker(pdisplay->getSceneNode(), context ));
-  updateMarker();
-  imarker->setShowAxes(false);
-  imarker->setShowDescription(false);
-  imarker->setPose(position_, orientation_, "");
-}
-
-void MotionPlanningFrame::GoalPoseMarker::getPosition(geometry_msgs::Point &position)
-{
-  if (imarker)
-  {
-    position.x = imarker->getPosition().x;
-    position.y = imarker->getPosition().y;
-    position.z = imarker->getPosition().z;
-  }
-  else
-  {
-    position.x = position_.x;
-    position.y = position_.x;
-    position.z = position_.z;
-  }
-}
-
-void MotionPlanningFrame::GoalPoseMarker::getOrientation(geometry_msgs::Quaternion &orientation)
-{
-  if (imarker)
-  {
-    orientation.x = imarker->getOrientation().x;
-    orientation.y = imarker->getOrientation().y;
-    orientation.z = imarker->getOrientation().z;
-    orientation.w = imarker->getOrientation().w;
-  }
-  else
-  {
-    orientation.x = orientation_.x;
-    orientation.y = orientation_.y;
-    orientation.z = orientation_.z;
-    orientation.w = orientation_.w;
   }
 }
 
@@ -670,8 +482,8 @@ void MotionPlanningFrame::goalPoseSelectionChanged(void)
     QListWidgetItem *item = ui_->goal_poses_list->item(i);
     std::string name = item->text().toStdString();
     if ( goal_poses_.find(name) != goal_poses_.end() &&
-        ( (item->isSelected() && ! goal_poses_[name].selected )
-            || ( ! item->isSelected() && goal_poses_[name].selected )))
+        ( (item->isSelected() && ! goal_poses_[name].isSelected() )
+            || ( ! item->isSelected() && goal_poses_[name].isSelected() )))
       switchGoalPoseMarkerSelection(name);
   }
 }
@@ -679,33 +491,6 @@ void MotionPlanningFrame::goalPoseSelectionChanged(void)
 void MotionPlanningFrame::goalPoseDoubleClicked(QListWidgetItem * item)
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeGoalPoseDoubleClicked, this, item));
-}
-
-void MotionPlanningFrame::updateMarkerColorFromName(const std::string & name, float r, float g, float b, float a)
-{
-  //Update marker color
-  for (unsigned int c = 0; c < goal_poses_[name].imarker_msg.controls.size(); ++c)
-  {
-    for (unsigned int m = 0; m < goal_poses_[name].imarker_msg.controls[c].markers.size(); ++m)
-    {
-      if (goal_poses_[name].imarker_msg.controls[c].markers[m].type == visualization_msgs::Marker::MESH_RESOURCE ||
-          goal_poses_[name].imarker_msg.controls[c].markers[m].type == visualization_msgs::Marker::SPHERE)
-      {
-        goal_poses_[name].imarker_msg.controls[c].markers[m].color.r = r;
-        goal_poses_[name].imarker_msg.controls[c].markers[m].color.g = g;
-        goal_poses_[name].imarker_msg.controls[c].markers[m].color.b = b;
-        goal_poses_[name].imarker_msg.controls[c].markers[m].color.a = a;
-      }
-    }
-  }
-
-  if (goal_poses_[name].isVisible())
-  {
-    Ogre::Vector3 position = goal_poses_[name].imarker->getPosition();
-    Ogre::Quaternion orientation = goal_poses_[name].imarker->getOrientation();
-    goal_poses_[name].updateMarker();
-    goal_poses_[name].imarker->setPose(position, orientation, "");
-  }
 }
 
 void MotionPlanningFrame::computeGoalPoseDoubleClicked(QListWidgetItem * item)
@@ -716,9 +501,7 @@ void MotionPlanningFrame::computeGoalPoseDoubleClicked(QListWidgetItem * item)
   std::string item_text = item->text().toStdString();
 
   //Switch the marker color to processing color while processing
-  goal_poses_[item_text].reachable = GoalPoseMarker::PROCESSING;
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, item_text,
-                                                GOAL_PROCESSING_COLOR[0], GOAL_PROCESSING_COLOR[1], GOAL_PROCESSING_COLOR[2], GOAL_NOT_TESTED_COLOR[3]));
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, item_text, GripperMarker::PROCESSING));
 
   checkIfGoalReachable(planning_display_->getQueryGoalState(), item_text);
   planning_display_->updateQueryGoalState();
@@ -753,7 +536,7 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
     goals_initial_pose_.clear();
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
-      if (it->second.selected && it->second.isVisible())
+      if (it->second.isSelected() && it->second.isVisible())
       {
         Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x,
                                                 it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
@@ -790,7 +573,7 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
     //Update the rest of selected markers
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
     {
-      if (it->second.isVisible() && it->second.imarker->getName() != feedback.marker_name && it->second.selected)
+      if (it->second.isVisible() && it->second.imarker->getName() != feedback.marker_name && it->second.isSelected())
       {
         visualization_msgs::InteractiveMarkerPose impose;
 
@@ -847,16 +630,14 @@ void MotionPlanningFrame::checkIfGoalReachable(const kinematic_state::KinematicS
   if (feasible)
   {
     //Switch the marker color to reachable
-    goal_poses_[goal_name].reachable = GoalPoseMarker::REACHABLE;
-    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                  GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, goal_name,
+                                                  GripperMarker::REACHABLE));
   }
   else
   {
     //Switch the marker color to not-reachable
-    goal_poses_[goal_name].reachable = GoalPoseMarker::NOT_REACHABLE;
-    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                  GOAL_NOT_REACHABLE_COLOR[0], GOAL_NOT_REACHABLE_COLOR[1], GOAL_NOT_REACHABLE_COLOR[2], GOAL_NOT_REACHABLE_COLOR[3]));
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, goal_name,
+                                                  GripperMarker::NOT_REACHABLE));
   }
 }
 
@@ -877,23 +658,8 @@ void MotionPlanningFrame::checkIfGoalInCollision(const kinematic_state::Kinemati
 
   if ( in_collision )
   {
-    //End effector in collision. Set the color accordingly
-    if (goal_poses_[goal_name].reachable != GoalPoseMarker::IN_COLLISION)
-    {
-      goal_poses_[goal_name].reachable = GoalPoseMarker::IN_COLLISION;
-      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                    GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]));
-    }
-  }
-  else
-  {
-    //Not in collision
-    if (goal_poses_[goal_name].reachable == GoalPoseMarker::IN_COLLISION)
-    {
-      goal_poses_[goal_name].reachable = GoalPoseMarker::NOT_TESTED;
-      planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                    GOAL_NOT_TESTED_COLOR[0], GOAL_NOT_TESTED_COLOR[1], GOAL_NOT_TESTED_COLOR[2], GOAL_NOT_TESTED_COLOR[3]));
-    }
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, goal_name,
+                                                  GripperMarker::IN_COLLISION));
   }
 }
 
@@ -908,50 +674,24 @@ void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marke
   if (planning_display_->getRobotInteraction()->getActiveEndEffectors().empty() || ! goal_poses_[marker_name].isVisible())
     return;
 
-  geometry_msgs::Pose marker_pose;
-  marker_pose.position.x = goal_poses_[marker_name].imarker->getPosition().x;
-  marker_pose.position.y = goal_poses_[marker_name].imarker->getPosition().y;
-  marker_pose.position.z = goal_poses_[marker_name].imarker->getPosition().z;
-  marker_pose.orientation.x = goal_poses_[marker_name].imarker->getOrientation().x;
-  marker_pose.orientation.y = goal_poses_[marker_name].imarker->getOrientation().y;
-  marker_pose.orientation.z = goal_poses_[marker_name].imarker->getOrientation().z;
-  marker_pose.orientation.w = goal_poses_[marker_name].imarker->getOrientation().w;
-  static const double marker_scale = 0.35;
-
-  MsgMarkerPair imarker;
-  if (goal_poses_[marker_name].selected)
+  if (goal_poses_[marker_name].isSelected())
   {
     //If selected, unselect
-    goal_poses_[marker_name].selected = false;
+    goal_poses_[marker_name].unselect();
     setItemSelectionInList(marker_name, false, ui_->goal_poses_list);
-    imarker = make6DOFEndEffectorMarker(goal_poses_[marker_name].imarker->getName(),
-                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, false);
   }
   else
   {
-    //If unselected, select
-    goal_poses_[marker_name].selected = true;
+    //If unselected, select. Only display the gripper mesh for one
+    if (ui_->goal_poses_list->selectedItems().size() == 1)
+      goal_poses_[marker_name].select(true);
+    else
+      goal_poses_[marker_name].select(false);
     setItemSelectionInList(marker_name, true, ui_->goal_poses_list);
-    imarker = make6DOFEndEffectorMarker(goal_poses_[marker_name].imarker->getName(),
-                                        planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, true);
   }
 
-  goal_poses_[marker_name].imarker_msg = imarker.first;
-  goal_poses_[marker_name].imarker = imarker.second;
-
-  if (goal_poses_[marker_name].reachable == GoalPoseMarker::NOT_TESTED)
-    updateMarkerColorFromName(marker_name, GOAL_NOT_TESTED_COLOR[0], GOAL_NOT_TESTED_COLOR[1], GOAL_NOT_TESTED_COLOR[2], GOAL_NOT_TESTED_COLOR[3]);
-  else if (goal_poses_[marker_name].reachable == GoalPoseMarker::PROCESSING)
-    updateMarkerColorFromName(marker_name, GOAL_PROCESSING_COLOR[0], GOAL_PROCESSING_COLOR[1], GOAL_PROCESSING_COLOR[2], GOAL_PROCESSING_COLOR[3]);
-  else if (goal_poses_[marker_name].reachable == GoalPoseMarker::REACHABLE)
-    updateMarkerColorFromName(marker_name, GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]);
-  else if (goal_poses_[marker_name].reachable == GoalPoseMarker::NOT_REACHABLE)
-    updateMarkerColorFromName(marker_name, GOAL_NOT_REACHABLE_COLOR[0], GOAL_NOT_REACHABLE_COLOR[1], GOAL_NOT_REACHABLE_COLOR[2], GOAL_NOT_REACHABLE_COLOR[3]);
-  else if (goal_poses_[marker_name].reachable == GoalPoseMarker::IN_COLLISION)
-    updateMarkerColorFromName(marker_name, GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]);
-
   // Connect signals
-  connect( imarker.second.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  connect( goal_poses_[marker_name].imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 }
 
 void MotionPlanningFrame::copySelectedGoalPoses(void)
@@ -989,13 +729,13 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
     marker_pose.orientation.w = goal_poses_[name].imarker->getOrientation().w;
 
     static const float marker_scale = 0.35;
-    MsgMarkerPair imarker = make6DOFEndEffectorMarker(ss.str(),
-                                                      planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, true);
+    GripperMarker goal_pose(planning_display_->getQueryGoalState(), planning_display_->getSceneNode(), context_, ss.str(), planning_display_->getKinematicModel()->getModelFrame(),
+                            planning_display_->getRobotInteraction()->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED, true);
 
-    goal_poses_.insert(GoalPosePair(ss.str(), GoalPoseMarker(imarker.second, imarker.first, true)));
+    goal_poses_.insert(GoalPosePair(ss.str(), goal_pose));
 
     // Connect signals
-    connect( imarker.second.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+    connect( goal_pose.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
     //Unselect the marker source of the copy
     switchGoalPoseMarkerSelection(name);
@@ -1173,24 +913,21 @@ void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
                 if (collision_free)
                 {
                   //Reachable and collision-free
-                  goal_poses_[goal_name].reachable = GoalPoseMarker::REACHABLE;
-                  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                                GOAL_REACHABLE_COLOR[0], GOAL_REACHABLE_COLOR[1], GOAL_REACHABLE_COLOR[2], GOAL_REACHABLE_COLOR[3]));
+                  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, goal_name,
+                                                                              GripperMarker::REACHABLE));
                 }
                 else
                 {
                   //Reachable, but in collision
-                  goal_poses_[goal_name].reachable = GoalPoseMarker::IN_COLLISION;
-                  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                                GOAL_COLLISION_COLOR[0], GOAL_COLLISION_COLOR[1], GOAL_COLLISION_COLOR[2], GOAL_COLLISION_COLOR[3]));
+                                planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, goal_name,
+                                                                              GripperMarker::IN_COLLISION));
                 }
               }
               else
               {
                 //Not reachable
-                goal_poses_[goal_name].reachable = GoalPoseMarker::NOT_REACHABLE;
-                planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerColorFromName, this, goal_name,
-                                                              GOAL_NOT_REACHABLE_COLOR[0], GOAL_NOT_REACHABLE_COLOR[1], GOAL_NOT_REACHABLE_COLOR[2], GOAL_NOT_REACHABLE_COLOR[3]));
+                            planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, goal_name,
+                                                                          GripperMarker::NOT_REACHABLE));
               }
             }
           }
@@ -1213,6 +950,11 @@ void MotionPlanningFrame::computeLoadBenchmarkResults(const std::string &file)
     }
     count++;
   }
+}
+
+void MotionPlanningFrame::updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state)
+{
+  goal_poses_[name].setState(state);
 }
 
 }
