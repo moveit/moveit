@@ -228,6 +228,8 @@ void plan_execution::PlanExecution::planOnly(const moveit_msgs::MotionPlanReques
 
   // run the motion planner
   moveit_msgs::GetMotionPlan::Response mres;
+
+  planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
   computePlan(the_scene, mreq, mres);
   result_ = Result();
   result_.error_code_ = mres.error_code;
@@ -298,7 +300,12 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
     
     // run the motion planner
     moveit_msgs::GetMotionPlan::Response mres;
-    bool solved = computePlan(the_scene, mreq, mres);
+    bool solved = false;
+    {
+      planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
+      solved = computePlan(the_scene, mreq, mres);
+    }
+    
     result_.error_code_ = mres.error_code;
     result_.trajectory_start_ = mres.trajectory_start;
     result_.planned_trajectory_ = mres.trajectory;
@@ -401,8 +408,7 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
 bool plan_execution::PlanExecution::computePlan(const planning_scene::PlanningSceneConstPtr &scene, const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
 {
   bool solved = false;   
-  planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
-  
+ 
   try
   {
     solved = planning_pipeline_->generatePlan(scene, req, res);

@@ -328,6 +328,28 @@ void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vecto
     topics.push_back(planning_scene_world_subscriber_.getTopic());
 }
 
+namespace
+{
+bool sceneIsParentOf(const planning_scene::PlanningSceneConstPtr &scene, const planning_scene::PlanningScene *possible_parent)
+{
+  if (scene && scene.get() == possible_parent)
+    return true;
+  if (scene)
+    return sceneIsParentOf(scene->getParent(), possible_parent);
+  return false;
+}
+}
+
+bool planning_scene_monitor::PlanningSceneMonitor::updatesScene(const planning_scene::PlanningScenePtr &scene) const
+{
+  return sceneIsParentOf(scene_const_, scene.get());
+}
+
+bool planning_scene_monitor::PlanningSceneMonitor::updatesScene(const planning_scene::PlanningSceneConstPtr &scene) const
+{
+  return sceneIsParentOf(scene_const_, scene.get());
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::processSceneUpdateEvent(SceneUpdateType update_type)
 {
   for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)

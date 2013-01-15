@@ -146,6 +146,18 @@ public:
     return scene_const_;
   }
 
+  /** @brief Return true if the scene \e scene can be updated directly
+      or indirectly by this monitor. This function will return true if
+      the pointer of the scene is the same as the one maintained,
+      or if a parent of the scene is the one maintained. */
+  bool updatesScene(const planning_scene::PlanningSceneConstPtr &scene) const;
+
+  /** @brief Return true if the scene \e scene can be updated directly
+      or indirectly by this monitor. This function will return true if
+      the pointer of the scene is the same as the one maintained,
+      or if a parent of the scene is the one maintained. */
+  bool updatesScene(const planning_scene::PlanningScenePtr &scene) const;
+  
   /** @brief Get the stored robot description
    *  @return An instance of the stored robot description*/
   const std::string& getRobotDescription(void) const
