@@ -692,7 +692,8 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   scene.object_colors.clear();
 
   unsigned int i = 0;
-  const ColorMap &cmap = getObjectColors();
+  ColorMap cmap;
+  getKnownColors(cmap);
   scene.object_colors.resize(cmap.size());
   for (ColorMap::const_iterator it = cmap.begin() ; it != cmap.end() ; ++it, ++i)
   {
