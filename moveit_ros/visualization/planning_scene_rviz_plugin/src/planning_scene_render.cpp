@@ -76,7 +76,9 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     color.g = default_attached_color.g_;
     color.b = default_attached_color.b_;
     color.a = 1.0f;
-    scene_robot_->update(ks, color, scene->getObjectColors());
+    std::map<std::string, std_msgs::ColorRGBA> color_map;
+    scene->getKnownColors(color_map);
+    scene_robot_->update(ks, color, color_map);
   }
   
   collision_detection::CollisionWorldConstPtr cworld = scene->getCollisionWorld();
