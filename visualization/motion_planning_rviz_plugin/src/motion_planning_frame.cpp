@@ -142,8 +142,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   ui_->start_states_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
   ui_->start_states_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
 
-
-
   ui_->reset_db_button->hide();
   ui_->background_job_progress->hide(); 
   ui_->background_job_progress->setMaximum(0);
