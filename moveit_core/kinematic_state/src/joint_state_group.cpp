@@ -795,12 +795,12 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
 {
   if (!joint_model_group_->isChain())
   {
-    logError("Will compute Jacobian only for a chain");
+    logError("The group '%s' is not a chain. Cannot compute Jacobian", joint_model_group_->getName().c_str());
     return false;
   }
   if (!joint_model_group_->isLinkUpdated(link_name))
   {
-    logError("Link name does not exist in this chain or is not a child for this chain");
+    logError("Link name '%s' does not exist in the chain '%s' or is not a child for this chain", link_name.c_str(), joint_model_group_->getName().c_str());
     return false;
   }
   
@@ -824,15 +824,17 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
   
   while (link_state)
   {
+    /*
     logDebug("Link: %s, %f %f %f",link_state->getName().c_str(),
              link_state->getGlobalLinkTransform().translation().x(),
              link_state->getGlobalLinkTransform().translation().y(),
              link_state->getGlobalLinkTransform().translation().z());    
     logDebug("Joint: %s",link_state->getParentJointState()->getName().c_str());
+    */
     
     if (joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
     {
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::REVOLUTE)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::REVOLUTE)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
@@ -840,14 +842,14 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
         jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
         jacobian.block<3,1>(3,joint_index) = joint_axis;
       }
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PRISMATIC)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PRISMATIC)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
         joint_axis = joint_transform*(static_cast<const kinematic_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
         jacobian.block<3,1>(0,joint_index) = joint_axis;
       }
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
