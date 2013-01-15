@@ -44,6 +44,7 @@
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 #endif
 
+#include <moveit/motion_planning_rviz_plugin/frame_marker.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <map>
 #include <string>
@@ -106,45 +107,8 @@ protected:
 
   boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
  
-  class GoalPoseMarker
-  {
-  public:
-    visualization_msgs::InteractiveMarker imarker_msg;
-    boost::shared_ptr<rviz::InteractiveMarker> imarker;
-    bool selected;
-    enum
-      {
-        NOT_TESTED, PROCESSING, REACHABLE, NOT_REACHABLE, IN_COLLISION
-      } reachable;
-    
-    GoalPoseMarker(void): selected(false) {}
-    GoalPoseMarker(const boost::shared_ptr<rviz::InteractiveMarker> &marker, const visualization_msgs::InteractiveMarker &msg):
-      imarker(marker), imarker_msg(msg), selected(false), reachable(GoalPoseMarker::NOT_TESTED) {}
-    GoalPoseMarker(const boost::shared_ptr<rviz::InteractiveMarker> &marker, const visualization_msgs::InteractiveMarker &msg, bool is_selected):
-      imarker(marker), imarker_msg(msg), selected(is_selected), reachable(GoalPoseMarker::NOT_TESTED) {}
-    
-    void updateMarker(void)
-    {
-      imarker->processMessage(imarker_msg);
-    }
-
-    void hide(void);
-    void show(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context);
-    void getPosition(geometry_msgs::Point &position);
-    void getOrientation(geometry_msgs::Quaternion &orientation);
-
-    bool isVisible()
-    {
-      return (imarker);
-    }
-
-  private:
-    Ogre::Vector3 position_;
-    Ogre::Quaternion orientation_;
-  };
-  
-  typedef std::map<std::string, GoalPoseMarker> GoalPoseMap;
-  typedef std::pair<std::string, GoalPoseMarker> GoalPosePair;
+  typedef std::map<std::string, GripperMarker> GoalPoseMap;
+  typedef std::pair<std::string, GripperMarker> GoalPosePair;
   GoalPoseMap goal_poses_;
           
   class StartState
@@ -161,7 +125,7 @@ protected:
   typedef std::map<std::string, StartState> StartStateMap;
   typedef std::pair<std::string, StartState> StartStatePair;
   StartStateMap start_states_;
-                             
+
 private Q_SLOTS:
 
   //Context tab
@@ -220,6 +184,7 @@ private Q_SLOTS:
   void checkGoalsInCollision(void);
   void checkGoalsReachable(void);
   void loadBenchmarkResults(void);
+  void updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
 
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
@@ -283,12 +248,7 @@ private:
   void computeGoalPoseDoubleClicked(QListWidgetItem * item);
   void switchGoalPoseMarkerSelection(const std::string &marker_name);
   typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
-  MsgMarkerPair make6DOFEndEffectorMarker(const std::string& name,
-                                             const robot_interaction::RobotInteraction::EndEffector &eef,
-                                             const geometry_msgs::Pose &pose,
-                                             double scale,
-                                             bool selected = false);
-  void updateMarkerColorFromName(const std::string & name, float r, float g, float b, float a);
+
   void checkIfGoalInCollision(const std::string & goal_name);
   void checkIfGoalInCollision(const kinematic_state::KinematicStatePtr &work_state, const std::string & goal_name);
   void checkIfGoalReachable(const kinematic_state::KinematicStatePtr &work_state, const std::string &goal_name);
