@@ -40,6 +40,7 @@
 #include <vector>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <moveit_msgs/JointLimits.h>
+#include <moveit_msgs/RobotState.h>
 
 namespace trajectory_processing
 {
@@ -57,8 +58,8 @@ namespace trajectory_processing
 class TrajectorySmoother
 {
 public:
-  TrajectorySmoother(){};
-  virtual ~TrajectorySmoother(){};
+  TrajectorySmoother(){}
+  virtual ~TrajectorySmoother(){}
 
   /**
    * \brief Smooths the input position trajectory by generating velocities and accelerations at the waypoints.
@@ -66,10 +67,22 @@ public:
    * This virtual method needs to implemented by the derived class.
    * \return true if successful, false if not
    */
-
   virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
                       trajectory_msgs::JointTrajectory& trajectory_out,
                       const std::vector<moveit_msgs::JointLimits>& joint_limits) const = 0;
+
+
+  /**
+   * \brief Smooths the input position trajectory by generating velocities and accelerations at the waypoints.
+   *        Uses the start_state to allow for non-zero starting joint velocities.
+   *
+   * This virtual method needs to implemented by the derived class.
+   * \return true if successful, false if not
+   */
+  virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
+                      trajectory_msgs::JointTrajectory& trajectory_out,
+                      const std::vector<moveit_msgs::JointLimits>& joint_limits,
+                      const moveit_msgs::RobotState& start_state) const = 0;
 };
 
 }
