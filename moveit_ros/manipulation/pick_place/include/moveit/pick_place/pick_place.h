@@ -57,7 +57,7 @@ class PickPlan
 public:
   
   PickPlan(const PickPlaceConstPtr &pick_place);
-  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal);
+  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal);
   const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlan(void) const;
   void getFailedPlans(std::vector<ManipulationPlanPtr> &plans);
   
@@ -82,7 +82,7 @@ class PlacePlan
 public:
   
   PlacePlan(const PickPlaceConstPtr &pick_place);
-  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
+  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
   const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlan(void) const;
   void getFailedPlans(std::vector<ManipulationPlanPtr> &plans);
   

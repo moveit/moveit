@@ -75,7 +75,7 @@ const std::vector<ManipulationPlanPtr>& PickPlan::getSuccessfulManipulationPlan(
   return static_cast<OutputStage*>(last_.get())->getOutput();
 }
 
-const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
+const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::PlanningScenePtr &planning_scene, const moveit_msgs::PickupGoal &goal)
 {
   static const std::vector<ManipulationPlanPtr> empty_result;
   double timeout = goal.allowed_planning_time.toSec();
@@ -122,6 +122,23 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
   attach_object_msg.object.id = goal.target_name;
   attach_object_msg.object.operation = moveit_msgs::CollisionObject::ADD;
   planning_scene_after_grasp->processAttachedCollisionObjectMsg(attach_object_msg);
+
+  collision_detection::AllowedCollisionMatrix &pre_grasp_acm = planning_scene->getAllowedCollisionMatrix();
+  
+  // we are allowed to touch the target object
+  pre_grasp_acm.setEntry(goal.target_name, eef->getLinkModelNames(), true);
+  // we are allowed to touch certain other objects with the gripper
+  pre_grasp_acm.setEntry(eef->getLinkModelNames(), goal.allowed_touch_objects, true);
+  if (!goal.collision_support_surface_name.empty())
+  {
+    // we are allowed to have contact between the target object and the support surface before the grasp 
+    pre_grasp_acm.setEntry(goal.collision_support_surface_name, goal.target_name, true);
+
+    // optionally, it may be allowed to touch the support surface with the gripper
+    if (goal.allow_gripper_support_collision)
+      pre_grasp_acm.setEntry(goal.collision_support_surface_name, eef->getLinkModelNames(), true);
+  }
+  // for now, the post_grasp_acm can be the same
   
   done_ = false;
   root_.reset(new ReachableAndValidGraspFilter(planning_scene, pick_place_->getConstraintsSamplerManager(), 2));
@@ -187,7 +204,7 @@ PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &pla
 {
   PickPlanPtr p(new PickPlan(shared_from_this()));
   if (planning_scene::PlanningScene::isEmpty(goal.planning_scene_diff))
-    p->plan(planning_scene, goal);
+    p->plan(planning_scene->diff(), goal);
   else
     p->plan(planning_scene->diff(goal.planning_scene_diff), goal);
   return p;
