@@ -265,4 +265,10 @@ bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, st
   return result;
 }
 
+void reverseTrajectory(moveit_msgs::RobotTrajectory &trajectory)
+{
+  std::reverse(trajectory.joint_trajectory.points.begin(), trajectory.joint_trajectory.points.end());
+  std::reverse(trajectory.multi_dof_joint_trajectory.points.begin(), trajectory.multi_dof_joint_trajectory.points.end());
+}
+
 }
