@@ -36,9 +36,8 @@
 
 #include <moveit/pick_place/pick_place.h>
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
-#include <moveit/pick_place/approach_stage.h>
+#include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
-#include <moveit/pick_place/translation_stage.h>
 #include <moveit/pick_place/output_stage.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <ros/console.h>
@@ -112,15 +111,24 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
     ROS_ERROR("No end-effector specified for pick action");
     return empty_result;
   }
-  ros::WallTime start_time = ros::WallTime::now();
+  const std::string &ik_link = eef->getEndEffectorParentGroup().second;
 
+  ros::WallTime start_time = ros::WallTime::now();
+  
+  // construct the planning scene as it will look after the object to be picked will actually be picked
+  planning_scene::PlanningScenePtr planning_scene_after_grasp = planning_scene->diff();
+  moveit_msgs::AttachedCollisionObject attach_object_msg;
+  attach_object_msg.link_name = ik_link;
+  attach_object_msg.object.id = goal.target_name;
+  attach_object_msg.object.operation = moveit_msgs::CollisionObject::ADD;
+  planning_scene_after_grasp->processAttachedCollisionObjectMsg(attach_object_msg);
+  
   done_ = false;
-  ReachableAndValidGraspFilter::Options opt(eef->getEndEffectorParentGroup().second);
-  root_.reset(new ReachableAndValidGraspFilter(opt, planning_scene, pick_place_->getConstraintsSamplerManager(), 2));
-  ManipulationStagePtr f0 = root_->follow(ManipulationStagePtr(new ApproachStage(planning_scene, pick_place_->getPlanningPipeline(), pick_place_->getConstraintsSamplerManager(), 4)));
+  root_.reset(new ReachableAndValidGraspFilter(planning_scene, pick_place_->getConstraintsSamplerManager(), 2));
+  ManipulationStagePtr f0 = root_->follow(ManipulationStagePtr(new ApproachAndTranslateStage(planning_scene, planning_scene_after_grasp, 
+                                                                                             pick_place_->getPlanningPipeline(), 4)));
   ManipulationStagePtr f1 = f0->follow(ManipulationStagePtr(new PlanStage(planning_scene, pick_place_->getPlanningPipeline(), 4))); 
-  ManipulationStagePtr f2 = f1->follow(ManipulationStagePtr(new TranslationStage(planning_scene, pick_place_->getPlanningPipeline(), pick_place_->getConstraintsSamplerManager(), 2)));
-  last_ = f2->follow(ManipulationStagePtr(new OutputStage(boost::bind(&PickPlan::foundSolution, this, _1))));
+  last_ = f1->follow(ManipulationStagePtr(new OutputStage(boost::bind(&PickPlan::foundSolution, this, _1))));
   
   root_->startAll();
   
@@ -139,6 +147,7 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
     ManipulationPlanPtr p(new ManipulationPlan());
     p->grasp_ = goal.possible_grasps[grasp_order[i]];
     p->planning_group_ = planning_group;
+    p->ik_link_name_ = ik_link;    
     p->timeout_ = endtime;
     p->trajectory_start_ = start;
     root_->push(p);
@@ -177,37 +186,11 @@ void PickPlan::foundSolution(const ManipulationPlanPtr &plan)
 PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
 {
   PickPlanPtr p(new PickPlan(shared_from_this()));
-  p->plan(planning_scene, goal);
-  return p;
-  /*
-  const std::vector<ManipulationPlanPtr> &g = 
-  double dt = (ros::WallTime::now() - start).toSec();
-  if (g.empty())
-  {
-    std::vector<ManipulationPlanPtr> failed;
-    p.getFailedPlans(failed);
-    if (failed.empty())
-      ROS_WARN("No plans were evaluated within %lf seconds", dt);
-    else
-    {
-      ROS_WARN("No pick plan found within %lf seconds", dt);
-      displayPlan(failed.front());
-    }
-  }
+  if (planning_scene::PlanningScene::isEmpty(goal.planning_scene_diff))
+    p->plan(planning_scene, goal);
   else
-    ROS_INFO("Pick plan took %lf seconds", dt);
-  
-  if (g.empty())
-  {
-    static const ManipulationPlanPtr empty;
-    return empty;
-  }
-  else 
-  { 
-    displayPlan(g.back());
-    return g.back();
-  }
-  */
+    p->plan(planning_scene->diff(goal.planning_scene_diff), goal);
+  return p;
 }
 
 }

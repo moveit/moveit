@@ -34,40 +34,35 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_PICK_PLACE_TRANSLATION_STAGE_
-#define MOVEIT_PICK_PLACE_TRANSLATION_STAGE_
+#ifndef MOVEIT_PICK_PLACE_APPROACH_AND_TRANSLATE_STAGE_
+#define MOVEIT_PICK_PLACE_APPROACH_AND_TRANSLATE_STAGE_
 
 #include <moveit/pick_place/manipulation_stage.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/constraint_samplers/constraint_sampler_manager.h>
 
 namespace pick_place
 {
 
-class TranslationStage : public ManipulationStage
+class ApproachAndTranslateStage : public ManipulationStage
 {
 public:  
   
-  TranslationStage(const planning_scene::PlanningSceneConstPtr &scene,
-                   const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                   const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                   unsigned int nthreads = 4);
+  ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &pre_grasp_scene,
+                            const planning_scene::PlanningSceneConstPtr &post_grasp_scene,
+                            const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                            unsigned int nthreads = 4);
   
   virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
   
 private:
   
-  bool tryDistance(const ManipulationPlanPtr &plan, double dist) const;
-  bool tryTranslation(const ManipulationPlanPtr &plan, double dist) const;
-  bool isStateCollisionFree(const sensor_msgs::JointState *post_grasp_posture, 
-                            kinematic_state::JointStateGroup *joint_state_group,
-                            const std::vector<double> &joint_group_variable_values) const;
-  
-  planning_scene::PlanningSceneConstPtr planning_scene_;
+  planning_scene::PlanningSceneConstPtr pre_grasp_planning_scene_;
+  planning_scene::PlanningSceneConstPtr post_grasp_planning_scene_;
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;
-  constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
-  double max_translation_segment_length_;
-  unsigned int max_translation_segments_;
+  unsigned int max_goal_count_;
+  unsigned int max_fail_;
+  double max_step_;
+  
 };
 
 }

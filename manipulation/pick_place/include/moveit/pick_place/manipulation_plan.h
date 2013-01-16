@@ -51,6 +51,7 @@
 namespace pick_place
 {
 
+
 struct ManipulationPlan
 {
   // The grasp that is attempted
@@ -58,25 +59,17 @@ struct ManipulationPlan
 
   std::string planning_group_;
   
+  std::string ik_link_name_;
+  
   ros::WallTime timeout_;
   
   moveit_msgs::Constraints goal_constraints_;
-
-  moveit_msgs::Constraints intermediate_goal_constraints_;
-  
-  moveit_msgs::Constraints translated_goal_constraints_;
-  
   constraint_samplers::ConstraintSamplerPtr goal_sampler_;
+  unsigned int sampling_attempts_;
+  std::vector<kinematic_state::KinematicStatePtr> possible_goal_states_;
 
-  constraint_samplers::ConstraintSamplerPtr intermediate_goal_sampler_;
-
-  constraint_samplers::ConstraintSamplerPtr translated_goal_sampler_;
-  
-  kinematic_state::KinematicStatePtr token_goal_state_;
-  
-  kinematic_state::KinematicStatePtr token_intermediate_state_;
-
-  kinematic_state::KinematicStatePtr token_translated_state_;
+  kinematic_state::KinematicStatePtr approach_state_;
+  kinematic_state::KinematicStatePtr translation_state_;
   
   // The full starting state of the robot at the start of the trajectory
   moveit_msgs::RobotState trajectory_start_;
