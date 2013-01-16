@@ -67,7 +67,7 @@ public:
       if (jmg)
       {
         const std::vector<moveit_msgs::JointLimits> &jlim = jmg->getVariableLimits();
-        smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim);
+        smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim, req.motion_plan_request.start_state);
         res.trajectory.joint_trajectory = trajectory_out;
       }
     }
