@@ -41,6 +41,7 @@
 #include <moveit/kinematic_state/link_state.h>
 #include <moveit/kinematic_state/joint_state.h>
 #include <sensor_msgs/JointState.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <geometry_msgs/Twist.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/function.hpp>
@@ -323,9 +324,8 @@ public:
       If a \e validCallback is specified, this is passed to the internal call to setFromIK(). In case of failure, the computation of the path
       stops and the value returned corresponds to the distance that was computed and for which corresponding states were added to the path. 
       At the end of the function call, the state of the group corresponds to the last attempted Cartesian pose */
-  double computeCartesianPath(std::vector< std::vector<double> > &states,
-                              const std::string &link_name, const Eigen::Vector3d &direction, double distance, 
-                              double max_step, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
+  double computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction,
+                              double distance, double max_step, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
   
   JointStateGroup& operator=(const JointStateGroup &other);
 
