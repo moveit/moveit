@@ -273,7 +273,7 @@ private:
     moveit_msgs::PickupResult action_res;
     if (plan)
     {
-      const std::vector<pick_place::ManipulationPlanPtr> &success = plan->getSuccessfulManipulationPlan();
+      const std::vector<pick_place::ManipulationPlanPtr> success = plan->getSuccessfulManipulationPlan();
       if (success.empty())
       {
         pickup_action_server_->setAborted(action_res, "No pickup plan was found.");

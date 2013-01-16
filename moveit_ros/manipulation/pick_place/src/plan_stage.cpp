@@ -59,7 +59,7 @@ bool PlanStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan
   req.motion_plan_request.num_planning_attempts = 1;
   req.motion_plan_request.allowed_planning_time = ros::Duration((plan->timeout_ - ros::WallTime::now()).toSec());
 
-  req.motion_plan_request.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->token_intermediate_state_->getJointStateGroup(plan->planning_group_)));
+  req.motion_plan_request.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->planning_group_)));
   
   if (planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {

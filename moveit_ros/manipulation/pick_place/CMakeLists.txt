@@ -3,9 +3,8 @@ set(MOVEIT_LIB_NAME moveit_pick_place_planner)
 add_library(${MOVEIT_LIB_NAME}
   src/manipulation_stage.cpp
   src/reachable_valid_grasp_filter.cpp 
-  src/approach_stage.cpp
+  src/approach_and_translate_stage.cpp
   src/plan_stage.cpp 
-  src/translation_stage.cpp
   src/output_stage.cpp
   src/pick_place.cpp
   src/pick.cpp

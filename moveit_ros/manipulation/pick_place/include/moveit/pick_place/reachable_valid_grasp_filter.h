@@ -48,34 +48,14 @@ class ReachableAndValidGraspFilter : public ManipulationStage
 {
 public:
   
-  struct Options
-  {
-    Options(const std::string &ik_link) :
-      ik_link_(ik_link),
-      tolerance_position_xyz_(3, 1e-3), // 1mm tolerance
-      tolerance_rotation_xyz_(3, 1e-2) // approx 0.573 degrees tolerance
-    {
-    };
-    
-    std::string ik_link_;
-    std::vector<double> tolerance_position_xyz_;
-    std::vector<double> tolerance_rotation_xyz_;
-  };
-  
-  ReachableAndValidGraspFilter(const Options &opt,
-                               const planning_scene::PlanningSceneConstPtr &scene,
+  ReachableAndValidGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
                                const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
                                unsigned int nthreads = 4);
   
   virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
   
 private:
-
-  bool isStateCollisionFree(const sensor_msgs::JointState *pre_grasp_posture,
-                            kinematic_state::JointStateGroup *joint_state_group,
-                            const std::vector<double> &joint_group_variable_values) const;
   
-  Options opt_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
 };
