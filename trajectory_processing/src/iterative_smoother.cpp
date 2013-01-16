@@ -37,6 +37,7 @@
 #include <moveit/trajectory_processing/iterative_smoother.h>
 #include <moveit_msgs/JointLimits.h>
 #include <console_bridge/console.h>
+#include <moveit/kinematic_state/conversions.h>
 
 namespace trajectory_processing
 {
@@ -192,18 +193,25 @@ double IterativeParabolicSmoother::findT2(const double dq1,
 }
 
 // Takes the time differences, and updates the values in the trajectory.
-void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::vector<double>& time_diff )
+void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
+                      const std::vector<double>& time_diff,
+                      const std::map<std::string, double>& velocity_map)
 {
-  double time_sum = 0.2;
+
+  // aleeper: Where does this magic number (0.2) come from?
+  //          Let's try only building in a delay if we aren't doing stamped execution.
+  double time_sum = velocity_map.empty() ? 0.2 : 0.0;
   unsigned int num_joints = trajectory.joint_names.size();
   const unsigned int num_points = trajectory.points.size();
 
   // Error check
   if(time_diff.size() < 1)
-		return;
+    return;
+
+  bool has_start_velocity = !velocity_map.empty();
 
   // Times
-  trajectory.points[0].time_from_start = ros::Duration(.2);
+  trajectory.points[0].time_from_start = ros::Duration(time_sum);
   for (unsigned int i=1; i<num_points; ++i)
   {
     time_sum += time_diff[i-1];
@@ -213,8 +221,8 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
   // Return if there is only one point in the trajectory!
   if(trajectory.points.size() <= 1) return;
 
-  // Velocities
 /*
+  // Velocities
   for (unsigned int j=0; j<num_joints; ++j)
   {
     trajectory.points[num_points-1].velocities[j] = 0.0;
@@ -229,10 +237,11 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
       const double dq2 = point2.positions[j];
       const double & dt1 = time_diff[i];
       const double v1 = (dq2-dq1)/(dt1);
-      point1.velocities[j]= v1;
+      point1.velocities[j] = (i==0 && has_start_velocity) ? start_state.joint_state.velocity[j] : v1;
     }
   }
 */
+
   // Accelerations
   for (unsigned int i=0; i<num_points; ++i)
   {
@@ -276,11 +285,21 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
         v2 = 0.0;
         a = 0.0;
       } else {
-        v1 = (q2-q1)/dt1;
+        bool start_velocity = false;
+        if(i==0 && has_start_velocity)
+        {
+          std::map<std::string, double>::const_iterator it = velocity_map.find(trajectory.joint_names[j]);
+          if(it != velocity_map.end())
+          {
+            start_velocity = true;
+            v1 = it->second;
+          }
+        }
+        v1 = start_velocity ? v1 : (q2-q1)/dt1;
         v2 = (q3-q2)/dt2;
         a = 2*(v2-v1)/(dt1+dt2);
       }
-      trajectory.points[i].velocities[j] = (v2+v1)/2;
+      trajectory.points[i].velocities[j] = (v2+v1)/2; // TODO this might do the wrong thing for a first point with specified velocity...
       trajectory.points[i].accelerations[j] = a;
     }
   }
@@ -290,7 +309,8 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
 // Applies Acceleration constraints
 void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_msgs::JointTrajectory& trajectory, 
                                                               const std::vector<moveit_msgs::JointLimits>& limits,
-                                                              std::vector<double> & time_diff) const
+                                                              std::vector<double> & time_diff,
+                                                              const std::map<std::string, double>& velocity_map) const
 {
   const unsigned int num_points = trajectory.points.size();
   const unsigned int num_joints = trajectory.joint_names.size();
@@ -305,6 +325,8 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
   double v1;
   double v2;
   double a;
+
+  bool has_start_velocity = !velocity_map.empty();
 
   do
   {
@@ -369,7 +391,17 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
             v2 = 0.0;
             a = 0.0;
           } else {
-            v1 = (q2-q1)/dt1;
+            bool start_velocity = false;
+            if(index==0 && has_start_velocity)
+            {
+              std::map<std::string, double>::const_iterator it = velocity_map.find(trajectory.joint_names[j]);
+              if(it != velocity_map.end())
+              {
+                start_velocity = true;
+                v1 = it->second;
+              }
+            }
+            v1 = start_velocity ? v1 : (q2-q1)/dt1;
             v2 = (q3-q2)/dt2;
             a = 2*(v2-v1)/(dt1+dt2);
           }
@@ -410,16 +442,35 @@ bool IterativeParabolicSmoother::smooth(const trajectory_msgs::JointTrajectory& 
                                         trajectory_msgs::JointTrajectory& trajectory_out,
                                         const std::vector<moveit_msgs::JointLimits>& limits) const
 {
+  moveit_msgs::RobotState start_state;
+  return smooth(trajectory_in, trajectory_out, limits, start_state);
+}
+
+bool IterativeParabolicSmoother::smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
+                                        trajectory_msgs::JointTrajectory& trajectory_out,
+                                        const std::vector<moveit_msgs::JointLimits>& limits,
+                                        const moveit_msgs::RobotState& start_state) const
+{
   bool success = true;
   trajectory_out = trajectory_in;	//copy
   const unsigned int num_points = trajectory_out.points.size();
   std::vector<double> time_diff(num_points,0.0);	// the time difference between adjacent points
 
+  std::map<std::string, double> velocity_map;
+  if(start_state.joint_state.name.size() == start_state.joint_state.velocity.size())
+  {
+    logInform("We seem to have velocity data; populating...");
+    for(int i=0; i < start_state.joint_state.name.size(); i++)
+    {
+      velocity_map[start_state.joint_state.name[i]] = start_state.joint_state.velocity[i];
+    }
+  }
+
   applyVelocityConstraints(trajectory_out, limits, time_diff);
-  applyAccelerationConstraints(trajectory_out, limits, time_diff);
+  applyAccelerationConstraints(trajectory_out, limits, time_diff, velocity_map);
 
   logDebug("Velocity & Acceleration-Constrained Trajectory");
-  updateTrajectory(trajectory_out, time_diff);
+  updateTrajectory(trajectory_out, time_diff, velocity_map);
   printStats(trajectory_out, limits);
 
   return success;
