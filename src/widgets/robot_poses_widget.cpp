@@ -929,11 +929,6 @@ SliderWidget::SliderWidget( QWidget *parent, const kinematic_model::JointModel *
   joint_slider_->setMaximum( max_position_*10000 );
   joint_slider_->setMinimum( min_position_*10000 );
 
-  // Set the text box limits
-  QDoubleValidator *validator = new QDoubleValidator( this );
-  validator->setRange( min_position_, max_position_, 2 );
-  joint_value_->setValidator( validator );
-
   // Connect slider to joint value box
   connect( joint_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeJointValue(int)) );
 
@@ -982,7 +977,12 @@ void SliderWidget::changeJointValue( int value )
 void SliderWidget::changeJointSlider()
 {
   // Get joint value
-  const double value = joint_value_->text().toDouble();
+  double value = joint_value_->text().toDouble();
+
+  if( min_position_ > value || value > max_position_ ) {
+    value = (min_position_ > value) ? min_position_ : max_position_;
+    joint_value_->setText( QString( "%1" ).arg( value, 0, 'f', 4 ) );
+  }
 
   // We assume it converts to double because of the validator
   joint_slider_->setSliderPosition( value * 10000 );
