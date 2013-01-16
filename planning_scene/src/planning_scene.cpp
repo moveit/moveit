@@ -922,10 +922,25 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
     crobot_->setScale(scene.link_scale);
   }  
   
-  for (std::size_t i = 0 ; i < scene.object_colors.size() ; ++i)
-    setColor(scene.object_colors[i].id, scene.object_colors[i].color);
+  // if any colors have been specified, replace the ones we have with the specified ones
+  if (!scene.object_colors.empty())
+  {
+    colors_.reset();
+    for (std::size_t i = 0 ; i < scene.object_colors.size() ; ++i)
+      setColor(scene.object_colors[i].id, scene.object_colors[i].color);
+  }
+  
+  // process collision object updates
+  for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
+    processCollisionObjectMsg(scene.world.collision_objects[i]);
 
-  processPlanningSceneWorldMsg(scene.world);
+  // if an octomap was specified, replace the one we have with that one
+  if (!scene.world.octomap.octomap.data.empty())
+    processOctomapMsg(scene.world.octomap);
+  
+  // if a collision map was specified, replace the one we have with that one
+  if (!scene.world.collision_map.boxes.empty())
+    processCollisionMapMsg(scene.world.collision_map);
 }
 
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
@@ -1076,7 +1091,12 @@ void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<co
       if (o->octree == octree)
       {
         // if the pose changed, we update it
-        if (!map->shape_poses_[0].isApprox(t, std::numeric_limits<double>::epsilon() * 100.0))
+        if (map->shape_poses_[0].isApprox(t, std::numeric_limits<double>::epsilon() * 100.0))
+        {
+          cworld_->changeRemoveObject(OCTOMAP_NS);
+          cworld_->changeAddObject(OCTOMAP_NS);
+        }
+        else
         { 
           shapes::ShapeConstPtr shape = map->shapes_[0];
           map.reset(); // reset this pointer first so that caching optimizations can be used in CollisionWorld
