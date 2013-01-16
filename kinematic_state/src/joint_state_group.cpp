@@ -749,26 +749,77 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist 
   return setFromDiffIK(t, tip, dt, st);
 }
 
-double kinematic_state::JointStateGroup::computeCartesianPath(std::vector< std::vector<double> > &states, const std::string &link_name, const Eigen::Vector3d &direction, double distance, 
+namespace
+{
+
+void addTrajectoryPoint(const kinematic_state::KinematicState *state,
+                        const std::vector<const kinematic_model::JointModel*> &onedof,
+                        const std::vector<const kinematic_model::JointModel*> &mdof,
+                        moveit_msgs::RobotTrajectory &traj)
+{ 
+  if (!onedof.empty())
+  { 
+    traj.joint_trajectory.points.resize(traj.joint_trajectory.points.size() + 1);
+    traj.joint_trajectory.points.back().positions.resize(onedof.size());
+    for (std::size_t j = 0 ; j < onedof.size() ; ++j)
+      traj.joint_trajectory.points.back().positions[j] = state->getJointState(onedof[j]->getName())->getVariableValues()[0];
+    traj.joint_trajectory.points.back().time_from_start = ros::Duration(0.0);
+  }
+  if (!mdof.empty())
+  {
+    traj.multi_dof_joint_trajectory.points.resize(traj.multi_dof_joint_trajectory.points.size() + 1);
+    traj.multi_dof_joint_trajectory.points.back().poses.resize(mdof.size());
+    for (std::size_t j = 0 ; j < mdof.size() ; ++j)
+    {
+      tf::poseEigenToMsg(state->getJointState(mdof[j]->getName())->getVariableTransform(),
+                         traj.multi_dof_joint_trajectory.points.back().poses[j]);
+    }
+    traj.multi_dof_joint_trajectory.points.back().time_from_start = ros::Duration(0.0);
+  }
+}
+
+}
+
+double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, double distance, 
                                                               double max_step, const StateValidityCallbackFn &validCallback)
 {
   const LinkState *link_state = kinematic_state_->getLinkState(link_name);
   if (!link_state)
     return 0.0;
   Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
-  
   unsigned int steps = 1 + (unsigned int)floor(distance / max_step);
-  states.resize(steps + 1);
-  getVariableValues(states[0]);
   
+  const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
+  std::vector<const kinematic_model::JointModel*> onedof;
+  std::vector<const kinematic_model::JointModel*> mdof;
+  traj.joint_trajectory.header.frame_id = kinematic_state_->getKinematicModel()->getModelFrame();
+  traj.joint_trajectory.joint_names.clear();
+  traj.multi_dof_joint_trajectory.joint_names.clear();
+  traj.multi_dof_joint_trajectory.child_frame_ids.clear();
+  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
+    if (jnt[i]->getVariableCount() == 1)
+    {
+      traj.joint_trajectory.joint_names.push_back(jnt[i]->getName());
+      onedof.push_back(jnt[i]);
+    }
+    else
+    {
+      traj.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
+      traj.multi_dof_joint_trajectory.frame_ids.push_back(traj.joint_trajectory.header.frame_id);
+      traj.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
+      mdof.push_back(jnt[i]);
+    }
+  
+  addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
+
   double last_valid_distance = 0.0;
   for (unsigned int i = 1; i <= steps ; ++i)
   {
     double d = distance * (double)i / (double)steps;
     Eigen::Affine3d pose = start_pose;
     pose.translation() = pose.translation() + direction * d;
-    if (setFromIK(pose, link_name, 1, 0.0, validCallback))
-      getVariableValues(states[i]);
+    if (setFromIK(pose, link_name, 1, 0.0, validCallback)) 
+      addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
     else
       break;
     last_valid_distance = d;
