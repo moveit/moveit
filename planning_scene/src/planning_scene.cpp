@@ -1174,7 +1174,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         // we clear the world objects with the same name, since we got an update on their geometry
         if (cworld_->hasObject(object.object.id))
         {
-          logInform("Removing wold object with the same name as newly attached object: '%s'", object.object.id.c_str());
+          logInform("Removing world object with the same name as newly attached object: '%s'", object.object.id.c_str());
           cworld_->removeObject(object.object.id);
         }
 
