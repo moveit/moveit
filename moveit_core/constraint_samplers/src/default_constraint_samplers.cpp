@@ -412,8 +412,11 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
       const kinematic_state::LinkState *ls = ks.getLinkState(sampling_pose_.orientation_constraint_->getReferenceFrame());
-      Eigen::Affine3d rt(ls->getGlobalLinkTransform().rotation() * quat.toRotationMatrix());
-      quat = Eigen::Quaterniond(rt.rotation());
+      if (ls)
+      {
+        Eigen::Affine3d rt(ls->getGlobalLinkTransform().rotation() * quat.toRotationMatrix());
+        quat = Eigen::Quaterniond(rt.rotation());
+      }
     }
   }
   else
