@@ -285,6 +285,7 @@ private:
         action_res.trajectory_stages = result->trajectories_;
         action_res.trajectory_descriptions = result->trajectory_descriptions_;
         pickup_action_server_->setSucceeded(action_res, "Pickup plan was successfully computed.");
+        pick_place_->displayPlan(result);
       }
     }
     else

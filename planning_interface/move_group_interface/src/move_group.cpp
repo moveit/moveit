@@ -412,9 +412,8 @@ public:
     current_state = current_state_monitor_->getCurrentState();
     return true;
   }
-  
-  // remove this hack
-  bool pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
+
+  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
   {
     if (!pick_action_client_)
       return false;
@@ -422,12 +421,7 @@ public:
       return false;
     moveit_msgs::PickupGoal goal;
     constructGoal(goal, object);
-    goal.possible_grasps.resize(poses.size());
-    for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
-    {
-      goal.possible_grasps[i].grasp_pose = poses[i].pose;
-      goal.possible_grasps[i].header = poses[i].header;
-    }
+    goal.possible_grasps = grasps;
     goal.plan_only = false;
     pick_action_client_->sendGoal(goal); 
     if (!pick_action_client_->waitForResult())
@@ -436,7 +430,6 @@ public:
     }
     if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      
       return true;
     }
     else
@@ -452,24 +445,10 @@ public:
       return false;
     if (!pick_action_client_->isServerConnected())
       return false;
-    moveit_msgs::PickupGoal goal;
-    constructGoal(goal, object);
-    goal.plan_only = false;
-    pick_action_client_->sendGoal(goal); 
-    if (!pick_action_client_->waitForResult())
-    {
-      ROS_INFO_STREAM("Pickup action returned early");
-    }
-    if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-    {
-      
-      return true;
-    }
-    else
-    {
-      ROS_WARN_STREAM("Fail: " << pick_action_client_->getState().toString() << ": " << pick_action_client_->getState().getText());
-      return false;
-    }
+    std::vector<manipulation_msgs::Grasp> grasps;
+    // call grasp planner
+
+    return pick(object, grasps);
   }
   
   bool plan(Plan &plan)
@@ -621,7 +600,8 @@ public:
     moveit_msgs::PickupGoal goal;
     goal.target_name = object;
     goal.group_name = opt_.group_name_;
-    goal.end_effector = getEndEffector();
+    goal.end_effector = getEndEffector(); 
+    goal.allowed_planning_time = planning_time_;
     goal_out = goal;
   }
   
@@ -809,10 +789,10 @@ bool MoveGroup::pick(const std::string &object)
   return impl_->pick(object);
 }
 
-//bool MoveGroup::pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
-//{
-//  return impl_->pick(object, poses); // remove this
-//}
+bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
+{
+  return impl_->pick(object, grasps);
+}
 
 void MoveGroup::stop(void)
 {

@@ -56,7 +56,7 @@ public:
   
 private:
 
-  planning_scene::PlanningSceneConstPtr planning_scene_;
+  planning_scene::PlanningSceneConstPtr planning_scene_; 
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;
 };
 

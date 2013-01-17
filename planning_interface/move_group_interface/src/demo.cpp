@@ -37,6 +37,40 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <ros/ros.h>
 
+void demoFollowConstraints(move_group_interface::MoveGroup &group)
+{
+  geometry_msgs::PoseStamped curr = group.getCurrentPose();
+  
+  std::vector<geometry_msgs::Pose> c(2);
+  c[0] = curr.pose;
+  c[1] = c[0];
+  c[1].position.x -= 0.01;
+  
+  group.followConstraints(c);
+  move_group_interface::MoveGroup::Plan p;  
+  group.plan(p); 
+}
+
+void demoPick(move_group_interface::MoveGroup &group)
+{
+  std::vector<manipulation_msgs::Grasp> grasps;
+  for (std::size_t i = 0 ; i < 20 ; ++i)
+  {
+    geometry_msgs::PoseStamped p = group.getRandomPose();
+    manipulation_msgs::Grasp g;
+    g.header = p.header;
+    g.grasp_pose = p.pose;
+    g.approach_direction.x = 1.0;
+    g.translation_direction.z = 1.0;
+    g.min_approach_distance = 0.2;
+    g.desired_approach_distance = 0.4;
+    g.min_translation_distance = 0.1;
+    g.desired_translation_distance = 0.27;
+    grasps.push_back(g);
+  }
+  group.pick("bubu", grasps);
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "move_group_interface_demo", ros::init_options::AnonymousName);
@@ -45,16 +79,8 @@ int main(int argc, char **argv)
   spinner.start();
   
   move_group_interface::MoveGroup group(argc > 1 ? argv[1] : "right_arm");
-  geometry_msgs::PoseStamped curr = group.getCurrentPose();
-
-  std::vector<geometry_msgs::Pose> c(2);
-  c[0] = curr.pose;
-  c[1] = c[0];
-  c[1].position.x -= 0.01;
+  demoPick(group);
   
-  group.followConstraints(c);
-  move_group_interface::MoveGroup::Plan p;  
-  group.plan(p);
   sleep(2);
   
   return 0;

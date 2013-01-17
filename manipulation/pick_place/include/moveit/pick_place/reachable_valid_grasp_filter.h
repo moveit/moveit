@@ -49,14 +49,21 @@ class ReachableAndValidGraspFilter : public ManipulationStage
 public:
   
   ReachableAndValidGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
+                               const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
                                const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
                                unsigned int nthreads = 4);
   
   virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
   
 private:
+
+  bool isStateCollisionFree(const ManipulationPlan *manipulation_plan,
+                            kinematic_state::JointStateGroup *joint_state_group,
+                            const std::vector<double> &joint_group_variable_values) const;
+  
   
   planning_scene::PlanningSceneConstPtr planning_scene_;
+  collision_detection::AllowedCollisionMatrixConstPtr collision_matrix_;
   constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
 };
 
