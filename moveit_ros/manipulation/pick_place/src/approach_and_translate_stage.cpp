@@ -44,11 +44,13 @@ namespace pick_place
 
 ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &pre_grasp_scene,
                                                      const planning_scene::PlanningSceneConstPtr &post_grasp_scene,
+                                                     const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
                                                      const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
                                                      unsigned int nthreads) :
   ManipulationStage(nthreads),
   pre_grasp_planning_scene_(pre_grasp_scene),
   post_grasp_planning_scene_(post_grasp_scene),
+  collision_matrix_(collision_matrix),
   planning_pipeline_(planning_pipeline),
   max_goal_count_(5),
   max_fail_(3),
@@ -57,11 +59,11 @@ ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::Plann
   name_ = "approach & translate";
 }
 
-
 namespace
 {
 
-bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
+bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene, 
+                          const collision_detection::AllowedCollisionMatrix *collision_matrix,
                           const sensor_msgs::JointState *grasp_posture, 
                           kinematic_state::JointStateGroup *joint_state_group,
                           const std::vector<double> &joint_group_variable_values)
@@ -132,11 +134,12 @@ bool ApproachAndTranslateStage::evaluate(unsigned int thread_id, const Manipulat
   tf::vectorMsgToEigen(plan->grasp_.translation_direction, translation_direction);
   
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
-  kinematic_state::StateValidityCallbackFn approach_validCallback = boost::bind(&isStateCollisionFree, pre_grasp_planning_scene_.get(), &plan->grasp_.pre_grasp_posture, _1, _2);
+  kinematic_state::StateValidityCallbackFn approach_validCallback = boost::bind(&isStateCollisionFree, pre_grasp_planning_scene_.get(), 
+                                                                                collision_matrix_.get(), &plan->grasp_.pre_grasp_posture, _1, _2);
   
   // state validity checking during the translation after the grasp must ensure the gripper posture is that of the actual grasp
-  kinematic_state::StateValidityCallbackFn translation_validCallback = boost::bind(&isStateCollisionFree, post_grasp_planning_scene_.get(), &plan->grasp_.grasp_posture, _1, _2);
-  
+  kinematic_state::StateValidityCallbackFn translation_validCallback = boost::bind(&isStateCollisionFree, post_grasp_planning_scene_.get(),
+                                                                                   collision_matrix_.get(), &plan->grasp_.grasp_posture, _1, _2);
   do 
   {
     for (std::size_t i = 0 ; i < plan->possible_goal_states_.size() ; ++i)
@@ -163,7 +166,7 @@ bool ApproachAndTranslateStage::evaluate(unsigned int thread_id, const Manipulat
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
           if (d_translation > plan->grasp_.min_translation_distance)
           {
-            addGraspTrajectory(plan, plan->grasp_.pre_grasp_posture, "pre_grasp");
+            //            addGraspTrajectory(plan, plan->grasp_.pre_grasp_posture, "pre_grasp");
             
             plan->approach_state_.swap(first_approach_state);
             plan->translation_state_.swap(last_translation_state);
@@ -172,7 +175,7 @@ bool ApproachAndTranslateStage::evaluate(unsigned int thread_id, const Manipulat
             plan->trajectories_.push_back(approach_traj);
             plan->trajectory_descriptions_.push_back("approach");
 
-            addGraspTrajectory(plan, plan->grasp_.grasp_posture, "grasp");
+            //            addGraspTrajectory(plan, plan->grasp_.grasp_posture, "grasp");
             
             plan->trajectories_.push_back(translation_traj);
             plan->trajectory_descriptions_.push_back("translation");

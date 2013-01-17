@@ -42,27 +42,30 @@ namespace pick_place
 {
 
 ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
+                                                           const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
                                                            const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
                                                            unsigned int nthreads) :
   ManipulationStage(nthreads),
   planning_scene_(scene),
+  collision_matrix_(collision_matrix),
   constraints_sampler_manager_(constraints_sampler_manager)
 {
   name_ = "reachable & valid grasp filter";
 }
 
-namespace 
-{
-bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
-                          const sensor_msgs::JointState *pre_grasp_posture, 
-                          kinematic_state::JointStateGroup *joint_state_group,
-                          const std::vector<double> &joint_group_variable_values)
+bool ReachableAndValidGraspFilter::isStateCollisionFree(const ManipulationPlan *manipulation_plan,
+                                                        kinematic_state::JointStateGroup *joint_state_group,
+                                                        const std::vector<double> &joint_group_variable_values) const
 {
   joint_state_group->setVariableValues(joint_group_variable_values);  
   // apply pre-grasp pose for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-  joint_state_group->getKinematicState()->setStateValues(*pre_grasp_posture);
-  return !planning_scene->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName());
-}
+  joint_state_group->getKinematicState()->setStateValues(manipulation_plan->grasp_.pre_grasp_posture);
+  
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+  req.group_name = manipulation_plan->planning_group_;
+  planning_scene_->checkCollision(req, res, *joint_state_group->getKinematicState(), *collision_matrix_);
+  return res.collision == false;
 }
 
 bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
@@ -79,9 +82,9 @@ bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Manipu
   plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, plan->planning_group_, plan->goal_constraints_);
   if (plan->goal_sampler_)
   {
-    plan->goal_sampler_->setStateValidityCallback(boost::bind(&isStateCollisionFree, planning_scene_.get(), &plan->grasp_.pre_grasp_posture, _1, _2));
-    plan->sampling_attempts_ = planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts();
-    
+    plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, plan.get(), _1, _2));
+    plan->sampling_attempts_ = std::max(1u, planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts());
+
     // initialize with scene state 
     kinematic_state::KinematicStatePtr token_state(new kinematic_state::KinematicState(planning_scene_->getCurrentState()));
     
@@ -93,6 +96,7 @@ bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const Manipu
   }
   else
     ROS_ERROR_THROTTLE(1, "No sampler was constructed");
+
   return false;
 }
 

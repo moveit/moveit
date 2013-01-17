@@ -42,6 +42,7 @@
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/PlannerInterfaceDescription.h>
 #include <moveit_msgs/Constraints.h>
+#include <manipulation_msgs/Grasp.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
@@ -137,8 +138,8 @@ public:
   /** \brief Pick up an object */
   bool pick(const std::string &object);
 
-  /** \brief Hack; remove this function */
-  //  bool pick(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
+  /** \brief Pick up an object given possible grasp poses */
+  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps);
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop(void);
