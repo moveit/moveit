@@ -74,6 +74,7 @@ void RobotInteraction::InteractionHandler::setup(void)
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name  
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
   ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
+  planning_frame_ = kstate_->getKinematicModel()->getModelFrame();
 }
 
 //TODO: move functions like this into an eigen_utils package
@@ -135,12 +136,6 @@ void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
-  // aleeper: I think this may have been left over from when you wanted the arms to automatically jump back?
-  //          I see no reason this should be here, and it is causing problems with my attempts
-  //          to update the displayed robot at the correct times.
-  // if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-  //   error_state_.clear();
-
   geometry_msgs::PoseStamped tpose;
   if (!transformFeedbackPose(feedback, tpose))
     return;
@@ -206,29 +201,26 @@ bool RobotInteraction::InteractionHandler::inError(const robot_interaction::Robo
 
 bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose)
 {
-  state_lock_.lock();
-  std::string planning_frame = kstate_->getKinematicModel()->getModelFrame();
-  state_lock_.unlock();
   tpose.header = feedback->header;
   tpose.pose = feedback->pose;
-  if (feedback->header.frame_id != planning_frame)
+  if (feedback->header.frame_id != planning_frame_)
   {
     if (tf_)
       try
       {
         tf::Stamped<tf::Pose> spose;
         tf::poseStampedMsgToTF(tpose, spose);
-        tf_->transformPose(planning_frame, spose, spose);
+        tf_->transformPose(planning_frame_, spose, spose);
         tf::poseStampedTFToMsg(spose, tpose);
       }
       catch (tf::TransformException& e)
       {
-        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
+        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame_.c_str());
         return false;
       }
     else
     {   
-      ROS_ERROR("Cannot transform from frame '%s' to frame '%s' (no TF instance provided)", tpose.header.frame_id.c_str(), planning_frame.c_str());
+      ROS_ERROR("Cannot transform from frame '%s' to frame '%s' (no TF instance provided)", tpose.header.frame_id.c_str(), planning_frame_.c_str());
       return false;
     }
   }
@@ -586,17 +578,11 @@ void RobotInteraction::processingThread(void)
 
   while (run_processing_thread_ && ros::ok())
   {
-    // This timed_wait is needed so that the node goes down quickly when requested.
-    boost::system_time const timeout=boost::get_system_time()+ boost::posix_time::milliseconds(100);
     while (feedback_map_.empty() && run_processing_thread_ && ros::ok())
-    {
-      new_action_condition_.timed_wait(ulock, timeout);
-    }
-    action_lock_.unlock();
+      new_action_condition_.wait(ulock);
 
     while (!feedback_map_.empty() && ros::ok())
     {
-      action_lock_.lock();
       visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback = feedback_map_.begin()->second;
       feedback_map_.erase(feedback_map_.begin());
 
@@ -641,6 +627,7 @@ void RobotInteraction::processingThread(void)
       {
         ROS_ERROR("Exception caught while processing event");
       }
+      action_lock_.lock();
     }
   }
 }
