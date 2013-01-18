@@ -35,11 +35,10 @@
 /* Author: Jon Binney */
 
 #include <ros/ros.h>
-#include <visualization_msgs/MarkerArray.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
-#include <moveit/occupancy_map_monitor/octomap_markers.h>
+
 
 #include <octomap_msgs/conversions.h>
 
@@ -123,8 +122,6 @@ void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shar
       map_updaters_.push_back(up);
     }
   }
-  occupied_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
-  free_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("free_cells", 1);
   octree_binary_pub_ = root_nh_.advertise<octomap_msgs::Octomap>("octomap_binary", 1);
 }
 
@@ -150,7 +147,6 @@ void OccupancyMapMonitor::treeUpdateThread(void)
         update_callback_();
       ready.clear();
 
-      publish_markers();
       publish_octomap_binary();
     }
   }
@@ -183,19 +179,6 @@ void OccupancyMapMonitor::lockOcTreeWrite(void)
 void OccupancyMapMonitor::unlockOcTreeWrite(void)
 {
   tree_mutex_.unlock();
-}
-
-void OccupancyMapMonitor::publish_markers(void)
-{
-  boost::shared_lock<boost::shared_mutex> ulock(tree_mutex_);
-  
-  visualization_msgs::MarkerArray occupied_nodes_arr, free_nodes_arr;
-  
-  make_occupied_cells_marker_array(tree_, ros::Time::now(), opt_.map_frame, "occupied_cells", occupied_nodes_arr);
-  //make_free_cells_marker_array(tree_, ros::Time::now(), map_frame_, "free_cells", free_nodes_arr);
-  
-  occupied_marker_pub_.publish(occupied_nodes_arr);
-  //free_marker_pub_.publish(free_nodes_arr);
 }
 
 void OccupancyMapMonitor::publish_octomap_binary(void)
