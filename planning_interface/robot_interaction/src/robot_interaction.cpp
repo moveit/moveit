@@ -135,12 +135,18 @@ void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
-  if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-    error_state_.clear();
+  // aleeper: I think this may have been left over from when you wanted the arms to automatically jump back?
+  //          I see no reason this should be here, and it is causing problems with my attempts
+  //          to update the displayed robot at the correct times.
+    if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+      error_state_.clear();
 
   geometry_msgs::PoseStamped tpose;
   if (!transformFeedbackPose(feedback, tpose))
     return;
+
+  // lock the state while we update it, AND while we call the callback
+  boost::recursive_mutex::scoped_lock slock(state_lock_);
 
   bool update_state_result;
   if (interaction_mode_ == POSITION_IK)
@@ -181,6 +187,8 @@ void RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_intera
   geometry_msgs::PoseStamped tpose;
   if (!transformFeedbackPose(feedback, tpose))
     return;
+  // lock the state while we update it, AND while we call the callback
+  boost::recursive_mutex::scoped_lock slock(state_lock_);
   robot_interaction::RobotInteraction::updateState(*kstate_, vj, tpose.pose);
   if (update_callback_)
     update_callback_(this);
@@ -198,7 +206,9 @@ bool RobotInteraction::InteractionHandler::inError(const robot_interaction::Robo
 
 bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose)
 {
+  state_lock_.lock();
   std::string planning_frame = kstate_->getKinematicModel()->getModelFrame();
+  state_lock_.unlock();
   tpose.header = feedback->header;
   tpose.pose = feedback->pose;
   if (feedback->header.frame_id != planning_frame)
@@ -229,10 +239,18 @@ RobotInteraction::RobotInteraction(const kinematic_model::KinematicModelConstPtr
   kmodel_(kmodel)
 {  
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC);
+
+  // spin a thread that will process feedback events
+  run_processing_thread_ = true;
+  processing_thread_.reset(new boost::thread(boost::bind(&RobotInteraction::processingThread, this)));
 }
 
 RobotInteraction::~RobotInteraction(void)
 {
+  run_processing_thread_ = false;
+  new_action_condition_.notify_all();
+  processing_thread_->join();
+
   clear();
   delete int_marker_server_;
 }
@@ -542,6 +560,7 @@ bool RobotInteraction::InteractionHandler::avoidJointLimitsSecTask(const kinemat
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
+
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
   {
@@ -556,22 +575,74 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
     return;
   }
   
-  std::string marker_class = feedback->marker_name.substr(0, 2);
-  std::string handler_name = feedback->marker_name.substr(3, u - 3); // skip the ":"
-  std::map<std::string, InteractionHandlerPtr>::const_iterator jt = handlers_.find(handler_name);
-  if (jt == handlers_.end())
+  boost::mutex::scoped_lock slock(action_lock_);
+  feedback_map_[feedback->marker_name] = feedback;
+  new_action_condition_.notify_all();
+}
+
+void RobotInteraction::processingThread(void)
+{
+  boost::unique_lock<boost::mutex> ulock(action_lock_);
+
+  while (run_processing_thread_ && ros::ok())
   {
-    ROS_ERROR("Interactive Marker Handler '%s' is not known.", handler_name.c_str());
-    return;
+    // This timed_wait is needed so that the node goes down quickly when requested.
+    boost::system_time const timeout=boost::get_system_time()+ boost::posix_time::milliseconds(100);
+    while (feedback_map_.empty() && run_processing_thread_ && ros::ok())
+    {
+      new_action_condition_.timed_wait(ulock, timeout);
+    }
+    action_lock_.unlock();
+
+    while (!feedback_map_.empty() && ros::ok())
+    {
+      action_lock_.lock();
+      visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback = feedback_map_.begin()->second;
+      feedback_map_.erase(feedback_map_.begin());
+
+      // make sure we are unlocked while we process the event
+      action_lock_.unlock();
+      try
+      {
+        std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
+        if (it == shown_markers_.end())
+        {
+          ROS_ERROR("Unknown marker name: '%s' (not published by RobotInteraction class) (should never have ended up in the feedback_map!)", feedback->marker_name.c_str());
+          return;
+        }
+        std::size_t u = feedback->marker_name.find_first_of("_");
+        if (u == std::string::npos || u < 4)
+        {
+          ROS_ERROR("Invalid marker name: '%s' (should never have ended up in the feedback_map!)",  feedback->marker_name.c_str());
+          return;
+        }
+        std::string marker_class = feedback->marker_name.substr(0, 2);
+        std::string handler_name = feedback->marker_name.substr(3, u - 3); // skip the ":"
+        std::map<std::string, InteractionHandlerPtr>::const_iterator jt = handlers_.find(handler_name);
+        if (jt == handlers_.end())
+        {
+          ROS_ERROR("Interactive Marker Handler '%s' is not known.", handler_name.c_str());
+          return;
+        }
+
+        if (marker_class == "EE")
+          jt->second->handleEndEffector(active_eef_[it->second], feedback);
+        else
+          if (marker_class == "VJ")
+            jt->second->handleVirtualJoint(active_vj_[it->second], feedback);
+          else
+            ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());
+      }
+      catch(std::runtime_error &ex)
+      {
+        ROS_ERROR("Exception caught while processing event: %s", ex.what());
+      }
+      catch(...)
+      {
+        ROS_ERROR("Exception caught while processing event");
+      }
+    }
   }
-  
-  if (marker_class == "EE")
-    jt->second->handleEndEffector(active_eef_[it->second], feedback);
-  else
-    if (marker_class == "VJ")
-      jt->second->handleVirtualJoint(active_vj_[it->second], feedback);
-    else
-      ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());  
 }
 
 }
