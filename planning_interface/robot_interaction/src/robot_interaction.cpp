@@ -138,8 +138,8 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   // aleeper: I think this may have been left over from when you wanted the arms to automatically jump back?
   //          I see no reason this should be here, and it is causing problems with my attempts
   //          to update the displayed robot at the correct times.
-    if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-      error_state_.clear();
+  // if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+  //   error_state_.clear();
 
   geometry_msgs::PoseStamped tpose;
   if (!transformFeedbackPose(feedback, tpose))
