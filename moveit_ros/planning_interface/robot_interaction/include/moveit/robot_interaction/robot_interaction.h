@@ -35,6 +35,8 @@
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <boost/function.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 #include <tf/tf.h>
 
 namespace interactive_markers
@@ -103,13 +105,14 @@ public:
       return name_;
     }
     
-    const kinematic_state::KinematicStatePtr& getState(void) const
+    const kinematic_state::KinematicStatePtr& getState(void)
     {
       return kstate_;
     }
     
     void setState(const kinematic_state::KinematicState& kstate)
     {
+      boost::recursive_mutex::scoped_lock slock(state_lock_);
       *kstate_ = kstate;
     }    
     
@@ -167,6 +170,7 @@ public:
                                      double activation_threshold, double gain) const;
 
     std::string name_;
+    std::string planning_frame_;
     kinematic_state::KinematicStatePtr kstate_;
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
@@ -176,6 +180,8 @@ public:
     double ik_timeout_;
     unsigned int ik_attempts_;
     IKInteractionType interaction_mode_;
+
+    boost::recursive_mutex state_lock_;
     
   private:
     
@@ -218,8 +224,16 @@ private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupScale(const std::string &group);    
-  void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
-  
+  void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+  void processingThread(void);
+
+  boost::scoped_ptr<boost::thread> processing_thread_;
+  bool run_processing_thread_;
+
+  mutable boost::mutex action_lock_;
+  boost::condition_variable new_action_condition_;
+  std::map<std::string, visualization_msgs::InteractiveMarkerFeedbackConstPtr> feedback_map_;
+
   kinematic_model::KinematicModelConstPtr kmodel_;
   
   std::vector<EndEffector> active_eef_;
