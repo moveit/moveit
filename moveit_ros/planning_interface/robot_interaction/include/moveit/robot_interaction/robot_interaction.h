@@ -170,6 +170,7 @@ public:
                                      double activation_threshold, double gain) const;
 
     std::string name_;
+    std::string planning_frame_;
     kinematic_state::KinematicStatePtr kstate_;
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
@@ -226,7 +227,6 @@ private:
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void processingThread(void);
 
-  // new stuff for processing thread
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
 
@@ -234,7 +234,6 @@ private:
   boost::condition_variable new_action_condition_;
   std::map<std::string, visualization_msgs::InteractiveMarkerFeedbackConstPtr> feedback_map_;
 
-  // original stuff
   kinematic_model::KinematicModelConstPtr kmodel_;
   
   std::vector<EndEffector> active_eef_;
