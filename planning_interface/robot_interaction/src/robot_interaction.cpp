@@ -162,7 +162,7 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
     geometry_msgs::Twist twist_msg;
     tf::twistEigenToMsg(twist, twist_msg);
     update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, twist_msg,
-                                                                           boost::bind(&RobotInteraction::InteractionHandler::avoidJointLimitsSecTask, this, _1, _2, 0.3, 0.5));
+                                                                           boost::bind(&kinematic_state::JointStateGroup::avoidJointLimitsSecondaryTask, kstate_->getJointStateGroup(eef.parent_group), _1, _2, 0.3, 0.5));
   }
 
   if (!update_state_result)
@@ -497,57 +497,6 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
 {
   static const double gain = 0.1;
   return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, st_callback);
-}
-
-bool RobotInteraction::InteractionHandler::avoidJointLimitsSecTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
-                                                                            double activation_threshold, double gain) const
-{
-  //Get current joint values (q)
-  Eigen::VectorXd q;
-  joint_state_group->getVariableValues(q);
-
-  //Get joint lower and upper limits (qmin and qmax)
-  const std::vector<moveit_msgs::JointLimits> &qlimits = joint_state_group->getJointModelGroup()->getVariableLimits();
-  Eigen::VectorXd qmin(qlimits.size());
-  Eigen::VectorXd qmax(qlimits.size());
-  Eigen::VectorXd qrange(qlimits.size());
-  stvector.resize(qlimits.size());
-  stvector = Eigen::ArrayXd::Zero(qlimits.size());
-
-  for (std::size_t i = 0; i < qlimits.size(); ++i)
-  {
-    qmin(i) = qlimits[i].min_position;
-    qmax(i) = qlimits[i].max_position;
-    qrange(i) = qmax(i) - qmin(i);
-
-    //Fill in stvector with the gradient of a joint avoidance cost function
-    const std::vector<const kinematic_model::JointModel*> joint_models = joint_state_group->getJointModelGroup()->getJointModels();
-    if (qrange(i) == 0)
-    {
-      //If the joint range is zero do not compute the cost
-      stvector(i) = 0;
-    }
-    else if (joint_models[i]->getType() == kinematic_model::JointModel::REVOLUTE)
-    {
-      //If the joint is continuous do not compute the cost
-      const kinematic_model::RevoluteJointModel *rjoint = static_cast<const kinematic_model::RevoluteJointModel*>(joint_models[i]);
-      if (rjoint->isContinuous())
-        stvector(i) = 0;
-    }
-    else
-    {
-      if (q(i) > (qmax(i) - qrange(i) * activation_threshold))
-      {
-        stvector(i) = -gain * (q(i) - (qmax(i) - qrange(i) * activation_threshold)) / qrange(i);
-      }
-      else if (q(i) < (qmin(i) + qrange(i) * activation_threshold))
-      {
-        stvector(i) = -gain * (q(i) - (qmin(i) + qrange(i) * activation_threshold)) / qrange(i);
-      }
-    }
-  }
-
-  return true;
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
