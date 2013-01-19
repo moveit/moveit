@@ -52,12 +52,12 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     sensor_manager/include
     trajectory_processing/include
     kinematics_constraint_aware/include
-    ${OCTOMAP_INCLUDE_DIRS}
 )
 
 catkin_package(
   INCLUDE_DIRS
-    ${THIS_PACKAGE_INCLUDE_DIRS} 
+    ${THIS_PACKAGE_INCLUDE_DIRS}
+    ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_kinematic_model
     moveit_kinematic_state
@@ -94,11 +94,12 @@ catkin_package(
     )
 
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
-                           ${Boost_INCLUDE_DIRS}
+                           ${Boost_INCLUDE_DIR}
 			   )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
                     ${catkin_INCLUDE_DIRS} 
+		    ${OCTOMAP_INCLUDE_DIRS}
                     )
 
 link_directories(${Boost_LIBRARY_DIRS})

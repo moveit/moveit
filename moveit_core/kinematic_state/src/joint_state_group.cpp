@@ -679,17 +679,15 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
   return false;
 }
 
-bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st)
+void kinematic_state::JointStateGroup::computeJointVelocity(Eigen::VectorXd &qdot, const Eigen::VectorXd &twist, const std::string &tip, const SecondaryTaskFn &st) const
 {
   //Get the Jacobian of the group at the current configuration
   Eigen::MatrixXd J(6, getVariableCount());
-  Eigen::Vector3d reference_point(0.0,0.0,0.0);
+  Eigen::Vector3d reference_point(0.0, 0.0, 0.0);
   getJacobian(tip, reference_point, J);
 
   //Rotate the jacobian to the end-effector frame
-  Eigen::Affine3d bMe, eMb;
-  bMe = getKinematicState()->getLinkState(tip)->getGlobalLinkTransform();
-  eMb = bMe.inverse();
+  Eigen::Affine3d eMb = getKinematicState()->getLinkState(tip)->getGlobalLinkTransform().inverse();
   Eigen::MatrixXd eWb = Eigen::ArrayXXd::Zero(6, 6);
   eWb.block(0, 0, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
   eWb.block(3, 3, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
@@ -702,7 +700,7 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   const Eigen::VectorXd S = svdOfJ.singularValues();
 
   Eigen::VectorXd Sinv = S;
-  static const double pinvtoler = 1.e-6;
+  static const double pinvtoler = std::numeric_limits<float>::epsilon();
   double maxsv = 0.0 ;
   for (std::size_t i = 0; i < S.rows(); ++i)
     if (fabs(S(i)) > maxsv) maxsv = fabs(S(i));
@@ -716,7 +714,7 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   Eigen::MatrixXd Jinv = ( V * Sinv.asDiagonal() * U.transpose() );
 
   //Compute joint velocity
-  Eigen::VectorXd qdot = Jinv * twist;
+  qdot = Jinv * twist;
 
   //Project the secondary task
   if (st)
@@ -725,7 +723,13 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
     st(this, cost_vector);
     qdot += (Eigen::MatrixXd::Identity(qdot.rows(), qdot.rows()) - Jinv * J) * cost_vector;
   }
+}
 
+bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const SecondaryTaskFn &st)
+{
+  Eigen::VectorXd qdot;
+  computeJointVelocity(qdot, twist, tip, st);
+  
   //Integrate qdot for dt
   Eigen::VectorXd q(getVariableCount());
   getVariableValues(q);
@@ -737,12 +741,90 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twis
   return true;
 }
 
-bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, const double &dt, const SecondaryTaskFn &st)
+bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const SecondaryTaskFn &st)
 {
   Eigen::Matrix<double, 6, 1> t;
   tf::twistMsgToEigen(twist, t);
 
   return setFromDiffIK(t, tip, dt, st);
+}
+
+namespace
+{
+
+void addTrajectoryPoint(const kinematic_state::KinematicState *state,
+                        const std::vector<const kinematic_model::JointModel*> &onedof,
+                        const std::vector<const kinematic_model::JointModel*> &mdof,
+                        moveit_msgs::RobotTrajectory &traj)
+{ 
+  if (!onedof.empty())
+  { 
+    traj.joint_trajectory.points.resize(traj.joint_trajectory.points.size() + 1);
+    traj.joint_trajectory.points.back().positions.resize(onedof.size());
+    for (std::size_t j = 0 ; j < onedof.size() ; ++j)
+      traj.joint_trajectory.points.back().positions[j] = state->getJointState(onedof[j]->getName())->getVariableValues()[0];
+    traj.joint_trajectory.points.back().time_from_start = ros::Duration(0.0);
+  }
+  if (!mdof.empty())
+  {
+    traj.multi_dof_joint_trajectory.points.resize(traj.multi_dof_joint_trajectory.points.size() + 1);
+    traj.multi_dof_joint_trajectory.points.back().poses.resize(mdof.size());
+    for (std::size_t j = 0 ; j < mdof.size() ; ++j)
+    {
+      tf::poseEigenToMsg(state->getJointState(mdof[j]->getName())->getVariableTransform(),
+                         traj.multi_dof_joint_trajectory.points.back().poses[j]);
+    }
+    traj.multi_dof_joint_trajectory.points.back().time_from_start = ros::Duration(0.0);
+  }
+}
+
+}
+
+double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, double distance, 
+                                                              double max_step, const StateValidityCallbackFn &validCallback)
+{
+  const LinkState *link_state = kinematic_state_->getLinkState(link_name);
+  if (!link_state)
+    return 0.0;
+  Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
+  unsigned int steps = 1 + (unsigned int)floor(distance / max_step);
+  
+  const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
+  std::vector<const kinematic_model::JointModel*> onedof;
+  std::vector<const kinematic_model::JointModel*> mdof;
+  traj.joint_trajectory.header.frame_id = kinematic_state_->getKinematicModel()->getModelFrame();
+  traj.joint_trajectory.joint_names.clear();
+  traj.multi_dof_joint_trajectory.joint_names.clear();
+  traj.multi_dof_joint_trajectory.child_frame_ids.clear();
+  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
+    if (jnt[i]->getVariableCount() == 1)
+    {
+      traj.joint_trajectory.joint_names.push_back(jnt[i]->getName());
+      onedof.push_back(jnt[i]);
+    }
+    else
+    {
+      traj.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
+      traj.multi_dof_joint_trajectory.frame_ids.push_back(traj.joint_trajectory.header.frame_id);
+      traj.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
+      mdof.push_back(jnt[i]);
+    }
+  
+  addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
+
+  double last_valid_distance = 0.0;
+  for (unsigned int i = 1; i <= steps ; ++i)
+  {
+    double d = distance * (double)i / (double)steps;
+    Eigen::Affine3d pose = start_pose;
+    pose.translation() = pose.translation() + direction * d;
+    if (setFromIK(pose, link_name, 1, 0.0, validCallback)) 
+      addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
+    else
+      break;
+    last_valid_distance = d;
+  }
+  return last_valid_distance;
 }
 
 void kinematic_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
@@ -764,12 +846,12 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
 {
   if (!joint_model_group_->isChain())
   {
-    logError("Will compute Jacobian only for a chain");
+    logError("The group '%s' is not a chain. Cannot compute Jacobian", joint_model_group_->getName().c_str());
     return false;
   }
   if (!joint_model_group_->isLinkUpdated(link_name))
   {
-    logError("Link name does not exist in this chain or is not a child for this chain");
+    logError("Link name '%s' does not exist in the chain '%s' or is not a child for this chain", link_name.c_str(), joint_model_group_->getName().c_str());
     return false;
   }
   
@@ -793,15 +875,17 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
   
   while (link_state)
   {
+    /*
     logDebug("Link: %s, %f %f %f",link_state->getName().c_str(),
              link_state->getGlobalLinkTransform().translation().x(),
              link_state->getGlobalLinkTransform().translation().y(),
              link_state->getGlobalLinkTransform().translation().z());    
     logDebug("Joint: %s",link_state->getParentJointState()->getName().c_str());
+    */
     
     if (joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
     {
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::REVOLUTE)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::REVOLUTE)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
@@ -809,14 +893,14 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
         jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
         jacobian.block<3,1>(3,joint_index) = joint_axis;
       }
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PRISMATIC)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PRISMATIC)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
         joint_axis = joint_transform*(static_cast<const kinematic_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
         jacobian.block<3,1>(0,joint_index) = joint_axis;
       }
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
