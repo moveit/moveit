@@ -44,6 +44,10 @@
 
 namespace robot_interaction
 {
+const float END_EFFECTOR_UNREACHABLE_COLOR[4] = { 1.0, 0.3, 0.3, 1.0};
+const float END_EFFECTOR_REACHABLE_COLOR[4] = { 0.2, 1.0, 0.2, 1.0};
+const float END_EFFECTOR_WHITE_COLOR[4] = { 1.0, 1.0, 1.0, 1.0};
+const float END_EFFECTOR_COLLISION_COLOR[4] = { 0.8, 0.8, 0.0, 1.0};
 
 const std::string RobotInteraction::INTERACTIVE_MARKER_TOPIC = "robot_interaction_interactive_marker_topic";
 
@@ -53,7 +57,8 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   name_(name),
   kstate_(new kinematic_state::KinematicState(kstate)),
   tf_(tf),
-  interaction_mode_(POSITION_IK)
+  interaction_mode_(POSITION_IK),
+  display_meshes_(false)
 {
   setup();
 }
@@ -64,7 +69,8 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   name_(name),
   kstate_(new kinematic_state::KinematicState(kmodel)),
   tf_(tf),
-  interaction_mode_(POSITION_IK)
+  interaction_mode_(POSITION_IK),
+  display_meshes_(false)
 {
   setup();
 }
@@ -185,16 +191,26 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
                                                                            boost::bind(&RobotInteraction::InteractionHandler::avoidJointLimitsSecTask, this, _1, _2, 0.3, 0.5));
   }
 
+  bool error_state_changed = false;
   if (!update_state_result)
   {
     if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+    {
+      error_state_changed = inError(eef) ? false : true;
       error_state_.insert(eef.parent_group);
+    }
   }
-  else
+  else 
+  {
+    error_state_changed = inError(eef) ? true : false;
     error_state_.erase(eef.parent_group);
+  }
 
   if (update_callback_)
     update_callback_(this);
+
+  if(error_state_changed)
+    redraw_requested_ = true;
 
   ROS_DEBUG_NAMED("robot_interaction", "Unlocking state_lock and exiting from handleEndEffector");
   state_lock_.unlock();
@@ -215,7 +231,12 @@ void RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_intera
 
 bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::EndEffector& eef)
 {
-  return error_state_.find(eef.parent_group) != error_state_.end();
+  bool error = error_state_.find(eef.parent_group) != error_state_.end();
+  if(error)
+    ROS_DEBUG_NAMED("robot_interaction", "Reporting that EE: '%s' is in error!", eef.eef_group.c_str());
+  else
+    ROS_DEBUG_NAMED("robot_interaction", "Reporting that EE: '%s' is ok!", eef.eef_group.c_str()) ;
+  return error;
 }
 
 bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::VirtualJoint& vj)
@@ -446,6 +467,42 @@ void RobotInteraction::clearInteractiveMarkers(void)
   int_marker_server_->clear();
 }
 
+void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef, visualization_msgs::InteractiveMarker& im)
+{
+  visualization_msgs::InteractiveMarkerControl m_control;
+  m_control.always_visible = false;
+  m_control.interaction_mode = m_control.MOVE_ROTATE;
+
+  const kinematic_state::KinematicStatePtr kinematic_state = handler->getState();
+  const std::vector<std::string> &link_names = kinematic_state->getJointStateGroup(eef.eef_group)->getJointModelGroup()->getLinkModelNames();
+
+  std_msgs::ColorRGBA marker_color;
+  const float *color = END_EFFECTOR_WHITE_COLOR;
+  bool use_embedded_materials = true;
+  if(handler->inError(eef))
+  {
+    color = END_EFFECTOR_UNREACHABLE_COLOR;
+  }
+  marker_color.r = color[0];
+  marker_color.g = color[1];
+  marker_color.b = color[2];
+  marker_color.a = color[3];
+
+  visualization_msgs::MarkerArray marker_array;
+  kinematic_state->getRobotMarkers(marker_color, eef.eef_group, ros::Duration(), marker_array, link_names);
+
+  for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
+  {
+    marker_array.markers[i].header = im.header;
+    marker_array.markers[i].mesh_use_embedded_materials = use_embedded_materials;
+    m_control.markers.push_back(marker_array.markers[i]);
+  }
+
+//  int_marker.pose = marker_array.markers[0].pose;
+//  tf::poseEigenToMsg(tip_pose, int_marker.pose);
+  im.controls.push_back(m_control);
+}
+
 void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
 { 
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
@@ -467,7 +524,9 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       marker_scale = active_eef_[i].size;
     
     visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, marker_scale);
-    if (handler && handler->inError(active_eef_[i]))
+    if(handler && handler->getMeshesVisible())
+      addEndEffectorMarkers(handler, active_eef_[i], im);
+    else if (handler && handler->inError(active_eef_[i]))
       addErrorMarker(im);
     int_marker_server_->insert(im);
     int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
@@ -498,6 +557,16 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
 void RobotInteraction::publishInteractiveMarkers(void)
 {
   int_marker_server_->applyChanges();
+}
+
+void RobotInteraction::updateInteractiveMarkerProperties(const InteractionHandlerPtr &handler)
+{
+  if(handler->isRedrawRequested())
+  {
+    handler->clearRedrawRequested();
+    addInteractiveMarkers(handler);
+    publishInteractiveMarkers();
+  }
 }
 
 bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose)

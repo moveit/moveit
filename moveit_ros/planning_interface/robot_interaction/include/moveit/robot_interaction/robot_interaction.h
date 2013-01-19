@@ -33,6 +33,7 @@
 #define MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
+#include <visualization_msgs/InteractiveMarker.h>
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
@@ -156,6 +157,26 @@ public:
       interaction_mode_ = imode;
     }
 
+    void setMeshesVisible(bool visible)
+    {
+      display_meshes_ = visible;
+    }
+
+    bool getMeshesVisible()
+    {
+      return display_meshes_;
+    }
+
+    bool isRedrawRequested()
+    {
+      return redraw_requested_;
+    }
+
+    bool clearRedrawRequested()
+    {
+      redraw_requested_ = false;
+    }
+
     /** \brief Get the last interactive_marker command pose for the end-effector
      * @param The end-effector in question.
      * @param A PoseStamped message containing the result.
@@ -193,6 +214,8 @@ public:
     double ik_timeout_;
     unsigned int ik_attempts_;
     IKInteractionType interaction_mode_;
+    bool display_meshes_;
+    bool redraw_requested_;
 
     boost::recursive_mutex state_lock_;
     boost::recursive_mutex pose_map_lock_;
@@ -215,6 +238,7 @@ public:
   void clear(void);
   
   void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0.0);
+  void updateInteractiveMarkerProperties(const InteractionHandlerPtr &handler);
 
   void publishInteractiveMarkers(void);
   void clearInteractiveMarkers(void);
@@ -238,6 +262,7 @@ private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupScale(const std::string &group);    
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef, visualization_msgs::InteractiveMarker& im);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void processingThread(void);
 
