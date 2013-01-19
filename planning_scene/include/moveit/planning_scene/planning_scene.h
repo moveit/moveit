@@ -124,7 +124,7 @@ public:
   }
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
-      The information passed in for this function allows the construction of a kinematic model and of all the classed that
+      The information passed in for this function allows the construction of a kinematic model and of all the classes that
       depend on the kinematic model (e.g., collision world/robot classes) */
   bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model,
@@ -132,12 +132,12 @@ public:
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The kinematic model constructed from the parsed descriptions is also passed in. */
-  virtual bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                         const boost::shared_ptr<const srdf::Model> &srdf_model,
-                         const kinematic_model::KinematicModelPtr &kmodel);
+  bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+                 const boost::shared_ptr<const srdf::Model> &srdf_model,
+                 const kinematic_model::KinematicModelPtr &kmodel);
 
   /** \brief Return a new planning scene that uses this one as parent. */
-  virtual PlanningScenePtr diff(void) const;
+  PlanningScenePtr diff(void) const;
   
   /** \brief Return a new planning scene that uses this one as parent and has the diffs specified by \e msg applied. */
   PlanningScenePtr diff(const moveit_msgs::PlanningScene &msg) const;
@@ -342,13 +342,7 @@ public:
 
   /** \brief Set the current robot state */
   void setCurrentState(const kinematic_state::KinematicState &state);
-  
-  /** \brief Get the colors associated to the various objects in the scene */
-  const ColorMap& getObjectColors(void) const
-  {
-    return colors_ ? *colors_ : parent_->getObjectColors();
-  }
-  
+    
   bool hasColor(const std::string &id) const;
 
   const std_msgs::ColorRGBA& getColor(const std::string &id) const;
@@ -368,26 +362,26 @@ public:
       parent and the pointer to the parent is discarded. */
   void decoupleParent(void);
   
-  /** \brief Specify a predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and contraint evaluation.
+  /** \brief Specify a predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation.
       This is useful for setting up problem specific constraints (e.g., stability) */
   void setStateFeasibilityPredicate(const StateFeasibilityFn &fn)
   {
     state_feasibility_ = fn;
   }
 
-  /** \brief Get the predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and contraint evaluation. */
+  /** \brief Get the predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation. */
   const StateFeasibilityFn& getStateFeasibilityPredicate(void) const
   {
     return state_feasibility_;
   }
   
-  /** \brief Specify a predicate that decides whether motion segments are considered valid or invalid for reasons beyond ones covered by collision checking and contraint evaluation.  */
+  /** \brief Specify a predicate that decides whether motion segments are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation.  */
   void setMotionFeasibilityPredicate(const MotionFeasibilityFn &fn)
   {
     motion_feasibility_ = fn;
   }
 
-  /** \brief Get the predicate that decides whether motion segments are considered valid or invalid for reasons beyond ones covered by collision checking and contraint evaluation. */
+  /** \brief Get the predicate that decides whether motion segments are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation. */
   const MotionFeasibilityFn& getMotionFeasibilityPredicate(void) const
   {
     return motion_feasibility_;
