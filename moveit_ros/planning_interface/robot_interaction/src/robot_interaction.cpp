@@ -161,8 +161,9 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   // lock the state while we update it with IK
   ROS_DEBUG_NAMED("robot_interaction", "Locking state_lock and updating state in handleEndEffector");
   state_lock_.lock();
+  ROS_DEBUG_NAMED("robot_interaction", "Locked handleEndEffector");
 
-  bool update_state_result;
+  bool update_state_result = false;
   if (interaction_mode_ == POSITION_IK)
   {
     update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
@@ -429,6 +430,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
 
 void RobotInteraction::clear(void)
 {
+    // todo: stop background processing thread
+  ROS_INFO("robot_interaction::clear()");
   active_eef_.clear();
   active_vj_.clear();
   clearInteractiveMarkers();
@@ -437,6 +440,7 @@ void RobotInteraction::clear(void)
 
 void RobotInteraction::clearInteractiveMarkers(void)
 {
+  ROS_INFO("robot_interaction::clearInteractiveMarkers()");
   handlers_.clear();
   shown_markers_.clear();
   int_marker_server_->clear();
@@ -575,6 +579,8 @@ bool RobotInteraction::InteractionHandler::avoidJointLimitsSecTask(const kinemat
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
+  // TODO if clear gets called while in this function, baaad things happen; fix me
+  ROS_DEBUG_NAMED("robot_interaction", "Received feedback [%s]", feedback->marker_name.c_str());
 
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
@@ -589,7 +595,7 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
     ROS_ERROR("Invalid marker name: '%s'",  feedback->marker_name.c_str());
     return;
   }
-  
+
   boost::mutex::scoped_lock slock(action_lock_);
   ROS_DEBUG_NAMED("robot_interaction", "Adding feedback to map for marker [%s]", feedback->marker_name.c_str());
   feedback_map_[feedback->marker_name] = feedback;
@@ -610,7 +616,6 @@ void RobotInteraction::processingThread(void)
       visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback = feedback_map_.begin()->second;
       feedback_map_.erase(feedback_map_.begin());
       ROS_DEBUG_NAMED("robot_interaction", "Processing feedback from map for marker [%s]", feedback->marker_name.c_str());
-
 
       // make sure we are unlocked while we process the event
       action_lock_.unlock();
