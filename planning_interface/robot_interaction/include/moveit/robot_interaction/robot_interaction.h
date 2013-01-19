@@ -107,12 +107,17 @@ public:
     
     const kinematic_state::KinematicStatePtr& getState(void)
     {
+      ROS_DEBUG_NAMED("robot_interaction", "getState requested");
+      boost::recursive_mutex::scoped_lock slock(state_lock_);
+      ROS_DEBUG_NAMED("robot_interaction", "locked state_lock, getting state ptr");
       return kstate_;
     }
     
     void setState(const kinematic_state::KinematicState& kstate)
     {
+      ROS_DEBUG_NAMED("robot_interaction", "setState requested");
       boost::recursive_mutex::scoped_lock slock(state_lock_);
+      ROS_DEBUG_NAMED("robot_interaction", "locked state_lock, setting state");
       *kstate_ = kstate;
     }    
     
