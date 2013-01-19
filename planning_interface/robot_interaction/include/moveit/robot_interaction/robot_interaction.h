@@ -151,6 +151,13 @@ public:
       interaction_mode_ = imode;
     }
 
+    /** \brief Get the last interactive_marker command pose for the end-effector
+     * @param The end-effector in question.
+     * @param A PoseStamped message containing the result.
+     * @return True if a pose for that end-effector was found, false otherwise.
+     */
+    bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& ps);
+
     virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
     virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
     virtual bool inError(const RobotInteraction::EndEffector& eef);
@@ -174,6 +181,7 @@ public:
     kinematic_state::KinematicStatePtr kstate_;
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
+    std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
     boost::function<void(InteractionHandler*)> update_callback_;
     kinematic_state::StateValidityCallbackFn state_validity_callback_fn_;
     kinematic_state::SecondaryTaskFn secondary_task_callback_fn_;
@@ -182,6 +190,7 @@ public:
     IKInteractionType interaction_mode_;
 
     boost::recursive_mutex state_lock_;
+    boost::recursive_mutex pose_map_lock_;
     
   private:
     

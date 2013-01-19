@@ -133,6 +133,18 @@ void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose
   }
 }
 
+bool RobotInteraction::InteractionHandler::getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& ps)
+{
+  boost::recursive_mutex::scoped_lock slock(pose_map_lock_);
+  std::map<std::string, geometry_msgs::PoseStamped>::iterator it = pose_map_.find(eef.eef_group);
+  if(it != pose_map_.end())
+  {
+    ps = it->second;
+    return true;
+  }
+  return false;
+}
+
 void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
@@ -140,8 +152,15 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   if (!transformFeedbackPose(feedback, tpose))
     return;
 
-  // lock the state while we update it, AND while we call the callback
-  boost::recursive_mutex::scoped_lock slock(state_lock_);
+  // Save this pose as the most recent commanded pose for the end-effector.
+  // TODO when do we clear this?
+  pose_map_lock_.lock();
+  pose_map_[eef.eef_group] = tpose;
+  pose_map_lock_.unlock();
+
+  // lock the state while we update it with IK
+  ROS_DEBUG_NAMED("robot_interaction", "Locking state_lock and updating state in handleEndEffector");
+  state_lock_.lock();
 
   bool update_state_result;
   if (interaction_mode_ == POSITION_IK)
@@ -172,8 +191,12 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   }
   else
     error_state_.erase(eef.parent_group);
+
   if (update_callback_)
     update_callback_(this);
+
+  ROS_DEBUG_NAMED("robot_interaction", "Unlocking state_lock and exiting from handleEndEffector");
+  state_lock_.unlock();
 }
 
 void RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint& vj,
@@ -306,7 +329,7 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
 { 
   active_vj_.clear();
 
-  ROS_DEBUG("Deciding active virtual joints for group '%s'", group.c_str());
+  ROS_DEBUG_NAMED("robot_interaction", "Deciding active virtual joints for group '%s'", group.c_str());
   
   if (group.empty())
     return;
@@ -349,7 +372,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
 {
   active_eef_.clear();
 
-  ROS_DEBUG("Deciding active end-effectors for group '%s'", group.c_str());
+  ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
   
   if (group.empty())
     return;
@@ -400,7 +423,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
     active_eef_[i].size = computeGroupScale(active_eef_[i].eef_group);
-    ROS_DEBUG("Found active end-effector '%s', of scale %lf", active_eef_[i].eef_group.c_str(), active_eef_[i].size);
+    ROS_DEBUG_NAMED("robot_interaction", "Found active end-effector '%s', of scale %lf", active_eef_[i].eef_group.c_str(), active_eef_[i].size);
   }
 }
 
@@ -444,7 +467,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       addErrorMarker(im);
     int_marker_server_->insert(im);
     int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-    ROS_DEBUG("Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
+    ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
   }
   
   for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
@@ -461,7 +484,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       
       int_marker_server_->insert(im);
       int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-      ROS_DEBUG("Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_vj_[i].size);
+      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_vj_[i].size);
     }
   handlers_[handler->getName()] = handler;
   
@@ -568,6 +591,7 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
   }
   
   boost::mutex::scoped_lock slock(action_lock_);
+  ROS_DEBUG_NAMED("robot_interaction", "Adding feedback to map for marker [%s]", feedback->marker_name.c_str());
   feedback_map_[feedback->marker_name] = feedback;
   new_action_condition_.notify_all();
 }
@@ -585,6 +609,8 @@ void RobotInteraction::processingThread(void)
     {
       visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback = feedback_map_.begin()->second;
       feedback_map_.erase(feedback_map_.begin());
+      ROS_DEBUG_NAMED("robot_interaction", "Processing feedback from map for marker [%s]", feedback->marker_name.c_str());
+
 
       // make sure we are unlocked while we process the event
       action_lock_.unlock();
