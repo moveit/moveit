@@ -150,12 +150,12 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
   moveit_msgs::ComputePlanningPluginsBenchmark::Request req;
   if (world_only)
   {
-    req.scene.world = static_cast<const moveit_msgs::PlanningSceneWorld&>(*pswwm);
-    req.scene.robot_model_name = "NO ROBOT INFORMATION. ONLY WORLD GEOMETRY"; // so that run_benchmark sees a different robot name
+    req.benchmark_request.scene.world = static_cast<const moveit_msgs::PlanningSceneWorld&>(*pswwm);
+    req.benchmark_request.scene.robot_model_name = "NO ROBOT INFORMATION. ONLY WORLD GEOMETRY"; // so that run_benchmark sees a different robot name
   }
   else
-    req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
-  req.scene.name = opt_.scene;
+    req.benchmark_request.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
+  req.benchmark_request.scene.name = opt_.scene;
   std::vector<std::string> planning_queries_names;
   try
   {
@@ -168,14 +168,14 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
   
   if (planning_queries_names.empty())
     ROS_INFO("Scene '%s' has no associated queries", opt_.scene.c_str());
-  req.default_average_count = opt_.default_run_count;
-  req.planner_interfaces.resize(opt_.plugins.size());
-  req.average_count.resize(req.planner_interfaces.size());
+  req.benchmark_request.default_average_count = opt_.default_run_count;
+  req.benchmark_request.planner_interfaces.resize(opt_.plugins.size());
+  req.benchmark_request.average_count.resize(req.benchmark_request.planner_interfaces.size());
   for (std::size_t i = 0 ; i < opt_.plugins.size() ; ++i)
   {
-    req.planner_interfaces[i].name = opt_.plugins[i].name;
-    req.planner_interfaces[i].planner_ids = opt_.plugins[i].planners;
-    req.average_count[i] = opt_.plugins[i].runs;
+    req.benchmark_request.planner_interfaces[i].name = opt_.plugins[i].name;
+    req.benchmark_request.planner_interfaces[i].planner_ids = opt_.plugins[i].planners;
+    req.benchmark_request.average_count[i] = opt_.plugins[i].runs;
   }
 
   unsigned int n_call = 0;
@@ -247,29 +247,29 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
         pss_.getPlanningQuery(planning_query, opt_.scene, planning_queries_names[i]);
 
         // read request from db
-        req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_query);
+        req.benchmark_request.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_query);
 
         // update request given .cfg options
         if (start_state_to_use)
-          req.motion_plan_request.start_state = *start_state_to_use;
-        req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+          req.benchmark_request.motion_plan_request.start_state = *start_state_to_use;
+        req.benchmark_request.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
         if (!opt_.group_override.empty())
-          req.motion_plan_request.group_name = opt_.group_override;
+          req.benchmark_request.motion_plan_request.group_name = opt_.group_override;
 
         if (opt_.timeout > 0.0)
-          req.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+          req.benchmark_request.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
 
         if (!opt_.default_constrained_link.empty())
         {
-          checkConstrainedLink(req.motion_plan_request.path_constraints, opt_.default_constrained_link);
-          for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
-            checkConstrainedLink(req.motion_plan_request.goal_constraints[j], opt_.default_constrained_link);
+          checkConstrainedLink(req.benchmark_request.motion_plan_request.path_constraints, opt_.default_constrained_link);
+          for (std::size_t j = 0 ; j < req.benchmark_request.motion_plan_request.goal_constraints.size() ; ++j)
+            checkConstrainedLink(req.benchmark_request.motion_plan_request.goal_constraints[j], opt_.default_constrained_link);
         }
         if (!opt_.planning_frame.empty())
         {
-          checkHeader(req.motion_plan_request.path_constraints, opt_.planning_frame);
-          for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
-            checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
+          checkHeader(req.benchmark_request.motion_plan_request.path_constraints, opt_.planning_frame);
+          for (std::size_t j = 0 ; j < req.benchmark_request.motion_plan_request.goal_constraints.size() ; ++j)
+            checkHeader(req.benchmark_request.motion_plan_request.goal_constraints[j], opt_.planning_frame);
         }
 
         ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i+1, (int)planning_queries_names.size());
@@ -297,11 +297,11 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
         if (got_constraints)
         {
           // construct a planning request from the constraints message
-          req.motion_plan_request = moveit_msgs::MotionPlanRequest();
-          req.motion_plan_request.goal_constraints.resize(1);
+          req.benchmark_request.motion_plan_request = moveit_msgs::MotionPlanRequest();
+          req.benchmark_request.motion_plan_request.goal_constraints.resize(1);
           if (start_state_to_use)
-            req.motion_plan_request.start_state = *start_state_to_use;
-          req.motion_plan_request.goal_constraints[0] = *constr;
+            req.benchmark_request.motion_plan_request.start_state = *start_state_to_use;
+          req.benchmark_request.motion_plan_request.goal_constraints[0] = *constr;
 
           //Apply the goal offset
           geometry_msgs::Pose wMc_msg, wMnc_msg;
@@ -320,18 +320,18 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
           wMnc = wMc * cMnc;
           tf::poseEigenToMsg(wMnc, wMnc_msg);
 
-          req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position = wMnc_msg.position;
-          req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation = wMnc_msg.orientation;
+          req.benchmark_request.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position = wMnc_msg.position;
+          req.benchmark_request.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation = wMnc_msg.orientation;
 
           if (!opt_.group_override.empty())
-            req.motion_plan_request.group_name = opt_.group_override;
+            req.benchmark_request.motion_plan_request.group_name = opt_.group_override;
           if (opt_.timeout > 0.0)
-            req.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+            req.benchmark_request.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
           if (!opt_.default_constrained_link.empty())
-            checkConstrainedLink(req.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
+            checkConstrainedLink(req.benchmark_request.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
           if (!opt_.planning_frame.empty())
-            checkHeader(req.motion_plan_request.goal_constraints[0], opt_.planning_frame);
-          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+            checkHeader(req.benchmark_request.motion_plan_request.goal_constraints[0], opt_.planning_frame);
+          req.benchmark_request.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
 
           ROS_INFO("Benckmarking goal '%s' (%d of %d)", cnames[i].c_str(), (int)i+1, (int)cnames.size());
           call(boost::ref(req));

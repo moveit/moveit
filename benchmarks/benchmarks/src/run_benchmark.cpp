@@ -209,13 +209,13 @@ public:
   
   bool computeBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
   {
-    if (req.evaluate_goal_existence_only)
-      return runGoalExistenceBenchmark(req, res);
+    if (req.benchmark_request.evaluate_goal_existence_only)
+      return runGoalExistenceBenchmark(req.benchmark_request, res.benchmark_response);
     else
-      return runPlanningBenchmark(req, res);
+      return runPlanningBenchmark(req.benchmark_request, res.benchmark_response);
   }
   
-  bool runPlanningBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
+  bool runPlanningBenchmark(moveit_msgs::BenchmarkPluginRequest &req, moveit_msgs::BenchmarkPluginResponse &res)
   {
     // figure out which planners to test
     if (!req.planner_interfaces.empty())
@@ -227,8 +227,7 @@ public:
     std::vector<planning_interface::Planner*> planner_interfaces_to_benchmark;
     std::vector<std::vector<std::string> > planner_ids_to_benchmark_per_planner_interface;
     std::vector<std::size_t> average_count_per_planner_interface;
-    moveit_msgs::GetMotionPlan::Request mp_req;
-    mp_req.motion_plan_request = req.motion_plan_request;
+    moveit_msgs::MotionPlanRequest mp_req = req.motion_plan_request;
     
     for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
          it != planner_interfaces_.end(); ++it)
@@ -265,7 +264,7 @@ public:
             bool fnd = false;
             for (std::size_t q = 0 ; q < known.size() ; ++q)
               if (known[q] == req.planner_interfaces[found].planner_ids[k] ||
-                  mp_req.motion_plan_request.group_name + "[" + req.planner_interfaces[found].planner_ids[k] + "]" == known[q])
+                  mp_req.group_name + "[" + req.planner_interfaces[found].planner_ids[k] + "]" == known[q])
               {
                 fnd = true;
                 break;
@@ -341,12 +340,12 @@ public:
     {
       for (std::size_t j = 0 ; j < planner_ids_to_benchmark_per_planner_interface[i].size() ; ++j)
       {
-        mp_req.motion_plan_request.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
+        mp_req.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
         RunData runs(average_count_per_planner_interface[i]);
         for (unsigned int c = 0 ; c < average_count_per_planner_interface[i] ; ++c)
         {
           ++progress; 
-          ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.motion_plan_request.planner_id.c_str());
+          ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
           moveit_msgs::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
           bool solved = planner_interfaces_to_benchmark[i]->solve(scene_monitor_.getPlanningScene(), mp_req, mp_res);
@@ -420,7 +419,7 @@ public:
     return true;
   }
 
-  bool runGoalExistenceBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
+  bool runGoalExistenceBenchmark(moveit_msgs::BenchmarkPluginRequest &req, moveit_msgs::BenchmarkPluginResponse &res)
   {
     // configure planning context
     if (req.scene.robot_model_name != scene_monitor_.getKinematicModel()->getName())

@@ -37,7 +37,7 @@
 #ifndef MOVEIT_PLAN_EXECUTION_PLAN_EXECUTION_
 #define MOVEIT_PLAN_EXECUTION_PLAN_EXECUTION_
 
-#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/plan_execution/plan_representation.h>
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene_monitor/trajectory_monitor.h>
@@ -45,58 +45,36 @@
 #include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
 
+/** \brief This namespace includes functionality specific to the execution and monitoring of motion plans */
 namespace plan_execution
 {
 
 class PlanExecution
 {
 public:
-
+  
   struct Options
   {
-    Options(void) : look_around_(false),
-                    replan_(false),
-                    look_attempts_(0),
-                    replan_attempts_(0),
-                    max_safe_path_cost_(0.0)
+    Options(void) : replan_(false),
+                    replan_attempts_(0)
     {
     }
     
-    bool look_around_;
     bool replan_;
-    unsigned int look_attempts_;
     unsigned int replan_attempts_;
-    double max_safe_path_cost_;
     
-    boost::function<void(void)> beforePlanCallback_;
-    boost::function<void(void)> beforeLookCallback_;
-    boost::function<void(void)> beforeExecutionCallback_;
-    boost::function<void(void)> doneCallback_;
+    ExecutableMotionPlanComputationFn plan_callback_;
+    boost::function<bool(ExecutableMotionPlan &plan_to_update,
+                         kinematic_state::KinematicStatePtr &current_monitored_state,
+                         std::size_t currently_executed_trajectory,
+                         std::size_t currently_trajectory_waypoint)> repair_plan_callback_;
+
+    boost::function<void(void)> before_plan_callback_;
+    boost::function<void(void)> before_execution_callback_;
+    boost::function<void(void)> done_callback_;
   };
   
-  struct Result
-  {
-    // The full starting state of the robot at the start of the trajectory
-    moveit_msgs::RobotState trajectory_start_;
-
-    // The trajectory that moved group produced for execution
-    moveit_msgs::RobotTrajectory planned_trajectory_;
-    
-    // The states that make up the planned trajectory are needed for various computation steps
-    std::vector<kinematic_state::KinematicStatePtr> planned_trajectory_states_;
-    
-    // The trace of the trajectory recorded during execution
-    moveit_msgs::RobotTrajectory executed_trajectory_;
-
-    // An error code reflecting what went wrong (if anything)
-    moveit_msgs::MoveItErrorCodes error_code_;
-  };
-
-  PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, bool plan_only = false);
   PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, 
-                const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
-  PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, 
-                const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
                 const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution);
   ~PlanExecution(void);
 
@@ -105,31 +83,11 @@ public:
     return planning_scene_monitor_;
   }
   
-  const planning_pipeline::PlanningPipelinePtr& getPlanningPipeline(void) const
-  {
-    return planning_pipeline_;
-  }
-  
   const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager(void) const
   {
     return trajectory_execution_manager_;
   }
 
-  bool isOnlyPlanning(void) const
-  {
-    return plan_only_;
-  }
-  
-  double getMaxSafePathCost(void) const
-  {
-    return default_max_safe_path_cost_;
-  }
-  
-  void setMaxSafePathCost(double max_safe_path_cost)
-  {
-    default_max_safe_path_cost_ = max_safe_path_cost;
-  }
-  
   double getTrajectoryStateRecordingFrequency(void) const
   {
     if (trajectory_monitor_)
@@ -154,93 +112,32 @@ public:
     return default_max_replan_attempts_;
   }
 
-  void setMaxLookAttempts(unsigned int attempts)
-  {
-    default_max_look_attempts_ = attempts;
-  }
-  
-  unsigned int getMaxLookAttempts(void) const
-  {
-    return default_max_look_attempts_;
-  }
-
-  unsigned int getMaxCostSources(void) const
-  {
-    return max_cost_sources_;
-  }
-  
-  void setMaxCostSources(unsigned int value)
-  {
-    max_cost_sources_ = value;
-  }
-  
-  double getDiscardOverlappingCostSources(void) const
-  {
-    return discard_overlapping_cost_sources_;
-  }
-  
-  void setDiscardOverlappingCostSources(double value)
-  {
-    discard_overlapping_cost_sources_ = value;
-  }
-  
-  void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const Options &opt = Options());
-  void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const moveit_msgs::PlanningScene &scene_diff, const Options &opt = Options());  
-
-  void planOnly(const moveit_msgs::MotionPlanRequest &mreq);
-  void planOnly(const moveit_msgs::MotionPlanRequest &mreq, const moveit_msgs::PlanningScene &scene_diff);  
+  void planAndExecute(ExecutableMotionPlan &plan, const Options &opt);
+  void planAndExecute(ExecutableMotionPlan &plan, const moveit_msgs::PlanningScene &scene_diff, const Options &opt);
 
   void stop(void);
 
-  const Result& getLastResult(void) const
-  {
-    return result_;
-  }
-  
-  void displayCostSources(bool flag);
-
 private:
-  
-  void initialize(bool plan_only);
-  
-  void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const planning_scene::PlanningSceneConstPtr &the_scene, const Options &opt);
-  void planOnly(const moveit_msgs::MotionPlanRequest &mreq, const planning_scene::PlanningSceneConstPtr &the_scene);
-  bool computePlan(const planning_scene::PlanningSceneConstPtr &scene, const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
-  bool lookAt(const std::set<collision_detection::CostSource> &cost_sources);
-  void executeAndMonitor(const planning_scene::PlanningSceneConstPtr &the_scene, const moveit_msgs::MotionPlanRequest &req);
+
+  void planAndExecuteHelper(ExecutableMotionPlan &plan, const Options &opt);  
+  moveit_msgs::MoveItErrorCodes executeAndMonitor(const ExecutableMotionPlan &plan);
+  bool isRemainingPathValid(const ExecutableMotionPlan &plan);
   
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  void newMonitoredStateCallback(const kinematic_state::KinematicStateConstPtr &state, const ros::Time &stamp);
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus &status);
   
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
   planning_scene_monitor::TrajectoryMonitorPtr trajectory_monitor_;
 
-  boost::scoped_ptr<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager> > sensor_manager_loader_;
-  moveit_sensor_manager::MoveItSensorManagerPtr sensor_manager_;
-  unsigned int default_max_look_attempts_;
-  double default_max_safe_path_cost_;
-
-  bool plan_only_;
-  
   unsigned int default_max_replan_attempts_;
-  double discard_overlapping_cost_sources_;
-  unsigned int max_cost_sources_;
-
-  bool display_cost_sources_;
-  ros::Publisher cost_sources_publisher_;
-  
   
   bool preempt_requested_;
   bool new_scene_update_;
-  bool execution_complete_;
-  std::size_t currently_executed_trajectory_index_;
   
-  Result result_;
-
+  bool execution_complete_;
+  
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;
 };
