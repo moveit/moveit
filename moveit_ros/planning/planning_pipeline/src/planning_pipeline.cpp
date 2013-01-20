@@ -184,21 +184,21 @@ void planning_pipeline::PlanningPipeline::checkSolutionPaths(bool flag)
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                       const moveit_msgs::GetMotionPlan::Request& req,
-                                                       moveit_msgs::GetMotionPlan::Response& res) const
+                                                       const moveit_msgs::MotionPlanRequest& req,
+                                                       moveit_msgs::MotionPlanResponse& res) const
 {
   std::vector<std::size_t> dummy;
   return generatePlan(planning_scene, req, res, dummy);
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                       const moveit_msgs::GetMotionPlan::Request& req,
-                                                       moveit_msgs::GetMotionPlan::Response& res,
+                                                       const moveit_msgs::MotionPlanRequest& req,
+                                                       moveit_msgs::MotionPlanResponse& res,
                                                        std::vector<std::size_t> &adapter_added_state_index) const
 {
   // broadcast the request we are about to work on, if needed
   if (publish_received_requests_)
-    received_request_publisher_.publish(req.motion_plan_request);
+    received_request_publisher_.publish(req);
   adapter_added_state_index.clear();
 
   if (!planner_instance_)
@@ -244,8 +244,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     if (check_solution_paths_)
     {
       std::vector<std::size_t> index;
-      if (!planning_scene->isPathValid(res.trajectory_start, res.trajectory, req.motion_plan_request.path_constraints,
-                                       req.motion_plan_request.group_name, false, &index))
+      if (!planning_scene->isPathValid(res.trajectory_start, res.trajectory, req.path_constraints,
+                                       req.group_name, false, &index))
       {
         // check to see if there is any problem with the states that are found to be invalid
         // they are considered ok if they were added by a planning request adapter
@@ -288,7 +288,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
               trajectory_processing::robotTrajectoryPointToRobotState(res.trajectory, index[i], rs);
               kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), rs, kstate);
               // check validity with verbose on
-              planning_scene->isStateValid(kstate, req.motion_plan_request.group_name, true);
+              planning_scene->isStateValid(kstate, req.group_name, true);
               
               // compute the contacts if any
               collision_detection::CollisionRequest c_req;

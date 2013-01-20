@@ -73,21 +73,21 @@ public:
   virtual std::string getDescription(void) const { return "Fix Start State Bounds"; }
   
   
-  virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
+  virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res,
+                            const moveit_msgs::MotionPlanRequest &req, 
+                            moveit_msgs::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
     // get the specified start state
     kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
 
     const std::vector<kinematic_state::JointState*> &jstates = 
-      planning_scene->getKinematicModel()->hasJointModelGroup(req.motion_plan_request.group_name) ? 
-      start_state.getJointStateGroup(req.motion_plan_request.group_name)->getJointStateVector() : 
+      planning_scene->getKinematicModel()->hasJointModelGroup(req.group_name) ? 
+      start_state.getJointStateGroup(req.group_name)->getJointStateVector() : 
       start_state.getJointStateVector(); 
     
     bool change_req = false;
@@ -168,8 +168,8 @@ public:
     // if we made any changes, use them
     if (change_req)
     {
-      moveit_msgs::GetMotionPlan::Request req2 = req;
-      kinematic_state::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
+      moveit_msgs::MotionPlanRequest req2 = req;
+      kinematic_state::kinematicStateToRobotState(start_state, req2.start_state);
       solved = planner(planning_scene, req2, res);
     }
     else

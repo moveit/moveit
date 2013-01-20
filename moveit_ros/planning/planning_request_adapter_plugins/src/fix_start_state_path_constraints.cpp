@@ -54,34 +54,34 @@ public:
   virtual std::string getDescription(void) const { return "Fix Start State Path Constraints"; }
   
   
-  virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
+  virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res,
+                            const moveit_msgs::MotionPlanRequest &req, 
+                            moveit_msgs::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
     // get the specified start state
     kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
     
     // if the start state is otherwise valid but does not meet path constraints
     if (planning_scene->isStateValid(start_state) && 
-        !planning_scene->isStateValid(start_state, req.motion_plan_request.path_constraints))
+        !planning_scene->isStateValid(start_state, req.path_constraints))
     {
       ROS_DEBUG("Planning to path constraints...");
       
-      moveit_msgs::GetMotionPlan::Request req2 = req;
-      req2.motion_plan_request.goal_constraints.resize(1);
-      req2.motion_plan_request.goal_constraints[0] = req.motion_plan_request.path_constraints;
-      req2.motion_plan_request.path_constraints = moveit_msgs::Constraints();
-      moveit_msgs::GetMotionPlan::Response res2;
+      moveit_msgs::MotionPlanRequest req2 = req;
+      req2.goal_constraints.resize(1);
+      req2.goal_constraints[0] = req.path_constraints;
+      req2.path_constraints = moveit_msgs::Constraints();
+      moveit_msgs::MotionPlanResponse res2;
       bool solved1 = planner(planning_scene, req2, res2);
 
       if (solved1)
       { 
-        moveit_msgs::GetMotionPlan::Request req3 = req;
+        moveit_msgs::MotionPlanRequest req3 = req;
         std::size_t last_index = trajectory_processing::trajectoryPointCount(res2.trajectory);
         ROS_DEBUG("Planned to path constraints. Resuming original planning request.");
         assert(last_index > 0);
@@ -89,7 +89,7 @@ public:
         moveit_msgs::RobotState new_start;
         trajectory_processing::robotTrajectoryPointToRobotState(res2.trajectory, last_index - 1, new_start);
         kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), new_start, start_state);
-        kinematic_state::kinematicStateToRobotState(start_state, req3.motion_plan_request.start_state);
+        kinematic_state::kinematicStateToRobotState(start_state, req3.start_state);
                 
         bool solved2 = planner(planning_scene, req3, res);
         if (solved2)
