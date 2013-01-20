@@ -72,11 +72,11 @@ public:
     ROS_INFO("Received new planning request...");
     if (debug_)
       pub_request_.publish(req.motion_plan_request);
-    bool result = ompl_interface_.solve(psm_.getPlanningScene(), req, res);
+    bool result = ompl_interface_.solve(psm_.getPlanningScene(), req.motion_plan_request, res.motion_plan_response);
     if (debug_)
     {
       if (result)
-        displaySolution(res);
+        displaySolution(res.motion_plan_response);
       std::stringstream ss;
       ompl::tools::Profiler::Status(ss);
       ROS_INFO("%s", ss.str().c_str());
@@ -84,7 +84,7 @@ public:
     return result;
   }
 
-  void displaySolution(const moveit_msgs::GetMotionPlan::Response &mplan_res)
+  void displaySolution(const moveit_msgs::MotionPlanResponse &mplan_res)
   {
     moveit_msgs::DisplayTrajectory d;
     d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
@@ -96,7 +96,7 @@ public:
   bool computeBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
   {
       ROS_INFO("Received new benchmark request...");
-      return ompl_interface_.benchmark(psm_.getPlanningScene(), req, res);
+      return ompl_interface_.benchmark(psm_.getPlanningScene(), req.benchmark_request, res.benchmark_response);
   }
 
   bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)

@@ -177,7 +177,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
 }
 
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                          const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
+                                          const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MotionPlanResponse &res) const
 {
   ompl::tools::Profiler::ScopedStart pslv;
   ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
@@ -185,12 +185,14 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   unsigned int attempts = 1;
   double timeout = 0.0;
   
-  ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &res.error_code, &attempts, &timeout);
+  ModelBasedPlanningContextPtr context = prepareForSolve(req, planning_scene, &res.error_code, &attempts, &timeout);
 
   if (!context)
     return false;
 
-  bool follow = !req.motion_plan_request.trajectory_constraints.constraints.empty();
+  res.group_name = context->getJointModelGroupName();
+  
+  bool follow = !req.trajectory_constraints.constraints.empty();
   if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
   {
     double ptime = context->getLastPlanTime();
@@ -218,7 +220,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 }
 
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-					  const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::MotionPlanDetailedResponse &res) const
+					  const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MotionPlanDetailedResponse &res) const
 {
   ompl::tools::Profiler::ScopedStart pslv;
   ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
@@ -226,11 +228,13 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   unsigned int attempts = 1;
   double timeout = 0.0;
   moveit_msgs::MoveItErrorCodes error_code; // not used
-  ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &error_code, &attempts, &timeout);
+  ModelBasedPlanningContextPtr context = prepareForSolve(req, planning_scene, &error_code, &attempts, &timeout);
   if (!context)
     return false;
 
-  bool follow = !req.motion_plan_request.trajectory_constraints.constraints.empty();
+  res.group_name = context->getJointModelGroupName();
+
+  bool follow = !req.trajectory_constraints.constraints.empty();
   if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
   {
     res.trajectory.reserve(3);
@@ -274,8 +278,8 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 }
 
 bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                              const moveit_msgs::ComputePlanningPluginsBenchmark::Request &req,
-                                              moveit_msgs::ComputePlanningPluginsBenchmark::Response &res) const
+                                              const moveit_msgs::BenchmarkPluginRequest &req,
+                                              moveit_msgs::BenchmarkPluginResponse &res) const
 {  
   unsigned int attempts = 1;
   double timeout = 0.0;
