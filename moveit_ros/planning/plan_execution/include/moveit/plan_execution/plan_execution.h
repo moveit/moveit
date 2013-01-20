@@ -60,14 +60,22 @@ public:
     {
     }
     
+    /// Flag indicating whether replanning is allowed
     bool replan_;
+
+    /// If replanning is allowed, this variable specifies how many replanning attempts there can be, at most, before failure
     unsigned int replan_attempts_;
     
+    /// Callback for computing motion plans. This callback must always be specified.
     ExecutableMotionPlanComputationFn plan_callback_;
+
+    /// Callback for repairing motion plans. This is optional. A new plan is re-computed if repairing routines are not specified.
+    /// To aid in the repair process, the position that the controller had reached in the execution of the previous plan is also passed as argument.
+    /// The format is the same as what the trajectory_execution_manager::TrajectoryExecutionManager reports: a pair of two integers where the first 
+    /// one is the index of the last trajectory being executed (from the sequence of trajectories specified in the ExecutableMotionPlan) and the second 
+    /// one is the index of the closest waypoint along that trajectory.
     boost::function<bool(ExecutableMotionPlan &plan_to_update,
-                         kinematic_state::KinematicStatePtr &current_monitored_state,
-                         std::size_t currently_executed_trajectory,
-                         std::size_t currently_trajectory_waypoint)> repair_plan_callback_;
+                         const std::pair<int, int> &trajectory_index)> repair_plan_callback_;
 
     boost::function<void(void)> before_plan_callback_;
     boost::function<void(void)> before_execution_callback_;

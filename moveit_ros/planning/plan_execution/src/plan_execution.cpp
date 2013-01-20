@@ -134,6 +134,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
   // run the actual motion plan & execution
   unsigned int max_replan_attempts = opt.replan_attempts_ > 0 ? opt.replan_attempts_ : default_max_replan_attempts_;
   unsigned int replan_attempts = 0;
+  bool previously_solved = false;
   
   // run a planning loop for at most the maximum replanning attempts;
   // re-planning is executed only in case of known types of failures (e.g., environment changed)
@@ -146,8 +147,10 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
       opt.before_plan_callback_();
     
     new_scene_update_ = false; // we clear any scene updates to be evaluated because we are about to compute a new plan, which should consider most recent updates already
-    bool solved = opt.plan_callback_(plan);
-    
+
+    // if we never had a solved plan, or there is no specified way of fixing plans, just call the planner; otherwise, try to repair the plan we previously had;
+    bool solved = (!previously_solved || !opt.repair_plan_callback_) ? opt.plan_callback_(plan) : opt.repair_plan_callback_(plan, trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex());
+        
     if (preempt_requested_)
       break;
     
@@ -159,7 +162,9 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
       continue;
 
     // abort if no plan was found
-    if (!solved)
+    if (solved)
+      previously_solved = true;
+    else
       break;
     
     if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
