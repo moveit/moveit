@@ -40,8 +40,10 @@
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
-#include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit_msgs/MotionPlanResponse.h>
+#include <moveit_msgs/BenchmarkPluginRequest.h>
+#include <moveit_msgs/BenchmarkPluginResponse.h>
 #include <string>
 #include <map>
 
@@ -67,16 +69,16 @@ public:
   
   /** @brief Solve the planning problem */
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
+             const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MotionPlanResponse &res) const;
 
   /** @brief Solve the planning problem but give a more detailed response */
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::MotionPlanDetailedResponse &res) const;
+             const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MotionPlanDetailedResponse &res) const;
   
   /** @brief Benchmark the planning problem*/
   bool benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const moveit_msgs::ComputePlanningPluginsBenchmark::Request &req,                  
-                 moveit_msgs::ComputePlanningPluginsBenchmark::Response &res) const;
+                 const moveit_msgs::BenchmarkPluginRequest &req,                  
+                 moveit_msgs::BenchmarkPluginResponse &res) const;
   
   /** @brief Solve the planning problem
    *  @param config

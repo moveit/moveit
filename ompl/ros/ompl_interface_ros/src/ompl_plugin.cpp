@@ -35,7 +35,6 @@
 #include <moveit/ompl_interface_ros/ompl_interface_ros.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <moveit_msgs/GetMotionPlan.h>
 #include <boost/shared_ptr.hpp>
 #include <class_loader/class_loader.h>
 
@@ -63,14 +62,14 @@ public:
       pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
     }
 
-    bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req) const
+    bool canServiceRequest(const moveit_msgs::MotionPlanRequest &req) const
     {
       return true;
     }
 
     bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-               const moveit_msgs::GetMotionPlan::Request &req, 
-               moveit_msgs::GetMotionPlan::Response &res) const
+               const moveit_msgs::MotionPlanRequest &req, 
+               moveit_msgs::MotionPlanResponse &res) const
     {
       bool r = ompl_interface_->solve(planning_scene, req, res);
       if (!planner_data_link_name_.empty())
@@ -79,7 +78,7 @@ public:
     }
 
     bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-	       const moveit_msgs::GetMotionPlan::Request &req, 
+	       const moveit_msgs::MotionPlanRequest &req, 
 	       moveit_msgs::MotionPlanDetailedResponse &res) const
     {
       bool r = ompl_interface_->solve(planning_scene, req, res);
