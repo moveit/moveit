@@ -238,6 +238,10 @@ public:
   void clear(void);
   
   void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0.0);
+
+  /** \brief Checks if the supplied handler has requested a redraw, and if so, updates those interactive markers.
+   * @param An interaction handler
+   */
   void updateInteractiveMarkerProperties(const InteractionHandlerPtr &handler);
 
   void publishInteractiveMarkers(void);
