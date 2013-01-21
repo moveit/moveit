@@ -104,12 +104,12 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   // queue the execution of this function for the next time the main update() loop gets called
   void addMainLoopJob(const boost::function<void(void)> &job);
   
-  const kinematic_state::KinematicStatePtr& getQueryStartState(void) const
+  kinematic_state::KinematicStateConstPtr getQueryStartState(void) const
   {
     return query_start_state_->getState();
   }
   
-  const kinematic_state::KinematicStatePtr& getQueryGoalState(void) const
+  kinematic_state::KinematicStateConstPtr getQueryGoalState(void) const
   {
     return query_goal_state_->getState();
   }
@@ -129,8 +129,8 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
     return query_goal_state_;
   }
   
-  void setQueryStartState(const kinematic_state::KinematicStatePtr &start);
-  void setQueryGoalState(const kinematic_state::KinematicStatePtr &goal);  
+  void setQueryStartState(const kinematic_state::KinematicState &start);
+  void setQueryGoalState(const kinematic_state::KinematicState &goal);  
   
   void updateQueryStartState(void);
   void updateQueryGoalState(void);

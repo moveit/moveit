@@ -679,36 +679,49 @@ void MotionPlanningDisplay::drawQueryStartState(void)
 {
   if (!planning_scene_monitor_)
     return;
-
+  ROS_ERROR("drawQueryStartState 0 ");
+  
   if (query_start_state_property_->getBool())
   {
     if (isEnabled())
-    {
+    { 
+      ROS_ERROR("drawQueryStartState a ");
+
+      kinematic_state::KinematicStateConstPtr state = getQueryStartState();
+      ROS_ERROR("state use_count = %ld", state.use_count());
+      
+      ROS_ERROR("drawQueryStartState b : %p", state.get());  
+      state->printStateInfo();
+      
+
       // update link poses
-      query_robot_start_->update(getQueryStartState());
+      query_robot_start_->update(state);
       query_robot_start_->setVisible(true);
+      ROS_ERROR("drawQueryStartState c ");
 
       // update link colors
       std::vector<std::string> collision_links;
-      getPlanningSceneRO()->getCollidingLinks(collision_links, *getQueryStartState());
+      getPlanningSceneRO()->getCollidingLinks(collision_links, *state);
       collision_links_start_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
         collision_links_start_[collision_links[i]] = 0;
-      
-      const std::vector<kinematic_state::JointState*> &jstates = getQueryStartState()->getJointStateVector();
+      ROS_ERROR("drawQueryStartState d ");
+      const std::vector<kinematic_state::JointState*> &jstates = state->getJointStateVector();
       for (std::size_t i = 0 ; i < jstates.size() ; ++i)
         if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
           collision_links_start_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
-      
+      ROS_ERROR("drawQueryStartState e ");
       updateLinkColors();
-      
+      ROS_ERROR("drawQueryStartState f ");
       // update metrics text
       displayMetrics(true);
+      ROS_ERROR("drawQueryStartState g ");
     }
   }
   else
     query_robot_start_->setVisible(false);
   context_->queueRender();
+  ROS_ERROR("drawQueryStartState 1");
 }
 
 void MotionPlanningDisplay::changedQueryStartState(void)
@@ -728,18 +741,20 @@ void MotionPlanningDisplay::drawQueryGoalState(void)
   {
     if (isEnabled())
     {
+      kinematic_state::KinematicStateConstPtr state = getQueryGoalState();
+      
       // update link poses
-      query_robot_goal_->update(getQueryGoalState());
+      query_robot_goal_->update(state);
       query_robot_goal_->setVisible(true);
 
       // update link colors 
       std::vector<std::string> collision_links;
-      getPlanningSceneRO()->getCollidingLinks(collision_links, *getQueryGoalState());
+      getPlanningSceneRO()->getCollidingLinks(collision_links, *state);
       collision_links_goal_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
         collision_links_goal_[collision_links[i]] = 0;
 
-      const std::vector<kinematic_state::JointState*> &jstates = getQueryGoalState()->getJointStateVector();
+      const std::vector<kinematic_state::JointState*> &jstates = state->getJointStateVector();
       for (std::size_t i = 0 ; i < jstates.size() ; ++i)
         if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
           collision_links_goal_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
@@ -768,12 +783,14 @@ void MotionPlanningDisplay::publishInteractiveMarkers(void)
 {
   if (robot_interaction_)
   {
+    ROS_ERROR("publishInteractiveMarkers 0");
     robot_interaction_->clearInteractiveMarkers();
     if (query_start_state_property_->getBool())
       robot_interaction_->addInteractiveMarkers(query_start_state_, query_marker_scale_property_->getFloat());
     if (query_goal_state_property_->getBool())
       robot_interaction_->addInteractiveMarkers(query_goal_state_, query_marker_scale_property_->getFloat());
     robot_interaction_->publishInteractiveMarkers();
+    ROS_ERROR("publishInteractiveMarkers 1");
   }
 }
 
@@ -865,18 +882,18 @@ void MotionPlanningDisplay::updateQueryGoalState(void)
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::setQueryStartState(const kinematic_state::KinematicStatePtr &start)
+void MotionPlanningDisplay::setQueryStartState(const kinematic_state::KinematicState &start)
 {
-  query_start_state_->setState(*start);
+  query_start_state_->setState(start);
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
     computeMetrics(true, group, metrics_set_payload_property_->getFloat());
   updateQueryStartState();
 }
 
-void MotionPlanningDisplay::setQueryGoalState(const kinematic_state::KinematicStatePtr &goal)
+void MotionPlanningDisplay::setQueryGoalState(const kinematic_state::KinematicState &goal)
 {
-  query_goal_state_->setState(*goal);
+  query_goal_state_->setState(goal);
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
     computeMetrics(false, group, metrics_set_payload_property_->getFloat());
@@ -1120,19 +1137,21 @@ void MotionPlanningDisplay::updateStateExceptGroup(kinematic_state::KinematicSta
 void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
-  kinematic_state::KinematicState ks = getPlanningSceneRO()->getCurrentState();
+  kinematic_state::KinematicState current_state = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
 
   if (query_start_state_property_->getBool() && !group.empty())
   {
-    updateStateExceptGroup(*getQueryStartState(), ks, group);
-    updateQueryStartState();
+    kinematic_state::KinematicState start = *getQueryStartState();
+    updateStateExceptGroup(start, current_state, group);
+    setQueryStartState(start);
   }
 
   if (query_goal_state_property_->getBool() && !group.empty())
-  {
-    updateStateExceptGroup(*getQueryGoalState(), ks, group);
-    updateQueryGoalState();
+  {  
+    kinematic_state::KinematicState goal = *getQueryGoalState();
+    updateStateExceptGroup(goal, current_state, group);
+    setQueryGoalState(goal);
   }
 
   if (frame_)
