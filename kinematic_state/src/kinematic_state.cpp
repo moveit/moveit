@@ -579,29 +579,16 @@ bool kinematic_state::KinematicState::knowsFrameTransform(const std::string &id)
 
 // ------ marker functions ------
 
-void kinematic_state::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
+void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr,
+                                                      const std::vector<std::string> &link_names,
+                                                      const std_msgs::ColorRGBA& color,
                                                       const std::string& ns,
-                                                      const ros::Duration& dur,
-                                                      visualization_msgs::MarkerArray& arr) const
-{
-  getRobotMarkers(color, ns, dur, arr, kinematic_model_->getLinkModelNames());
-}
-
-void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr) const
-{
-  getRobotMarkers(arr, kinematic_model_->getLinkModelNames());
-}
-
-void kinematic_state::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
-                                                      const std::string& ns,
-                                                      const ros::Duration& dur,
-                                                      visualization_msgs::MarkerArray& arr,
-                                                      const std::vector<std::string> &link_names) const
+                                                      const ros::Duration& dur) const
 {
   std::size_t cur_num = arr.markers.size();
   getRobotMarkers(arr, link_names);
   unsigned int id = 0;
-  for(std::size_t i = cur_num ; i < arr.markers.size() ; ++i, ++id)
+  for (std::size_t i = cur_num ; i < arr.markers.size() ; ++i, ++id)
   {
     arr.markers[i].ns = ns;
     arr.markers[i].id = id;
@@ -613,7 +600,7 @@ void kinematic_state::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA&
 void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std::vector<std::string> &link_names) const
 {
   ros::Time tm = ros::Time::now();
-  for(std::size_t i = 0; i < link_names.size(); ++i)
+  for (std::size_t i = 0; i < link_names.size(); ++i)
   {
     logDebug("Trying to get marker for link '%s'", link_names[i].c_str());
     visualization_msgs::Marker mark;
@@ -649,7 +636,6 @@ void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::Marker
       } 
       else
         mark.mesh_resource = ls->getLinkModel()->getMeshFilename();
-      //TODO - deal with scale, potentially get visual markers
       mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
     }
     arr.markers.push_back(mark);
