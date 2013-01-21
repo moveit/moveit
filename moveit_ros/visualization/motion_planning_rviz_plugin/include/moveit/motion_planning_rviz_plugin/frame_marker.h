@@ -157,7 +157,7 @@ public:
    * @param is_selected whether this frame marker is selected or not by default. When selected, controls are displayed
    * @param visible_x, visible_y, visible_z define the visibility of each axis
    */
-  GripperMarker(const kinematic_state::KinematicStatePtr& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+  GripperMarker(const kinematic_state::KinematicStateConstPtr& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                 const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                 const GripperMarkerState &state, bool is_selected = false, bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
@@ -183,7 +183,7 @@ protected:
 
   const float *stateToColor(const GripperMarkerState &state);
 
-  const kinematic_state::KinematicStatePtr kinematic_state_;
+  kinematic_state::KinematicStateConstPtr kinematic_state_;
   robot_interaction::RobotInteraction::EndEffector eef_;
 
   bool display_gripper_mesh_;

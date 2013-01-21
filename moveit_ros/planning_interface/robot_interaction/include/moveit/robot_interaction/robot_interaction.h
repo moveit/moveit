@@ -37,7 +37,6 @@
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
-#include <boost/thread/recursive_mutex.hpp>
 #include <tf/tf.h>
 
 namespace interactive_markers
@@ -106,21 +105,8 @@ public:
       return name_;
     }
     
-    const kinematic_state::KinematicStatePtr& getState(void)
-    {
-      ROS_DEBUG_NAMED("robot_interaction", "getState requested");
-      boost::recursive_mutex::scoped_lock slock(state_lock_);
-      ROS_DEBUG_NAMED("robot_interaction", "locked state_lock, getting state ptr");
-      return kstate_;
-    }
-    
-    void setState(const kinematic_state::KinematicState& kstate)
-    {
-      ROS_DEBUG_NAMED("robot_interaction", "setState requested");
-      boost::recursive_mutex::scoped_lock slock(state_lock_);
-      ROS_DEBUG_NAMED("robot_interaction", "locked state_lock, setting state");
-      *kstate_ = kstate;
-    }    
+    kinematic_state::KinematicStateConstPtr getState(void) const;    
+    void setState(const kinematic_state::KinematicState& kstate);
     
     void setUpdateCallback(const boost::function<void(InteractionHandler*)> &callback)
     {
@@ -156,25 +142,20 @@ public:
     {
       interaction_mode_ = imode;
     }
-
+    
+    IKInteractionType getInteractionMode(void) const
+    {
+      return interaction_mode_;
+    }
+    
     void setMeshesVisible(bool visible)
     {
       display_meshes_ = visible;
     }
 
-    bool getMeshesVisible()
+    bool getMeshesVisible(void) const
     {
       return display_meshes_;
-    }
-
-    bool isRedrawRequested()
-    {
-      return redraw_requested_;
-    }
-
-    bool clearRedrawRequested()
-    {
-      redraw_requested_ = false;
     }
 
     /** \brief Get the last interactive_marker command pose for the end-effector
@@ -182,26 +163,24 @@ public:
      * @param A PoseStamped message containing the result.
      * @return True if a pose for that end-effector was found, false otherwise.
      */
-    bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& ps);
+    bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
+    bool getLastVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj, geometry_msgs::PoseStamped& pose);
 
-    virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
-    virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
-    virtual bool inError(const RobotInteraction::EndEffector& eef);
-    virtual bool inError(const RobotInteraction::VirtualJoint& vj);
+    /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
+    virtual bool handleEndEffector(const RobotInteraction::EndEffector& eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
+    virtual bool handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    virtual bool inError(const RobotInteraction::EndEffector& eef) const;
+    virtual bool inError(const RobotInteraction::VirtualJoint& vj) const;
     
   protected:
 
     bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose);
-
-    /** \brief Secondary task that tries to keep away from joint limits
-     * @param joint_state_group the joint state group for which to compute the task
-     * @param stvector the output of the function: a vector with joint velocities
-     * @param activation_threshold A percentage of the range from which the task is activated, i.e. activate if q > qmax - range * threshold. Typically between 0 and 0.5
-     * @param gain a gain for this task, multiplies the output velocities
-     */
-    bool avoidJointLimitsSecTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
-                                     double activation_threshold, double gain) const;
-
+    kinematic_state::KinematicStatePtr getUniqueStateAccess(void);
+    void setStateToAccess(kinematic_state::KinematicStatePtr &state);
+    
     std::string name_;
     std::string planning_frame_;
     kinematic_state::KinematicStatePtr kstate_;
@@ -215,13 +194,14 @@ public:
     unsigned int ik_attempts_;
     IKInteractionType interaction_mode_;
     bool display_meshes_;
-    bool redraw_requested_;
-
-    boost::recursive_mutex state_lock_;
-    boost::recursive_mutex pose_map_lock_;
     
   private:
     
+    
+    mutable boost::mutex state_lock_;
+    mutable boost::condition_variable state_available_condition_;
+    boost::mutex pose_map_lock_;
+
     void setup(void);
   };
 
@@ -238,7 +218,6 @@ public:
   void clear(void);
   
   void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0.0);
-  void updateInteractiveMarkerProperties(const InteractionHandlerPtr &handler);
 
   void publishInteractiveMarkers(void);
   void clearInteractiveMarkers(void);
@@ -255,8 +234,10 @@ public:
   
   static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn());
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist,
+                          const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn(),
+                          const kinematic_state::SecondaryTaskFn &st_callback = kinematic_state::SecondaryTaskFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, const kinematic_state::SecondaryTaskFn &st_callback);
 
 private:
   
@@ -265,12 +246,12 @@ private:
   void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef, visualization_msgs::InteractiveMarker& im);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void processingThread(void);
-
+  void clearInteractiveMarkersUnsafe(void);
+  
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
 
-  mutable boost::mutex action_lock_;
-  boost::condition_variable new_action_condition_;
+  boost::condition_variable new_feedback_condition_;
   std::map<std::string, visualization_msgs::InteractiveMarkerFeedbackConstPtr> feedback_map_;
 
   kinematic_model::KinematicModelConstPtr kmodel_;
@@ -280,7 +261,8 @@ private:
   
   std::map<std::string, InteractionHandlerPtr> handlers_;
   std::map<std::string, std::size_t> shown_markers_;
-  
+  boost::mutex marker_access_lock_;
+
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
 };
 

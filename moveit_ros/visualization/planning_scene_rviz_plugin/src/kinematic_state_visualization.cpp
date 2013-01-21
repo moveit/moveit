@@ -32,6 +32,7 @@
 #include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
 #include <moveit/planning_scene_rviz_plugin/planning_link_updater.h>
 #include <moveit/planning_scene_rviz_plugin/render_shapes.h>
+#include <ros/console.h>
 
 namespace moveit_rviz_plugin
 {
@@ -91,9 +92,12 @@ void KinematicStateVisualization::updateHelper(const kinematic_state::KinematicS
                                                const std_msgs::ColorRGBA &default_attached_object_color,
                                                const std::map<std::string, std_msgs::ColorRGBA> *color_map)
 {
+  ROS_ERROR("updateHelper START : %p", kinematic_state.get());
+  //  usleep(1000000);
+  
   robot_.update(PlanningLinkUpdater(kinematic_state));
   render_shapes_->clear();
-  
+  ROS_ERROR("updateHelper 2");
   std::vector<const kinematic_state::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
   for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)

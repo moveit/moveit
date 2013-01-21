@@ -503,8 +503,9 @@ void MotionPlanningFrame::computeGoalPoseDoubleClicked(QListWidgetItem * item)
   //Switch the marker color to processing color while processing
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, item_text, GripperMarker::PROCESSING));
 
-  checkIfGoalReachable(planning_display_->getQueryGoalState(), item_text);
-  planning_display_->updateQueryGoalState();
+  kinematic_state::KinematicStatePtr tmp(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
+  checkIfGoalReachable(tmp, item_text);
+  planning_display_->setQueryGoalState(*tmp);
 }
 
 /* Receives feedback from the interactive marker attached to a goal pose */
@@ -827,7 +828,7 @@ void MotionPlanningFrame::startStateItemDoubleClicked(QListWidgetItem * item)
   //If a start state item is double clicked, apply it to the start query
   kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
   kinematic_state::robotStateToKinematicState(start_states_[item->text().toStdString()].state_msg, *ks);
-  planning_display_->setQueryStartState(ks);
+  planning_display_->setQueryStartState(*ks);
 }
 
 void MotionPlanningFrame::loadBenchmarkResults(void)
