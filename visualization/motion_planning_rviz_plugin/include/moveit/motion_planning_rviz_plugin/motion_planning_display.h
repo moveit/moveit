@@ -194,13 +194,17 @@ protected:
   void executeMainLoopJobs(void);
   void clearTrajectoryTrail();  
   void publishInteractiveMarkers(void);
-  void updateQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
-  void updateQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+
+  void recomputeQueryStartStateMetrics(void);
+  void recomputeQueryGoalStateMetrics(void);
   void drawQueryStartState(void);
   void drawQueryGoalState(void);
+  void scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+  void scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+
+
   bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const;
   
-  void computeMetrics(double payload);
   void computeMetrics(bool start, const std::string &group, double payload);
   void computeMetricsInternal(std::map<std::string, double> &metrics,
                               const robot_interaction::RobotInteraction::EndEffector &eef,

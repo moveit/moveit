@@ -199,8 +199,6 @@ void RobotInteraction::InteractionHandler::setState(const kinematic_state::Kinem
 
 kinematic_state::KinematicStatePtr RobotInteraction::InteractionHandler::getUniqueStateAccess(void)
 {
-  std::cout << "getUniqueStateAccess START" << std::endl;
-  
   kinematic_state::KinematicStatePtr result;
   {
     boost::unique_lock<boost::mutex> ulock(state_lock_);
@@ -216,23 +214,16 @@ kinematic_state::KinematicStatePtr RobotInteraction::InteractionHandler::getUniq
     }  
   }
   if (!result.unique())
-  {
-    std::cout << "CLONING" << std::endl;
     result.reset(new kinematic_state::KinematicState(*result));
-  }
-  std::cout << "getUniqueStateAccess END: result = " << result.get() << " kstate_ = " <<  kstate_.get() << std::endl;
   return result;
 }
 
 void RobotInteraction::InteractionHandler::setStateToAccess(kinematic_state::KinematicStatePtr &state)
 {      
-  std::cout << "setStateToAccess 0 : " << state.get() << std::endl;
-
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (state != kstate_)
     kstate_.swap(state);
   state_available_condition_.notify_all(); 
-  std::cout << "setStateToAccess 1 : state = " << state.get() << " kstate_ = " << kstate_.get() << std::endl;
 }
 
 bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
@@ -246,9 +237,6 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   }
   else
     return false;
-  
-  std::cout << "handleEndEffector BEGIN" << std::endl;
-  
   bool update_state_result = false;
   if (interaction_mode_ == POSITION_IK)
   {
@@ -304,8 +292,6 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
 
   if (update_callback_)
     update_callback_(this);
-
-  std::cout << "handleEndEffector END\n\n\n\n" << std::endl;
 
   return error_state_changed;
 }
@@ -693,7 +679,6 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
   // perform some validity checks
-  std::cout << "processInteractiveMarkerFeedback START" << std::endl;
   
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
@@ -712,7 +697,6 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
   
   feedback_map_[feedback->marker_name] = feedback;
   new_feedback_condition_.notify_all();
-  std::cout << "processInteractiveMarkerFeedback END" << std::endl;
 }
 
 void RobotInteraction::processingThread(void)

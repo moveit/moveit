@@ -539,18 +539,6 @@ void MotionPlanningDisplay::changedTrajectoryTopic(void)
     trajectory_topic_sub_ = update_nh_.subscribe(trajectory_topic_property_->getStdString(), 2, &MotionPlanningDisplay::incomingDisplayTrajectory, this);
 }
 
-void MotionPlanningDisplay::computeMetrics(double payload)
-{
-  if (!robot_interaction_)
-    return;
-  const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
-  for (std::size_t i = 0 ; i < eef.size() ; ++i)
-  {
-    computeMetricsInternal(computed_metrics_[std::make_pair(true, eef[i].parent_group)], eef[i], *getQueryStartState(), payload);
-    computeMetricsInternal(computed_metrics_[std::make_pair(false, eef[i].parent_group)], eef[i], *getQueryGoalState(), payload);
-  }
-}
-
 void MotionPlanningDisplay::computeMetrics(bool start, const std::string &group, double payload)
 {
   if (!robot_interaction_)
@@ -560,10 +548,6 @@ void MotionPlanningDisplay::computeMetrics(bool start, const std::string &group,
     if (eef[i].parent_group == group)
       computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i],
                              start ? *getQueryStartState() : *getQueryGoalState(), payload);
-  if (start)
-    updateQueryStartState();
-  else
-    updateQueryGoalState();
 }
 
 void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &ee,
@@ -679,24 +663,15 @@ void MotionPlanningDisplay::drawQueryStartState(void)
 {
   if (!planning_scene_monitor_)
     return;
-  std::cout << "drawQueryStartState START " << std::endl;
   
   if (query_start_state_property_->getBool())
   {
     if (isEnabled())
     { 
-      std::cout << "drawQueryStartState a " << std::endl;
-      
       kinematic_state::KinematicStateConstPtr state = getQueryStartState();
-      std::cout << "state use_count " << state.use_count() << std::endl;
-      
-      std::cout << "drawQueryStartState b : " << state.get() << std::endl;
-      
       // update link poses
       query_robot_start_->update(state);
       query_robot_start_->setVisible(true);
-      std::cout << "drawQueryStartState c " << std::endl;
-      
 
       // update link colors
       std::vector<std::string> collision_links;
@@ -704,14 +679,11 @@ void MotionPlanningDisplay::drawQueryStartState(void)
       collision_links_start_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
         collision_links_start_[collision_links[i]] = 0;
-
       const std::vector<kinematic_state::JointState*> &jstates = state->getJointStateVector();
       for (std::size_t i = 0 ; i < jstates.size() ; ++i)
         if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
           collision_links_start_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
-
       updateLinkColors();
-
       // update metrics text
       displayMetrics(true);
     }
@@ -719,7 +691,20 @@ void MotionPlanningDisplay::drawQueryStartState(void)
   else
     query_robot_start_->setVisible(false);
   context_->queueRender();
-  std::cout << "drawQueryStartState END" << std::endl;
+}
+
+void MotionPlanningDisplay::recomputeQueryStartStateMetrics(void)
+{
+  std::string group = planning_group_property_->getStdString();
+  if (!group.empty())
+    computeMetrics(true, group, metrics_set_payload_property_->getFloat());
+}
+
+void MotionPlanningDisplay::recomputeQueryGoalStateMetrics(void)
+{
+  std::string group = planning_group_property_->getStdString();
+  if (!group.empty())
+    computeMetrics(false, group, metrics_set_payload_property_->getFloat());
 }
 
 void MotionPlanningDisplay::changedQueryStartState(void)
@@ -728,6 +713,15 @@ void MotionPlanningDisplay::changedQueryStartState(void)
     return;
 
   drawQueryStartState();
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+}
+
+void MotionPlanningDisplay::changedQueryGoalState(void)
+{
+  if (!planning_scene_monitor_)
+    return;
+
+  drawQueryGoalState();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
 }
 
@@ -768,27 +762,17 @@ void MotionPlanningDisplay::drawQueryGoalState(void)
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::changedQueryGoalState(void)
-{
-  if (!planning_scene_monitor_)
-    return;
-
-  drawQueryGoalState();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
-}
 
 void MotionPlanningDisplay::publishInteractiveMarkers(void)
 {
   if (robot_interaction_)
   {
-    std::cout << "publishInteractiveMarkers START" << std::endl;
     robot_interaction_->clearInteractiveMarkers();
     if (query_start_state_property_->getBool())
       robot_interaction_->addInteractiveMarkers(query_start_state_, query_marker_scale_property_->getFloat());
     if (query_goal_state_property_->getBool())
       robot_interaction_->addInteractiveMarkers(query_goal_state_, query_marker_scale_property_->getFloat());
     robot_interaction_->publishInteractiveMarkers();
-    std::cout << "publishInteractiveMarkers END" << std::endl;
   }
 }
 
@@ -852,30 +836,36 @@ void MotionPlanningDisplay::changedQueryJointViolationColor(void)
   changedQueryGoalState();
 }
 
-void MotionPlanningDisplay::updateQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *)
-{
-  std::string group = planning_group_property_->getStdString();
-  if (!group.empty())
-    computeMetrics(true, group, metrics_set_payload_property_->getFloat());
-  updateQueryStartState();
+void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *)
+{ 
+  if (!planning_scene_monitor_)
+    return; 
+  
+  recomputeQueryStartStateMetrics();
+  addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryStartState, this));
+  context_->queueRender();
 }
 
-void MotionPlanningDisplay::updateQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *)
-{
-  std::string group = planning_group_property_->getStdString();
-  if (!group.empty())
-    computeMetrics(false, group, metrics_set_payload_property_->getFloat());
-  updateQueryGoalState();
+void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *)
+{ 
+  if (!planning_scene_monitor_)
+    return; 
+  
+  recomputeQueryGoalStateMetrics();
+  addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryGoalState, this));
+  context_->queueRender();
 }
 
 void MotionPlanningDisplay::updateQueryStartState(void)
 {
+  recomputeQueryStartStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::changedQueryStartState, this));
   context_->queueRender();
 }
 
 void MotionPlanningDisplay::updateQueryGoalState(void)
 {
+  recomputeQueryGoalStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::changedQueryGoalState, this));
   context_->queueRender();
 }
@@ -883,18 +873,12 @@ void MotionPlanningDisplay::updateQueryGoalState(void)
 void MotionPlanningDisplay::setQueryStartState(const kinematic_state::KinematicState &start)
 {
   query_start_state_->setState(start);
-  std::string group = planning_group_property_->getStdString();
-  if (!group.empty())
-    computeMetrics(true, group, metrics_set_payload_property_->getFloat());
   updateQueryStartState();
 }
 
 void MotionPlanningDisplay::setQueryGoalState(const kinematic_state::KinematicState &goal)
 {
   query_goal_state_->setState(goal);
-  std::string group = planning_group_property_->getStdString();
-  if (!group.empty())
-    computeMetrics(false, group, metrics_set_payload_property_->getFloat());
   updateQueryGoalState();
 }
 
@@ -944,8 +928,11 @@ void MotionPlanningDisplay::changedPlanningGroup(void)
 
   if (robot_interaction_)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
-  computeMetrics(metrics_set_payload_property_->getFloat());
+  
+  updateQueryStartState();
+  updateQueryGoalState();
   updateLinkColors();
+
   if (frame_)
     frame_->changePlanningGroup();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
@@ -1023,8 +1010,8 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
   kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(getPlanningSceneRO()->getCurrentState()));
   query_start_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("start", *ks, planning_scene_monitor_->getTFClient()));
   query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
-  query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::drawQueryStartState, this));
-  query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::drawQueryGoalState, this));
+  query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1));
+  query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1));
   query_start_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
   query_goal_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
 
@@ -1041,10 +1028,8 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
     planning_group_property_->setStdString(groups[0]);
 
   robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
-
   kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(getKinematicModel()));
-  computeMetrics(metrics_set_payload_property_->getFloat());
-
+  
   geometry_msgs::Vector3 gravity_vector;
   gravity_vector.x = 0.0;
   gravity_vector.y = 0.0;
@@ -1056,8 +1041,8 @@ void MotionPlanningDisplay::onRobotModelLoaded(void)
       dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getKinematicModel(),
                                                                             groups[i],
                                                                             gravity_vector));
-  changedQueryStartState();
-  changedQueryGoalState();
+  updateQueryStartState();
+  updateQueryGoalState();
 }
 
 namespace
