@@ -132,44 +132,45 @@ public:
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback &callback = ExecutionCompleteCallback(), bool auto_clear = true);
 
-  /// Wait until the execution is complete. This applies only for executions started by execute(), not by pushAndExecute()
-  moveit_controller_manager::ExecutionStatus waitForExecution(void);
-  
-  /// Add a trajectory for future execution. Optionally specify a controller to use for the trajectory. If no controller is specified, a default is used.
+  /// This is a blocking call for the execution of the passed in trajectories. This just calls execute() and waitForExecution()
+  moveit_controller_manager::ExecutionStatus executeAndWait(bool auto_clear = true);
+
+  /// Add a trajectory for immediate execution. Optionally specify a controller to use for the trajectory. If no controller is specified, a default is used. This call is non-blocking.
   bool pushAndExecute(const moveit_msgs::RobotTrajectory &trajectory, const std::string &controller = "");
 
-  /// Add a trajectory for future execution. Optionally specify a controller to use for the trajectory. If no controller is specified, a default is used.
+  /// Add a trajectory for immediate execution. Optionally specify a controller to use for the trajectory. If no controller is specified, a default is used. This call is non-blocking.
   bool pushAndExecute(const trajectory_msgs::JointTrajectory &trajectory, const std::string &controller = "");
 
-  /// Add a trajectory that consists of a single state for future execution. Optionally specify a controller to use for the trajectory. If no controller is specified, a default is used.
+  /// Add a trajectory that consists of a single state for immediate execution. Optionally specify a controller to use for the trajectory.
+  /// If no controller is specified, a default is used. This call is non-blocking.
   bool pushAndExecute(const sensor_msgs::JointState &state, const std::string &controller = "");
 
-  /// Add a trajectory for future execution. Optionally specify a set of controllers to consider using for the trajectory. Multiple controllers can be used simultaneously
+  /// Add a trajectory for immediate execution. Optionally specify a set of controllers to consider using for the trajectory. Multiple controllers can be used simultaneously
   /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the already loaded ones.
-  /// If no controller is specified, a default is used.
+  /// If no controller is specified, a default is used. This call is non-blocking.
   bool pushAndExecute(const trajectory_msgs::JointTrajectory &trajectory, const std::vector<std::string> &controllers);
 
-  /// Add a trajectory for future execution. Optionally specify a set of controllers to consider using for the trajectory. Multiple controllers can be used simultaneously
+  /// Add a trajectory for immediate execution. Optionally specify a set of controllers to consider using for the trajectory. Multiple controllers can be used simultaneously
   /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the already loaded ones.
-  /// If no controller is specified, a default is used.
+  /// If no controller is specified, a default is used. This call is non-blocking.
   bool pushAndExecute(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
 
-  /// Add a trajectory that consists of a single state for future execution. Optionally specify a set of controllers to consider using for the trajectory.
+  /// Add a trajectory that consists of a single state for immediate execution. Optionally specify a set of controllers to consider using for the trajectory.
   /// Multiple controllers can be used simultaneously to execute the different parts of the trajectory. If multiple controllers can be used, preference
-  /// is given to the already loaded ones. If no controller is specified, a default is used.
+  /// is given to the already loaded ones. If no controller is specified, a default is used. This call is non-blocking.
   bool pushAndExecute(const sensor_msgs::JointState &state, const std::vector<std::string> &controllers);
+
+  /// Wait until the execution is complete. This applies for executions started by either execute() or pushAndExecute()
+  moveit_controller_manager::ExecutionStatus waitForExecution(void);
   
   /// Get the state that the robot is expected to be at, given current time, after execute() has been called. The return value is a pair of two index values:
   /// first = the index of the trajectory to be executed (in the order push() was called), second = the index of the point within that trajectory.
-  /// Values of -1 are returned when there is no trajectory being executed.
+  /// Values of -1 are returned when there is no trajectory being executed, or if the trajectory was passed using pushAndExecute().
   std::pair<int, int> getCurrentExpectedTrajectoryIndex(void) const;
   
   /// Return the controller status for the last attempted execution 
   moveit_controller_manager::ExecutionStatus getLastExecutionStatus(void) const;
-  
-  /// This is a blocking call for the execution of the passed in trajectories. This just calls execute() and waitForExecution()
-  moveit_controller_manager::ExecutionStatus executeAndWait(bool auto_clear = true);
-  
+    
   /// Stop whatever executions are active, if any
   void stopExecution(bool auto_clear = true);
   

@@ -203,10 +203,10 @@ void PickPlan::foundSolution(const ManipulationPlanPtr &plan)
 PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
 {
   PickPlanPtr p(new PickPlan(shared_from_this()));
-  if (planning_scene::PlanningScene::isEmpty(goal.planning_scene_diff))
+  if (planning_scene::PlanningScene::isEmpty(goal.planning_options.planning_scene_diff))
     p->plan(planning_scene, goal);
   else
-    p->plan(planning_scene->diff(goal.planning_scene_diff), goal);
+    p->plan(planning_scene->diff(goal.planning_options.planning_scene_diff), goal);
   return p;
 }
 

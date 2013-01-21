@@ -306,6 +306,8 @@ void TrajectoryExecutionManager::continuousExecutionThread(void)
           break;
         context = continuous_execution_queue_.front();
         continuous_execution_queue_.pop_front();
+        if (continuous_execution_queue_.empty())
+          continuous_execution_condition_.notify_all();
       }
 
       // remove handles we no longer need
@@ -516,6 +518,8 @@ void TrajectoryExecutionManager::generateControllerCombination(std::size_t start
   }
 }
 
+namespace
+{
 struct OrderPotentialControllerCombination
 {
   bool operator()(const std::size_t a, const std::size_t b) const
@@ -546,6 +550,7 @@ struct OrderPotentialControllerCombination
   std::vector<std::size_t> nrjoints;
   std::vector<std::size_t> nractive;
 };
+}
 
 bool TrajectoryExecutionManager::findControllers(const std::set<std::string> &actuated_joints, std::size_t controller_count, const std::vector<std::string> &available_controllers, std::vector<std::string> &selected_controllers)
 {
@@ -904,11 +909,20 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callba
 
 moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForExecution(void)
 {
-  boost::unique_lock<boost::mutex> ulock(execution_state_mutex_);
-  while (!execution_complete_)
-    execution_complete_condition_.wait(ulock);
-  // this will join the thread
+  {
+    boost::unique_lock<boost::mutex> ulock(execution_state_mutex_);
+    while (!execution_complete_)
+      execution_complete_condition_.wait(ulock);
+  }
+  {
+    boost::unique_lock<boost::mutex> ulock(continuous_execution_mutex_);
+    while (!continuous_execution_queue_.empty())
+      continuous_execution_condition_.wait(ulock);
+  }
+  
+  // this will join the thread for executing sequences of trajectories
   stopExecution(false);
+  
   return last_execution_status_;
 }
 

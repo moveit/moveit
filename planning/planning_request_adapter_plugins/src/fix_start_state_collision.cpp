@@ -88,20 +88,20 @@ public:
 
   virtual std::string getDescription(void) const { return "Fix Start State In Collision"; }
 
-  virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
+  virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::GetMotionPlan::Request &req,
-                            moveit_msgs::GetMotionPlan::Response &res,
+                            const moveit_msgs::MotionPlanRequest &req,
+                            moveit_msgs::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
     // get the specified start state
     kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
 
     collision_detection::CollisionRequest creq;
-    creq.group_name = req.motion_plan_request.group_name;
+    creq.group_name = req.group_name;
     collision_detection::CollisionResult cres;
     planning_scene->checkCollision(creq, cres, start_state);
     if (cres.collision)
@@ -121,8 +121,8 @@ public:
       random_numbers::RandomNumberGenerator rng;
 
       const std::vector<kinematic_state::JointState*> &jstates =
-        planning_scene->getKinematicModel()->hasJointModelGroup(req.motion_plan_request.group_name) ?
-        start_state.getJointStateGroup(req.motion_plan_request.group_name)->getJointStateVector() :
+        planning_scene->getKinematicModel()->hasJointModelGroup(req.group_name) ?
+        start_state.getJointStateGroup(req.group_name)->getJointStateVector() :
         start_state.getJointStateVector();
       bool found = false;
       for (int c = 0 ; !found && c < sampling_attempts_ ; ++c)
@@ -147,8 +147,8 @@ public:
 
       if (found)
       {
-        moveit_msgs::GetMotionPlan::Request req2 = req;
-        kinematic_state::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
+        moveit_msgs::MotionPlanRequest req2 = req;
+        kinematic_state::kinematicStateToRobotState(start_state, req2.start_state);
         bool solved = planner(planning_scene, req2, res);
         kinematic_state::kinematicStateToRobotState(prefix_state, res.trajectory_start);
         if (solved)

@@ -422,7 +422,7 @@ public:
     moveit_msgs::PickupGoal goal;
     constructGoal(goal, object);
     goal.possible_grasps = grasps;
-    goal.plan_only = false;
+    goal.planning_options.plan_only = false;
     pick_action_client_->sendGoal(goal); 
     if (!pick_action_client_->waitForResult())
     {
@@ -460,9 +460,9 @@ public:
 
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
-    goal.plan_only = true;
-    goal.look_around = false;
-    goal.replan = false;
+    goal.planning_options.plan_only = true;
+    goal.planning_options.look_around = false;
+    goal.planning_options.replan = false;
     move_action_client_->sendGoal(goal); 
     if (!move_action_client_->waitForResult())
     {
@@ -490,9 +490,9 @@ public:
 
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
-    goal.plan_only = false;
-    goal.look_around = can_look_;  
-    goal.replan = can_replan_;
+    goal.planning_options.plan_only = false;
+    goal.planning_options.look_around = can_look_;  
+    goal.planning_options.replan = can_replan_;
 
     move_action_client_->sendGoal(goal);
     if (!wait)

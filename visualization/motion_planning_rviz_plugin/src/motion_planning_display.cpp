@@ -1171,9 +1171,10 @@ void MotionPlanningDisplay::onEnable()
 // ******************************************************************************************
 // Disable
 // ******************************************************************************************
-void MotionPlanningDisplay::onDisable()
+void MotionPlanningDisplay::onDisable(void)
 {
-  robot_interaction_->clear();
+  if (robot_interaction_)
+    robot_interaction_->clear();
   int_marker_display_->setEnabled(false);
 
   display_path_robot_->setVisible(false);

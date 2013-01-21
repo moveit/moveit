@@ -46,7 +46,8 @@ set(MSG_FILES
 
 generate_dynamic_reconfigure_options(
   "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"
-  "plan_execution/cfg/PlanExecutionDynamicReconfigure.cfg")
+  "plan_execution/cfg/PlanExecutionDynamicReconfigure.cfg"
+  "plan_execution/cfg/SenseForPlanDynamicReconfigure.cfg")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
     robot_model_loader/include
