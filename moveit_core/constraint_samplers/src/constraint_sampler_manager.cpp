@@ -68,8 +68,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     logDebug("There are joint constraints specified. Attempting to construct a JointConstraintSampler for group '%s'", jmg->getName().c_str());
 
     std::map<std::string, bool> joint_coverage;
-    for(unsigned int i = 0; i < jmg->getJointModelNames().size(); i++)
-      joint_coverage[jmg->getJointModelNames()[i]] = false;
+    for(std::size_t i = 0; i < jmg->getVariableNames().size() ; ++i)
+      joint_coverage[jmg->getVariableNames()[i]] = false;
     
     // construct the constraints
     std::vector<kinematic_constraints::JointConstraint> jc;
