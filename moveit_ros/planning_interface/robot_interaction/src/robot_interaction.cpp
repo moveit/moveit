@@ -188,7 +188,8 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
     geometry_msgs::Twist twist_msg;
     tf::twistEigenToMsg(twist, twist_msg);
     update_state_result = robot_interaction::RobotInteraction::updateState(*kstate_, eef, twist_msg,
-                                                                           boost::bind(&kinematic_state::JointStateGroup::avoidJointLimitsSecondaryTask, kstate_->getJointStateGroup(eef.parent_group), _1, _2, 0.3, 0.5));
+                                                                           boost::bind(&kinematic_state::JointStateGroup::avoidJointLimitsSecondaryTask,
+                                                                                       kstate_->getJointStateGroup(eef.parent_group), _1, _2, 0.3, 0.5));
   }
 
   bool error_state_changed = false;
@@ -589,7 +590,8 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
 }
 
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, const kinematic_state::SecondaryTaskFn &st_callback)
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist,
+                                   const kinematic_state::SecondaryTaskFn &st_callback)
 {
   static const double gain = 0.1;
   return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, st_callback);
