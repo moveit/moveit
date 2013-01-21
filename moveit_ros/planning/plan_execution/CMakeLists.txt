@@ -1,6 +1,9 @@
 set(MOVEIT_LIB_NAME moveit_plan_execution)
 
-add_library(${MOVEIT_LIB_NAME} src/plan_execution.cpp)
+add_library(${MOVEIT_LIB_NAME}
+  src/plan_with_sensing.cpp
+  src/plan_execution.cpp)
+
 target_link_libraries(${MOVEIT_LIB_NAME} 
   moveit_planning_pipeline
   moveit_trajectory_execution_manager

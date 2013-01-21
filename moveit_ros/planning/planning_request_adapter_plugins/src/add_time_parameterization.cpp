@@ -52,10 +52,10 @@ public:
   
   virtual std::string getDescription(void) const { return "Add Time Parameterization"; }
   
-  virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
+  virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res,
+                            const moveit_msgs::MotionPlanRequest &req, 
+                            moveit_msgs::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   { 
     bool result = planner(planning_scene, req, res);
@@ -63,13 +63,15 @@ public:
     {  
       ROS_DEBUG("Running '%s'", getDescription().c_str());
       trajectory_msgs::JointTrajectory trajectory_out;
-      const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name);
+      const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(res.group_name);
       if (jmg)
       {
         const std::vector<moveit_msgs::JointLimits> &jlim = jmg->getVariableLimits();
-        smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim, req.motion_plan_request.start_state);
+        smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim, req.start_state);
         res.trajectory.joint_trajectory = trajectory_out;
       }
+      else
+        ROS_ERROR("It looks like the planner did not set the group the plan was computed for");
     }
     
     return result;

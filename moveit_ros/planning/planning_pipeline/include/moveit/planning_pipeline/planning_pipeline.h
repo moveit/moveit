@@ -79,12 +79,12 @@ public:
   }
   
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const moveit_msgs::GetMotionPlan::Request& req,
-                    moveit_msgs::GetMotionPlan::Response& res) const;
+                    const moveit_msgs::MotionPlanRequest& req,
+                    moveit_msgs::MotionPlanResponse& res) const;
   
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const moveit_msgs::GetMotionPlan::Request& req,
-                    moveit_msgs::GetMotionPlan::Response& res,
+                    const moveit_msgs::MotionPlanRequest& req,
+                    moveit_msgs::MotionPlanResponse& res,
                     std::vector<std::size_t> &adapter_added_state_index) const;
   
   const std::string& getPlannerPluginName(void) const

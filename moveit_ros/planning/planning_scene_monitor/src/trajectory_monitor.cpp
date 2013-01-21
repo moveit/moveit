@@ -79,7 +79,7 @@ void planning_scene_monitor::TrajectoryMonitor::stopTrajectoryMonitor(void)
     boost::scoped_ptr<boost::thread> copy;
     copy.swap(record_states_thread_);
     copy->join();
-    ROS_DEBUG("Stopped trajecory monitor");
+    ROS_DEBUG("Stopped trajectory monitor");
   }
 }
 

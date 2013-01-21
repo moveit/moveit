@@ -49,19 +49,19 @@ static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, 
   if (run_goal_existence)
   {
     ROS_INFO("Calling goal existence benchmark...");
-    req.evaluate_goal_existence_only = true;
-    std::string fnm_backup = req.filename;    
-    if (!req.filename.empty())
+    req.benchmark_request.evaluate_goal_existence_only = true;
+    std::string fnm_backup = req.benchmark_request.filename;    
+    if (!req.benchmark_request.filename.empty())
     {
       bool changed = false;
-      if (req.filename.length() > 3)
-        if (req.filename.substr(req.filename.length() - 4) == ".log")
+      if (req.benchmark_request.filename.length() > 3)
+        if (req.benchmark_request.filename.substr(req.benchmark_request.filename.length() - 4) == ".log")
         {
           changed = true;
-          req.filename = req.filename.substr(0, req.filename.length() - 4) + "_goal_only.log";
+          req.benchmark_request.filename = req.benchmark_request.filename.substr(0, req.benchmark_request.filename.length() - 4) + "_goal_only.log";
         }
       if (!changed)
-        req.filename = req.filename + "_goal_only.log";
+        req.benchmark_request.filename = req.benchmark_request.filename + "_goal_only.log";
     }
     moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
     if (service->call(req, res))
@@ -73,12 +73,12 @@ static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, 
       goal_ok = false;
       ROS_ERROR("Failed");
     }
-    req.filename = fnm_backup;
+    req.benchmark_request.filename = fnm_backup;
   }
   if (goal_ok && run_planner)
   {
     ROS_INFO("Calling planner benchmark...");
-    req.evaluate_goal_existence_only = false;    
+    req.benchmark_request.evaluate_goal_existence_only = false;    
     moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
     if (service->call(req, res))
     {

@@ -129,7 +129,7 @@ PlanningSceneDisplay::PlanningSceneDisplay() :
 // ******************************************************************************************
 // Deconstructor
 // ******************************************************************************************
-PlanningSceneDisplay::~PlanningSceneDisplay()
+PlanningSceneDisplay::~PlanningSceneDisplay(void)
 { 
   planning_scene_render_.reset();
   context_->getSceneManager()->destroySceneNode(planning_scene_node_->getName());
@@ -193,7 +193,7 @@ void PlanningSceneDisplay::changedSceneColor(void)
   queueRenderSceneGeometry();
 }
 
-void PlanningSceneDisplay::changedRobotDescription()
+void PlanningSceneDisplay::changedRobotDescription(void)
 {
   if (isEnabled())
     reset();
@@ -265,7 +265,8 @@ void PlanningSceneDisplay::changedSceneRobotEnabled(void)
 
 void PlanningSceneDisplay::changedSceneEnabled()
 {
-  planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool()); 
+  if (planning_scene_render_)
+    planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool()); 
 }
 
 void PlanningSceneDisplay::setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color)
@@ -393,14 +394,15 @@ void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::
   planning_scene_needs_render_ = true;
 }
 
-void PlanningSceneDisplay::onEnable()
+void PlanningSceneDisplay::onEnable(void)
 {
   Display::onEnable();
   
   loadRobotModel();
   
   planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
-  planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool()); 
+  if (planning_scene_render_)
+    planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool()); 
 
   calculateOffsetPosition();
 }
@@ -408,14 +410,15 @@ void PlanningSceneDisplay::onEnable()
 // ******************************************************************************************
 // Disable
 // ******************************************************************************************
-void PlanningSceneDisplay::onDisable()
+void PlanningSceneDisplay::onDisable(void)
 {
   if (planning_scene_monitor_)
+  {
     planning_scene_monitor_->stopSceneMonitor();
-  
-  planning_scene_render_->getGeometryNode()->setVisible(false);
+    if (planning_scene_render_)
+      planning_scene_render_->getGeometryNode()->setVisible(false);
+  }
   planning_scene_robot_->setVisible(false);
-  
   Display::onDisable();
 }
 

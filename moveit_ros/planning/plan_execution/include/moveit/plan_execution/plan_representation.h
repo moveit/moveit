@@ -34,41 +34,39 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/pick_place/plan_stage.h>
-#include <moveit/kinematic_constraints/utils.h>
-#include <ros/console.h>
+#ifndef MOVEIT_PLAN_EXECUTION_PLAN_REPRESENTATION_
+#define MOVEIT_PLAN_EXECUTION_PLAN_REPRESENTATION_
 
-namespace pick_place
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
+#include <boost/function.hpp>
+
+namespace plan_execution
 {
 
-PlanStage::PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
-                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                     unsigned int nthreads) :
-  ManipulationStage(nthreads),
-  planning_scene_(scene),
-  planning_pipeline_(planning_pipeline)
-{
-  name_ = "plan";
-}
-
-bool PlanStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
-{
-  moveit_msgs::MotionPlanRequest req;
-  moveit_msgs::MotionPlanResponse res;
-  req.group_name = plan->planning_group_;
-  req.num_planning_attempts = 1;
-  req.allowed_planning_time = ros::Duration((plan->timeout_ - ros::WallTime::now()).toSec());
-
-  req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->planning_group_)));
+/// A generic representation on what a computed motion plan looks like
+struct ExecutableMotionPlan
+{ 
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
   
-  if (planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
-  {
-    plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory);
-    plan->trajectory_start_ = res.trajectory_start;
-    plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), name_);
-    return true;
-  }
-  return false;
-}
+  std::string planning_group_;
+  moveit_msgs::RobotState trajectory_start_;
+  std::vector<moveit_msgs::RobotTrajectory> planned_trajectory_;
+  std::vector<std::string> planned_trajectory_descriptions_;
+  std::vector<kinematic_state::KinematicTrajectory> planned_trajectory_states_;
+
+  // The trace of the trajectory recorded during execution
+  moveit_msgs::RobotTrajectory executed_trajectory_;
+  
+  /// An error code reflecting what went wrong (if anything)
+  moveit_msgs::MoveItErrorCodes error_code_;
+};
+
+/// The signature of a function that can compute a motion plan
+typedef boost::function<bool(ExecutableMotionPlan &plan)> ExecutableMotionPlanComputationFn;
 
 }
+#endif
