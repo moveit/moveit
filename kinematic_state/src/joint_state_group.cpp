@@ -749,6 +749,57 @@ bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist 
   return setFromDiffIK(t, tip, dt, st);
 }
 
+bool kinematic_state::JointStateGroup::avoidJointLimitsSecondaryTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
+                                                                            double activation_threshold, double gain) const
+{
+  //Get current joint values (q)
+  Eigen::VectorXd q;
+  joint_state_group->getVariableValues(q);
+
+  //Get joint lower and upper limits (qmin and qmax)
+  const std::vector<moveit_msgs::JointLimits> &qlimits = joint_state_group->getJointModelGroup()->getVariableLimits();
+  Eigen::VectorXd qmin(qlimits.size());
+  Eigen::VectorXd qmax(qlimits.size());
+  Eigen::VectorXd qrange(qlimits.size());
+  stvector.resize(qlimits.size());
+  stvector = Eigen::ArrayXd::Zero(qlimits.size());
+
+  for (std::size_t i = 0; i < qlimits.size(); ++i)
+  {
+    qmin(i) = qlimits[i].min_position;
+    qmax(i) = qlimits[i].max_position;
+    qrange(i) = qmax(i) - qmin(i);
+
+    //Fill in stvector with the gradient of a joint limit avoidance cost function
+    const std::vector<const kinematic_model::JointModel*> joint_models = joint_state_group->getJointModelGroup()->getJointModels();
+    if (qrange(i) == 0)
+    {
+      //If the joint range is zero do not compute the cost
+      stvector(i) = 0;
+    }
+    else if (joint_models[i]->getType() == kinematic_model::JointModel::REVOLUTE)
+    {
+      //If the joint is continuous do not compute the cost
+      const kinematic_model::RevoluteJointModel *rjoint = static_cast<const kinematic_model::RevoluteJointModel*>(joint_models[i]);
+      if (rjoint->isContinuous())
+        stvector(i) = 0;
+    }
+    else
+    {
+      if (q(i) > (qmax(i) - qrange(i) * activation_threshold))
+      {
+        stvector(i) = -gain * (q(i) - (qmax(i) - qrange(i) * activation_threshold)) / qrange(i);
+      }
+      else if (q(i) < (qmin(i) + qrange(i) * activation_threshold))
+      {
+        stvector(i) = -gain * (q(i) - (qmin(i) + qrange(i) * activation_threshold)) / qrange(i);
+      }
+    }
+  }
+
+  return true;
+}
+
 namespace
 {
 

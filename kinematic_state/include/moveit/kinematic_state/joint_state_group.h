@@ -317,6 +317,15 @@ public:
   /** \brief Given a twist for a particular link (\e tip), and an optional secondary task (\e st), compute the corresponding joint velocity and store it in \e qdot */
   void computeJointVelocity(Eigen::VectorXd &qdot, const Eigen::VectorXd &twist, const std::string &tip, const SecondaryTaskFn &st = SecondaryTaskFn()) const;
   
+  /** \brief Secondary task that tries to keep away from joint limits
+   * @param joint_state_group the joint state group for which to compute the task
+   * @param stvector the output of the function: a vector with joint velocities
+   * @param activation_threshold A percentage of the range from which the task is activated, i.e. activate if q > qmax - range * threshold. Typically between 0 and 0.5
+   * @param gain a gain for this task, multiplies the output velocities
+   */
+  bool avoidJointLimitsSecondaryTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
+                                   double activation_threshold, double gain) const;
+
   /** \brief Compute the sequence of joint values that correspond to a Cartesian path. The Cartesian path to be followed is specified
       as a direction of motion (\e direction) for the origin of a robot link (\e link_name).  The link needs to move in a straight
       line, following the specified direction, for the desired \e distance. The resulting joint values are stored in the vector \e states,
