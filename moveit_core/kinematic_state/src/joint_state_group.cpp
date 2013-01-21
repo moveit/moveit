@@ -128,9 +128,7 @@ bool kinematic_state::JointStateGroup::setVariableValues(const Eigen::VectorXd &
 {
   std::vector<double> values;
   for (std::size_t i = 0; i < joint_state_values.rows(); i++)
-  {
     values.push_back(joint_state_values(i));
-  }
   setVariableValues(values);
 }
 
@@ -230,10 +228,8 @@ void kinematic_state::JointStateGroup::getVariableValues(Eigen::VectorXd& joint_
   for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
   {
     const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
-    for(unsigned int j = 0; j < jv.size(); j++)
-    {
+    for (std::size_t j = 0; j < jv.size() ; ++j)
       joint_state_values(count++) = jv[j];
-    }
   }
 }
 
@@ -725,28 +721,36 @@ void kinematic_state::JointStateGroup::computeJointVelocity(Eigen::VectorXd &qdo
   }
 }
 
-bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const SecondaryTaskFn &st)
+bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const StateValidityCallbackFn &constraint, const SecondaryTaskFn &st)
 {
   Eigen::VectorXd qdot;
   computeJointVelocity(qdot, twist, tip, st);
-  
-  //Integrate qdot for dt
-  Eigen::VectorXd q(getVariableCount());
-  getVariableValues(q);
-  q = q + dt * qdot;
-
-  setVariableValues(q);
-  enforceBounds();
-
-  return true;
+  return integrateJointVelocity(qdot, dt, constraint);
 }
 
-bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const SecondaryTaskFn &st)
+bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const StateValidityCallbackFn &constraint, const SecondaryTaskFn &st)
 {
   Eigen::Matrix<double, 6, 1> t;
   tf::twistMsgToEigen(twist, t);
+  return setFromDiffIK(t, tip, dt, constraint, st);
+}
 
-  return setFromDiffIK(t, tip, dt, st);
+bool kinematic_state::JointStateGroup::integrateJointVelocity(const Eigen::VectorXd &qdot, double dt, const StateValidityCallbackFn &constraint)
+{
+  Eigen::VectorXd q(getVariableCount());
+  getVariableValues(q);
+  q = q + dt * qdot;
+  setVariableValues(q);
+  enforceBounds();
+  
+  if (constraint)
+  {
+    std::vector<double> values;
+    getVariableValues(values);
+    return constraint(this, values);
+  }
+  else
+    return true;
 }
 
 namespace

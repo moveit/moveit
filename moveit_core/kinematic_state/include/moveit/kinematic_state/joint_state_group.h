@@ -304,7 +304,7 @@ public:
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const SecondaryTaskFn &st = SecondaryTaskFn());
+  bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const SecondaryTaskFn &st = SecondaryTaskFn());
 
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
    * @param twist a cartesian velocity on the 'tip' frame
@@ -312,10 +312,14 @@ public:
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const SecondaryTaskFn &st = SecondaryTaskFn());
+  bool setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const SecondaryTaskFn &st = SecondaryTaskFn());
   
   /** \brief Given a twist for a particular link (\e tip), and an optional secondary task (\e st), compute the corresponding joint velocity and store it in \e qdot */
   void computeJointVelocity(Eigen::VectorXd &qdot, const Eigen::VectorXd &twist, const std::string &tip, const SecondaryTaskFn &st = SecondaryTaskFn()) const;
+  
+  /** \brief Given the velocities for the joints in this group (\e qdot) and an amount of time (\e dt), update the current state using the Euler forward method. 
+      If the constraint specified is satisfied, return true, otherwise return false. */
+  bool integrateJointVelocity(const Eigen::VectorXd &qdot, double dt, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
   
   /** \brief Compute the sequence of joint values that correspond to a Cartesian path. The Cartesian path to be followed is specified
       as a direction of motion (\e direction) for the origin of a robot link (\e link_name).  The link needs to move in a straight

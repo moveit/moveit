@@ -225,11 +225,11 @@ public:
    *  @param arr The returned marker array
    *  @param link_names The list of link names for which the markers should be created.
    */
-  void getRobotMarkers(const std_msgs::ColorRGBA& color,
+  void getRobotMarkers(visualization_msgs::MarkerArray& arr,
+                       const std::vector<std::string> &link_names,
+                       const std_msgs::ColorRGBA& color,
                        const std::string& ns,
-                       const ros::Duration& dur,
-                       visualization_msgs::MarkerArray& arr,
-                       const std::vector<std::string> &link_names) const;
+                       const ros::Duration& dur) const;
   
   /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
    *  @param arr The returned marker array
@@ -238,22 +238,6 @@ public:
   void getRobotMarkers(visualization_msgs::MarkerArray& arr,
                        const std::vector<std::string> &link_names) const;
   
-  /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
-   *  @param color The color for the marker
-   *  @param ns The namespace for the markers
-   *  @param dur The ros::Duration for which the markers should stay visible
-   *  @param arr The returned marker array
-   */
-  void getRobotMarkers(const std_msgs::ColorRGBA& color,
-                       const std::string& ns,
-                       const ros::Duration& dur,
-                       visualization_msgs::MarkerArray& arr) const;
-  
-  /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
-   *  @param arr The returned marker array
-   */
-  void getRobotMarkers(visualization_msgs::MarkerArray& arr) const;
-    
   /** \brief Interpolate between two states */
   void interpolate(const KinematicState &to, const double t, KinematicState &dest) const;
   
