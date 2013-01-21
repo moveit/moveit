@@ -81,6 +81,7 @@ void RobotInteraction::InteractionHandler::setup(void)
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name  
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
   ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
+  velocity_gain_ = 0.1;
   planning_frame_ = kstate_->getKinematicModel()->getModelFrame();
 }
 
@@ -262,7 +263,7 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
       
       
       kinematic_state::KinematicStatePtr state = getUniqueStateAccess();
-      update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, twist_msg, state_validity_callback_fn_);
+      update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, twist_msg, velocity_gain_, state_validity_callback_fn_);
       setStateToAccess(state);                                                                       
 
 
@@ -667,12 +668,10 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
 }
 
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist,
+bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain,
                                    const kinematic_state::StateValidityCallbackFn &validity_callback,
                                    const kinematic_state::SecondaryTaskFn &st_callback)
 {
-  // ioan 2 mario: this needs to be a param; we cannot have robot- specific  magic variables
-  static const double gain = 0.1;
   return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, validity_callback, st_callback);
 }
 
