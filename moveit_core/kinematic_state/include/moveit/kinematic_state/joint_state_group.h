@@ -320,7 +320,16 @@ public:
   /** \brief Given the velocities for the joints in this group (\e qdot) and an amount of time (\e dt), update the current state using the Euler forward method. 
       If the constraint specified is satisfied, return true, otherwise return false. */
   bool integrateJointVelocity(const Eigen::VectorXd &qdot, double dt, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
-  
+
+  /** \brief Secondary task that tries to keep away from joint limits THIS FUNCTION NEEDS TO MOVE ELSEWHERE
+   * @param joint_state_group the joint state group for which to compute the task
+   * @param stvector the output of the function: a vector with joint velocities
+   * @param activation_threshold A percentage of the range from which the task is activated, i.e. activate if q > qmax - range * threshold. Typically between 0 and 0.5
+   * @param gain a gain for this task, multiplies the output velocities
+   */
+  bool avoidJointLimitsSecondaryTask(const JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
+                                     double activation_threshold, double gain) const;
+
   /** \brief Compute the sequence of joint values that correspond to a Cartesian path. The Cartesian path to be followed is specified
       as a direction of motion (\e direction) for the origin of a robot link (\e link_name).  The link needs to move in a straight
       line, following the specified direction, for the desired \e distance. The resulting joint values are stored in the vector \e states,
