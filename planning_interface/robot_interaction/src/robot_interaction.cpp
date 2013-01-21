@@ -199,7 +199,7 @@ void RobotInteraction::InteractionHandler::setState(const kinematic_state::Kinem
 
 kinematic_state::KinematicStatePtr RobotInteraction::InteractionHandler::getUniqueStateAccess(void)
 {
-  ROS_ERROR("getUniqueStateAccess START");
+  std::cout << "getUniqueStateAccess START" << std::endl;
   
   kinematic_state::KinematicStatePtr result;
   {
@@ -217,22 +217,22 @@ kinematic_state::KinematicStatePtr RobotInteraction::InteractionHandler::getUniq
   }
   if (!result.unique())
   {
-    ROS_ERROR("CLONING");    
+    std::cout << "CLONING" << std::endl;
     result.reset(new kinematic_state::KinematicState(*result));
   }
-  ROS_ERROR("getUniqueStateAccess END: result = %p, kstate_ = %p", result.get(), kstate_.get());
+  std::cout << "getUniqueStateAccess END: result = " << result.get() << " kstate_ = " <<  kstate_.get() << std::endl;
   return result;
 }
 
 void RobotInteraction::InteractionHandler::setStateToAccess(kinematic_state::KinematicStatePtr &state)
 {      
-  ROS_ERROR("setStateToAccess 0 : %p", state.get());
+  std::cout << "setStateToAccess 0 : " << state.get() << std::endl;
 
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (state != kstate_)
     kstate_.swap(state);
   state_available_condition_.notify_all(); 
-  ROS_ERROR("setStateToAccess 1 : state = %p, kstate_ = %p", state.get(), kstate_.get());
+  std::cout << "setStateToAccess 1 : state = " << state.get() << " kstate_ = " << kstate_.get() << std::endl;
 }
 
 bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
@@ -247,14 +247,14 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   else
     return false;
   
-  ROS_ERROR("handleEndEffector BEGIN");
+  std::cout << "handleEndEffector BEGIN" << std::endl;
   
   bool update_state_result = false;
   if (interaction_mode_ == POSITION_IK)
-  {  ROS_ERROR("A1");
-    kinematic_state::KinematicStatePtr state = getUniqueStateAccess();ROS_ERROR("A2");
-    update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);ROS_ERROR("A3");
-    setStateToAccess(state);ROS_ERROR("A4");
+  {
+    kinematic_state::KinematicStatePtr state = getUniqueStateAccess();
+    update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
+    setStateToAccess(state);
   }
   else 
     if (interaction_mode_ == VELOCITY_IK)
@@ -301,12 +301,11 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
     error_state_changed = inError(eef) ? true : false;
     error_state_.erase(eef.parent_group);
   }
-  ROS_ERROR("B0");
 
   if (update_callback_)
     update_callback_(this);
 
-  ROS_ERROR("handleEndEffector END\n\n\n\n");
+  std::cout << "handleEndEffector END\n\n\n\n" << std::endl;
 
   return error_state_changed;
 }
@@ -694,7 +693,7 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
   // perform some validity checks
-  ROS_ERROR("processInteractiveMarkerFeedback START");
+  std::cout << "processInteractiveMarkerFeedback START" << std::endl;
   
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
@@ -713,7 +712,7 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
   
   feedback_map_[feedback->marker_name] = feedback;
   new_feedback_condition_.notify_all();
-  ROS_ERROR("processInteractiveMarkerFeedback END");
+  std::cout << "processInteractiveMarkerFeedback END" << std::endl;
 }
 
 void RobotInteraction::processingThread(void)
