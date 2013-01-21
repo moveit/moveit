@@ -85,10 +85,13 @@ public:
   }
   
   /** \brief Get the list of known sensors */
-  virtual void getSensorsList(std::vector<std::string> &names) = 0;
+  virtual void getSensorsList(std::vector<std::string> &names) const = 0;
   
   /** \brief Get the sensor information for a particular sensor */
-  virtual SensorInfo getSensorInfo(const std::string &name) = 0;
+  virtual SensorInfo getSensorInfo(const std::string &name) const = 0;
+  
+  /** \brief Check if any sensors are known to this manager */
+  virtual bool hasSensors(void) const = 0;
   
   /// Point sensor \e name towards a particular point in space (\e target). This may require executing a trajectory, but it may or may not execute that trajectory.
   /// If it does not, it returns it as part of \e sensor_trajectory. This is the recommended behaviour, since the caller of this function can perform checks on the safety of the trajectory.
