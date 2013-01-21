@@ -158,6 +158,16 @@ public:
       return display_meshes_;
     }
 
+    double getVelocityGain(void) const
+    {
+      return velocity_gain_;
+    }
+    
+    void setVelocityGain(double velocity_gain)
+    {
+      velocity_gain_ = velocity_gain;
+    }
+    
     /** \brief Get the last interactive_marker command pose for the end-effector
      * @param The end-effector in question.
      * @param A PoseStamped message containing the result.
@@ -195,6 +205,7 @@ public:
     unsigned int ik_attempts_;
     IKInteractionType interaction_mode_;
     bool display_meshes_;
+    double velocity_gain_;
     
   private:
     
@@ -234,7 +245,7 @@ public:
   
   static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn());
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist,
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain, 
                           const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn(),
                           const kinematic_state::SecondaryTaskFn &st_callback = kinematic_state::SecondaryTaskFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
