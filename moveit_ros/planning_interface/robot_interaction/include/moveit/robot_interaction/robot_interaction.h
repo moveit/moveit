@@ -193,15 +193,6 @@ public:
 
     bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose);
 
-    /** \brief Secondary task that tries to keep away from joint limits
-     * @param joint_state_group the joint state group for which to compute the task
-     * @param stvector the output of the function: a vector with joint velocities
-     * @param activation_threshold A percentage of the range from which the task is activated, i.e. activate if q > qmax - range * threshold. Typically between 0 and 0.5
-     * @param gain a gain for this task, multiplies the output velocities
-     */
-    bool avoidJointLimitsSecTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
-                                     double activation_threshold, double gain) const;
-
     std::string name_;
     std::string planning_frame_;
     kinematic_state::KinematicStatePtr kstate_;
