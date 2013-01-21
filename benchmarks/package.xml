@@ -4,7 +4,9 @@
   <description>MoveIt tools for benchmarking</description>
 
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="mprats@willowgarage.com">Mario Prats</author>
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+  <maintainer email="mprats@willowgarage.com">Mario Prats</maintainer>
 
   <license>BSD</license>
 
@@ -16,11 +18,25 @@
 
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_ros_warehouse</build_depend>
+  <build_depend>rviz</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
+  <build_depend>moveit_ros_visualization</build_depend>
+  <build_depend>interactive_markers</build_depend>
+  <build_depend>geometric_shapes</build_depend>
+  <build_depend>tf</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rosconsole</build_depend>
 
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_warehouse</run_depend>
+  <run_depend>rviz</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>moveit_ros_planning_interface</run_depend>
+  <run_depend>moveit_ros_visualization</run_depend>
+  <run_depend>interactive_markers</run_depend>
+  <run_depend>geometric_shapes</run_depend>
+  <run_depend>tf</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rosconsole</run_depend>
 
