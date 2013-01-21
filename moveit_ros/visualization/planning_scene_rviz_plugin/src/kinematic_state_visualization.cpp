@@ -91,12 +91,8 @@ void KinematicStateVisualization::updateHelper(const kinematic_state::KinematicS
                                                const std_msgs::ColorRGBA &default_attached_object_color,
                                                const std::map<std::string, std_msgs::ColorRGBA> *color_map)
 {
-  std::cout << "updateHelper START : " <<  kinematic_state.get() << std::endl;
-  
   robot_.update(PlanningLinkUpdater(kinematic_state));
   render_shapes_->clear();
-
-  std::cout << "updateHelper AFTER" << std::endl;
 
   std::vector<const kinematic_state::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
