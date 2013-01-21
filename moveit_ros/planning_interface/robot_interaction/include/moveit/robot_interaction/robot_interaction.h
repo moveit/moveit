@@ -178,6 +178,7 @@ public:
   protected:
 
     bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose);
+
     kinematic_state::KinematicStatePtr getUniqueStateAccess(void);
     void setStateToAccess(kinematic_state::KinematicStatePtr &state);
     
@@ -196,7 +197,6 @@ public:
     bool display_meshes_;
     
   private:
-    
     
     mutable boost::mutex state_lock_;
     mutable boost::condition_variable state_available_condition_;

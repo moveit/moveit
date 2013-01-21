@@ -679,25 +679,24 @@ void MotionPlanningDisplay::drawQueryStartState(void)
 {
   if (!planning_scene_monitor_)
     return;
-  ROS_ERROR("drawQueryStartState 0 ");
+  std::cout << "drawQueryStartState START " << std::endl;
   
   if (query_start_state_property_->getBool())
   {
     if (isEnabled())
     { 
-      ROS_ERROR("drawQueryStartState a ");
-
+      std::cout << "drawQueryStartState a " << std::endl;
+      
       kinematic_state::KinematicStateConstPtr state = getQueryStartState();
-      ROS_ERROR("state use_count = %ld", state.use_count());
+      std::cout << "state use_count " << state.use_count() << std::endl;
       
-      ROS_ERROR("drawQueryStartState b : %p", state.get());  
-      state->printStateInfo();
+      std::cout << "drawQueryStartState b : " << state.get() << std::endl;
       
-
       // update link poses
       query_robot_start_->update(state);
       query_robot_start_->setVisible(true);
-      ROS_ERROR("drawQueryStartState c ");
+      std::cout << "drawQueryStartState c " << std::endl;
+      
 
       // update link colors
       std::vector<std::string> collision_links;
@@ -705,23 +704,22 @@ void MotionPlanningDisplay::drawQueryStartState(void)
       collision_links_start_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
         collision_links_start_[collision_links[i]] = 0;
-      ROS_ERROR("drawQueryStartState d ");
+
       const std::vector<kinematic_state::JointState*> &jstates = state->getJointStateVector();
       for (std::size_t i = 0 ; i < jstates.size() ; ++i)
         if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
           collision_links_start_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
-      ROS_ERROR("drawQueryStartState e ");
+
       updateLinkColors();
-      ROS_ERROR("drawQueryStartState f ");
+
       // update metrics text
       displayMetrics(true);
-      ROS_ERROR("drawQueryStartState g ");
     }
   }
   else
     query_robot_start_->setVisible(false);
   context_->queueRender();
-  ROS_ERROR("drawQueryStartState 1");
+  std::cout << "drawQueryStartState END" << std::endl;
 }
 
 void MotionPlanningDisplay::changedQueryStartState(void)
@@ -783,14 +781,14 @@ void MotionPlanningDisplay::publishInteractiveMarkers(void)
 {
   if (robot_interaction_)
   {
-    ROS_ERROR("publishInteractiveMarkers 0");
+    std::cout << "publishInteractiveMarkers START" << std::endl;
     robot_interaction_->clearInteractiveMarkers();
     if (query_start_state_property_->getBool())
       robot_interaction_->addInteractiveMarkers(query_start_state_, query_marker_scale_property_->getFloat());
     if (query_goal_state_property_->getBool())
       robot_interaction_->addInteractiveMarkers(query_goal_state_, query_marker_scale_property_->getFloat());
     robot_interaction_->publishInteractiveMarkers();
-    ROS_ERROR("publishInteractiveMarkers 1");
+    std::cout << "publishInteractiveMarkers END" << std::endl;
   }
 }
 
@@ -1271,7 +1269,7 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
   frame_->updateGoalPoseMarkers(wall_dt, ros_dt);
 
   Display::update(wall_dt, ros_dt);
-
+  
   executeMainLoopJobs();
 
   if (!planning_scene_monitor_)
