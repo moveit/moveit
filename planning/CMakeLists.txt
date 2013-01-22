@@ -24,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
   dynamic_reconfigure
   message_filters
+  orocos_kdl
   srdfdom
   urdf
   tf
