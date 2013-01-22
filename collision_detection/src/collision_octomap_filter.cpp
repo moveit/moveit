@@ -82,23 +82,30 @@ void collision_detection::refineContactNormals(const CollisionWorld::ObjectConst
     if(!object->shapes_.empty())
     {
       const shapes::ShapeConstPtr& shape = object->shapes_[0];
-      boost::shared_ptr<const shapes::OcTree> octree = boost::dynamic_pointer_cast<const shapes::OcTree>(shape);
-      if(octree)
+      boost::shared_ptr<const shapes::OcTree> shape_octree = boost::dynamic_pointer_cast<const shapes::OcTree>(shape);
+      if(shape_octree)
       {
-        cell_size = octree->octree->getResolution();
+        boost::shared_ptr<const octomap::OcTree> octree = shape_octree->octree;
+        cell_size = octree->getResolution();
         for(size_t contact_index = 0; contact_index < contact_vector.size(); contact_index++)
         {
-          Eigen::Vector3d point =   contact_vector[contact_index].pos;
-          Eigen::Vector3d normal =  contact_vector[contact_index].normal;
+          const Eigen::Vector3d& point =   contact_vector[contact_index].pos;
+          const Eigen::Vector3d& normal =  contact_vector[contact_index].normal;
 
           octomath::Vector3 contact_point(point[0], point[1], point[2]);
           octomath::Vector3 contact_normal(normal[0], normal[1], normal[2]);
-          octomath::Vector3 diagonal = octomath::Vector3(1,1,1);
+          octomath::Vector3 diagonal = octomath::Vector3(2,2,2);
           octomath::Vector3 bbx_min = contact_point - diagonal*cell_size; // TODO should this be a bit larger? (or smaller?)
           octomath::Vector3 bbx_max = contact_point + diagonal*cell_size;
           octomap::point3d_list node_centers;
-          //          octree->octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
-          logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
+          octomap::OcTreeBaseImpl<octomap::OcTreeNode, octomap::AbstractOccupancyOcTree>::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbx_min, bbx_max);
+          octomap::OcTreeBaseImpl<octomap::OcTreeNode, octomap::AbstractOccupancyOcTree>::leaf_bbx_iterator leafs_end = octree->end_leafs_bbx();
+          for(  ; it != leafs_end; ++it)
+          {
+            node_centers.push_back(it.getCoordinate());
+          }
+          //octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
+          //logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
 
           octomath::Vector3 n;
           float depth;
@@ -106,7 +113,12 @@ void collision_detection::refineContactNormals(const CollisionWorld::ObjectConst
           {
             // only modify normal if the refinement predicts a "very different" result.
             if(contact_normal.angleTo(n) > (M_PI_2 - 0.35)) // TODO magic number!
+            {
+              logInform("Changing contact normal: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
+                              contact_normal.x(), contact_normal.y(), contact_normal.z(),
+                              n.x(), n.y(), n.z());
               contact_vector[contact_index].normal = Eigen::Vector3d(n.x(), n.y(), n.z());
+            }
 
             if(estimate_depth)
               contact_vector[contact_index].depth = depth;
