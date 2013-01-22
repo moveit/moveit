@@ -242,6 +242,9 @@ bool plan_execution::PlanWithSensing::lookAt(const std::set<collision_detection:
     ROS_WARN("It seems looking around would be useful, but no MoveIt Sensor Manager is loaded. Did you set ~moveit_sensor_manager ?");
     return false;
   }
+
+  if (before_look_callback_)
+    before_look_callback_();
   
   std::vector<std::string> names;
   sensor_manager_->getSensorsList(names);

@@ -102,6 +102,11 @@ public:
     discard_overlapping_cost_sources_ = value;
   }
   
+  void setBeforeLookCallback(const boost::function<void()> &callback)
+  {
+    before_look_callback_ = callback;
+  }
+  
   void displayCostSources(bool flag);
 
 private:
@@ -122,6 +127,8 @@ private:
   bool display_cost_sources_;
   ros::Publisher cost_sources_publisher_;
 
+  boost::function<void()> before_look_callback_;
+  
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;
 };
