@@ -402,7 +402,7 @@ private:
 
     if (plan)
     {
-      const std::vector<pick_place::ManipulationPlanPtr> &success = plan->getSuccessfulManipulationPlan();
+      const std::vector<pick_place::ManipulationPlanPtr> &success = plan->getSuccessfulManipulationPlans();
       if (success.empty())
       {  
         action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
@@ -445,7 +445,7 @@ private:
     
     if (pick_plan)
     {
-      const std::vector<pick_place::ManipulationPlanPtr> &success = pick_plan->getSuccessfulManipulationPlan();
+      const std::vector<pick_place::ManipulationPlanPtr> &success = pick_plan->getSuccessfulManipulationPlans();
       if (success.empty())
       {
         plan.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;

@@ -82,6 +82,9 @@ struct ManipulationPlan
   
   // An error code reflecting what went wrong (if anything)
   moveit_msgs::MoveItErrorCodes error_code_;
+  
+  // The processing stage that was last working on this plan, or was about to work on this plan
+  std::size_t processing_stage_;
 };
 
 typedef boost::shared_ptr<ManipulationPlan> ManipulationPlanPtr;

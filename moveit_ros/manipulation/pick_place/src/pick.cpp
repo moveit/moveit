@@ -38,7 +38,6 @@
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
-#include <moveit/pick_place/output_stage.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <ros/console.h>
 
@@ -64,15 +63,11 @@ struct OrderGraspQuality
 
 PickPlan::PickPlan(const PickPlaceConstPtr &pick_place) :
   pick_place_(pick_place),
+  pipeline_("pick", 4),
   last_plan_time_(0.0),
   done_(false)
 {
-}
-
-const std::vector<ManipulationPlanPtr>& PickPlan::getSuccessfulManipulationPlan(void) const
-{ 
-  // read the output of the last filter
-  return static_cast<OutputStage*>(last_.get())->getOutput();
+  pipeline_.setSolutionCallback(boost::bind(&PickPlan::foundSolution, this));
 }
 
 const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
@@ -140,15 +135,14 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
   }
   // for now, the post_grasp_acm can be the same
   
-  done_ = false;
-  root_.reset(new ReachableAndValidGraspFilter(planning_scene, approach_grasp_acm, pick_place_->getConstraintsSamplerManager(), 2));
-  ManipulationStagePtr f0 = root_->follow(ManipulationStagePtr(new ApproachAndTranslateStage(planning_scene, planning_scene_after_grasp, 
-                                                                                             approach_grasp_acm, pick_place_->getPlanningPipeline(), 4)));
-  ManipulationStagePtr f1 = f0->follow(ManipulationStagePtr(new PlanStage(planning_scene, pick_place_->getPlanningPipeline(), 4))); 
-  last_ = f1->follow(ManipulationStagePtr(new OutputStage(boost::bind(&PickPlan::foundSolution, this, _1))));
-  
-  root_->startAll();
-  
+  // configure the manipulation pipeline
+  pipeline_.reset();
+  ManipulationStagePtr stage1(new ReachableAndValidGraspFilter(planning_scene, approach_grasp_acm, pick_place_->getConstraintsSamplerManager()));
+  ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, planning_scene_after_grasp, approach_grasp_acm));
+  ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline())); 
+  pipeline_.addStage(stage1).addStage(stage2).addStage(stage3);
+  pipeline_.start();
+
   // order the grasps by quality
   std::vector<std::size_t> grasp_order(goal.possible_grasps.size());
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
@@ -157,6 +151,8 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
   std::sort(grasp_order.begin(), grasp_order.end(), oq);
   moveit_msgs::RobotState start;
   kinematic_state::kinematicStateToRobotState(planning_scene->getCurrentState(), start);
+  
+  done_ = false;
   
   // feed the available grasps to the stages we set up
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
@@ -167,37 +163,25 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
     p->ik_link_name_ = ik_link;    
     p->timeout_ = endtime;
     p->trajectory_start_ = start;
-    root_->push(p);
+    pipeline_.push(p);
   }
   
   // wait till we're done
   {
-    boost::unique_lock<boost::mutex> lock(mut_);
+    boost::unique_lock<boost::mutex> lock(done_mutex_);
     while (!done_ && endtime > ros::WallTime::now())
-      cond_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
+      done_condition_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
   }
   
-  // make sure we stopped
-  root_->stopAll();   
   last_plan_time_ = (ros::WallTime::now() - start_time).toSec();
-  return getSuccessfulManipulationPlan();
+  return getSuccessfulManipulationPlans();
 }
 
-void PickPlan::getFailedPlans(std::vector<ManipulationPlanPtr> &plans)
+void PickPlan::foundSolution(void)
 {
-  ManipulationStagePtr stage = root_;
-  while (stage)
-  {
-    stage->getFailedPlans(plans);
-    stage = stage->getNextStage();
-  }
-}
-
-void PickPlan::foundSolution(const ManipulationPlanPtr &plan)
-{
-  boost::mutex::scoped_lock slock(mut_);
+  boost::mutex::scoped_lock slock(done_mutex_);
   done_ = true;
-  cond_.notify_all();
+  done_condition_.notify_all();
 }
 
 PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
