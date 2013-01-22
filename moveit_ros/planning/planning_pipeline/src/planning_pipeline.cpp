@@ -72,9 +72,9 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::Kin
 
 void planning_pipeline::PlanningPipeline::configure(const kinematic_model::KinematicModelConstPtr& model)
 {
-  check_solution_paths_ = false;
+  check_solution_paths_ = false;          // this is set to true below
   publish_received_requests_ = false;
-  display_computed_motion_plans_ = false;
+  display_computed_motion_plans_ = false; // this is set to true below
   
   // load the planning plugin
   try
