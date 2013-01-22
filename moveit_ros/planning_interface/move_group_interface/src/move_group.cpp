@@ -62,42 +62,73 @@ namespace move_group_interface
 const std::string MoveGroup::ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 const std::string MoveGroup::JOINT_STATE_TOPIC = "joint_states";    // name of the topic where joint states are published
 
-static boost::shared_ptr<tf::Transformer> getSharedTF(void)
+namespace
 {
-  static boost::shared_ptr<tf::Transformer> tf(new tf::TransformListener());
-  return tf;
+
+struct SharedStorage
+{
+  SharedStorage(void)
+  {
+  }
+
+  ~SharedStorage(void)
+  {
+    tf_.reset();
+    state_monitors_.clear();
+    model_loaders_.clear(); 
+  }
+  
+  boost::mutex lock_;
+  boost::shared_ptr<tf::Transformer> tf_;
+  std::map<std::string, planning_models_loader::KinematicModelLoaderPtr> model_loaders_;
+  std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors_;
+};
+
+SharedStorage& getSharedStorage(void)
+{
+  static SharedStorage storage;
+  return storage;
 }
 
-static kinematic_model::KinematicModelConstPtr getSharedKinematicModel(const std::string &robot_description)
+boost::shared_ptr<tf::Transformer> getSharedTF(void)
 {
-  static std::map<std::string, planning_models_loader::KinematicModelLoaderPtr> model_loaders;
-  static boost::mutex lock;
-  boost::mutex::scoped_lock slock(lock);
-  if (model_loaders.find(robot_description) != model_loaders.end())
-    return model_loaders[robot_description]->getModel();
+  SharedStorage &s = getSharedStorage();
+  boost::mutex::scoped_lock slock(s.lock_);
+  if (!s.tf_)
+    s.tf_.reset(new tf::TransformListener());
+  return s.tf_;
+}
+
+kinematic_model::KinematicModelConstPtr getSharedKinematicModel(const std::string &robot_description)
+{ 
+  SharedStorage &s = getSharedStorage();
+  boost::mutex::scoped_lock slock(s.lock_);
+  if (s.model_loaders_.find(robot_description) != s.model_loaders_.end())
+    return s.model_loaders_[robot_description]->getModel();
   else
   {
     planning_models_loader::KinematicModelLoader::Options opt(robot_description);
     opt.load_kinematics_solvers_ = false;
     planning_models_loader::KinematicModelLoaderPtr loader(new planning_models_loader::KinematicModelLoader(opt));
-    model_loaders[robot_description] = loader;
+    s.model_loaders_[robot_description] = loader;
     return loader->getModel();
   }
 } 
 
 static planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
-{
-  static std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors;
-  static boost::mutex lock;
-  boost::mutex::scoped_lock slock(lock);
-  if (state_monitors.find(kmodel->getName()) != state_monitors.end())
-    return state_monitors[kmodel->getName()];
+{  
+  SharedStorage &s = getSharedStorage();
+  boost::mutex::scoped_lock slock(s.lock_);
+  if (s.state_monitors_.find(kmodel->getName()) != s.state_monitors_.end())
+    return s.state_monitors_[kmodel->getName()];
   else
   {
     planning_scene_monitor::CurrentStateMonitorPtr monitor(new planning_scene_monitor::CurrentStateMonitor(kmodel, tf));
-    state_monitors[kmodel->getName()] = monitor;
+    s.state_monitors_[kmodel->getName()] = monitor;
     return monitor;
   }
+}
+
 }
 
 class MoveGroup::MoveGroupImpl
