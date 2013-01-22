@@ -227,7 +227,7 @@ void RobotInteraction::InteractionHandler::setStateToAccess(kinematic_state::Kin
   state_available_condition_.notify_all(); 
 }
 
-bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef,
+bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
   geometry_msgs::PoseStamped tpose;
@@ -248,8 +248,9 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   else 
     if (interaction_mode_ == VELOCITY_IK)
     {
+      kinematic_state::KinematicStatePtr state = getUniqueStateAccess();
       // compute velocity from current pose to goal pose, in the current end-effector frame
-      const Eigen::Affine3d &wMe = kstate_->getLinkState(eef.parent_link)->getGlobalLinkTransform();
+      const Eigen::Affine3d &wMe = state->getLinkState(eef.parent_link)->getGlobalLinkTransform();
       Eigen::Affine3d wMt;
       tf::poseMsgToEigen(tpose.pose, wMt);
       Eigen::Affine3d eMt = wMe.inverse() * wMt;
@@ -261,10 +262,8 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
       geometry_msgs::Twist twist_msg;
       tf::twistEigenToMsg(twist, twist_msg);
       
-      
-      kinematic_state::KinematicStatePtr state = getUniqueStateAccess();
       update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, twist_msg, velocity_gain_, state_validity_callback_fn_);
-      setStateToAccess(state);                                                                       
+      setStateToAccess(state);
 
 
       // ioan 2 mario: please replace the use of 0.3 and 0.5 with parameters (not clear what they do, what robot they are for, etc)
@@ -297,7 +296,7 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   return error_state_changed;
 }
 
-bool RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint& vj,
+bool RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint &vj,
                                                               const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   geometry_msgs::PoseStamped tpose;
@@ -735,13 +734,24 @@ void RobotInteraction::processingThread(void)
       }
 
       // we put this in a try-catch because user specified callbacks may be triggered
+
       try
       {
         if (marker_class == "EE")
-          jt->second->handleEndEffector(active_eef_[it->second], feedback);
+        {
+          EndEffector eef = active_eef_[it->second];
+          marker_access_lock_.unlock();
+          jt->second->handleEndEffector(eef, feedback);
+          marker_access_lock_.lock();
+        }
         else
           if (marker_class == "VJ")
-            jt->second->handleVirtualJoint(active_vj_[it->second], feedback);
+          {
+            VirtualJoint vj = active_vj_[it->second];
+            marker_access_lock_.unlock();
+            jt->second->handleVirtualJoint(vj, feedback);
+            marker_access_lock_.lock();
+          }
           else
             ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());
       }
@@ -753,6 +763,7 @@ void RobotInteraction::processingThread(void)
       {
         ROS_ERROR("Exception caught while processing event");
       }
+
     }
   }
 }
