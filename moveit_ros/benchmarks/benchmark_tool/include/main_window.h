@@ -72,6 +72,7 @@ public Q_SLOTS:
   void dbConnectButtonClickedBackgroundJob();
 
   void loadSceneButtonClicked(void);
+  void loadSceneButtonClicked(QListWidgetItem *item);
 
   //main loop processing
   void executeMainLoopJobs();

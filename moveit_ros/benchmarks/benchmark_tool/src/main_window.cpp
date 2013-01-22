@@ -87,6 +87,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect(ui_.planning_group_combo, SIGNAL( currentIndexChanged ( const QString & ) ), this, SLOT( planningGroupChanged( const QString & ) ));
     connect(ui_.db_connect_button, SIGNAL( clicked() ), this, SLOT( dbConnectButtonClicked() ));
     connect(ui_.load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
+    connect(ui_.planning_scene_list, SIGNAL( itemDoubleClicked (QListWidgetItem *) ), this, SLOT( loadSceneButtonClicked(QListWidgetItem *) ));
 
     //Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));
@@ -199,6 +200,11 @@ void MainWindow::populatePlanningSceneList(void)
   }
 
   ui_.planning_scene_list->setUpdatesEnabled(true);
+}
+
+void MainWindow::loadSceneButtonClicked(QListWidgetItem *item)
+{
+  addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
 }
 
 void MainWindow::loadSceneButtonClicked(void)
