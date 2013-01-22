@@ -61,8 +61,9 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
   //Planning scene display
   scene_display_ = new moveit_rviz_plugin::PlanningSceneDisplay();
-  scene_display_->setName( "Planning Scene" );
+  scene_display_->setName("Planning Scene");
   scene_display_->subProp("Robot Description")->setValue(ROBOT_DESCRIPTION_PARAM);
+  scene_display_->subProp("Scene Geometry")->subProp("Scene Alpha")->setValue(1.0);
   visualization_manager_->addDisplay( scene_display_, true );
 
   if ( scene_display_ && scene_display_->getPlanningSceneRO())
