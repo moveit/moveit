@@ -34,6 +34,7 @@
 #include <moveit/kinematic_state/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <tf_conversions/tf_eigen.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
@@ -144,6 +145,52 @@ void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose
 }
 }
 
+void RobotInteraction::InteractionHandler::setPoseOffset(const RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& m)
+{
+  offset_map_lock_.lock();
+  offset_map_[eef.eef_group] = m;
+  offset_map_lock_.unlock();
+}
+
+void RobotInteraction::InteractionHandler::clearPoseOffset(const RobotInteraction::EndEffector& eef)
+{
+  // This is ok if the key doesn't exist right?
+  offset_map_lock_.lock();
+  offset_map_.erase(eef.eef_group);
+  offset_map_lock_.unlock();
+}
+
+void RobotInteraction::InteractionHandler::clearAllPoseOffsets()
+{
+  offset_map_lock_.lock();
+  offset_map_.clear();
+  offset_map_lock_.unlock();
+}
+
+bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m)
+{
+  boost::mutex::scoped_lock slock(offset_map_lock_);
+  std::map<std::string, geometry_msgs::Pose>::iterator it = offset_map_.find(eef.eef_group);
+  if (it != offset_map_.end())
+  {
+    m = it->second;
+    return true;
+  }
+  return false;
+}
+
+bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction::VirtualJoint& vj, geometry_msgs::Pose& m)
+{
+  boost::mutex::scoped_lock slock(offset_map_lock_);
+  std::map<std::string, geometry_msgs::Pose>::iterator it = offset_map_.find(vj.joint_name);
+  if (it != offset_map_.end())
+  {
+    m = it->second;
+    return true;
+  }
+  return false;
+}
+
 bool RobotInteraction::InteractionHandler::getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& ps)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
@@ -231,10 +278,14 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
   geometry_msgs::PoseStamped tpose;
-  if (transformFeedbackPose(feedback, tpose))
+  geometry_msgs::Pose offset;
+  if(!getPoseOffset(eef, offset))
+    offset.orientation.w = 1;
+  if (transformFeedbackPose(feedback, offset, tpose))
   {
-    boost::mutex::scoped_lock slock(pose_map_lock_);
+    pose_map_lock_.lock();
     pose_map_[eef.eef_group] = tpose;
+    pose_map_lock_.unlock();
   }
   else
     return false;
@@ -300,10 +351,14 @@ bool RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_intera
                                                               const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   geometry_msgs::PoseStamped tpose;
-  if (transformFeedbackPose(feedback, tpose))
+  geometry_msgs::Pose offset;
+  if(!getPoseOffset(vj, offset))
+    offset.orientation.w = 1;
+  if (transformFeedbackPose(feedback, offset, tpose))
   {
-    boost::mutex::scoped_lock slock(pose_map_lock_);
+    pose_map_lock_.lock();
     pose_map_[vj.joint_name] = tpose;
+    pose_map_lock_.unlock();
   }
   else
     return false;
@@ -328,7 +383,9 @@ bool RobotInteraction::InteractionHandler::inError(const robot_interaction::Robo
   return false;
 }
 
-bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose)
+bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
+                                                                 const geometry_msgs::Pose &offset,
+                                                                 geometry_msgs::PoseStamped &tpose)
 {
   tpose.header = feedback->header;
   tpose.pose = feedback->pose;
@@ -339,7 +396,12 @@ bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualiza
       {
         tf::Stamped<tf::Pose> spose;
         tf::poseStampedMsgToTF(tpose, spose);
+        // Express feedback (marker) pose in planning frame
         tf_->transformPose(planning_frame_, spose, spose);
+        // Apply inverse of offset to bring feedback pose back into the end-effector support link frame
+        tf::Transform tf_offset;
+        tf::poseMsgToTF(offset, tf_offset);
+        spose.setData(spose * tf_offset.inverse());
         tf::poseStampedTFToMsg(spose, tpose);
       }
       catch (tf::TransformException& e)
@@ -559,7 +621,9 @@ void RobotInteraction::clearInteractiveMarkersUnsafe(void)
 }
 
 
-void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef, visualization_msgs::InteractiveMarker& im)
+void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
+                                             const geometry_msgs::Pose& offset,
+                                             visualization_msgs::InteractiveMarker& im)
 {
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = false;
@@ -582,6 +646,7 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
   {
     marker_array.markers[i].header = im.header;
     marker_array.markers[i].mesh_use_embedded_materials = true;
+    marker_array.markers[i].pose = offset;
     m_control.markers.push_back(marker_array.markers[i]);
   }
   
@@ -601,8 +666,21 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     pose.header.stamp = ros::Time::now();
     kinematic_state::KinematicStateConstPtr s = handler->getState(); 
     const kinematic_state::LinkState *ls = s->getLinkState(active_eef_[i].parent_link);
-    tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
-    s.reset(); // to avoid spurious copies of states     
+    // Need to allow for control pose offsets
+    tf::Transform pose_link;
+    tf::poseEigenToTF(ls->getGlobalLinkTransform(), pose_link);
+    geometry_msgs::Pose offset;
+    if(handler->getPoseOffset(active_eef_[i], offset))
+    {
+      tf::Transform tf_offset;
+      tf::poseMsgToTF(offset, tf_offset);
+      pose_link = pose_link * tf_offset;
+    }
+    else
+      offset.orientation.w = 1;
+    tf::poseTFToMsg(pose_link, pose.pose);
+
+    s.reset(); // to avoid spurious copies of states
     std::string marker_name = "EE:" + handler->getName() + "_" + active_eef_[i].parent_link;
     shown_markers_[marker_name] = i;
     
@@ -612,7 +690,9 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     
     visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, marker_scale);
     if (handler && handler->getMeshesVisible())
-      addEndEffectorMarkers(handler, active_eef_[i], im);
+    {
+      addEndEffectorMarkers(handler, active_eef_[i], offset, im);
+    }
     else
       if (handler && handler->inError(active_eef_[i]))
         addErrorMarker(im);
@@ -735,22 +815,27 @@ void RobotInteraction::processingThread(void)
 
       // we put this in a try-catch because user specified callbacks may be triggered
 
+      bool locked = true;
       try
       {
         if (marker_class == "EE")
         {
           EndEffector eef = active_eef_[it->second];
           marker_access_lock_.unlock();
+          locked = false;
           jt->second->handleEndEffector(eef, feedback);
           marker_access_lock_.lock();
+          locked = true;
         }
         else
           if (marker_class == "VJ")
           {
             VirtualJoint vj = active_vj_[it->second];
             marker_access_lock_.unlock();
+            locked = false;
             jt->second->handleVirtualJoint(vj, feedback);
             marker_access_lock_.lock();
+            locked = true;
           }
           else
             ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());
@@ -763,7 +848,8 @@ void RobotInteraction::processingThread(void)
       {
         ROS_ERROR("Exception caught while processing event");
       }
-
+      // Hacky way to ensure we didn't unlock and then throw an exception...
+      if( !locked ) marker_access_lock_.lock();
     }
   }
 }
