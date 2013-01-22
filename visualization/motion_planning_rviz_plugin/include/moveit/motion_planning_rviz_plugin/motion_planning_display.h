@@ -81,11 +81,11 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   struct TrajectoryMessageToDisplay
   {
     TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningSceneConstPtr &scene);
-    TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
+    TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const kinematic_state::KinematicTrajectory &trajectory);
     
     kinematic_state::KinematicStatePtr start_state_;
-    std::vector<kinematic_state::KinematicStatePtr> trajectory_;
-    std::vector<double> time_from_start_;
+    kinematic_state::KinematicTrajectory trajectory_;
+    std::vector<double> display_duration_;
   };
   
   MotionPlanningDisplay();
@@ -140,7 +140,7 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void queueRenderSceneGeometry(void);
   
   void displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
-                              const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
+                              const kinematic_state::KinematicTrajectory &trajectory);
                                                                                                 
 private Q_SLOTS:
 

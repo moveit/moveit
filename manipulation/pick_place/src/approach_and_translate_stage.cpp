@@ -44,19 +44,15 @@ namespace pick_place
 
 ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &pre_grasp_scene,
                                                      const planning_scene::PlanningSceneConstPtr &post_grasp_scene,
-                                                     const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-                                                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                                                     unsigned int nthreads) :
-  ManipulationStage(nthreads),
+                                                     const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix) :
+  ManipulationStage("approach & translate"),
   pre_grasp_planning_scene_(pre_grasp_scene),
   post_grasp_planning_scene_(post_grasp_scene),
   collision_matrix_(collision_matrix),
-  planning_pipeline_(planning_pipeline),
   max_goal_count_(5),
   max_fail_(3),
   max_step_(0.02)
 {
-  name_ = "approach & translate";
 }
 
 namespace
@@ -116,7 +112,7 @@ void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Join
 
 }
 
-bool ApproachAndTranslateStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
+bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
 { 
   // compute what the maximum distance reported between any two states in the planning group could be
   double min_distance = 0.0;
@@ -166,7 +162,7 @@ bool ApproachAndTranslateStage::evaluate(unsigned int thread_id, const Manipulat
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
           if (d_translation > plan->grasp_.min_translation_distance)
           {
-            //            addGraspTrajectory(plan, plan->grasp_.pre_grasp_posture, "pre_grasp");
+            addGraspTrajectory(plan, plan->grasp_.pre_grasp_posture, "pre_grasp");
             
             plan->approach_state_.swap(first_approach_state);
             plan->translation_state_.swap(last_translation_state);
@@ -175,7 +171,7 @@ bool ApproachAndTranslateStage::evaluate(unsigned int thread_id, const Manipulat
             plan->trajectories_.push_back(approach_traj);
             plan->trajectory_descriptions_.push_back("approach");
 
-            //            addGraspTrajectory(plan, plan->grasp_.grasp_posture, "grasp");
+            addGraspTrajectory(plan, plan->grasp_.grasp_posture, "grasp");
             
             plan->trajectories_.push_back(translation_traj);
             plan->trajectory_descriptions_.push_back("translation");

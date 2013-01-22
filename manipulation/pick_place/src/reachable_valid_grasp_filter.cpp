@@ -36,6 +36,7 @@
 
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <boost/bind.hpp>
 #include <ros/console.h>
 
 namespace pick_place
@@ -43,14 +44,12 @@ namespace pick_place
 
 ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
                                                            const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-                                                           const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                                                           unsigned int nthreads) :
-  ManipulationStage(nthreads),
+                                                           const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager) :
+  ManipulationStage("reachable & valid grasp filter"),
   planning_scene_(scene),
   collision_matrix_(collision_matrix),
   constraints_sampler_manager_(constraints_sampler_manager)
 {
-  name_ = "reachable & valid grasp filter";
 }
 
 bool ReachableAndValidGraspFilter::isStateCollisionFree(const ManipulationPlan *manipulation_plan,
@@ -68,7 +67,7 @@ bool ReachableAndValidGraspFilter::isStateCollisionFree(const ManipulationPlan *
   return res.collision == false;
 }
 
-bool ReachableAndValidGraspFilter::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
+bool ReachableAndValidGraspFilter::evaluate(const ManipulationPlanPtr &plan) const
 {
   geometry_msgs::PoseStamped pose;
   pose.header = plan->grasp_.header;
