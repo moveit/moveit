@@ -29,8 +29,8 @@
  * Author: Mario Prats
  */
 
-#ifndef BENCHMARK_TOOL_UI_UTILS_
-#define BENCHMARK_TOOL_UI_UTILS_
+#ifndef BT_UI_UTILS_
+#define BT_UI_UTILS_
 
  #include <QPushButton>
 #include <QString>

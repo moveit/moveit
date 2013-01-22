@@ -29,6 +29,9 @@
  * Author: Mario Prats
  */
 
+#ifndef BT_MAIN_WINDOW_
+#define BT_MAIN_WINDOW_
+
 #include <QtGui/QMainWindow>
 #include <QTimer>
 #include "ui_main_window.h"
@@ -38,14 +41,12 @@
 #include <rviz/robot/robot.h>
 
 #include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
+#include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/motion_planning_rviz_plugin/background_processing.h>
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
-
-#ifndef MAIN_WINDOW_
-#define MAIN_WINDOW_
 
 namespace benchmark_tool
 {
@@ -70,36 +71,67 @@ public Q_SLOTS:
   void dbConnectButtonClicked();
   void dbConnectButtonClickedBackgroundJob();
 
+  void loadSceneButtonClicked(void);
+
   //main loop processing
   void executeMainLoopJobs();
 
+
 private:
-  const static unsigned int DEFAULT_WAREHOUSE_PORT = 33830;
+  const static char * ROBOT_DESCRIPTION_PARAM;
+  const static unsigned int DEFAULT_WAREHOUSE_PORT;
 
   Ui::MainWindow ui_;
 
   kinematic_state::KinematicStatePtr kinematic_state_;
-  moveit_rviz_plugin::KinematicStateVisualizationPtr robot_;
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
   //rviz
   rviz::RenderPanel *render_panel_;
   rviz::VisualizationManager *visualization_manager_;
-  rviz::Property root_property_;
+  moveit_rviz_plugin::PlanningSceneDisplay *scene_display_;
 
   //Warehouse
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
   boost::shared_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::shared_ptr<moveit_warehouse::RobotStateStorage> robot_state_storage_;
 
+  void populatePlanningSceneList(void);
+
   //Background processing
   moveit_rviz_plugin::BackgroundProcessing background_process_;
+  void loadSceneButtonClickedBackgroundJob(void);
 
   //Foreground processing
-  static const unsigned int MAIN_LOOP_RATE = 20; //calls to executeMainLoopJobs per second
+  const static unsigned int MAIN_LOOP_RATE = 20; //calls to executeMainLoopJobs per second
   std::deque<boost::function<void(void)> > main_loop_jobs_;
   boost::mutex main_loop_jobs_lock_;
   boost::shared_ptr<QTimer> main_loop_jobs_timer_;
+
+  //Status and logging
+  typedef enum {STATUS_WARN, STATUS_ERROR, STATUS_INFO} StatusType;
+  void setStatus(StatusType st, const QString &text)
+  {
+    if (st == STATUS_WARN)
+    {
+      ROS_WARN_STREAM(text.toStdString());
+      ui_.status_label->setText(text);
+    }
+    else if (st == STATUS_ERROR)
+    {
+      ROS_ERROR_STREAM(text.toStdString());
+      ui_.status_label->setText(text);
+    }
+    else if (st == STATUS_INFO)
+    {
+      ui_.status_label->setText(text);
+    }
+  }
+
+  void setStatusFromBackground(StatusType st, const QString &text)
+  {
+    addMainLoopJob(boost::bind(&MainWindow::setStatus, this, st, text));
+  }
+
 };
 
 }
