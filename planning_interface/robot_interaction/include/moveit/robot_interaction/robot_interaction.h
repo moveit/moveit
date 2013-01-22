@@ -84,6 +84,10 @@ public:
     double size;
   };
   
+  class InteractionHandler;
+  
+  typedef boost::function<void(InteractionHandler*)> InteractionHandlerCallbackFn;
+  
   class InteractionHandler
   {
   public:
@@ -108,14 +112,24 @@ public:
     kinematic_state::KinematicStateConstPtr getState(void) const;    
     void setState(const kinematic_state::KinematicState& kstate);
     
-    void setUpdateCallback(const boost::function<void(InteractionHandler*)> &callback)
+    void setUpdateCallback(const InteractionHandlerCallbackFn &callback)
     {
       update_callback_ = callback;
-    }
+    }    
     
+    const InteractionHandlerCallbackFn& getUpdateCallback(void) const
+    {
+      return update_callback_;
+    }    
+
     void setStateValidityCallback(const kinematic_state::StateValidityCallbackFn &callback)
     {
       state_validity_callback_fn_ = callback;
+    }
+    
+    const kinematic_state::StateValidityCallbackFn& getStateValidityCallback(void) const
+    {
+      return state_validity_callback_fn_;
     }
     
     void setIKTimeout(double timeout)

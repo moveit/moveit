@@ -814,28 +814,48 @@ void RobotInteraction::processingThread(void)
       }
 
       // we put this in a try-catch because user specified callbacks may be triggered
-
-      bool locked = true;
       try
       {
         if (marker_class == "EE")
         {
+          // make a copy of the data, so we do not lose it while we are unlocked
           EndEffector eef = active_eef_[it->second];
+          InteractionHandlerPtr ih = jt->second;
           marker_access_lock_.unlock();
-          locked = false;
-          jt->second->handleEndEffector(eef, feedback);
+          try
+          {
+            ih->handleEndEffector(eef, feedback);
+          }
+          catch(std::runtime_error &ex)
+          { 
+            ROS_ERROR("Exception caught while handling end-effector update: %s", ex.what());
+          }
+          catch(...)
+          {
+            ROS_ERROR("Exception caught while handling end-effector update");
+          }          
           marker_access_lock_.lock();
-          locked = true;
         }
         else
           if (marker_class == "VJ")
           {
-            VirtualJoint vj = active_vj_[it->second];
+            // make a copy of the data, so we do not lose it while we are unlocked
+            VirtualJoint vj = active_vj_[it->second];  
+            InteractionHandlerPtr ih = jt->second;
             marker_access_lock_.unlock();
-            locked = false;
-            jt->second->handleVirtualJoint(vj, feedback);
+            try
+            {
+              jt->second->handleVirtualJoint(vj, feedback);
+            }
+            catch(std::runtime_error &ex)
+            { 
+              ROS_ERROR("Exception caught while handling virtual joint update: %s", ex.what());
+            }
+            catch(...)
+            {
+              ROS_ERROR("Exception caught while handling virtual joint update");
+            }      
             marker_access_lock_.lock();
-            locked = true;
           }
           else
             ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());
@@ -848,8 +868,6 @@ void RobotInteraction::processingThread(void)
       {
         ROS_ERROR("Exception caught while processing event");
       }
-      // Hacky way to ensure we didn't unlock and then throw an exception...
-      if( !locked ) marker_access_lock_.lock();
     }
   }
 }
