@@ -37,6 +37,9 @@
 namespace benchmark_tool
 {
 
+const char * MainWindow::ROBOT_DESCRIPTION_PARAM = "robot_description";
+const unsigned int MainWindow::DEFAULT_WAREHOUSE_PORT = 33830;
+
 MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     QMainWindow(parent)
 {
@@ -44,6 +47,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
   ui_.setupUi(this);
 
+  //Rviz render panel
   render_panel_ = new rviz::RenderPanel();
   ui_.render_widget->addWidget(render_panel_);
 
@@ -52,27 +56,24 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   visualization_manager_->initialize();
   visualization_manager_->startUpdate();
 
+  //Grid display
   visualization_manager_->createDisplay("rviz/Grid", "Grid", true);
 
-  robot_.reset(new moveit_rviz_plugin::KinematicStateVisualization(visualization_manager_->getSceneManager()->getRootSceneNode(),
-                                                                   visualization_manager_, "robot", &root_property_));
-  robot_->setVisible(true);
+  //Planning scene display
+  scene_display_ = new moveit_rviz_plugin::PlanningSceneDisplay();
+  scene_display_->setName( "Planning Scene" );
+  scene_display_->subProp("Robot Description")->setValue(ROBOT_DESCRIPTION_PARAM);
+  visualization_manager_->addDisplay( scene_display_, true );
 
-  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description",
-                                                                                 visualization_manager_->getFrameManager()->getTFClientPtr(),
-                                                                                 "benchmark_tool_planning_scene_monitor"));
-
-  if (robot_ && planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
+  if ( scene_display_ && scene_display_->getPlanningSceneRO())
   {
-    kinematic_state_.reset(new kinematic_state::KinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState()));
-    robot_->load(*planning_scene_monitor_->getKinematicModel()->getURDF());
-    robot_->update(kinematic_state_);
+    kinematic_state_.reset(new kinematic_state::KinematicState(scene_display_->getPlanningSceneRO()->getCurrentState()));
 
     //Set the fixed frame to the model frame
-    visualization_manager_->setFixedFrame(QString(planning_scene_monitor_->getKinematicModel()->getModelFrame().c_str()));
+    visualization_manager_->setFixedFrame(QString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getModelFrame().c_str()));
 
     //Get the list of planning groups and fill in the combo box
-    std::vector<std::string> group_names = planning_scene_monitor_->getKinematicModel()->getJointModelGroupNames();
+    std::vector<std::string> group_names = scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getJointModelGroupNames();
     for (std::size_t i = 0; i < group_names.size(); i++)
     {
       ui_.planning_group_combo->addItem(QString(group_names[i].c_str()));
@@ -84,6 +85,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     //Connect signals and slots
     connect(ui_.planning_group_combo, SIGNAL( currentIndexChanged ( const QString & ) ), this, SLOT( planningGroupChanged( const QString & ) ));
     connect(ui_.db_connect_button, SIGNAL( clicked() ), this, SLOT( dbConnectButtonClicked() ));
+    connect(ui_.load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
 
     //Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));
@@ -100,8 +102,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 MainWindow::~MainWindow()
 {
   kinematic_state_.reset();
-  robot_.reset();
-  planning_scene_monitor_.reset();
+  delete scene_display_;
   delete visualization_manager_;
   delete render_panel_;
 }
@@ -123,6 +124,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
     planning_scene_storage_.reset();
     robot_state_storage_.reset();
     constraints_storage_.reset();
+    ui_.planning_scene_list->clear();
 
     addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Disconnected", "QPushButton { color : red }"));
   }
@@ -156,6 +158,11 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
                                                                            port, 5.0));
         constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host_port[0].toStdString(),
                                                                             port, 5.0));
+        addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Getting data...", "QPushButton { color : yellow }"));
+
+        //Get all the scenes
+        populatePlanningSceneList();
+
         addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Connected", "QPushButton { color : green }"));
       }
       catch(std::runtime_error &ex)
@@ -171,6 +178,71 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
       ROS_ERROR("Malformed url. Warehouse host must be introduced as host:port");
       addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Disconnected", "QPushButton { color : red }"));
       addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Malformed url. Warehouse host must be introduced as host:port"));
+    }
+  }
+}
+
+void MainWindow::populatePlanningSceneList(void)
+{
+  ui_.planning_scene_list->setUpdatesEnabled(false);
+
+  ui_.planning_scene_list->clear();
+  ui_.planning_scene_list->setSortingEnabled(true);
+  ui_.planning_scene_list->sortItems(Qt::AscendingOrder);
+
+  std::vector<std::string> names;
+  planning_scene_storage_->getPlanningSceneNames(names);
+  for (std::size_t i = 0; i < names.size(); ++i)
+  {
+    ui_.planning_scene_list->addItem(names[i].c_str());
+  }
+
+  ui_.planning_scene_list->setUpdatesEnabled(true);
+}
+
+void MainWindow::loadSceneButtonClicked(void)
+{
+  addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+}
+
+void MainWindow::loadSceneButtonClickedBackgroundJob(void)
+{
+  if (planning_scene_storage_)
+  {
+    QList<QListWidgetItem *> sel = ui_.planning_scene_list->selectedItems();
+    if ( ! sel.empty())
+    {
+      QListWidgetItem *s = sel.front();
+      std::string scene = s->text().toStdString();
+
+      setStatusFromBackground(STATUS_INFO, QString::fromStdString("Attempting to load scene" + scene + "..."));
+
+      moveit_warehouse::PlanningSceneWithMetadata scene_m;
+      bool got_ps = false;
+      try
+      {
+        got_ps = planning_scene_storage_->getPlanningScene(scene_m, scene);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("%s", ex.what());
+      }
+
+      if (got_ps)
+      {
+        ROS_DEBUG("Loaded scene '%s'", scene.c_str());
+        setStatusFromBackground(STATUS_INFO, QString::fromStdString("Rendering Scene..."));
+
+        //Update the planning scene
+        planning_scene_monitor::LockedPlanningSceneRW ps = scene_display_->getPlanningSceneRW();
+        ps->setPlanningSceneMsg(*scene_m.get());
+        scene_display_->queueRenderSceneGeometry();
+        setStatusFromBackground(STATUS_INFO, QString::fromStdString(""));
+      }
+      else
+      {
+        ROS_WARN("Failed to load scene '%s'. Has the message format changed since the scene was saved?", scene.c_str());
+      }
     }
   }
 }
@@ -210,7 +282,5 @@ void MainWindow::executeMainLoopJobs()
   }
   main_loop_jobs_lock_.unlock();
 }
-
-
 
 }

@@ -137,48 +137,18 @@
               </property>
              </spacer>
             </item>
-            <item row="1" column="0">
-             <widget class="QTreeWidget" name="planning_scene_tree">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="cursor" stdset="0">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="editTriggers">
-               <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
-              </property>
-              <property name="selectionMode">
-               <enum>QAbstractItemView::SingleSelection</enum>
-              </property>
-              <property name="headerHidden">
-               <bool>true</bool>
-              </property>
-              <property name="expandsOnDoubleClick">
-               <bool>true</bool>
-              </property>
-              <property name="columnCount">
-               <number>1</number>
-              </property>
-              <column>
-               <property name="text">
-                <string>1</string>
-               </property>
-              </column>
-             </widget>
-            </item>
             <item row="2" column="0">
              <widget class="QPushButton" name="load_scene_button">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
                <string>Load Scene</string>
               </property>
              </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QListWidget" name="planning_scene_list"/>
             </item>
            </layout>
           </widget>
@@ -506,6 +476,25 @@ results</string>
         </item>
        </layout>
       </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="status_label">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
      </widget>
     </item>
    </layout>
