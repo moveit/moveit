@@ -86,7 +86,7 @@ public:
   
   class InteractionHandler;
   
-  typedef boost::function<void(InteractionHandler*)> InteractionHandlerCallbackFn;
+  typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
   
   class InteractionHandler
   {
@@ -172,6 +172,16 @@ public:
       return display_meshes_;
     }
 
+    void setControlsVisible(bool visible)
+    {
+      display_controls_ = visible;
+    }
+
+    bool getControlsVisible(void) const
+    {
+      return display_controls_;
+    }
+
     double getVelocityGain(void) const
     {
       return velocity_gain_;
@@ -181,10 +191,19 @@ public:
     {
       velocity_gain_ = velocity_gain;
     }
+
+    void setPoseOffset(const EndEffector& eef, const geometry_msgs::Pose& m);
+
+    void clearPoseOffset(const RobotInteraction::EndEffector& eef);
+
+    void clearAllPoseOffsets();
+
+    bool getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m);
+    bool getPoseOffset(const RobotInteraction::VirtualJoint& vj, geometry_msgs::Pose& m);
     
     /** \brief Get the last interactive_marker command pose for the end-effector
      * @param The end-effector in question.
-     * @param A PoseStamped message containing the result.
+     * @param A PoseStamped message containing the last (offset-adjusted) pose commanded for the end-effector.
      * @return True if a pose for that end-effector was found, false otherwise.
      */
     bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
@@ -201,7 +220,9 @@ public:
     
   protected:
 
-    bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose);
+    bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
+                               const geometry_msgs::Pose &offset,
+                               geometry_msgs::PoseStamped &tpose);
 
     kinematic_state::KinematicStatePtr getUniqueStateAccess(void);
     void setStateToAccess(kinematic_state::KinematicStatePtr &state);
@@ -212,13 +233,16 @@ public:
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
     std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
-    boost::function<void(InteractionHandler*)> update_callback_;
+    std::map<std::string, geometry_msgs::Pose> offset_map_;
+    // bool can be used to signal a change in "state" (e.g. error, other properties?)
+    boost::function<void(InteractionHandler*, bool)> update_callback_;
     kinematic_state::StateValidityCallbackFn state_validity_callback_fn_;
     kinematic_state::SecondaryTaskFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
     IKInteractionType interaction_mode_;
     bool display_meshes_;
+    bool display_controls_;
     double velocity_gain_;
     
   private:
@@ -226,6 +250,7 @@ public:
     mutable boost::mutex state_lock_;
     mutable boost::condition_variable state_available_condition_;
     boost::mutex pose_map_lock_;
+    boost::mutex offset_map_lock_;
 
     void setup(void);
   };
@@ -268,7 +293,8 @@ private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupScale(const std::string &group);    
-  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef, visualization_msgs::InteractiveMarker& im);
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
+                             const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void processingThread(void);
   void clearInteractiveMarkersUnsafe(void);
