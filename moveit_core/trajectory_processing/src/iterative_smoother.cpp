@@ -340,7 +340,7 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
       // Loop forwards, then backwards
       for( int count=0; count<2; count++)
       {
-        logDebug("applyAcceleration: Iteration %i backwards=%i joint=%i", iteration, backwards, j);
+        //logDebug("applyAcceleration: Iteration %i backwards=%i joint=%i", iteration, backwards, j);
         //updateTrajectory(trajectory, time_diff);
         //printStats(trajectory);
 
@@ -434,7 +434,7 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
         backwards = !backwards;
       }
     }
-    logDebug("applyAcceleration: num_updates=%i", num_updates);
+    //logDebug("applyAcceleration: num_updates=%i", num_updates);
   } while(num_updates > 0 && iteration < max_iterations_);
 }
 
@@ -459,7 +459,7 @@ bool IterativeParabolicSmoother::smooth(const trajectory_msgs::JointTrajectory& 
   std::map<std::string, double> velocity_map;
   if(start_state.joint_state.name.size() == start_state.joint_state.velocity.size())
   {
-    logInform("We seem to have velocity data; populating...");
+    logDebug("We seem to have velocity data; populating...");
     for(int i=0; i < start_state.joint_state.name.size(); i++)
     {
       velocity_map[start_state.joint_state.name[i]] = start_state.joint_state.velocity[i];
@@ -469,9 +469,9 @@ bool IterativeParabolicSmoother::smooth(const trajectory_msgs::JointTrajectory& 
   applyVelocityConstraints(trajectory_out, limits, time_diff);
   applyAccelerationConstraints(trajectory_out, limits, time_diff, velocity_map);
 
-  logDebug("Velocity & Acceleration-Constrained Trajectory");
   updateTrajectory(trajectory_out, time_diff, velocity_map);
-  printStats(trajectory_out, limits);
+  // aleeper: Commented out because it seems horribly inefficient to do this all the time...
+  // printStats(trajectory_out, limits);
 
   return success;
 }
