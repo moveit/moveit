@@ -1,7 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_trajectory_processing)
 
 add_library(${MOVEIT_LIB_NAME}
-  src/iterative_smoother.cpp
+  src/iterative_time_parameterization.cpp
   src/trajectory_tools.cpp
 )
 # This line is needed to ensure that messages are done being built before this is built
