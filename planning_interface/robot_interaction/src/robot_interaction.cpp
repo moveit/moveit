@@ -60,7 +60,8 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   kstate_(new kinematic_state::KinematicState(kstate)),
   tf_(tf),
   interaction_mode_(POSITION_IK),
-  display_meshes_(true)
+  display_meshes_(true),
+  display_controls_(true)
 {
   setup();
 }
@@ -72,7 +73,8 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   kstate_(new kinematic_state::KinematicState(kmodel)),
   tf_(tf),
   interaction_mode_(POSITION_IK),
-  display_meshes_(true)
+  display_meshes_(true),
+  display_controls_(true)
 {
   setup();
 }
@@ -342,7 +344,7 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   }
 
   if (update_callback_)
-    update_callback_(this);
+    update_callback_(this, error_state_changed);
 
   return error_state_changed;
 }
@@ -368,7 +370,7 @@ bool RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_intera
   setStateToAccess(state);
   
   if (update_callback_)
-    update_callback_(this);
+    update_callback_(this, false);
   
   return false;
 }
@@ -622,15 +624,12 @@ void RobotInteraction::clearInteractiveMarkersUnsafe(void)
 
 
 void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
-                                             const geometry_msgs::Pose& offset,
+                                             const geometry_msgs::Pose& im_to_eef,
                                              visualization_msgs::InteractiveMarker& im)
 {
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = false;
   m_control.interaction_mode = m_control.MOVE_ROTATE;
-
-  kinematic_state::KinematicStateConstPtr kinematic_state = handler->getState();
-  const std::vector<std::string> &link_names = kinematic_state->getJointStateGroup(eef.eef_group)->getJointModelGroup()->getLinkModelNames();
 
   std_msgs::ColorRGBA marker_color;
   const float *color = handler->inError(eef) ? END_EFFECTOR_UNREACHABLE_COLOR : END_EFFECTOR_REACHABLE_COLOR;
@@ -638,15 +637,36 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
   marker_color.g = color[1];
   marker_color.b = color[2];
   marker_color.a = color[3];
-  
+
+  kinematic_state::KinematicStateConstPtr kinematic_state = handler->getState();
+  const std::vector<std::string> &link_names = kinematic_state->getJointStateGroup(eef.eef_group)->getJointModelGroup()->getLinkModelNames();
   visualization_msgs::MarkerArray marker_array;
   kinematic_state->getRobotMarkers(marker_array, link_names, marker_color, eef.eef_group, ros::Duration());
+  tf::Pose tf_root_to_link;
+  try{
+    tf::poseEigenToTF(kinematic_state->getLinkState(eef.parent_link)->getGlobalLinkTransform(), tf_root_to_link);
+  }
+  catch(...)
+  {
+    ROS_ERROR("Didn't find link state for [%s]", eef.parent_link.c_str());
+  }
+  // Release the ptr count on the kinematic state
+  kinematic_state.reset();
 
   for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
   {
     marker_array.markers[i].header = im.header;
     marker_array.markers[i].mesh_use_embedded_materials = true;
-    marker_array.markers[i].pose = offset;
+    // - - - - - - Do some math for the offset - - - - - -
+    tf::Pose tf_root_to_im, tf_root_to_mesh, tf_im_to_eef;
+    tf::poseMsgToTF(im.pose, tf_root_to_im);
+    tf::poseMsgToTF(marker_array.markers[i].pose, tf_root_to_mesh);
+    tf::poseMsgToTF(im_to_eef, tf_im_to_eef);
+    tf::Pose tf_eef_to_mesh = tf_root_to_link.inverse() * tf_root_to_mesh;
+    tf::Pose tf_im_to_mesh = tf_im_to_eef * tf_eef_to_mesh;
+    tf::Pose tf_root_to_mesh_new = tf_root_to_im * tf_im_to_mesh;
+    tf::poseTFToMsg(tf_root_to_mesh_new, marker_array.markers[i].pose);
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
     m_control.markers.push_back(marker_array.markers[i]);
   }
   
@@ -667,20 +687,26 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     kinematic_state::KinematicStateConstPtr s = handler->getState(); 
     const kinematic_state::LinkState *ls = s->getLinkState(active_eef_[i].parent_link);
     // Need to allow for control pose offsets
-    tf::Transform pose_link;
-    tf::poseEigenToTF(ls->getGlobalLinkTransform(), pose_link);
-    geometry_msgs::Pose offset;
-    if(handler->getPoseOffset(active_eef_[i], offset))
+    tf::Transform tf_root_to_link, tf_root_to_control;
+    tf::poseEigenToTF(ls->getGlobalLinkTransform(), tf_root_to_link);
+    s.reset(); // to avoid spurious copies of states
+    geometry_msgs::Pose msg_link_to_control;
+    geometry_msgs::Pose msg_control_to_eef_mesh;
+    if(handler->getPoseOffset(active_eef_[i], msg_link_to_control))
     {
-      tf::Transform tf_offset;
-      tf::poseMsgToTF(offset, tf_offset);
-      pose_link = pose_link * tf_offset;
+      tf::Transform tf_link_to_control;
+      tf::poseMsgToTF(msg_link_to_control, tf_link_to_control);
+
+      tf_root_to_control = tf_root_to_link * tf_link_to_control;
+      tf::poseTFToMsg(tf_link_to_control.inverse(), msg_control_to_eef_mesh);
     }
     else
-      offset.orientation.w = 1;
-    tf::poseTFToMsg(pose_link, pose.pose);
+    {
+      tf_root_to_control = tf_root_to_link;
+      msg_control_to_eef_mesh.orientation.w = 1;
+    }
+    tf::poseTFToMsg(tf_root_to_control, pose.pose);
 
-    s.reset(); // to avoid spurious copies of states
     std::string marker_name = "EE:" + handler->getName() + "_" + active_eef_[i].parent_link;
     shown_markers_[marker_name] = i;
     
@@ -688,11 +714,11 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     if (marker_scale < std::numeric_limits<double>::epsilon())
       marker_scale = active_eef_[i].size;
     
-    visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, marker_scale);
+    visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, marker_scale);
+    if(handler && handler->getControlsVisible())
+      add6DOFControl(im, false);
     if (handler && handler->getMeshesVisible())
-    {
-      addEndEffectorMarkers(handler, active_eef_[i], offset, im);
-    }
+      addEndEffectorMarkers(handler, active_eef_[i], msg_control_to_eef_mesh, im);
     else
       if (handler && handler->inError(active_eef_[i]))
         addErrorMarker(im);
@@ -713,8 +739,9 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       s.reset(); // to avoid spurious copies of states     
       std::string marker_name = "VJ:" + handler->getName() + "_" + active_vj_[i].connecting_link;
       shown_markers_[marker_name] = i;
-      visualization_msgs::InteractiveMarker im = make3DOFMarker(marker_name, pose, active_vj_[i].size);
-      
+      visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, active_vj_[i].size);
+      if(handler && handler->getControlsVisible())
+        add3DOFControl(im, false);
       int_marker_server_->insert(im);
       int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
       ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_vj_[i].size);
