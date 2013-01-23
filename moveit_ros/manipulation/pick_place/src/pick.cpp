@@ -70,6 +70,10 @@ PickPlan::PickPlan(const PickPlaceConstPtr &pick_place) :
   pipeline_.setSolutionCallback(boost::bind(&PickPlan::foundSolution, this));
 }
 
+PickPlan::~PickPlan(void)
+{
+}
+
 bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
 {
   double timeout = goal.allowed_planning_time.toSec();
@@ -106,8 +110,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
     }      
   const kinematic_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getKinematicModel()->getEndEffector(end_effector);
-  if (!eef)
-  {
+  if (!eef)  {
     ROS_ERROR("No end-effector specified for pick action");
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return false;
@@ -147,8 +150,9 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, planning_scene_after_grasp, approach_grasp_acm));
   ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline())); 
   pipeline_.addStage(stage1).addStage(stage2).addStage(stage3);
+  
   pipeline_.start();
-
+  
   // order the grasps by quality
   std::vector<std::size_t> grasp_order(goal.possible_grasps.size());
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
@@ -171,14 +175,14 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     p->trajectory_start_ = start;
     pipeline_.push(p);
   }
-  
+    
   // wait till we're done
   {
     boost::unique_lock<boost::mutex> lock(done_mutex_);
     while (!done_ && endtime > ros::WallTime::now())
       done_condition_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
   }
-  pipeline_.signalStop();
+  pipeline_.stop();
   
   last_plan_time_ = (ros::WallTime::now() - start_time).toSec();
   

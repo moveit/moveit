@@ -421,9 +421,6 @@ private:
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     }
-    ROS_ERROR("destroy crap"); 
-    plan.reset();
-    
   }
   
   bool planUsingPickPlace(const moveit_msgs::PickupGoal& goal, plan_execution::ExecutableMotionPlan &plan)
@@ -467,7 +464,7 @@ private:
     else
     {
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-    }   
+    }
     
     plan.planned_trajectory_states_.resize(plan.planned_trajectory_.size());
     for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i) // trajectory_start_ state is only correct for the first path component
