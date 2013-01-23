@@ -55,42 +55,10 @@ PickPlace::PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipe
 
 void PickPlace::displayPlan(const ManipulationPlanPtr &plan) const
 { 
-  /*
-  {
-    moveit_msgs::DisplayTrajectory dtraj;
-    dtraj.trajectory_start = plan->trajectory_start_;
-    display_path_publisher_.publish(dtraj);
-    sleep(3);
-  } 
-
-  
-  if (plan->token_goal_state_)
-  {
-    moveit_msgs::DisplayTrajectory dtraj;
-    kinematic_state::kinematicStateToRobotState(*plan->token_goal_state_, dtraj.trajectory_start);
-    display_path_publisher_.publish(dtraj);
-    sleep(3);
-  } 
-
-  if (plan->token_intermediate_state_)
-  {
-    moveit_msgs::DisplayTrajectory dtraj;
-    kinematic_state::kinematicStateToRobotState(*plan->token_intermediate_state_, dtraj.trajectory_start);
-    display_path_publisher_.publish(dtraj);   
-    sleep(3);
-  } 
-  */
-  if (!plan->trajectories_.empty())
-  {   
-    moveit_msgs::DisplayTrajectory dtraj;
-    dtraj.trajectory_start = plan->trajectory_start_;
-    for (std::size_t i = 0 ; i < plan->trajectories_.size() ; ++i)
-    {
-      dtraj.trajectory = plan->trajectories_[i];
-      sleep(3);
-      display_path_publisher_.publish(dtraj);
-    }
-  }
+  moveit_msgs::DisplayTrajectory dtraj;
+  dtraj.trajectory_start = plan->trajectory_start_; 
+  dtraj.trajectory = plan->trajectories_;
+  display_path_publisher_.publish(dtraj);
 }
 
 }

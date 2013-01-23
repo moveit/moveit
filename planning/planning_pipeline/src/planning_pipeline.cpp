@@ -323,7 +323,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     moveit_msgs::DisplayTrajectory disp;
     disp.model_id = planning_scene->getKinematicModel()->getName();
     disp.trajectory_start = res.trajectory_start;
-    disp.trajectory = res.trajectory;
+    disp.trajectory.resize(1, res.trajectory);
     display_path_publisher_.publish(disp);      
   }
   

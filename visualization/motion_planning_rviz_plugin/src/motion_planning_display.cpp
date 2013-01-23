@@ -75,21 +75,35 @@ MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(co
 {
   start_state_.reset(new kinematic_state::KinematicState(scene->getCurrentState()));
   kinematic_state::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
-  trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory, *start_state_, scene->getTransforms());
+  for (std::size_t j = 0 ; j < message->trajectory.size() ; ++j)
+  {
+    // convert the path to kinematic states
+    kinematic_state::KinematicTrajectory tmp;
+    trajectory_processing::convertToKinematicStates(tmp, message->trajectory_start, message->trajectory[j], *start_state_, scene->getTransforms());
+    if (trajectory_.empty())
+      trajectory_.swap(tmp);
+    else
+      trajectory_.insert(trajectory_.end(), tmp.begin(), tmp.end());
 
-  if (message->trajectory.joint_trajectory.points.size() > message->trajectory.multi_dof_joint_trajectory.points.size())
-    for (std::size_t i = 0 ; i < message->trajectory.joint_trajectory.points.size() ; ++i)
-      time_from_start_.push_back(message->trajectory.joint_trajectory.points[i].time_from_start.toSec());
-  else
-    for (std::size_t i = 0 ; i < message->trajectory.multi_dof_joint_trajectory.points.size() ; ++i)
-      time_from_start_.push_back(message->trajectory.multi_dof_joint_trajectory.points[i].time_from_start.toSec());
-
-  for (int i = (int)time_from_start_.size() - 1 ; i > 0 ; --i)
-    time_from_start_[i] -= time_from_start_[i - 1];
+    // compute the display durations
+    std::vector<double> tmp2;
+    if (message->trajectory[j].joint_trajectory.points.size() > message->trajectory[j].multi_dof_joint_trajectory.points.size())
+      for (std::size_t i = 0 ; i < message->trajectory[j].joint_trajectory.points.size() ; ++i)
+        tmp2.push_back(message->trajectory[j].joint_trajectory.points[i].time_from_start.toSec());
+    else
+      for (std::size_t i = 0 ; i < message->trajectory[j].multi_dof_joint_trajectory.points.size() ; ++i)
+        tmp2.push_back(message->trajectory[j].multi_dof_joint_trajectory.points[i].time_from_start.toSec());
+    for (int i = (int)tmp2.size() - 1 ; i > 0 ; --i)
+      tmp2[i] -= tmp2[i - 1];
+    if (display_duration_.empty())
+      display_duration_.swap(tmp2);
+    else
+      display_duration_.insert(display_duration_.end(), tmp2.begin(), tmp2.end());
+  }
 }
 
 MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state,
-                                                                              const std::vector<kinematic_state::KinematicStatePtr> &trajectory) :
+                                                                              const kinematic_state::KinematicTrajectory &trajectory) :
   start_state_(start_state), trajectory_(trajectory)
 {
 }
@@ -967,7 +981,7 @@ void MotionPlanningDisplay::changedStateDisplayTime()
 }
 
 void MotionPlanningDisplay::displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
-                                                   const std::vector<kinematic_state::KinematicStatePtr> &trajectory)
+                                                   const kinematic_state::KinematicTrajectory &trajectory)
 {
   trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(start_state, trajectory));
 }
@@ -1284,8 +1298,8 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     float tm = getStateDisplayTime();
     if (tm < 0.0) // if we should use realtime
     {
-      if ((std::size_t) (current_state_ + 1) < displaying_trajectory_message_->time_from_start_.size())
-        tm = displaying_trajectory_message_->time_from_start_[current_state_ + 1];
+      if ((std::size_t) (current_state_ + 1) < displaying_trajectory_message_->display_duration_.size())
+        tm = displaying_trajectory_message_->display_duration_[current_state_ + 1];
       else
         tm = 0.0f;
     }
