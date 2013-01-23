@@ -491,6 +491,7 @@ void MotionPlanningDisplay::clearTrajectoryTrail(void)
 
 void MotionPlanningDisplay::changedLoopDisplay()
 {
+  display_path_robot_->setVisible(isEnabled() && displaying_trajectory_message_ && animating_path_);
 }
 
 void MotionPlanningDisplay::changedShowTrail(void)
@@ -512,7 +513,7 @@ void MotionPlanningDisplay::changedShowTrail(void)
     r->setVisualVisible(display_path_visual_enabled_property_->getBool() );
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool() );
     r->update(PlanningLinkUpdater(t->trajectory_[i]));
-    r->setVisible(true);
+    r->setVisible(isEnabled() && (!animating_path_ || i<=current_state_));
     trajectory_trail_[i] = r;
   }
 }
@@ -995,7 +996,7 @@ void MotionPlanningDisplay::changedDisplayPathVisualEnabled()
   if (isEnabled())
   {
     display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
-    display_path_robot_->setVisible(displaying_trajectory_message_);
+    display_path_robot_->setVisible(isEnabled() && displaying_trajectory_message_ && animating_path_);
     for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
       trajectory_trail_[i]->setVisualVisible( display_path_visual_enabled_property_->getBool() );
   }
@@ -1010,7 +1011,7 @@ void MotionPlanningDisplay::changedDisplayPathCollisionEnabled()
   if (isEnabled())
   {
     display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
-    display_path_robot_->setVisible(displaying_trajectory_message_);
+    display_path_robot_->setVisible(isEnabled() && displaying_trajectory_message_ && animating_path_);
     for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
       trajectory_trail_[i]->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   }
@@ -1168,7 +1169,7 @@ void MotionPlanningDisplay::onEnable()
 
   display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
-  display_path_robot_->setVisible(displaying_trajectory_message_);
+  display_path_robot_->setVisible(displaying_trajectory_message_ && animating_path_);
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
   {
     trajectory_trail_[i]->setVisualVisible( display_path_visual_enabled_property_->getBool() );
@@ -1283,6 +1284,7 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     animating_path_ = true;
     current_state_ = -1;
     current_state_time_ = std::numeric_limits<float>::infinity();
+    display_path_robot_->setVisible(isEnabled());
   }
 
   if (!animating_path_ && trajectory_message_to_display_)
@@ -1311,9 +1313,18 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     {
       ++current_state_;
       if ((std::size_t) current_state_ < displaying_trajectory_message_->trajectory_.size())
+      {
         display_path_robot_->update(displaying_trajectory_message_->trajectory_[current_state_]);
+        for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
+        {
+          trajectory_trail_[i]->setVisible(i <= current_state_);
+        }
+      }
       else
+      {
         animating_path_ = false;
+        display_path_robot_->setVisible(loop_display_property_->getBool());
+      }
       current_state_time_ = 0.0f;
     }
     current_state_time_ += wall_dt;
