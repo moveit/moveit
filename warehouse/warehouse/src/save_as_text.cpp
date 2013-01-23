@@ -139,7 +139,7 @@ int main(int argc, char **argv)
         {
           qfout << "start" << std::endl;
           qfout << robotStateNames.size() << std::endl;
-          for(int k = 0; k < robotStateNames.size(); ++k)
+          for(std::size_t k = 0; k < robotStateNames.size(); ++k)
           {
             ROS_INFO("Saving start state %s for scene %s", robotStateNames[k].c_str(), scene_names[i].c_str());
             qfout << robotStateNames[k] << std::endl;
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
         {
           qfout << "goal" << std::endl;
           qfout << constraintNames.size() << std::endl;
-          for(int k = 0; k < constraintNames.size(); ++k)
+          for(std::size_t k = 0; k < constraintNames.size(); ++k)
           {
             ROS_INFO("Saving goal %s for scene %s", constraintNames[k].c_str(), scene_names[i].c_str());
             qfout << "link_constraint" << std::endl;
