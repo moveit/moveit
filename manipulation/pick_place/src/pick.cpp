@@ -70,9 +70,8 @@ PickPlan::PickPlan(const PickPlaceConstPtr &pick_place) :
   pipeline_.setSolutionCallback(boost::bind(&PickPlan::foundSolution, this));
 }
 
-const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
+bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
 {
-  static const std::vector<ManipulationPlanPtr> empty_result;
   double timeout = goal.allowed_planning_time.toSec();
   ros::WallTime endtime = ros::WallTime::now() + ros::WallDuration(timeout);
   
@@ -82,7 +81,10 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
   {
     const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(planning_group);
     if (!jmg)
-      return empty_result;
+    {
+      error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+      return false;
+    }
     const std::vector<std::string> &eefs = jmg->getAttachedEndEffectorNames();
     if (!eefs.empty())
     {
@@ -96,7 +98,10 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
     {
       const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getEndEffector(end_effector);
       if (!jmg)
-        return empty_result;
+      {
+        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;  
+        return false;
+      }
       planning_group = jmg->getEndEffectorParentGroup().first;
       ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
     }      
@@ -104,7 +109,8 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
   if (!eef)
   {
     ROS_ERROR("No end-effector specified for pick action");
-    return empty_result;
+    error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+    return false;
   }
   const std::string &ik_link = eef->getEndEffectorParentGroup().second;
 
@@ -172,9 +178,22 @@ const std::vector<ManipulationPlanPtr>& PickPlan::plan(const planning_scene::Pla
     while (!done_ && endtime > ros::WallTime::now())
       done_condition_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
   }
+  pipeline_.signalStop();
   
   last_plan_time_ = (ros::WallTime::now() - start_time).toSec();
-  return getSuccessfulManipulationPlans();
+  
+  if (!getSuccessfulManipulationPlans().empty())
+    error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  else
+  {
+    if (last_plan_time_ > timeout)
+      error_code_.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+    else
+      error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+  }
+  ROS_INFO("Pickup completed after %lf seconds", last_plan_time_);
+  
+  return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
 void PickPlan::foundSolution(void)

@@ -453,7 +453,7 @@ public:
     moveit_msgs::PickupGoal goal;
     constructGoal(goal, object);
     goal.possible_grasps = grasps;
-    goal.planning_options.plan_only = false;
+    goal.planning_options.plan_only = true;
     pick_action_client_->sendGoal(goal); 
     if (!pick_action_client_->waitForResult())
     {

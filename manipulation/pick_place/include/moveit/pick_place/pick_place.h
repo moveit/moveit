@@ -57,7 +57,7 @@ class PickPlan
 public:
   
   PickPlan(const PickPlaceConstPtr &pick_place);
-  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal);
+  bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal);
   const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const
   {
     return pipeline_.getSuccessfulManipulationPlans();
@@ -65,6 +65,11 @@ public:
   const std::vector<ManipulationPlanPtr>& getFailedPlans(void) const
   {
     return pipeline_.getFailedPlans();  
+  }
+
+  const moveit_msgs::MoveItErrorCodes& getErrorCode(void) const
+  {
+    return error_code_;
   }
   
 private:
@@ -77,6 +82,7 @@ private:
   bool done_;
   boost::condition_variable done_condition_;
   boost::mutex done_mutex_;
+  moveit_msgs::MoveItErrorCodes error_code_;
 };
 
 typedef boost::shared_ptr<PickPlan> PickPlanPtr;
@@ -87,7 +93,7 @@ class PlacePlan
 public:
   
   PlacePlan(const PickPlaceConstPtr &pick_place);
-  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
+  bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
   const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const
   {
     return pipeline_.getSuccessfulManipulationPlans();
@@ -95,6 +101,11 @@ public:
   const std::vector<ManipulationPlanPtr>& getFailedPlans(void) const
   {
     return pipeline_.getFailedPlans();  
+  }
+
+  const moveit_msgs::MoveItErrorCodes& getErrorCode(void) const
+  {
+    return error_code_;
   }
   
 private:
@@ -106,6 +117,7 @@ private:
   bool done_;
   boost::condition_variable done_condition_;
   boost::mutex done_mutex_; 
+  moveit_msgs::MoveItErrorCodes error_code_;
 };
 
 typedef boost::shared_ptr<PlacePlan> PlacePlanPtr;

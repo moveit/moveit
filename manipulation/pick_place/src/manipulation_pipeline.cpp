@@ -51,8 +51,6 @@ ManipulationPipeline::ManipulationPipeline(const std::string &name, unsigned int
 ManipulationPipeline::~ManipulationPipeline(void)
 {  
   reset();
-  for (std::size_t i = 0 ; i < processing_threads_.size() ; ++i)
-    delete processing_threads_[i];
 }
 
 ManipulationPipeline& ManipulationPipeline::addStage(const ManipulationStagePtr &next)
@@ -121,16 +119,29 @@ void ManipulationPipeline::start(void)
       processing_threads_[i] = new boost::thread(boost::bind(&ManipulationPipeline::processingThread, this, i));
 }
 
-void ManipulationPipeline::stop(void)
-{  
+void ManipulationPipeline::signalStop(void)
+{
+  ROS_ERROR("Signal stop");
   stop_processing_ = true;
-  queue_access_cond_.notify_all();
+  queue_access_cond_.notify_all();  
+}
+
+void ManipulationPipeline::stop(void)
+{ 
+  signalStop(); 
+  ROS_ERROR("..... to complete stop");  
+
   for (std::size_t i = 0; i < processing_threads_.size() ; ++i)
     if (processing_threads_[i])
     {
+      ROS_ERROR("joint %d", i);
+      
       processing_threads_[i]->join();
+      ROS_ERROR("delete %d", i);
+      delete processing_threads_[i];
       processing_threads_[i] = NULL;
     }
+  ROS_ERROR("completed stop");  
 }
 
 void ManipulationPipeline::processingThread(unsigned int index)
@@ -139,22 +150,27 @@ void ManipulationPipeline::processingThread(unsigned int index)
   
   while (!stop_processing_)
   {
-    boost::unique_lock<boost::mutex> ulock(queue_access_lock_);
+    ROS_ERROR("Thread %d loop 1", index);
     
+    boost::unique_lock<boost::mutex> ulock(queue_access_lock_);
+    ROS_ERROR("Thread %d loop 2", index);
     while (queue_.empty() && !stop_processing_)
       queue_access_cond_.wait(ulock); 
-    
+    ROS_ERROR("Thread %d loop 3", index);
     while (!stop_processing_ && !queue_.empty())
     {
       ManipulationPlanPtr g = queue_.front();
       queue_.pop_front();
-      
+      ROS_ERROR("Thread %d loop 4", index);
+
       queue_access_lock_.unlock();
       try
       {
         g->error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
         for (std::size_t i = 0 ; !stop_processing_ && i < stages_.size() ; ++i)
-        {
+        {  
+          ROS_ERROR("Thread %d loop 4X : %d", index, i);
+
           g->processing_stage_ = i;
           if (!stages_[i]->evaluate(g))
           {
@@ -170,7 +186,7 @@ void ManipulationPipeline::processingThread(unsigned int index)
             boost::mutex::scoped_lock slock(result_lock_);
             success_.push_back(g);
           }
-          stop_processing_ = true;
+          signalStop();
           ROS_INFO_STREAM("Found successful manipulation plan!");
           if (solution_callback_)
             solution_callback_();
@@ -183,10 +199,13 @@ void ManipulationPipeline::processingThread(unsigned int index)
       catch (...)
       {
         ROS_ERROR("[%s:%u] Caught unknown exception while processing manipulation stage", name_.c_str(), index);
-      }     
-      queue_access_lock_.lock();
+      }      
+      ROS_ERROR("Thread %d loop 5", index);
+      queue_access_lock_.lock();      ROS_ERROR("Thread %d loop 6", index);
+
     }
   }
+  ROS_ERROR_STREAM("Finish thread " << index << " for '" << name_ << "'");
 }
 
 void ManipulationPipeline::push(const ManipulationPlanPtr &plan)

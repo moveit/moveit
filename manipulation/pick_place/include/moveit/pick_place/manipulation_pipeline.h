@@ -69,6 +69,7 @@ public:
   const ManipulationStagePtr& getLastStage(void) const;
   void reset(void);
   
+  void signalStop(void);
   void start(void);  
   void stop(void);  
   

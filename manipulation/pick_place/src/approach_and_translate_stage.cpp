@@ -143,8 +143,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
       // try to compute a straight line path that arrives at the goal using the specified approach direction
       moveit_msgs::RobotTrajectory approach_traj;
       kinematic_state::KinematicStatePtr first_approach_state(new kinematic_state::KinematicState(*plan->possible_goal_states_[i]));
-      double d_approach = first_approach_state->getJointStateGroup(plan->planning_group_)->computeCartesianPath(approach_traj, plan->ik_link_name_, 
-                                                                                                                -approach_direction, plan->grasp_.desired_approach_distance, 
+      double d_approach = first_approach_state->getJointStateGroup(plan->planning_group_)->computeCartesianPath(approach_traj, plan->ik_link_name_, -approach_direction,
+                                                                                                                false, plan->grasp_.desired_approach_distance, 
                                                                                                                 max_step_, approach_validCallback);
       
       // if we were able to follow the approach direction for sufficient length, try to compute a translation direction
@@ -157,7 +157,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           moveit_msgs::RobotTrajectory translation_traj;
           kinematic_state::KinematicStatePtr last_translation_state(new kinematic_state::KinematicState(*plan->possible_goal_states_[i]));
           double d_translation = last_translation_state->getJointStateGroup(plan->planning_group_)->computeCartesianPath(translation_traj, plan->ik_link_name_, 
-                                                                                                                         translation_direction, plan->grasp_.desired_translation_distance, 
+                                                                                                                         translation_direction, true, 
+                                                                                                                         plan->grasp_.desired_translation_distance, 
                                                                                                                          max_step_, translation_validCallback);
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
           if (d_translation > plan->grasp_.min_translation_distance)
@@ -198,6 +199,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
     }
   }
   while (plan->possible_goal_states_.size() < max_goal_count_ && samplePossibleGoalStates(plan, pre_grasp_planning_scene_->getCurrentState(), min_distance, max_fail_));
+  plan->error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
   
   return false;
 }

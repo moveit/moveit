@@ -64,8 +64,11 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
     plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory);
     plan->trajectory_start_ = res.trajectory_start;
     plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), name_);
+    plan->error_code_ = res.error_code;
     return true;
   }
+  else
+    plan->error_code_ = res.error_code;
   return false;
 }
 
