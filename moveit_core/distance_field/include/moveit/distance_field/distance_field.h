@@ -45,7 +45,7 @@
 #include <Eigen/Geometry>
 #include <moveit_msgs/CollisionMap.h>
 #include <eigen_stl_containers/eigen_stl_containers.h>
-#include <geometric_shapes/shape_messages.h>
+#include <geometric_shapes/shapes.h>
 
 namespace distance_field
 {
@@ -113,14 +113,16 @@ public:
    */
   virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)=0;
 
-  void addShapeToField(const shapes::ShapeMsg& shape,
+  void addShapeToField(const shapes::Shape* shape,
                        const geometry_msgs::Pose& pose);
 
-  void moveShapeInField(const shapes::ShapeMsg& shape,
+  void moveShapeInField(const shapes::Shape* shape,
                         const geometry_msgs::Pose& old_pose,
                         const geometry_msgs::Pose& new_pose);
+
+  void addOcTreeToField(const octomap::OcTree* octree);
   
-  void removeShapeFromField(const shapes::ShapeMsg& shape,
+  void removeShapeFromField(const shapes::Shape* shape,
                             const geometry_msgs::Pose& pose);
 
   /**

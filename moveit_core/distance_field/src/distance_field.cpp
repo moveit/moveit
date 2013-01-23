@@ -38,6 +38,9 @@
 #include <moveit/distance_field/distance_field_common.h>
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <console_bridge/console.h>
+#include <octomap/octomap.h>
+#include <octomap/OcTree.h>
 
 namespace distance_field
 {
@@ -192,20 +195,76 @@ void DistanceField::getGradientMarkers( double min_radius, double max_radius,
   }
 }
 
-void DistanceField::addShapeToField(const shapes::ShapeMsg& shape,
+void DistanceField::addShapeToField(const shapes::Shape* shape,
                                     const geometry_msgs::Pose& pose)
 {
-  bodies::Body* body = bodies::constructBodyFromMsg(shape, pose);
-  EigenSTL::vector_Vector3d point_vec = determineCollisionPoints(body, resolution_);
-  delete body;
-  addPointsToField(point_vec);
+  if(shape->type == shapes::OCTREE) {
+    
+  } else {
+    bodies::Body* body = bodies::createBodyFromShape(shape);
+    Eigen::Affine3d pose_e;
+    tf::poseMsgToEigen(pose, pose_e);
+    body->setPose(pose_e);
+    EigenSTL::vector_Vector3d point_vec = determineCollisionPoints(body, resolution_);
+    delete body;
+    addPointsToField(point_vec);
+  }
 }
 
-void DistanceField::moveShapeInField(const shapes::ShapeMsg& shape,
+void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
+{
+  //lower extent
+  double min_x, min_y, min_z;
+  gridToWorld(0,0,0,
+              min_x, min_y, min_z);
+
+  octomap::point3d bbx_min(min_x, min_y, min_z);
+
+  int num_x = getXNumCells();
+  int num_y = getYNumCells();
+  int num_z = getZNumCells();
+
+  //upper extent
+  double max_x, max_y, max_z;
+  gridToWorld(num_x, num_y, num_z,
+              max_x, max_y, max_z);
+
+  octomap::point3d bbx_max(max_x, max_y, max_z);
+
+  std::cout << "Min extent " << min_x << " " << min_y << " " << min_z << std::endl;
+  std::cout << "Max extent " << max_x << " " << max_y << " " << max_z << std::endl;
+
+  EigenSTL::vector_Vector3d points;
+
+  for(octomap::OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbx_min,bbx_max),
+        end=octree->end_leafs_bbx(); it!= end; ++it)
+  {
+    if (octree->isNodeOccupied(*it))
+    {
+      //todo - deal with resolution differences
+      Eigen::Vector3d point(it.getX(), it.getY(), it.getZ());
+      if(point.x() == 1.5 || point.y() == 1.5 || point.z() == 1.5) 
+      {
+        std::cout << "Adding 1.5" << std::endl;
+      }
+      points.push_back(point);
+    }
+  }
+  addPointsToField(points);
+}
+
+void DistanceField::moveShapeInField(const shapes::Shape* shape,
                                      const geometry_msgs::Pose& old_pose,
                                      const geometry_msgs::Pose& new_pose)
 {
-  bodies::Body* body = bodies::constructBodyFromMsg(shape, old_pose);
+  if(shape->type == shapes::OCTREE) {
+    logWarn("Move shape not supported for Octree");
+    return;
+  }
+  bodies::Body* body = bodies::createBodyFromShape(shape);
+  Eigen::Affine3d old_pose_e;
+  tf::poseMsgToEigen(old_pose, old_pose_e);
+  body->setPose(old_pose_e);
   EigenSTL::vector_Vector3d old_point_vec = determineCollisionPoints(body, resolution_);
   Eigen::Affine3d new_pose_e;
   tf::poseMsgToEigen(new_pose, new_pose_e);
@@ -217,10 +276,13 @@ void DistanceField::moveShapeInField(const shapes::ShapeMsg& shape,
                       new_point_vec);
 }
 
-void DistanceField::removeShapeFromField(const shapes::ShapeMsg& shape,
+void DistanceField::removeShapeFromField(const shapes::Shape* shape,
                                          const geometry_msgs::Pose& pose)
 {
-  bodies::Body* body = bodies::constructBodyFromMsg(shape, pose);
+  bodies::Body* body = bodies::createBodyFromShape(shape);
+  Eigen::Affine3d pose_e;
+  tf::poseMsgToEigen(pose, pose_e);
+  body->setPose(pose_e);
   EigenSTL::vector_Vector3d point_vec = determineCollisionPoints(body, resolution_);
   delete body;
   removePointsFromField(point_vec);
