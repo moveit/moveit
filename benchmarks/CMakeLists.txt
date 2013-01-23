@@ -12,7 +12,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 pkg_check_modules(OGRE OGRE)
 link_directories( ${OGRE_LIBRARY_DIRS} )
 
-find_package(Boost REQUIRED thread system filesystem regex date_time program_options)
+find_package(Boost REQUIRED system filesystem date_time program_options signals thread)
 
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
