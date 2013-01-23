@@ -49,6 +49,12 @@ PlanStage::PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
 {
 }
 
+void PlanStage::signalStop(void)
+{
+  ManipulationStage::signalStop();
+  planning_pipeline_->terminate();
+}
+
 bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 {
   moveit_msgs::MotionPlanRequest req;
@@ -59,7 +65,7 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 
   req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->planning_group_)));
   
-  if (planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
     plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory);
     plan->trajectory_start_ = res.trajectory_start;

@@ -113,7 +113,9 @@ void ManipulationPipeline::clear(void)
 
 void ManipulationPipeline::start(void)
 {
-  stop_processing_ = false;
+  stop_processing_ = false; 
+  for (std::size_t i = 0 ; i < stages_.size() ; ++i)
+    stages_[i]->resetStopSignal();
   for (std::size_t i = 0; i < processing_threads_.size() ; ++i)
     if (!processing_threads_[i])
       processing_threads_[i] = new boost::thread(boost::bind(&ManipulationPipeline::processingThread, this, i));
@@ -121,6 +123,8 @@ void ManipulationPipeline::start(void)
 
 void ManipulationPipeline::signalStop(void)
 {
+  for (std::size_t i = 0 ; i < stages_.size() ; ++i)
+    stages_[i]->signalStop();
   stop_processing_ = true;
   queue_access_cond_.notify_all();  
 }

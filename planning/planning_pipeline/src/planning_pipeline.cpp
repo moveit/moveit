@@ -329,3 +329,9 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   
   return solved && valid;
 }
+
+void planning_pipeline::PlanningPipeline::terminate(void) const
+{
+  if (planner_instance_)
+    planner_instance_->terminate();
+}
