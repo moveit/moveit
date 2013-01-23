@@ -37,38 +37,38 @@
 #ifndef MOVEIT_TRAJECTORY_PROCESSING_ITERATIVE_PARABOLIC_SMOOTHER_
 #define MOVEIT_TRAJECTORY_PROCESSING_ITERATIVE_PARABOLIC_SMOOTHER_
 
-#include <moveit/trajectory_processing/trajectory_smoother.h>
-#include <trajectory_msgs/JointTrajectoryPoint.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <moveit_msgs/JointLimits.h>
+#include <moveit_msgs/RobotState.h>
 
 namespace trajectory_processing
 {
 
-/// \brief This is a parametric smoother that modifies the timestamps of a trajectory to respect
+/// \brief This class  modifies the timestamps of a trajectory to respect
 /// velocity and acceleration constraints.
-class IterativeParabolicSmoother : public TrajectorySmoother
+class IterativeParabolicTimeParameterization
 {
 public:
-  IterativeParabolicSmoother(unsigned int max_iterations = 100,
-                             double max_time_change_per_it = .01);
-  ~IterativeParabolicSmoother();
-
+  IterativeParabolicTimeParameterization(unsigned int max_iterations = 100,
+                                         double max_time_change_per_it = .01);
+  ~IterativeParabolicTimeParameterization(void);
+  
   /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
   /// points that exceed the velocity or acceleration bounds.
-  virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
-                      trajectory_msgs::JointTrajectory& trajectory_out,
-                      const std::vector<moveit_msgs::JointLimits>& limits) const;
-
+  bool computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
+                         const std::vector<moveit_msgs::JointLimits>& limits) const;
+  
   /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
   /// points that exceed the velocity or acceleration bounds. Uses velocities from the start_state.
-  virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
-                      trajectory_msgs::JointTrajectory& trajectory_out,
-                      const std::vector<moveit_msgs::JointLimits>& limits,
-                      const moveit_msgs::RobotState& start_state) const;
-
+  bool computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
+                         const std::vector<moveit_msgs::JointLimits>& limits,
+                         const moveit_msgs::RobotState& start_state) const;
+  
 private:
-  int			max_iterations_;					/// @brief maximum number of iterations to find solution
-  double	max_time_change_per_it_;	/// @brief maximum allowed time change per iteration in seconds
-
+  
+  unsigned int max_iterations_;		/// @brief maximum number of iterations to find solution
+  double max_time_change_per_it_;	/// @brief maximum allowed time change per iteration in seconds
+  
   void applyVelocityConstraints(trajectory_msgs::JointTrajectory& traj, 
                                 const std::vector<moveit_msgs::JointLimits>& limits,
                                 std::vector<double> &time_diff) const;
