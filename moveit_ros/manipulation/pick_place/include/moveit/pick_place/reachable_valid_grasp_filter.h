@@ -50,10 +50,9 @@ public:
   
   ReachableAndValidGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
                                const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-                               const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager,
-                               unsigned int nthreads = 4);
+                               const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager);
   
-  virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
+  virtual bool evaluate(const ManipulationPlanPtr &plan) const;
   
 private:
 

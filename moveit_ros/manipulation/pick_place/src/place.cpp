@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/pick_place/pick_place.h>
-#include <moveit/pick_place/output_stage.h>
 #include <ros/console.h>
 
 namespace pick_place

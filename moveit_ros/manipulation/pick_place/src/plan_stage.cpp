@@ -42,16 +42,14 @@ namespace pick_place
 {
 
 PlanStage::PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
-                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                     unsigned int nthreads) :
-  ManipulationStage(nthreads),
+                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline) :
+  ManipulationStage("plan"),
   planning_scene_(scene),
   planning_pipeline_(planning_pipeline)
 {
-  name_ = "plan";
 }
 
-bool PlanStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
+bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 {
   moveit_msgs::MotionPlanRequest req;
   moveit_msgs::MotionPlanResponse res;
