@@ -467,10 +467,21 @@ private:
     }
     
     plan.planned_trajectory_states_.resize(plan.planned_trajectory_.size());
-    for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i) // trajectory_start_ state is only correct for the first path component
-      trajectory_processing::convertToKinematicStates(plan.planned_trajectory_states_[i], plan.trajectory_start_, plan.planned_trajectory_[i],
-                                                      plan.planning_scene_->getCurrentState(), plan.planning_scene_->getTransforms());
-    
+    kinematic_state::KinematicState *last_state = NULL;
+    for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
+      if (last_state == NULL)
+      {
+        trajectory_processing::convertToKinematicStates(plan.planned_trajectory_states_[i], plan.trajectory_start_, plan.planned_trajectory_[i],
+                                                        plan.planning_scene_->getCurrentState(), plan.planning_scene_->getTransforms());
+        if (!plan.planned_trajectory_states_[i].empty())
+          last_state = plan.planned_trajectory_states_[i].back().get();
+      }
+      else
+      {
+        static const moveit_msgs::RobotState empty_diff_state;
+        trajectory_processing::convertToKinematicStates(plan.planned_trajectory_states_[i], empty_diff_state, plan.planned_trajectory_[i],
+                                                        *last_state, plan.planning_scene_->getTransforms());
+      }
     return plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
   }
   

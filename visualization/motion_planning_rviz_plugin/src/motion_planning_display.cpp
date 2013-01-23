@@ -82,10 +82,9 @@ MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(co
       trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory[j], *start_state_, scene->getTransforms());
     else
     {
-      moveit_msgs::RobotState tmp_rs;
+      static const moveit_msgs::RobotState empty_diff_state;
       kinematic_state::KinematicTrajectory tmp;  
-      kinematic_state::kinematicStateToRobotState(*trajectory_.back(), tmp_rs);
-      trajectory_processing::convertToKinematicStates(tmp, tmp_rs, message->trajectory[j], *trajectory_.back(), scene->getTransforms());
+      trajectory_processing::convertToKinematicStates(tmp, empty_diff_state, message->trajectory[j], *trajectory_.back(), scene->getTransforms());
       trajectory_.insert(trajectory_.end(), tmp.begin(), tmp.end());
     }
     
