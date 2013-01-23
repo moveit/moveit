@@ -32,6 +32,8 @@
 #ifndef BT_MAIN_WINDOW_
 #define BT_MAIN_WINDOW_
 
+#include <frame_marker.h>
+
 #include <QtGui/QMainWindow>
 #include <QTimer>
 #include "ui_main_window.h"
@@ -47,6 +49,7 @@
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
+#include <moveit/robot_interaction/robot_interaction.h>
 
 namespace benchmark_tool
 {
@@ -67,12 +70,40 @@ public:
   ~MainWindow();
 public Q_SLOTS:
 
+  void openActionTriggered(bool);
   void planningGroupChanged(const QString &text);
   void dbConnectButtonClicked();
   void dbConnectButtonClickedBackgroundJob();
 
   void loadSceneButtonClicked(void);
   void loadSceneButtonClicked(QListWidgetItem *item);
+
+  //Goals and states
+  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void createGoalPoseButtonClicked(void);
+  void removeSelectedGoalsButtonClicked(void);
+  void removeAllGoalsButtonClicked(void);
+  void goalPoseSelectionChanged(void);
+  void switchGoalVisibilityButtonClicked(void);
+  void goalPoseDoubleClicked(QListWidgetItem *item);
+  void copySelectedGoalPoses(void);
+  void visibleAxisChanged(int state);
+  void checkGoalsInCollision(void);
+  void checkGoalsReachable(void);
+  void loadBenchmarkResults(void);
+  void updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
+
+  void saveStartStateButtonClicked(void);
+  void removeSelectedStatesButtonClicked(void);
+  void removeAllStatesButtonClicked(void);
+  void startStateItemDoubleClicked(QListWidgetItem * item);
+
+  void loadGoalsFromDBButtonClicked(void);
+  void saveGoalsOnDBButtonClicked(void);
+  void deleteGoalsOnDBButtonClicked(void);
+  void loadStatesFromDBButtonClicked(void);
+  void saveStatesOnDBButtonClicked(void);
+  void deleteStatesOnDBButtonClicked(void);
 
   //main loop processing
   void executeMainLoopJobs();
@@ -84,12 +115,19 @@ private:
 
   Ui::MainWindow ui_;
 
-  kinematic_state::KinematicStatePtr kinematic_state_;
-
   //rviz
   rviz::RenderPanel *render_panel_;
   rviz::VisualizationManager *visualization_manager_;
   moveit_rviz_plugin::PlanningSceneDisplay *scene_display_;
+
+  void configure();
+  void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
+  void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
+  void selectItemJob(QListWidgetItem *item, bool flag);
+
+  //robot interaction
+  robot_interaction::RobotInteractionPtr robot_interaction_;
+  rviz::Display *int_marker_display_;
 
   //Warehouse
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
@@ -97,6 +135,43 @@ private:
   boost::shared_ptr<moveit_warehouse::RobotStateStorage> robot_state_storage_;
 
   void populatePlanningSceneList(void);
+
+  //Goals and start states
+  robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
+
+  EigenSTL::map_string_Affine3d goals_initial_pose_;
+  bool goal_pose_dragging_;
+
+  typedef std::map<std::string, GripperMarker> GoalPoseMap;
+  typedef std::pair<std::string, GripperMarker> GoalPosePair;
+  GoalPoseMap goal_poses_;
+
+  class StartState
+  {
+  public:
+    moveit_msgs::RobotState state_msg;
+    bool selected;
+
+    StartState(): selected(false) {}
+    StartState(const moveit_msgs::RobotState &state): state_msg(state), selected(false) {}
+    StartState(const moveit_msgs::RobotState &state, bool is_selected): state_msg(state), selected(is_selected) {}
+  };
+
+  typedef std::map<std::string, StartState> StartStateMap;
+  typedef std::pair<std::string, StartState> StartStatePair;
+  StartStateMap start_states_;
+
+  void populateGoalPosesList();
+  void populateStartStatesList();
+  void computeGoalPoseDoubleClicked(QListWidgetItem * item);
+  void switchGoalPoseMarkerSelection(const std::string &marker_name);
+  typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
+
+  void checkIfGoalInCollision(const std::string & goal_name);
+  void checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable = false);
+  void computeLoadBenchmarkResults(const std::string &file);
+
+  void updateGoalPoseMarkers(float wall_dt, float ros_dt);
 
   //Background processing
   moveit_rviz_plugin::BackgroundProcessing background_process_;

@@ -12,6 +12,8 @@ set(SOURCES
   src/main.cpp
   src/main_window.cpp
   src/ui_utils.cpp
+  src/frame_marker.cpp
+  src/goals.cpp
 )
 
 add_executable(benchmark_tool ${SOURCES} ${MOC_FILES} ${UIC_FILES})
