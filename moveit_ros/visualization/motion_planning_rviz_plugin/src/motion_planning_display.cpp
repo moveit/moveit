@@ -78,13 +78,17 @@ MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(co
   for (std::size_t j = 0 ; j < message->trajectory.size() ; ++j)
   {
     // convert the path to kinematic states
-    kinematic_state::KinematicTrajectory tmp;
-    trajectory_processing::convertToKinematicStates(tmp, message->trajectory_start, message->trajectory[j], *start_state_, scene->getTransforms());
     if (trajectory_.empty())
-      trajectory_.swap(tmp);
+      trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory[j], *start_state_, scene->getTransforms());
     else
+    {
+      moveit_msgs::RobotState tmp_rs;
+      kinematic_state::KinematicTrajectory tmp;  
+      kinematic_state::kinematicStateToRobotState(*trajectory_.back(), tmp_rs);
+      trajectory_processing::convertToKinematicStates(tmp, tmp_rs, message->trajectory[j], *trajectory_.back(), scene->getTransforms());
       trajectory_.insert(trajectory_.end(), tmp.begin(), tmp.end());
-
+    }
+    
     // compute the display durations
     std::vector<double> tmp2;
     if (message->trajectory[j].joint_trajectory.points.size() > message->trajectory[j].multi_dof_joint_trajectory.points.size())

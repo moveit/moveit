@@ -405,7 +405,7 @@ private:
       const std::vector<pick_place::ManipulationPlanPtr> &success = plan->getSuccessfulManipulationPlans();
       if (success.empty())
       {  
-        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+        action_res.error_code = plan->getErrorCode();
       }
       else
       {
@@ -421,6 +421,9 @@ private:
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     }
+    ROS_ERROR("destroy crap"); 
+    plan.reset();
+    
   }
   
   bool planUsingPickPlace(const moveit_msgs::PickupGoal& goal, plan_execution::ExecutableMotionPlan &plan)
@@ -448,7 +451,7 @@ private:
       const std::vector<pick_place::ManipulationPlanPtr> &success = pick_plan->getSuccessfulManipulationPlans();
       if (success.empty())
       {
-        plan.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+        plan.error_code_ = pick_plan->getErrorCode();
       }
       else
       {
@@ -457,7 +460,8 @@ private:
         plan.planned_trajectory_ = result->trajectories_;
         plan.planned_trajectory_descriptions_ = result->trajectory_descriptions_; 
         plan.planning_group_ = result->planning_group_;
-        plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+        plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS; 
+        pick_place_->displayPlan(result);
       }
     }
     else

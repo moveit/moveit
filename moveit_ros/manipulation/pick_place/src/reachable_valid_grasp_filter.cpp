@@ -96,6 +96,7 @@ bool ReachableAndValidGraspFilter::evaluate(const ManipulationPlanPtr &plan) con
   else
     ROS_ERROR_THROTTLE(1, "No sampler was constructed");
 
+  plan->error_code_.val = moveit_msgs::MoveItErrorCodes::GOAL_IN_COLLISION;
   return false;
 }
 
