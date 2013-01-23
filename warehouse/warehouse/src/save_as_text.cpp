@@ -48,25 +48,25 @@ static const std::string ROBOT_DESCRIPTION="robot_description";
 typedef std::pair<geometry_msgs::Point, geometry_msgs::Quaternion> LinkConstraintPair;
 typedef std::map<std::string, LinkConstraintPair > LinkConstraintMap;
 
-LinkConstraintMap collectLinkConstraints(moveit_msgs::Constraints constraints)
+void collectLinkConstraints(const moveit_msgs::Constraints& constraints, LinkConstraintMap& lcmap )
 {
-  LinkConstraintMap lcmap;
-  for(int i=0; i<constraints.position_constraints.size(); i++){
+  for(std::size_t i = 0; i < constraints.position_constraints.size(); ++i)
+  {
     LinkConstraintPair lcp;
     const moveit_msgs::PositionConstraint &pc = constraints.position_constraints[i];
     lcp.first = pc.constraint_region.primitive_poses[0].position;
     lcmap[constraints.position_constraints[i].link_name] = lcp;
   }
 
-  for(int i=0; i<constraints.orientation_constraints.size(); i++){
-    if(lcmap.count(constraints.orientation_constraints[i].link_name)){
+  for(std::size_t i = 0; i < constraints.orientation_constraints.size(); ++i)
+  {
+    if(lcmap.count(constraints.orientation_constraints[i].link_name))
+    {
       lcmap[constraints.orientation_constraints[i].link_name].second = constraints.orientation_constraints[i].orientation;
-    }else{
+    } else{
       ROS_WARN("Orientation constraint for %s has no matching position constraint", constraints.orientation_constraints[i].link_name.c_str());
     }
   }
-
-  return lcmap;
 }
 
 int main(int argc, char **argv)
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
       {
         qfout << "start" << std::endl;
         qfout << robotStateNames.size() << std::endl;
-        for(int k = 0; k < robotStateNames.size(); k++)
+        for(int k = 0; k < robotStateNames.size(); ++k)
         {
           ROS_INFO("Saving start state %s for scene %s", robotStateNames[k].c_str(), scene_names[i].c_str());
           qfout << robotStateNames[k] << std::endl;
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
       {
         qfout << "goal" << std::endl;
         qfout << constraintNames.size() << std::endl;
-        for(int k = 0; k < constraintNames.size(); k++)
+        for(int k = 0; k < constraintNames.size(); ++k)
         {
           ROS_INFO("Saving goal %s for scene %s", constraintNames[k].c_str(), scene_names[i].c_str());
           qfout << "link_constraint" << std::endl;
@@ -161,7 +161,8 @@ int main(int argc, char **argv)
           moveit_warehouse::ConstraintsWithMetadata constraints;
           cs.getConstraints(constraints, constraintNames[k]);
 
-          LinkConstraintMap lcmap = collectLinkConstraints(*constraints);
+          LinkConstraintMap lcmap;
+          collectLinkConstraints(*constraints, lcmap);
           for(LinkConstraintMap::iterator iter = lcmap.begin(); iter != lcmap.end(); iter++)
           {
             std::string link_name = iter->first;
