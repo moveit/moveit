@@ -835,13 +835,14 @@ void addTrajectoryPoint(const kinematic_state::KinematicState *state,
 
 }
 
-double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, double distance, 
-                                                              double max_step, const StateValidityCallbackFn &validCallback)
+double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
+                                                              double distance, double max_step, const StateValidityCallbackFn &validCallback)
 {
   const LinkState *link_state = kinematic_state_->getLinkState(link_name);
   if (!link_state)
     return 0.0;
   Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
+  const Eigen::Vector3d &rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
   unsigned int steps = 1 + (unsigned int)floor(distance / max_step);
   
   const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
@@ -872,7 +873,7 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
   {
     double d = distance * (double)i / (double)steps;
     Eigen::Affine3d pose = start_pose;
-    pose.translation() = pose.translation() + direction * d;
+    pose.translation() = pose.translation() + rotated_direction * d;
     if (setFromIK(pose, link_name, 1, 0.0, validCallback)) 
       addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
     else
