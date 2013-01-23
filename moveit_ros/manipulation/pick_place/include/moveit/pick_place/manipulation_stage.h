@@ -47,7 +47,9 @@ class ManipulationStage
 {
 public:
   
-  ManipulationStage(const std::string &name) : name_(name)
+  ManipulationStage(const std::string &name) :
+    name_(name),
+    signal_stop_(false)
   {
   }
   
@@ -60,11 +62,22 @@ public:
     return name_;
   }
   
+  virtual void resetStopSignal(void)
+  {
+    signal_stop_ = false;
+  }
+  
+  virtual void signalStop(void)
+  {
+    signal_stop_ = true;
+  }
+  
   virtual bool evaluate(const ManipulationPlanPtr &plan) const = 0;
   
 protected:
   
   std::string name_;
+  bool signal_stop_;
 };
 
 typedef boost::shared_ptr<ManipulationStage> ManipulationStagePtr;

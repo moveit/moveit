@@ -116,7 +116,7 @@ void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Join
 }
 
 bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
-{ 
+{
   // compute what the maximum distance reported between any two states in the planning group could be
   double min_distance = 0.0;
   const kinematic_model::JointModelGroup *jmg = pre_grasp_planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_);
@@ -141,7 +141,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
                                                                                    collision_matrix_.get(), &plan->grasp_.grasp_posture, _1, _2);
   do 
   {
-    for (std::size_t i = 0 ; i < plan->possible_goal_states_.size() ; ++i)
+    for (std::size_t i = 0 ; i < plan->possible_goal_states_.size() && !signal_stop_ ; ++i)
     {
       // try to compute a straight line path that arrives at the goal using the specified approach direction
       moveit_msgs::RobotTrajectory approach_traj;
@@ -151,7 +151,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
                                                                                                                 max_step_, approach_validCallback);
       
       // if we were able to follow the approach direction for sufficient length, try to compute a translation direction
-      if (d_approach > plan->grasp_.min_approach_distance)
+      if (d_approach > plan->grasp_.min_approach_distance && !signal_stop_)
       {
         if (plan->grasp_.desired_translation_distance > 0.0)
         {
@@ -164,7 +164,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
                                                                                                                          plan->grasp_.desired_translation_distance, 
                                                                                                                          max_step_, translation_validCallback);
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
-          if (d_translation > plan->grasp_.min_translation_distance)
+          if (d_translation > plan->grasp_.min_translation_distance && !signal_stop_)
           {
             addGraspTrajectory(plan, plan->grasp_.pre_grasp_posture, "pre_grasp");
             
@@ -213,7 +213,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
       
     }
   }
-  while (plan->possible_goal_states_.size() < max_goal_count_ && samplePossibleGoalStates(plan, pre_grasp_planning_scene_->getCurrentState(), min_distance, max_fail_));
+  while (plan->possible_goal_states_.size() < max_goal_count_ && !signal_stop_ && samplePossibleGoalStates(plan, pre_grasp_planning_scene_->getCurrentState(), min_distance, max_fail_));
   plan->error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
   
   return false;
