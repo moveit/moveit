@@ -86,7 +86,7 @@ public:
   
   class InteractionHandler;
   
-  typedef boost::function<void(InteractionHandler*)> InteractionHandlerCallbackFn;
+  typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
   
   class InteractionHandler
   {
@@ -172,6 +172,16 @@ public:
       return display_meshes_;
     }
 
+    void setControlsVisible(bool visible)
+    {
+      display_controls_ = visible;
+    }
+
+    bool getControlsVisible(void) const
+    {
+      return display_controls_;
+    }
+
     double getVelocityGain(void) const
     {
       return velocity_gain_;
@@ -193,7 +203,7 @@ public:
     
     /** \brief Get the last interactive_marker command pose for the end-effector
      * @param The end-effector in question.
-     * @param A PoseStamped message containing the result.
+     * @param A PoseStamped message containing the last (offset-adjusted) pose commanded for the end-effector.
      * @return True if a pose for that end-effector was found, false otherwise.
      */
     bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
@@ -224,13 +234,15 @@ public:
     std::set<std::string> error_state_;
     std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
     std::map<std::string, geometry_msgs::Pose> offset_map_;
-    boost::function<void(InteractionHandler*)> update_callback_;
+    // bool can be used to signal a change in "state" (e.g. error, other properties?)
+    boost::function<void(InteractionHandler*, bool)> update_callback_;
     kinematic_state::StateValidityCallbackFn state_validity_callback_fn_;
     kinematic_state::SecondaryTaskFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
     IKInteractionType interaction_mode_;
     bool display_meshes_;
+    bool display_controls_;
     double velocity_gain_;
     
   private:
