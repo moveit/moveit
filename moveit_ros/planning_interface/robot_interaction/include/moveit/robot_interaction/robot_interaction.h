@@ -196,7 +196,7 @@ public:
 
     void clearPoseOffset(const RobotInteraction::EndEffector& eef);
 
-    void clearAllPoseOffsets();
+    void clearPoseOffsets();
 
     bool getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m);
     bool getPoseOffset(const RobotInteraction::VirtualJoint& vj, geometry_msgs::Pose& m);
@@ -293,6 +293,8 @@ private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupScale(const std::string &group);    
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
+                             visualization_msgs::InteractiveMarker& im);
   void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
                              const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
