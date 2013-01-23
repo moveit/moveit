@@ -35,13 +35,39 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/state_storage.h>
+#include <moveit/warehouse/constraints_storage.h>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-
+#include <moveit/kinematic_state/conversions.h>
 #include <ros/ros.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
+
+typedef std::pair<geometry_msgs::Point, geometry_msgs::Quaternion> LinkConstraintPair;
+typedef std::map<std::string, LinkConstraintPair > LinkConstraintMap;
+
+void collectLinkConstraints(const moveit_msgs::Constraints& constraints, LinkConstraintMap& lcmap )
+{
+  for(std::size_t i = 0; i < constraints.position_constraints.size(); ++i)
+  {
+    LinkConstraintPair lcp;
+    const moveit_msgs::PositionConstraint &pc = constraints.position_constraints[i];
+    lcp.first = pc.constraint_region.primitive_poses[0].position;
+    lcmap[constraints.position_constraints[i].link_name] = lcp;
+  }
+
+  for(std::size_t i = 0; i < constraints.orientation_constraints.size(); ++i)
+  {
+    if(lcmap.count(constraints.orientation_constraints[i].link_name))
+    {
+      lcmap[constraints.orientation_constraints[i].link_name].second = constraints.orientation_constraints[i].orientation;
+    } else{
+      ROS_WARN("Orientation constraint for %s has no matching position constraint", constraints.orientation_constraints[i].link_name.c_str());
+    }
+  }
+}
 
 int main(int argc, char **argv)
 {
@@ -70,6 +96,12 @@ int main(int argc, char **argv)
 
   moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
                                              vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+
+  moveit_warehouse::RobotStateStorage rss(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                             vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+
+  moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                             vm.count("port") ? vm["port"].as<std::size_t>() : 0);
   
   std::vector<std::string> scene_names;
   pss.getPlanningSceneNames(scene_names);
@@ -84,7 +116,75 @@ int main(int argc, char **argv)
       std::ofstream fout((scene_names[i] + ".scene").c_str());
       psm.getPlanningScene()->saveGeometryToStream(fout);
       fout.close();
+            
+      std::vector<std::string> robotStateNames;
+      kinematic_model::KinematicModelConstPtr km = psm.getKinematicModel();
+      // Get start states for scene
+      std::stringstream rsregex;
+      rsregex << ".*" << scene_names[i] << ".*";
+      rss.getKnownRobotStates(rsregex.str(), robotStateNames);
+
+      // Get goal constraints for scene
+      std::vector<std::string> constraintNames;
+      
+      std::stringstream csregex;
+      csregex << ".*" << scene_names[i] << ".*";
+      cs.getKnownConstraints(csregex.str(), constraintNames);
+
+      if( !(robotStateNames.empty() && constraintNames.empty()) )
+      {
+        std::ofstream qfout((scene_names[i] + ".queries").c_str());
+        qfout << scene_names[i] << std::endl;
+        if(robotStateNames.size())
+        {
+          qfout << "start" << std::endl;
+          qfout << robotStateNames.size() << std::endl;
+          for(std::size_t k = 0; k < robotStateNames.size(); ++k)
+          {
+            ROS_INFO("Saving start state %s for scene %s", robotStateNames[k].c_str(), scene_names[i].c_str());
+            qfout << robotStateNames[k] << std::endl;
+            moveit_warehouse::RobotStateWithMetadata robotState;
+            rss.getRobotState(robotState, robotStateNames[k]);
+            kinematic_state::KinematicState ks(km);
+            kinematic_state::robotStateToKinematicState(*robotState, ks, false);
+            ks.printStateInfo(qfout);
+            qfout << "." << std::endl;
+          }
+        }
+      
+        if(constraintNames.size())
+        {
+          qfout << "goal" << std::endl;
+          qfout << constraintNames.size() << std::endl;
+          for(std::size_t k = 0; k < constraintNames.size(); ++k)
+          {
+            ROS_INFO("Saving goal %s for scene %s", constraintNames[k].c_str(), scene_names[i].c_str());
+            qfout << "link_constraint" << std::endl;
+            qfout << constraintNames[k] << std::endl;
+            moveit_warehouse::ConstraintsWithMetadata constraints;
+            cs.getConstraints(constraints, constraintNames[k]);
+            
+            LinkConstraintMap lcmap;
+            collectLinkConstraints(*constraints, lcmap);
+            for(LinkConstraintMap::iterator iter = lcmap.begin(); iter != lcmap.end(); iter++)
+            {
+              std::string link_name = iter->first;
+              LinkConstraintPair lcp = iter->second;
+              qfout << link_name << std::endl;
+              qfout << "xyz " << lcp.first.x << " " << lcp.first.y << " " << lcp.first.z << std::endl;
+              Eigen::Quaterniond orientation(lcp.second.w, lcp.second.x, lcp.second.y, lcp.second.z);
+              Eigen::Vector3d rpy = orientation.matrix().eulerAngles(0, 1, 2);
+              qfout << "rpy " << rpy[0] << " " << rpy[1] << " " << rpy[2] << std::endl;
+
+            }
+            qfout << "." << std::endl;
+          }
+        }      
+        qfout.close();
+      }
     }
+
+    
   }
   
   ROS_INFO("Done.");
