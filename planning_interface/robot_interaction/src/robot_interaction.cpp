@@ -149,24 +149,20 @@ void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose
 
 void RobotInteraction::InteractionHandler::setPoseOffset(const RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& m)
 {
-  offset_map_lock_.lock();
+  boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_[eef.eef_group] = m;
-  offset_map_lock_.unlock();
 }
 
 void RobotInteraction::InteractionHandler::clearPoseOffset(const RobotInteraction::EndEffector& eef)
 {
-  // This is ok if the key doesn't exist right?
-  offset_map_lock_.lock();
+  boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_.erase(eef.eef_group);
-  offset_map_lock_.unlock();
 }
 
-void RobotInteraction::InteractionHandler::clearAllPoseOffsets()
+void RobotInteraction::InteractionHandler::clearPoseOffsets()
 {
-  offset_map_lock_.lock();
+  boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_.clear();
-  offset_map_lock_.unlock();
 }
 
 bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m)
@@ -622,6 +618,13 @@ void RobotInteraction::clearInteractiveMarkersUnsafe(void)
   int_marker_server_->clear();
 }
 
+void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
+                                             visualization_msgs::InteractiveMarker& im)
+{
+  geometry_msgs::Pose pose;
+  pose.orientation.w = 1;
+  addEndEffectorMarkers(handler, eef, pose, im);
+}
 
 void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
                                              const geometry_msgs::Pose& im_to_eef,
