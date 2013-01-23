@@ -331,13 +331,14 @@ public:
                                      double activation_threshold, double gain) const;
 
   /** \brief Compute the sequence of joint values that correspond to a Cartesian path. The Cartesian path to be followed is specified
-      as a direction of motion (\e direction) for the origin of a robot link (\e link_name).  The link needs to move in a straight
+      as a direction of motion (\e direction) for the origin of a robot link (\e link_name). The direction is assumed to be either in a global reference frame
+      or in the local reference frame of the link. In the latter case (\e global_reference_frame is true) the \e direction is updated accordingly. The link needs to move in a straight
       line, following the specified direction, for the desired \e distance. The resulting joint values are stored in the vector \e states,
       one by one. The maximum distance in Cartesian space between consecutive points on the resulting path is specified by \e max_step.
       If a \e validCallback is specified, this is passed to the internal call to setFromIK(). In case of failure, the computation of the path
       stops and the value returned corresponds to the distance that was computed and for which corresponding states were added to the path. 
       At the end of the function call, the state of the group corresponds to the last attempted Cartesian pose */
-  double computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction,
+  double computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
                               double distance, double max_step, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
   
   JointStateGroup& operator=(const JointStateGroup &other);
