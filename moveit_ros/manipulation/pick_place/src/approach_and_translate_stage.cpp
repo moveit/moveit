@@ -98,16 +98,19 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const kinematic_s
 
 void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::JointState &grasp_posture, const std::string &name) 
 {
-  moveit_msgs::RobotTrajectory grasp_traj;
-  grasp_traj.joint_trajectory.header = grasp_posture.header;
-  grasp_traj.joint_trajectory.joint_names = grasp_posture.name;
-  grasp_traj.joint_trajectory.points.resize(1);
-  grasp_traj.joint_trajectory.points[0].positions = grasp_posture.position;
-  grasp_traj.joint_trajectory.points[0].velocities = grasp_posture.velocity;
-  grasp_traj.joint_trajectory.points[0].time_from_start = ros::Duration(0);
-  
-  plan->trajectories_.push_back(grasp_traj);
-  plan->trajectory_descriptions_.push_back(name);
+  if (!grasp_posture.name.empty())
+  {
+    moveit_msgs::RobotTrajectory grasp_traj;
+    grasp_traj.joint_trajectory.header = grasp_posture.header;
+    grasp_traj.joint_trajectory.joint_names = grasp_posture.name;
+    grasp_traj.joint_trajectory.points.resize(1);
+    grasp_traj.joint_trajectory.points[0].positions = grasp_posture.position;
+    grasp_traj.joint_trajectory.points[0].velocities = grasp_posture.velocity;
+    grasp_traj.joint_trajectory.points[0].time_from_start = ros::Duration(0);
+    
+    plan->trajectories_.push_back(grasp_traj);
+    plan->trajectory_descriptions_.push_back(name);
+  }
 }
 
 }
@@ -169,9 +172,17 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             plan->translation_state_.swap(last_translation_state);
             trajectory_processing::reverseTrajectory(approach_traj);
             
+            const kinematic_model::JointModelGroup *jmg = pre_grasp_planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_);
+            if (jmg)
+            {
+              const std::vector<moveit_msgs::JointLimits> &jlim = jmg->getVariableLimits();
+              time_param_.computeTimeStamps(approach_traj.joint_trajectory, jlim); 
+              time_param_.computeTimeStamps(translation_traj.joint_trajectory, jlim);
+            }
+            
             plan->trajectories_.push_back(approach_traj);
             plan->trajectory_descriptions_.push_back("approach");
-
+            
             addGraspTrajectory(plan, plan->grasp_.grasp_posture, "grasp");
             
             plan->trajectories_.push_back(translation_traj);
@@ -186,6 +197,10 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           
           plan->approach_state_.swap(first_approach_state);
           trajectory_processing::reverseTrajectory(approach_traj);
+
+          const kinematic_model::JointModelGroup *jmg = pre_grasp_planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_);
+          if (jmg)
+            time_param_.computeTimeStamps(approach_traj.joint_trajectory, jmg->getVariableLimits()); 
           
           plan->trajectories_.push_back(approach_traj);
           plan->trajectory_descriptions_.push_back("approach");

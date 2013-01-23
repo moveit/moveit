@@ -39,6 +39,7 @@
 
 #include <moveit/pick_place/manipulation_stage.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 namespace pick_place
 {
@@ -58,6 +59,8 @@ private:
   planning_scene::PlanningSceneConstPtr pre_grasp_planning_scene_;
   planning_scene::PlanningSceneConstPtr post_grasp_planning_scene_;
   collision_detection::AllowedCollisionMatrixConstPtr collision_matrix_;
+  trajectory_processing::IterativeParabolicTimeParameterization time_param_;
+  
   unsigned int max_goal_count_;
   unsigned int max_fail_;
   double max_step_;
