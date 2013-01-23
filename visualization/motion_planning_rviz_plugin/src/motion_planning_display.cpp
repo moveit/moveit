@@ -1378,7 +1378,7 @@ void MotionPlanningDisplay::save( rviz::Config config ) const
 void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
   if (planning_scene_monitor_)
-    if (msg->model_id != getKinematicModel()->getName())
+    if (!msg->model_id.empty() && msg->model_id != getKinematicModel()->getName())
       ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
                msg->model_id.c_str(), getKinematicModel()->getName().c_str());
 
