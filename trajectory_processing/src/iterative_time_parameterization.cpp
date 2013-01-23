@@ -340,7 +340,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
       // Loop forwards, then backwards
       for( int count=0; count<2; count++)
       {
-        logDebug("applyAcceleration: Iteration %i backwards=%i joint=%i", iteration, backwards, j);
+        //logDebug("applyAcceleration: Iteration %i backwards=%i joint=%i", iteration, backwards, j);
         //updateTrajectory(trajectory, time_diff);
         //printStats(trajectory);
         
@@ -434,7 +434,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
         backwards = !backwards;
       }
     }
-    logDebug("applyAcceleration: num_updates=%i", num_updates);
+    //logDebug("applyAcceleration: num_updates=%i", num_updates);
   } while(num_updates > 0 && iteration < max_iterations_);
 }
 
@@ -456,7 +456,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
   std::map<std::string, double> velocity_map;
   if (start_state.joint_state.name.size() == start_state.joint_state.velocity.size())
   {
-    logInform("We seem to have velocity data; populating...");
+    logDebug("We seem to have velocity data; populating...");
     for (std::size_t i = 0; i < start_state.joint_state.name.size(); ++i)
       velocity_map[start_state.joint_state.name[i]] = start_state.joint_state.velocity[i];
   }
@@ -464,10 +464,8 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
   applyVelocityConstraints(trajectory, limits, time_diff);
   applyAccelerationConstraints(trajectory, limits, time_diff, velocity_map);
   
-  logDebug("Velocity & Acceleration-Constrained Trajectory");
   updateTrajectory(trajectory, time_diff, velocity_map);
-  printStats(trajectory, limits);
-  
+  //  printStats(trajectory, limits);  
   return success;
 }
 
