@@ -69,7 +69,7 @@ public:
    * @param default_object The object to return for an out-of-bounds query
    */
   VoxelGrid(double size_x, double size_y, double size_z, double resolution,
-      double origin_x, double origin_y, double origin_z, T default_object);
+            double origin_x, double origin_y, double origin_z, T default_object);
   virtual ~VoxelGrid();
 
   /**

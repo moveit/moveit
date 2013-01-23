@@ -41,6 +41,8 @@
 #include <moveit/distance_field/distance_field_common.h>
 #include <console_bridge/console.h>
 #include <geometric_shapes/body_operations.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <octomap/octomap.h>
 
 using namespace distance_field;
 
@@ -124,6 +126,55 @@ bool areDistanceFieldsDistancesEqual(const PropagationDistanceField& df1,
   }
   return true;
 }
+
+bool checkOctomapVersusDistanceField(const PropagationDistanceField& df,
+                                     const octomap::OcTree& octree)
+{
+  //just one way for now
+  for (int z=0; z<df.getYNumCells(); z++) {
+    for (int x=0; x<df.getXNumCells(); x++) {
+      for (int y=0; y<df.getYNumCells(); y++) {
+        if(df.getCell(x,y,z).distance_square_ == 0) {
+          //making sure that octomap also shows it as occupied
+          double qx, qy, qz;
+          df.gridToWorld(x,y,z,
+                         qx, qy, qz);
+          octomap::point3d query(qx, qy, qz);
+          octomap::OcTreeNode* result = octree.search(query);
+          if(!result) {
+            for(float boundary_x = query.x()-df.getResolution(); 
+                boundary_x <= query.x()+df.getResolution() && !result;
+                boundary_x += df.getResolution()) {
+              for(float boundary_y = query.y()-df.getResolution(); 
+                  boundary_y <= query.y()+df.getResolution() && !result;
+                  boundary_y += df.getResolution()) {
+                for(float boundary_z = query.z()-df.getResolution(); 
+                    boundary_z <= query.z()+df.getResolution();
+                    boundary_z += df.getResolution()) {
+                  octomap::point3d query_boundary(boundary_x, boundary_y, boundary_z);
+                  result = octree.search(query_boundary);
+                  if(result) {
+                    break;
+                  }
+                }
+              }
+            }
+            if(!result) {
+              std::cout << "No point at potential boundary query " << query.x() << " " << query.y() << " " << query.z() << std::endl;
+              return false;
+            }
+          }
+          if(!octree.isNodeOccupied(result)) {
+            std::cout << "Disagreement at " << qx << " " << qy << " " << qz << std::endl;
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
 
 //points should contain all occupied points
 void check_distance_field(const PropagationDistanceField & df, 
@@ -284,11 +335,8 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   int numY = df.getYNumCells();
   int numZ = df.getZNumCells();
   
-  shape_msgs::SolidPrimitive sphere;
-  sphere.type = shape_msgs::SolidPrimitive::SPHERE;
-  sphere.dimensions.resize(1);
-  sphere.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = .25;
-  
+  shapes::Sphere sphere(.25);
+
   geometry_msgs::Pose p;
   p.orientation.w = 1.0;
   p.position.x = .5;
@@ -301,9 +349,12 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   np.position.y = .7;
   np.position.z = .7;  
 
-  df.addShapeToField(sphere, p);
+  df.addShapeToField(&sphere, p);
 
-  bodies::Body* body = bodies::constructBodyFromMsg(sphere, p);
+  bodies::Body* body = bodies::createBodyFromShape(&sphere);
+  Eigen::Affine3d pose_e;
+  tf::poseMsgToEigen(p, pose_e);
+  body->setPose(pose_e);
   EigenSTL::vector_Vector3d point_vec = distance_field::determineCollisionPoints(body, resolution);
   delete body;
   check_distance_field(df, point_vec,
@@ -314,9 +365,13 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   // std::cout << "Shape neg "<< std::endl;
   // printNeg(df, numX, numY, numZ);
 
-  df.addShapeToField(sphere, np);
+  df.addShapeToField(&sphere, np);
 
-  body = bodies::constructBodyFromMsg(sphere, np);
+  body = bodies::createBodyFromShape(&sphere);
+  Eigen::Affine3d npose_e;
+  tf::poseMsgToEigen(np, npose_e);
+  body->setPose(npose_e);
+
   EigenSTL::vector_Vector3d point_vec_2 = distance_field::determineCollisionPoints(body, resolution);
   delete body;
   EigenSTL::vector_Vector3d point_vec_union = point_vec_2;
@@ -327,14 +382,14 @@ TEST(TestSignedPropagationDistanceField, TestShape)
                        numX, numY, numZ, true);
 
   //should get rid of old pose
-  df.moveShapeInField(sphere, p, np);
+  df.moveShapeInField(&sphere, p, np);
 
   check_distance_field(df, point_vec_2,
                        numX, numY, numZ, true);
 
   //should be equivalent to just adding second shape
   PropagationDistanceField test_df( width, height, depth, resolution, origin_x, origin_y, origin_z, max_dist, true);
-  test_df.addShapeToField(sphere, np);
+  test_df.addShapeToField(&sphere, np);
   ASSERT_TRUE(areDistanceFieldsDistancesEqual(df, test_df));
 }
 
@@ -365,13 +420,8 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
   std::cout << "Creating signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;
 
-  shape_msgs::SolidPrimitive big_table;
-  big_table.type = shape_msgs::SolidPrimitive::BOX;
-  big_table.dimensions.resize(3);
-  big_table.dimensions[shape_msgs::SolidPrimitive::BOX_X] = 2.0;
-  big_table.dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 2.0;
-  big_table.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = .5;
-  
+  shapes::Box big_table(2.0,2.0,.5);
+
   geometry_msgs::Pose p;
   p.orientation.w = 1.0;
   p.position.x = PERF_WIDTH/2.0;
@@ -389,74 +439,68 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
   std::cout << "Adding " << big_num_points << " points" << std::endl; 
 
   dt = ros::WallTime::now();
-  df.addShapeToField(big_table, p);
+  df.addShapeToField(&big_table, p);
   std::cout << "Adding to unsigned took " 
             << (ros::WallTime::now()-dt).toSec() 
             << " avg " << (ros::WallTime::now()-dt).toSec()/(big_num_points*1.0) 
             << std::endl;  
 
   dt = ros::WallTime::now();
-  df.addShapeToField(big_table, p);
+  df.addShapeToField(&big_table, p);
   std::cout << "Re-adding to unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
 
   dt = ros::WallTime::now();
-  sdf.addShapeToField(big_table, p);
+  sdf.addShapeToField(&big_table, p);
   std::cout << "Adding to signed took " 
             << (ros::WallTime::now()-dt).toSec() 
             << " avg " << (ros::WallTime::now()-dt).toSec()/(big_num_points*1.0) 
             << std::endl;  
 
   dt = ros::WallTime::now();
-  df.moveShapeInField(big_table, p, np);
+  df.moveShapeInField(&big_table, p, np);
   std::cout << "Moving in unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
 
   dt = ros::WallTime::now();
-  sdf.moveShapeInField(big_table, p, np);
+  sdf.moveShapeInField(&big_table, p, np);
   std::cout << "Moving in signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
     
   dt = ros::WallTime::now();
-  df.removeShapeFromField(big_table, np);
+  df.removeShapeFromField(&big_table, np);
   std::cout << "Removing from unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
   
   dt = ros::WallTime::now();
-  sdf.removeShapeFromField(big_table, np);
+  sdf.removeShapeFromField(&big_table, np);
   std::cout << "Removing from signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
 
   dt = ros::WallTime::now();
   df.reset();
 
-  shape_msgs::SolidPrimitive small_table;
-  small_table.type = shape_msgs::SolidPrimitive::BOX;
-  small_table.dimensions.resize(3);
-  small_table.dimensions[shape_msgs::SolidPrimitive::BOX_X] = .25;
-  small_table.dimensions[shape_msgs::SolidPrimitive::BOX_Y] = .25;
-  small_table.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = .05;
+  shapes::Box small_table(.25,.25,.05);
 
   unsigned int small_num_points = (13)*(13)*(3);
 
   std::cout << "Adding " << small_num_points << " points" << std::endl;
-  df.addShapeToField(big_table, p);
 
   dt = ros::WallTime::now();
-  df.addShapeToField(small_table, p);
+  df.addShapeToField(&small_table, p);
   std::cout << "Adding to unsigned took " 
             << (ros::WallTime::now()-dt).toSec() 
             << " avg " << (ros::WallTime::now()-dt).toSec()/(small_num_points*1.0) 
             << std::endl;  
 
   dt = ros::WallTime::now();
-  sdf.addShapeToField(small_table, p);
+  sdf.addShapeToField(&small_table, p);
   std::cout << "Adding to signed took " 
             << (ros::WallTime::now()-dt).toSec() 
             << " avg " << (ros::WallTime::now()-dt).toSec()/(small_num_points*1.0) 
             << std::endl;  
 
   dt = ros::WallTime::now();
-  df.moveShapeInField(small_table, p, np);
+  df.moveShapeInField(&small_table, p, np);
   std::cout << "Moving in unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
 
   dt = ros::WallTime::now();
-  sdf.moveShapeInField(small_table, p, np);
+  sdf.moveShapeInField(&small_table, p, np);
   std::cout << "Moving in signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
 
   //uniformly spaced points - a worst case scenario
@@ -490,14 +534,40 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
   dt = ros::WallTime::now();
   worstdfu.addPointsToField(bad_vec);
   ros::WallDuration wd = ros::WallTime::now()-dt; 
-  printf("Time for unsigned adding %d uniform points is %g average %g\n", bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
+  printf("Time for unsigned adding %u uniform points is %g average %g\n", (unsigned int)bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
   dt = ros::WallTime::now();
   worstdfs.addPointsToField(bad_vec);
   wd = ros::WallTime::now()-dt; 
-  printf("Time for signed adding %d uniform points is %g average %g\n", bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
+  printf("Time for signed adding %u uniform points is %g average %g\n", (unsigned int)bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
 
 }
 
+TEST(TestSignedPropagationDistanceField, TestOcTree)
+{
+  PropagationDistanceField df(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+                              PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);  
+  
+  octomap::OcTree tree(.02);
+  
+  unsigned int count = 0;
+  for(float x = 1.01; x < 1.5; x += .02) {
+    for(float y = 1.01; y < 1.5; y += .02) {
+      for(float z = 1.01; z < 1.5; z += .02, count++) {
+        octomap::point3d point(x,y,z);
+        tree.updateNode(point, true);
+        octomap::OcTreeNode* result = tree.search(point);
+        if(!result) {
+          //std::cout << "No result at " << point.x() << " " << point.y() << " " << point.z() << std::endl;          
+        }
+      }
+    }
+  } 
+  
+  std::cout << "OcTree nodes " << count << std::endl;
+  df.addOcTreeToField(&tree);
+
+  EXPECT_TRUE(checkOctomapVersusDistanceField(df, tree));
+}
 
 int main(int argc, char **argv){
   testing::InitGoogleTest(&argc, argv);
