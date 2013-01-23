@@ -649,7 +649,7 @@ void kinematic_state::KinematicState::printStateInfo(std::ostream &out) const
   std::map<std::string,double> val;
   getStateValues(val);
   for (std::map<std::string, double>::iterator it = val.begin() ; it != val.end() ; ++it)
-    std::cout << it->first << " = " << it->second << std::endl;
+    out << it->first << " = " << it->second << std::endl;
 }
 
 void kinematic_state::KinematicState::printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out) const
