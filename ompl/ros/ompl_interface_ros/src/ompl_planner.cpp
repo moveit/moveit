@@ -89,7 +89,7 @@ public:
     moveit_msgs::DisplayTrajectory d;
     d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
     d.trajectory_start = mplan_res.trajectory_start;
-    d.trajectory = mplan_res.trajectory;
+    d.trajectory.resize(1, mplan_res.trajectory);
     pub_plan_.publish(d);
   }
   
