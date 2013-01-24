@@ -185,8 +185,21 @@ bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicMo
       
       // no need to reset this if the scene was previously configured
       if (!acm_)
+      {
         acm_.reset(new collision_detection::AllowedCollisionMatrix());
-      
+        // Use default collision operations in the SRDF to setup the acm
+        acm_->setEntry(getKinematicModel()->getLinkModelNamesWithCollisionGeometry(),
+                      getKinematicModel()->getLinkModelNamesWithCollisionGeometry(), false);
+  
+        // allow collisions for pairs that have been disabled
+        const std::vector<srdf::Model::DisabledCollision> &dc = getKinematicModel()->getSRDF()->getDisabledCollisionPairs();
+        for (std::size_t i = 0 ; i < dc.size() ; ++i)
+        {
+          acm_->setEntry(dc[i].link1_, dc[i].link2_, true);
+        }
+        
+      }
+            
       crobot_ = collision_detection_allocator_->allocateRobot(kmodel_);
       crobot_unpadded_ = collision_detection_allocator_->allocateRobot(kmodel_);
       crobot_const_ = crobot_;
