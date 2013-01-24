@@ -100,8 +100,12 @@ void parseLinkConstraint(std::istream &in, planning_scene_monitor::PlanningScene
   std::string name;
   in >> name;
 
+  // The link name is optional, in which case there would be a blank line
   std::string link_name;
-  in >> link_name;
+  if(in.peek() != '\n' && in.peek() != '\'r')
+  {
+    in >> link_name;
+  }
 
   std::string type;
   in >> type;
