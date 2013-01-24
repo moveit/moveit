@@ -32,37 +32,77 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#include <moveit/pick_place/output_stage.h>
-#include <ros/console.h>
+#ifndef MOVEIT_PICK_PLACE_MANIPULATION_PIPELINE_
+#define MOVEIT_PICK_PLACE_MANIPULATION_PIPELINE_
+
+#include <moveit/pick_place/manipulation_stage.h>
+#include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
+#include <vector>
+#include <deque>
 
 namespace pick_place
 {
 
-OutputStage::OutputStage(const ReceiveOutputCallback &callback) :
-  ManipulationStage(1),
-  callback_(callback)
+class ManipulationPipeline
 {
-  name_ = "output";
+public:
+  
+  ManipulationPipeline(const std::string &name, unsigned int nthreads);
+  virtual ~ManipulationPipeline(void);
+  
+  const std::string& getName(void) const
+  {
+    return name_;
+  }
+
+  void setSolutionCallback(const boost::function<void(void)> &callback)
+  {
+    solution_callback_ = callback;
+  }
+  
+  ManipulationPipeline& addStage(const ManipulationStagePtr &next);
+  const ManipulationStagePtr& getFirstStage(void) const;
+  const ManipulationStagePtr& getLastStage(void) const;
+  void reset(void);
+  
+  void signalStop(void);
+  void start(void);  
+  void stop(void);  
+  
+  void push(const ManipulationPlanPtr &grasp);
+  void clear(void);
+  
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const;
+  const std::vector<ManipulationPlanPtr>& getFailedPlans(void) const;
+  
+protected:
+  
+  void processingThread(unsigned int index);
+  
+  std::string name_;  
+  unsigned int nthreads_;
+  std::vector<ManipulationStagePtr> stages_;
+  
+  std::deque<ManipulationPlanPtr> queue_;
+  std::vector<ManipulationPlanPtr> success_;
+  std::vector<ManipulationPlanPtr> failed_;  
+
+  std::vector<boost::thread*> processing_threads_;
+  boost::condition_variable queue_access_cond_;
+  boost::mutex queue_access_lock_;
+  boost::mutex result_lock_;
+  
+  boost::function<void(void)> solution_callback_;
+  
+  bool stop_processing_;
+
+};
+
 }
 
-bool OutputStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &grasp) const
-{  
-  ROS_ERROR_THROTTLE(1, "Cannot evaluate grasps in output filter");
-  return false;
-}
+#endif
 
-void OutputStage::push(const ManipulationPlanPtr &plan)
-{
-  output_.push_back(plan);
-  if (callback_)
-    callback_(plan);
-}
-
-bool OutputStage::done(void) const
-{
-  return output_.size() > 0;
-}
-
-}

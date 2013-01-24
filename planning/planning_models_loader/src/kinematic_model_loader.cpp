@@ -48,7 +48,17 @@ planning_models_loader::KinematicModelLoader::KinematicModelLoader(const Options
   configure(opt);
 }
 
-static bool canSpecifyPosition(const kinematic_model::JointModel *jmodel, const unsigned int index)
+planning_models_loader::KinematicModelLoader::~KinematicModelLoader(void)
+{
+  model_.reset();
+  robot_model_loader_.reset();
+  kinematics_loader_.reset();
+}
+
+namespace
+{
+
+bool canSpecifyPosition(const kinematic_model::JointModel *jmodel, const unsigned int index)
 {  
   bool ok = false;
   if (jmodel->getType() == kinematic_model::JointModel::PLANAR && index == 2)
@@ -63,6 +73,7 @@ static bool canSpecifyPosition(const kinematic_model::JointModel *jmodel, const 
   else
     ok = true;
   return ok;
+}
 }
 
 void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
@@ -171,7 +182,7 @@ void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
 {
   if (robot_model_loader_ && model_)
   {
-    // load the kinematics solvers     
+    // load the kinematics solvers
     kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader(robot_model_loader_->getRobotDescription()));
     kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction(robot_model_loader_->getSRDF());
     const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();

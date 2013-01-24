@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/trajectory_processing/iterative_smoother.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <class_loader/class_loader.h>
 #include <ros/console.h>
 
@@ -62,13 +62,11 @@ public:
     if (result)
     {  
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      trajectory_msgs::JointTrajectory trajectory_out;
       const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(res.group_name);
       if (jmg)
       {
         const std::vector<moveit_msgs::JointLimits> &jlim = jmg->getVariableLimits();
-        smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim, req.start_state);
-        res.trajectory.joint_trajectory = trajectory_out;
+        time_param_.computeTimeStamps(res.trajectory.joint_trajectory, jlim, req.start_state);
       }
       else
         ROS_ERROR("It looks like the planner did not set the group the plan was computed for");
@@ -79,7 +77,7 @@ public:
   
 private:
   
-  trajectory_processing::IterativeParabolicSmoother smoother_;
+  trajectory_processing::IterativeParabolicTimeParameterization time_param_;
 };
 
 }

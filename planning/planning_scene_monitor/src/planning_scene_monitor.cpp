@@ -133,6 +133,11 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
   stopWorldGeometryMonitor();
   stopSceneMonitor();
   delete reconfigure_impl_;
+  current_state_monitor_.reset();
+  scene_const_.reset();
+  scene_.reset();
+  parent_scene_.reset();
+  kinematics_loader_.reset();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr &scene)

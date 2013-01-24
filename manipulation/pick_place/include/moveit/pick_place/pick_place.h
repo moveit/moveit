@@ -37,7 +37,7 @@
 #ifndef MOVEIT_PICK_PLACE_PICK_PLACE_
 #define MOVEIT_PICK_PLACE_PICK_PLACE_
 
-#include <moveit/pick_place/manipulation_stage.h>
+#include <moveit/pick_place/manipulation_pipeline.h>
 #include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/PickupAction.h>
@@ -57,21 +57,34 @@ class PickPlan
 public:
   
   PickPlan(const PickPlaceConstPtr &pick_place);
-  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal);
-  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlan(void) const;
-  void getFailedPlans(std::vector<ManipulationPlanPtr> &plans);
+  ~PickPlan(void);
+  
+  bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal);
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const
+  {
+    return pipeline_.getSuccessfulManipulationPlans();
+  }
+  const std::vector<ManipulationPlanPtr>& getFailedPlans(void) const
+  {
+    return pipeline_.getFailedPlans();  
+  }
+
+  const moveit_msgs::MoveItErrorCodes& getErrorCode(void) const
+  {
+    return error_code_;
+  }
   
 private:
   
-  void foundSolution(const ManipulationPlanPtr &plan);
+  void foundSolution(void);
   
   PickPlaceConstPtr pick_place_;  
+  ManipulationPipeline pipeline_;
   double last_plan_time_;
   bool done_;
-  boost::condition_variable cond_;
-  boost::mutex mut_;
-  ManipulationStagePtr root_;
-  ManipulationStagePtr last_;
+  boost::condition_variable done_condition_;
+  boost::mutex done_mutex_;
+  moveit_msgs::MoveItErrorCodes error_code_;
 };
 
 typedef boost::shared_ptr<PickPlan> PickPlanPtr;
@@ -82,20 +95,33 @@ class PlacePlan
 public:
   
   PlacePlan(const PickPlaceConstPtr &pick_place);
-  const std::vector<ManipulationPlanPtr>& plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
-  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlan(void) const;
-  void getFailedPlans(std::vector<ManipulationPlanPtr> &plans);
+  ~PlacePlan(void);
+  
+  bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const
+  {
+    return pipeline_.getSuccessfulManipulationPlans();
+  }  
+  const std::vector<ManipulationPlanPtr>& getFailedPlans(void) const
+  {
+    return pipeline_.getFailedPlans();  
+  }
+
+  const moveit_msgs::MoveItErrorCodes& getErrorCode(void) const
+  {
+    return error_code_;
+  }
   
 private:
   
-  void foundSolution(const ManipulationPlanPtr &plan);
+  void foundSolution(void);
   
   PickPlaceConstPtr pick_place_;  
+  ManipulationPipeline pipeline_;
   bool done_;
-  boost::condition_variable cond_;
-  boost::mutex mut_;
-  ManipulationStagePtr root_; 
-  ManipulationStagePtr last_;
+  boost::condition_variable done_condition_;
+  boost::mutex done_mutex_; 
+  moveit_msgs::MoveItErrorCodes error_code_;
 };
 
 typedef boost::shared_ptr<PlacePlan> PlacePlanPtr;

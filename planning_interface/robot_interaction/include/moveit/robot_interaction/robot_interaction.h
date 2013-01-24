@@ -37,7 +37,6 @@
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
-#include <boost/thread/recursive_mutex.hpp>
 #include <tf/tf.h>
 
 namespace interactive_markers
@@ -85,6 +84,10 @@ public:
     double size;
   };
   
+  class InteractionHandler;
+  
+  typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
+  
   class InteractionHandler
   {
   public:
@@ -106,30 +109,27 @@ public:
       return name_;
     }
     
-    const kinematic_state::KinematicStatePtr& getState(void)
-    {
-      ROS_DEBUG_NAMED("robot_interaction", "getState requested");
-      boost::recursive_mutex::scoped_lock slock(state_lock_);
-      ROS_DEBUG_NAMED("robot_interaction", "locked state_lock, getting state ptr");
-      return kstate_;
-    }
+    kinematic_state::KinematicStateConstPtr getState(void) const;    
+    void setState(const kinematic_state::KinematicState& kstate);
     
-    void setState(const kinematic_state::KinematicState& kstate)
-    {
-      ROS_DEBUG_NAMED("robot_interaction", "setState requested");
-      boost::recursive_mutex::scoped_lock slock(state_lock_);
-      ROS_DEBUG_NAMED("robot_interaction", "locked state_lock, setting state");
-      *kstate_ = kstate;
-    }    
-    
-    void setUpdateCallback(const boost::function<void(InteractionHandler*)> &callback)
+    void setUpdateCallback(const InteractionHandlerCallbackFn &callback)
     {
       update_callback_ = callback;
-    }
+    }    
     
+    const InteractionHandlerCallbackFn& getUpdateCallback(void) const
+    {
+      return update_callback_;
+    }    
+
     void setStateValidityCallback(const kinematic_state::StateValidityCallbackFn &callback)
     {
       state_validity_callback_fn_ = callback;
+    }
+    
+    const kinematic_state::StateValidityCallbackFn& getStateValidityCallback(void) const
+    {
+      return state_validity_callback_fn_;
     }
     
     void setIKTimeout(double timeout)
@@ -156,63 +156,102 @@ public:
     {
       interaction_mode_ = imode;
     }
-
+    
+    IKInteractionType getInteractionMode(void) const
+    {
+      return interaction_mode_;
+    }
+    
     void setMeshesVisible(bool visible)
     {
       display_meshes_ = visible;
     }
 
-    bool getMeshesVisible()
+    bool getMeshesVisible(void) const
     {
       return display_meshes_;
     }
 
-    bool isRedrawRequested()
+    void setControlsVisible(bool visible)
     {
-      return redraw_requested_;
+      display_controls_ = visible;
     }
 
-    bool clearRedrawRequested()
+    bool getControlsVisible(void) const
     {
-      redraw_requested_ = false;
+      return display_controls_;
     }
 
+    double getVelocityGain(void) const
+    {
+      return velocity_gain_;
+    }
+    
+    void setVelocityGain(double velocity_gain)
+    {
+      velocity_gain_ = velocity_gain;
+    }
+
+    void setPoseOffset(const EndEffector& eef, const geometry_msgs::Pose& m);
+
+    void clearPoseOffset(const RobotInteraction::EndEffector& eef);
+
+    void clearPoseOffsets();
+
+    bool getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m);
+    bool getPoseOffset(const RobotInteraction::VirtualJoint& vj, geometry_msgs::Pose& m);
+    
     /** \brief Get the last interactive_marker command pose for the end-effector
      * @param The end-effector in question.
-     * @param A PoseStamped message containing the result.
+     * @param A PoseStamped message containing the last (offset-adjusted) pose commanded for the end-effector.
      * @return True if a pose for that end-effector was found, false otherwise.
      */
-    bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& ps);
+    bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
+    bool getLastVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj, geometry_msgs::PoseStamped& pose);
 
-    virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
-    virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
-    virtual bool inError(const RobotInteraction::EndEffector& eef);
-    virtual bool inError(const RobotInteraction::VirtualJoint& vj);
+    /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
+    virtual bool handleEndEffector(const RobotInteraction::EndEffector &eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
+    virtual bool handleVirtualJoint(const RobotInteraction::VirtualJoint &vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    virtual bool inError(const RobotInteraction::EndEffector& eef) const;
+    virtual bool inError(const RobotInteraction::VirtualJoint& vj) const;
     
   protected:
 
-    bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose);
+    bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
+                               const geometry_msgs::Pose &offset,
+                               geometry_msgs::PoseStamped &tpose);
 
+    kinematic_state::KinematicStatePtr getUniqueStateAccess(void);
+    void setStateToAccess(kinematic_state::KinematicStatePtr &state);
+    
     std::string name_;
     std::string planning_frame_;
     kinematic_state::KinematicStatePtr kstate_;
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
     std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
-    boost::function<void(InteractionHandler*)> update_callback_;
+    std::map<std::string, geometry_msgs::Pose> offset_map_;
+    // bool can be used to signal a change in "state" (e.g. error, other properties?)
+    boost::function<void(InteractionHandler*, bool)> update_callback_;
     kinematic_state::StateValidityCallbackFn state_validity_callback_fn_;
     kinematic_state::SecondaryTaskFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
     IKInteractionType interaction_mode_;
     bool display_meshes_;
-    bool redraw_requested_;
-
-    boost::recursive_mutex state_lock_;
-    boost::recursive_mutex pose_map_lock_;
+    bool display_controls_;
+    double velocity_gain_;
     
   private:
     
+    mutable boost::mutex state_lock_;
+    mutable boost::condition_variable state_available_condition_;
+    boost::mutex pose_map_lock_;
+    boost::mutex offset_map_lock_;
+
     void setup(void);
   };
 
@@ -229,7 +268,6 @@ public:
   void clear(void);
   
   void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0.0);
-  void updateInteractiveMarkerProperties(const InteractionHandlerPtr &handler);
 
   void publishInteractiveMarkers(void);
   void clearInteractiveMarkers(void);
@@ -246,22 +284,27 @@ public:
   
   static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn());
+  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain, 
+                          const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn(),
+                          const kinematic_state::SecondaryTaskFn &st_callback = kinematic_state::SecondaryTaskFn());
   static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, const kinematic_state::SecondaryTaskFn &st_callback);
 
 private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupScale(const std::string &group);    
-  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef, visualization_msgs::InteractiveMarker& im);
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
+                             visualization_msgs::InteractiveMarker& im);
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
+                             const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void processingThread(void);
-
+  void clearInteractiveMarkersUnsafe(void);
+  
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
 
-  mutable boost::mutex action_lock_;
-  boost::condition_variable new_action_condition_;
+  boost::condition_variable new_feedback_condition_;
   std::map<std::string, visualization_msgs::InteractiveMarkerFeedbackConstPtr> feedback_map_;
 
   kinematic_model::KinematicModelConstPtr kmodel_;
@@ -271,7 +314,8 @@ private:
   
   std::map<std::string, InteractionHandlerPtr> handlers_;
   std::map<std::string, std::size_t> shown_markers_;
-  
+  boost::mutex marker_access_lock_;
+
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
 };
 

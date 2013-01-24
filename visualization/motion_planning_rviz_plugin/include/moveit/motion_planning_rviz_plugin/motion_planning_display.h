@@ -81,11 +81,11 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   struct TrajectoryMessageToDisplay
   {
     TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningSceneConstPtr &scene);
-    TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
+    TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const kinematic_state::KinematicTrajectory &trajectory);
     
     kinematic_state::KinematicStatePtr start_state_;
-    std::vector<kinematic_state::KinematicStatePtr> trajectory_;
-    std::vector<double> time_from_start_;
+    kinematic_state::KinematicTrajectory trajectory_;
+    std::vector<double> display_duration_;
   };
   
   MotionPlanningDisplay();
@@ -104,12 +104,12 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   // queue the execution of this function for the next time the main update() loop gets called
   void addMainLoopJob(const boost::function<void(void)> &job);
   
-  const kinematic_state::KinematicStatePtr& getQueryStartState(void) const
+  kinematic_state::KinematicStateConstPtr getQueryStartState(void) const
   {
     return query_start_state_->getState();
   }
   
-  const kinematic_state::KinematicStatePtr& getQueryGoalState(void) const
+  kinematic_state::KinematicStateConstPtr getQueryGoalState(void) const
   {
     return query_goal_state_->getState();
   }
@@ -129,8 +129,8 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
     return query_goal_state_;
   }
   
-  void setQueryStartState(const kinematic_state::KinematicStatePtr &start);
-  void setQueryGoalState(const kinematic_state::KinematicStatePtr &goal);  
+  void setQueryStartState(const kinematic_state::KinematicState &start);
+  void setQueryGoalState(const kinematic_state::KinematicState &goal);  
   
   void updateQueryStartState(void);
   void updateQueryGoalState(void);
@@ -140,7 +140,7 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void queueRenderSceneGeometry(void);
   
   void displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
-                              const std::vector<kinematic_state::KinematicStatePtr> &trajectory);
+                              const kinematic_state::KinematicTrajectory &trajectory);
                                                                                                 
 private Q_SLOTS:
 
@@ -194,13 +194,17 @@ protected:
   void executeMainLoopJobs(void);
   void clearTrajectoryTrail();  
   void publishInteractiveMarkers(void);
-  void updateQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
-  void updateQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+
+  void recomputeQueryStartStateMetrics(void);
+  void recomputeQueryGoalStateMetrics(void);
   void drawQueryStartState(void);
   void drawQueryGoalState(void);
+  void scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+  void scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
+
+
   bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const;
   
-  void computeMetrics(double payload);
   void computeMetrics(bool start, const std::string &group, double payload);
   void computeMetricsInternal(std::map<std::string, double> &metrics,
                               const robot_interaction::RobotInteraction::EndEffector &eef,

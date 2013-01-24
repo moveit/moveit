@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #include <moveit/move_group/names.h>
 #include <actionlib/server/simple_action_server.h>
 #include <moveit_msgs/MoveGroupAction.h>
@@ -78,6 +80,7 @@ public:
       trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getKinematicModel()));
       plan_execution_.reset(new plan_execution::PlanExecution(planning_scene_monitor_, trajectory_execution_manager_));
       plan_with_sensing_.reset(new plan_execution::PlanWithSensing(trajectory_execution_manager_));
+      plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupServer::startLookCallback, this));
       if (debug)
         plan_with_sensing_->displayCostSources(true);
     }
@@ -131,7 +134,9 @@ public:
 private:
   
   bool planUsingPlanningPipeline(const moveit_msgs::MotionPlanRequest &req, plan_execution::ExecutableMotionPlan &plan)
-  { 
+  {    
+    setMoveState(PLANNING);
+
     planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);
     bool solved = false;
     moveit_msgs::MotionPlanResponse res;
@@ -162,11 +167,6 @@ private:
     return solved;
   }
   
-  void startPlanningCallback(void)
-  { 
-    setMoveState(PLANNING);
-  }
-
   void startExecutionCallback(void)
   {
     setMoveState(MONITOR);
@@ -249,7 +249,6 @@ private:
     
     opt.replan_ = goal->planning_options.replan;
     opt.replan_attempts_ = goal->planning_options.replan_attempts;
-    opt.before_plan_callback_ = boost::bind(&MoveGroupServer::startPlanningCallback, this);
     opt.before_execution_callback_ = boost::bind(&MoveGroupServer::startExecutionCallback, this);
     
     opt.plan_callback_ = boost::bind(&MoveGroupServer::planUsingPlanningPipeline, this, boost::cref(motion_plan_request), _1);
@@ -287,8 +286,19 @@ private:
     }
     else
       executeMoveCallback_PlanAndExecute(goal, action_res);
+
+    bool planned_trajectory_empty = trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory);
+    std::string response = getActionResultString(action_res.error_code, planned_trajectory_empty, goal->planning_options.plan_only);
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+      move_action_server_->setSucceeded(action_res, response);
+    else
+    {
+      if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
+        move_action_server_->setPreempted(action_res, response);
+      else 
+        move_action_server_->setAborted(action_res, response);
+    }
     
-    finalizeMoveAction(action_res, goal->planning_options.plan_only);
     setMoveState(IDLE);
   }
 
@@ -296,58 +306,57 @@ private:
   {
     plan_execution_->stop();
   }
-  
-  void finalizeMoveAction(const moveit_msgs::MoveGroupResult &action_res, bool plan_only)
+
+  std::string getActionResultString(const moveit_msgs::MoveItErrorCodes &error_code, bool planned_trajectory_empty, bool plan_only)
   {
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+    if (error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
-      if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
-        move_action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
+      if (planned_trajectory_empty)
+        return "Requested path and goal constraints are already met.";
       else
       {
         if (plan_only)
-          move_action_server_->setSucceeded(action_res, "Motion plan was computed succesfully.");
+          return "Motion plan was computed succesfully.";
         else
-          move_action_server_->setSucceeded(action_res, "Solution was found and executed.");
+          return "Solution was found and executed.";
       }
     }
     else
-      if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
-        move_action_server_->setAborted(action_res, "Must specify group in motion plan request");
+      if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
+        return "Must specify group in motion plan request";
       else
-        if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
+        if (error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
         {
-          if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
-            move_action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
+          if (planned_trajectory_empty)
+            return "No motion plan found. No execution attempted.";
           else
-            move_action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
+            return "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.";
         }
         else
-          if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
-            move_action_server_->setAborted(action_res, "Motion plan was found but it seems to be too costly and looking around did not help.");
+          if (error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
+            return "Motion plan was found but it seems to be too costly and looking around did not help.";
           else
-            if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
-              move_action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
+            if (error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
+              return "Solution found but the environment changed during execution and the path was aborted";
             else
-              if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
-                move_action_server_->setAborted(action_res, "Solution found but controller failed during execution");
+              if (error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
+                return "Solution found but controller failed during execution";
               else
-                if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
-                  move_action_server_->setAborted(action_res, "Timeout reached");
+                if (error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
+                  return "Timeout reached";
                 else
-                  if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
-                    move_action_server_->setPreempted(action_res, "Preempted");
+                  if (error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
+                    return "Preempted";
                   else
-                    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS)
-                      move_action_server_->setAborted(action_res, "Invalid goal constraints");
+                    if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS)
+                      return "Invalid goal constraints";
                     else
-                      if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
-                        move_action_server_->setAborted(action_res, "Invalid group name");
+                      if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
+                        return "Invalid group name";
                       else
-                        if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::FAILURE)
-                          move_action_server_->setAborted(action_res, "Catastrophic failure");
-                        else
-                          move_action_server_->setAborted(action_res, "Unknown event");
+                        if (error_code.val == moveit_msgs::MoveItErrorCodes::FAILURE)
+                          return "Catastrophic failure";
+    return "Unknown event";
   }
   
   std::string stateToStr(MoveGroupState state) const
@@ -374,8 +383,8 @@ private:
     move_action_server_->publishFeedback(move_feedback_);
   }
   
-  void executePickupCallback_PlanOnly(const moveit_msgs::PickupGoalConstPtr& goal)
-  {  
+  void executePickupCallback_PlanOnly(const moveit_msgs::PickupGoalConstPtr& goal, moveit_msgs::PickupResult &action_res)
+  { 
     pick_place::PickPlanPtr plan; 
     try
     {
@@ -391,59 +400,112 @@ private:
       ROS_ERROR("Pick&place threw an exception");
     }
 
-    moveit_msgs::PickupResult action_res;
     if (plan)
     {
-      const std::vector<pick_place::ManipulationPlanPtr> success = plan->getSuccessfulManipulationPlan();
+      const std::vector<pick_place::ManipulationPlanPtr> &success = plan->getSuccessfulManipulationPlans();
       if (success.empty())
-      {
-        pickup_action_server_->setAborted(action_res, "No pickup plan was found.");
+      {  
+        action_res.error_code = plan->getErrorCode();
       }
       else
       {
         const pick_place::ManipulationPlanPtr &result = success.back();
         action_res.trajectory_start = result->trajectory_start_;
         action_res.trajectory_stages = result->trajectories_;
-        action_res.trajectory_descriptions = result->trajectory_descriptions_;
-        pickup_action_server_->setSucceeded(action_res, "Pickup plan was successfully computed.");
+        action_res.trajectory_descriptions = result->trajectory_descriptions_; 
+        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
         pick_place_->displayPlan(result);
       }
     }
     else
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-      pickup_action_server_->setAborted(action_res, "No plan was attempted."); 
     }
   }
   
   bool planUsingPickPlace(const moveit_msgs::PickupGoal& goal, plan_execution::ExecutableMotionPlan &plan)
   {
+    setPickupState(PLANNING);
     
+    planning_scene_monitor::LockedPlanningSceneRO ps(plan.planning_scene_monitor_);
+    
+    pick_place::PickPlanPtr pick_plan;
+    try
+    {
+      pick_plan = pick_place_->planPick(plan.planning_scene_, goal);
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Pick&place threw an exception: %s", ex.what()); 
+    }
+    catch(...)
+    {
+      ROS_ERROR("Pick&place threw an exception");
+    }
+    
+    if (pick_plan)
+    {
+      const std::vector<pick_place::ManipulationPlanPtr> &success = pick_plan->getSuccessfulManipulationPlans();
+      if (success.empty())
+      {
+        plan.error_code_ = pick_plan->getErrorCode();
+      }
+      else
+      {
+        const pick_place::ManipulationPlanPtr &result = success.back();
+        plan.trajectory_start_ = result->trajectory_start_;
+        plan.planned_trajectory_ = result->trajectories_;
+        plan.planned_trajectory_descriptions_ = result->trajectory_descriptions_; 
+        plan.planning_group_ = result->planning_group_;
+        plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS; 
+        pick_place_->displayPlan(result);
+      }
+    }
+    else
+    {
+      plan.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    }
+    
+    plan.planned_trajectory_states_.resize(plan.planned_trajectory_.size());
+    kinematic_state::KinematicState *last_state = NULL;
+    for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
+      if (last_state == NULL)
+      {
+        trajectory_processing::convertToKinematicStates(plan.planned_trajectory_states_[i], plan.trajectory_start_, plan.planned_trajectory_[i],
+                                                        plan.planning_scene_->getCurrentState(), plan.planning_scene_->getTransforms());
+        if (!plan.planned_trajectory_states_[i].empty())
+          last_state = plan.planned_trajectory_states_[i].back().get();
+      }
+      else
+      {
+        static const moveit_msgs::RobotState empty_diff_state;
+        trajectory_processing::convertToKinematicStates(plan.planned_trajectory_states_[i], empty_diff_state, plan.planned_trajectory_[i],
+                                                        *last_state, plan.planning_scene_->getTransforms());
+      }
+    return plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
   }
   
-  void executePickupCallback_PlanAndExecute(const moveit_msgs::PickupGoalConstPtr& goal)
+  void executePickupCallback_PlanAndExecute(const moveit_msgs::PickupGoalConstPtr& goal, moveit_msgs::PickupResult &action_res)
   {
     plan_execution::PlanExecution::Options opt;
     
     opt.replan_ = goal->planning_options.replan;
     opt.replan_attempts_ = goal->planning_options.replan_attempts;
-    opt.before_plan_callback_ = boost::bind(&MoveGroupServer::startPlanningCallback, this);
     opt.before_execution_callback_ = boost::bind(&MoveGroupServer::startExecutionCallback, this);
     
     opt.plan_callback_ = boost::bind(&MoveGroupServer::planUsingPickPlace, this, boost::cref(*goal), _1);
     if (goal->planning_options.look_around && plan_with_sensing_)
       // we pass 0.0 as the max cost so that defaults are used (as controlled with dynamic reconfigure)
-      opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_, goal->planning_options.look_around_attempts, 0.0);
+      opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_,
+                                       goal->planning_options.look_around_attempts, goal->planning_options.max_safe_execution_cost);
 
     plan_execution::ExecutableMotionPlan plan;
     plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
 
-    moveit_msgs::PickupResult action_res;
     action_res.trajectory_start = plan.trajectory_start_;
     action_res.trajectory_stages = plan.planned_trajectory_;
     action_res.trajectory_descriptions = plan.planned_trajectory_descriptions_;
-    action_res.error_code = plan.error_code_;
-    // \todo report action result 
+    action_res.error_code = plan.error_code_; 
   }
 
   void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal)
@@ -451,14 +513,29 @@ private:
     setPickupState(PLANNING);
     
     planning_scene_monitor_->updateFrameTransforms();
+
+    moveit_msgs::PickupResult action_res;
+
     if (goal->planning_options.plan_only || !allow_trajectory_execution_)
     {
       if (!goal->planning_options.plan_only)
         ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the goal request has plan_only set to false. Only a motion plan will be computed anyway.");
-      executePickupCallback_PlanOnly(goal);
+      executePickupCallback_PlanOnly(goal, action_res);
     }
     else
-      executePickupCallback_PlanAndExecute(goal);
+      executePickupCallback_PlanAndExecute(goal, action_res);
+    
+    bool planned_trajectory_empty = action_res.trajectory_stages.empty();
+    std::string response = getActionResultString(action_res.error_code, planned_trajectory_empty, goal->planning_options.plan_only);
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+      pickup_action_server_->setSucceeded(action_res, response);
+    else
+    {
+      if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
+        pickup_action_server_->setPreempted(action_res, response);
+      else 
+        pickup_action_server_->setAborted(action_res, response);
+    }
     
     setPickupState(IDLE);
   }  

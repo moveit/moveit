@@ -782,7 +782,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
                          trajectory.joint_trajectory.joint_names.end());
   if (actuated_joints.empty())
   {
-    ROS_WARN("The trajectory to execute specifies not joints");
+    ROS_WARN("The trajectory to execute specifies no joints");
     return false;
   }
   

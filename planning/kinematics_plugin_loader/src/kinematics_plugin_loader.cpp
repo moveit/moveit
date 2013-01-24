@@ -91,7 +91,7 @@ public:
         {
           try
           {
-            result.reset(kinematics_loader_->createUnmanagedInstance(it->second[i]));
+            result = kinematics_loader_->createInstance(it->second[i]);
             if (result)
             {
               const std::vector<const kinematic_model::LinkModel*> &links = jmg->getLinkModels();
