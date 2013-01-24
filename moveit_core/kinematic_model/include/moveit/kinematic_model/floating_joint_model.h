@@ -73,8 +73,9 @@ public:
     angular_distance_weight_ = weight;
   }
   
-  /// Normalize the quaternion (warn if norm is 0, and set to identity)
-  void normalizeRotation(std::vector<double> &values) const;
+  /// Normalize the quaternion (warn if norm is 0, and set to identity);
+  /// Return true if any change was made
+  bool normalizeRotation(std::vector<double> &values) const;
 
   double distanceRotation(const std::vector<double> &values1, const std::vector<double> &values2) const;
   
