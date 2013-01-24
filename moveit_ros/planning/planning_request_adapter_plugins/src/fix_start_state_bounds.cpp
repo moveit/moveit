@@ -118,17 +118,15 @@ public:
         if (jm->getType() == kinematic_model::JointModel::PLANAR)
         {   
           double initial = jstates[i]->getVariableValues()[2];
-          static_cast<const kinematic_model::PlanarJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()); 
-          double after = jstates[i]->getVariableValues()[2];
-          if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
+          if (static_cast<const kinematic_model::PlanarJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()))
             change_req = true;
         }
         else
           // Normalize quaternions
           if (jm->getType() == kinematic_model::JointModel::FLOATING)
           {
-            static_cast<const kinematic_model::FloatingJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues());
-            change_req = true;
+            if (static_cast<const kinematic_model::FloatingJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()))
+              change_req = true;
           }
     }
     
