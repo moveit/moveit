@@ -110,12 +110,19 @@ public:
                                                                                              boost::bind(&MoveGroupServer::executePickupCallback, this, _1), false));
     pickup_action_server_->registerPreemptCallback(boost::bind(&MoveGroupServer::preemptPickupCallback, this));
     pickup_action_server_->start();
+
+    // start the place action server
+    place_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::PlaceAction>(root_node_handle_, PLACE_ACTION,
+                                                                                           boost::bind(&MoveGroupServer::executePlaceCallback, this, _1), false));
+    place_action_server_->registerPreemptCallback(boost::bind(&MoveGroupServer::preemptPlaceCallback, this));
+    place_action_server_->start();
   }
   
   ~MoveGroupServer(void)
   {
     move_action_server_.reset();
     pickup_action_server_.reset();
+    place_action_server_.reset();
     execute_service_.shutdown();
     plan_service_.shutdown();
     query_service_.shutdown();
@@ -539,8 +546,17 @@ private:
     
     setPickupState(IDLE);
   }  
-
+  
+  void executePlaceCallback(const moveit_msgs::PlaceGoalConstPtr& goal)
+  {
+    
+  }
+  
   void preemptPickupCallback(void)
+  {
+  }
+
+  void preemptPlaceCallback(void)
   {
   }
 
@@ -650,6 +666,9 @@ private:
 
   boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::PickupAction> > pickup_action_server_;
   moveit_msgs::PickupFeedback pickup_feedback_;
+
+  boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::PlaceAction> > place_action_server_;
+  moveit_msgs::PickupFeedback place_feedback_;
 
   ros::ServiceServer plan_service_;
   ros::ServiceServer execute_service_;
