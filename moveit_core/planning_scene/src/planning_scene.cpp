@@ -229,6 +229,20 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
   return isConfigured();
 }
 
+const kinematic_model::KinematicModelPtr& planning_scene::PlanningScene::getKinematicModelNonConst(void)
+{
+  if (kmodel_ || !parent_)
+    return kmodel_;
+  const PlanningScene *p = parent_.get();
+  const kinematic_model::KinematicModelPtr *r = NULL;
+  while (p && (!r || !*r))
+  {
+    r = &p->kmodel_;
+    p = p->parent_.get();
+  }
+  return *r;
+}
+
 void planning_scene::PlanningScene::clearDiffs(void)
 {
   if (!parent_)
@@ -819,7 +833,7 @@ void planning_scene::PlanningScene::decoupleParent(void)
     return;
   if (parent_->isConfigured())
   {
-    kmodel_ = parent_->kmodel_;
+    kmodel_ = getKinematicModelNonConst();
     kmodel_const_ = kmodel_;
 
     if (!ftf_)
@@ -873,6 +887,8 @@ void planning_scene::PlanningScene::decoupleParent(void)
         
     configured_ = true;
   }
+  else
+    logError("Decoupling scene from a non-configured parent will cause problems");
 
   parent_.reset();
 }
@@ -955,7 +971,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   {
     // if we have a parent, but we set a new planning scene, then we do not care about the parent any more
     // and we no longer represent the scene as a diff
-    kmodel_ = parent_->kmodel_;
+    kmodel_ = getKinematicModelNonConst();
     kmodel_const_ = kmodel_;
 
     if (!ftf_)
