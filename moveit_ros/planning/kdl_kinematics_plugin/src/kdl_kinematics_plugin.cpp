@@ -46,6 +46,8 @@
 #include <urdf_model/model.h>
 #include <srdfdom/model.h>
 
+#include <moveit/robot_model_loader/robot_model_loader.h>
+
 static const double MAX_TIMEOUT_KDL_PLUGIN = 5.0;
  
 //register KDLKinematics as a KinematicsBase implementation
@@ -111,17 +113,19 @@ bool KDLKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
   return true;  
 }
 
-bool KDLKinematicsPlugin::initialize(const std::string& group_name,
+bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
+                                     const std::string& group_name,
                                      const std::string& base_frame,
                                      const std::string& tip_frame,
                                      double search_discretization)
 {
-  ROS_INFO("Initializing kdl solver");  
-  setValues(group_name, base_frame, tip_frame, search_discretization);
+  ROS_DEBUG("Initializing kdl solver");  
+  setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
   ros::NodeHandle private_handle("~");  
-  const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader_.getURDF();
+  robot_model_loader::RobotModelLoader robot_model_loader(robot_description_);
+  const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader.getSRDF();
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader.getURDF();
 
   kinematic_model_.reset(new kinematic_model::KinematicModel(urdf_model, srdf));
 
@@ -193,7 +197,7 @@ bool KDLKinematicsPlugin::initialize(const std::string& group_name,
   kinematic_state_2_.reset(new kinematic_state::KinematicState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));  
 
   active_ = true;  
-  ROS_INFO("KDL solver initialized");  
+  ROS_DEBUG("KDL solver initialized");  
   return true;
 }
 

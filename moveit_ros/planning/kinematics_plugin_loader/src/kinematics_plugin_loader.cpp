@@ -51,9 +51,11 @@ static const double DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION = 0.1;
 class KinematicsPluginLoader::KinematicsLoaderImpl
 {
 public:
-  KinematicsLoaderImpl(const std::map<std::string, std::vector<std::string> > &possible_kinematics_solvers, 
+  KinematicsLoaderImpl(const std::string &robot_description,
+                       const std::map<std::string, std::vector<std::string> > &possible_kinematics_solvers, 
                        const std::map<std::string, std::vector<double> > &search_res,
                        const std::map<std::string, std::string> &ik_links) :
+    robot_description_(robot_description),
     possible_kinematics_solvers_(possible_kinematics_solvers),
     search_res_(search_res),
     ik_links_(ik_links)
@@ -102,7 +104,7 @@ public:
                 std::map<std::string, std::string>::const_iterator ik_it = ik_links_.find(jmg->getName());
                 const std::string &tip = ik_it != ik_links_.end() ? ik_it->second : links.back()->getName();
                 double search_res = search_res_.find(jmg->getName())->second[i]; // we know this exists, by construction
-                if (!result->initialize(jmg->getName(), base, tip, search_res))
+                if (!result->initialize(robot_description_, jmg->getName(), base, tip, search_res))
                 {
                   ROS_ERROR("Kinematics solver of type '%s' could not be initialized for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
                   result.reset();
@@ -160,7 +162,8 @@ public:
   }
   
 private:
-  
+
+  std::string                                                            robot_description_;
   std::map<std::string, std::vector<std::string> >                       possible_kinematics_solvers_;
   std::map<std::string, std::vector<double> >                            search_res_;
   std::map<std::string, std::string>                                     ik_links_;
@@ -183,6 +186,7 @@ void kinematics_plugin_loader::KinematicsPluginLoader::status(void) const
 kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(void)
 {  
   robot_model_loader::RobotModelLoader rml(robot_description_);
+  robot_description_ = rml.getRobotDescription();
   return getLoaderFunction(rml.getSRDF());
 }
 
@@ -292,7 +296,7 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
       }
     }
     
-    loader_.reset(new KinematicsLoaderImpl(possible_kinematics_solvers, search_res, ik_links));
+    loader_.reset(new KinematicsLoaderImpl(robot_description_, possible_kinematics_solvers, search_res, ik_links));
   }
   
   return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
