@@ -149,8 +149,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   if (kinematics_loader_->getModel())
   {
     scene_ = scene ? scene : planning_scene::PlanningScenePtr(new planning_scene::PlanningScene());
-    if (scene_->isConfigured() || scene_->configure(kinematics_loader_->getURDF(), kinematics_loader_->getSRDF() ? kinematics_loader_->getSRDF() :
-                                                    boost::shared_ptr<srdf::Model>(new srdf::Model()), kinematics_loader_->getModel()))
+    if (scene_->isConfigured() || scene_->configure(kinematics_loader_->getModel()))
     {
       scene_const_ = scene_;
       configureCollisionMatrix(scene_);
