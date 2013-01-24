@@ -171,7 +171,9 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             plan->approach_state_.swap(first_approach_state);
             plan->translation_state_.swap(last_translation_state);
             trajectory_processing::reverseTrajectory(approach_traj);
-            
+            trajectory_processing::unwindJointTrajectory(pre_grasp_planning_scene_->getKinematicModel(), approach_traj.joint_trajectory);
+            trajectory_processing::unwindJointTrajectory(pre_grasp_planning_scene_->getKinematicModel(), translation_traj.joint_trajectory);
+
             const kinematic_model::JointModelGroup *jmg = pre_grasp_planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_);
             if (jmg)
             {
@@ -197,6 +199,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           
           plan->approach_state_.swap(first_approach_state);
           trajectory_processing::reverseTrajectory(approach_traj);
+          trajectory_processing::unwindJointTrajectory(pre_grasp_planning_scene_->getKinematicModel(), approach_traj.joint_trajectory);
 
           const kinematic_model::JointModelGroup *jmg = pre_grasp_planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_);
           if (jmg)
