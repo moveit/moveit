@@ -214,7 +214,6 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
                                 ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked());
         // Connect signals
         connect( goal_pose.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
-        goal_pose.hide();
 
         goal_poses_.insert(GoalPosePair(c->name, goal_pose));
       }
@@ -632,7 +631,6 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
     setStatusFromBackground(STATUS_INFO, "Updating state...");
     if (update_if_reachable)
     {
-      ROS_INFO("Update kinematic state to reachable solution");
       scene_display_->getPlanningSceneRW()->setCurrentState(ks);
       scene_display_->queueRenderSceneGeometry();
     }

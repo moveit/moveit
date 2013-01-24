@@ -70,6 +70,7 @@ public:
   ~MainWindow();
 public Q_SLOTS:
 
+  void exitActionTriggered(bool);
   void openActionTriggered(bool);
   void planningGroupChanged(const QString &text);
   void dbConnectButtonClicked();
@@ -111,6 +112,7 @@ public Q_SLOTS:
 
 private:
   const static char * ROBOT_DESCRIPTION_PARAM;
+  const static char * ROBOT_DESCRIPTION_SEMANTIC_PARAM;
   const static unsigned int DEFAULT_WAREHOUSE_PORT;
 
   Ui::MainWindow ui_;
@@ -120,7 +122,7 @@ private:
   rviz::VisualizationManager *visualization_manager_;
   moveit_rviz_plugin::PlanningSceneDisplay *scene_display_;
 
-  void configure();
+  bool configure();
   void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
   void selectItemJob(QListWidgetItem *item, bool flag);

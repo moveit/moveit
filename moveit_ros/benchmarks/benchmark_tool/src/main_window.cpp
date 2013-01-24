@@ -45,6 +45,7 @@ namespace benchmark_tool
 {
 
 const char * MainWindow::ROBOT_DESCRIPTION_PARAM = "robot_description";
+const char * MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
 const unsigned int MainWindow::DEFAULT_WAREHOUSE_PORT = 33830;
 
 MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
@@ -58,6 +59,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   //Rviz render panel
   render_panel_ = new rviz::RenderPanel();
   ui_.render_widget->addWidget(render_panel_);
+  ui_.splitter->setStretchFactor(1, 4);
 
   visualization_manager_ = new rviz::VisualizationManager(render_panel_);
   render_panel_->initialize(visualization_manager_->getSceneManager(), visualization_manager_);
@@ -108,6 +110,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     ui_.start_states_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
 
     //Connect signals and slots
+    connect(ui_.actionExit, SIGNAL( triggered(bool) ), this, SLOT( exitActionTriggered(bool) ));
     connect(ui_.actionOpen, SIGNAL( triggered(bool) ), this, SLOT( openActionTriggered(bool) ));
     connect(ui_.planning_group_combo, SIGNAL( currentIndexChanged ( const QString & ) ), this, SLOT( planningGroupChanged( const QString & ) ));
     connect(ui_.db_connect_button, SIGNAL( clicked() ), this, SLOT( dbConnectButtonClicked() ));
@@ -156,6 +159,11 @@ MainWindow::~MainWindow()
 {
 }
 
+void MainWindow::exitActionTriggered(bool)
+{
+  QApplication::quit();
+}
+
 void MainWindow::openActionTriggered(bool)
 {
   QString urdf_path = QFileDialog::getOpenFileName(this, tr("Select a robot description file"), tr(""), tr("URDF files (*.urdf)"));
@@ -173,27 +181,86 @@ void MainWindow::openActionTriggered(bool)
 
 void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &srdf_path)
 {
-  //Load urdf. TODO: Check for errors
+  //Load urdf
   setStatus(STATUS_WARN, QString::fromStdString("Loading urdf " + urdf_path));
   std::ifstream urdf_input_stream(urdf_path.c_str());
   std::stringstream urdf_sstr;
   urdf_sstr << urdf_input_stream.rdbuf();
-  ros::param::set("/robot_description", urdf_sstr.str());
+  ros::param::set(ROBOT_DESCRIPTION_PARAM, urdf_sstr.str());
 
-  //Load srdf: TODO: Check for erros
+  //Load srdf
   setStatus(STATUS_WARN, QString::fromStdString("Loading srdf " + srdf_path));
   std::ifstream srdf_input_stream(srdf_path.c_str());
   std::stringstream srdf_sstr;
   srdf_sstr << srdf_input_stream.rdbuf();
-  ros::param::set("/robot_description_semantic", srdf_sstr.str());
+  ros::param::set(ROBOT_DESCRIPTION_SEMANTIC_PARAM, srdf_sstr.str());
 
   setStatus(STATUS_WARN, QString("Resetting scene display... "));
+  std::string old_scene_name;
+  if (scene_display_->getPlanningSceneRO())
+    old_scene_name = scene_display_->getPlanningSceneRO()->getName();
   scene_display_->reset();
-  configure();
+
+  if (configure())
+  {
+    //Reload the scene geometry if one scene was already loaded
+    setStatus(STATUS_WARN, QString("Reloading scene... "));
+    QList<QListWidgetItem *> found_items = ui_.planning_scene_list->findItems(QString::fromStdString(old_scene_name), Qt::MatchExactly);
+    if (found_items.size() > 0)
+    {
+      found_items[0]->setSelected(true);
+      loadSceneButtonClicked();
+    }
+
+    //Update the kinematic state associated to the goals
+    setStatus(STATUS_WARN, QString("Updating goals... "));
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+    {
+      it->second.setKinematicState(scene_display_->getPlanningSceneRO()->getCurrentState());
+      if (robot_interaction_->getActiveEndEffectors().size() > 0)
+        it->second.setEndEffector(robot_interaction_->getActiveEndEffectors()[0]);
+    }
+    setStatus(STATUS_WARN, QString(""));
+  }
 }
 
-void MainWindow::configure()
+bool MainWindow::configure()
 {
+  if ( ! scene_display_->getPlanningSceneMonitor() || ! scene_display_->getPlanningSceneMonitor()->getKinematicModel())
+  {
+    ROS_ERROR("Cannot load robot");
+    ui_.load_scene_button->setEnabled(false);
+    ui_.load_results_button->setEnabled(false);
+    ui_.check_goal_collisions_button->setEnabled(false);
+    ui_.check_goal_reachability_button->setEnabled(false);
+    ui_.db_connect_button->setEnabled(false);
+    ui_.goal_poses_add_button->setEnabled(false);
+    ui_.load_poses_filter_text->setEnabled(false);
+    ui_.goal_poses_open_button->setEnabled(false);
+    ui_.goal_poses_save_button->setEnabled(false);
+    ui_.goal_switch_visibility_button->setEnabled(false);
+    ui_.start_states_add_button->setEnabled(false);
+    ui_.start_states_remove_button->setEnabled(false);
+    ui_.start_states_open_button->setEnabled(false);
+    ui_.start_states_save_button->setEnabled(false);
+    return false;
+  }
+
+  ui_.load_scene_button->setEnabled(true);
+  ui_.load_results_button->setEnabled(true);
+  ui_.check_goal_collisions_button->setEnabled(true);
+  ui_.check_goal_reachability_button->setEnabled(true);
+  ui_.db_connect_button->setEnabled(true);
+  ui_.goal_poses_add_button->setEnabled(true);
+  ui_.load_poses_filter_text->setEnabled(true);
+  ui_.goal_poses_open_button->setEnabled(true);
+  ui_.goal_poses_save_button->setEnabled(true);
+  ui_.goal_switch_visibility_button->setEnabled(true);
+  ui_.start_states_add_button->setEnabled(true);
+  ui_.start_states_remove_button->setEnabled(true);
+  ui_.start_states_open_button->setEnabled(true);
+  ui_.start_states_save_button->setEnabled(true);
+
   //Set the fixed frame to the model frame
   setStatus(STATUS_WARN, QString("Setting fixed frame... "));
   visualization_manager_->setFixedFrame(QString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getModelFrame().c_str()));
@@ -208,19 +275,21 @@ void MainWindow::configure()
     ui_.planning_group_combo->addItem(QString(group_names[i].c_str()));
   }
 
+  //Configure robot-dependent ui elements
+  ui_.load_states_filter_text->setText(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getName() + ".*"));
+
   //robot interaction
   setStatus(STATUS_WARN, QString("Resetting robot interaction... "));
   robot_interaction_.reset(new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getKinematicModel()));
-  if (group_names.size() > 0)
+  if (group_names.size() > 0 && robot_interaction_)
   {
     robot_interaction_->decideActiveComponents(group_names[0]);
-
-    query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getPlanningSceneMonitor()->getTFClient()));
-    static const double eef_marker_size = 0.5;
-    robot_interaction_->addInteractiveMarkers(query_goal_state_, eef_marker_size);
-    robot_interaction_->publishInteractiveMarkers();
+    if (robot_interaction_->getActiveEndEffectors().size() == 0)
+      ROS_WARN_STREAM("No end-effectors defined for robot " << scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getName());
   }
   setStatus(STATUS_WARN, QString(""));
+
+  return true;
 }
 
 void MainWindow::planningGroupChanged(const QString &text)
@@ -291,7 +360,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
     }
     else
     {
-      ROS_ERROR("Malformed url. Warehouse host must be introduced as host:port");
+      ROS_ERROR("Warehouse server must be introduced as host:port (eg. server.domain.com:33830");
       addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Disconnected", "QPushButton { color : red }"));
       addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Malformed url. Warehouse host must be introduced as host:port"));
     }
@@ -356,8 +425,14 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
 
         //Update the planning scene
         planning_scene_monitor::LockedPlanningSceneRW ps = scene_display_->getPlanningSceneRW();
-        ps->setPlanningSceneMsg(*scene_m.get());
-        scene_display_->queueRenderSceneGeometry();
+        if (ps)
+        {
+          ps->setPlanningSceneMsg(*scene_m.get());
+          scene_display_->queueRenderSceneGeometry();
+        }
+
+        //Configure ui elements
+        ui_.load_poses_filter_text->setText(QString::fromStdString(scene + ".*"));
         setStatusFromBackground(STATUS_INFO, QString::fromStdString(""));
       }
       else

@@ -172,6 +172,16 @@ public:
     }
   }
 
+  void setKinematicState(const kinematic_state::KinematicState& kinematic_state)
+  {
+    kinematic_state_ = &kinematic_state;
+  }
+
+  void setEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef)
+  {
+    eef_ = eef;
+  }
+
 protected:
   static const float GOAL_NOT_TESTED_COLOR[4];
   static const float GOAL_PROCESSING_COLOR[4];
