@@ -142,19 +142,17 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
           newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
         }
       }
-      return configure(urdf_model, srdf_model, newModel);
+      return configure(newModel);
     }
   }
   else
-    return configure(urdf_model, srdf_model, kinematic_model::KinematicModelPtr());
+    return configure(kinematic_model::KinematicModelPtr());
   return isConfigured();
 }
 
-bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                              const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                              const kinematic_model::KinematicModelPtr &kmodel)
+bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicModelPtr &kmodel)
 {
-  if (!urdf_model || !srdf_model || (!kmodel && !parent_))
+  if (!kmodel && !parent_)
   {
     configured_ = false;
     return false;
@@ -212,9 +210,6 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
   {
     if (parent_->isConfigured())
     {
-      if (srdf_model != parent_->getKinematicModel()->getSRDF() || urdf_model != parent_->getKinematicModel()->getURDF())
-        logError("Parent of planning scene is not constructed from the same robot model");
-
       // even if we have a parent, we do maintain a separate world representation, one that records changes
       // this is cheap however, because the worlds share the world representation
       cworld_ = collision_detection_allocator_->allocateWorld(parent_->getCollisionWorld());
