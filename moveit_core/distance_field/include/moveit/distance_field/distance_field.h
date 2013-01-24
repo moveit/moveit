@@ -171,6 +171,7 @@ public:
 
   virtual bool gridToWorld(int x, int y, int z, 
                            double& world_x, double& world_y, double& world_z) const = 0;
+
   virtual bool worldToGrid(double world_x, double world_y, double world_z, 
                            int& x, int& y, int& z) const = 0;
 
@@ -192,9 +193,11 @@ public:
    * Gets the gradient of the distance field as visualization markers for rviz.
    * \param markers the marker array to be published
    */
-  void getGradientMarkers(double min_radius, double max_radius,
-                          const std::string & frame_id, const ros::Time stamp,
-                          std::vector<visualization_msgs::Marker>& markers ) const;
+  void getGradientMarkers(double min_radius, 
+                          double max_radius,
+                          const std::string& frame_id, 
+                          const ros::Time stamp,
+                          std::vector<visualization_msgs::Marker>& markers) const;
 
   /**
    * \brief Gets a set of markers to rviz along the specified plane.
@@ -205,13 +208,51 @@ public:
    * \param height the position along the orthogonal axis to the plane, in meters.
    * \param marker the marker to be published
    */
-  void getPlaneMarkers(PlaneVisualizationType type, double length, double width, double height, const Eigen::Vector3d& origin,
-                       const std::string & frame_id, const ros::Time stamp,
-                       visualization_msgs::Marker& marker ) const;
+  void getPlaneMarkers(PlaneVisualizationType type, 
+                       double length, 
+                       double width, 
+                       double height, 
+                       const Eigen::Vector3d& origin,
+                       const std::string & frame_id, 
+                       const ros::Time stamp,
+                       visualization_msgs::Marker& marker) const;
 
   // TODO - doc
-  void getProjectionPlanes( const std::string & frame_id, const ros::Time stamp, const double max_distance,
-                            visualization_msgs::Marker& marker ) const;
+  void getProjectionPlanes(const std::string& frame_id, 
+                           const ros::Time stamp, 
+                           const double max_distance,
+                           visualization_msgs::Marker& marker) const;
+  
+
+  double getSizeX() const 
+  {
+    return size_x_;
+  }
+
+  double getSizeY() const 
+  {
+    return size_y_;
+  }
+
+  double getSizeZ() const 
+  {
+    return size_z_;
+  }
+  
+  double getOriginX() const
+  {
+    return origin_x_;
+  }
+
+  double getOriginY() const
+  {
+    return origin_y_;
+  }
+
+  double getOriginZ() const
+  {
+    return origin_z_;
+  }
 
   double getResolution() const {
     return resolution_;
@@ -222,7 +263,12 @@ protected:
                 const double dist, geometry_msgs::Point & points, std_msgs::ColorRGBA & color,
                 const double max_distance) const;
 
-private:
+  double size_x_;
+  double size_y_;
+  double size_z_;
+  double origin_x_;
+  double origin_y_;
+  double origin_z_;
   double resolution_;
   int inv_twice_resolution_;
 };

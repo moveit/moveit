@@ -47,12 +47,46 @@ PropagationDistanceField::PropagationDistanceField(double size_x, double size_y,
                                                    double max_distance,
                                                    bool propagate_negative):
   DistanceField(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z),
-  voxel_grid_(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z, PropDistanceFieldVoxel(max_distance,0)),
-  propagate_negative_(propagate_negative)
+  voxel_grid_(size_x, size_y, size_z, resolution, 
+              origin_x, origin_y, origin_z, 
+              PropDistanceFieldVoxel(max_distance,0)),
+  propagate_negative_(propagate_negative),
+  max_distance_(max_distance),
+  max_distance_sq_(ceil(max_distance_/resolution)*ceil(max_distance_/resolution))
 {
-  max_distance_ = max_distance;
-  int max_dist_int = ceil(max_distance_/resolution);
-  max_distance_sq_ = (max_dist_int*max_dist_int);
+  initialize();
+}
+
+PropagationDistanceField::PropagationDistanceField(const octomap::OcTree& octree,
+                                                   const octomap::point3d& bbx_min,
+                                                   const octomap::point3d& bbx_max,
+                                                   double max_distance,
+                                                   bool propagate_negative_distances) :
+  DistanceField(bbx_max.x()-bbx_min.x(), 
+                bbx_max.y()-bbx_min.y(),
+                bbx_max.z()-bbx_min.z(),
+                octree.getResolution(),
+                bbx_min.x(),
+                bbx_min.y(),
+                bbx_min.z()),
+  voxel_grid_(size_x_, size_y_, size_z_,
+              octree.getResolution(), 
+              origin_x_, origin_y_, origin_z_, 
+              PropDistanceFieldVoxel(max_distance,0)),
+  propagate_negative_(propagate_negative_distances),
+  max_distance_(max_distance),
+  max_distance_sq_(ceil(max_distance_/resolution_)*ceil(max_distance_/resolution_))
+{
+  initialize();
+  addOcTreeToField(&octree);
+}
+
+PropagationDistanceField::~PropagationDistanceField()
+{
+}
+
+void PropagationDistanceField::initialize()
+{
   initNeighborhoods();
   
   bucket_queue_.resize(max_distance_sq_+1);
@@ -61,13 +95,9 @@ PropagationDistanceField::PropagationDistanceField(double size_x, double size_y,
   // create a sqrt table:
   sqrt_table_.resize(max_distance_sq_+1);
   for (int i=0; i<=max_distance_sq_; ++i)
-    sqrt_table_[i] = sqrt(double(i))*resolution;
+    sqrt_table_[i] = sqrt(double(i))*resolution_;
 
   reset();
-}
-
-PropagationDistanceField::~PropagationDistanceField()
-{
 }
 
 int PropagationDistanceField::eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i point2)

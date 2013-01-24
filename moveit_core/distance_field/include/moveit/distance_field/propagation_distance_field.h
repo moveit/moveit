@@ -43,6 +43,7 @@
 #include <list>
 #include <Eigen/Core>
 #include <set>
+#include <octomap/octomap.h>
 
 namespace distance_field
 {
@@ -101,6 +102,12 @@ public:
                            double origin_x, double origin_y, double origin_z, 
                            double max_distance,
                            bool propagate_negative_distances=false);
+
+  PropagationDistanceField(const octomap::OcTree& octree,
+                           const octomap::point3d& bbx_min,
+                           const octomap::point3d& bbx_max,
+                           double max_distance,
+                           bool propogate_negative_distances=false);
   
   virtual ~PropagationDistanceField();
   
@@ -148,6 +155,8 @@ public:
   }
 
 private:
+
+  void initialize();
 
   bool propagate_negative_;
 
