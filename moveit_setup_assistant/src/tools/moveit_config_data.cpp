@@ -136,7 +136,7 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
     planning_scene_.reset(new planning_scene::PlanningScene( ));
     
     // Configure planning scene
-    planning_scene_->configure( urdf_model_, srdf_->srdf_model_, kin_model_);
+    planning_scene_->configure(kin_model_);
   }
   return planning_scene_;
 }
