@@ -209,6 +209,10 @@ public:
     bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
     bool getLastVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj, geometry_msgs::PoseStamped& pose);
 
+    void clearSavedEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef);
+    void clearSavedVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj);
+    void clearSavedMarkerPoses();
+
     /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
     virtual bool handleEndEffector(const RobotInteraction::EndEffector &eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
