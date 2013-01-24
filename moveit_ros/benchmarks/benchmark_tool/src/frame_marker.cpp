@@ -325,7 +325,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
     std_msgs::ColorRGBA marker_color;
     marker_color = color;
     visualization_msgs::MarkerArray marker_array;
-    kinematic_state->getRobotMarkers(marker_color, "goal_pose_marker", ros::Duration(), marker_array, link_names);
+    kinematic_state->getRobotMarkers(marker_array, link_names, marker_color, "goal_pose_marker", ros::Duration());
 
     for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
     {
