@@ -525,6 +525,9 @@ public:
   
 protected:
 
+  /** \brief Get the non-const kinematic model for which the planning scene is maintained */
+  const kinematic_model::KinematicModelPtr& getKinematicModelNonConst(void);
+
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
