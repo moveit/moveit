@@ -213,6 +213,25 @@ bool RobotInteraction::InteractionHandler::getLastVirtualJointMarkerPose(const R
   return false;
 }
 
+void RobotInteraction::InteractionHandler::clearSavedEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef)
+{
+  boost::mutex::scoped_lock slock(pose_map_lock_);
+  pose_map_.erase(eef.eef_group);
+}
+
+void RobotInteraction::InteractionHandler::clearSavedVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj)
+{
+  boost::mutex::scoped_lock slock(pose_map_lock_);
+  pose_map_.erase(vj.joint_name);
+}
+
+void RobotInteraction::InteractionHandler::clearSavedMarkerPoses()
+{
+  boost::mutex::scoped_lock slock(pose_map_lock_);
+  pose_map_.clear();
+}
+
+
 kinematic_state::KinematicStateConstPtr RobotInteraction::InteractionHandler::getState(void) const
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);

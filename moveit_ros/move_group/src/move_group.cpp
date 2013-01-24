@@ -80,7 +80,6 @@ public:
       trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getKinematicModel()));
       plan_execution_.reset(new plan_execution::PlanExecution(planning_scene_monitor_, trajectory_execution_manager_));
       plan_with_sensing_.reset(new plan_execution::PlanWithSensing(trajectory_execution_manager_));
-      plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupServer::startLookCallback, this));
       if (debug)
         plan_with_sensing_->displayCostSources(true);
     }
@@ -110,12 +109,19 @@ public:
                                                                                              boost::bind(&MoveGroupServer::executePickupCallback, this, _1), false));
     pickup_action_server_->registerPreemptCallback(boost::bind(&MoveGroupServer::preemptPickupCallback, this));
     pickup_action_server_->start();
+
+    // start the place action server
+    place_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::PlaceAction>(root_node_handle_, PLACE_ACTION,
+                                                                                           boost::bind(&MoveGroupServer::executePlaceCallback, this, _1), false));
+    place_action_server_->registerPreemptCallback(boost::bind(&MoveGroupServer::preemptPlaceCallback, this));
+    place_action_server_->start();
   }
   
   ~MoveGroupServer(void)
   {
     move_action_server_.reset();
     pickup_action_server_.reset();
+    place_action_server_.reset();
     execute_service_.shutdown();
     plan_service_.shutdown();
     query_service_.shutdown();
@@ -167,15 +173,11 @@ private:
     return solved;
   }
   
-  void startExecutionCallback(void)
-  {
-    setMoveState(MONITOR);
-  }
+  void startMoveExecutionCallback(void) { setMoveState(MONITOR); }
+  void startMoveLookCallback(void) { setMoveState(LOOK); }
 
-  void startLookCallback(void)
-  {
-    setMoveState(LOOK);
-  }
+  void startPickupExecutionCallback(void) { setPickupState(MONITOR); }
+  void startPickupLookCallback(void) { setPickupState(LOOK); }
 
   void executeMoveCallback_PlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal, moveit_msgs::MoveGroupResult &action_res)
   {
@@ -249,15 +251,14 @@ private:
     
     opt.replan_ = goal->planning_options.replan;
     opt.replan_attempts_ = goal->planning_options.replan_attempts;
-    opt.before_execution_callback_ = boost::bind(&MoveGroupServer::startExecutionCallback, this);
+    opt.before_execution_callback_ = boost::bind(&MoveGroupServer::startMoveExecutionCallback, this);
     
     opt.plan_callback_ = boost::bind(&MoveGroupServer::planUsingPlanningPipeline, this, boost::cref(motion_plan_request), _1);
     if (goal->planning_options.look_around && plan_with_sensing_)
     {
-      ROS_INFO("Using sensing in the planning step");
-      // we pass 0.0 as the max cost so that defaults are used (as controlled with dynamic reconfigure)
       opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_,
                                        goal->planning_options.look_around_attempts, goal->planning_options.max_safe_execution_cost);
+      plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupServer::startMoveLookCallback, this));
     }
     
     plan_execution::ExecutableMotionPlan plan;
@@ -491,13 +492,15 @@ private:
     
     opt.replan_ = goal->planning_options.replan;
     opt.replan_attempts_ = goal->planning_options.replan_attempts;
-    opt.before_execution_callback_ = boost::bind(&MoveGroupServer::startExecutionCallback, this);
+    opt.before_execution_callback_ = boost::bind(&MoveGroupServer::startPickupExecutionCallback, this);
     
     opt.plan_callback_ = boost::bind(&MoveGroupServer::planUsingPickPlace, this, boost::cref(*goal), _1);
     if (goal->planning_options.look_around && plan_with_sensing_)
-      // we pass 0.0 as the max cost so that defaults are used (as controlled with dynamic reconfigure)
+    {
       opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_,
                                        goal->planning_options.look_around_attempts, goal->planning_options.max_safe_execution_cost);
+      plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupServer::startPickupLookCallback, this));
+    }
 
     plan_execution::ExecutableMotionPlan plan;
     plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
@@ -524,7 +527,7 @@ private:
     }
     else
       executePickupCallback_PlanAndExecute(goal, action_res);
-    
+
     bool planned_trajectory_empty = action_res.trajectory_stages.empty();
     std::string response = getActionResultString(action_res.error_code, planned_trajectory_empty, goal->planning_options.plan_only);
     if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
@@ -539,8 +542,17 @@ private:
     
     setPickupState(IDLE);
   }  
-
+  
+  void executePlaceCallback(const moveit_msgs::PlaceGoalConstPtr& goal)
+  {
+    
+  }
+  
   void preemptPickupCallback(void)
+  {
+  }
+
+  void preemptPlaceCallback(void)
   {
   }
 
@@ -650,6 +662,9 @@ private:
 
   boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::PickupAction> > pickup_action_server_;
   moveit_msgs::PickupFeedback pickup_feedback_;
+
+  boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::PlaceAction> > place_action_server_;
+  moveit_msgs::PickupFeedback place_feedback_;
 
   ros::ServiceServer plan_service_;
   ros::ServiceServer execute_service_;
