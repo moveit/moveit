@@ -65,7 +65,7 @@ private:
   ompl::base::StateSamplerPtr                      default_sampler_;
   kinematic_state::KinematicState                  work_state_;
   kinematic_state::JointStateGroup                *work_joint_group_state_;
-
+  unsigned int                                     verbose_display_;
 };
 }
 

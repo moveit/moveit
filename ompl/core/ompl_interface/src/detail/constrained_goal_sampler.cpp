@@ -36,13 +36,14 @@
 
 #include <moveit/ompl_interface/detail/constrained_goal_sampler.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
+#include <moveit/ompl_interface/detail/state_validity_checker.h>
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
                                                                const kinematic_constraints::KinematicConstraintSetPtr &ks,
                                                                const constraint_samplers::ConstraintSamplerPtr &cs) :
   ob::GoalLazySamples(pc->getOMPLSimpleSetup().getSpaceInformation(), boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false),
   planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()),
-  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName()))
+  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName())), verbose_display_(0)
 {
   if (!constraint_sampler_)
     default_sampler_ = si_->allocStateSampler();
@@ -57,6 +58,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
   // terminate after too many attempts
   if (gls->samplingAttemptsCount() >= ma)
     return false;
+  
   // terminate after a maximum number of samples
   if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
     return false;
@@ -65,15 +67,23 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
   if (planning_context_->getOMPLSimpleSetup().getProblemDefinition()->hasSolution())
     return false;
   
+  bool verbose = false;
+  if (gls->getStateCount() == 0 && gls->samplingAttemptsCount() >= ma/2)
+    if (verbose_display_ < 1)
+    {
+      verbose = true;
+      verbose_display_++;
+    }
+  
   for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
     if (constraint_sampler_)
     {
       if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
       { 
-        if (kinematic_constraint_set_->decide(work_state_).satisfied)
+        if (kinematic_constraint_set_->decide(work_state_, verbose).satisfied)
         {
           planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, work_joint_group_state_);
-          if (si_->isValid(newGoal) && si_->satisfiesBounds(newGoal))
+          if (static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(newGoal, verbose))
             return true;
         }
       }
@@ -81,10 +91,10 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     else
     {
       default_sampler_->sampleUniform(newGoal);
-      if (si_->isValid(newGoal) && si_->satisfiesBounds(newGoal))
+      if (static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(newGoal, verbose))
       {
         planning_context_->getOMPLStateSpace()->copyToKinematicState(work_joint_group_state_, newGoal);
-        if (kinematic_constraint_set_->decide(work_state_).satisfied)
+        if (kinematic_constraint_set_->decide(work_state_, verbose).satisfied)
           return true;
       }
     }
