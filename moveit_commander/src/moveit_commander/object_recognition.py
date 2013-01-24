@@ -2,7 +2,6 @@
 import rospy
 import actionlib
 import roslib
-roslib.load_manifest('moveit_commander')
 from object_recognition_msgs.msg import *
 
 class ObjectRecognition(object):
