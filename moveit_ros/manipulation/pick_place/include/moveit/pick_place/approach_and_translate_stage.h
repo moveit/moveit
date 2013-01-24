@@ -39,6 +39,7 @@
 
 #include <moveit/pick_place/manipulation_stage.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 namespace pick_place
 {
@@ -49,18 +50,17 @@ public:
   
   ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &pre_grasp_scene,
                             const planning_scene::PlanningSceneConstPtr &post_grasp_scene,
-                            const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-                            const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                            unsigned int nthreads = 4);
+                            const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix);
   
-  virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const;
+  virtual bool evaluate(const ManipulationPlanPtr &plan) const;
   
 private:
   
   planning_scene::PlanningSceneConstPtr pre_grasp_planning_scene_;
   planning_scene::PlanningSceneConstPtr post_grasp_planning_scene_;
   collision_detection::AllowedCollisionMatrixConstPtr collision_matrix_;
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
+  trajectory_processing::IterativeParabolicTimeParameterization time_param_;
+  
   unsigned int max_goal_count_;
   unsigned int max_fail_;
   double max_step_;

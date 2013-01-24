@@ -72,6 +72,8 @@ public:
 
   KinematicModelLoader(const std::string &robot_description);
   
+  ~KinematicModelLoader(void);
+  
   /** @brief Get the constructed planning_models::KinematicModel */
   const kinematic_model::KinematicModelPtr& getModel(void) const
   {

@@ -68,7 +68,7 @@ void planning_scene_monitor::TrajectoryMonitor::startTrajectoryMonitor(void)
   if (!record_states_thread_)
   {
     record_states_thread_.reset(new boost::thread(boost::bind(&TrajectoryMonitor::recordStates, this)));
-    ROS_DEBUG("Started trajecory monitor");
+    ROS_DEBUG("Started trajectory monitor");
   }
 }
 

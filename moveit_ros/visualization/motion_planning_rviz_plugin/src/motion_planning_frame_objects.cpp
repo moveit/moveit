@@ -631,7 +631,7 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked(void)
         {
           kinematic_state::KinematicStatePtr start_state(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
           kinematic_state::robotStateToKinematicState(*planning_display_->getPlanningSceneRO()->getTransforms(), mp->start_state, *start_state);
-          planning_display_->setQueryStartState(start_state);
+          planning_display_->setQueryStartState(*start_state);
 
           kinematic_state::KinematicStatePtr goal_state(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
           for (std::size_t i = 0 ; i < mp->goal_constraints.size() ; ++i)
@@ -643,7 +643,7 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked(void)
               goal_state->setStateValues(vals);
               break;
             }
-          planning_display_->setQueryGoalState(goal_state);
+          planning_display_->setQueryGoalState(*goal_state);
         }
         else
           ROS_ERROR("Failed to load planning query '%s'. Has the message format changed since the query was saved?", query_name.c_str());

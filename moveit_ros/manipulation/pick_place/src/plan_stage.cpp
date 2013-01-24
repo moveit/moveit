@@ -42,16 +42,20 @@ namespace pick_place
 {
 
 PlanStage::PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
-                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                     unsigned int nthreads) :
-  ManipulationStage(nthreads),
+                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline) :
+  ManipulationStage("plan"),
   planning_scene_(scene),
   planning_pipeline_(planning_pipeline)
 {
-  name_ = "plan";
 }
 
-bool PlanStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan) const
+void PlanStage::signalStop(void)
+{
+  ManipulationStage::signalStop();
+  planning_pipeline_->terminate();
+}
+
+bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 {
   moveit_msgs::MotionPlanRequest req;
   moveit_msgs::MotionPlanResponse res;
@@ -61,13 +65,16 @@ bool PlanStage::evaluate(unsigned int thread_id, const ManipulationPlanPtr &plan
 
   req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->planning_group_)));
   
-  if (planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
     plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory);
     plan->trajectory_start_ = res.trajectory_start;
     plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), name_);
+    plan->error_code_ = res.error_code;
     return true;
   }
+  else
+    plan->error_code_ = res.error_code;
   return false;
 }
 

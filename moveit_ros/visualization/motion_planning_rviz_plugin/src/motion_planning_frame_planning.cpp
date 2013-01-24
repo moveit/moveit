@@ -127,20 +127,14 @@ void MotionPlanningFrame::computeSetStartToCurrentButtonClicked(void)
 {
   const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
   if (ps)
-  {
-    const kinematic_state::KinematicState &s = ps->getCurrentState();
-    planning_display_->setQueryStartState(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(s)));
-  }
+    planning_display_->setQueryStartState(ps->getCurrentState());
 }
 
 void MotionPlanningFrame::computeSetGoalToCurrentButtonClicked(void)
 {
   const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
   if (ps)
-  {
-    const kinematic_state::KinematicState &s = ps->getCurrentState();
-    planning_display_->setQueryGoalState(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(s)));
-  }
+    planning_display_->setQueryGoalState(ps->getCurrentState());
 }
 
 void MotionPlanningFrame::computeRandomStatesButtonClicked(void)
@@ -149,8 +143,8 @@ void MotionPlanningFrame::computeRandomStatesButtonClicked(void)
 
   if (planning_display_->getQueryStartState())
   {
-    kinematic_state::KinematicStatePtr start(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
-    kinematic_state::JointStateGroup *jsg = start->getJointStateGroup(group_name);
+    kinematic_state::KinematicState start = *planning_display_->getQueryStartState();
+    kinematic_state::JointStateGroup *jsg = start.getJointStateGroup(group_name);
     if (jsg)
       jsg->setToRandomValues();
     planning_display_->setQueryStartState(start);
@@ -158,8 +152,8 @@ void MotionPlanningFrame::computeRandomStatesButtonClicked(void)
 
   if (planning_display_->getQueryGoalState())
   {
-    kinematic_state::KinematicStatePtr goal(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
-    kinematic_state::JointStateGroup *jsg = goal->getJointStateGroup(group_name);
+    kinematic_state::KinematicState goal = *planning_display_->getQueryGoalState();
+    kinematic_state::JointStateGroup *jsg = goal.getJointStateGroup(group_name);
     if (jsg)
       jsg->setToRandomValues();
     planning_display_->setQueryGoalState(goal);

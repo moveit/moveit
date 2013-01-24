@@ -86,6 +86,9 @@ public:
                     const moveit_msgs::MotionPlanRequest& req,
                     moveit_msgs::MotionPlanResponse& res,
                     std::vector<std::size_t> &adapter_added_state_index) const;
+
+  /// Request termination, if a generatePlan() function is currently computing plans
+  void terminate(void) const;
   
   const std::string& getPlannerPluginName(void) const
   {

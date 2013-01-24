@@ -37,7 +37,7 @@ bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::strin
                                                                 Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
 {
   const kinematic_state::LinkState* link_state = kinematic_state_->getLinkState(link_name);
-  
+
   if (!link_state)
   {
     return false;

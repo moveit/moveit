@@ -72,9 +72,9 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::Kin
 
 void planning_pipeline::PlanningPipeline::configure(const kinematic_model::KinematicModelConstPtr& model)
 {
-  check_solution_paths_ = false;
+  check_solution_paths_ = false;          // this is set to true below
   publish_received_requests_ = false;
-  display_computed_motion_plans_ = false;
+  display_computed_motion_plans_ = false; // this is set to true below
   
   // load the planning plugin
   try
@@ -323,9 +323,15 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     moveit_msgs::DisplayTrajectory disp;
     disp.model_id = planning_scene->getKinematicModel()->getName();
     disp.trajectory_start = res.trajectory_start;
-    disp.trajectory = res.trajectory;
+    disp.trajectory.resize(1, res.trajectory);
     display_path_publisher_.publish(disp);      
   }
   
   return solved && valid;
+}
+
+void planning_pipeline::PlanningPipeline::terminate(void) const
+{
+  if (planner_instance_)
+    planner_instance_->terminate();
 }

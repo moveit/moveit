@@ -93,7 +93,7 @@ void KinematicStateVisualization::updateHelper(const kinematic_state::KinematicS
 {
   robot_.update(PlanningLinkUpdater(kinematic_state));
   render_shapes_->clear();
-  
+
   std::vector<const kinematic_state::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
   for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)

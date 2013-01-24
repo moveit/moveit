@@ -38,90 +38,50 @@
 #define MOVEIT_PICK_PLACE_MANIPULATION_STAGE_
 
 #include <moveit/pick_place/manipulation_plan.h>
-#include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/function.hpp>
-#include <vector>
-#include <deque>
+#include <string>
 
 namespace pick_place
 {
-
-class ManipulationStage;
-typedef boost::shared_ptr<ManipulationStage> ManipulationStagePtr;
-typedef boost::shared_ptr<const ManipulationStage> ManipulationStageConstPtr;
 
 class ManipulationStage
 {
 public:
   
-  ManipulationStage(unsigned int nthreads);
-  virtual ~ManipulationStage(void);
+  ManipulationStage(const std::string &name) :
+    name_(name),
+    signal_stop_(false)
+  {
+  }
+  
+  virtual ~ManipulationStage(void)
+  {
+  }
   
   const std::string& getName(void) const
   {
     return name_;
   }
   
-  const ManipulationStagePtr& follow(const ManipulationStagePtr &next)
+  virtual void resetStopSignal(void)
   {
-    next_ = next;
-    //    next_->previous_ = this;
-    return next;
-  } 
-
-  const ManipulationStagePtr& getNextStage(void) const
-  {
-    return next_;
+    signal_stop_ = false;
   }
   
-  void start(void);  
-  void startAll(void);
-
-  void stop(void);  
-  void stopAll(void);
-  
-  virtual void push(const ManipulationPlanPtr &grasp);
-  
-  virtual bool evaluate(unsigned int thread_id, const ManipulationPlanPtr &grasp) const = 0;
-  
-  virtual bool done(void) const
+  virtual void signalStop(void)
   {
-    return next_ ? next_->done() : false;
+    signal_stop_ = true;
   }
   
-  void getFailedPlans(std::vector<ManipulationPlanPtr> &failed) const;
+  virtual bool evaluate(const ManipulationPlanPtr &plan) const = 0;
   
 protected:
   
-  void processingThread(unsigned int index);
-  
-  struct ProcessingThread
-  {
-    ProcessingThread(void)
-    {
-    }
-    
-    ~ProcessingThread(void)
-    {
-      if (thread_)
-        thread_->join();
-    }
-    
-    boost::mutex mutex_;
-    boost::condition_variable cond_;
-    boost::scoped_ptr<boost::thread> thread_;
-  };
-  
-  unsigned int nthreads_;
-  std::vector< std::deque<ManipulationPlanPtr> > processing_queues_;
-  std::vector< ProcessingThread* > processing_threads_;
-  std::vector< std::vector<ManipulationPlanPtr> > failed_;
-  bool stop_processing_;
   std::string name_;
-  ManipulationStagePtr next_;
-  //  ManipulationStage* previous_;
+  bool signal_stop_;
 };
+
+typedef boost::shared_ptr<ManipulationStage> ManipulationStagePtr;
+typedef boost::shared_ptr<const ManipulationStage> ManipulationStageConstPtr;
 
 }
 
