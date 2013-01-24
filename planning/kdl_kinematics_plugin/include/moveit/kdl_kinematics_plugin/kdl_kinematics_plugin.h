@@ -62,7 +62,6 @@
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/kinematic_model/kinematic_model.h>
 #include <moveit/kinematic_state/kinematic_state.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
 
 namespace kdl_kinematics_plugin                        
 {
@@ -115,7 +114,8 @@ namespace kdl_kinematics_plugin
                                const std::vector<double> &joint_angles, 
                                std::vector<geometry_msgs::Pose> &poses) const;
     
-    virtual bool initialize(const std::string &group_name,
+    virtual bool initialize(const std::string &robot_description,
+                            const std::string &group_name,
                             const std::string &base_name,
                             const std::string &tip_name,
                             double search_discretization);
@@ -204,8 +204,6 @@ namespace kdl_kinematics_plugin
     unsigned int dimension_; /** Dimension of the group */
 
     KDL::JntArray joint_min_, joint_max_; /** Joint limits */
-
-    robot_model_loader::RobotModelLoader robot_model_loader_; /** Used to load the robot model */
 
     mutable KDL::JntArray jnt_seed_state_,jnt_pos_in_,jnt_pos_out_;/** Pre-allocated for the number of joints (hence mutable) */
 
