@@ -161,17 +161,20 @@ public:
 
   /**
    * @brief Set the parameters for the solver
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description; 
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected. 
    * This may (or may not) be the root frame of the chain that the solver operates on
    * @param tip_frame The tip of the chain
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    */
-  virtual void setValues(const std::string& group_name,
+  virtual void setValues(const std::string& robot_description,
+                         const std::string& group_name,
                          const std::string& base_frame,
                          const std::string& tip_frame,
                          double search_discretization)
   {
+    robot_description_ = robot_description;
     group_name_ = group_name;
     base_frame_ = base_frame;
     tip_frame_ = tip_frame;
@@ -180,6 +183,7 @@ public:
 
   /**
    * @brief  Initialization function for the kinematics
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description; 
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected. 
    * This may (or may not) be the root frame of the chain that the solver operates on
@@ -187,7 +191,8 @@ public:
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
    */
-  virtual bool initialize(const std::string& group_name,
+  virtual bool initialize(const std::string& robot_description,
+                          const std::string& group_name,
                           const std::string& base_frame,
                           const std::string& tip_frame,
                           double search_discretization) = 0;
@@ -279,6 +284,7 @@ public:
   virtual ~KinematicsBase(void) {}
 
 protected:
+  std::string robot_description_;
   std::string group_name_;
   std::string base_frame_;
   std::string tip_frame_;
