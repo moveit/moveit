@@ -36,6 +36,7 @@
 
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_state/conversions.h>
+#include <boost/math/constants/constants.hpp>
 #include <eigen_conversions/eigen_msg.h>
   
 namespace trajectory_processing
@@ -269,6 +270,33 @@ void reverseTrajectory(moveit_msgs::RobotTrajectory &trajectory)
 {
   std::reverse(trajectory.joint_trajectory.points.begin(), trajectory.joint_trajectory.points.end());
   std::reverse(trajectory.multi_dof_joint_trajectory.points.begin(), trajectory.multi_dof_joint_trajectory.points.end());
+}
+
+void unwindJointTrajectory(const kinematic_model::KinematicModelConstPtr &kmodel, trajectory_msgs::JointTrajectory &joint_trajectory)
+{
+  if (joint_trajectory.points.empty())
+    return;
+  
+  for (std::size_t i = 0 ; i < joint_trajectory.joint_names.size() ; ++i)
+  {
+    const kinematic_model::JointModel *jmodel = kmodel->getJointModel(joint_trajectory.joint_names[i]);
+    if (jmodel->getType() == kinematic_model::JointModel::REVOLUTE && static_cast<const kinematic_model::RevoluteJointModel*>(jmodel)->isContinuous())
+    {
+      // unwrap continuous joints
+      double running_offset = 0.0;
+      double last_value = joint_trajectory.points[0].positions[i];
+      for (std::size_t j = 1 ; j < joint_trajectory.points.size() ; ++j)
+      {
+        if (last_value > joint_trajectory.points[j].positions[i] + boost::math::constants::pi<double>())
+          running_offset += 2.0 * boost::math::constants::pi<double>();
+        else
+          if (joint_trajectory.points[j].positions[i] > last_value + boost::math::constants::pi<double>())
+            running_offset -= 2.0 * boost::math::constants::pi<double>();
+        last_value = joint_trajectory.points[j].positions[i];
+        joint_trajectory.points[j].positions[i] += running_offset;
+      }
+    }
+  }
 }
 
 }

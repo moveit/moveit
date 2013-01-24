@@ -71,6 +71,8 @@ std::size_t trajectoryPointCount(const moveit_msgs::RobotTrajectory &trajectory)
 
 void reverseTrajectory(moveit_msgs::RobotTrajectory &trajectory);
 
+void unwindJointTrajectory(const kinematic_model::KinematicModelConstPtr &kmodel, trajectory_msgs::JointTrajectory &joint_trajectory);
+
 /**
  * @brief Convert a RobotTrajectoryPoint (in a RobotTrajectory) to a RobotState message
  * @param rt The input RobotTrajectory
