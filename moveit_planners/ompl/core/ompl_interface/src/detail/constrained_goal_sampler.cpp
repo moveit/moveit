@@ -66,16 +66,18 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
   // terminate the sampling thread when a solution has been found
   if (planning_context_->getOMPLSimpleSetup().getProblemDefinition()->hasSolution())
     return false;
-  
-  bool verbose = false;
-  if (gls->getStateCount() == 0 && gls->samplingAttemptsCount() >= ma/2)
-    if (verbose_display_ < 1)
-    {
-      verbose = true;
-      verbose_display_++;
-    }
-  
-  for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
+
+  unsigned int ma2 = ma/2;
+  for (unsigned int a = gls->samplingAttemptsCount() ; a < ma && gls->isSampling() ; ++a)
+  {
+    bool verbose = false;
+    if (gls->getStateCount() == 0 && a >= ma2)
+      if (verbose_display_ < 1)
+      {
+	verbose = true;
+	verbose_display_++;
+      }
+
     if (constraint_sampler_)
     {
       if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
@@ -98,6 +100,6 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
           return true;
       }
     }
-  
+  }
   return false;
 }
