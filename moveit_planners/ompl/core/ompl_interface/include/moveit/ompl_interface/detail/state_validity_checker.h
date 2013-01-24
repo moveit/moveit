@@ -53,9 +53,21 @@ class StateValidityChecker : public ompl::base::StateValidityChecker
 public:
   
   StateValidityChecker(const ModelBasedPlanningContext *planning_context);
+
   
-  virtual bool isValid(const ompl::base::State *state) const;
-  virtual bool isValid(const ompl::base::State *state, double &dist) const;
+  virtual bool isValid(const ompl::base::State *state) const
+  {
+    return isValid(state, verbose_);
+  }
+  
+  virtual bool isValid(const ompl::base::State *state, double &dist) const
+  {
+    return isValid(state, dist, verbose_);
+  }
+  
+  bool isValid(const ompl::base::State *state, bool verbose) const;
+  bool isValid(const ompl::base::State *state, double &dist, bool verbose) const;
+  
   virtual double cost(const ompl::base::State *state) const;
   virtual double clearance(const ompl::base::State *state) const;
   
@@ -63,17 +75,20 @@ public:
   
 protected:
   
-  bool isValidWithoutCache(const ompl::base::State *state) const;
-  bool isValidWithoutCache(const ompl::base::State *state, double &dist) const;
+  bool isValidWithoutCache(const ompl::base::State *state, bool verbose) const;
+  bool isValidWithoutCache(const ompl::base::State *state, double &dist, bool verbose) const;
 
-  bool isValidWithCache(const ompl::base::State *state) const;
-  bool isValidWithCache(const ompl::base::State *state, double &dist) const;
+  bool isValidWithCache(const ompl::base::State *state, bool verbose) const;
+  bool isValidWithCache(const ompl::base::State *state, double &dist, bool verbose) const;
   
   const ModelBasedPlanningContext      *planning_context_;
   std::string                           group_name_;
   TSStateStorage                        tss_;
   collision_detection::CollisionRequest collision_request_simple_;
   collision_detection::CollisionRequest collision_request_with_distance_;
+  collision_detection::CollisionRequest collision_request_simple_verbose_;
+  collision_detection::CollisionRequest collision_request_with_distance_verbose_;
+
   collision_detection::CollisionRequest collision_request_with_cost_;
   bool                                  verbose_;
 };
