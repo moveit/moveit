@@ -555,18 +555,45 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
       for(float z = 1.01; z < 1.5; z += .02, count++) {
         octomap::point3d point(x,y,z);
         tree.updateNode(point, true);
-        octomap::OcTreeNode* result = tree.search(point);
-        if(!result) {
-          //std::cout << "No result at " << point.x() << " " << point.y() << " " << point.z() << std::endl;          
-        }
       }
     }
   } 
-  
+
+  //more points at the border of the distance field  
+  for(float x = 2.51; x < 3.5; x += .02) {
+    for(float y = 1.01; y < 3.5; y += .02) {
+      for(float z = 1.01; z < 3.5; z += .02, count++) {
+        octomap::point3d point(x,y,z);
+        tree.updateNode(point, true);
+      }
+    }
+  } 
+
   std::cout << "OcTree nodes " << count << std::endl;
   df.addOcTreeToField(&tree);
 
   EXPECT_TRUE(checkOctomapVersusDistanceField(df, tree));
+
+  //more cells
+  for(float x = .01; x < .50; x += .02) {
+    for(float y = .01; y < .50; y += .02) {
+      for(float z = .01; z < .50; z += .02, count++) {
+        octomap::point3d point(x,y,z);
+        tree.updateNode(point, true);
+      }
+    }
+  } 
+  df.addOcTreeToField(&tree);
+  EXPECT_TRUE(checkOctomapVersusDistanceField(df, tree));
+
+  PropagationDistanceField df_oct(tree,
+                                 octomap::point3d(0.5,0.5,0.5),
+                                 octomap::point3d(5.0,5.0,5.0),
+                                 PERF_MAX_DIST,
+                                 false);
+
+  EXPECT_TRUE(checkOctomapVersusDistanceField(df_oct, tree));
+  
 }
 
 int main(int argc, char **argv){

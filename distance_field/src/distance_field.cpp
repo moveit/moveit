@@ -47,6 +47,12 @@ namespace distance_field
 
 DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution,
                              double origin_x, double origin_y, double origin_z) :
+  size_x_(size_x),
+  size_y_(size_y),
+  size_z_(size_z),
+  origin_x_(origin_x),
+  origin_y_(origin_y),
+  origin_z_(origin_z),
   resolution_(resolution),
   inv_twice_resolution_(1.0/(2.0*resolution_))
 {
@@ -231,9 +237,6 @@ void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
 
   octomap::point3d bbx_max(max_x, max_y, max_z);
 
-  std::cout << "Min extent " << min_x << " " << min_y << " " << min_z << std::endl;
-  std::cout << "Max extent " << max_x << " " << max_y << " " << max_z << std::endl;
-
   EigenSTL::vector_Vector3d points;
 
   for(octomap::OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbx_min,bbx_max),
@@ -243,10 +246,6 @@ void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
     {
       //todo - deal with resolution differences
       Eigen::Vector3d point(it.getX(), it.getY(), it.getZ());
-      if(point.x() == 1.5 || point.y() == 1.5 || point.z() == 1.5) 
-      {
-        std::cout << "Adding 1.5" << std::endl;
-      }
       points.push_back(point);
     }
   }
