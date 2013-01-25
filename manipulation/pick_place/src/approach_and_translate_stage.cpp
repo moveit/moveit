@@ -42,6 +42,9 @@
 namespace pick_place
 {
 
+// the amount of time (maximum) to wait for achieving a grasp posture
+static const double GRASP_POSTURE_COMPLETION_DURATION = 7.0; // seconds
+
 ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &pre_grasp_scene,
                                                      const planning_scene::PlanningSceneConstPtr &post_grasp_scene,
                                                      const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix) :
@@ -51,7 +54,8 @@ ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::Plann
   collision_matrix_(collision_matrix),
   max_goal_count_(5),
   max_fail_(3),
-  max_step_(0.02)
+  max_step_(0.02),
+  jump_factor_(2.0)
 {
 }
 
@@ -67,7 +71,8 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   joint_state_group->setVariableValues(joint_group_variable_values);
   // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
   joint_state_group->getKinematicState()->setStateValues(*grasp_posture);
-  return !planning_scene->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName());
+  return !planning_scene->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName()) && 
+    planning_scene->isStateFeasible(*joint_state_group->getKinematicState());
 }
 
 bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const kinematic_state::KinematicState &reference_state, double min_distance, unsigned int attempts) 
@@ -106,7 +111,7 @@ void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Join
     grasp_traj.joint_trajectory.points.resize(1);
     grasp_traj.joint_trajectory.points[0].positions = grasp_posture.position;
     grasp_traj.joint_trajectory.points[0].velocities = grasp_posture.velocity;
-    grasp_traj.joint_trajectory.points[0].time_from_start = ros::Duration(0);
+    grasp_traj.joint_trajectory.points[0].time_from_start = ros::Duration(GRASP_POSTURE_COMPLETION_DURATION);
     
     plan->trajectories_.push_back(grasp_traj);
     plan->trajectory_descriptions_.push_back(name);
@@ -148,7 +153,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
       kinematic_state::KinematicStatePtr first_approach_state(new kinematic_state::KinematicState(*plan->possible_goal_states_[i]));
       double d_approach = first_approach_state->getJointStateGroup(plan->planning_group_)->computeCartesianPath(approach_traj, plan->ik_link_name_, -approach_direction,
                                                                                                                 false, plan->grasp_.desired_approach_distance, 
-                                                                                                                max_step_, approach_validCallback);
+                                                                                                                max_step_, jump_factor_, approach_validCallback);
       
       // if we were able to follow the approach direction for sufficient length, try to compute a translation direction
       if (d_approach > plan->grasp_.min_approach_distance && !signal_stop_)
@@ -162,7 +167,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           double d_translation = last_translation_state->getJointStateGroup(plan->planning_group_)->computeCartesianPath(translation_traj, plan->ik_link_name_, 
                                                                                                                          translation_direction, true, 
                                                                                                                          plan->grasp_.desired_translation_distance, 
-                                                                                                                         max_step_, translation_validCallback);
+                                                                                                                         max_step_, jump_factor_, translation_validCallback);
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
           if (d_translation > plan->grasp_.min_translation_distance && !signal_stop_)
           {
