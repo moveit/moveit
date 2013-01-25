@@ -347,7 +347,8 @@ public:
       the sequence of joint values is computed, the average distance between consecutive points (in joint space) is also computed. It
       is then verified that none of the computed distances is above the average distance by a factor larger than \e jump_threshold. If 
       a point in joint is found such that it is further away than the previous one by more than average_consecutive_distance * \e jump_threshold,
-      that is considered a failure and the returned path is truncated up to just before the jump. */
+      that is considered a failure and the returned path is truncated up to just before the jump. The jump detection can be disabled 
+      by settin \e jump_threshold to 0.0*/
   double computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
                               double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
   
