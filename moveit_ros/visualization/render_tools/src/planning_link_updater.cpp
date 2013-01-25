@@ -29,7 +29,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_rviz_plugin/planning_link_updater.h>
+#include <moveit/render_tools/planning_link_updater.h>
 #include <OGRE/OgreQuaternion.h>
 #include <OGRE/OgreVector3.h>
 

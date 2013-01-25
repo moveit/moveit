@@ -35,7 +35,7 @@
 #include <rviz/display.h>
 
 #ifndef Q_MOC_RUN
-#include <moveit/planning_scene_rviz_plugin/planning_scene_render.h>
+#include <moveit/render_tools/planning_scene_render.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <ros/ros.h>
 #endif

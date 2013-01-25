@@ -35,15 +35,17 @@ catkin_package(
     moveit_motion_planning_rviz_plugin_core 
     moveit_planning_scene_rviz_plugin_core
   INCLUDE_DIRS
+    render_tools/include
     planning_scene_rviz_plugin/include
     motion_planning_rviz_plugin/include  
   CATKIN_DEPENDS
     moveit_ros_planning_interface
     )
 
-include_directories(planning_scene_rviz_plugin/include
+include_directories(render_tools/include
+                    planning_scene_rviz_plugin/include
                     motion_planning_rviz_plugin/include
-                    ${catkin_INCLUDE_DIRS})
+		    ${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
                     ${Boost_INCLUDE_DIRS}
@@ -53,6 +55,7 @@ include_directories(SYSTEM
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
+add_subdirectory(render_tools)
 add_subdirectory(planning_scene_rviz_plugin)
 add_subdirectory(motion_planning_rviz_plugin)
 
