@@ -36,6 +36,7 @@
 
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 #include <ros/console.h>
 
@@ -64,38 +65,54 @@ bool ReachableAndValidGraspFilter::isStateCollisionFree(const ManipulationPlan *
   collision_detection::CollisionResult res;
   req.group_name = manipulation_plan->planning_group_;
   planning_scene_->checkCollision(req, res, *joint_state_group->getKinematicState(), *collision_matrix_);
+  if (res.collision == false)
+    return planning_scene_->isStateFeasible(*joint_state_group->getKinematicState());
+  else
+    return false;  
+}
+
+bool ReachableAndValidGraspFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, kinematic_state::KinematicState &token_state) const
+{
+  Eigen::Affine3d eigen_pose;  
+  tf::poseMsgToEigen(plan->grasp_.grasp_pose, eigen_pose);
+  token_state.updateStateWithLinkAt(plan->ik_link_name_, eigen_pose);
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+  req.group_name = plan->end_effector_group_;
+  planning_scene_->checkCollision(req, res, token_state, *collision_matrix_);
   return res.collision == false;
 }
 
 bool ReachableAndValidGraspFilter::evaluate(const ManipulationPlanPtr &plan) const
-{
-  geometry_msgs::PoseStamped pose;
-  pose.header = plan->grasp_.header;
-  pose.pose = plan->grasp_.grasp_pose;
-  
-  // convert the pose we want to reach to a set of constraints
-  plan->goal_constraints_ = kinematic_constraints::constructGoalConstraints(plan->ik_link_name_, pose);
-  
-  // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
-  // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
-  plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, plan->planning_group_, plan->goal_constraints_);
-  if (plan->goal_sampler_)
+{   
+  // initialize with scene state 
+  kinematic_state::KinematicStatePtr token_state(new kinematic_state::KinematicState(planning_scene_->getCurrentState()));
+  if (isEndEffectorFree(plan, *token_state))
   {
-    plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, plan.get(), _1, _2));
-    plan->sampling_attempts_ = std::max(1u, planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts());
-
-    // initialize with scene state 
-    kinematic_state::KinematicStatePtr token_state(new kinematic_state::KinematicState(planning_scene_->getCurrentState()));
+    geometry_msgs::PoseStamped pose;
+    pose.header = plan->grasp_.header;
+    pose.pose = plan->grasp_.grasp_pose;
     
-    if (plan->goal_sampler_->sample(token_state->getJointStateGroup(plan->planning_group_), *token_state, plan->sampling_attempts_))
+    // convert the pose we want to reach to a set of constraints
+    plan->goal_constraints_ = kinematic_constraints::constructGoalConstraints(plan->ik_link_name_, pose);
+    
+    // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
+    // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
+    plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, plan->planning_group_, plan->goal_constraints_);
+    if (plan->goal_sampler_)
     {
-      plan->possible_goal_states_.push_back(token_state);
-      return true;
+      plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, plan.get(), _1, _2));
+      plan->sampling_attempts_ = std::max(1u, planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts());
+      
+      if (plan->goal_sampler_->sample(token_state->getJointStateGroup(plan->planning_group_), *token_state, plan->sampling_attempts_))
+      {
+        plan->possible_goal_states_.push_back(token_state);
+        return true;
+      }
     }
-  }
-  else
-    ROS_ERROR_THROTTLE(1, "No sampler was constructed");
-
+    else
+      ROS_ERROR_THROTTLE(1, "No sampler was constructed");
+  }  
   plan->error_code_.val = moveit_msgs::MoveItErrorCodes::GOAL_IN_COLLISION;
   return false;
 }

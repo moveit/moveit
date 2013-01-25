@@ -56,8 +56,10 @@ struct ManipulationPlan
 {
   // The grasp that is attempted
   manipulation_msgs::Grasp grasp_;
-
+  
   std::string planning_group_;
+  
+  std::string end_effector_group_;
   
   std::string ik_link_name_;
   
