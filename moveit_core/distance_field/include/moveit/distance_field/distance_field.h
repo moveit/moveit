@@ -175,6 +175,10 @@ public:
   virtual bool worldToGrid(double world_x, double world_y, double world_z, 
                            int& x, int& y, int& z) const = 0;
 
+  virtual bool writeToStream(std::ostream& stream) const = 0;
+
+  virtual bool readFromStream(std::istream& stream) = 0;
+
   /**
    * \brief Get an iso-surface for visualizaion in rviz.
    *

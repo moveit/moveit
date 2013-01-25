@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(moveit_core)
 
 find_package(Eigen REQUIRED)
-find_package(Boost REQUIRED system filesystem date_time thread)
+find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(PkgConfig REQUIRED)
 find_package(catkin REQUIRED 
 COMPONENTS

@@ -112,13 +112,13 @@ bool areDistanceFieldsDistancesEqual(const PropagationDistanceField& df1,
     for (int x=0; x<df1.getXNumCells(); x++) {
       for (int y=0; y<df1.getYNumCells(); y++) {
         if(df1.getCell(x,y,z).distance_square_ != df2.getCell(x,y,z).distance_square_) {
-          logInform("Cell %d %d %d distances not equal %d %d",x,y,z,
-                    df1.getCell(x,y,z).distance_square_,df2.getCell(x,y,z).distance_square_);
+          printf("Cell %d %d %d distances not equal %d %d\n",x,y,z,
+                 df1.getCell(x,y,z).distance_square_,df2.getCell(x,y,z).distance_square_);
           return false;
         }
         if(df1.getCell(x,y,z).negative_distance_square_ != df2.getCell(x,y,z).negative_distance_square_) {
-          logInform("Cell %d %d %d neg distances not equal %d %d",x,y,z,
-                    df1.getCell(x,y,z).negative_distance_square_,df2.getCell(x,y,z).negative_distance_square_);
+          printf("Cell %d %d %d neg distances not equal %d %d\n",x,y,z,
+                 df1.getCell(x,y,z).negative_distance_square_,df2.getCell(x,y,z).negative_distance_square_);
           return false;
         }
       }
@@ -594,6 +594,57 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
 
   EXPECT_TRUE(checkOctomapVersusDistanceField(df_oct, tree));
   
+}
+
+TEST(TestSignedPropagationDistanceField, TestReadWrite)
+{
+
+  PropagationDistanceField small_df( width, height, depth, resolution, origin_x, origin_y, origin_z, max_dist);
+  
+  EigenSTL::vector_Vector3d points;
+  points.push_back(point1);
+  points.push_back(point2);
+  points.push_back(point3);
+  small_df.addPointsToField(points);
+
+  std::ofstream sf("test_small.df", std::ios::out);
+
+  small_df.writeToStream(sf);
+  //must close to make sure that the buffer is written
+  sf.close();
+
+  std::ifstream si("test_small.df", std::ios::in | std::ios::binary);
+  PropagationDistanceField small_df2(si, PERF_MAX_DIST, false);
+  ASSERT_TRUE(areDistanceFieldsDistancesEqual(small_df, small_df2));
+
+  PropagationDistanceField df(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+                              PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
+
+  shapes::Sphere sphere(.25);
+
+  geometry_msgs::Pose p;
+  p.orientation.w = 1.0;
+  p.position.x = .5;
+  p.position.y = .5;
+  p.position.z = .5;
+
+  df.addShapeToField(&sphere, p);
+
+  std::ofstream f("test_big.df", std::ios::out);
+
+  df.writeToStream(f);
+  f.close();
+
+  std::ifstream i("test_big.df", std::ios::in);
+  PropagationDistanceField df2(i, PERF_MAX_DIST, false);
+  EXPECT_TRUE(areDistanceFieldsDistancesEqual(df, df2));
+
+  //we shouldn't segfault if we start with an old ifstream
+  PropagationDistanceField dfx(i, PERF_MAX_DIST, false);
+
+  std::ifstream i2("test_big.df", std::ios::in);
+  PropagationDistanceField df3(i2, PERF_MAX_DIST+.02, false);
+  EXPECT_FALSE(areDistanceFieldsDistancesEqual(df, df3));
 }
 
 int main(int argc, char **argv){
