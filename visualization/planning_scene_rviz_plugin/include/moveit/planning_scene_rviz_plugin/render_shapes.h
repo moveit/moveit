@@ -76,8 +76,7 @@ private:
   std::vector< Ogre::MovableObject* > movable_objects_;
   std::vector< boost::shared_ptr<OcTreeRender> > octree_voxel_grids_;
 
-  Ogre::MaterialPtr material_;
-  std::string material_name_;
+  std::vector<Ogre::MaterialPtr> materials_;
 };
 
 typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
