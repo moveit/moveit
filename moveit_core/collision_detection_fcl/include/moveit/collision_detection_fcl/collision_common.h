@@ -212,6 +212,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
                                             const kinematic_state::AttachedBody *ab);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const CollisionWorld::Object *obj);
+void cleanCollisionGeometryCache(void);
 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::Transform3f &f)
 {

@@ -195,6 +195,7 @@ bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::st
   if (CollisionWorld::removeShapeFromObject(id, shape))
   {
     updateFCLObject(id);
+    cleanCollisionGeometryCache();
     return true;
   }
   else
@@ -212,13 +213,15 @@ void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
     fcl_objs_.erase(it);
     // manager_->update();
   }
+  cleanCollisionGeometryCache();
 }
 
 void collision_detection::CollisionWorldFCL::clearObjects(void)
 {
   CollisionWorld::clearObjects();
   manager_->clear();
-  fcl_objs_.clear();
+  fcl_objs_.clear();  
+  cleanCollisionGeometryCache();
 }
 
 double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix *acm) const
