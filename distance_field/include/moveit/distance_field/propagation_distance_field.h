@@ -107,7 +107,11 @@ public:
                            const octomap::point3d& bbx_min,
                            const octomap::point3d& bbx_max,
                            double max_distance,
-                           bool propogate_negative_distances=false);
+                           bool propagate_negative_distances=false);
+
+  PropagationDistanceField(std::istream& stream,
+                           double max_distance,
+                           bool propagate_negative_distances=false);
   
   virtual ~PropagationDistanceField();
   
@@ -150,8 +154,12 @@ public:
   virtual bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
   virtual bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
 
+  virtual bool writeToStream(std::ostream& stream) const;
+
+  virtual bool readFromStream(std::istream& stream);
+
   const PropDistanceFieldVoxel& getCell(int x, int y, int z) const {
-    return voxel_grid_.getCell(x, y, z);
+    return voxel_grid_->getCell(x, y, z);
   }
 
 private:
@@ -160,13 +168,12 @@ private:
 
   bool propagate_negative_;
 
-  VoxelGrid<PropDistanceFieldVoxel> voxel_grid_;
+  boost::shared_ptr<VoxelGrid<PropDistanceFieldVoxel> > voxel_grid_;
 
   /// \brief The set of all the obstacle voxels
   typedef std::set<Eigen::Vector3i, compareEigen_Vector3i> VoxelSet;
-  //VoxelSet object_voxel_locations_;
 
-  /// \brief Structure used to hold propogation frontier
+  /// \brief Structure used to hold propagation frontier
   std::vector<std::vector<Eigen::Vector3i> > bucket_queue_;
   std::vector<std::vector<Eigen::Vector3i> > negative_bucket_queue_;
   double max_distance_;
