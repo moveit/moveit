@@ -55,7 +55,7 @@ ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::Plann
   max_goal_count_(5),
   max_fail_(3),
   max_step_(0.02),
-  jump_factor_(3.0)
+  jump_factor_(2.0)
 {
 }
 
