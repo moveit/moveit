@@ -665,11 +665,11 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
         getVariableValues(full_solution);
         if(constraint ? constraint(this, full_solution) : true)
         {
-          logDebug("Got solution");
+          logDebug("Found IK solution");
           return true;
         }        
       }  
-      logDebug("Attempt: %d of %d", st, attempts);      
+      logDebug("IK attempt: %d of %d", st, attempts);      
     }    
   }
   return false;
@@ -847,8 +847,10 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
   // the direction can be in the local reference frame (in which case we rotate it)
   const Eigen::Vector3d &rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
 
+  bool test_joint_space_jump = jump_threshold > 0.0;  
+  
   // decide how many steps we will need for this trajectory
-  unsigned int steps = 1 + (unsigned int)floor(distance / max_step);
+  unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
   
   // precompute some information about the type of joints we will need to include in the result
   const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
@@ -874,14 +876,16 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
   
   // add the current state as the first point on the trajectory
   addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
-  
-  // the joint values we start with
+
   std::vector<std::vector<double> > previous_values(joint_state_vector_.size());
-  for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
-    previous_values[k] = joint_state_vector_[k]->getVariableValues();
   std::vector<double> dist_vector;
   double total_dist = 0.0;
   
+  if (test_joint_space_jump) // the joint values we start with
+    for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
+      previous_values[k] = joint_state_vector_[k]->getVariableValues();
+
+
   double last_valid_distance = 0.0;
   for (unsigned int i = 1; i <= steps ; ++i)
   {
@@ -893,36 +897,40 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
       addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
       
       // compute the distance to the previous point
-      double dist_prev_point = 0.0;
-      for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
+      if (test_joint_space_jump)
       {
-        dist_prev_point += jnt[k]->distance(joint_state_vector_[k]->getVariableValues(), previous_values[k]) * jnt[k]->getDistanceFactor();
-        previous_values[k] = joint_state_vector_[k]->getVariableValues();
+	double dist_prev_point = 0.0;
+	for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
+	{
+	  dist_prev_point += jnt[k]->distance(joint_state_vector_[k]->getVariableValues(), previous_values[k]) * jnt[k]->getDistanceFactor();
+	  previous_values[k] = joint_state_vector_[k]->getVariableValues();
+	}
+	dist_vector.push_back(dist_prev_point);
+	total_dist += dist_prev_point;
       }
-      dist_vector.push_back(dist_prev_point);
-      total_dist += dist_prev_point;
     }
     else
       break;
     last_valid_distance = d;
   }
-  if (dist_vector.size() > 2)
+
+  if (test_joint_space_jump)
   {
     // compute the average distance between the states we looked at
     double thres = jump_threshold * (total_dist / (double)dist_vector.size());
     for (std::size_t i = 0 ; i < dist_vector.size() ; ++i)
       if (dist_vector[i] > thres)
       {
-        logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
-        last_valid_distance = distance * (double)i / (double)steps;
-        if (!traj.multi_dof_joint_trajectory.points.empty())
-          traj.multi_dof_joint_trajectory.points.resize(i + 1);
-        if (!traj.joint_trajectory.points.empty())
-          traj.joint_trajectory.points.resize(i + 1);
-        break;
+	logError("Truncating Cartesian path due to detected jump in joint-space distance");
+	last_valid_distance = distance * (double)i / (double)steps;
+	if (!traj.multi_dof_joint_trajectory.points.empty())
+	  traj.multi_dof_joint_trajectory.points.resize(i);
+	if (!traj.joint_trajectory.points.empty())
+	  traj.joint_trajectory.points.resize(i);
+	break;
       }
   }
-  
+
   return last_valid_distance;
 }
 
