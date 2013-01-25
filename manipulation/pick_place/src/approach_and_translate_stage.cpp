@@ -42,6 +42,9 @@
 namespace pick_place
 {
 
+// the amount of time (maximum) to wait for achieving a grasp posture
+static const double GRASP_POSTURE_COMPLETION_DURATION = 7.0; // seconds
+
 ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &pre_grasp_scene,
                                                      const planning_scene::PlanningSceneConstPtr &post_grasp_scene,
                                                      const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix) :
@@ -106,7 +109,7 @@ void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Join
     grasp_traj.joint_trajectory.points.resize(1);
     grasp_traj.joint_trajectory.points[0].positions = grasp_posture.position;
     grasp_traj.joint_trajectory.points[0].velocities = grasp_posture.velocity;
-    grasp_traj.joint_trajectory.points[0].time_from_start = ros::Duration(0);
+    grasp_traj.joint_trajectory.points[0].time_from_start = ros::Duration(GRASP_POSTURE_COMPLETION_DURATION);
     
     plan->trajectories_.push_back(grasp_traj);
     plan->trajectory_descriptions_.push_back(name);
