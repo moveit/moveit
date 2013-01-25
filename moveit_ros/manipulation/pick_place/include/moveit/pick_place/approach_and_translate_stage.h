@@ -64,6 +64,7 @@ private:
   unsigned int max_goal_count_;
   unsigned int max_fail_;
   double max_step_;
+  double jump_factor_;
   
 };
 

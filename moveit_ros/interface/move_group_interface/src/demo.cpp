@@ -57,6 +57,10 @@ void demoPick(move_group_interface::MoveGroup &group)
   for (std::size_t i = 0 ; i < 20 ; ++i)
   {
     geometry_msgs::PoseStamped p = group.getRandomPose();
+    p.pose.orientation.x = 0;
+    p.pose.orientation.y = 0;
+    p.pose.orientation.z = 0;
+    p.pose.orientation.w = 1;
     manipulation_msgs::Grasp g;
     g.header = p.header;
     g.grasp_pose = p.pose;
@@ -66,6 +70,14 @@ void demoPick(move_group_interface::MoveGroup &group)
     g.desired_approach_distance = 0.4;
     g.min_translation_distance = 0.1;
     g.desired_translation_distance = 0.27;
+    g.pre_grasp_posture.name.resize(1, "r_gripper_joint");
+    g.pre_grasp_posture.position.resize(1);
+    g.pre_grasp_posture.position[0] = 1;
+
+    g.grasp_posture.name.resize(1, "r_gripper_joint");
+    g.grasp_posture.position.resize(1);
+    g.grasp_posture.position[0] = 0;
+
     grasps.push_back(g);
   }
   group.pick("bubu", grasps);

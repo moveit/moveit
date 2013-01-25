@@ -783,16 +783,7 @@ void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(cons
   if (!scene)
     return;
   collision_detection::AllowedCollisionMatrix &acm = scene->getAllowedCollisionMatrix();
-  
-  // no collisions allowed by default
-  acm.setEntry(scene->getKinematicModel()->getLinkModelNamesWithCollisionGeometry(),
-               scene->getKinematicModel()->getLinkModelNamesWithCollisionGeometry(), false);
-  
-  // allow collisions for pairs that have been disabled
-  const std::vector<srdf::Model::DisabledCollision> &dc = scene->getKinematicModel()->getSRDF()->getDisabledCollisionPairs();
-  for (std::size_t i = 0 ; i < dc.size() ; ++i)
-    acm.setEntry(dc[i].link1_, dc[i].link2_, true);
-  
+    
   // read overriding values from the param server
   
   // first we do default collision operations
