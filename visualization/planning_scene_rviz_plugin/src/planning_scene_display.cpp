@@ -30,7 +30,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
-#include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
+#include <moveit/render_tools/kinematic_state_visualization.h>
 
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>

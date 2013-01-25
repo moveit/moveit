@@ -29,9 +29,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
-#include <moveit/planning_scene_rviz_plugin/planning_link_updater.h>
-#include <moveit/planning_scene_rviz_plugin/render_shapes.h>
+#include <moveit/render_tools/kinematic_state_visualization.h>
+#include <moveit/render_tools/planning_link_updater.h>
+#include <moveit/render_tools/render_shapes.h>
 
 namespace moveit_rviz_plugin
 {
