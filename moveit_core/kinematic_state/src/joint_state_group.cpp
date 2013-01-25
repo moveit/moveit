@@ -37,7 +37,7 @@
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
-
+#include <algorithm>
 #include <Eigen/SVD>
 
 kinematic_state::JointStateGroup::JointStateGroup(KinematicState *state,
@@ -836,15 +836,21 @@ void addTrajectoryPoint(const kinematic_state::KinematicState *state,
 }
 
 double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
-                                                              double distance, double max_step, const StateValidityCallbackFn &validCallback)
+                                                              double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback)
 {
   const LinkState *link_state = kinematic_state_->getLinkState(link_name);
   if (!link_state)
     return 0.0;
+
+  // this is the Cartesian pose we start from, and we move in the direction indicated 
   Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
+  // the direction can be in the local reference frame (in which case we rotate it)
   const Eigen::Vector3d &rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
+
+  // decide how many steps we will need for this trajectory
   unsigned int steps = 1 + (unsigned int)floor(distance / max_step);
   
+  // precompute some information about the type of joints we will need to include in the result
   const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
   std::vector<const kinematic_model::JointModel*> onedof;
   std::vector<const kinematic_model::JointModel*> mdof;
@@ -866,20 +872,57 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
       mdof.push_back(jnt[i]);
     }
   
+  // add the current state as the first point on the trajectory
   addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
-
+  
+  // the joint values we start with
+  std::vector<std::vector<double> > previous_values(joint_state_vector_.size());
+  for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
+    previous_values[k] = joint_state_vector_[k]->getVariableValues();
+  std::vector<double> dist_vector;
+  double total_dist = 0.0;
+  
   double last_valid_distance = 0.0;
   for (unsigned int i = 1; i <= steps ; ++i)
   {
     double d = distance * (double)i / (double)steps;
     Eigen::Affine3d pose = start_pose;
     pose.translation() = pose.translation() + rotated_direction * d;
-    if (setFromIK(pose, link_name, 1, 0.0, validCallback)) 
+    if (setFromIK(pose, link_name, 1, 0.0, validCallback))
+    {
       addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
+      
+      // compute the distance to the previous point
+      double dist_prev_point = 0.0;
+      for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
+      {
+        dist_prev_point += jnt[k]->distance(joint_state_vector_[k]->getVariableValues(), previous_values[k]) * jnt[k]->getDistanceFactor();
+        previous_values[k] = joint_state_vector_[k]->getVariableValues();
+      }
+      dist_vector.push_back(dist_prev_point);
+      total_dist += dist_prev_point;
+    }
     else
       break;
     last_valid_distance = d;
   }
+  if (dist_vector.size() > 2)
+  {
+    // compute the average distance between the states we looked at
+    double thres = jump_threshold * (total_dist / (double)dist_vector.size());
+    for (std::size_t i = 0 ; i < dist_vector.size() ; ++i)
+      if (dist_vector[i] > thres)
+      {
+        logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
+        last_valid_distance = distance * (double)i / (double)steps;
+        if (!traj.multi_dof_joint_trajectory.points.empty())
+          traj.multi_dof_joint_trajectory.points.resize(i + 1);
+        if (!traj.joint_trajectory.points.empty())
+          traj.joint_trajectory.points.resize(i + 1);
+        break;
+      }
+  }
+  
   return last_valid_distance;
 }
 
