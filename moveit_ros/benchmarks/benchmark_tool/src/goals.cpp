@@ -85,7 +85,7 @@ void MainWindow::createGoalPoseButtonClicked(void)
         Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getLinkState(robot_interaction_->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
         geometry_msgs::Pose marker_pose;
         tf::poseEigenToMsg(tip_pose, marker_pose);
-        static const float marker_scale = 0.35;
+        static const float marker_scale = 0.15;
 
         GripperMarker goal_pose(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getKinematicModel()->getModelFrame(),
                                 robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED);
@@ -208,7 +208,7 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
         shape_pose.position = c->position_constraints[0].constraint_region.primitive_poses[0].position;
         shape_pose.orientation = c->orientation_constraints[0].orientation;
 
-        static const float marker_scale = 0.35;
+        static const float marker_scale = 0.15;
         GripperMarker goal_pose(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, c->name, scene_display_->getKinematicModel()->getModelFrame(),
                                 robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED, false,
                                 ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked());
@@ -621,8 +621,8 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
   // Call to IK
   setStatusFromBackground(STATUS_INFO, "Computing inverse kinematics...");
   kinematic_state::KinematicState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
-  static const int ik_attempts = 1;
-  static const float ik_timeout = 0.1;
+  static const int ik_attempts = 5;
+  static const float ik_timeout = 0.2;
   bool feasible = robot_interaction_->updateState(ks,
                                                   robot_interaction_->getActiveEndEffectors()[0],
                                                   current_pose, ik_attempts, ik_timeout);
@@ -731,7 +731,7 @@ void MainWindow::copySelectedGoalPoses(void)
     marker_pose.orientation.z = goal_poses_[name].imarker->getOrientation().z;
     marker_pose.orientation.w = goal_poses_[name].imarker->getOrientation().w;
 
-    static const float marker_scale = 0.35;
+    static const float marker_scale = 0.15;
     GripperMarker goal_pose(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, ss.str(), scene_display_->getKinematicModel()->getModelFrame(),
                             robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED, true);
 

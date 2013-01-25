@@ -193,7 +193,6 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
     geometry_msgs::PoseStamped pose_stamped;
     pose_stamped.header.frame_id = frame_id;
     pose_stamped.pose = pose;
-    ROS_INFO("frameMarker isSelected true. make6DOFMarker");
     int_marker = robot_interaction::make6DOFMarker(name, pose_stamped, scale);
   }
   else
