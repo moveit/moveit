@@ -63,12 +63,13 @@ void RenderShapes::clear(void)
     context_->getSceneManager()->destroyMovableObject(movable_objects_[i]);
 
   movable_objects_.clear();
-  if (!material_name_.empty())
+
+  for (std::size_t i = 0; i < materials_.size(); ++i)
   {
-    material_->unload();
-    Ogre::MaterialManager::getSingleton().remove(material_->getName());
-    material_name_ = "";
+    materials_[i]->unload();
+    Ogre::MaterialManager::getSingleton().remove(materials_[i]->getName());
   }
+  materials_.clear();
 
   octree_voxel_grids_.clear();
 }
@@ -109,32 +110,30 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
       const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
       if (mesh->triangle_count > 0)
       {
-        // check if we need to construct the material
-        if (material_name_.empty())
+        //construct the material
+        std::string mname = "Planning Scene Display Mesh Material " + boost::lexical_cast<std::string>(materials_.size()) + " @" + boost::lexical_cast<std::string>(this);
+        Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(mname, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+        mat->setReceiveShadows(true);
+        mat->getTechnique(0)->setLightingEnabled(true);
+        mat->setCullingMode(Ogre::CULL_NONE);
+        mat->getTechnique(0)->setAmbient(color.r_ * 0.2f, color.g_ * 0.2f, color.b_ * 0.2f);
+        mat->getTechnique(0)->setDiffuse(color.r_, color.g_, color.b_, alpha);
+        if (alpha < 0.9998)
         {
-          material_name_ = "Planning Scene Display Mesh Material @" + boost::lexical_cast<std::string>(this);
-          material_ = Ogre::MaterialManager::getSingleton().create(material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-          material_->setReceiveShadows(true);
-          material_->getTechnique(0)->setLightingEnabled(true);
-          material_->setCullingMode(Ogre::CULL_NONE);
-          material_->getTechnique(0)->setAmbient(color.r_ * 0.2f, color.g_ * 0.2f, color.b_ * 0.2f);
-          material_->getTechnique(0)->setDiffuse(color.r_, color.g_, color.b_, alpha);
-          if (alpha < 0.9998)
-          {
-            material_->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
-            material_->getTechnique(0)->setDepthWriteEnabled( false );
-          }
-          else
-          {
-            material_->getTechnique(0)->setSceneBlending( Ogre::SBT_REPLACE );
-            material_->getTechnique(0)->setDepthWriteEnabled( true );
-          }
+          mat->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+          mat->getTechnique(0)->setDepthWriteEnabled( false );
         }
+        else
+        {
+          mat->getTechnique(0)->setSceneBlending( Ogre::SBT_REPLACE );
+          mat->getTechnique(0)->setDepthWriteEnabled( true );
+        }
+        materials_.push_back(mat);
 
         std::string name = "Planning Scene Display Mesh " + boost::lexical_cast<std::string>(movable_objects_.size()) + " @" + boost::lexical_cast<std::string>(this);
         Ogre::ManualObject *manual_object = context_->getSceneManager()->createManualObject(name);
         manual_object->estimateVertexCount(mesh->triangle_count * 3);
-        manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);
+        manual_object->begin(materials_.back()->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
         Eigen::Vector3d normal(0.0, 0.0, 0.0);
         for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
         {
