@@ -144,7 +144,15 @@ namespace collision_detection
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     /** \brief Clear a previously stored result */
-    void clear(void) { *this = CollisionResult(); }
+    void clear(void)
+    {
+      collision = false;
+      distance = std::numeric_limits<double>::max();
+      direction.x() = direction.y() = direction.z() = 0.0;
+      contact_count = 0;
+      contacts.clear();
+      cost_sources.clear();
+    }
     
     /** \brief True if collision was found, false otherwise */
     bool                 collision;
