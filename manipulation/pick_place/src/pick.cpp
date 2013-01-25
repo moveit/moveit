@@ -110,7 +110,8 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
     }      
   const kinematic_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getKinematicModel()->getEndEffector(end_effector);
-  if (!eef)  {
+  if (!eef)
+  {
     ROS_ERROR("No end-effector specified for pick action");
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return false;
@@ -170,6 +171,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     ManipulationPlanPtr p(new ManipulationPlan());
     p->grasp_ = goal.possible_grasps[grasp_order[i]];
     p->planning_group_ = planning_group;
+    p->end_effector_group_ = eef->getName();
     p->ik_link_name_ = ik_link;    
     p->timeout_ = endtime;
     p->trajectory_start_ = start;
