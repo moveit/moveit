@@ -38,7 +38,7 @@ from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
 import rospy
 import tf
-from _moveit_move_group_interface import *
+from moveit_ros_planning_interface import _moveit_move_group_interface
 
 class MoveGroupCommander:
     """
@@ -47,7 +47,7 @@ class MoveGroupCommander:
 
     def __init__(self, name):
         """ Specify the group name for which to construct this commander instance. Throws an exception if there is an initialization error. """
-        self._g = MoveGroup(name)
+        self._g = _moveit_move_group_interface.MoveGroup(name)
 
     def get_name(self):
         """ Get the name of the group this instance was initialized for """
@@ -328,9 +328,12 @@ class MoveGroupCommander:
                  multi_dof_joint_traj_point.poses.append(Point(
                      position = Point(x = pose["position"]["x"], y = pose["position"]["y"], z = pose["position"]["z"]),
                      orientation = Quaternion(x = pose["orientation"]["x"], y = pose["orientation"]["y"],
-                         z = pose["orientation"]["z"], w = pose["orientation"]["w"])))
+                                              z = pose["orientation"]["z"], w = pose["orientation"]["w"])))
              multi_dof_joint_traj.points.append(multi_dof_joint_traj_point)
         plan_msg.joint_trajectory = joint_traj
         plan_msg.multi_dof_joint_trajectory = multi_dof_joint_traj
-
         return plan_msg    
+
+    def pick(self, object_name):
+        """Pick the named object"""
+        return self._g.pick(object_name)

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import roslib
-roslib.load_manifest('moveit_commander')
 import rospy
 import readline
 import sys
