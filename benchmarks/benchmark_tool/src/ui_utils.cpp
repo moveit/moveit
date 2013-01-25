@@ -35,11 +35,12 @@
 namespace benchmark_tool
 {
 
-void setButtonTextAndColor(QPushButton *button , const QString &text, const QString &style)
+void setButtonState(QPushButton *button, bool checked, const QString &text, const QString &style)
 {
   button->setUpdatesEnabled(false);
   button->setText(text);
   button->setStyleSheet(style);
+  button->setChecked(checked);
   button->setUpdatesEnabled(true);
 }
 

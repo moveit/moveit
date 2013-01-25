@@ -75,6 +75,7 @@ public Q_SLOTS:
   void planningGroupChanged(const QString &text);
   void dbConnectButtonClicked();
   void dbConnectButtonClickedBackgroundJob();
+  void robotInteractionButtonClicked();
 
   void loadSceneButtonClicked(void);
   void loadSceneButtonClicked(QListWidgetItem *item);
@@ -122,6 +123,9 @@ private:
   rviz::VisualizationManager *visualization_manager_;
   moveit_rviz_plugin::PlanningSceneDisplay *scene_display_;
 
+  void scheduleStateUpdate();
+  void scheduleStateUpdateBackgroundJob();
+  bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution);
   bool configure();
   void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);

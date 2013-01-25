@@ -44,8 +44,8 @@
 namespace benchmark_tool
 {
 
-const char * MainWindow::ROBOT_DESCRIPTION_PARAM = "robot_description";
-const char * MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
+const char * MainWindow::ROBOT_DESCRIPTION_PARAM = "benchmark_tool_robot_description";
+const char * MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "benchmark_tool_robot_description_semantic";
 const unsigned int MainWindow::DEFAULT_WAREHOUSE_PORT = 33830;
 
 MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
@@ -86,6 +86,10 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   if ( scene_display_ )
   {
     configure();
+    if (ui_.planning_group_combo->count() > 0)
+    {
+      planningGroupChanged(ui_.planning_group_combo->currentText());
+    }
 
     rviz::Tool * interact_tool = visualization_manager_->getToolManager()->addTool("rviz/Interact");
     if (interact_tool)
@@ -116,6 +120,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect(ui_.db_connect_button, SIGNAL( clicked() ), this, SLOT( dbConnectButtonClicked() ));
     connect(ui_.load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
     connect(ui_.planning_scene_list, SIGNAL( itemDoubleClicked (QListWidgetItem *) ), this, SLOT( loadSceneButtonClicked(QListWidgetItem *) ));
+    connect(ui_.robot_interaction_button, SIGNAL( clicked() ), this, SLOT( robotInteractionButtonClicked() ));
 
     //Goal poses
     connect( ui_.goal_poses_add_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
@@ -182,18 +187,46 @@ void MainWindow::openActionTriggered(bool)
 void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &srdf_path)
 {
   //Load urdf
-  setStatus(STATUS_WARN, QString::fromStdString("Loading urdf " + urdf_path));
-  std::ifstream urdf_input_stream(urdf_path.c_str());
-  std::stringstream urdf_sstr;
-  urdf_sstr << urdf_input_stream.rdbuf();
-  ros::param::set(ROBOT_DESCRIPTION_PARAM, urdf_sstr.str());
+  boost::filesystem::path boost_urdf_path(urdf_path);
+  setStatus(STATUS_WARN, QString::fromStdString("Loading urdf " + boost_urdf_path.string()));
+  if (boost::filesystem::exists(boost_urdf_path))
+  {
+    std::ifstream urdf_input_stream(boost_urdf_path.string().c_str());
+    std::stringstream urdf_sstr;
+    urdf_sstr << urdf_input_stream.rdbuf();
+    ros::param::set(ROBOT_DESCRIPTION_PARAM, urdf_sstr.str());
+  }
+  else
+  {
+    ROS_ERROR("Cannot load URDF file");
+  }
 
   //Load srdf
-  setStatus(STATUS_WARN, QString::fromStdString("Loading srdf " + srdf_path));
-  std::ifstream srdf_input_stream(srdf_path.c_str());
-  std::stringstream srdf_sstr;
-  srdf_sstr << srdf_input_stream.rdbuf();
-  ros::param::set(ROBOT_DESCRIPTION_SEMANTIC_PARAM, srdf_sstr.str());
+  boost::filesystem::path boost_srdf_path(srdf_path);
+  setStatus(STATUS_WARN, QString::fromStdString("Loading srdf " + boost_srdf_path.string()));
+  if (boost::filesystem::exists(boost_srdf_path))
+  {
+    std::ifstream srdf_input_stream(boost_srdf_path.string().c_str());
+    std::stringstream srdf_sstr;
+    srdf_sstr << srdf_input_stream.rdbuf();
+    ros::param::set(ROBOT_DESCRIPTION_SEMANTIC_PARAM, srdf_sstr.str());
+  }
+  else
+  {
+    ROS_ERROR("Cannot load SRDF file");
+  }
+
+  //Load kinematics.yaml.
+  //TODO: Can we assume kinematics.yaml to be in the same folder as the srdf?
+  boost::filesystem::path kinematics_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "kinematics.yaml");
+  setStatus(STATUS_WARN, QString::fromStdString("Loading " + kinematics_file.string()));
+  if (boost::filesystem::exists( kinematics_file ) && boost::filesystem::is_regular_file( kinematics_file ))
+  {
+    if (system(("rosparam load " + kinematics_file.string()).c_str()) < 0)
+    {
+      ROS_ERROR("Couldn't load kinematics.yaml file");
+    }
+  }
 
   setStatus(STATUS_WARN, QString("Resetting scene display... "));
   std::string old_scene_name;
@@ -212,13 +245,11 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
       loadSceneButtonClicked();
     }
 
-    //Update the kinematic state associated to the goals
-    setStatus(STATUS_WARN, QString("Updating goals... "));
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+    //Reload the goals
+    setStatus(STATUS_WARN, QString("Reloading goals... "));
+    if (ui_.goal_poses_list->count() > 0)
     {
-      it->second.setKinematicState(scene_display_->getPlanningSceneRO()->getCurrentState());
-      if (robot_interaction_->getActiveEndEffectors().size() > 0)
-        it->second.setEndEffector(robot_interaction_->getActiveEndEffectors()[0]);
+      loadGoalsFromDBButtonClicked();
     }
     setStatus(STATUS_WARN, QString(""));
   }
@@ -226,9 +257,10 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
 
 bool MainWindow::configure()
 {
-  if ( ! scene_display_->getPlanningSceneMonitor() || ! scene_display_->getPlanningSceneMonitor()->getKinematicModel())
+  if ( ! scene_display_->getPlanningSceneMonitor() || ! scene_display_->getPlanningSceneMonitor()->getKinematicModel() )
   {
     ROS_ERROR("Cannot load robot");
+    ui_.robot_interaction_button->setEnabled(false);
     ui_.load_scene_button->setEnabled(false);
     ui_.load_results_button->setEnabled(false);
     ui_.check_goal_collisions_button->setEnabled(false);
@@ -246,6 +278,7 @@ bool MainWindow::configure()
     return false;
   }
 
+  ui_.robot_interaction_button->setEnabled(true);
   ui_.load_scene_button->setEnabled(true);
   ui_.load_results_button->setEnabled(true);
   ui_.check_goal_collisions_button->setEnabled(true);
@@ -266,6 +299,13 @@ bool MainWindow::configure()
   visualization_manager_->setFixedFrame(QString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getModelFrame().c_str()));
   int_marker_display_->setFixedFrame(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getModelFrame()));
 
+  //robot interaction
+  setStatus(STATUS_WARN, QString("Resetting robot interaction... "));
+  robot_interaction_.reset(new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getKinematicModel()));
+
+  //Configure robot-dependent ui elements
+  ui_.load_states_filter_text->setText(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getName() + ".*"));
+
   //Get the list of planning groups and fill in the combo box
   setStatus(STATUS_WARN, QString("Updating planning groups... "));
   std::vector<std::string> group_names = scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getJointModelGroupNames();
@@ -275,18 +315,6 @@ bool MainWindow::configure()
     ui_.planning_group_combo->addItem(QString(group_names[i].c_str()));
   }
 
-  //Configure robot-dependent ui elements
-  ui_.load_states_filter_text->setText(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getName() + ".*"));
-
-  //robot interaction
-  setStatus(STATUS_WARN, QString("Resetting robot interaction... "));
-  robot_interaction_.reset(new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getKinematicModel()));
-  if (group_names.size() > 0 && robot_interaction_)
-  {
-    robot_interaction_->decideActiveComponents(group_names[0]);
-    if (robot_interaction_->getActiveEndEffectors().size() == 0)
-      ROS_WARN_STREAM("No end-effectors defined for robot " << scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getName());
-  }
   setStatus(STATUS_WARN, QString(""));
 
   return true;
@@ -294,7 +322,64 @@ bool MainWindow::configure()
 
 void MainWindow::planningGroupChanged(const QString &text)
 {
-  robot_interaction_->decideActiveComponents(text.toStdString());
+  if (robot_interaction_ && ! text.isEmpty())
+  {
+    robot_interaction_->decideActiveComponents(text.toStdString());
+    if (robot_interaction_->getActiveEndEffectors().size() == 0)
+      ROS_WARN_STREAM("No end-effectors defined for robot " << scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getName() << " and group " << text.toStdString());
+    else
+    {
+      //Update the kinematic state associated to the goals
+      for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+      {
+        it->second.setKinematicState(scene_display_->getPlanningSceneRO()->getCurrentState());
+        it->second.setEndEffector(robot_interaction_->getActiveEndEffectors()[0]);
+      }
+    }
+  }
+}
+
+void MainWindow::robotInteractionButtonClicked()
+{
+  if (query_goal_state_ && robot_interaction_)
+  {
+    robot_interaction_->clearInteractiveMarkers();
+    query_goal_state_.reset();
+  }
+  else if (robot_interaction_ && scene_display_)
+  {
+    query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getPlanningSceneMonitor()->getTFClient()));
+    query_goal_state_->setUpdateCallback(boost::bind(&MainWindow::scheduleStateUpdate, this));
+    query_goal_state_->setStateValidityCallback(boost::bind(&MainWindow::isIKSolutionCollisionFree, this, _1, _2));
+    robot_interaction_->addInteractiveMarkers(query_goal_state_);
+  }
+  else
+  {
+    ROS_WARN("robot interaction not initialized");
+  }
+  robot_interaction_->publishInteractiveMarkers();
+}
+
+bool MainWindow::isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution)
+{
+  if (scene_display_)
+  {
+    group->setVariableValues(ik_solution);
+    return !scene_display_->getPlanningSceneRO()->isStateColliding(*group->getKinematicState(), group->getName());
+  }
+  else
+    return true;
+}
+
+void MainWindow::scheduleStateUpdate()
+{
+  addBackgroundJob(boost::bind(&MainWindow::scheduleStateUpdateBackgroundJob, this));
+}
+
+void MainWindow::scheduleStateUpdateBackgroundJob()
+{
+  scene_display_->getPlanningSceneRW()->setCurrentState(*query_goal_state_->getState());
+  scene_display_->queueRenderSceneGeometry();
 }
 
 void MainWindow::dbConnectButtonClicked()
@@ -311,7 +396,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
     constraints_storage_.reset();
     ui_.planning_scene_list->clear();
 
-    addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Disconnected", "QPushButton { color : red }"));
+    addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
   }
   else
   {
@@ -334,7 +419,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
 
     if (port > 0 && ! host_port[0].isEmpty())
     {
-      addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Connecting...", "QPushButton { color : yellow }"));
+      addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : yellow }"));
       try
       {
         planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(host_port[0].toStdString(),
@@ -343,26 +428,26 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
                                                                            port, 5.0));
         constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host_port[0].toStdString(),
                                                                             port, 5.0));
-        addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Getting data...", "QPushButton { color : yellow }"));
+        addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...", "QPushButton { color : yellow }"));
 
         //Get all the scenes
         populatePlanningSceneList();
 
-        addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Connected", "QPushButton { color : green }"));
+        addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connected", "QPushButton { color : green }"));
       }
       catch(std::runtime_error &ex)
       {
         ROS_ERROR("%s", ex.what());
-        addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Disconnected", "QPushButton { color : red }"));
+        addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
         addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", ex.what()));
         return;
       }
     }
     else
     {
-      ROS_ERROR("Warehouse server must be introduced as host:port (eg. server.domain.com:33830");
-      addMainLoopJob(boost::bind(&setButtonTextAndColor, ui_.db_connect_button, "Disconnected", "QPushButton { color : red }"));
-      addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Malformed url. Warehouse host must be introduced as host:port"));
+      ROS_ERROR("Warehouse server must be introduced as host:port (eg. server.domain.com:33830)");
+      addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
+      addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Warehouse server must be introduced as host:port (eg. server.domain.com:33830)"));
     }
   }
 }

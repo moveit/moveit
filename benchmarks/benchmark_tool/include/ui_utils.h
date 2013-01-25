@@ -38,7 +38,7 @@
 namespace benchmark_tool
 {
 
-void setButtonTextAndColor(QPushButton *button, const QString &text, const QString &style);
+void setButtonState(QPushButton *button, bool checked, const QString &text, const QString &style);
 void showCriticalMessage(QWidget *parent, const QString &title, const QString &text);
 
 }
