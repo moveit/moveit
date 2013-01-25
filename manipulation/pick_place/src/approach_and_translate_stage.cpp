@@ -70,7 +70,8 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   joint_state_group->setVariableValues(joint_group_variable_values);
   // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
   joint_state_group->getKinematicState()->setStateValues(*grasp_posture);
-  return !planning_scene->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName());
+  return !planning_scene->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName()) && 
+    planning_scene->isStateFeasible(*joint_state_group->getKinematicState());
 }
 
 bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const kinematic_state::KinematicState &reference_state, double min_distance, unsigned int attempts) 
