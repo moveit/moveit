@@ -111,7 +111,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
       if (mesh->triangle_count > 0)
       {
         //construct the material
-        std::string mname = "Planning Scene Display Mesh Material @" + boost::lexical_cast<std::string>(materials_.size());
+        std::string mname = "Planning Scene Display Mesh Material " + boost::lexical_cast<std::string>(materials_.size()) + " @" + boost::lexical_cast<std::string>(this);
         Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(mname, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
         mat->setReceiveShadows(true);
         mat->getTechnique(0)->setLightingEnabled(true);
@@ -133,7 +133,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
         std::string name = "Planning Scene Display Mesh " + boost::lexical_cast<std::string>(movable_objects_.size()) + " @" + boost::lexical_cast<std::string>(this);
         Ogre::ManualObject *manual_object = context_->getSceneManager()->createManualObject(name);
         manual_object->estimateVertexCount(mesh->triangle_count * 3);
-        manual_object->begin(materials_[materials_.size() - 1]->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
+        manual_object->begin(materials_.back()->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
         Eigen::Vector3d normal(0.0, 0.0, 0.0);
         for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
         {
