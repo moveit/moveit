@@ -112,7 +112,8 @@ public:
   /** \brief Perform forward kinematics starting at the roots
       within a group. Links that are not in the group are also
       updated, but transforms for joints that are not in the
-      group are not recomputed.  */
+      group are not recomputed.
+      \warning Creates a temporary std::vector<double> */
   bool setVariableValues(const Eigen::VectorXd& joint_state_values);
 
   /** \brief Perform forward kinematics starting at the roots
