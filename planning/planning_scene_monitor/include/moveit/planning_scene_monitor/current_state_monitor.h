@@ -118,8 +118,14 @@ public:
    *  @return Returns the map from joint names to joint state values*/
   std::map<std::string, double> getCurrentStateValues(void) const;
   
-  /** @brief Set a callback that will be called whenever the joint state is updated*/
-  void setOnStateUpdateCallback(const JointStateUpdateCallback &callback);
+//  /** @brief Set a callback that will be called whenever the joint state is updated*/
+//  void setOnStateUpdateCallback(const JointStateUpdateCallback &callback);
+
+  /** @brief Add a function that will be called whenever the joint state is updated*/
+  void addUpdateCallback(const JointStateUpdateCallback &fn);
+
+  /** @brief Clear the functions to be called when an update to the joint state is received */
+  void clearUpdateCallbacks(void);
   
   /** @brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
    *  if the difference is less than a specified value (labeled the "allowed bounds error").
@@ -156,7 +162,8 @@ private:
   ros::Time                                    current_state_time_;
   
   mutable boost::mutex                         state_update_lock_;
-  JointStateUpdateCallback                     on_state_update_callback_;
+  //JointStateUpdateCallback                     on_state_update_callback_;
+  std::vector< JointStateUpdateCallback >      update_callbacks_;
 };
 
 typedef boost::shared_ptr<CurrentStateMonitor> CurrentStateMonitorPtr;
