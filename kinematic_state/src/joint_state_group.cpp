@@ -126,9 +126,9 @@ bool kinematic_state::JointStateGroup::setVariableValues(const std::vector<doubl
 
 bool kinematic_state::JointStateGroup::setVariableValues(const Eigen::VectorXd &joint_state_values)
 {
-  std::vector<double> values;
+  std::vector<double> values(joint_state_values.rows());
   for (std::size_t i = 0; i < joint_state_values.rows(); i++)
-    values.push_back(joint_state_values(i));
+    values[i] =  joint_state_values(i);
   setVariableValues(values);
 }
 
