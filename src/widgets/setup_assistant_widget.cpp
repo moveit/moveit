@@ -53,7 +53,7 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/view_manager.h>
 #include <rviz/default_plugin/view_controllers/orbit_view_controller.h>
-#include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
+#include <moveit/robot_state_rviz_plugin/robot_state_display.h>
 
 namespace moveit_setup_assistant
 {
@@ -168,10 +168,10 @@ SetupAssistantWidget::~SetupAssistantWidget()
 
 void SetupAssistantWidget::virtualJointReferenceFrameChanged()
 {
-  if (rviz_manager_ && scene_display_)
+  if (rviz_manager_ && robot_state_display_)
   {
     rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getKinematicModel()->getModelFrame() ) );
-    scene_display_->reset();
+    robot_state_display_->reset();
   }
 }
 
@@ -311,16 +311,16 @@ void SetupAssistantWidget::loadRviz()
   rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getKinematicModel()->getModelFrame() ) );
 
   // Create the MoveIt Rviz Plugin and attach to display
-  scene_display_ = new moveit_rviz_plugin::PlanningSceneDisplay();
-  scene_display_->setName( "Planning Scene" );  
+  robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
+  robot_state_display_->setName( "Robot State" );  
 
-  rviz_manager_->addDisplay( scene_display_, true );
+  rviz_manager_->addDisplay( robot_state_display_, true );
 
   // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
-  scene_display_->subProp("Planning Scene Topic")->setValue(QString::fromStdString( MOVEIT_PLANNING_SCENE ));
+  robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString( MOVEIT_ROBOT_STATE ));
 
   // Set robot description
-  scene_display_->subProp("Robot Description")->setValue(QString::fromStdString( ROBOT_DESCRIPTION ));
+  robot_state_display_->subProp("Robot Description")->setValue(QString::fromStdString( ROBOT_DESCRIPTION ));
 
   // Zoom into robot
   rviz::ViewController* view = rviz_manager_->getViewManager()->getCurrent();
@@ -341,7 +341,7 @@ void SetupAssistantWidget::highlightLink( const std::string& link_name )
 {  
   const kinematic_model::LinkModel *lm = config_data_->getKinematicModel()->getLinkModel(link_name);
   if (lm->getShape()) // skip links with no geometry
-    scene_display_->setLinkColor( link_name, QColor(255, 0, 0) );
+    robot_state_display_->setLinkColor( link_name, QColor(255, 0, 0) );
 }
 
 // ******************************************************************************************
@@ -383,7 +383,7 @@ void SetupAssistantWidget::unhighlightAll()
   for( std::vector<std::string>::const_iterator link_it = links.begin();
        link_it < links.end(); ++link_it )
   {
-    scene_display_->unsetLinkColor( *link_it );
+    robot_state_display_->unsetLinkColor( *link_it );
   }
 
 }

@@ -75,7 +75,7 @@ class VisualizationManager;
 
 namespace moveit_rviz_plugin
 {
-class PlanningSceneDisplay;
+class RobotStateDisplay;
 }
 
 namespace moveit_setup_assistant
@@ -209,7 +209,7 @@ private:
   // Rviz Panel
   rviz::RenderPanel* rviz_render_panel_;
   rviz::VisualizationManager* rviz_manager_;
-  moveit_rviz_plugin::PlanningSceneDisplay* scene_display_;
+  moveit_rviz_plugin::RobotStateDisplay* robot_state_display_;
 
   // Screen Widgets
   StartScreenWidget *ssw_;

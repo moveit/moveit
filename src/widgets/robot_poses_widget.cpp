@@ -43,6 +43,9 @@
 #include <QDoubleValidator>
 #include <QApplication>
 
+#include <moveit/kinematic_state/conversions.h>
+#include <moveit_msgs/DisplayRobotState.h>
+
 namespace moveit_setup_assistant
 {
 
@@ -80,7 +83,7 @@ RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_setup_assistant::Mov
 
   layout->addWidget( stacked_layout_widget );
 
-
+ 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
 
@@ -89,7 +92,7 @@ RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_setup_assistant::Mov
   ros::NodeHandle nh;
 
   // Create scene publisher for later use
-  pub_scene_ = nh.advertise<moveit_msgs::PlanningScene>( MOVEIT_PLANNING_SCENE, 1 );
+  pub_robot_state_ = nh.advertise<moveit_msgs::DisplayRobotState>( MOVEIT_ROBOT_STATE, 1 );
 
   // Set the planning scene
   config_data_->getPlanningScene()->setName("MoveIt Planning Scene");
@@ -851,11 +854,11 @@ void RobotPosesWidget::publishJoints()
   config_data_->getPlanningScene()->getCurrentState().setStateValues( joint_state_map_ );
 
   // Create a planning scene message
-  moveit_msgs::PlanningScene psmsg;
-  config_data_->getPlanningScene()->getPlanningSceneMsg( psmsg );
-
+  moveit_msgs::DisplayRobotState msg;
+  kinematic_state::kinematicStateToRobotState(config_data_->getPlanningScene()->getCurrentState(), msg.state);
+  
   // Publish!
-  pub_scene_.publish( psmsg );
+  pub_robot_state_.publish( msg );
 
   // Decide if current state is in collision
   collision_detection::CollisionResult result;
