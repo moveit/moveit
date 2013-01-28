@@ -139,7 +139,7 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, 
 /** 
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a given link.  The full constraint message will
- * constain only a \ref PositionConstraint.  A sphere will be used to
+ * contain only a \ref PositionConstraint.  A sphere will be used to
  * represent the constraint region.
  * 
  * @param [in] link_name The link name for the \ref PositionConstraint
@@ -154,7 +154,7 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, 
 /** 
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a given link.  The full constraint message will
- * constain only a \ref PositionConstraint.  A sphere will be used to
+ * contain only a \ref PositionConstraint.  A sphere will be used to
  * represent the constraint region.
  * 
  * @param [in] link_name The link name for the \ref PositionConstraint

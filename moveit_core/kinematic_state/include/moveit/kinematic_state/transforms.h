@@ -121,7 +121,7 @@ public:
   
   /**
    * @brief Transform a pose in from_frame to the target_frame
-   * @param from_frame The frame in which the input rotation matrix is specified
+   * @param from_frame The frame in which the input pose is specified
    * @param t_in The input pose (in from_frame)
    * @param t_out The resultant (transformed) pose
    */
@@ -164,7 +164,7 @@ public:
   /**
    * @brief Transform a pose in from_frame to the target_frame
    * @param kinematic_state The input kinematic state
-   * @param from_frame The frame in which the input rotation matrix is specified
+   * @param from_frame The frame in which the input pose is specified
    * @param t_in The input pose (in from_frame)
    * @param t_out The resultant (transformed) pose
    */
