@@ -107,6 +107,10 @@ public Q_SLOTS:
   void saveStatesOnDBButtonClicked(void);
   void deleteStatesOnDBButtonClicked(void);
 
+  //Trajectories
+  void createTrajectoryButtonClicked(void);
+  void trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+
   //main loop processing
   void executeMainLoopJobs();
 
@@ -148,9 +152,10 @@ private:
   EigenSTL::map_string_Affine3d goals_initial_pose_;
   bool goal_pose_dragging_;
 
-  typedef std::map<std::string, GripperMarker> GoalPoseMap;
-  typedef std::pair<std::string, GripperMarker> GoalPosePair;
+  typedef std::map<std::string, GripperMarkerPtr> GoalPoseMap;
+  typedef std::pair<std::string, GripperMarkerPtr> GoalPosePair;
   GoalPoseMap goal_poses_;
+
 
   class StartState
   {
@@ -162,13 +167,15 @@ private:
     StartState(const moveit_msgs::RobotState &state): state_msg(state), selected(false) {}
     StartState(const moveit_msgs::RobotState &state, bool is_selected): state_msg(state), selected(is_selected) {}
   };
+  typedef boost::shared_ptr<StartState> StartStatePtr;
 
-  typedef std::map<std::string, StartState> StartStateMap;
-  typedef std::pair<std::string, StartState> StartStatePair;
+  typedef std::map<std::string, StartStatePtr> StartStateMap;
+  typedef std::pair<std::string, StartStatePtr> StartStatePair;
   StartStateMap start_states_;
 
   void populateGoalPosesList();
   void populateStartStatesList();
+  void populateTrajectoriesList();
   void computeGoalPoseDoubleClicked(QListWidgetItem * item);
   void switchGoalPoseMarkerSelection(const std::string &marker_name);
   typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
@@ -178,6 +185,18 @@ private:
   void computeLoadBenchmarkResults(const std::string &file);
 
   void updateGoalPoseMarkers(float wall_dt, float ros_dt);
+
+  //Trajectories
+  static const int TRAJECTORY_SET_START_POSE = 1;
+  static const int TRAJECTORY_SET_END_POSE = 2;
+  static const int TRAJECTORY_EDIT_CONTROL_FRAME = 3;
+  static const int TRAJECTORY_FIX_CONTROL_FRAME = 4;
+
+  GoalPoseMap trajectories_;
+  GripperMarkerPtr trajectory_start_;
+
+  void createTrajectoryStartMarker(const GripperMarker &marker);
+
 
   //Background processing
   moveit_rviz_plugin::BackgroundProcessing background_process_;

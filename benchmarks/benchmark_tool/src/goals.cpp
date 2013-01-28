@@ -87,12 +87,12 @@ void MainWindow::createGoalPoseButtonClicked(void)
         tf::poseEigenToMsg(tip_pose, marker_pose);
         static const float marker_scale = 0.15;
 
-        GripperMarker goal_pose(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getKinematicModel()->getModelFrame(),
-                                robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED);
+        GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getKinematicModel()->getModelFrame(),
+                                robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED));
         goal_poses_.insert(GoalPosePair(name,  goal_pose));
 
         // Connect signals
-        connect( goal_pose.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        connect( goal_pose->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
         //If connected to a database, store the constraint
         if (constraints_storage_)
@@ -107,9 +107,9 @@ void MainWindow::createGoalPoseButtonClicked(void)
           moveit_msgs::PositionConstraint pc;
           pc.constraint_region.primitives.push_back(sp);
           geometry_msgs::Pose posemsg;
-          posemsg.position.x = goal_pose.imarker->getPosition().x;
-          posemsg.position.y = goal_pose.imarker->getPosition().y;
-          posemsg.position.z = goal_pose.imarker->getPosition().z;
+          posemsg.position.x = goal_pose->imarker->getPosition().x;
+          posemsg.position.y = goal_pose->imarker->getPosition().y;
+          posemsg.position.z = goal_pose->imarker->getPosition().z;
           posemsg.orientation.x = 0.0;
           posemsg.orientation.y = 0.0;
           posemsg.orientation.z = 0.0;
@@ -119,10 +119,10 @@ void MainWindow::createGoalPoseButtonClicked(void)
           c.position_constraints.push_back(pc);
 
           moveit_msgs::OrientationConstraint oc;
-          oc.orientation.x = goal_pose.imarker->getOrientation().x;
-          oc.orientation.y = goal_pose.imarker->getOrientation().y;
-          oc.orientation.z = goal_pose.imarker->getOrientation().z;
-          oc.orientation.w = goal_pose.imarker->getOrientation().w;
+          oc.orientation.x = goal_pose->imarker->getOrientation().x;
+          oc.orientation.y = goal_pose->imarker->getOrientation().y;
+          oc.orientation.z = goal_pose->imarker->getOrientation().z;
+          oc.orientation.w = goal_pose->imarker->getOrientation().w;
           oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
             oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
           oc.weight = 1.0;
@@ -209,11 +209,11 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
         shape_pose.orientation = c->orientation_constraints[0].orientation;
 
         static const float marker_scale = 0.15;
-        GripperMarker goal_pose(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, c->name, scene_display_->getKinematicModel()->getModelFrame(),
+        GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, c->name, scene_display_->getKinematicModel()->getModelFrame(),
                                 robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED, false,
-                                ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked());
+                                ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked()));
         // Connect signals
-        connect( goal_pose.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        connect( goal_pose->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
         goal_poses_.insert(GoalPosePair(c->name, goal_pose));
       }
@@ -244,7 +244,7 @@ void MainWindow::saveGoalsOnDBButtonClicked(void)
       moveit_msgs::PositionConstraint pc;
       pc.constraint_region.primitives.push_back(sp);
       geometry_msgs::Pose posemsg;
-      it->second.getPosition(posemsg.position);
+      it->second->getPosition(posemsg.position);
       posemsg.orientation.x = 0.0;
       posemsg.orientation.y = 0.0;
       posemsg.orientation.z = 0.0;
@@ -254,7 +254,7 @@ void MainWindow::saveGoalsOnDBButtonClicked(void)
       c.position_constraints.push_back(pc);
 
       moveit_msgs::OrientationConstraint oc;
-      it->second.getOrientation(oc.orientation);
+      it->second->getOrientation(oc.orientation);
       oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
         oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
       oc.weight = 1.0;
@@ -354,7 +354,7 @@ void MainWindow::loadStatesFromDBButtonClicked(void)
       }
 
       //Store the current start state
-      start_states_.insert(StartStatePair(names[i],  StartState(*rs)));
+      start_states_.insert(StartStatePair(names[i], StartStatePtr(new StartState(*rs))));
     }
     populateStartStatesList();
   }
@@ -372,7 +372,7 @@ void MainWindow::saveStatesOnDBButtonClicked(void)
     for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
       try
       {
-        robot_state_storage_->addRobotState(it->second.state_msg, it->first);
+        robot_state_storage_->addRobotState(it->second->state_msg, it->first);
       }
       catch (std::runtime_error &ex)
       {
@@ -426,10 +426,10 @@ void MainWindow::visibleAxisChanged(int state)
   {
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
-      if (it->second.isVisible())
+      if (it->second->isVisible())
       {
-        it->second.setAxisVisibility(ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked());
-        connect( it->second.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        it->second->setAxisVisibility(ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked());
+        connect( it->second->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
       }
     }
   }
@@ -442,11 +442,11 @@ void MainWindow::populateGoalPosesList(void)
   {
     QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_.goal_poses_list->addItem(item);
-    if (! it->second.isVisible())
+    if (! it->second->isVisible())
     {
       item->setBackground(QBrush(Qt::Dense4Pattern));
     }
-    else if (it->second.isSelected())
+    else if (it->second->isSelected())
     {
       //If selected, highlight in the list
       item->setSelected(true);
@@ -460,16 +460,16 @@ void MainWindow::switchGoalVisibilityButtonClicked(void)
   for (std::size_t i = 0; i < selection.size() ; ++i)
   {
     std::string name = selection[i]->text().toStdString();
-    if (goal_poses_[name].isVisible())
+    if (goal_poses_[name]->isVisible())
     {
       //Set invisible
-      goal_poses_[name].hide();
+      goal_poses_[name]->hide();
       selection[i]->setBackground(QBrush(Qt::Dense4Pattern));
     }
     else
     {
       //Set visible
-      goal_poses_[name].show(scene_display_->getSceneNode(), visualization_manager_);
+      goal_poses_[name]->show(scene_display_->getSceneNode(), visualization_manager_);
       selection[i]->setBackground(QBrush(Qt::NoBrush));
     }
   }
@@ -482,8 +482,8 @@ void MainWindow::goalPoseSelectionChanged(void)
     QListWidgetItem *item = ui_.goal_poses_list->item(i);
     std::string name = item->text().toStdString();
     if ( goal_poses_.find(name) != goal_poses_.end() &&
-        ( (item->isSelected() && ! goal_poses_[name].isSelected() )
-            || ( ! item->isSelected() && goal_poses_[name].isSelected() )))
+        ( (item->isSelected() && ! goal_poses_[name]->isSelected() )
+            || ( ! item->isSelected() && goal_poses_[name]->isSelected() )))
       switchGoalPoseMarkerSelection(name);
   }
 }
@@ -535,16 +535,16 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
     goals_initial_pose_.clear();
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
-      if (it->second.isSelected() && it->second.isVisible())
+      if (it->second->isSelected() && it->second->isVisible())
       {
-        Eigen::Affine3d pose(Eigen::Quaterniond(it->second.imarker->getOrientation().w, it->second.imarker->getOrientation().x,
-                                                it->second.imarker->getOrientation().y, it->second.imarker->getOrientation().z));
-        pose(0,3) = it->second.imarker->getPosition().x;
-        pose(1,3) = it->second.imarker->getPosition().y;
-        pose(2,3) = it->second.imarker->getPosition().z;
-        goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second.imarker->getName(), pose));
+        Eigen::Affine3d pose(Eigen::Quaterniond(it->second->imarker->getOrientation().w, it->second->imarker->getOrientation().x,
+                                                it->second->imarker->getOrientation().y, it->second->imarker->getOrientation().z));
+        pose(0,3) = it->second->imarker->getPosition().x;
+        pose(1,3) = it->second->imarker->getPosition().y;
+        pose(2,3) = it->second->imarker->getPosition().z;
+        goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second->imarker->getName(), pose));
 
-        if (it->second.imarker->getName() == feedback.marker_name)
+        if (it->second->imarker->getName() == feedback.marker_name)
           initial_pose_eigen = pose;
       }
     }
@@ -572,15 +572,15 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
     //Update the rest of selected markers
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
     {
-      if (it->second.isVisible() && it->second.imarker->getName() != feedback.marker_name && it->second.isSelected())
+      if (it->second->isVisible() && it->second->imarker->getName() != feedback.marker_name && it->second->isSelected())
       {
         visualization_msgs::InteractiveMarkerPose impose;
 
-        Eigen::Affine3d newpose = initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_initial_pose_[it->second.imarker->getName()];
+        Eigen::Affine3d newpose = initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_initial_pose_[it->second->imarker->getName()];
         tf::poseEigenToMsg(newpose, impose.pose);
-        impose.header.frame_id = it->second.imarker->getReferenceFrame();
+        impose.header.frame_id = it->second->imarker->getReferenceFrame();
 
-        it->second.imarker->processMessage(impose);
+        it->second->imarker->processMessage(impose);
       }
     }
   } else if (feedback.event_type == feedback.MOUSE_UP)
@@ -604,10 +604,10 @@ void MainWindow::checkGoalsInCollision(void)
 
 void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable)
 {
-  if ( ! goal_poses_[goal_name].isVisible())
+  if ( ! goal_poses_[goal_name]->isVisible())
     return;
 
-  const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[goal_name].imarker;
+  const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[goal_name]->imarker;
 
   geometry_msgs::Pose current_pose;
   current_pose.position.x = imarker->getPosition().x;
@@ -652,12 +652,12 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
 void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
 {
   // Check if the end-effector is in collision at the current pose
-  if ( ! goal_poses_[goal_name].isVisible())
+  if ( ! goal_poses_[goal_name]->isVisible())
     return;
 
   const robot_interaction::RobotInteraction::EndEffector &eef = robot_interaction_->getActiveEndEffectors()[0];
 
-  const boost::shared_ptr<rviz::InteractiveMarker> &im = goal_poses_[goal_name].imarker;
+  const boost::shared_ptr<rviz::InteractiveMarker> &im = goal_poses_[goal_name]->imarker;
   Eigen::Affine3d marker_pose_eigen = Eigen::Translation3d(im->getPosition().x, im->getPosition().y, im->getPosition().z) *
     Eigen::Quaterniond(im->getOrientation().w, im->getOrientation().x, im->getOrientation().y, im->getOrientation().z);
 
@@ -674,27 +674,27 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
 
 void MainWindow::switchGoalPoseMarkerSelection(const std::string &marker_name)
 {
-  if (robot_interaction_->getActiveEndEffectors().empty() || ! goal_poses_[marker_name].isVisible())
+  if (robot_interaction_->getActiveEndEffectors().empty() || ! goal_poses_[marker_name]->isVisible())
     return;
 
-  if (goal_poses_[marker_name].isSelected())
+  if (goal_poses_[marker_name]->isSelected())
   {
     //If selected, unselect
-    goal_poses_[marker_name].unselect();
+    goal_poses_[marker_name]->unselect();
     setItemSelectionInList(marker_name, false, ui_.goal_poses_list);
   }
   else
   {
     //If unselected, select. Only display the gripper mesh for one
     if (ui_.goal_poses_list->selectedItems().size() == 1)
-      goal_poses_[marker_name].select(true);
+      goal_poses_[marker_name]->select(true);
     else
-      goal_poses_[marker_name].select(false);
+      goal_poses_[marker_name]->select(false);
     setItemSelectionInList(marker_name, true, ui_.goal_poses_list);
   }
 
   // Connect signals
-  connect( goal_poses_[marker_name].imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  connect( goal_poses_[marker_name]->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 }
 
 void MainWindow::copySelectedGoalPoses(void)
@@ -715,7 +715,7 @@ void MainWindow::copySelectedGoalPoses(void)
   for (int i = 0 ; i < sel.size() ; ++i)
   {
     std::string name = sel[i]->text().toStdString();
-    if (! goal_poses_[name].isVisible())
+    if (! goal_poses_[name]->isVisible())
       continue;
 
     std::stringstream ss;
@@ -723,22 +723,22 @@ void MainWindow::copySelectedGoalPoses(void)
 
     Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getLinkState(robot_interaction_->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
     geometry_msgs::Pose marker_pose;
-    marker_pose.position.x = goal_poses_[name].imarker->getPosition().x;
-    marker_pose.position.y = goal_poses_[name].imarker->getPosition().y;
-    marker_pose.position.z = goal_poses_[name].imarker->getPosition().z;
-    marker_pose.orientation.x = goal_poses_[name].imarker->getOrientation().x;
-    marker_pose.orientation.y = goal_poses_[name].imarker->getOrientation().y;
-    marker_pose.orientation.z = goal_poses_[name].imarker->getOrientation().z;
-    marker_pose.orientation.w = goal_poses_[name].imarker->getOrientation().w;
+    marker_pose.position.x = goal_poses_[name]->imarker->getPosition().x;
+    marker_pose.position.y = goal_poses_[name]->imarker->getPosition().y;
+    marker_pose.position.z = goal_poses_[name]->imarker->getPosition().z;
+    marker_pose.orientation.x = goal_poses_[name]->imarker->getOrientation().x;
+    marker_pose.orientation.y = goal_poses_[name]->imarker->getOrientation().y;
+    marker_pose.orientation.z = goal_poses_[name]->imarker->getOrientation().z;
+    marker_pose.orientation.w = goal_poses_[name]->imarker->getOrientation().w;
 
     static const float marker_scale = 0.15;
-    GripperMarker goal_pose(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, ss.str(), scene_display_->getKinematicModel()->getModelFrame(),
-                            robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED, true);
+    GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, ss.str(), scene_display_->getKinematicModel()->getModelFrame(),
+                            robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED, true));
 
     goal_poses_.insert(GoalPosePair(ss.str(), goal_pose));
 
     // Connect signals
-    connect( goal_pose.imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+    connect( goal_pose->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
     //Unselect the marker source of the copy
     switchGoalPoseMarkerSelection(name);
@@ -772,7 +772,7 @@ void MainWindow::saveStartStateButtonClicked(void)
         //Store the current start state
         moveit_msgs::RobotState msg;
         kinematic_state::kinematicStateToRobotState(scene_display_->getPlanningSceneRO()->getCurrentState(), msg);
-        start_states_.insert(StartStatePair(name,  StartState(msg)));
+        start_states_.insert(StartStatePair(name, StartStatePtr(new StartState(msg))));
 
         //Save to the database if connected
         if (robot_state_storage_)
@@ -817,7 +817,7 @@ void MainWindow::populateStartStatesList(void)
   {
     QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_.start_states_list->addItem(item);
-    if (it->second.selected)
+    if (it->second->selected)
     {
       //If selected, highlight in the list
       item->setSelected(true);
@@ -827,7 +827,7 @@ void MainWindow::populateStartStatesList(void)
 
 void MainWindow::startStateItemDoubleClicked(QListWidgetItem * item)
 {
-  scene_display_->getPlanningSceneRW()->setCurrentState(start_states_[item->text().toStdString()].state_msg);
+  scene_display_->getPlanningSceneRW()->setCurrentState(start_states_[item->text().toStdString()]->state_msg);
   scene_display_->queueRenderSceneGeometry();
 }
 
@@ -955,7 +955,7 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
 
 void MainWindow::updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state)
 {
-  goal_poses_[name].setState(state);
+  goal_poses_[name]->setState(state);
 }
 
 }

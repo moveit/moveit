@@ -58,6 +58,26 @@ public:
   boost::shared_ptr<rviz::InteractiveMarker> imarker;
 
   FrameMarker() {}
+  FrameMarker(const FrameMarker &frame_marker)
+  {
+    imarker_msg = frame_marker.imarker_msg;
+
+    visible_x_ = frame_marker.visible_x_;
+    visible_y_ = frame_marker.visible_y_;
+    visible_z_ = frame_marker.visible_z_;
+
+    parent_node_ = frame_marker.parent_node_;
+    context_ = frame_marker.context_;
+
+    selected_ = frame_marker.selected_;
+    color_ = frame_marker.color_;
+
+    position_ = frame_marker.position_;
+    orientation_ = frame_marker.orientation_;
+
+    rebuild();
+  }
+
   /** Constructor
    * @param parent_node the Ogre node that will hold this interactive marker
    * @param context the display context
@@ -101,6 +121,12 @@ public:
   virtual void select(void);
   virtual void unselect(void);
 
+  virtual void setMenu(std::vector<visualization_msgs::MenuEntry> entries)
+  {
+    menu_entries_ = entries;
+    rebuild();
+  }
+
   bool isSelected(void)
   {
     return selected_;
@@ -117,6 +143,8 @@ public:
 protected:
   virtual void buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const std_msgs::ColorRGBA &color);
   virtual void rebuild();
+
+  std::vector<visualization_msgs::MenuEntry> menu_entries_;
 
   Ogre::SceneNode *parent_node_;
   rviz::DisplayContext* context_;
@@ -143,6 +171,10 @@ public:
   } GripperMarkerState;
 
   GripperMarker(): display_gripper_mesh_(true) {}
+
+  GripperMarker(const GripperMarker &gripper_marker) : FrameMarker(gripper_marker)
+  {
+  }
 
   /** Constructor
    * @param kinematic_state the kinematic state of the robot
@@ -199,6 +231,7 @@ protected:
   bool display_gripper_mesh_;
   GripperMarkerState state_;
 };
+typedef boost::shared_ptr<GripperMarker> GripperMarkerPtr;
 
 } //namespace
 #endif

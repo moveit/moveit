@@ -148,6 +148,9 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_.goal_poses_list);
     connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
 
+    //Trajectories
+    connect( ui_.trajectory_add_button, SIGNAL( clicked() ), this, SLOT( createTrajectoryButtonClicked() ));
+
     //Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));
     connect(main_loop_jobs_timer_.get(), SIGNAL( timeout() ), this, SLOT( executeMainLoopJobs() ));
@@ -332,8 +335,8 @@ void MainWindow::planningGroupChanged(const QString &text)
       //Update the kinematic state associated to the goals
       for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
       {
-        it->second.setKinematicState(scene_display_->getPlanningSceneRO()->getCurrentState());
-        it->second.setEndEffector(robot_interaction_->getActiveEndEffectors()[0]);
+        it->second->setKinematicState(scene_display_->getPlanningSceneRO()->getCurrentState());
+        it->second->setEndEffector(robot_interaction_->getActiveEndEffectors()[0]);
       }
     }
   }
@@ -543,9 +546,13 @@ void MainWindow::updateGoalPoseMarkers(float wall_dt, float ros_dt)
 {
   if (goal_pose_dragging_) {
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
-      if (it->second.isVisible())
-        it->second.imarker->update(wall_dt);
+      if (it->second->isVisible())
+        it->second->imarker->update(wall_dt);
   }
+
+  for (GoalPoseMap::iterator it = trajectories_.begin(); it != trajectories_.end() ; ++it)
+    if (it->second->isVisible())
+      it->second->imarker->update(wall_dt);
 }
 
 void MainWindow::executeMainLoopJobs()

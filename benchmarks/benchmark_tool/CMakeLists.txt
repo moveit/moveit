@@ -14,6 +14,7 @@ set(SOURCES
   src/ui_utils.cpp
   src/frame_marker.cpp
   src/goals.cpp
+  src/trajectories.cpp
 )
 
 add_executable(benchmark_tool ${SOURCES} ${MOC_FILES} ${UIC_FILES})
