@@ -204,6 +204,8 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
   int_marker.header.frame_id = frame_id;
   int_marker.header.stamp = ros::Time::now();
 
+  int_marker.menu_entries = menu_entries_;
+
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = true;
   m_control.interaction_mode = m_control.BUTTON;
@@ -307,6 +309,8 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   }
   int_marker.header.frame_id = frame_id;
   int_marker.header.stamp = ros::Time::now();
+
+  int_marker.menu_entries = menu_entries_;
 
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = true;
