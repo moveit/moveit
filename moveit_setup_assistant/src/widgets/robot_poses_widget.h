@@ -158,7 +158,7 @@ private:
   std::vector<const kinematic_model::JointModel*> joint_models_;
 
   /// Remember the publisher for quick publishing later
-  ros::Publisher pub_scene_;
+  ros::Publisher pub_robot_state_;
 
   // ******************************************************************************************
   // Collision Variables

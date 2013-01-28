@@ -50,10 +50,10 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constants
 // ******************************************************************************************
-
+ 
 // Used for loading kinematic model
 static const std::string ROBOT_DESCRIPTION = "robot_description";
-static const std::string MOVEIT_PLANNING_SCENE = "moveit_planning_scene";
+static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
 
 // ******************************************************************************************
 // Structs
