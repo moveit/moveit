@@ -841,7 +841,24 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
   const LinkState *link_state = kinematic_state_->getLinkState(link_name);
   if (!link_state)
     return 0.0;
+  
+  const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
 
+  // make sure that continuous joints wrap, but remember how much we wrapped them
+  std::map<std::string, double> upd_continuous_joints;
+  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
+    if (jnt[i]->getType() == kinematic_model::JointModel::REVOLUTE)
+    {
+      if (static_cast<const kinematic_model::RevoluteJointModel*>(jnt[i])->isContinuous())
+      {
+        double initial = joint_state_vector_[i]->getVariableValues()[0];
+        joint_state_vector_[i]->enforceBounds();
+        double after = joint_state_vector_[i]->getVariableValues()[0];
+        if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
+          upd_continuous_joints[joint_state_vector_[i]->getName()] = initial - after;
+      } 
+    }
+  
   // this is the Cartesian pose we start from, and we move in the direction indicated 
   Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
   // the direction can be in the local reference frame (in which case we rotate it)
@@ -853,7 +870,7 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
   unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
   
   // precompute some information about the type of joints we will need to include in the result
-  const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
+
   std::vector<const kinematic_model::JointModel*> onedof;
   std::vector<const kinematic_model::JointModel*> mdof;
   traj.joint_trajectory.header.frame_id = kinematic_state_->getKinematicModel()->getModelFrame();
@@ -914,6 +931,19 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
     last_valid_distance = d;
   }
 
+  
+  // re-add continuous joint offsets; NOTE: THIS IS ONLY DONE FOR revolute cont. joints; perhaps we want to do more than this in the future
+  for (std::map<std::string, double>::const_iterator it = upd_continuous_joints.begin() ; it != upd_continuous_joints.end() ; ++it)
+  {
+    for (std::size_t i = 0 ; i < traj.joint_trajectory.joint_names.size() ; ++i)
+      if (traj.joint_trajectory.joint_names[i] == it->first)
+      {
+        for (std::size_t j = 0 ; j < traj.joint_trajectory.points.size() ; ++j)
+          traj.joint_trajectory.points[j].positions[i] += it->second;
+        break;
+      }
+  }
+  
   if (test_joint_space_jump)
   {
     // compute the average distance between the states we looked at
