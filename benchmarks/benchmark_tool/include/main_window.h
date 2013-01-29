@@ -33,6 +33,8 @@
 #define BT_MAIN_WINDOW_
 
 #include <frame_marker.h>
+#include <trajectory.h>
+#include <job_processing.h>
 
 #include <QtGui/QMainWindow>
 #include <QTimer>
@@ -45,7 +47,6 @@
 #include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/motion_planning_rviz_plugin/background_processing.h>
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
@@ -60,12 +61,6 @@ Q_OBJECT
 
 public:
   MainWindow(int argc, char **argv, QWidget *parent = 0);
-
-  // pass the execution of this function call to a separate thread that runs in the background
-  void addBackgroundJob(const boost::function<void(void)> &job);
-
-  // queue the execution of this function for the next time the main update() loop gets called
-  void addMainLoopJob(const boost::function<void(void)> &job);
 
   ~MainWindow();
 public Q_SLOTS:
@@ -109,10 +104,9 @@ public Q_SLOTS:
 
   //Trajectories
   void createTrajectoryButtonClicked(void);
-  void trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
 
   //main loop processing
-  void executeMainLoopJobs();
+  void MainLoop();
 
 
 private:
@@ -156,7 +150,6 @@ private:
   typedef std::pair<std::string, GripperMarkerPtr> GoalPosePair;
   GoalPoseMap goal_poses_;
 
-
   class StartState
   {
   public:
@@ -187,25 +180,17 @@ private:
   void updateGoalPoseMarkers(float wall_dt, float ros_dt);
 
   //Trajectories
-  static const int TRAJECTORY_SET_START_POSE = 1;
-  static const int TRAJECTORY_SET_END_POSE = 2;
-  static const int TRAJECTORY_EDIT_CONTROL_FRAME = 3;
-  static const int TRAJECTORY_FIX_CONTROL_FRAME = 4;
-
-  GoalPoseMap trajectories_;
-  GripperMarkerPtr trajectory_start_;
+  typedef std::map<std::string, TrajectoryPtr> TrajectoryMap;
+  typedef std::pair<std::string, TrajectoryPtr> TrajectoryPair;
+  TrajectoryMap trajectories_;
 
   void createTrajectoryStartMarker(const GripperMarker &marker);
 
-
   //Background processing
-  moveit_rviz_plugin::BackgroundProcessing background_process_;
   void loadSceneButtonClickedBackgroundJob(void);
 
   //Foreground processing
   const static unsigned int MAIN_LOOP_RATE = 20; //calls to executeMainLoopJobs per second
-  std::deque<boost::function<void(void)> > main_loop_jobs_;
-  boost::mutex main_loop_jobs_lock_;
   boost::shared_ptr<QTimer> main_loop_jobs_timer_;
 
   //Status and logging
@@ -230,7 +215,7 @@ private:
 
   void setStatusFromBackground(StatusType st, const QString &text)
   {
-    addMainLoopJob(boost::bind(&MainWindow::setStatus, this, st, text));
+    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::setStatus, this, st, text));
   }
 
 };

@@ -1,4 +1,4 @@
-qt4_wrap_cpp(MOC_FILES include/main_window.h)
+qt4_wrap_cpp(MOC_FILES include/main_window.h include/trajectory.h)
 qt4_wrap_ui(UIC_FILES
   src/ui/main_window.ui
 )
@@ -11,10 +11,12 @@ include_directories(SYSTEM
 set(SOURCES
   src/main.cpp
   src/main_window.cpp
+  src/job_processing.cpp
   src/ui_utils.cpp
   src/frame_marker.cpp
-  src/goals.cpp
-  src/trajectories.cpp
+  src/trajectory.cpp
+  src/tab_states_and_goals.cpp
+  src/tab_trajectories.cpp
 )
 
 add_executable(benchmark_tool ${SOURCES} ${MOC_FILES} ${UIC_FILES})

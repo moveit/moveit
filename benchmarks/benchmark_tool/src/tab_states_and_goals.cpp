@@ -30,6 +30,8 @@
  */
 
 #include <main_window.h>
+#include <job_processing.h>
+
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <moveit/warehouse/constraints_storage.h>
@@ -490,7 +492,7 @@ void MainWindow::goalPoseSelectionChanged(void)
 
 void MainWindow::goalPoseDoubleClicked(QListWidgetItem * item)
 {
-  addBackgroundJob(boost::bind(&MainWindow::computeGoalPoseDoubleClicked, this, item));
+  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::computeGoalPoseDoubleClicked, this, item));
 }
 
 void MainWindow::computeGoalPoseDoubleClicked(QListWidgetItem * item)
@@ -501,7 +503,7 @@ void MainWindow::computeGoalPoseDoubleClicked(QListWidgetItem * item)
   std::string item_text = item->text().toStdString();
 
   //Switch the marker color to processing color while processing
-  addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, item_text, GripperMarker::PROCESSING));
+  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, item_text, GripperMarker::PROCESSING));
 
   checkIfGoalReachable(item_text, true);
 }
@@ -519,14 +521,14 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
     {
       item = ui_.goal_poses_list->item(i);
       if ( item->text().toStdString() != feedback.marker_name)
-        addMainLoopJob(boost::bind(&MainWindow::selectItemJob, this, item, false));
+        JobProcessing::addMainLoopJob(boost::bind(&MainWindow::selectItemJob, this, item, false));
     }
 
     for (unsigned int i = 0; i < ui_.goal_poses_list->count(); ++i)
     {
       item = ui_.goal_poses_list->item(i);
       if (item->text().toStdString() == feedback.marker_name)
-        addMainLoopJob(boost::bind(&MainWindow::selectItemJob, this, item, true));
+        JobProcessing::addMainLoopJob(boost::bind(&MainWindow::selectItemJob, this, item, true));
     }
   }
   else if (feedback.event_type == feedback.MOUSE_DOWN)
@@ -586,20 +588,20 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
   } else if (feedback.event_type == feedback.MOUSE_UP)
   {
     goal_pose_dragging_ = false;
-    addBackgroundJob(boost::bind(&MainWindow::checkIfGoalInCollision, this, feedback.marker_name));
+    JobProcessing::addBackgroundJob(boost::bind(&MainWindow::checkIfGoalInCollision, this, feedback.marker_name));
   }
 }
 
 void MainWindow::checkGoalsReachable(void)
 {
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
-    addBackgroundJob(boost::bind(&MainWindow::checkIfGoalReachable, this, it->first, false));
+    JobProcessing::addBackgroundJob(boost::bind(&MainWindow::checkIfGoalReachable, this, it->first, false));
 }
 
 void MainWindow::checkGoalsInCollision(void)
 {
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
-    addBackgroundJob(boost::bind(&MainWindow::checkIfGoalInCollision, this, it->first));
+    JobProcessing::addBackgroundJob(boost::bind(&MainWindow::checkIfGoalInCollision, this, it->first));
 }
 
 void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable)
@@ -637,13 +639,13 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
 
     setStatusFromBackground(STATUS_INFO, "Updating marker...");
     //Switch the marker color to reachable
-    addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
                                                   GripperMarker::REACHABLE));
   }
   else
   {
     //Switch the marker color to not-reachable
-    addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
                                                   GripperMarker::NOT_REACHABLE));
   }
   setStatusFromBackground(STATUS_INFO, "");
@@ -667,7 +669,7 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
 
   if ( in_collision )
   {
-    addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
                                                   GripperMarker::IN_COLLISION));
   }
 }
@@ -744,7 +746,7 @@ void MainWindow::copySelectedGoalPoses(void)
     switchGoalPoseMarkerSelection(name);
   }
 
-  addMainLoopJob(boost::bind(&MainWindow::populateGoalPosesList, this));
+  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::populateGoalPosesList, this));
 }
 
 void MainWindow::saveStartStateButtonClicked(void)
@@ -837,7 +839,7 @@ void MainWindow::loadBenchmarkResults(void)
   QString path = QFileDialog::getOpenFileName(this, tr("Select a log file in the set"), tr(""), tr("Log files (*.log)"));
   if (!path.isEmpty())
   {
-    addBackgroundJob(boost::bind(&MainWindow::computeLoadBenchmarkResults, this, path.toStdString()));
+    JobProcessing::addBackgroundJob(boost::bind(&MainWindow::computeLoadBenchmarkResults, this, path.toStdString()));
   }
 }
 
@@ -914,20 +916,20 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
                 if (collision_free)
                 {
                   //Reachable and collision-free
-                  addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+                  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
                                                                               GripperMarker::REACHABLE));
                 }
                 else
                 {
                   //Reachable, but in collision
-                  addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+                  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
                                              GripperMarker::IN_COLLISION));
                 }
               }
               else
               {
                 //Not reachable
-                addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+                JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
                                            GripperMarker::NOT_REACHABLE));
               }
             }

@@ -290,6 +290,12 @@ void GripperMarker::select(bool display_gripper_mesh)
   FrameMarker::select();
 }
 
+void GripperMarker::unselect(bool display_gripper_mesh)
+{
+  display_gripper_mesh_ = display_gripper_mesh;
+  FrameMarker::unselect();
+}
+
 void GripperMarker::buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const std_msgs::ColorRGBA &color)
 {
   color_ = color;
@@ -316,7 +322,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   m_control.always_visible = true;
   m_control.interaction_mode = m_control.BUTTON;
 
-  if (isSelected() && display_gripper_mesh_)
+  if (display_gripper_mesh_)
   {
     //If selected and gripper_mesh enabled, display the actual end effector mesh
     const kinematic_state::JointStateGroup *joint_state_group = kinematic_state_->getJointStateGroup(eef_.eef_group);

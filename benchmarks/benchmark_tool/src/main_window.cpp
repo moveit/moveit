@@ -31,6 +31,7 @@
 
 #include <main_window.h>
 #include <ui_utils.h>
+
 #include <QShortcut>
 #include <QFileDialog>
 
@@ -153,7 +154,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
     //Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));
-    connect(main_loop_jobs_timer_.get(), SIGNAL( timeout() ), this, SLOT( executeMainLoopJobs() ));
+    connect(main_loop_jobs_timer_.get(), SIGNAL( timeout() ), this, SLOT( MainLoop() ));
     main_loop_jobs_timer_->start(1000 / MAIN_LOOP_RATE);
   }
   else
@@ -376,7 +377,7 @@ bool MainWindow::isIKSolutionCollisionFree(kinematic_state::JointStateGroup *gro
 
 void MainWindow::scheduleStateUpdate()
 {
-  addBackgroundJob(boost::bind(&MainWindow::scheduleStateUpdateBackgroundJob, this));
+  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::scheduleStateUpdateBackgroundJob, this));
 }
 
 void MainWindow::scheduleStateUpdateBackgroundJob()
@@ -387,7 +388,7 @@ void MainWindow::scheduleStateUpdateBackgroundJob()
 
 void MainWindow::dbConnectButtonClicked()
 {
-  addBackgroundJob(boost::bind(&MainWindow::dbConnectButtonClickedBackgroundJob, this));
+  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::dbConnectButtonClickedBackgroundJob, this));
 }
 
 void MainWindow::dbConnectButtonClickedBackgroundJob()
@@ -399,7 +400,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
     constraints_storage_.reset();
     ui_.planning_scene_list->clear();
 
-    addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
+    JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
   }
   else
   {
@@ -422,7 +423,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
 
     if (port > 0 && ! host_port[0].isEmpty())
     {
-      addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : yellow }"));
+      JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : yellow }"));
       try
       {
         planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(host_port[0].toStdString(),
@@ -431,26 +432,26 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
                                                                            port, 5.0));
         constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host_port[0].toStdString(),
                                                                             port, 5.0));
-        addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...", "QPushButton { color : yellow }"));
+        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...", "QPushButton { color : yellow }"));
 
         //Get all the scenes
         populatePlanningSceneList();
 
-        addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connected", "QPushButton { color : green }"));
+        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connected", "QPushButton { color : green }"));
       }
       catch(std::runtime_error &ex)
       {
         ROS_ERROR("%s", ex.what());
-        addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
-        addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", ex.what()));
+        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
+        JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", ex.what()));
         return;
       }
     }
     else
     {
       ROS_ERROR("Warehouse server must be introduced as host:port (eg. server.domain.com:33830)");
-      addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
-      addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Warehouse server must be introduced as host:port (eg. server.domain.com:33830)"));
+      JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
+      JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Warehouse server must be introduced as host:port (eg. server.domain.com:33830)"));
     }
   }
 }
@@ -475,12 +476,12 @@ void MainWindow::populatePlanningSceneList(void)
 
 void MainWindow::loadSceneButtonClicked(QListWidgetItem *item)
 {
-  addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
 }
 
 void MainWindow::loadSceneButtonClicked(void)
 {
-  addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
 }
 
 void MainWindow::loadSceneButtonClickedBackgroundJob(void)
@@ -531,16 +532,6 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
   }
 }
 
-void MainWindow::addBackgroundJob(const boost::function<void(void)> &job)
-{
-  background_process_.addJob(job);
-}
-
-void MainWindow::addMainLoopJob(const boost::function<void(void)> &job)
-{
-  boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
-  main_loop_jobs_.push_back(job);
-}
 
 void MainWindow::updateGoalPoseMarkers(float wall_dt, float ros_dt)
 {
@@ -550,37 +541,23 @@ void MainWindow::updateGoalPoseMarkers(float wall_dt, float ros_dt)
         it->second->imarker->update(wall_dt);
   }
 
-  for (GoalPoseMap::iterator it = trajectories_.begin(); it != trajectories_.end() ; ++it)
-    if (it->second->isVisible())
-      it->second->imarker->update(wall_dt);
+  for (TrajectoryMap::iterator it = trajectories_.begin(); it != trajectories_.end() ; ++it)
+    if (it->second->control_marker->isVisible())
+    {
+      it->second->control_marker->imarker->update(wall_dt);
+      if (it->second->start_marker)
+        it->second->start_marker->imarker->update(wall_dt);
+      if (it->second->end_marker)
+        it->second->end_marker->imarker->update(wall_dt);
+    }
 }
 
-void MainWindow::executeMainLoopJobs()
+void MainWindow::MainLoop()
 {
   int_marker_display_->update(1.0 / MAIN_LOOP_RATE, 1.0 / MAIN_LOOP_RATE);
   updateGoalPoseMarkers(1.0 / MAIN_LOOP_RATE, 1.0 / MAIN_LOOP_RATE);
 
-  main_loop_jobs_lock_.lock();
-  while (!main_loop_jobs_.empty())
-  {
-    boost::function<void(void)> fn = main_loop_jobs_.front();
-    main_loop_jobs_.pop_front();
-    main_loop_jobs_lock_.unlock();
-    try
-    {
-      fn();
-    }
-    catch(std::runtime_error &ex)
-    {
-      ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
-    }
-    catch(...)
-    {
-      ROS_ERROR("Exception caught executing main loop job");
-    }
-    main_loop_jobs_lock_.lock();
-  }
-  main_loop_jobs_lock_.unlock();
+  JobProcessing::executeMainLoopJobs();
 }
 
 void MainWindow::selectItemJob(QListWidgetItem *item, bool flag)
