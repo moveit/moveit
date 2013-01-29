@@ -102,15 +102,6 @@ void MainWindow::populateTrajectoriesList(void)
   {
     QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_.trajectory_list->addItem(item);
-    if (! it->second->control_marker->isVisible())
-    {
-      item->setBackground(QBrush(Qt::Dense4Pattern));
-    }
-    else if (it->second->control_marker->isSelected())
-    {
-      //If selected, highlight in the list
-      item->setSelected(true);
-    }
   }
 }
 
