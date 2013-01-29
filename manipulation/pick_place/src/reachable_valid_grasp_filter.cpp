@@ -73,7 +73,7 @@ bool ReachableAndValidGraspFilter::isStateCollisionFree(const ManipulationPlan *
 
 bool ReachableAndValidGraspFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, kinematic_state::KinematicState &token_state) const
 {
-  Eigen::Affine3d eigen_pose;  
+  Eigen::Affine3d eigen_pose;
   tf::poseMsgToEigen(plan->grasp_.grasp_pose, eigen_pose);
   token_state.updateStateWithLinkAt(plan->ik_link_name_, eigen_pose);
   collision_detection::CollisionRequest req;
