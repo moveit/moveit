@@ -38,6 +38,8 @@
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/kinematic_state/kinematic_state.h>
 
+#include <QObject>
+
 #include <string>
 
 namespace benchmark_tool
@@ -55,8 +57,8 @@ public:
   visualization_msgs::InteractiveMarker imarker_msg;
   boost::shared_ptr<rviz::InteractiveMarker> imarker;
 
-  FrameMarker() {}
-  FrameMarker(const FrameMarker &frame_marker)
+  /** Copy constructor */
+  FrameMarker(const FrameMarker &frame_marker): receiver_(NULL), receiver_method_(NULL)
   {
     imarker_msg = frame_marker.imarker_msg;
 
@@ -103,24 +105,8 @@ public:
   virtual void hide(void);
   virtual void show(Ogre::SceneNode *scene_node, rviz::DisplayContext *context);
 
-  virtual void showDescription(const std::string &description)
-  {
-    imarker_msg.description = description;
-
-    if (isVisible())
-    {
-      Ogre::Vector3 position = imarker->getPosition();
-      Ogre::Quaternion orientation = imarker->getOrientation();
-      updateMarker();
-      imarker->setPose(position, orientation, "");
-    }
-    imarker->setShowDescription(true);
-  }
-
-  virtual void hideDescription()
-  {
-    imarker->setShowDescription(false);
-  }
+  virtual void showDescription(const std::string &description);
+  virtual void hideDescription();
 
   virtual void setAxisVisibility(bool x, bool y, bool z)
   {
@@ -154,6 +140,13 @@ public:
     return (imarker);
   }
 
+  void connect(const QObject * receiver, const char * method)
+  {
+    receiver_ = receiver;
+    receiver_method_ = method;
+    QObject::connect( imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), receiver, method );
+  }
+
   virtual ~FrameMarker()
   {}
 
@@ -172,6 +165,9 @@ protected:
 
   Ogre::Vector3 position_;
   Ogre::Quaternion orientation_;
+
+  const QObject *receiver_;
+  const char *receiver_method_;
 };
 
 
@@ -187,8 +183,7 @@ public:
     NOT_TESTED, PROCESSING, REACHABLE, NOT_REACHABLE, IN_COLLISION
   } GripperMarkerState;
 
-  GripperMarker(): display_gripper_mesh_(true) {}
-
+  /** Copy constructor */
   GripperMarker(const GripperMarker &gripper_marker) : FrameMarker(gripper_marker)
   {
     kinematic_state_ = gripper_marker.kinematic_state_;
@@ -271,6 +266,7 @@ protected:
   bool display_gripper_mesh_;
   GripperMarkerState state_;
 };
+
 typedef boost::shared_ptr<GripperMarker> GripperMarkerPtr;
 
 } //namespace
