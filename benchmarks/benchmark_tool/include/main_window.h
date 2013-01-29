@@ -103,6 +103,7 @@ public Q_SLOTS:
   void deleteStatesOnDBButtonClicked(void);
 
   //Trajectories
+  void trajectorySelectionChanged(void);
   void createTrajectoryButtonClicked(void);
 
   //main loop processing
@@ -180,6 +181,8 @@ private:
   void updateGoalPoseMarkers(float wall_dt, float ros_dt);
 
   //Trajectories
+  void switchTrajectorySelection(const std::string &marker_name);
+
   typedef std::map<std::string, TrajectoryPtr> TrajectoryMap;
   typedef std::pair<std::string, TrajectoryPtr> TrajectoryPair;
   TrajectoryMap trajectories_;

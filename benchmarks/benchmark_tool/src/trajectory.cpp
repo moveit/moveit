@@ -106,7 +106,7 @@ void Trajectory::createStartMarker()
     start_marker = GripperMarkerPtr(new GripperMarker(*hand_marker));
     start_marker->unselect(true);
     start_marker->setColor(0.0, 0.9, 0.0, 0.9);
-    start_marker->showDescription("start");
+    start_marker->showDescription("Start");
     connectStartMarker();
   }
   else
@@ -122,7 +122,7 @@ void Trajectory::createEndMarker()
     end_marker = GripperMarkerPtr(new GripperMarker(*hand_marker));
     end_marker->unselect(true);
     end_marker->setColor(0.0, 0.9, 0.0, 0.4);
-    end_marker->showDescription("end");
+    end_marker->showDescription("End");
     connectEndMarker();
   }
   else
@@ -133,21 +133,21 @@ void Trajectory::createEndMarker()
 
 void Trajectory::connectControlMarker()
 {
-  connect( control_marker->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  control_marker->connect(this, SLOT( trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 }
 
 void Trajectory::connectHandMarker()
 {
-  connect( hand_marker->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  hand_marker->connect( this, SLOT( handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 }
 
 void Trajectory::connectStartMarker()
 {
-  connect( start_marker->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  start_marker->connect(this, SLOT( startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 }
 void Trajectory::connectEndMarker()
 {
-  connect( end_marker->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  end_marker->connect(this, SLOT( endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 }
 
 void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
@@ -254,17 +254,14 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
 
 void Trajectory::startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
-  ROS_WARN("startMarkerFeedback");
 }
 
 void Trajectory::endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
-  ROS_WARN("endMarkerFeedback");
 }
 
 void Trajectory::handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
-  ROS_WARN("handMarkerFeedback");
 }
 
 } //namespace

@@ -151,6 +151,8 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
     //Trajectories
     connect( ui_.trajectory_add_button, SIGNAL( clicked() ), this, SLOT( createTrajectoryButtonClicked() ));
+    connect( ui_.trajectory_list, SIGNAL( itemSelectionChanged() ), this, SLOT( trajectorySelectionChanged() ));
+
 
     //Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));

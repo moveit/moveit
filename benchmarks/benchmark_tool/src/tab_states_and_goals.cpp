@@ -94,7 +94,7 @@ void MainWindow::createGoalPoseButtonClicked(void)
         goal_poses_.insert(GoalPosePair(name,  goal_pose));
 
         // Connect signals
-        connect( goal_pose->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
         //If connected to a database, store the constraint
         if (constraints_storage_)
@@ -215,7 +215,7 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
                                 robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED, false,
                                 ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked()));
         // Connect signals
-        connect( goal_pose->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
         goal_poses_.insert(GoalPosePair(c->name, goal_pose));
       }
@@ -431,7 +431,6 @@ void MainWindow::visibleAxisChanged(int state)
       if (it->second->isVisible())
       {
         it->second->setAxisVisibility(ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked());
-        connect( it->second->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
       }
     }
   }
@@ -694,9 +693,6 @@ void MainWindow::switchGoalPoseMarkerSelection(const std::string &marker_name)
       goal_poses_[marker_name]->select(false);
     setItemSelectionInList(marker_name, true, ui_.goal_poses_list);
   }
-
-  // Connect signals
-  connect( goal_poses_[marker_name]->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 }
 
 void MainWindow::copySelectedGoalPoses(void)
@@ -740,7 +736,7 @@ void MainWindow::copySelectedGoalPoses(void)
     goal_poses_.insert(GoalPosePair(ss.str(), goal_pose));
 
     // Connect signals
-    connect( goal_pose->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+    goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 
     //Unselect the marker source of the copy
     switchGoalPoseMarkerSelection(name);

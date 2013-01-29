@@ -37,15 +37,17 @@
 namespace benchmark_tool
 {
 
+/* Implements functionality to create and manage straight and arc trajectories with interactive markers
+ */
 class Trajectory: public QObject
 {
   Q_OBJECT
 
 public Q_SLOTS:
-  virtual void trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  virtual void handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  virtual void startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  virtual void endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
 
 public:
   static const int TRAJECTORY_SET_START_POSE = 1;
@@ -58,14 +60,9 @@ public:
   static const std::string TRAJECTORY_EDIT_CONTROL_FRAME_STRING;
   static const std::string TRAJECTORY_FIX_CONTROL_FRAME_STRING;
 
-  Trajectory()
-  {}
-
   Trajectory(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
              const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
              const GripperMarker::GripperMarkerState &state, bool is_selected = true, bool visible_x = true, bool visible_y = true, bool visible_z = true);
-
-
 
   void setControlMarker(const GripperMarkerPtr control_marker);
 
@@ -74,7 +71,31 @@ public:
   GripperMarkerPtr start_marker;
   GripperMarkerPtr end_marker;
 
-  virtual ~Trajectory() {}
+  void hide()
+  {
+    if (control_marker)
+      control_marker->hide();
+    if (hand_marker)
+      hand_marker->hide();
+    if (start_marker)
+      start_marker->hide();
+    if (end_marker)
+      end_marker->hide();
+  }
+
+  void show(Ogre::SceneNode *scene_node, rviz::DisplayContext *context)
+  {
+    if (control_marker)
+      control_marker->show(scene_node, context);
+    if (hand_marker)
+      hand_marker->show(scene_node, context);
+    if (start_marker)
+      start_marker->show(scene_node, context);
+    if (end_marker)
+      end_marker->show(scene_node, context);
+  }
+
+  ~Trajectory() {}
 
 protected:
   void createControlMarker(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,

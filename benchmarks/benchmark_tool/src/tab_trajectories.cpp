@@ -114,34 +114,21 @@ void MainWindow::populateTrajectoriesList(void)
   }
 }
 
-/* Receives feedback from the interactive markers of a trajectory */
-//void MainWindow::trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
-//{
-//  if (feedback.event_type == feedback.MENU_SELECT)
-//  {
-//    if (feedback.menu_entry_id == TRAJECTORY_SET_START_POSE)
-//    {
-//      JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::MainWindow::createTrajectoryStartMarker, this, *trajectories_[feedback.marker_name]));
-//    }
-//    else if (feedback.menu_entry_id == TRAJECTORY_SET_END_POSE)
-//    {
-//      //Store pose of the control marker
-//    }
-//    else if (feedback.menu_entry_id == TRAJECTORY_EDIT_CONTROL_FRAME)
-//    {
-//    }
-//  }
-//}
-//
-//void MainWindow::createTrajectoryStartMarker(const GripperMarker &marker)
-//{
-//  trajectory_start_ = GripperMarkerPtr(new GripperMarker(marker));
-//  trajectory_start_->imarker_msg.name = marker.imarker_msg.name + "_start";
-//  trajectory_start_->imarker->setPose(trajectory_start_->imarker->getPosition() + Ogre::Vector3(0, 0, 0.5), trajectory_start_->imarker->getOrientation(), "");
-//  trajectory_start_->updateMarker();
-//
-//  // Connect signals
-//  connect( trajectory_start_->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
-//}
+void MainWindow::trajectorySelectionChanged(void)
+{
+  for (unsigned int i = 0; i < ui_.trajectory_list->count() ; ++i)
+  {
+    QListWidgetItem *item = ui_.trajectory_list->item(i);
+    std::string name = item->text().toStdString();
+    if ( trajectories_.find(name) != trajectories_.end() && item->isSelected())
+    {
+      trajectories_[name]->show(scene_display_->getSceneNode(), visualization_manager_);
+    }
+    else
+    {
+      trajectories_[name]->hide();
+    }
+  }
+}
 
 } // namespace

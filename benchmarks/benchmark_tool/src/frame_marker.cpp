@@ -56,7 +56,9 @@ FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *con
               selected_(is_selected),
               visible_x_(visible_x),
               visible_y_(visible_y),
-              visible_z_(visible_z)
+              visible_z_(visible_z),
+              receiver_(NULL),
+              receiver_method_(NULL)
 {
   buildFrom(name, frame_id, pose, scale, color);
 }
@@ -69,7 +71,9 @@ FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *con
               selected_(is_selected),
               visible_x_(visible_x),
               visible_y_(visible_y),
-              visible_z_(visible_z)
+              visible_z_(visible_z),
+              receiver_(NULL),
+              receiver_method_(NULL)
 {
   color_.r = color[0];
   color_.g = color[1];
@@ -80,21 +84,39 @@ FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *con
 
 void FrameMarker::hide(void)
 {
-  if (imarker)
+  if ( isVisible() )
   {
     position_ = imarker->getPosition();
     orientation_ = imarker->getOrientation();
+    imarker.reset();
   }
-  imarker.reset();
 }
 
 void FrameMarker::show(Ogre::SceneNode *scene_node, rviz::DisplayContext *context)
 {
-  imarker.reset(new rviz::InteractiveMarker(scene_node, context ));
-  updateMarker();
-  imarker->setShowAxes(false);
+  if ( ! isVisible() )
+  {
+    rebuild();
+  }
+}
+
+void FrameMarker::showDescription(const std::string &description)
+{
+  imarker_msg.description = description;
+
+  if (isVisible())
+  {
+    Ogre::Vector3 position = imarker->getPosition();
+    Ogre::Quaternion orientation = imarker->getOrientation();
+    updateMarker();
+    imarker->setPose(position, orientation, "");
+  }
+  imarker->setShowDescription(true);
+}
+
+void FrameMarker::hideDescription()
+{
   imarker->setShowDescription(false);
-  imarker->setPose(position_, orientation_, "");
 }
 
 void FrameMarker::getPosition(geometry_msgs::Point &position)
@@ -270,6 +292,12 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
   imarker->setShowAxes(false);
   imarker->setShowDescription(false);
 
+  //reconnect if it was previously connected
+  if (receiver_ && receiver_method_)
+  {
+    connect(receiver_, receiver_method_);
+  }
+
   imarker_msg = int_marker;
 }
 
@@ -411,6 +439,12 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   imarker->setShowDescription(false);
   imarker->setPose(Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z),
                     Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z), "");
+
+  //reconnect if it was previously connected
+  if (receiver_ && receiver_method_)
+  {
+    connect(receiver_, receiver_method_);
+  }
 
   imarker_msg = int_marker;
 }
