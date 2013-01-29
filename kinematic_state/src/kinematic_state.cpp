@@ -587,7 +587,7 @@ void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::Marker
 {
   std::size_t cur_num = arr.markers.size();
   getRobotMarkers(arr, link_names);
-  unsigned int id = 0;
+  unsigned int id = cur_num;
   for (std::size_t i = cur_num ; i < arr.markers.size() ; ++i, ++id)
   {
     arr.markers[i].ns = ns;
