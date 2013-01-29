@@ -81,16 +81,6 @@ const ManipulationStagePtr& ManipulationPipeline::getLastStage(void) const
     return stages_.back();
 }
 
-const std::vector<ManipulationPlanPtr>& ManipulationPipeline::getSuccessfulManipulationPlans(void) const
-{    
-  return success_;
-}
-
-const std::vector<ManipulationPlanPtr>& ManipulationPipeline::getFailedPlans(void) const
-{    
-  return failed_;
-}
-
 void ManipulationPipeline::reset(void)
 {
   clear();
@@ -161,8 +151,9 @@ void ManipulationPipeline::processingThread(unsigned int index)
         g->error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
         for (std::size_t i = 0 ; !stop_processing_ && i < stages_.size() ; ++i)
         {  
-          g->processing_stage_ = i;
-          if (!stages_[i]->evaluate(g))
+	  bool res = stages_[i]->evaluate(g);
+          g->processing_stage_ = i + 1;
+          if (res == false)
           {
             boost::mutex::scoped_lock slock(result_lock_);
             failed_.push_back(g);
@@ -172,6 +163,7 @@ void ManipulationPipeline::processingThread(unsigned int index)
         }
         if (g->error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
         {
+	  g->processing_stage_++;
           {
             boost::mutex::scoped_lock slock(result_lock_);
             success_.push_back(g);

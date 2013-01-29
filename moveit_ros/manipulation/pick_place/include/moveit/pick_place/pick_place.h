@@ -64,9 +64,9 @@ public:
   {
     return pipeline_.getSuccessfulManipulationPlans();
   }
-  const std::vector<ManipulationPlanPtr>& getFailedPlans(void) const
+  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans(void) const
   {
-    return pipeline_.getFailedPlans();  
+    return pipeline_.getFailedManipulationPlans();  
   }
 
   const moveit_msgs::MoveItErrorCodes& getErrorCode(void) const
@@ -102,9 +102,9 @@ public:
   {
     return pipeline_.getSuccessfulManipulationPlans();
   }  
-  const std::vector<ManipulationPlanPtr>& getFailedPlans(void) const
+  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans(void) const
   {
-    return pipeline_.getFailedPlans();  
+    return pipeline_.getFailedManipulationPlans();  
   }
 
   const moveit_msgs::MoveItErrorCodes& getErrorCode(void) const
@@ -132,7 +132,10 @@ class PickPlace : private boost::noncopyable,
                   public boost::enable_shared_from_this<PickPlace>
 {
 public: 
-  
+
+  static const std::string DISPLAY_PATH_TOPIC;
+  static const std::string DISPLAY_GRASP_TOPIC;
+
   PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
   
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager(void) const
@@ -144,20 +147,36 @@ public:
   {
     return planning_pipeline_;
   }
-  
+
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  {
+    return planning_pipeline_->getKinematicModel();
+  }
+
   /** \brief Plan the sequence of motions that perform a pickup action */
   PickPlanPtr planPick(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal) const;
 
   /** \brief Plan the sequence of motions that perform a placement action */
   PlacePlanPtr planPlace(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const;
 
-  void displayPlan(const ManipulationPlanPtr &plan) const;
+  void displayComputedMotionPlans(bool flag);
+  void displayProcessedGrasps(bool flag);
+
+  void visualizePlan(const ManipulationPlanPtr &plan) const;
+
+  void visualizeGrasp(const ManipulationPlanPtr &plan) const;
   
+  void visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) const;
+
 private:
   
   ros::NodeHandle nh_;
-  ros::Publisher display_path_publisher_;
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;  
+  bool display_computed_motion_plans_;
+  bool display_grasps_;
+  ros::Publisher display_path_publisher_;
+  ros::Publisher grasps_publisher_;
+
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
 };
 
