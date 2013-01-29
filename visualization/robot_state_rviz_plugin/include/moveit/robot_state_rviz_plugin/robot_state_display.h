@@ -29,14 +29,15 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_SCENE_DISPLAY_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_SCENE_DISPLAY_
+#ifndef MOVEIT_VISUALIZATION_ROBOT_STATE_DISPLAY_RVIZ_ROBOT_STATE_DISPLAY_
+#define MOVEIT_VISUALIZATION_ROBOT_STATE_DISPLAY_RVIZ_ROBOT_STATE_DISPLAY_
 
 #include <rviz/display.h>
 
 #ifndef Q_MOC_RUN
-#include <moveit/render_tools/planning_scene_render.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/render_tools/kinematic_state_visualization.h>
+#include <moveit_msgs/DisplayRobotState.h>
 #include <ros/ros.h>
 #endif
 
@@ -48,7 +49,6 @@ class SceneNode;
 namespace rviz
 {
 class Robot;
-class Property;
 class StringProperty;
 class BoolProperty;
 class FloatProperty;
@@ -59,30 +59,27 @@ class ColorProperty;
 namespace moveit_rviz_plugin
 {
 
-class PlanningSceneDisplay : public rviz::Display
+class KinematicStateVisualization;
+
+class RobotStateDisplay : public rviz::Display
 {
   Q_OBJECT
 
 public:
 
-  PlanningSceneDisplay();
-  virtual ~PlanningSceneDisplay();
-
-  virtual void load(const rviz::Config& config);
-  virtual void save(rviz::Config config) const;
+  RobotStateDisplay(void);
+  virtual ~RobotStateDisplay(void);
 
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
   
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  {
+    return kmodel_;
+  }
+  
   void setLinkColor(const std::string &link_name, const QColor &color);
   void unsetLinkColor(const std::string& link_name);
-  
-  void queueRenderSceneGeometry(void);
-  
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void);
-  planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO(void) const;
-  planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW(void);
-  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void);
                                                                                                 
 private Q_SLOTS:
 
@@ -90,33 +87,25 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
   void changedRobotDescription();
-  void changedSceneName();
   void changedRootLinkName();
-  void changedSceneEnabled();
-  void changedSceneRobotEnabled();
   void changedRobotSceneAlpha();
-  void changedSceneAlpha();
-  void changedSceneColor();
   void changedAttachedBodyColor();
-  void changedPlanningSceneTopic();
-  void changedSceneDisplayTime();
+  void changedRobotStateTopic();
+  void changedEnableLinkHighlight();
   
 protected:
 
-  void loadRobotModel();
+  void loadRobotModel(const std::string &root_link);
 
   /**
    * \brief Set the scene node's position, given the target frame and the planning frame
    */
-  void calculateOffsetPosition();
+  void calculateOffsetPosition(void);
 
-  void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  void renderPlanningScene(void);
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
-  void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color);
-  void unsetGroupColor(rviz::Robot* robot, const std::string& group_name);
-  void unsetAllColors(rviz::Robot* robot);
+
+  void newRobotStateCallback(const moveit_msgs::DisplayRobotState::ConstPtr &state);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -124,36 +113,22 @@ protected:
   virtual void onDisable();
   virtual void fixedFrameChanged();
 
-  virtual void onRobotModelLoaded();
-  virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-
+  // render the robot
+  ros::NodeHandle root_nh_;
+  ros::Subscriber robot_state_subscriber_;
   
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  KinematicStateVisualizationPtr robot_;  
+  robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
+  kinematic_model::KinematicModelConstPtr kmodel_;
+  kinematic_state::KinematicStatePtr kstate_;
+  bool update_state_;
   
-  Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
-  
-  // render the planning scene
-  KinematicStateVisualizationPtr planning_scene_robot_;  
-  PlanningSceneRenderPtr planning_scene_render_;
-  
-  bool planning_scene_needs_render_;
-  float current_scene_time_;
-  
-  rviz::Property* scene_category_;
-  rviz::Property* robot_category_;
-
   rviz::StringProperty* robot_description_property_;
-  rviz::StringProperty* scene_name_property_;
   rviz::StringProperty* root_link_name_property_;
-  rviz::BoolProperty* scene_enabled_property_;
-  rviz::BoolProperty* scene_robot_enabled_property_;
-  rviz::RosTopicProperty* planning_scene_topic_property_;
+  rviz::RosTopicProperty* robot_state_topic_property_;
   rviz::FloatProperty* robot_alpha_property_;
-  rviz::FloatProperty* scene_alpha_property_;
-  rviz::ColorProperty* scene_color_property_;
   rviz::ColorProperty* attached_body_color_property_;
-  rviz::FloatProperty* scene_display_time_property_;
-
+  rviz::BoolProperty* enable_link_highlight_;
 };
 
 } // namespace moveit_rviz_plugin

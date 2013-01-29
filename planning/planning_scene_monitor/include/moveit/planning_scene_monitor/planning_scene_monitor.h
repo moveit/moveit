@@ -52,7 +52,7 @@ namespace planning_scene_monitor
 {
 
 /**
- * @class PlanningSceneMonitor
+ * @brief PlanningSceneMonitor
  * Subscribes to the topic \e planning_scene */
 class PlanningSceneMonitor : private boost::noncopyable
 {

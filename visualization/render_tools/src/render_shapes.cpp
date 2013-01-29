@@ -29,8 +29,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_rviz_plugin/render_shapes.h>
-#include <moveit/planning_scene_rviz_plugin/octomap_render.h>
+#include <moveit/render_tools/render_shapes.h>
+#include <moveit/render_tools/octomap_render.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>

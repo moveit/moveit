@@ -599,7 +599,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
     if (!current_state_monitor_)
       current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
     current_state_monitor_->setBoundsError(bounds_error_);
-    current_state_monitor_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
+    current_state_monitor_->addUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
     current_state_monitor_->startStateMonitor(joint_states_topic);
     
     if (!attached_objects_topic.empty())
@@ -625,7 +625,7 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_ms
 {
   const ros::WallTime &n = ros::WallTime::now();
   const double t = (n - last_state_update_).toSec();
-  if (t >= dt_state_update_)
+  if (t >= dt_state_update_ && dt_state_update_ > std::numeric_limits<double>::epsilon())
   {
     last_state_update_ = n;
     updateSceneWithCurrentState();

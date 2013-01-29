@@ -29,27 +29,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_rviz_plugin/planning_link_updater.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreVector3.h>
+#include <class_loader/class_loader.h> 
+#include <moveit/robot_state_rviz_plugin/robot_state_display.h>
 
-bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
-                                                                Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
-{
-  const kinematic_state::LinkState* link_state = kinematic_state_->getLinkState(link_name);
-
-  if (!link_state)
-  {
-    return false;
-  }
-  
-  const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
-  Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
-  visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
-  visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
-  collision_position = visual_position;
-  collision_orientation = visual_orientation;
-  
-  return true;
-}
-
+CLASS_LOADER_REGISTER_CLASS( moveit_rviz_plugin::RobotStateDisplay, rviz::Display )

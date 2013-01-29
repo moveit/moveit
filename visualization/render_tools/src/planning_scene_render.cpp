@@ -29,9 +29,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_rviz_plugin/planning_scene_render.h>
-#include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
-#include <moveit/planning_scene_rviz_plugin/render_shapes.h>
+#include <moveit/render_tools/planning_scene_render.h>
+#include <moveit/render_tools/kinematic_state_visualization.h>
+#include <moveit/render_tools/render_shapes.h>
 #include <rviz/display_context.h>
 
 #include <OGRE/OgreSceneNode.h>

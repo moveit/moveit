@@ -30,8 +30,8 @@
 /* Author: Ioan Sucan, Dave Coleman */
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
-#include <moveit/planning_scene_rviz_plugin/planning_link_updater.h>
-#include <moveit/planning_scene_rviz_plugin/kinematic_state_visualization.h>
+#include <moveit/render_tools/planning_link_updater.h>
+#include <moveit/render_tools/kinematic_state_visualization.h>
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 #include <rviz/robot/robot_link.h>
