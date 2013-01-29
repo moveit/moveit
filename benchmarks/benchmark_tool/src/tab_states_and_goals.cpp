@@ -579,9 +579,9 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
 
         Eigen::Affine3d newpose = initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_initial_pose_[it->second->imarker->getName()];
         tf::poseEigenToMsg(newpose, impose.pose);
-        impose.header.frame_id = it->second->imarker->getReferenceFrame();
 
-        it->second->imarker->processMessage(impose);
+        it->second->imarker->setPose(Ogre::Vector3(impose.pose.position.x, impose.pose.position.y, impose.pose.position.z),
+                                      Ogre::Quaternion(impose.pose.orientation.w, impose.pose.orientation.x, impose.pose.orientation.y, impose.pose.orientation.z), "");
       }
     }
   } else if (feedback.event_type == feedback.MOUSE_UP)
