@@ -30,19 +30,13 @@
  */
 
 #include <main_window.h>
-//#include <moveit/kinematic_constraints/utils.h>
-//#include <moveit/kinematic_state/conversions.h>
-//#include <moveit/warehouse/constraints_storage.h>
-//#include <moveit/warehouse/state_storage.h>
-
-//#include <rviz/display_context.h>
-//#include <rviz/window_manager_interface.h>
+#include <trajectory.h>
+#include <job_processing.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
 #include <QMessageBox>
 #include <QInputDialog>
-//#include <QFileDialog>
 
 #include <boost/math/constants/constants.hpp>
 
@@ -87,33 +81,11 @@ void MainWindow::createTrajectoryButtonClicked(void)
         tf::poseEigenToMsg(tip_pose, marker_pose);
         static const float marker_scale = 0.15;
 
-        GripperMarkerPtr trajectory_marker( new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
+        TrajectoryPtr trajectory_marker( new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
                                                               name, scene_display_->getKinematicModel()->getModelFrame(),
                                                               robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED));
-        trajectory_marker->select(true);
-        std::vector<visualization_msgs::MenuEntry> menu_entries;
-        visualization_msgs::MenuEntry m;
-        m.id = TRAJECTORY_SET_START_POSE;
-        m.command_type = m.FEEDBACK;
-        m.parent_id = 0;
-        m.title = "Set start pose";
-        menu_entries.push_back(m);
-        m.id = TRAJECTORY_SET_END_POSE;
-        m.command_type = m.FEEDBACK;
-        m.parent_id = 0;
-        m.title = "Set end pose";
-        menu_entries.push_back(m);
-        m.id = TRAJECTORY_EDIT_CONTROL_FRAME;
-        m.command_type = m.FEEDBACK;
-        m.parent_id = 0;
-        m.title = "Edit control frame";
-        menu_entries.push_back(m);
-        trajectory_marker->setMenu(menu_entries);
 
-        trajectories_.insert(GoalPosePair(name,  trajectory_marker));
-
-        // Connect signals
-        connect( trajectory_marker->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        trajectories_.insert(TrajectoryPair(name,  trajectory_marker));
       }
     }
     else
@@ -126,15 +98,15 @@ void MainWindow::createTrajectoryButtonClicked(void)
 void MainWindow::populateTrajectoriesList(void)
 {
   ui_.trajectory_list->clear();
-  for (GoalPoseMap::iterator it = trajectories_.begin(); it != trajectories_.end(); ++it)
+  for (TrajectoryMap::iterator it = trajectories_.begin(); it != trajectories_.end(); ++it)
   {
     QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_.trajectory_list->addItem(item);
-    if (! it->second->isVisible())
+    if (! it->second->control_marker->isVisible())
     {
       item->setBackground(QBrush(Qt::Dense4Pattern));
     }
-    else if (it->second->isSelected())
+    else if (it->second->control_marker->isSelected())
     {
       //If selected, highlight in the list
       item->setSelected(true);
@@ -143,33 +115,33 @@ void MainWindow::populateTrajectoriesList(void)
 }
 
 /* Receives feedback from the interactive markers of a trajectory */
-void MainWindow::trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
-{
-  if (feedback.event_type == feedback.MENU_SELECT)
-  {
-    if (feedback.menu_entry_id == TRAJECTORY_SET_START_POSE)
-    {
-      addMainLoopJob(boost::bind(&benchmark_tool::MainWindow::createTrajectoryStartMarker, this, *trajectories_[feedback.marker_name]));
-    }
-    else if (feedback.menu_entry_id == TRAJECTORY_SET_END_POSE)
-    {
-      //Store pose of the control marker
-    }
-    else if (feedback.menu_entry_id == TRAJECTORY_EDIT_CONTROL_FRAME)
-    {
-    }
-  }
-}
-
-void MainWindow::createTrajectoryStartMarker(const GripperMarker &marker)
-{
-  trajectory_start_ = GripperMarkerPtr(new GripperMarker(marker));
-  trajectory_start_->imarker_msg.name = marker.imarker_msg.name + "_start";
-  trajectory_start_->imarker->setPose(trajectory_start_->imarker->getPosition() + Ogre::Vector3(0, 0, 0.5), trajectory_start_->imarker->getOrientation(), "");
-  trajectory_start_->updateMarker();
-
-  // Connect signals
-  connect( trajectory_start_->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
-}
+//void MainWindow::trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+//{
+//  if (feedback.event_type == feedback.MENU_SELECT)
+//  {
+//    if (feedback.menu_entry_id == TRAJECTORY_SET_START_POSE)
+//    {
+//      JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::MainWindow::createTrajectoryStartMarker, this, *trajectories_[feedback.marker_name]));
+//    }
+//    else if (feedback.menu_entry_id == TRAJECTORY_SET_END_POSE)
+//    {
+//      //Store pose of the control marker
+//    }
+//    else if (feedback.menu_entry_id == TRAJECTORY_EDIT_CONTROL_FRAME)
+//    {
+//    }
+//  }
+//}
+//
+//void MainWindow::createTrajectoryStartMarker(const GripperMarker &marker)
+//{
+//  trajectory_start_ = GripperMarkerPtr(new GripperMarker(marker));
+//  trajectory_start_->imarker_msg.name = marker.imarker_msg.name + "_start";
+//  trajectory_start_->imarker->setPose(trajectory_start_->imarker->getPosition() + Ogre::Vector3(0, 0, 0.5), trajectory_start_->imarker->getOrientation(), "");
+//  trajectory_start_->updateMarker();
+//
+//  // Connect signals
+//  connect( trajectory_start_->imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( trajectoryFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+//}
 
 } // namespace

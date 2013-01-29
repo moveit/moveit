@@ -38,9 +38,7 @@
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/kinematic_state/kinematic_state.h>
 
-
 #include <string>
-
 
 namespace benchmark_tool
 {
@@ -72,8 +70,8 @@ public:
     selected_ = frame_marker.selected_;
     color_ = frame_marker.color_;
 
-    position_ = frame_marker.position_;
-    orientation_ = frame_marker.orientation_;
+    position_ = frame_marker.imarker->getPosition();
+    orientation_ = frame_marker.imarker->getOrientation();
 
     rebuild();
   }
@@ -104,6 +102,25 @@ public:
 
   virtual void hide(void);
   virtual void show(Ogre::SceneNode *scene_node, rviz::DisplayContext *context);
+
+  virtual void showDescription(const std::string &description)
+  {
+    imarker_msg.description = description;
+
+    if (isVisible())
+    {
+      Ogre::Vector3 position = imarker->getPosition();
+      Ogre::Quaternion orientation = imarker->getOrientation();
+      updateMarker();
+      imarker->setPose(position, orientation, "");
+    }
+    imarker->setShowDescription(true);
+  }
+
+  virtual void hideDescription()
+  {
+    imarker->setShowDescription(false);
+  }
 
   virtual void setAxisVisibility(bool x, bool y, bool z)
   {
@@ -174,6 +191,12 @@ public:
 
   GripperMarker(const GripperMarker &gripper_marker) : FrameMarker(gripper_marker)
   {
+    kinematic_state_ = gripper_marker.kinematic_state_;
+    eef_ = gripper_marker.eef_;
+    state_ = gripper_marker.state_;
+    display_gripper_mesh_ = gripper_marker.display_gripper_mesh_;
+
+    rebuild();
   }
 
   /** Constructor
@@ -194,6 +217,8 @@ public:
                 const GripperMarkerState &state, bool is_selected = false, bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
   virtual void select(bool display_gripper_mesh = true);
+  virtual void unselect(bool display_gripper_mesh = false);
+
   virtual void setState(const GripperMarkerState &state)
   {
     if (state != state_)
@@ -204,14 +229,29 @@ public:
     }
   }
 
+  const GripperMarkerState &getState()
+  {
+    return state_;
+  }
+
   void setKinematicState(const kinematic_state::KinematicState& kinematic_state)
   {
     kinematic_state_ = &kinematic_state;
   }
 
+  const kinematic_state::KinematicState *getKinematicState()
+  {
+    return kinematic_state_;
+  }
+
   void setEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef)
   {
     eef_ = eef;
+  }
+
+  const robot_interaction::RobotInteraction::EndEffector getEndEffector()
+  {
+    return eef_;
   }
 
 protected:
