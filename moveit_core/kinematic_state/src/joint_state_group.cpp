@@ -913,14 +913,16 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
     {
       addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
       
-      // compute the distance to the previous point
+      // compute the distance to the previous point (infinity norm)
       if (test_joint_space_jump)
       {
 	double dist_prev_point = 0.0;
 	for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
 	{
-	  dist_prev_point += jnt[k]->distance(joint_state_vector_[k]->getVariableValues(), previous_values[k]) * jnt[k]->getDistanceFactor();
-	  previous_values[k] = joint_state_vector_[k]->getVariableValues();
+          double d_k = jnt[k]->distance(joint_state_vector_[k]->getVariableValues(), previous_values[k]);
+          if (dist_prev_point < 0.0 || dist_prev_point < d_k)
+            dist_prev_point = d_k;
+          previous_values[k] = joint_state_vector_[k]->getVariableValues();
 	}
 	dist_vector.push_back(dist_prev_point);
 	total_dist += dist_prev_point;
@@ -951,7 +953,7 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
     for (std::size_t i = 0 ; i < dist_vector.size() ; ++i)
       if (dist_vector[i] > thres)
       {
-	logError("Truncating Cartesian path due to detected jump in joint-space distance");
+	logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
 	last_valid_distance = distance * (double)i / (double)steps;
 	if (!traj.multi_dof_joint_trajectory.points.empty())
 	  traj.multi_dof_joint_trajectory.points.resize(i);
