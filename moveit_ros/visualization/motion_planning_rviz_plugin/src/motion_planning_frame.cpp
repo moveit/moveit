@@ -187,7 +187,7 @@ void MotionPlanningFrame::changePlanningGroupHelper(void)
     opt.robot_description_.clear();
     try
     {
-      move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(5, 0)));
+      move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(15, 0)));
       move_group_construction_time_ = ros::WallTime::now();
     }
     catch(std::runtime_error &ex)
