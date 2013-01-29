@@ -175,6 +175,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     p->ik_link_name_ = ik_link;    
     p->timeout_ = endtime;
     p->trajectory_start_ = start;
+    p->processing_stage_ = 0;
     pipeline_.push(p);
   }
     
@@ -212,10 +213,27 @@ void PickPlan::foundSolution(void)
 PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
 {
   PickPlanPtr p(new PickPlan(shared_from_this()));
+
   if (planning_scene::PlanningScene::isEmpty(goal.planning_options.planning_scene_diff))
     p->plan(planning_scene, goal);
   else
     p->plan(planning_scene->diff(goal.planning_options.planning_scene_diff), goal);
+
+  if (display_computed_motion_plans_)
+  {
+    const std::vector<pick_place::ManipulationPlanPtr> &success = p->getSuccessfulManipulationPlans();
+    if (!success.empty())
+      visualizePlan(success.back());
+  }
+    
+  if (display_grasps_)
+  {
+    const std::vector<pick_place::ManipulationPlanPtr> &success = p->getSuccessfulManipulationPlans();
+    visualizeGrasps(success);
+    const std::vector<pick_place::ManipulationPlanPtr> &failed = p->getFailedManipulationPlans();
+    visualizeGrasps(failed);
+  }
+  
   return p;
 }
 

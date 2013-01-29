@@ -76,8 +76,15 @@ public:
   void push(const ManipulationPlanPtr &grasp);
   void clear(void);
   
-  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const;
-  const std::vector<ManipulationPlanPtr>& getFailedPlans(void) const;
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const
+  {
+    return success_;
+  }
+
+  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans(void) const
+  {
+    return failed_;
+  }
   
 protected:
   

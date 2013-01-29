@@ -41,10 +41,15 @@
 #include <boost/tokenizer.hpp>
 #include <sstream>
 
+const std::string planning_pipeline::PlanningPipeline::DISPLAY_PATH_TOPIC = "display_planned_path";
+const std::string planning_pipeline::PlanningPipeline::MOTION_PLAN_REQUEST_TOPIC = "motion_plan_request";
+const std::string planning_pipeline::PlanningPipeline::MOTION_CONTACTS_TOPIC = "display_contacts";
+
 planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
                                                       const std::string &planner_plugin_param_name,
                                                       const std::string &adapter_plugins_param_name) :
-  nh_("~")
+  nh_("~"),
+  kmodel_(model)
 {
   std::string planner;
   if (nh_.getParam(planner_plugin_param_name, planner))
@@ -59,18 +64,21 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::Kin
       adapter_plugin_names_.push_back(*beg);
   }
   
-  configure(model);
+  configure();
 }
 
 planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
                                                       const std::string &planner_plugin_name,
                                                       const std::vector<std::string> &adapter_plugin_names) :
-  nh_("~"), planner_plugin_name_(planner_plugin_name), adapter_plugin_names_(adapter_plugin_names)
+  nh_("~"),
+  planner_plugin_name_(planner_plugin_name),
+  adapter_plugin_names_(adapter_plugin_names),
+  kmodel_(model)
 {
-  configure(model);
+  configure();
 }
 
-void planning_pipeline::PlanningPipeline::configure(const kinematic_model::KinematicModelConstPtr& model)
+void planning_pipeline::PlanningPipeline::configure(void)
 {
   check_solution_paths_ = false;          // this is set to true below
   publish_received_requests_ = false;
@@ -100,7 +108,7 @@ void planning_pipeline::PlanningPipeline::configure(const kinematic_model::Kinem
   try
   {
     planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planner_plugin_name_));
-    planner_instance_->init(model);
+    planner_instance_->init(kmodel_);
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
   }
   catch(pluginlib::PluginlibException& ex)
@@ -159,7 +167,7 @@ void planning_pipeline::PlanningPipeline::displayComputedMotionPlans(bool flag)
     display_path_publisher_.shutdown();
   else
     if (!display_computed_motion_plans_ && flag)
-      display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_planned_path", 10, true);
+      display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_TOPIC, 10, true);
   display_computed_motion_plans_ = flag;
 }
 
@@ -169,7 +177,7 @@ void planning_pipeline::PlanningPipeline::publishReceivedRequests(bool flag)
     received_request_publisher_.shutdown();
   else
     if (!publish_received_requests_ && flag)
-      received_request_publisher_ = nh_.advertise<moveit_msgs::MotionPlanRequest>("motion_plan_request", 10, true);
+      received_request_publisher_ = nh_.advertise<moveit_msgs::MotionPlanRequest>(MOTION_PLAN_REQUEST_TOPIC, 10, true);
   publish_received_requests_ = flag;
 }
 
@@ -179,7 +187,7 @@ void planning_pipeline::PlanningPipeline::checkSolutionPaths(bool flag)
     contacts_publisher_.shutdown();
   else
     if (!check_solution_paths_ && flag)
-      contacts_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>("display_contacts", 100, true);
+      contacts_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>(MOTION_CONTACTS_TOPIC, 100, true);
   check_solution_paths_ = flag;
 }
 
@@ -321,7 +329,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   if (display_computed_motion_plans_ && solved)
   { 
     moveit_msgs::DisplayTrajectory disp;
-    disp.model_id = planning_scene->getKinematicModel()->getName();
+    disp.model_id = kmodel_->getName();
     disp.trajectory_start = res.trajectory_start;
     disp.trajectory.resize(1, res.trajectory);
     display_path_publisher_.publish(disp);      

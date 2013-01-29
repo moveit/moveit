@@ -31,6 +31,8 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
+#ifndef MOVEIT_MOVE_GROUP_NAMES
+#define MOVEIT_MOVE_GROUP_NAMES
 
 #include <string>
 
@@ -47,3 +49,5 @@ static const std::string PICKUP_ACTION = "pickup"; // name of 'pickup' action
 static const std::string PLACE_ACTION = "place"; // name of 'place' action
 
 }
+
+#endif

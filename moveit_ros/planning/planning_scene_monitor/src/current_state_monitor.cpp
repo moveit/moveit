@@ -77,9 +77,20 @@ std::map<std::string, double> planning_scene_monitor::CurrentStateMonitor::getCu
   return m;
 }
 
-void planning_scene_monitor::CurrentStateMonitor::setOnStateUpdateCallback(const JointStateUpdateCallback &callback)
+//void planning_scene_monitor::CurrentStateMonitor::setOnStateUpdateCallback(const JointStateUpdateCallback &callback)
+//{
+//  on_state_update_callback_ = callback;
+//}
+
+void planning_scene_monitor::CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback &fn)
 {
-  on_state_update_callback_ = callback;
+  if (fn)
+    update_callbacks_.push_back(fn);
+}
+
+void planning_scene_monitor::CurrentStateMonitor::clearUpdateCallbacks(void)
+{
+  update_callbacks_.clear();
 }
 
 void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::string &joint_states_topic)
@@ -316,7 +327,9 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
     current_state_time_ = joint_state->header.stamp;
   }
   
-  // callback, if needed
-  if (on_state_update_callback_)
-    on_state_update_callback_(joint_state);
+  // callbacks, if needed
+//  if (on_state_update_callback_)
+//    on_state_update_callback_(joint_state);
+  for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)
+    update_callbacks_[i](joint_state);
 }

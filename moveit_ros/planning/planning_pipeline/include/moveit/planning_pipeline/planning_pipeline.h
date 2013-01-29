@@ -48,7 +48,11 @@ class PlanningPipeline
 {
 
 public:
-  
+
+  static const std::string DISPLAY_PATH_TOPIC;
+  static const std::string MOTION_PLAN_REQUEST_TOPIC;
+  static const std::string MOTION_CONTACTS_TOPIC;
+
   PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
                    const std::string &planning_plugin_param_name = "planning_plugin",
                    const std::string &adapter_plugins_param_name = "request_adapters");
@@ -105,9 +109,14 @@ public:
     return planner_instance_;
   }
   
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  {
+    return kmodel_;
+  }
+
 private:
   
-  void configure(const kinematic_model::KinematicModelConstPtr& model);
+  void configure(void);
   
   ros::NodeHandle nh_;
 
@@ -126,6 +135,8 @@ private:
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
   boost::scoped_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
   std::vector<std::string> adapter_plugin_names_;
+
+  kinematic_model::KinematicModelConstPtr kmodel_;
   
   /// Flag indicating whether the reported plans should be checked once again, by the planning pipeline itself
   bool check_solution_paths_;

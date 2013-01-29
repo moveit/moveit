@@ -29,7 +29,7 @@
 
 /* Author: Julius Kammerl */
 
-#include <moveit/planning_scene_rviz_plugin/octomap_render.h>
+#include <moveit/render_tools/octomap_render.h>
 
 #include <octomap_msgs/Octomap.h>
 #include <octomap/octomap.h>

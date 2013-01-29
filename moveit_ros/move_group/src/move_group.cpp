@@ -89,10 +89,15 @@ public:
     // configure the planning pipeline
     planning_pipeline_->displayComputedMotionPlans(true);
     planning_pipeline_->checkSolutionPaths(true);
+    
+    pick_place_->displayComputedMotionPlans(true);
 
     if (debug)
+    {
       planning_pipeline_->publishReceivedRequests(true);
-    
+      pick_place_->displayProcessedGrasps(true);
+    }
+
     // start the service servers
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupServer::computePlanService, this);
     execute_service_ = root_node_handle_.advertiseService(EXECUTE_SERVICE_NAME, &MoveGroupServer::executeTrajectoryService, this);
@@ -415,7 +420,6 @@ private:
         action_res.trajectory_stages = result->trajectories_;
         action_res.trajectory_descriptions = result->trajectory_descriptions_; 
         action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-        pick_place_->displayPlan(result);
       }
     }
     else
@@ -459,7 +463,6 @@ private:
         plan.planned_trajectory_descriptions_ = result->trajectory_descriptions_; 
         plan.planning_group_ = result->planning_group_;
         plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS; 
-        pick_place_->displayPlan(result);
       }
     }
     else
