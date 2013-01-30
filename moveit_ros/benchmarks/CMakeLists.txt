@@ -5,14 +5,16 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-add_definitions(-DQT_NO_KEYWORDS)
+find_package(Eigen REQUIRED)
+find_package(Boost REQUIRED thread date_time system filesystem)
 
 pkg_check_modules(OGRE OGRE)
 link_directories( ${OGRE_LIBRARY_DIRS} )
 
-find_package(Boost REQUIRED system filesystem date_time program_options signals thread)
+find_package(Qt4 REQUIRED)
+include(${QT_USE_FILE})
+add_definitions(-DQT_NO_KEYWORDS)
+
 
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
