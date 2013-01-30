@@ -26,7 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Mario Prats
+ * Author: Mario Prats, Ioan Sucan
  */
 
 #ifndef BT_JOB_PROCESSING_
