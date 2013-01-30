@@ -43,6 +43,7 @@
 namespace distance_field
 {
 
+/// \brief Specifies dimension of different axes
 enum Dimension {
   DIM_X = 0,
   DIM_Y = 1,
@@ -64,18 +65,18 @@ public:
    *
    * Constructs a dense representation of a 3D, axis-aligned volume at
    * a given resolution.  The volume can be represented in any
-   * consistent set of units.  The size of the the volume is given
-   * along each of the X, Y, and Z axes.  The volume begins at the
-   * minimum point in each dimension, as specified by the origin
+   * consistent set of units, but for the sake of documentation we
+   * assume that the units are meters.  The size of the the volume is
+   * given along each of the X, Y, and Z axes.  The volume begins at
+   * the minimum point in each dimension, as specified by the origin
    * parameters.  The data structure will remain unintialized until
-   * the \ref VoxelGrid::reset function is called.  
+   * the \ref VoxelGrid::reset function is called.
    *
-   * @param size_x Size of the X axis in arbitrary, consistent units
-   * @param size_y Size of the Y axis in arbitrary, consistent units
-   * @param size_z Size of the Z axis in arbitrary, consistent units
+   * @param size_x Size of the X axis in meters
+   * @param size_y Size of the Y axis in meters
+   * @param size_z Size of the Z axis in meters
    
-   * @param resolution: Resolution of a single cell in arbitrary,
-   * consistent units
+   * @param resolution: Resolution of a single cell in meters
    
    * @param origin_x Minimum point along the X axis of the volume
    * @param origin_y Minimum point along the Y axis of the volume
@@ -147,75 +148,153 @@ public:
    */
   const T& getCell(int x, int y, int z) const;
 
-  /**
-   * \brief Sets every cell in the voxel grid to the supplied data.
+  /** 
+   * \brief Sets every cell in the voxel grid to the supplied data
+   * 
+   * @param initial The template variable to which to set the data
    */
   void reset(const T& initial);
 
-  /**
-   * \brief Gets the size of the given dimension.
+  /** 
+   * \brief Gets the size in arbitrary units of the indicated dimension
+   * 
+   * @param dim The dimension for the query
+   * 
+   * @return The size in meters
    */
   double getSize(Dimension dim) const;
 
-  /**
-   * \brief Gets the resolution of the given dimension.
+  /** 
+   * \brief Gets the resolution of the indicated dimension in arbitrary consistent units
+   * 
+   * @param dim The dimension for the query
+   *
+   * @return The resolution in meters
    */
   double getResolution(Dimension dim) const;
 
-  /**
-   * \brief Gets the origin of the given dimension.
+  /** 
+   * \brief Gets the origin (miniumum point) of the indicated dimension
+   * 
+   * @param dim The dimension for the query
+   *
+   * @return The indicated axis origin
    */
   double getOrigin(Dimension dim) const;
 
-  /**
-   * \brief Gets the number of cells of the given dimension.
+  /** 
+   * \brief Gets the number of cells in the indicated dimension
+   * 
+   * @param dim The dimension for the query
+   * 
+   * @return The number of cells for the indicated dimension
    */
   int getNumCells(Dimension dim) const;
 
   /**
    * \brief Converts grid coordinates to world coordinates.
    */
+  /** 
+   * \brief Converts from an set of integer indices to a world
+   * location given the origin and resolution parameters.  There is no
+   * check whether or not the cell or world locations lie within the
+   * represented region.
+   * 
+   * @param [in] x The integer X location
+   * @param [in] y The integer Y location
+   * @param [in] z The integer Z location
+   * @param [out] world_x The computed world X location
+   * @param [out] world_y The computed world X location
+   * @param [out] world_z The computed world X location
+   * 
+   * @return True, as there is no check that the integer locations are valid
+   */
   bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
 
-  /**
-   * \brief Converts world coordinates to grid coordinates.
+  /** 
+   * \brief Converts from a world location to a set of integer
+   * indices.  Does check whether or not the cell being returned is
+   * valid.  The returned indices will be computed even if they are
+   * invalid.
+   * 
+   * @param [in] world_x The world X location 
+   * @param [in] world_y The world Y location 
+   * @param [in] world_z The world Z location
+   * @param [out] x The computed integer X location
+   * @param [out] y The computed integer X location
+   * @param [out] z The computed integer X location
+   * 
+   * @return True if all the world values result in integer indices
+   * that pass a validity check; otherwise False.
    */
   bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
 
-  /**
-   * \brief Checks if the given cell is within the voxel grid
+  /** 
+   * \brief Checks if the given cell in integer coordinates is within the voxel grid
+   * 
+   * @param [in] x The integer X location
+   * @param [in] y The integer Y location
+   * @param [in] z The integer Z location
+   * 
+   * @return True if the cell lies within the voxel grid; otherwise False.
    */
   bool isCellValid(int x, int y, int z) const;
 
-  /**
-   * \brief Checks validity of the given cell for a particular dimension
+  /** 
+   * \brief Checks if the indicated index is valid along a particular dimension.  
+   * 
+   * @param dim The dimension for the query
+   * @param cell The index along that dimension
+   * 
+   * @return True if the cell is valid along that dimension; otherwise False.
    */
   bool isCellValid(Dimension dim, int cell) const;
 
 protected:
-  T* data_;			/**< Storage for data elements */
-  T default_object_;		/**< The default object to return in case of out-of-bounds query */
-  T*** data_ptrs_;
-  double size_[3];
-  double resolution_[3];
-  double origin_[3];
-  int num_cells_[3];
-  int num_cells_total_;
-  int stride1_;
-  int stride2_;
+  T* data_;                     /**< \brief Storage for the full set of data elements */
+  T default_object_;		/**< \brief The default object to return in case of out-of-bounds query */
+  T*** data_ptrs_;              /**< \brief 3D array of pointers to the data elements */
+  double size_[3];              /**< \brief The size of each dimension in meters (in Dimension order) */
+  double resolution_[3];        /**< \brief The resolution of each dimension in meters (in Dimension order) */
+  double origin_[3];            /**< \brief The origin (minumum point) of each dimension in meters (in Dimension order) */
+  int num_cells_[3];            /**< \brief The number of cells in each dimension (in Dimension order) */
+  int num_cells_total_;         /**< \brief The total number of voxels in the grid */
+  int stride1_;                 /**< \brief The step to take when stepping between consecutive X members in the 1D array */
+  int stride2_;                 /**< \brief The step to take when stepping between consecutive Y members given an X in the 1D array */
 
-  /**
-   * \brief Gets the reference in the data_ array for the given integer x,y,z location
+  /** 
+   * \brief Gets the 1D index into the array, with no validity check.
+   * 
+   * @param [in] x The integer X location
+   * @param [in] y The integer Y location
+   * @param [in] z The integer Z location
+   * 
+   * @return The computed 1D index
    */
   int ref(int x, int y, int z) const;
 
   /**
    * \brief Gets the cell number from the location
    */
+  /** 
+   * \brief Gets the cell number in a given dimension given a world
+   * value.  No validity check.
+   * 
+   * @param dim The dimension of the query 
+   * @param loc The world location along that dimension
+   * 
+   * @return The computed cell index along the given dimension
+   */
   int getCellFromLocation(Dimension dim, double loc) const;
 
-  /**
-   * \brief Gets the location from the cell number
+  /** 
+   * \brief Gets the center of the cell in world coordinates along the
+   * given dimension.  No validity check.  
+   * 
+   * @param dim The dimension of the query
+   * @param cell The cell along the given dimension 
+   * 
+   * @return The world coordinate of the center of the cell
    */
   double getLocationFromCell(Dimension dim, int cell) const;
 
@@ -344,7 +423,7 @@ inline double VoxelGrid<T>::getLocationFromCell(Dimension dim, int cell) const
 
 
 template<typename T>
-inline void VoxelGrid<T>::reset(T initial)
+inline void VoxelGrid<T>::reset(const T& initial)
 {
   std::fill(data_, data_+num_cells_total_, initial);
 }
