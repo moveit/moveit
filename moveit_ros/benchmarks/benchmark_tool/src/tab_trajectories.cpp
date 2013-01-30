@@ -97,12 +97,14 @@ void MainWindow::createTrajectoryButtonClicked(void)
 
 void MainWindow::populateTrajectoriesList(void)
 {
+  bool old_signal_state = ui_.trajectory_list->blockSignals(true);
   ui_.trajectory_list->clear();
   for (TrajectoryMap::iterator it = trajectories_.begin(); it != trajectories_.end(); ++it)
   {
     QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
     ui_.trajectory_list->addItem(item);
   }
+  ui_.trajectory_list->blockSignals(old_signal_state);
 }
 
 void MainWindow::trajectorySelectionChanged(void)
@@ -120,6 +122,40 @@ void MainWindow::trajectorySelectionChanged(void)
       trajectories_[name]->hide();
     }
   }
+}
+
+void MainWindow::removeTrajectoryButtonClicked(void)
+{
+  if (ui_.trajectory_list->currentItem())
+  {
+    //Warn the user
+    QMessageBox msgBox;
+    msgBox.setText("The selected trajectory will be removed from the database");
+    msgBox.setInformativeText("Do you want to continue?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::No);
+    int ret = msgBox.exec();
+
+    switch (ret)
+    {
+      case QMessageBox::Yes:
+      {
+        trajectories_.erase(ui_.trajectory_list->currentItem()->text().toStdString());
+        populateTrajectoriesList();
+      }
+      break;
+    }
+  }
+}
+
+void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
+{
+  ROS_WARN("TODO");
+}
+
+void MainWindow::saveTrajectoriesOnDBButtonClicked(void)
+{
+  ROS_WARN("TODO");
 }
 
 } // namespace
