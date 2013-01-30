@@ -41,6 +41,8 @@
 #include <moveit/kinematic_state/link_state.h>
 #include <moveit/kinematic_state/joint_state.h>
 #include <sensor_msgs/JointState.h>
+#include <moveit_msgs/RobotTrajectory.h>
+#include <geometry_msgs/Twist.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/function.hpp>
 
@@ -50,6 +52,7 @@ namespace kinematic_state
 class JointStateGroup;
 
 typedef boost::function<bool(JointStateGroup *joint_state_group, const std::vector<double> &joint_group_variable_values)> StateValidityCallbackFn;
+typedef boost::function<bool(const JointStateGroup *joint_state_group, Eigen::VectorXd &stvector)> SecondaryTaskFn;
 
 class KinematicState;
 
@@ -109,6 +112,13 @@ public:
   /** \brief Perform forward kinematics starting at the roots
       within a group. Links that are not in the group are also
       updated, but transforms for joints that are not in the
+      group are not recomputed.
+      \warning Creates a temporary std::vector<double> */
+  bool setVariableValues(const Eigen::VectorXd& joint_state_values);
+
+  /** \brief Perform forward kinematics starting at the roots
+      within a group. Links that are not in the group are also
+      updated, but transforms for joints that are not in the
       group are not recomputed.  */
   void setVariableValues(const std::map<std::string, double>& joint_state_map);
   
@@ -132,6 +142,9 @@ public:
   
   /** \brief Get current joint values */
   void getVariableValues(std::vector<double>& joint_state_values) const;
+
+  /** \brief Get current joint values */
+  void getVariableValues(Eigen::VectorXd& joint_state_values) const;
   
   /** \brief Get a map between variable names and joint state values */
   void getVariableValues(std::map<std::string, double>& joint_state_values) const;
@@ -286,6 +299,60 @@ public:
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
+  /** \brief Set the joint values from a cartesian velocity applied during a time dt
+   * @param twist a cartesian velocity on the 'tip' frame
+   * @param tip the frame for which the twist is given
+   * @param dt a time interval (seconds)
+   * @param st a secondary task computation function
+   */
+  bool setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const SecondaryTaskFn &st = SecondaryTaskFn());
+
+  /** \brief Set the joint values from a cartesian velocity applied during a time dt
+   * @param twist a cartesian velocity on the 'tip' frame
+   * @param tip the frame for which the twist is given
+   * @param dt a time interval (seconds)
+   * @param st a secondary task computation function
+   */
+  bool setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const SecondaryTaskFn &st = SecondaryTaskFn());
+  
+  /** \brief Given a twist for a particular link (\e tip), and an optional secondary task (\e st), compute the corresponding joint velocity and store it in \e qdot */
+  void computeJointVelocity(Eigen::VectorXd &qdot, const Eigen::VectorXd &twist, const std::string &tip, const SecondaryTaskFn &st = SecondaryTaskFn()) const;
+  
+  /** \brief Given the velocities for the joints in this group (\e qdot) and an amount of time (\e dt), update the current state using the Euler forward method. 
+      If the constraint specified is satisfied, return true, otherwise return false. */
+  bool integrateJointVelocity(const Eigen::VectorXd &qdot, double dt, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
+
+  /** \brief Secondary task that tries to keep away from joint limits THIS FUNCTION NEEDS TO MOVE ELSEWHERE
+   * @param joint_state_group the joint state group for which to compute the task
+   * @param stvector the output of the function: a vector with joint velocities
+   * @param activation_threshold A percentage of the range from which the task is activated, i.e. activate if q > qmax - range * threshold. Typically between 0 and 0.5
+   * @param gain a gain for this task, multiplies the output velocities
+   */
+  bool avoidJointLimitsSecondaryTask(const JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
+                                     double activation_threshold, double gain) const;
+
+  /** \brief Compute the sequence of joint values that correspond to a Cartesian path.
+
+      The Cartesian path to be followed is specified as a direction of motion (\e direction, unit vector) for the origin of a robot
+      link (\e link_name). The direction is assumed to be either in a global reference frame or in the local reference frame of the
+      link. In the latter case (\e global_reference_frame is true) the \e direction is rotated accordingly. The link needs to move in a
+      straight line, following the specified direction, for the desired \e distance. The resulting joint values are stored in
+      the vector \e states, one by one. The maximum distance in Cartesian space between consecutive points on the resulting path
+      is specified by \e max_step.  If a \e validCallback is specified, this is passed to the internal call to
+      setFromIK(). In case of IK failure, the computation of the path stops and the value returned corresponds to the distance that
+      was computed and for which corresponding states were added to the path.  At the end of the function call, the state of the
+      group corresponds to the last attempted Cartesian pose.  During the computation of the trajectory, it is sometimes prefered if
+      consecutive joint values do not 'jump' by a large amount in joint space, even if the Cartesian distance between the
+      corresponding points is as expected. To account for this, the \e jump_threshold parameter is provided.  As the joint values
+      corresponding to the Cartesian path are computed, distances in joint space between consecutive points are also computed. Once
+      the sequence of joint values is computed, the average distance between consecutive points (in joint space) is also computed. It
+      is then verified that none of the computed distances is above the average distance by a factor larger than \e jump_threshold. If 
+      a point in joint is found such that it is further away than the previous one by more than average_consecutive_distance * \e jump_threshold,
+      that is considered a failure and the returned path is truncated up to just before the jump. The jump detection can be disabled 
+      by settin \e jump_threshold to 0.0*/
+  double computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
+                              double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
+  
   JointStateGroup& operator=(const JointStateGroup &other);
 
 private:

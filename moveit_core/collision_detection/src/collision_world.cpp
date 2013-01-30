@@ -91,14 +91,14 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
     }
     else
       if (record_changes_)
-        changeRemoveObj(id);
+        changeRemoveObject(id);
     
     ensureUnique(it->second);
     for (std::size_t i = 0 ; i < shapes.size() ; ++i)
       addToObjectInternal(it->second, shapes[i], poses[i]);
     
     if (record_changes_)
-      changeAddObj(it->second.get());
+      changeAddObject(it->second->id_);
   }
 }
 
@@ -142,13 +142,13 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
   }
   else
     if (record_changes_)
-      changeRemoveObj(id);
+      changeRemoveObject(id);
 
   ensureUnique(it->second);
   addToObjectInternal(it->second, shape, pose);
   
   if (record_changes_)
-    changeAddObj(it->second.get());
+    changeAddObject(it->second->id_);
 }
 
 void collision_detection::CollisionWorld::addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
@@ -171,8 +171,8 @@ bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &i
 	
 	if (record_changes_)
 	{
-	  changeRemoveObj(id);
-	  changeAddObj(it->second.get());
+	  changeRemoveObject(id);
+	  changeAddObject(it->second->id_);
 	}
 	return true;
       }
@@ -196,13 +196,13 @@ bool collision_detection::CollisionWorld::removeShapeFromObject(const std::strin
 	{
 	  objects_.erase(it);
 	  if (record_changes_)
-	    changeRemoveObj(id);
+	    changeRemoveObject(id);
 	}
 	else
 	  if (record_changes_)
 	  {
-	    changeRemoveObj(id);
-	    changeAddObj(it->second.get());
+	    changeRemoveObject(id);
+	    changeAddObject(it->second->id_);
 	  }
 	return true;
       }
@@ -214,14 +214,14 @@ void collision_detection::CollisionWorld::removeObject(const std::string &id)
 {
   if (objects_.erase(id) == 1)
     if (record_changes_)
-      changeRemoveObj(id);
+      changeRemoveObject(id);
 }
 
 void collision_detection::CollisionWorld::clearObjects(void)
 {
   if (record_changes_)
     for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
-      changeRemoveObj(it->first);
+      changeRemoveObject(it->first);
   objects_.clear();
 }
 
@@ -229,25 +229,24 @@ collision_detection::CollisionWorld::Object::Object(const std::string &id) : id_
 {
 }
 
-void collision_detection::CollisionWorld::changeRemoveObj(const std::string &id)
+void collision_detection::CollisionWorld::changeRemoveObject(const std::string &id)
 {
-  for (std::vector<Change>::reverse_iterator it = changes_.rbegin() ; it != changes_.rend() ; ++it)
-    if (it->type_ == Change::ADD && it->id_ == id)
-    {
-      changes_.erase(--it.base());
-      return;
-    }
+  for (std::vector<Change>::iterator it = changes_.begin() ; it != changes_.end() ; )
+    if (it->id_ == id)
+      it = changes_.erase(it);
+    else
+      ++it;
   Change c;
   c.type_ = Change::REMOVE;
   c.id_ = id;
   changes_.push_back(c);
 }
 
-void collision_detection::CollisionWorld::changeAddObj(const Object *obj)
+void collision_detection::CollisionWorld::changeAddObject(const std::string &id)
 {
   Change c;
   c.type_ = Change::ADD;
-  c.id_ = obj->id_;
+  c.id_ = id;
   changes_.push_back(c);
 }
 

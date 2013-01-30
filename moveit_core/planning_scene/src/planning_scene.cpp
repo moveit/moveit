@@ -39,6 +39,7 @@
 #include <moveit/collision_detection_fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/collision_detection/collision_tools.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_state/conversions.h>
 #include <octomap_msgs/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -141,19 +142,17 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
           newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
         }
       }
-      return configure(urdf_model, srdf_model, newModel);
+      return configure(newModel);
     }
   }
   else
-    return configure(urdf_model, srdf_model, kinematic_model::KinematicModelPtr());
+    return configure(kinematic_model::KinematicModelPtr());
   return isConfigured();
 }
 
-bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                              const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                              const kinematic_model::KinematicModelPtr &kmodel)
+bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicModelPtr &kmodel)
 {
-  if (!urdf_model || !srdf_model || (!kmodel && !parent_))
+  if (!kmodel && !parent_)
   {
     configured_ = false;
     return false;
@@ -186,8 +185,21 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
       
       // no need to reset this if the scene was previously configured
       if (!acm_)
+      {
         acm_.reset(new collision_detection::AllowedCollisionMatrix());
-      
+        // Use default collision operations in the SRDF to setup the acm
+        acm_->setEntry(getKinematicModel()->getLinkModelNamesWithCollisionGeometry(),
+                      getKinematicModel()->getLinkModelNamesWithCollisionGeometry(), false);
+  
+        // allow collisions for pairs that have been disabled
+        const std::vector<srdf::Model::DisabledCollision> &dc = getKinematicModel()->getSRDF()->getDisabledCollisionPairs();
+        for (std::size_t i = 0 ; i < dc.size() ; ++i)
+        {
+          acm_->setEntry(dc[i].link1_, dc[i].link2_, true);
+        }
+        
+      }
+            
       crobot_ = collision_detection_allocator_->allocateRobot(kmodel_);
       crobot_unpadded_ = collision_detection_allocator_->allocateRobot(kmodel_);
       crobot_const_ = crobot_;
@@ -211,9 +223,6 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
   {
     if (parent_->isConfigured())
     {
-      if (srdf_model != parent_->getKinematicModel()->getSRDF() || urdf_model != parent_->getKinematicModel()->getURDF())
-        logError("Parent of planning scene is not constructed from the same robot model");
-
       // even if we have a parent, we do maintain a separate world representation, one that records changes
       // this is cheap however, because the worlds share the world representation
       cworld_ = collision_detection_allocator_->allocateWorld(parent_->getCollisionWorld());
@@ -226,6 +235,20 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
   }
 
   return isConfigured();
+}
+
+const kinematic_model::KinematicModelPtr& planning_scene::PlanningScene::getKinematicModelNonConst(void)
+{
+  if (kmodel_ || !parent_)
+    return kmodel_;
+  const PlanningScene *p = parent_.get();
+  const kinematic_model::KinematicModelPtr *r = NULL;
+  while (p && (!r || !*r))
+  {
+    r = &p->kmodel_;
+    p = p->parent_.get();
+  }
+  return *r;
 }
 
 void planning_scene::PlanningScene::clearDiffs(void)
@@ -503,7 +526,19 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
     scene.link_padding.clear();
     scene.link_scale.clear();
   }
-
+  
+  scene.object_colors.clear();
+  if (colors_)
+  {
+    unsigned int i = 0;
+    scene.object_colors.resize(colors_->size());
+    for (ColorMap::const_iterator it = colors_->begin() ; it != colors_->end() ; ++it, ++i)
+    {
+      scene.object_colors[i].id = it->first;
+      scene.object_colors[i].color = it->second;
+    }
+  }
+  
   scene.world.collision_objects.clear();
   scene.world.collision_map = moveit_msgs::CollisionMap();
   scene.world.octomap = octomap_msgs::OctomapWithPose();
@@ -545,7 +580,9 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
 }
 
 namespace planning_scene
-{         
+{
+namespace
+{
 class ShapeVisitorAddToCollisionObject : public boost::static_visitor<void>
 {
 public:
@@ -583,6 +620,7 @@ private:
   moveit_msgs::CollisionObject *obj_;
   const geometry_msgs::Pose *pose_;
 };
+}
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
@@ -673,7 +711,18 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
   getCollisionRobot()->getPadding(scene.link_padding);
   getCollisionRobot()->getScale(scene.link_scale);
+  scene.object_colors.clear();
 
+  unsigned int i = 0;
+  ColorMap cmap;
+  getKnownColors(cmap);
+  scene.object_colors.resize(cmap.size());
+  for (ColorMap::const_iterator it = cmap.begin() ; it != cmap.end() ; ++it, ++i)
+  {
+    scene.object_colors[i].id = it->first;
+    scene.object_colors[i].color = it->second;
+  }
+  
   // add collision objects
   getPlanningSceneMsgCollisionObjects(scene);
 
@@ -682,6 +731,82 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 
   // get the collision map
   getPlanningSceneMsgCollisionMap(scene);
+}
+
+void planning_scene::PlanningScene::saveGeometryToStream(std::ostream &out) const
+{
+  out << name_ << std::endl;
+  const std::vector<std::string> &ns = getCollisionWorld()->getObjectIds();
+  for (std::size_t i = 0 ; i < ns.size() ; ++i)
+    if (ns[i] != COLLISION_MAP_NS && ns[i] != OCTOMAP_NS)
+    {
+      collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns[i]);
+      if (obj)
+      {
+        out << "* " << ns[i] << std::endl;
+        out << obj->shapes_.size() << std::endl;
+        for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
+        {
+          shapes::saveAsText(obj->shapes_[j].get(), out);
+          out << obj->shape_poses_[j].translation().x() << " " << obj->shape_poses_[j].translation().y() << " " << obj->shape_poses_[j].translation().z() << std::endl;
+          Eigen::Quaterniond r(obj->shape_poses_[j].rotation());
+          out << r.x() << " " << r.y() << " " << r.z() << " " << r.w() << std::endl;
+          if (hasColor(ns[i]))
+          {
+            const std_msgs::ColorRGBA &c = getColor(ns[i]);
+            out << c.r << " " << c.g << " " << c.b << " " << c.a << std::endl;
+          }
+          else
+            out << "0 0 0 0" << std::endl;
+        }
+      }
+    }
+  out << "." << std::endl;
+}
+
+void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
+{
+  if (!in.good() || in.eof())
+    return;  
+  std::getline(in, name_);
+  do
+  {
+    std::string marker;
+    in >> marker;
+    if (!in.good() || in.eof())
+      return;
+    if (marker == "*")
+    {
+      std::string ns;
+      std::getline(in, ns);
+      if (!in.good() || in.eof())
+        return;  
+      unsigned int shape_count;
+      in >> shape_count;
+      for (std::size_t i = 0 ; i < shape_count && in.good() && !in.eof() ; ++i)
+      {
+        shapes::Shape *s = shapes::constructShapeFromText(in);
+        double x, y, z, rx, ry, rz, rw;
+        in >> x >> y >> z;
+        in >> rx >> ry >> rz >> rw;
+        float r, g, b, a;
+        in >> r >> g >> b >> a;
+        if (s)
+        {
+          Eigen::Affine3d pose = Eigen::Translation3d(x, y, z) * Eigen::Quaterniond(rw, rx, ry, rz);          
+          getCollisionWorld()->addToObject(ns, shapes::ShapePtr(s), pose);
+          if (r > 0.0f || g > 0.0f || b > 0.0f || a > 0.0f)
+          {
+            std_msgs::ColorRGBA color;
+            color.r = r; color.g = g; color.b = b; color.a = a;
+            setColor(ns, color);
+          }
+        }
+      }
+    }
+    else
+      break;
+  } while (true);
 }
 
 void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotState &state)
@@ -716,7 +841,7 @@ void planning_scene::PlanningScene::decoupleParent(void)
     return;
   if (parent_->isConfigured())
   {
-    kmodel_ = parent_->kmodel_;
+    kmodel_ = getKinematicModelNonConst();
     kmodel_const_ = kmodel_;
 
     if (!ftf_)
@@ -770,6 +895,8 @@ void planning_scene::PlanningScene::decoupleParent(void)
         
     configured_ = true;
   }
+  else
+    logError("Decoupling scene from a non-configured parent will cause problems");
 
   parent_.reset();
 }
@@ -817,8 +944,27 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
     }
     crobot_->setPadding(scene.link_padding);
     crobot_->setScale(scene.link_scale);
+  }  
+  
+  // if any colors have been specified, replace the ones we have with the specified ones
+  if (!scene.object_colors.empty())
+  {
+    colors_.reset();
+    for (std::size_t i = 0 ; i < scene.object_colors.size() ; ++i)
+      setColor(scene.object_colors[i].id, scene.object_colors[i].color);
   }
-  processPlanningSceneWorldMsg(scene.world);
+  
+  // process collision object updates
+  for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
+    processCollisionObjectMsg(scene.world.collision_objects[i]);
+
+  // if an octomap was specified, replace the one we have with that one
+  if (!scene.world.octomap.octomap.data.empty())
+    processOctomapMsg(scene.world.octomap);
+  
+  // if a collision map was specified, replace the one we have with that one
+  if (!scene.world.collision_map.boxes.empty())
+    processCollisionMapMsg(scene.world.collision_map);
 }
 
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
@@ -833,7 +979,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   {
     // if we have a parent, but we set a new planning scene, then we do not care about the parent any more
     // and we no longer represent the scene as a diff
-    kmodel_ = parent_->kmodel_;
+    kmodel_ = getKinematicModelNonConst();
     kmodel_const_ = kmodel_;
 
     if (!ftf_)
@@ -870,6 +1016,8 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   crobot_->setPadding(scene.link_padding);
   crobot_->setScale(scene.link_scale);
   colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
+  for (std::size_t i = 0 ; i < scene.object_colors.size() ; ++i)
+    setColor(scene.object_colors[i].id, scene.object_colors[i].color);
   cworld_->clearObjects();
   processPlanningSceneWorldMsg(scene.world);
 }
@@ -967,7 +1115,12 @@ void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<co
       if (o->octree == octree)
       {
         // if the pose changed, we update it
-        if (!map->shape_poses_[0].isApprox(t, std::numeric_limits<double>::epsilon() * 100.0))
+        if (map->shape_poses_[0].isApprox(t, std::numeric_limits<double>::epsilon() * 100.0))
+        {
+          cworld_->changeRemoveObject(OCTOMAP_NS);
+          cworld_->changeAddObject(OCTOMAP_NS);
+        }
+        else
         { 
           shapes::ShapeConstPtr shape = map->shapes_[0];
           map.reset(); // reset this pointer first so that caching optimizations can be used in CollisionWorld
@@ -1065,7 +1218,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         // we clear the world objects with the same name, since we got an update on their geometry
         if (cworld_->hasObject(object.object.id))
         {
-          logInform("Removing wold object with the same name as newly attached object: '%s'", object.object.id.c_str());
+          logInform("Removing world object with the same name as newly attached object: '%s'", object.object.id.c_str());
           cworld_->removeObject(object.object.id);
         }
 
@@ -1484,14 +1637,13 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_state::Kinematic
   bool result = true;
   if (invalid_index)
     invalid_index->clear();
-  std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
-                                     trajectory.multi_dof_joint_trajectory.points.size());
+  std::size_t state_count = trajectory_processing::trajectoryPointCount(trajectory);
   kinematic_constraints::KinematicConstraintSet ks_p(getKinematicModel(), getTransforms());
   ks_p.add(path_constraints);
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
     moveit_msgs::RobotState rs;
-    kinematic_state::robotTrajectoryPointToRobotState(trajectory, i, rs);
+    trajectory_processing::robotTrajectoryPointToRobotState(trajectory, i, rs);
     kinematic_state::KinematicStatePtr st(new kinematic_state::KinematicState(start));
     kinematic_state::robotStateToKinematicState(*getTransforms(), rs, *st);
 

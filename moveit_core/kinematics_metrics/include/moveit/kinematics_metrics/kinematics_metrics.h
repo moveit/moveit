@@ -41,16 +41,19 @@
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <moveit/planning_scene/planning_scene.h>
 
+/** @brief Namespace for kinematics metrics */
 namespace kinematics_metrics
 {
+
 /**
- * @class Compute different kinds of metrics for kinematics evaluation. Currently includes
+ * \brief Compute different kinds of metrics for kinematics evaluation. Currently includes
  * manipulability.
  */
 class KinematicsMetrics
 {
 public:  
     
+  /** \brief Construct a KinematicsMetricss from a KinematicModel */
   KinematicsMetrics(const kinematic_model::KinematicModelConstPtr &kinematic_model) : 
     kinematic_model_(kinematic_model)
   {

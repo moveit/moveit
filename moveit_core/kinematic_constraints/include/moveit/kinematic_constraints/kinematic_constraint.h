@@ -282,12 +282,9 @@ public:
   }
 
   /** 
-   *  \brief Gets the joint variable name.  
+   *  \brief Gets the joint variable name, as known to the kinematic_model::KinematicModel
    *
-   * This will be the part of the name in front of the slash if the
-   * joint is multi-DOF and will other just be the joint set in the
-   * joint field.
-   * 
+   * This will include the local variable name if a variable of a multi-DOF joint is constrained.
    * 
    * @return The joint variable name
    */

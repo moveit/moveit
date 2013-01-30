@@ -43,13 +43,13 @@
 namespace planning_request_adapter
 {
 
-typedef boost::function<bool(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                             const moveit_msgs::GetMotionPlan::Request &req, 
-                             moveit_msgs::GetMotionPlan::Response &res)> PlannerFn;
-
 class PlanningRequestAdapter
 {
 public:
+
+  typedef boost::function<bool(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                               const moveit_msgs::MotionPlanRequest &req, 
+                               moveit_msgs::MotionPlanResponse &res)> PlannerFn;
 
   PlanningRequestAdapter(void)
   {
@@ -64,13 +64,13 @@ public:
 
   bool adaptAndPlan(const planning_interface::PlannerPtr &planner,
                     const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const moveit_msgs::GetMotionPlan::Request &req, 
-                    moveit_msgs::GetMotionPlan::Response &res) const;
+                    const moveit_msgs::MotionPlanRequest &req, 
+                    moveit_msgs::MotionPlanResponse &res) const;
 
   bool adaptAndPlan(const planning_interface::PlannerPtr &planner,
                     const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const moveit_msgs::GetMotionPlan::Request &req, 
-                    moveit_msgs::GetMotionPlan::Response &res,
+                    const moveit_msgs::MotionPlanRequest &req, 
+                    moveit_msgs::MotionPlanResponse &res,
                     std::vector<std::size_t> &added_path_index) const;
 
   /** \brief Adapt the planning request if needed, call the planner
@@ -80,8 +80,8 @@ public:
       added_path_index */
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res,
+                            const moveit_msgs::MotionPlanRequest &req, 
+                            moveit_msgs::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const = 0;
   
 };
@@ -104,13 +104,13 @@ public:
   
   bool adaptAndPlan(const planning_interface::PlannerPtr &planner,
                     const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const moveit_msgs::GetMotionPlan::Request &req, 
-                    moveit_msgs::GetMotionPlan::Response &res) const;
+                    const moveit_msgs::MotionPlanRequest &req, 
+                    moveit_msgs::MotionPlanResponse &res) const;
 
   bool adaptAndPlan(const planning_interface::PlannerPtr &planner,
                     const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const moveit_msgs::GetMotionPlan::Request &req, 
-                    moveit_msgs::GetMotionPlan::Response &res,
+                    const moveit_msgs::MotionPlanRequest &req, 
+                    moveit_msgs::MotionPlanResponse &res,
                     std::vector<std::size_t> &added_path_index) const;
   
 private:

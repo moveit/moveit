@@ -163,15 +163,18 @@ bool kinematic_model::PlanarJointModel::satisfiesBounds(const std::vector<double
   return true;
 }
 
-void kinematic_model::PlanarJointModel::normalizeRotation(std::vector<double> &values) const
-{
+bool kinematic_model::PlanarJointModel::normalizeRotation(std::vector<double> &values) const
+{  
   double &v = values[2];
+  if (v >= -boost::math::constants::pi<double>() && v <= boost::math::constants::pi<double>())
+    return false;
   v = fmod(v, 2.0 * boost::math::constants::pi<double>());
   if (v < -boost::math::constants::pi<double>())
     v += 2.0 * boost::math::constants::pi<double>();
   else
     if (v > boost::math::constants::pi<double>())
       v -= 2.0 * boost::math::constants::pi<double>();
+  return true;
 }
 
 void kinematic_model::PlanarJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const

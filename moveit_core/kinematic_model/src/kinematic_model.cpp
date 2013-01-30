@@ -344,7 +344,10 @@ const kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getEndE
 { 
   std::map<std::string, JointModelGroup*>::const_iterator it = end_effectors_.find(name);
   if (it == end_effectors_.end())
-  {
+  {   
+    it = joint_model_group_map_.find(name);
+    if (it != joint_model_group_map_.end() && it->second->isEndEffector())
+      return it->second;
     logError("End-effector '%s' not found in model %s", name.c_str(), model_name_.c_str());
     return NULL;
   }
@@ -356,6 +359,9 @@ kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getEndEffecto
   std::map<std::string, JointModelGroup*>::const_iterator it = end_effectors_.find(name);
   if (it == end_effectors_.end())
   {
+    it = joint_model_group_map_.find(name);
+    if (it != joint_model_group_map_.end() && it->second->isEndEffector())
+      return it->second;
     logError("End-effector '%s' not found in model %s", name.c_str(), model_name_.c_str());
     return NULL;
   }

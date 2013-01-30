@@ -430,6 +430,17 @@ const kinematic_state::AttachedBody* kinematic_state::KinematicState::getAttache
     return it->second;
 }
 
+void kinematic_state::KinematicState::attachBody(AttachedBody *attached_body)
+{
+  LinkState *ls = getLinkState(attached_body->getAttachedLinkName());
+  if (ls)
+  {
+    attached_body_map_[attached_body->getName()] = attached_body;
+    ls->attached_body_map_[attached_body->getName()] = attached_body;
+    attached_body->computeTransform();
+  }
+}
+
 void kinematic_state::KinematicState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
 {
   attached_bodies.clear();
@@ -460,7 +471,7 @@ bool kinematic_state::KinematicState::clearAttachedBody(const std::string &id)
     return false;
 }
 
-namespace kinematic_state
+namespace 
 {
 static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e, std::vector<double> &aabb)
 {
@@ -568,29 +579,16 @@ bool kinematic_state::KinematicState::knowsFrameTransform(const std::string &id)
 
 // ------ marker functions ------
 
-void kinematic_state::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
+void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr,
+                                                      const std::vector<std::string> &link_names,
+                                                      const std_msgs::ColorRGBA& color,
                                                       const std::string& ns,
-                                                      const ros::Duration& dur,
-                                                      visualization_msgs::MarkerArray& arr) const
-{
-  getRobotMarkers(color, ns, dur, arr, kinematic_model_->getLinkModelNames());
-}
-
-void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr) const
-{
-  getRobotMarkers(arr, kinematic_model_->getLinkModelNames());
-}
-
-void kinematic_state::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
-                                                      const std::string& ns,
-                                                      const ros::Duration& dur,
-                                                      visualization_msgs::MarkerArray& arr,
-                                                      const std::vector<std::string> &link_names) const
+                                                      const ros::Duration& dur) const
 {
   std::size_t cur_num = arr.markers.size();
   getRobotMarkers(arr, link_names);
-  unsigned int id = 0;
-  for(std::size_t i = cur_num ; i < arr.markers.size() ; ++i, ++id)
+  unsigned int id = cur_num;
+  for (std::size_t i = cur_num ; i < arr.markers.size() ; ++i, ++id)
   {
     arr.markers[i].ns = ns;
     arr.markers[i].id = id;
@@ -602,7 +600,7 @@ void kinematic_state::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA&
 void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std::vector<std::string> &link_names) const
 {
   ros::Time tm = ros::Time::now();
-  for(std::size_t i = 0; i < link_names.size(); ++i)
+  for (std::size_t i = 0; i < link_names.size(); ++i)
   {
     logDebug("Trying to get marker for link '%s'", link_names[i].c_str());
     visualization_msgs::Marker mark;
@@ -638,7 +636,6 @@ void kinematic_state::KinematicState::getRobotMarkers(visualization_msgs::Marker
       } 
       else
         mark.mesh_resource = ls->getLinkModel()->getMeshFilename();
-      //TODO - deal with scale, potentially get visual markers
       mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
     }
     arr.markers.push_back(mark);
@@ -652,7 +649,7 @@ void kinematic_state::KinematicState::printStateInfo(std::ostream &out) const
   std::map<std::string,double> val;
   getStateValues(val);
   for (std::map<std::string, double>::iterator it = val.begin() ; it != val.end() ; ++it)
-    std::cout << it->first << " = " << it->second << std::endl;
+    out << it->first << " = " << it->second << std::endl;
 }
 
 void kinematic_state::KinematicState::printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out) const

@@ -43,13 +43,15 @@
 #include <boost/function.hpp>
 
 /** @brief API for forward and inverse kinematics */
-namespace kinematics {
+namespace kinematics
+{
 
 /**
  * @class KinematicsBase
  * @brief Provides an interface for kinematics solvers.
  */
-class KinematicsBase{
+class KinematicsBase
+{
 public:
       
   /** @brief The signature for a callback that can compute IK */
@@ -159,16 +161,20 @@ public:
 
   /**
    * @brief Set the parameters for the solver
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description; 
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected. 
    * This may (or may not) be the root frame of the chain that the solver operates on
    * @param tip_frame The tip of the chain
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    */
-  virtual void setValues(const std::string& group_name,
+  virtual void setValues(const std::string& robot_description,
+                         const std::string& group_name,
                          const std::string& base_frame,
                          const std::string& tip_frame,
-                         double search_discretization) {
+                         double search_discretization)
+  {
+    robot_description_ = robot_description;
     group_name_ = group_name;
     base_frame_ = base_frame;
     tip_frame_ = tip_frame;
@@ -177,6 +183,7 @@ public:
 
   /**
    * @brief  Initialization function for the kinematics
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description; 
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected. 
    * This may (or may not) be the root frame of the chain that the solver operates on
@@ -184,7 +191,8 @@ public:
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
    */
-  virtual bool initialize(const std::string& group_name,
+  virtual bool initialize(const std::string& robot_description,
+                          const std::string& group_name,
                           const std::string& base_frame,
                           const std::string& tip_frame,
                           double search_discretization) = 0;
@@ -193,7 +201,8 @@ public:
    * @brief  Return the name of the group that the solver is operating on
    * @return The string name of the group that the solver is operating on
    */
-  virtual const std::string& getGroupName() const {
+  virtual const std::string& getGroupName(void) const
+  {
     return group_name_;    
   }
     
@@ -201,7 +210,8 @@ public:
    * @brief  Return the name of the frame in which the solver is operating
    * @return The string name of the frame in which the solver is operating
    */
-  virtual const std::string& getBaseFrame() const {
+  virtual const std::string& getBaseFrame(void) const
+  {
     return base_frame_;
   }
 
@@ -209,7 +219,8 @@ public:
    * @brief  Return the name of the tip frame of the chain on which the solver is operating
    * @return The string name of the tip frame of the chain on which the solver is operating
    */
-  virtual const std::string& getTipFrame() const {
+  virtual const std::string& getTipFrame(void) const
+  {
     return tip_frame_;
   }
 
@@ -244,39 +255,42 @@ public:
   /**
    * @brief  Return all the joint names in the order they are used internally
    */
-  virtual const std::vector<std::string>& getJointNames() const = 0;
+  virtual const std::vector<std::string>& getJointNames(void) const = 0;
 
   /**
    * @brief  Return all the link names in the order they are represented internally
    */
-  virtual const std::vector<std::string>& getLinkNames() const = 0;
+  virtual const std::vector<std::string>& getLinkNames(void) const = 0;
 
   /**
    * @brief  Set the search discretization
    */
-  void setSearchDiscretization(double sd) {
+  void setSearchDiscretization(double sd)
+  {
     search_discretization_ = sd;
   }
 
   /**
    * @brief  Get the value of the search discretization
    */
-  double getSearchDiscretization() const {
+  double getSearchDiscretization(void) const
+  {
     return search_discretization_;
   }
 
   /**
    * @brief  Virtual destructor for the interface
    */
-  virtual ~KinematicsBase(){}
+  virtual ~KinematicsBase(void) {}
 
 protected:
+  std::string robot_description_;
   std::string group_name_;
   std::string base_frame_;
   std::string tip_frame_;
   double search_discretization_;
   std::vector<unsigned int> redundant_joint_indices_;
-  KinematicsBase(){}
+  KinematicsBase() {}
 };
 
 typedef boost::shared_ptr<KinematicsBase> KinematicsBasePtr;
