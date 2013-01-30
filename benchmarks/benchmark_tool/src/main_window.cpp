@@ -114,6 +114,11 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     ui_.start_states_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
     ui_.start_states_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
 
+    ui_.trajectory_open_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
+    ui_.trajectory_add_button->setIcon(QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
+    ui_.trajectory_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
+    ui_.trajectory_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
+
     //Connect signals and slots
     connect(ui_.actionExit, SIGNAL( triggered(bool) ), this, SLOT( exitActionTriggered(bool) ));
     connect(ui_.actionOpen, SIGNAL( triggered(bool) ), this, SLOT( openActionTriggered(bool) ));
@@ -151,8 +156,10 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
     //Trajectories
     connect( ui_.trajectory_add_button, SIGNAL( clicked() ), this, SLOT( createTrajectoryButtonClicked() ));
+    connect( ui_.trajectory_remove_button, SIGNAL( clicked() ), this, SLOT( removeTrajectoryButtonClicked() ));
+    connect( ui_.trajectory_open_button, SIGNAL( clicked() ), this, SLOT( loadTrajectoriesFromDBButtonClicked() ));
+    connect( ui_.trajectory_save_button, SIGNAL( clicked() ), this, SLOT( saveTrajectoriesOnDBButtonClicked() ));
     connect( ui_.trajectory_list, SIGNAL( itemSelectionChanged() ), this, SLOT( trajectorySelectionChanged() ));
-
 
     //Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));
