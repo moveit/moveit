@@ -289,6 +289,12 @@ namespace collision_detection
     
     /** \brief Return all the changes that have been recorded */
     const std::vector<Change>& getChanges(void) const;
+
+    /** \brief Remember a change for removing the object named \e id */
+    void changeRemoveObject(const std::string &id);
+
+    /** \brief Remember a change for adding the object named \e id */
+    void changeAddObject(const std::string &id);
     
     /** \brief Clear the internally maintained vector of changes */
     void clearChanges(void);
@@ -303,11 +309,6 @@ namespace collision_detection
 
     /** \brief Add a shape to a specified object. All the sanity checks are done at the call site; this function should be efficient and not perform work that can be done only once (e.g., in the addToObject() call) */
     virtual void addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-
-  private:
-    
-    void changeRemoveObj(const std::string &id);
-    void changeAddObj(const Object *obj);
     
     bool                             record_changes_;
     std::vector<Change>              changes_;

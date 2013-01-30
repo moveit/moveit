@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_core)
 
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(PkgConfig REQUIRED)
@@ -11,7 +15,6 @@ COMPONENTS
   urdfdom
   urdfdom_headers
   srdfdom
-  octomap
   fcl
   orocos_kdl
   kdl_parser
@@ -24,6 +27,8 @@ COMPONENTS
   visualization_msgs
   rostime
 )
+
+find_package(octomap REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
     collision_detection/include
@@ -52,6 +57,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
+    ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_kinematic_model
     moveit_kinematic_state
@@ -69,6 +75,7 @@ catkin_package(
     moveit_kinematics_cache
     moveit_kinematics_planner
     moveit_kinematics_constraint_aware
+    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     geometric_shapes
     shape_tools
@@ -87,11 +94,12 @@ catkin_package(
     )
 
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
-                           ${Boost_INCLUDE_DIRS}
+                           ${Boost_INCLUDE_DIR}
 			   )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
                     ${catkin_INCLUDE_DIRS} 
+		    ${OCTOMAP_INCLUDE_DIRS}
                     )
 
 link_directories(${Boost_LIBRARY_DIRS})

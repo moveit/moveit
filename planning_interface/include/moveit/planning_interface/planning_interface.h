@@ -36,9 +36,11 @@
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
 
 #include <moveit/planning_scene/planning_scene.h>
-#include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit_msgs/MotionPlanResponse.h>
 #include <moveit_msgs/MotionPlanDetailedResponse.h>
 
+/** \brief This namespace includes the base class for MoveIt planners */
 namespace planning_interface
 {
 
@@ -47,11 +49,11 @@ class Planner
 {
 public:
   
-  Planner()
+  Planner(void)
   {
   }
 
-  virtual ~Planner() 
+  virtual ~Planner(void) 
   {
   };
   
@@ -66,22 +68,25 @@ public:
 
   /// Subclass must implement methods below
   virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const moveit_msgs::GetMotionPlan::Request &req, 
-                     moveit_msgs::GetMotionPlan::Response &res) const = 0;
+                     const moveit_msgs::MotionPlanRequest &req, 
+                     moveit_msgs::MotionPlanResponse &res) const = 0;
   
   virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const moveit_msgs::GetMotionPlan::Request &req, 
+                     const moveit_msgs::MotionPlanRequest &req, 
                      moveit_msgs::MotionPlanDetailedResponse &res) const = 0;
   
   /// Determine whether this plugin instance is able to represent this planning request
-  virtual bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req)  const = 0;
+  virtual bool canServiceRequest(const moveit_msgs::MotionPlanRequest &req)  const = 0;
   
   /// Request termination, if a solve() function is currently computing plans
   virtual void terminate(void) const = 0;
   
 };
 
+/// Shared pointer to a Planner
 typedef boost::shared_ptr<Planner> PlannerPtr;
+
+/// Shared pointer to a const Planner
 typedef boost::shared_ptr<const Planner> PlannerConstPtr;
 
 } // planning_interface

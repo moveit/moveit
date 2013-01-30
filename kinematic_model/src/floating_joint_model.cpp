@@ -148,7 +148,7 @@ bool kinematic_model::FloatingJointModel::satisfiesBounds(const std::vector<doub
   return true;
 }
 
-void kinematic_model::FloatingJointModel::normalizeRotation(std::vector<double> &values) const
+bool kinematic_model::FloatingJointModel::normalizeRotation(std::vector<double> &values) const
 { 
   // normalize the quaternion if we need to
   double normSqr = values[3] * values[3] + values[4] * values[4] + values[5] * values[5] + values[6] * values[6];
@@ -170,7 +170,10 @@ void kinematic_model::FloatingJointModel::normalizeRotation(std::vector<double> 
       values[5] /= norm;
       values[6] /= norm;
     }
+    return true;
   }
+  else
+    return false;
 }
 
 unsigned int kinematic_model::FloatingJointModel::getStateSpaceDimension(void) const

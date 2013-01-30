@@ -320,12 +320,12 @@ struct FCLShapeCache
 {
   FCLShapeCache(void) : clean_count_(0) {}
   
-  void bumpUseCount(void) 
+  void bumpUseCount(bool force = false) 
   { 
     clean_count_++;
     
     // clean-up for cache (we don't want to keep infinitely large number of weak ptrs stored)
-    if (clean_count_ > MAX_CLEAN_COUNT)
+    if (clean_count_ > MAX_CLEAN_COUNT || force)
     {
       clean_count_ = 0;
       unsigned int from = map_.size();
@@ -700,6 +700,20 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
                                             const CollisionWorld::Object *obj)
 {
   return createCollisionGeometry<fcl::OBBRSS, CollisionWorld::Object>(shape, scale, padding, obj);
+}
+
+void cleanCollisionGeometryCache(void)
+{
+  FCLShapeCache &cache1 = GetShapeCache<fcl::OBBRSS, CollisionWorld::Object>();
+  {
+    boost::mutex::scoped_lock slock(cache1.lock_);
+    cache1.bumpUseCount(true);
+  }
+  FCLShapeCache &cache2 = GetShapeCache<fcl::OBBRSS, kinematic_state::AttachedBody>();
+  {   
+    boost::mutex::scoped_lock slock(cache2.lock_);
+    cache2.bumpUseCount(true);
+  }  
 }
 
 }

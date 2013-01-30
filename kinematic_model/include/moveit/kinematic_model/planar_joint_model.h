@@ -76,8 +76,9 @@ public:
     angular_distance_weight_ = weight;
   }
   
-  /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function
-  void normalizeRotation(std::vector<double> &values) const;  
+  /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function;
+  /// Return true if a change is actually made
+  bool normalizeRotation(std::vector<double> &values) const;  
   
 private:
   

@@ -4,7 +4,7 @@ add_library(${MOVEIT_LIB_NAME} src/planning_scene.cpp)
 # This line is needed to ensure that messages are done being built before this is built
 add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
 target_link_libraries(${MOVEIT_LIB_NAME} 
-  moveit_collision_detection_fcl moveit_kinematic_constraints
+  moveit_collision_detection_fcl moveit_kinematic_constraints moveit_trajectory_processing
   ${LIBOCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)

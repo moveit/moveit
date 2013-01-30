@@ -45,10 +45,12 @@
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Wrench.h>
 
+/** \brief This namespace includes the dynamics_solver library */
 namespace dynamics_solver
 {
+
 /**
- * @class This solver currently computes the required torques given a 
+ * This solver currently computes the required torques given a 
  * joint configuration, velocities, accelerations and external wrenches 
  * acting on the links of a robot
  */

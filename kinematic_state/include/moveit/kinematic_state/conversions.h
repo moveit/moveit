@@ -81,14 +81,6 @@ void kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotS
  */
 void kinematicStateToJointState(const KinematicState& state, sensor_msgs::JointState &joint_state);
 
-/**
- * @brief Convert a RobotTrajectoryPoint (in a RobotTrajectory) to a RobotState message
- * @param rt The input RobotTrajectory
- * @param index The index of the point that we want to convert
- * @param rs The resultant robot state
- * @return True if any data was copied to \e rs. If \e index is out of range, no data is copied and false is returned.
- */
-bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, std::size_t index, moveit_msgs::RobotState &rs);
 }
 
 #endif

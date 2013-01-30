@@ -37,6 +37,8 @@
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
+#include <algorithm>
+#include <Eigen/SVD>
 
 kinematic_state::JointStateGroup::JointStateGroup(KinematicState *state,
                                                   const kinematic_model::JointModelGroup *jmg) :
@@ -120,6 +122,14 @@ bool kinematic_state::JointStateGroup::setVariableValues(const std::vector<doubl
   }
   updateLinkTransforms();
   return true;
+}
+
+bool kinematic_state::JointStateGroup::setVariableValues(const Eigen::VectorXd &joint_state_values)
+{
+  std::vector<double> values(joint_state_values.rows());
+  for (std::size_t i = 0; i < joint_state_values.rows(); i++)
+    values[i] =  joint_state_values(i);
+  setVariableValues(values);
 }
 
 void kinematic_state::JointStateGroup::setVariableValues(const std::map<std::string, double>& joint_state_map)
@@ -211,6 +221,18 @@ void kinematic_state::JointStateGroup::getVariableValues(std::vector<double>& jo
   }
 }
 
+void kinematic_state::JointStateGroup::getVariableValues(Eigen::VectorXd& joint_state_values) const
+{
+  joint_state_values.resize(getVariableCount());
+  unsigned int count = 0;
+  for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
+  {
+    const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
+    for (std::size_t j = 0; j < jv.size() ; ++j)
+      joint_state_values(count++) = jv[j];
+  }
+}
+
 bool kinematic_state::JointStateGroup::satisfiesBounds(double margin) const
 {
   for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
@@ -283,7 +305,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
+  {
+    logError("No kinematics solver instantiated for this group");    
     return false;
+  }  
   return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint);
 }
 
@@ -298,7 +323,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, un
 { 
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
+  {
+    logError("No kinematics solver instantiated for this group");    
     return false;
+  }  
   static std::vector<double> consistency_limits;  
   return setFromIK(pose, solver->getTipFrame(), consistency_limits, attempts, timeout, constraint);  
 }
@@ -313,7 +341,10 @@ bool kinematic_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in,
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
+  {
+    logError("No kinematics solver instantiated for this group");    
     return false;
+  }  
 
   Eigen::Affine3d pose = pose_in;
   std::string tip = tip_in;
@@ -634,14 +665,305 @@ bool kinematic_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine
         getVariableValues(full_solution);
         if(constraint ? constraint(this, full_solution) : true)
         {
-          logDebug("Got solution");
+          logDebug("Found IK solution");
           return true;
         }        
       }  
-      logDebug("Attempt: %d of %d", st, attempts);      
+      logDebug("IK attempt: %d of %d", st, attempts);      
     }    
   }
   return false;
+}
+
+void kinematic_state::JointStateGroup::computeJointVelocity(Eigen::VectorXd &qdot, const Eigen::VectorXd &twist, const std::string &tip, const SecondaryTaskFn &st) const
+{
+  //Get the Jacobian of the group at the current configuration
+  Eigen::MatrixXd J(6, getVariableCount());
+  Eigen::Vector3d reference_point(0.0, 0.0, 0.0);
+  getJacobian(tip, reference_point, J);
+
+  //Rotate the jacobian to the end-effector frame
+  Eigen::Affine3d eMb = getKinematicState()->getLinkState(tip)->getGlobalLinkTransform().inverse();
+  Eigen::MatrixXd eWb = Eigen::ArrayXXd::Zero(6, 6);
+  eWb.block(0, 0, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
+  eWb.block(3, 3, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
+  J = eWb * J;
+
+  //Do the Jacobian moore-penrose pseudo-inverse
+  Eigen::JacobiSVD<Eigen::MatrixXd> svdOfJ(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  const Eigen::MatrixXd U = svdOfJ.matrixU();
+  const Eigen::MatrixXd V = svdOfJ.matrixV();
+  const Eigen::VectorXd S = svdOfJ.singularValues();
+
+  Eigen::VectorXd Sinv = S;
+  static const double pinvtoler = std::numeric_limits<float>::epsilon();
+  double maxsv = 0.0 ;
+  for (std::size_t i = 0; i < S.rows(); ++i)
+    if (fabs(S(i)) > maxsv) maxsv = fabs(S(i));
+  for (std::size_t i = 0; i < S.rows(); ++i)
+  {
+    //Those singular values smaller than a percentage of the maximum singular value are removed
+    if ( fabs(S(i)) > maxsv * pinvtoler )
+      Sinv(i) = 1.0 / S(i);
+    else Sinv(i) = 0.0;
+  }
+  Eigen::MatrixXd Jinv = ( V * Sinv.asDiagonal() * U.transpose() );
+
+  //Compute joint velocity
+  qdot = Jinv * twist;
+
+  //Project the secondary task
+  if (st)
+  {
+    Eigen::VectorXd cost_vector = Eigen::VectorXd::Zero(qdot.rows());
+    st(this, cost_vector);
+    qdot += (Eigen::MatrixXd::Identity(qdot.rows(), qdot.rows()) - Jinv * J) * cost_vector;
+  }
+}
+
+bool kinematic_state::JointStateGroup::setFromDiffIK(const Eigen::VectorXd &twist, const std::string &tip, double dt, const StateValidityCallbackFn &constraint, const SecondaryTaskFn &st)
+{
+  Eigen::VectorXd qdot;
+  computeJointVelocity(qdot, twist, tip, st);
+  return integrateJointVelocity(qdot, dt, constraint);
+}
+
+bool kinematic_state::JointStateGroup::setFromDiffIK(const geometry_msgs::Twist &twist, const std::string &tip, double dt, const StateValidityCallbackFn &constraint, const SecondaryTaskFn &st)
+{
+  Eigen::Matrix<double, 6, 1> t;
+  tf::twistMsgToEigen(twist, t);
+  return setFromDiffIK(t, tip, dt, constraint, st);
+}
+
+bool kinematic_state::JointStateGroup::integrateJointVelocity(const Eigen::VectorXd &qdot, double dt, const StateValidityCallbackFn &constraint)
+{
+  Eigen::VectorXd q(getVariableCount());
+  getVariableValues(q);
+  q = q + dt * qdot;
+  setVariableValues(q);
+  enforceBounds();
+  
+  if (constraint)
+  {
+    std::vector<double> values;
+    getVariableValues(values);
+    return constraint(this, values);
+  }
+  else
+    return true;
+}
+
+bool kinematic_state::JointStateGroup::avoidJointLimitsSecondaryTask(const kinematic_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
+                                                                     double activation_threshold, double gain) const
+{
+  //Get current joint values (q)
+  Eigen::VectorXd q;
+  joint_state_group->getVariableValues(q);
+
+  //Get joint lower and upper limits (qmin and qmax)
+  const std::vector<moveit_msgs::JointLimits> &qlimits = joint_state_group->getJointModelGroup()->getVariableLimits();
+  Eigen::VectorXd qmin(qlimits.size());
+  Eigen::VectorXd qmax(qlimits.size());
+  Eigen::VectorXd qrange(qlimits.size());
+  stvector.resize(qlimits.size());
+  stvector = Eigen::ArrayXd::Zero(qlimits.size());
+
+  for (std::size_t i = 0; i < qlimits.size(); ++i)
+  {
+    qmin(i) = qlimits[i].min_position;
+    qmax(i) = qlimits[i].max_position;
+    qrange(i) = qmax(i) - qmin(i);
+
+    //Fill in stvector with the gradient of a joint limit avoidance cost function
+    const std::vector<const kinematic_model::JointModel*> joint_models = joint_state_group->getJointModelGroup()->getJointModels();
+    if (qrange(i) == 0)
+    {
+      //If the joint range is zero do not compute the cost
+      stvector(i) = 0;
+    }
+    else if (joint_models[i]->getType() == kinematic_model::JointModel::REVOLUTE)
+    {
+      //If the joint is continuous do not compute the cost
+      const kinematic_model::RevoluteJointModel *rjoint = static_cast<const kinematic_model::RevoluteJointModel*>(joint_models[i]);
+      if (rjoint->isContinuous())
+        stvector(i) = 0;
+    }
+    else
+    {
+      if (q(i) > (qmax(i) - qrange(i) * activation_threshold))
+      {
+        stvector(i) = -gain * (q(i) - (qmax(i) - qrange(i) * activation_threshold)) / qrange(i);
+      }
+      else if (q(i) < (qmin(i) + qrange(i) * activation_threshold))
+      {
+        stvector(i) = -gain * (q(i) - (qmin(i) + qrange(i) * activation_threshold)) / qrange(i);
+      }
+    }
+  }
+
+  return true;
+}
+
+namespace
+{
+
+void addTrajectoryPoint(const kinematic_state::KinematicState *state,
+                        const std::vector<const kinematic_model::JointModel*> &onedof,
+                        const std::vector<const kinematic_model::JointModel*> &mdof,
+                        moveit_msgs::RobotTrajectory &traj)
+{ 
+  if (!onedof.empty())
+  { 
+    traj.joint_trajectory.points.resize(traj.joint_trajectory.points.size() + 1);
+    traj.joint_trajectory.points.back().positions.resize(onedof.size());
+    for (std::size_t j = 0 ; j < onedof.size() ; ++j)
+      traj.joint_trajectory.points.back().positions[j] = state->getJointState(onedof[j]->getName())->getVariableValues()[0];
+    traj.joint_trajectory.points.back().time_from_start = ros::Duration(0.0);
+  }
+  if (!mdof.empty())
+  {
+    traj.multi_dof_joint_trajectory.points.resize(traj.multi_dof_joint_trajectory.points.size() + 1);
+    traj.multi_dof_joint_trajectory.points.back().poses.resize(mdof.size());
+    for (std::size_t j = 0 ; j < mdof.size() ; ++j)
+    {
+      tf::poseEigenToMsg(state->getJointState(mdof[j]->getName())->getVariableTransform(),
+                         traj.multi_dof_joint_trajectory.points.back().poses[j]);
+    }
+    traj.multi_dof_joint_trajectory.points.back().time_from_start = ros::Duration(0.0);
+  }
+}
+
+}
+
+double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
+                                                              double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback)
+{
+  const LinkState *link_state = kinematic_state_->getLinkState(link_name);
+  if (!link_state)
+    return 0.0;
+  
+  const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
+
+  // make sure that continuous joints wrap, but remember how much we wrapped them
+  std::map<std::string, double> upd_continuous_joints;
+  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
+    if (jnt[i]->getType() == kinematic_model::JointModel::REVOLUTE)
+    {
+      if (static_cast<const kinematic_model::RevoluteJointModel*>(jnt[i])->isContinuous())
+      {
+        double initial = joint_state_vector_[i]->getVariableValues()[0];
+        joint_state_vector_[i]->enforceBounds();
+        double after = joint_state_vector_[i]->getVariableValues()[0];
+        if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
+          upd_continuous_joints[joint_state_vector_[i]->getName()] = initial - after;
+      } 
+    }
+  
+  // this is the Cartesian pose we start from, and we move in the direction indicated 
+  Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
+  // the direction can be in the local reference frame (in which case we rotate it)
+  const Eigen::Vector3d &rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
+
+  bool test_joint_space_jump = jump_threshold > 0.0;  
+  
+  // decide how many steps we will need for this trajectory
+  unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
+  
+  // precompute some information about the type of joints we will need to include in the result
+
+  std::vector<const kinematic_model::JointModel*> onedof;
+  std::vector<const kinematic_model::JointModel*> mdof;
+  traj.joint_trajectory.header.frame_id = kinematic_state_->getKinematicModel()->getModelFrame();
+  traj.joint_trajectory.joint_names.clear();
+  traj.multi_dof_joint_trajectory.joint_names.clear();
+  traj.multi_dof_joint_trajectory.child_frame_ids.clear();
+  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
+    if (jnt[i]->getVariableCount() == 1)
+    {
+      traj.joint_trajectory.joint_names.push_back(jnt[i]->getName());
+      onedof.push_back(jnt[i]);
+    }
+    else
+    {
+      traj.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
+      traj.multi_dof_joint_trajectory.frame_ids.push_back(traj.joint_trajectory.header.frame_id);
+      traj.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
+      mdof.push_back(jnt[i]);
+    }
+  
+  // add the current state as the first point on the trajectory
+  addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
+
+  std::vector<std::vector<double> > previous_values(joint_state_vector_.size());
+  std::vector<double> dist_vector;
+  double total_dist = 0.0;
+  
+  if (test_joint_space_jump) // the joint values we start with
+    for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
+      previous_values[k] = joint_state_vector_[k]->getVariableValues();
+
+
+  double last_valid_distance = 0.0;
+  for (unsigned int i = 1; i <= steps ; ++i)
+  {
+    double d = distance * (double)i / (double)steps;
+    Eigen::Affine3d pose = start_pose;
+    pose.translation() = pose.translation() + rotated_direction * d;
+    if (setFromIK(pose, link_name, 1, 0.0, validCallback))
+    {
+      addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
+      
+      // compute the distance to the previous point (infinity norm)
+      if (test_joint_space_jump)
+      {
+	double dist_prev_point = 0.0;
+	for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
+	{
+          double d_k = jnt[k]->distance(joint_state_vector_[k]->getVariableValues(), previous_values[k]);
+          if (dist_prev_point < 0.0 || dist_prev_point < d_k)
+            dist_prev_point = d_k;
+          previous_values[k] = joint_state_vector_[k]->getVariableValues();
+	}
+	dist_vector.push_back(dist_prev_point);
+	total_dist += dist_prev_point;
+      }
+    }
+    else
+      break;
+    last_valid_distance = d;
+  }
+
+  
+  // re-add continuous joint offsets; NOTE: THIS IS ONLY DONE FOR revolute cont. joints; perhaps we want to do more than this in the future
+  for (std::map<std::string, double>::const_iterator it = upd_continuous_joints.begin() ; it != upd_continuous_joints.end() ; ++it)
+  {
+    for (std::size_t i = 0 ; i < traj.joint_trajectory.joint_names.size() ; ++i)
+      if (traj.joint_trajectory.joint_names[i] == it->first)
+      {
+        for (std::size_t j = 0 ; j < traj.joint_trajectory.points.size() ; ++j)
+          traj.joint_trajectory.points[j].positions[i] += it->second;
+        break;
+      }
+  }
+  
+  if (test_joint_space_jump)
+  {
+    // compute the average distance between the states we looked at
+    double thres = jump_threshold * (total_dist / (double)dist_vector.size());
+    for (std::size_t i = 0 ; i < dist_vector.size() ; ++i)
+      if (dist_vector[i] > thres)
+      {
+	logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
+	last_valid_distance = distance * (double)i / (double)steps;
+	if (!traj.multi_dof_joint_trajectory.points.empty())
+	  traj.multi_dof_joint_trajectory.points.resize(i);
+	if (!traj.joint_trajectory.points.empty())
+	  traj.joint_trajectory.points.resize(i);
+	break;
+      }
+  }
+
+  return last_valid_distance;
 }
 
 void kinematic_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
@@ -663,12 +985,12 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
 {
   if (!joint_model_group_->isChain())
   {
-    logError("Will compute Jacobian only for a chain");
+    logError("The group '%s' is not a chain. Cannot compute Jacobian", joint_model_group_->getName().c_str());
     return false;
   }
   if (!joint_model_group_->isLinkUpdated(link_name))
   {
-    logError("Link name does not exist in this chain or is not a child for this chain");
+    logError("Link name '%s' does not exist in the chain '%s' or is not a child for this chain", link_name.c_str(), joint_model_group_->getName().c_str());
     return false;
   }
   
@@ -692,15 +1014,17 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
   
   while (link_state)
   {
+    /*
     logDebug("Link: %s, %f %f %f",link_state->getName().c_str(),
              link_state->getGlobalLinkTransform().translation().x(),
              link_state->getGlobalLinkTransform().translation().y(),
              link_state->getGlobalLinkTransform().translation().z());    
     logDebug("Joint: %s",link_state->getParentJointState()->getName().c_str());
+    */
     
     if (joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
     {
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::REVOLUTE)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::REVOLUTE)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
@@ -708,14 +1032,14 @@ bool kinematic_state::JointStateGroup::getJacobian(const std::string &link_name,
         jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
         jacobian.block<3,1>(3,joint_index) = joint_axis;
       }
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PRISMATIC)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PRISMATIC)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
         joint_axis = joint_transform*(static_cast<const kinematic_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
         jacobian.block<3,1>(0,joint_index) = joint_axis;
       }
-      if(link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)
+      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
