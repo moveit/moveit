@@ -370,7 +370,6 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
       m_control.markers.push_back(marker_array.markers[i]);
     }
 
-    int_marker.pose = marker_array.markers[0].pose;
     Eigen::Affine3d tip_pose = kinematic_state_->getLinkState(eef_.parent_link)->getGlobalLinkTransform();
     tf::poseEigenToMsg(tip_pose, int_marker.pose);
   }
