@@ -50,52 +50,107 @@ enum Dimension {
 };
 
 /**
- * \brief Generic container for a discretized 3D voxel grid for any class/structure
+ * \brief VoxelGrid holds a dense 3D, axis-aligned set of data at a
+ * given resolution, where the data is supplied as a template
+ * parameter.
+ *
  */
 template <typename T>
 class VoxelGrid
 {
 public:
   /**
-   * Constructor for the VoxelGrid.
+   * \brief Constructor for the VoxelGrid.
    *
-   * @param size_x Size (x axis) of the container in meters
-   * @param size_y Size (y axis) of the container in meters
-   * @param size_z Size (z axis) of the container in meters
-   * @param resolution: resolution (size of a single cell) in meters
-   * @param origin_x Origin (x axis) of the container
-   * @param origin_y Origin (y axis) of the container
-   * @param origin_z Origin (z axis) of the container
-   * @param default_object The object to return for an out-of-bounds query
+   * Constructs a dense representation of a 3D, axis-aligned volume at
+   * a given resolution.  The volume can be represented in any
+   * consistent set of units.  The size of the the volume is given
+   * along each of the X, Y, and Z axes.  The volume begins at the
+   * minimum point in each dimension, as specified by the origin
+   * parameters.  The data structure will remain unintialized until
+   * the \ref VoxelGrid::reset function is called.  
+   *
+   * @param size_x Size of the X axis in arbitrary, consistent units
+   * @param size_y Size of the Y axis in arbitrary, consistent units
+   * @param size_z Size of the Z axis in arbitrary, consistent units
+   
+   * @param resolution: Resolution of a single cell in arbitrary,
+   * consistent units
+   
+   * @param origin_x Minimum point along the X axis of the volume
+   * @param origin_y Minimum point along the Y axis of the volume
+   * @param origin_z Minimum point along the Z axis of the volume
+   * 
+   * @param default_object An object that will be returned for any
+   * future queries that are not valid
    */
   VoxelGrid(double size_x, double size_y, double size_z, double resolution,
             double origin_x, double origin_y, double origin_z, T default_object);
   virtual ~VoxelGrid();
 
-  /**
-   * \brief Gets the value at the given position (returns the value from the closest discretized location).
+  /** 
+   * \brief Operator that gets the value of the given location (x, y,
+   * z) given the discretization of the volume.  The location
+   * represents a location in the original coordinate frame used to
+   * construct the voxel grid.
+   * 
+   * @param x X component of the desired location
+   * @param y Y component of the desired location
+   * @param z Z component of the desired location
+   * 
+   * @return The data stored at that location, or a default value
+   * supplied in the constructor if the location is not valid.
    */
   const T& operator()(double x, double y, double z) const;
 
-  /**
-   * \brief Gets the value at a given integer location.
+  /** 
+   * \brief Gives the value of the given location (x,y,z) in the
+   * discretized voxel grid space.
+   *
+   * The address here is in the discretized space of the voxel grid,
+   * where the cell indicated by the constructor arguments (origin_x,
+   * origin_y, origin_z) is cell (0,0,0), and the cell indicated by
+   * (origin_x+x_size, origin_y+y_size, origin_z+z_size) will be
+   * (size_x/resolution, size_y/resolution, size_z/resolution).
+   * 
+   * @param x The X index of the desired cell 
+   * @param y The Y index of the desired cell
+   * @param z The Z index of the desired cell
+   * 
+   * @return The data in the indicated cell, or a default value
+   * supplied in the constructor if the location is not valid.
    */
   T& getCell(int x, int y, int z);
 
   /**
-   * \brief Sets the value at an integer location.
+   * \brief Sets the value of the given location (x,y,z) in the
+   * discretized voxel grid space to supplied value.  
+   *
+   * The address here is in the discretized space of the voxel grid,
+   * where the cell indicated by the constructor arguments (origin_x,
+   * origin_y, origin_z) is cell (0,0,0), and the cell indicated by
+   * (origin_x+x_size, origin_y+y_size, origin_z+z_size) will be
+   * (size_x/resolution, size_y/resolution, size_z/resolution).
+   * 
+   * If the arguments do not indicate a valid cell, no action is
+   * taken.
+   *
+   * @param x The X index of the desired cell 
+   * @param y The Y index of the desired cell
+   * @param z The Z index of the desired cell
+   * @param obj The data to place into the given cell
    */
   void setCell(int x, int y, int z, T& obj);
 
   /**
-   * \brief Gets the value at a given integer location (const version).
+   * The const version of the the function in \ref VoxelGrid::getCell(int x, int y, int z).  
    */
   const T& getCell(int x, int y, int z) const;
 
   /**
-   * \brief Reset the entire grid to the given initial value.
+   * \brief Sets every cell in the voxel grid to the supplied data.
    */
-  void reset(T initial);
+  void reset(const T& initial);
 
   /**
    * \brief Gets the size of the given dimension.
