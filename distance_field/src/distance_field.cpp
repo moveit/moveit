@@ -239,17 +239,24 @@ void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
 
   EigenSTL::vector_Vector3d points;
 
-  octomap::OcTree::leaf_bbx_iterator size_it = octree->begin_leafs_bbx(bbx_min,bbx_max);
-
-  //std::cout << "Size is " << size_it->getSize() << std::endl;
-
   for(octomap::OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbx_min,bbx_max),
         end=octree->end_leafs_bbx(); it!= end; ++it)
   {
     if (octree->isNodeOccupied(*it))
     {
-      Eigen::Vector3d point(it.getX(), it.getY(), it.getZ());
-      points.push_back(point);
+      if(it.getSize() <= resolution_) {
+        Eigen::Vector3d point(it.getX(), it.getY(), it.getZ());
+        points.push_back(point);
+      } else {
+        double ceil_val = ceil(it.getSize()/resolution_)*resolution_;
+        for(double x = it.getX()-ceil_val; x < it.getX()+ceil_val; x += resolution_) {
+          for(double y = it.getY()-ceil_val; y < it.getY()+ceil_val; y += resolution_) {
+            for(double z = it.getZ()-ceil_val; z < it.getZ()+ceil_val; z += resolution_) {
+              points.push_back(Eigen::Vector3d(x,y,z));
+            }
+          }
+        }
+      }
     }
   }
   addPointsToField(points);

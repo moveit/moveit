@@ -175,6 +175,35 @@ bool checkOctomapVersusDistanceField(const PropagationDistanceField& df,
   return true;
 }
 
+unsigned int countOccupiedCells(const PropagationDistanceField& df)
+{
+  unsigned int count = 0;
+  for (int z=0; z<df.getYNumCells(); z++) {
+    for (int x=0; x<df.getXNumCells(); x++) {
+      for (int y=0; y<df.getYNumCells(); y++) {
+        if(df.getCell(x,y,z).distance_square_ == 0) {
+          count++;
+        }
+      }
+    }
+  }
+  return count;
+}
+
+unsigned int countLeafNodes(const octomap::OcTree& octree)
+{
+  unsigned int count = 0;
+  for(octomap::OcTree::leaf_iterator it = octree.begin_leafs(),
+        end=octree.end_leafs(); it!= end; ++it)
+  {
+    if (octree.isNodeOccupied(*it))
+    {
+      std::cout << "Leaf node " << it.getX() << " " << it.getY() << " " << it.getZ() << std::endl;
+      count++;
+    }
+  }
+  return count;
+}
 
 //points should contain all occupied points
 void check_distance_field(const PropagationDistanceField & df, 
@@ -593,7 +622,23 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
                                  false);
 
   EXPECT_TRUE(checkOctomapVersusDistanceField(df_oct, tree));
+
+  //now try different resolutions
+  octomap::OcTree tree_lowres(.05);
+  octomap::point3d point1(.5,.5,.5);  
+  octomap::point3d point2(.7,.5,.5);  
+  octomap::point3d point3(1.0,.5,.5);  
+  tree_lowres.updateNode(point1, true);
+  tree_lowres.updateNode(point2, true);
+  tree_lowres.updateNode(point3, true);
+  ASSERT_EQ(countLeafNodes(tree_lowres), 3);
+
+  PropagationDistanceField df_highres(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+                                      PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);  
   
+  df_highres.addOcTreeToField(&tree_lowres);
+  EXPECT_EQ(countOccupiedCells(df_highres), 3*(6*6*6));
+  std::cout << "Occupied cells " << countOccupiedCells(df_highres) << std::endl;
 }
 
 TEST(TestSignedPropagationDistanceField, TestReadWrite)
