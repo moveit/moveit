@@ -620,7 +620,7 @@ TEST(TestSignedPropagationDistanceField, TestReadWrite)
   PropagationDistanceField df(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
                               PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
 
-  shapes::Sphere sphere(.25);
+  shapes::Sphere sphere(.5);
 
   geometry_msgs::Pose p;
   p.orientation.w = 1.0;
@@ -643,7 +643,9 @@ TEST(TestSignedPropagationDistanceField, TestReadWrite)
   PropagationDistanceField dfx(i, PERF_MAX_DIST, false);
 
   std::ifstream i2("test_big.df", std::ios::in);
+  ros::WallTime wt = ros::WallTime::now();
   PropagationDistanceField df3(i2, PERF_MAX_DIST+.02, false);
+  std::cout << "Reconstruction for big file took " << (ros::WallTime::now()-wt).toSec() << std::endl;
   EXPECT_FALSE(areDistanceFieldsDistancesEqual(df, df3));
 }
 
