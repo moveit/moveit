@@ -144,6 +144,47 @@ public:
   }
   
 private:
+
+  void convertToMsg(const std::vector<kinematic_trajectory::KinematicTrajectoryPtr> trajectory,
+                    moveit_msgs::RobotState &first_state_msg, std::vector<moveit_msgs::RobotTrajectory> &trajectory_msg)
+  {
+    if (!trajectory.empty())
+    {
+      bool first = true;
+      trajectory_msg.resize(trajectory.size());
+      for (std::size_t i = 0 ; i < trajectory.size() ; ++i)
+      {
+        if (trajectory[i])
+        {          
+          if (first && !trajectory[i]->empty())
+          {
+            kinematic_state::kinematicStateToRobotState(trajectory[i]->getFirstWayPoint(), first_state_msg);
+            first = false;
+          }
+          trajectory[i]->getRobotTrajectoryMsg(trajectory_msg[i]);
+        }        
+      }
+    }
+  }
+  
+  void convertToMsg(const kinematic_trajectory::KinematicTrajectoryPtr &trajectory,
+                    moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg)
+  {     
+    if (trajectory && !trajectory->empty())
+    {
+      kinematic_state::kinematicStateToRobotState(trajectory->getFirstWayPoint(), first_state_msg);
+      trajectory->getRobotTrajectoryMsg(trajectory_msg);
+    }
+  }
+  
+  void convertToMsg(const std::vector<kinematic_trajectory::KinematicTrajectoryPtr> trajectory,
+                    moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg)
+  {
+    if (trajectory.size() > 1)
+      ROS_ERROR_STREAM(NODE_NAME << " internal logic error: trajectory component ignored. !!! THIS IS A SERIOUS ERROR !!!");
+    if (trajectory.size() > 0)
+      convertToMsg(trajectory[0], first_state_msg,trajectory_msg);
+  }
   
   bool planUsingPlanningPipeline(const planning_interface::MotionPlanRequest &req, plan_execution::ExecutableMotionPlan &plan)
   {    
@@ -165,11 +206,14 @@ private:
     {
       ROS_ERROR("Planning pipeline threw an exception");
       res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    } 
+    if (res.trajectory_)
+    {
+      plan.planned_trajectory_.resize(1);
+      plan.planned_trajectory_[0] = res.trajectory_;
+      plan.planned_trajectory_descriptions_.resize(1);
+      plan.planned_trajectory_descriptions_[0] = "plan";
     }
-    plan.planned_trajectory_.resize(1);
-    plan.planned_trajectory_[0] = res.trajectory_;
-    plan.planned_trajectory_descriptions_.resize(1);
-    plan.planned_trajectory_descriptions_[0] = "plan";
     plan.error_code_ = res.error_code_;
     return solved;
   }
@@ -203,11 +247,7 @@ private:
       res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     }
     
-    if (res.trajectory_ && !res.trajectory_->empty())
-    {
-      kinematic_state::kinematicStateToRobotState(res.trajectory_->getFirstWayPoint(), action_res.trajectory_start);
-      res.trajectory_->getRobotTrajectoryMsg(action_res.planned_trajectory);
-    }
+    convertToMsg(res.trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
     action_res.error_code = res.error_code_;
   }
 
@@ -268,12 +308,8 @@ private:
     
     plan_execution::ExecutableMotionPlan plan;
     plan_execution_->planAndExecute(plan, planning_scene_diff, opt);  
-    
-    if (!plan.planned_trajectory_.empty())
-    {
-      kinematic_state::kinematicStateToRobotState(plan.planned_trajectory_[0]->getFirstWayPoint(), action_res.trajectory_start);
-      plan.planned_trajectory_[0]->getRobotTrajectoryMsg(action_res.planned_trajectory);
-    }
+
+    convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
     if (plan.executed_trajectory_)
       plan.executed_trajectory_->getRobotTrajectoryMsg(action_res.executed_trajectory);
     action_res.error_code = plan.error_code_;
@@ -332,7 +368,7 @@ private:
       if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
         return "Must specify group in motion plan request";
       else
-        if (error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
+        if (error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED || error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN)
         {
           if (planned_trajectory_empty)
             return "No motion plan found. No execution attempted.";
@@ -417,14 +453,8 @@ private:
       else
       {
         const pick_place::ManipulationPlanPtr &result = success.back();
-        if (!result->trajectories_.empty())
-        {
-          action_res.trajectory_stages.resize(result->trajectories_.size());
-          kinematic_state::kinematicStateToRobotState(result->trajectories_[0]->getFirstWayPoint(), action_res.trajectory_start);
-          for (std::size_t i = 0 ; i < result->trajectories_.size() ; ++i)
-            result->trajectories_[i]->getRobotTrajectoryMsg(action_res.trajectory_stages[i]);
-        }
-        action_res.trajectory_descriptions = result->trajectory_descriptions_; 
+        convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
+        action_res.trajectory_descriptions = result->trajectory_descriptions_;
         action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       }
     }
@@ -496,13 +526,7 @@ private:
     plan_execution::ExecutableMotionPlan plan;
     plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
 
-    if (!plan.planned_trajectory_.empty())
-    {
-      action_res.trajectory_stages.resize(plan.planned_trajectory_.size());
-      kinematic_state::kinematicStateToRobotState(plan.planned_trajectory_[0]->getFirstWayPoint(), action_res.trajectory_start);
-      for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
-        plan.planned_trajectory_[i]->getRobotTrajectoryMsg(action_res.trajectory_stages[i]);
-    }
+    convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.trajectory_stages);
     action_res.trajectory_descriptions = plan.planned_trajectory_descriptions_; 
     action_res.error_code = plan.error_code_;
   }
@@ -595,6 +619,9 @@ private:
       res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
       return true;
     }
+
+    // \todo unwind trajectory before execution
+    //    kinematic_trajectory::KinematicTrajectory to_exec(planning_scene_monitor_->getKinematicModel(), ;
     
     trajectory_execution_manager_->clear();
     if (trajectory_execution_manager_->push(req.trajectory))

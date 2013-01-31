@@ -136,6 +136,9 @@ public:
   static const std::string DISPLAY_PATH_TOPIC;
   static const std::string DISPLAY_GRASP_TOPIC;
 
+  // the amount of time (maximum) to wait for achieving a grasp posture
+  static const double DEFAULT_GRASP_POSTURE_COMPLETION_DURATION; // seconds
+
   PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
   
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager(void) const
