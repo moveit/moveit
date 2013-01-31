@@ -40,6 +40,7 @@
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 #include <moveit_msgs/BenchmarkPluginRequest.h>
@@ -69,11 +70,11 @@ public:
   
   /** @brief Solve the planning problem */
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MotionPlanResponse &res) const;
+             const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res) const;
 
   /** @brief Solve the planning problem but give a more detailed response */
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MotionPlanDetailedResponse &res) const;
+             const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const;
   
   /** @brief Benchmark the planning problem*/
   bool benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -106,7 +107,7 @@ public:
   
   void terminateSolve(void);
 
-  ModelBasedPlanningContextPtr getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const;
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::MotionPlanRequest &req) const;
   ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const;
 
   ModelBasedPlanningContextPtr getLastPlanningContext(void) const
@@ -164,7 +165,7 @@ protected:
   void configureConstraints(const ModelBasedPlanningContextPtr &context) const;
   
   /** \brief Configure the OMPL planning context for a new planning request */
-  ModelBasedPlanningContextPtr prepareForSolve(const moveit_msgs::MotionPlanRequest &req,
+  ModelBasedPlanningContextPtr prepareForSolve(const planning_interface::MotionPlanRequest &req,
                                                const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                                moveit_msgs::MoveItErrorCodes *error_code,
                                                unsigned int *attempts, double *timeout) const;
@@ -175,7 +176,7 @@ protected:
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
   
   PlanningContextManager context_manager_;
-
+  
   ConstraintsLibraryPtr constraints_library_;
   
   bool use_constraints_approximations_;

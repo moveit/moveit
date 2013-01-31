@@ -54,7 +54,7 @@ ompl_interface::OMPLInterface::~OMPLInterface(void)
 {
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const planning_interface::MotionPlanRequest &req) const
 {
   ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(req);
   if (ctx)
@@ -78,7 +78,7 @@ void ompl_interface::OMPLInterface::configureConstraints(const ModelBasedPlannin
     context->setConstraintsApproximations(ConstraintsLibraryPtr());
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPlanRequest &req, 
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prepareForSolve(const planning_interface::MotionPlanRequest &req, 
                                                                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                                             moveit_msgs::MoveItErrorCodes *error_code,
                                                                                             unsigned int *attempts, double *timeout) const
@@ -102,7 +102,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
     return context;
   }
 
-  *timeout = req.allowed_planning_time.toSec();
+  *timeout = req.allowed_planning_time;
   if (*timeout <= 0.0)
   {
     logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.", *timeout);
@@ -177,7 +177,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
 }
 
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                          const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MotionPlanResponse &res) const
+                                          const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res) const
 {
   ompl::tools::Profiler::ScopedStart pslv;
   ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
@@ -185,12 +185,12 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   unsigned int attempts = 1;
   double timeout = 0.0;
   
-  ModelBasedPlanningContextPtr context = prepareForSolve(req, planning_scene, &res.error_code, &attempts, &timeout);
+  ModelBasedPlanningContextPtr context = prepareForSolve(req, planning_scene, &res.error_code_, &attempts, &timeout);
 
   if (!context)
     return false;
-
-  res.group_name = context->getJointModelGroupName();
+  
+  res.trajectory_.reset(new kinematic_trajectory::KinematicTrajectory(kmodel_, context->getJointModelGroupName()));
   
   bool follow = !req.trajectory_constraints.constraints.empty();
   if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
@@ -206,21 +206,21 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     // fill the response
     logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
              context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-    kinematic_state::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
-    context->getSolutionPath(res.trajectory);
-    res.planning_time = ros::Duration(ptime);
+    
+    context->getSolutionPath(*res.trajectory_);
+    res.planning_time_ = ptime;
     return true;
   }
   else
   {
     logInform("Unable to solve the planning problem");
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+    res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
 }
 
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-					  const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MotionPlanDetailedResponse &res) const
+					  const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const
 {
   ompl::tools::Profiler::ScopedStart pslv;
   ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
@@ -232,37 +232,37 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (!context)
     return false;
 
-  res.group_name = context->getJointModelGroupName();
-
   bool follow = !req.trajectory_constraints.constraints.empty();
   if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
   {
-    res.trajectory.reserve(3);
-    kinematic_state::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
+    res.trajectory_.reserve(3);
     
     // add info about planned solution
     double ptime = context->getLastPlanTime();
-    res.processing_time.push_back(ros::Duration(ptime));
-    res.description.push_back("plan");
-    res.trajectory.resize(res.trajectory.size() + 1);
-    context->getSolutionPath(res.trajectory.back());
+    res.processing_time_.push_back(ptime);
+    res.description_.push_back("plan");
+    res.trajectory_.resize(res.trajectory_.size() + 1);
+    res.trajectory_.back().reset(new kinematic_trajectory::KinematicTrajectory(kmodel_, context->getJointModelGroupName()));
+    context->getSolutionPath(*res.trajectory_.back());
     
     // simplify solution if time remains
     if (ptime < timeout || !follow)
     {
       context->simplifySolution(timeout - ptime);
-      res.processing_time.push_back(ros::Duration(context->getLastSimplifyTime()));
-      res.description.push_back("simplify");
-      res.trajectory.resize(res.trajectory.size() + 1);
-      context->getSolutionPath(res.trajectory.back());
+      res.processing_time_.push_back(context->getLastSimplifyTime());
+      res.description_.push_back("simplify");
+      res.trajectory_.resize(res.trajectory_.size() + 1);
+      res.trajectory_.back().reset(new kinematic_trajectory::KinematicTrajectory(kmodel_, context->getJointModelGroupName()));
+      context->getSolutionPath(*res.trajectory_.back());
     }
     
     ros::WallTime start_interpolate = ros::WallTime::now();
     context->interpolateSolution();
-    res.processing_time.push_back(ros::Duration((ros::WallTime::now() - start_interpolate).toSec()));
-    res.description.push_back("interpolate");
-    res.trajectory.resize(res.trajectory.size() + 1);
-    context->getSolutionPath(res.trajectory.back());
+    res.processing_time_.push_back((ros::WallTime::now() - start_interpolate).toSec());
+    res.description_.push_back("interpolate");
+    res.trajectory_.resize(res.trajectory_.size() + 1);
+    res.trajectory_.back().reset(new kinematic_trajectory::KinematicTrajectory(kmodel_, context->getJointModelGroupName()));
+    context->getSolutionPath(*res.trajectory_.back());
     
     // fill the response
     logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),

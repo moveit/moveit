@@ -295,9 +295,9 @@ public:
   void interpolateSolution();
   
   /* @brief Get the solution as a RobotTrajectory object*/
-  bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;
+  bool getSolutionPath(kinematic_trajectory::KinematicTrajectory &traj) const;
   
-  void convertPath(const og::PathGeometric &pg, moveit_msgs::RobotTrajectory &traj) const;  
+  void convertPath(const og::PathGeometric &pg, kinematic_trajectory::KinematicTrajectory &traj) const;  
 
   virtual void configure(void);
 

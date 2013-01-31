@@ -72,7 +72,10 @@ public:
     ROS_INFO("Received new planning request...");
     if (debug_)
       pub_request_.publish(req.motion_plan_request);
-    bool result = ompl_interface_.solve(psm_.getPlanningScene(), req.motion_plan_request, res.motion_plan_response);
+    planning_interface::MotionPlanResponse response;
+    bool result = ompl_interface_.solve(psm_.getPlanningScene(), req.motion_plan_request, response);
+    res.motion_plan_response.error_code = response.error_code_;
+    
     if (debug_)
     {
       if (result)
