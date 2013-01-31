@@ -68,8 +68,8 @@ public:
 
   GripperMarkerPtr control_marker;
   GripperMarkerPtr hand_marker;
-  GripperMarkerPtr start_marker;
-  GripperMarkerPtr end_marker;
+  GripperMarkerPtr start_marker, end_marker;
+  std::list<GripperMarkerPtr> waypoint_markers;
 
   void hide()
   {
@@ -81,6 +81,10 @@ public:
       start_marker->hide();
     if (end_marker)
       end_marker->hide();
+    for (std::list<GripperMarkerPtr>::iterator it = waypoint_markers.begin(); it != waypoint_markers.end(); ++it)
+    {
+      (*it)->hide();
+    }
   }
 
   void show(Ogre::SceneNode *scene_node, rviz::DisplayContext *context)
@@ -93,6 +97,10 @@ public:
       start_marker->show(scene_node, context);
     if (end_marker)
       end_marker->show(scene_node, context);
+    for (std::list<GripperMarkerPtr>::iterator it = waypoint_markers.begin(); it != waypoint_markers.end(); ++it)
+    {
+      (*it)->show(scene_node, context);
+    }
   }
 
   ~Trajectory() {}
@@ -111,9 +119,14 @@ protected:
   void connectStartMarker();
   void connectEndMarker();
 
+  void rebuildWayPointMarkers();
+
 private:
   Eigen::Affine3d hand_marker_start_pose;
-  Eigen::Affine3d control_marker_start_pose;
+  Eigen::Affine3d control_marker_drag_start_pose;
+
+  Eigen::Affine3d control_marker_start_pose; // The control marker pose corresponding to the start marker
+  Eigen::Affine3d control_marker_end_pose;   // The control marker pose corresponding to the end marker
 
   bool dragging_;
 
