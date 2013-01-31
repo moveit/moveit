@@ -88,10 +88,9 @@ double DistanceField::getDistanceGradient(double x, double y, double z, double& 
   return getDistanceFromCell(gx,gy,gz);
 }
 
-void DistanceField::getIsoSurfaceMarkers(double min_radius, double max_radius,
+void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance,
                                          const std::string & frame_id, const ros::Time stamp,
-                                         const Eigen::Affine3d& cur,
-                                         visualization_msgs::Marker& inf_marker ) const
+                                         visualization_msgs::Marker& inf_marker) const
 {
   inf_marker.points.clear();
   inf_marker.header.frame_id = frame_id;
@@ -118,7 +117,7 @@ void DistanceField::getIsoSurfaceMarkers(double min_radius, double max_radius,
       {
         double dist = getDistanceFromCell(x,y,z);
         
-        if (dist >= min_radius && dist <= max_radius)
+        if (dist >= min_distance && dist <= max_distance)
         {
           int last = inf_marker.points.size();
           inf_marker.points.resize(last + 1);
@@ -126,7 +125,6 @@ void DistanceField::getIsoSurfaceMarkers(double min_radius, double max_radius,
           gridToWorld(x,y,z,
                       nx, ny, nz);
           Eigen::Translation3d vec(nx,ny,nz);
-          //Eigen::Translation3d nv = cur.rotation()*vec;
           inf_marker.points[last].x = vec.x();
           inf_marker.points[last].y = vec.y();
           inf_marker.points[last].z = vec.z();
@@ -136,9 +134,11 @@ void DistanceField::getIsoSurfaceMarkers(double min_radius, double max_radius,
   }
 }
 
-void DistanceField::getGradientMarkers( double min_radius, double max_radius,
-                                        const std::string & frame_id, const ros::Time stamp,
-                                        std::vector<visualization_msgs::Marker>& markers ) const
+void DistanceField::getGradientMarkers(double min_distance, 
+                                       double max_distance,
+                                       const std::string& frame_id, 
+                                       const ros::Time stamp,
+                                       visualization_msgs::MarkerArray& marker_array) const
 {
   Eigen::Vector3d unitX(1, 0, 0);
   Eigen::Vector3d unitY(0, 1, 0);
@@ -205,7 +205,12 @@ void DistanceField::addShapeToField(const shapes::Shape* shape,
                                     const geometry_msgs::Pose& pose)
 {
   if(shape->type == shapes::OCTREE) {
-    
+    const shapes::OcTree* oc = dynamic_cast<const shapes::OcTree*>(shape);
+    if(!oc) {
+      logError("Problem dynamic casting shape that claims to be OcTree");
+      return;
+    }
+    addOcTreeToField(oc->octree.get());
   } else {
     bodies::Body* body = bodies::createBodyFromShape(shape);
     Eigen::Affine3d pose_e;
@@ -412,9 +417,10 @@ void DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type,
 
 
 
-void DistanceField::setPoint(const int xCell, const int yCell, const int zCell,
-                             const double dist, geometry_msgs::Point & point,
-                             std_msgs::ColorRGBA & color, const double max_distance) const 
+void DistanceField::setPoint(int xCell, int yCell, int zCell,
+                             double dist, geometry_msgs::Point& point,
+                             std_msgs::ColorRGBA& color, 
+                             double max_distance) const 
 {
   double wx,wy,wz;
   gridToWorld(xCell,yCell,zCell, wx,wy,wz);
@@ -429,7 +435,9 @@ void DistanceField::setPoint(const int xCell, const int yCell, const int zCell,
 }
 
 
-void DistanceField::getProjectionPlanes(const std::string & frame_id, const ros::Time stamp, double max_dist,
+void DistanceField::getProjectionPlanes(const std::string& frame_id, 
+                                        const ros::Time& stamp, 
+                                        double max_dist,
                                         visualization_msgs::Marker& marker) const
 {
   int maxXCell = getXNumCells();
