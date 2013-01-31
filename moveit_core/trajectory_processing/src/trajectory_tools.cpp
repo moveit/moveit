@@ -62,153 +62,6 @@ void convertToKinematicStates(std::vector<kinematic_state::KinematicStatePtr> &s
   }
 }
 
-void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
-                              const std::vector<kinematic_state::KinematicStateConstPtr> &states, 
-                              const std::vector<ros::Duration> &stamps, const std::string &group)
-{
-  trajectory = moveit_msgs::RobotTrajectory();
-  if (states.empty())
-    return;
-  const kinematic_model::KinematicModel &kmodel = *states.front()->getKinematicModel();
-  const std::vector<const kinematic_model::JointModel*> &jnt = 
-    (!group.empty() && kmodel.hasJointModelGroup(group)) ? kmodel.getJointModelGroup(group)->getJointModels() : kmodel.getJointModels();
-  
-  std::vector<const kinematic_model::JointModel*> onedof;
-  std::vector<const kinematic_model::JointModel*> mdof;
-  trajectory.joint_trajectory.header.frame_id = kmodel.getModelFrame();
-  trajectory.joint_trajectory.header.stamp = ros::Time::now();
-  trajectory.joint_trajectory.joint_names.clear();
-  trajectory.multi_dof_joint_trajectory.joint_names.clear();
-  trajectory.multi_dof_joint_trajectory.child_frame_ids.clear();
-  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
-    if (jnt[i]->getVariableCount() == 1)
-    {
-      trajectory.joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      onedof.push_back(jnt[i]);
-    }
-    else
-    {
-      trajectory.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      trajectory.multi_dof_joint_trajectory.frame_ids.push_back(trajectory.joint_trajectory.header.frame_id);
-      trajectory.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
-      mdof.push_back(jnt[i]);
-    }
-  if (!onedof.empty())
-    trajectory.joint_trajectory.points.resize(states.size());
-  if (!mdof.empty())
-    trajectory.multi_dof_joint_trajectory.points.resize(states.size());
-  static const ros::Duration zero_duration(0.0);
-  for (std::size_t i = 0 ; i < states.size() ; ++i)
-  {
-    if (!onedof.empty())
-    {
-      trajectory.joint_trajectory.points[i].positions.resize(onedof.size());
-      for (std::size_t j = 0 ; j < onedof.size() ; ++j)
-	trajectory.joint_trajectory.points[i].positions[j] = states[i]->getJointState(onedof[j]->getName())->getVariableValues()[0];
-      trajectory.joint_trajectory.points[i].time_from_start = stamps.size() > i ? stamps[i] : zero_duration;
-    }
-    if (!mdof.empty())
-    {
-      trajectory.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
-      for (std::size_t j = 0 ; j < mdof.size() ; ++j)
-      {
-	tf::poseEigenToMsg(states[i]->getJointState(mdof[j]->getName())->getVariableTransform(),
-                           trajectory.multi_dof_joint_trajectory.points[i].poses[j]);
-      }
-      trajectory.multi_dof_joint_trajectory.points[i].time_from_start = stamps.size() > i ? stamps[i] : zero_duration;
-    }
-  }
-}
-
-void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory, const std::vector<kinematic_state::KinematicStateConstPtr> &states, const std::string &group)
-{
-  convertToRobotTrajectory(trajectory, states, std::vector<ros::Duration>(), group);
-}
-
-void addPrefixState(const kinematic_state::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
-                    double dt_offset, const kinematic_state::TransformsConstPtr &transforms)
-{
-  ros::Duration dt(dt_offset);
-  
-  if (!trajectory.joint_trajectory.points.empty() && !trajectory.joint_trajectory.joint_names.empty())
-  {
-    trajectory_msgs::JointTrajectoryPoint new_start = trajectory.joint_trajectory.points.front();
-    std::vector<double> vals;
-    for (std::size_t i = 0 ; i < trajectory.joint_trajectory.joint_names.size() ; ++i)
-    {
-      const kinematic_state::JointState *js = prefix.getJointState(trajectory.joint_trajectory.joint_names[i]);
-      if (!js)
-        break;
-      if (js->getVariableValues().size() != 1)
-      {
-        logError("Unexpected number of joint values. Got %u when 1 should have been found", (unsigned int)js->getVariableValues().size());
-        break;
-      }
-      vals.push_back(js->getVariableValues()[0]);
-    }
-    
-    if (vals.size() == new_start.positions.size())
-    {
-      new_start.positions = vals;
-      
-      //insert extra point at the start of trajectory
-      trajectory.joint_trajectory.points.insert(trajectory.joint_trajectory.points.begin(), new_start);
-      
-      // add duration offset for the trajectory
-      for (std::size_t j = 1 ; j < trajectory.joint_trajectory.points.size() ; ++j)
-        trajectory.joint_trajectory.points[j].time_from_start += dt;
-    }
-    else
-      logError("The number of joints in the solution reported by the planner does not match with the known set of joints");
-  }
-  
-  if (!trajectory.multi_dof_joint_trajectory.points.empty() && !trajectory.multi_dof_joint_trajectory.joint_names.empty())
-  {
-    moveit_msgs::MultiDOFJointTrajectoryPoint new_start = trajectory.multi_dof_joint_trajectory.points.front();
-    EigenSTL::vector_Affine3d poses;
-    for (std::size_t i = 0 ; i < trajectory.multi_dof_joint_trajectory.joint_names.size() ; ++i)
-    {
-      const kinematic_state::JointState *js = prefix.getJointState(trajectory.multi_dof_joint_trajectory.joint_names[i]);
-      if (!js)
-        break;
-      if (trajectory.multi_dof_joint_trajectory.child_frame_ids.size() <= i ||
-          js->getJointModel()->getChildLinkModel()->getName() != trajectory.multi_dof_joint_trajectory.child_frame_ids[i])
-      {
-        logError("Unmatched multi-dof joint: '%s'", js->getJointModel()->getChildLinkModel()->getName().c_str());
-        break;
-      }
-      const Eigen::Affine3d& t = js->getVariableTransform();
-      if (trajectory.multi_dof_joint_trajectory.frame_ids.size() >= i &&
-          trajectory.multi_dof_joint_trajectory.frame_ids[i] != prefix.getKinematicModel()->getModelFrame())
-      {
-        if (transforms)
-          poses.push_back(transforms->getTransform(prefix, trajectory.multi_dof_joint_trajectory.frame_ids[i]) * t);
-        else
-        {
-          logError("Transform to frame '%s' is not known", trajectory.multi_dof_joint_trajectory.frame_ids[i].c_str());
-          break;
-        }
-      }
-      else
-        poses.push_back(t);
-    }
-    if (poses.size() == new_start.poses.size())
-    {
-      for (std::size_t i = 0 ; i < poses.size() ; ++i)
-        tf::poseEigenToMsg(poses[i], new_start.poses[i]);
-      
-      //insert extra point at the start of trajectory
-      trajectory.multi_dof_joint_trajectory.points.insert(trajectory.multi_dof_joint_trajectory.points.begin(), new_start);
-      
-      // add duration offset for the trajectory
-      for (std::size_t j = 1 ; j < trajectory.joint_trajectory.points.size() ; ++j)
-        trajectory.multi_dof_joint_trajectory.points[j].time_from_start += dt;
-    }      
-    else
-      logError("The number of mulit-dof joints in the solution reported by the planner does not match with the known set of joints");
-  }
-}
-
 double getTrajectoryDuration(const moveit_msgs::RobotTrajectory &trajectory)
 {
   if (trajectory.joint_trajectory.points.size() > 1 || trajectory.multi_dof_joint_trajectory.points.size() > 1)
@@ -255,48 +108,13 @@ bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, st
   if (rt.multi_dof_joint_trajectory.points.size() > index)
   {
     rs.multi_dof_joint_state.joint_names = rt.multi_dof_joint_trajectory.joint_names;
-    rs.multi_dof_joint_state.frame_ids = rt.multi_dof_joint_trajectory.frame_ids;
-    rs.multi_dof_joint_state.child_frame_ids = rt.multi_dof_joint_trajectory.child_frame_ids;
-    rs.multi_dof_joint_state.stamp = rt.joint_trajectory.header.stamp + rt.multi_dof_joint_trajectory.points[index].time_from_start;
-    rs.multi_dof_joint_state.poses = rt.multi_dof_joint_trajectory.points[index].poses;
+    rs.multi_dof_joint_state.header.stamp = rt.joint_trajectory.header.stamp + rt.multi_dof_joint_trajectory.points[index].time_from_start;
+    rs.multi_dof_joint_state.joint_values = rt.multi_dof_joint_trajectory.points[index].values;
     result = true;
   }
   else
     rs.multi_dof_joint_state = moveit_msgs::MultiDOFJointState();
   return result;
-}
-
-void reverseTrajectory(moveit_msgs::RobotTrajectory &trajectory)
-{
-  std::reverse(trajectory.joint_trajectory.points.begin(), trajectory.joint_trajectory.points.end());
-  std::reverse(trajectory.multi_dof_joint_trajectory.points.begin(), trajectory.multi_dof_joint_trajectory.points.end());
-}
-
-void unwindJointTrajectory(const kinematic_model::KinematicModelConstPtr &kmodel, trajectory_msgs::JointTrajectory &joint_trajectory)
-{
-  if (joint_trajectory.points.empty())
-    return;
-  
-  for (std::size_t i = 0 ; i < joint_trajectory.joint_names.size() ; ++i)
-  {
-    const kinematic_model::JointModel *jmodel = kmodel->getJointModel(joint_trajectory.joint_names[i]);
-    if (jmodel->getType() == kinematic_model::JointModel::REVOLUTE && static_cast<const kinematic_model::RevoluteJointModel*>(jmodel)->isContinuous())
-    {
-      // unwrap continuous joints
-      double running_offset = 0.0;
-      double last_value = joint_trajectory.points[0].positions[i];
-      for (std::size_t j = 1 ; j < joint_trajectory.points.size() ; ++j)
-      {
-        if (last_value > joint_trajectory.points[j].positions[i] + boost::math::constants::pi<double>())
-          running_offset += 2.0 * boost::math::constants::pi<double>();
-        else
-          if (joint_trajectory.points[j].positions[i] > last_value + boost::math::constants::pi<double>())
-            running_offset -= 2.0 * boost::math::constants::pi<double>();
-        last_value = joint_trajectory.points[j].positions[i];
-        joint_trajectory.points[j].positions[i] += running_offset;
-      }
-    }
-  }
 }
 
 }

@@ -111,6 +111,12 @@ public:
   {
     return mimic_joints_;
   }
+
+  /** \brief Get the array of continuous joints used in thir group. */
+  const std::vector<const JointModel*>& getContinuousJointModels(void) const
+  {
+    return continuous_joint_model_vector_const_;
+  }
   
   /** \brief Get the names of the variables that make up the joints included in this group. Only active joints (not
       fixed, not mimic) are included. Effectively, these are the names of the DOF for this group. The number of
@@ -361,6 +367,9 @@ protected:
   
   /** \brief Joints that mimic other joints */
   std::vector<const JointModel*>                        mimic_joints_;
+
+  /** \brief The set of continuous joints this group contains */
+  std::vector<const JointModel*>                        continuous_joint_model_vector_const_;
   
   /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not necessarily joint names!) */
   std::vector<std::string>                              active_variable_names_;

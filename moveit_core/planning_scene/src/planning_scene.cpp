@@ -1689,7 +1689,7 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_state::Kinematic
   return result;
 } 
 
-bool planning_scene::PlanningScene::isPathValid(const kinematic_state::KinematicTrajectory &trajectory,
+bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const std::vector<moveit_msgs::Constraints>& goal_constraints,
                                                 const std::string &group, bool verbose, std::vector<std::size_t> *invalid_index) const
@@ -1699,16 +1699,17 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_state::Kinematic
     invalid_index->clear();
   kinematic_constraints::KinematicConstraintSet ks_p(getKinematicModel(), getTransforms());
   ks_p.add(path_constraints);
-  for (std::size_t i = 0 ; i < trajectory.size() ; ++i)
+  std::size_t n_wp = trajectory.getWayPointCount();
+  for (std::size_t i = 0 ; i < n_wp ; ++i)
   {
-    const kinematic_state::KinematicStatePtr &st = trajectory[i];
+    const kinematic_state::KinematicState &st = trajectory.getWayPoint(i);
     
     bool this_state_valid = true;
-    if (isStateColliding(*st, group, verbose))
+    if (isStateColliding(st, group, verbose))
       this_state_valid = false;
-    if (!isStateFeasible(*st, verbose))
+    if (!isStateFeasible(st, verbose))
       this_state_valid = false;
-    if (!ks_p.empty() && !ks_p.decide(*st, verbose).satisfied)
+    if (!ks_p.empty() && !ks_p.decide(st, verbose).satisfied)
       this_state_valid = false;
     
     if (!this_state_valid)
@@ -1721,12 +1722,12 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_state::Kinematic
     }
     
     // check goal for last state
-    if (i + 1 == trajectory.size() && !goal_constraints.empty())
+    if (i + 1 == n_wp && !goal_constraints.empty())
     {
       bool found = false;
       for (std::size_t k = 0 ; k < goal_constraints.size() ; ++k)
       {
-        if (isStateConstrained(*st, goal_constraints[k]))
+        if (isStateConstrained(st, goal_constraints[k]))
         {
           found = true;
           break;
@@ -1745,7 +1746,8 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_state::Kinematic
   return result;
 }
 
-bool planning_scene::PlanningScene::isPathValid(const kinematic_state::KinematicTrajectory &trajectory,
+
+bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const moveit_msgs::Constraints& goal_constraints,
                                                 const std::string &group, bool verbose, std::vector<std::size_t> *invalid_index) const
@@ -1754,8 +1756,15 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_state::Kinematic
   return isPathValid(trajectory, path_constraints, goal_constraints_vector, group, verbose, invalid_index);
 }
 
+bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+                                                const moveit_msgs::Constraints& path_constraints,
+                                                const std::string &group, bool verbose, std::vector<std::size_t> *invalid_index) const
+{
+  static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
+  return isPathValid(trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
+}
 
-bool planning_scene::PlanningScene::isPathValid(const kinematic_state::KinematicTrajectory &trajectory,
+bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
                                                 const std::string &group, bool verbose, std::vector<std::size_t> *invalid_index) const
 { 
   static const moveit_msgs::Constraints emp_constraints;
@@ -1763,14 +1772,14 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_state::Kinematic
   return isPathValid(trajectory, emp_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
-void planning_scene::PlanningScene::getCostSources(const kinematic_state::KinematicTrajectory &trajectory, std::size_t max_costs,
+void planning_scene::PlanningScene::getCostSources(const kinematic_trajectory::KinematicTrajectory &trajectory, std::size_t max_costs,
                                                    std::set<collision_detection::CostSource> &costs, double overlap_fraction) const
 {
   getCostSources(trajectory, max_costs, std::string(), costs, overlap_fraction);
 }
 
 
-void planning_scene::PlanningScene::getCostSources(const kinematic_state::KinematicTrajectory &trajectory, std::size_t max_costs,
+void planning_scene::PlanningScene::getCostSources(const kinematic_trajectory::KinematicTrajectory &trajectory, std::size_t max_costs,
                                                    const std::string &group_name, std::set<collision_detection::CostSource> &costs,
                                                    double overlap_fraction) const
 {
@@ -1780,10 +1789,11 @@ void planning_scene::PlanningScene::getCostSources(const kinematic_state::Kinema
   creq.cost = true;
   std::set<collision_detection::CostSource> cs; 
   std::set<collision_detection::CostSource> cs_start;
-  for (std::size_t i = 0 ; i < trajectory.size() ; ++i)
+  std::size_t n_wp = trajectory.getWayPointCount();
+  for (std::size_t i = 0 ; i < n_wp ; ++i)
   {
     collision_detection::CollisionResult cres;
-    checkCollision(creq, cres, *trajectory[i]);
+    checkCollision(creq, cres, trajectory.getWayPoint(i));
     cs.insert(cres.cost_sources.begin(), cres.cost_sources.end());
     if (i == 0)
       cs_start.swap(cres.cost_sources);

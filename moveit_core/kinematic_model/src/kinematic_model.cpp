@@ -675,6 +675,8 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::buildRecursive(Lin
   joint_model_vector_.push_back(joint);
   joint_model_vector_const_.push_back(joint);
   joint_model_names_vector_.push_back(joint->getName());
+  if (joint->getType() == JointModel::REVOLUTE && static_cast<const RevoluteJointModel*>(joint)->isContinuous())
+    continuous_joint_model_vector_const_.push_back(joint);
   joint->parent_link_model_ = parent;
   joint->child_link_model_ = constructLinkModel(link, parent_map);
   link_model_map_[joint->child_link_model_->name_] = joint->child_link_model_;

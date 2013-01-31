@@ -100,11 +100,45 @@ void kinematic_trajectory::KinematicTrajectory::reverse(void)
   }
 }
 
-void kinematic_trajectory::KinematicTrajectory::unwind(const kinematic_state::KinematicState &state)
+void kinematic_trajectory::KinematicTrajectory::unwind()
 {
   if (waypoints_.empty())
     return;
   
+  const std::vector<const kinematic_model::JointModel*> &cont_joints = group_ ? 
+    group_->getContinuousJointModels() : kmodel_->getContinuousJointModels();
+  
+  for (std::size_t i = 0 ; i < cont_joints.size() ; ++i)
+  {
+    // unwrap continuous joints
+    double running_offset = 0.0;
+    double last_value = waypoints_[0]->getJointState(cont_joints[i])->getVariableValues()[0];
+    
+    for (std::size_t j = 1 ; j < waypoints_.size() ; ++j)
+    {
+      kinematic_state::JointState *js = waypoints_[j]->getJointState(cont_joints[i]);
+      std::vector<double> current_value = js->getVariableValues();
+      if (last_value > current_value[0] + boost::math::constants::pi<double>())
+        running_offset += 2.0 * boost::math::constants::pi<double>();
+      else
+        if (current_value[0] > last_value + boost::math::constants::pi<double>())
+          running_offset -= 2.0 * boost::math::constants::pi<double>();
+
+      last_value = current_value[0];
+      if (running_offset > std::numeric_limits<double>::epsilon() || running_offset < -std::numeric_limits<double>::epsilon())
+      {
+        current_value[0] += running_offset;
+        js->setVariableValues(current_value);
+      }    
+    }
+  }
+}
+
+void kinematic_trajectory::KinematicTrajectory::unwind(const kinematic_state::KinematicState &state)
+{
+  if (waypoints_.empty())
+    return;
+
   const std::vector<const kinematic_model::JointModel*> &cont_joints = group_ ? 
     group_->getContinuousJointModels() : kmodel_->getContinuousJointModels();
   
@@ -116,7 +150,16 @@ void kinematic_trajectory::KinematicTrajectory::unwind(const kinematic_state::Ki
     
     // unwrap continuous joints
     double running_offset = jstate->getVariableValues()[0] - reference_value[0];
-    double last_value = waypoints_[0]->getJointState(cont_joints[i])->getVariableValues()[0];
+
+    kinematic_state::JointState *js0 =  waypoints_[0]->getJointState(cont_joints[i]);
+    double last_value = js0->getVariableValues()[0];
+    if (running_offset > std::numeric_limits<double>::epsilon() || running_offset < -std::numeric_limits<double>::epsilon())
+    {
+      std::vector<double> current_value = js0->getVariableValues();
+      current_value[0] += running_offset;
+      js0->setVariableValues(current_value);
+    }
+    
     for (std::size_t j = 1 ; j < waypoints_.size() ; ++j)
     {
       kinematic_state::JointState *js = waypoints_[j]->getJointState(cont_joints[i]);
@@ -126,6 +169,7 @@ void kinematic_trajectory::KinematicTrajectory::unwind(const kinematic_state::Ki
       else
         if (current_value[0] > last_value + boost::math::constants::pi<double>())
           running_offset -= 2.0 * boost::math::constants::pi<double>();
+
       last_value = current_value[0];
       if (running_offset > std::numeric_limits<double>::epsilon() || running_offset < -std::numeric_limits<double>::epsilon())
       {

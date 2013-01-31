@@ -151,6 +151,12 @@ public:
   /** \brief Get a joint state by its name */
   JointState* getJointState(const std::string &joint) const;
   
+  JointState* getJointState(const kinematic_model::JointModel *jmodel) const
+  {
+    // \todo make this more efficient (store index of JointState in the model)
+    return getJointState(jmodel->getName());
+  }
+  
   /** \brief Get a link state by its name */
   LinkState* getLinkState(const std::string &link) const;
   
@@ -285,9 +291,6 @@ private:
 
 typedef boost::shared_ptr<KinematicState> KinematicStatePtr;
 typedef boost::shared_ptr<const KinematicState> KinematicStateConstPtr;
-
-typedef std::vector<KinematicStatePtr> KinematicTrajectory;
-typedef std::vector<KinematicStateConstPtr> KinematicTrajectoryConst;
 
 }
 

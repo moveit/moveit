@@ -350,7 +350,7 @@ public:
       a point in joint is found such that it is further away than the previous one by more than average_consecutive_distance * \e jump_threshold,
       that is considered a failure and the returned path is truncated up to just before the jump. The jump detection can be disabled 
       by settin \e jump_threshold to 0.0*/
-  double computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
+  double computeCartesianPath(std::vector<boost::shared_ptr<KinematicState> > &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
                               double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
   
   JointStateGroup& operator=(const JointStateGroup &other);

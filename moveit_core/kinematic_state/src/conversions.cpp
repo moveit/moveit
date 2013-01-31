@@ -70,88 +70,49 @@ static bool jointStateToKinematicState(const sensor_msgs::JointState &joint_stat
   return true;
 }
 
-static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState &mjs, KinematicState &state, const Transforms *tf)
+static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState &mjs, KinematicState &state)
 {
-  if (mjs.joint_names.size() != mjs.frame_ids.size() || mjs.joint_names.size() != mjs.child_frame_ids.size() ||
-      mjs.joint_names.size() != mjs.poses.size())
+  if (mjs.joint_names.size() != mjs.joint_values.size())
   {
-    logError("Different number of names, values or frames in MultiDOFJointState message.");
+    logError("Different number of names and values in MultiDOFJointState message.");
     return false;
   }
   
-  EigenSTL::vector_Affine3d transf(mjs.joint_names.size());
-  bool tf_problem = false;
-  bool error = false;
+  bool ok = true;
   
-  for (unsigned int i = 0 ; i < mjs.joint_names.size(); ++i)
-  {
-    tf::poseMsgToEigen(mjs.poses[i], transf[i]);
-    
-    // if frames do not mach, attempt to transform
-    if (mjs.frame_ids[i] != state.getKinematicModel()->getModelFrame())
-    {
-      bool ok = true;
-      if (tf)
-      {
-        try
-        {
-          // find the transform that takes the given frame_id to the desired fixed frame
-          const Eigen::Affine3d &t2fixed_frame = tf->getTransform(mjs.frame_ids[i]);
-          // we update the value of the transform so that it transforms from the known fixed frame to the desired child link
-          transf[i] = transf[i]*t2fixed_frame.inverse();
-        }
-        catch (std::runtime_error&)
-        {
-          ok = false;
-        }
-      }
-      else
-        ok = false;
-      if (!ok)
-      {
-        tf_problem = true;
-        logWarn("The transform for joint '%s' was specified in frame '%s' but it was not possible to update that transform to frame '%s'",
-                 mjs.joint_names[i].c_str(), mjs.frame_ids[i].c_str(), state.getKinematicModel()->getModelFrame().c_str());
-      }
-    }
-  }
-  
-  for (unsigned int i = 0 ; i < mjs.joint_names.size(); ++i)
+  for (std::size_t i = 0 ; i < mjs.joint_names.size(); ++i)
   {
     const std::string &joint_name = mjs.joint_names[i];
     if (!state.hasJointState(joint_name))
     {
       logWarn("No joint matching multi-dof joint '%s'", joint_name.c_str());
-      error = true;
+      ok = false;
       continue;
     }
     JointState *joint_state = state.getJointState(joint_name);
-    
-    if (mjs.child_frame_ids[i] != joint_state->getJointModel()->getChildLinkModel()->getName())
+    if (mjs.joint_values[i].values.size() != joint_state->getVariableCount())
     {
-      logWarn("Robot state msg has bad multi_dof transform - child frame_ids do not match up with joint");
-      tf_problem = true;
+      ok = false;
+      logError("Expected %u values for joint '%s' but got %u instead", joint_state->getVariableCount(), joint_name.c_str(), (unsigned int)mjs.joint_values[i].values.size());
     }
-    
-    joint_state->setVariableValues(transf[i]);
+    else
+      joint_state->setVariableValues(mjs.joint_values[i].values);
   }
   
-  return !tf_problem && !error;
+  return ok;
 }
 
 static inline void kinematicStateToMultiDOFJointState(const KinematicState& state, moveit_msgs::MultiDOFJointState &mjs)
 {  
   const std::vector<JointState*> &js = state.getJointStateVector();
-  mjs = moveit_msgs::MultiDOFJointState();
+  mjs.joint_names.clear();
+  mjs.joint_values.clear();
   for (std::size_t i = 0 ; i < js.size() ; ++i)
     if (js[i]->getVariableCount() > 1)
     {
-      geometry_msgs::Pose p;
-      tf::poseEigenToMsg(js[i]->getVariableTransform(), p);
       mjs.joint_names.push_back(js[i]->getName());
-      mjs.frame_ids.push_back(state.getKinematicModel()->getModelFrame());
-      mjs.child_frame_ids.push_back(js[i]->getJointModel()->getChildLinkModel()->getName());
-      mjs.poses.push_back(p);
+      mjs.joint_values.resize(mjs.joint_names.size());
+      mjs.joint_values.back().values = js[i]->getVariableValues();
     }
 }
 
@@ -335,7 +296,7 @@ static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_
 {
   std::set<std::string> missing;
   bool result1 = jointStateToKinematicState(robot_state.joint_state, state, &missing);
-  bool result2 = multiDOFJointsToKinematicState(robot_state.multi_dof_joint_state, state, tf);
+  bool result2 = multiDOFJointsToKinematicState(robot_state.multi_dof_joint_state, state);
   state.updateLinkTransforms();
   
   if (copy_attached_bodies && !robot_state.attached_collision_objects.empty())

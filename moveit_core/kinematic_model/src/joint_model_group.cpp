@@ -100,6 +100,9 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
       }
       else
         mimic_joints_.push_back(group_joints[i]);
+
+      if (group_joints[i]->getType() == JointModel::REVOLUTE && static_cast<const RevoluteJointModel*>(group_joints[i])->isContinuous())
+        continuous_joint_model_vector_const_.push_back(group_joints[i]);
     }
     else
       fixed_joints_.push_back(group_joints[i]);

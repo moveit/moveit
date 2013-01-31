@@ -36,14 +36,16 @@
 #include <boost/bind.hpp>
 #include <algorithm>
 
+// we could really use some c++11 lambda functions here :)
+
 namespace planning_request_adapter
 {
 namespace
 {
 bool callPlannerInterfaceSolve(const planning_interface::Planner *planner,
                                const planning_scene::PlanningSceneConstPtr& planning_scene,
-                               const moveit_msgs::MotionPlanRequest &req, 
-                               moveit_msgs::MotionPlanResponse &res)
+                               const planning_interface::MotionPlanRequest &req, 
+                               planning_interface::MotionPlanResponse &res)
 {
   return planner->solve(planning_scene, req, res);
 }
@@ -52,8 +54,8 @@ bool callPlannerInterfaceSolve(const planning_interface::Planner *planner,
 
 bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planning_interface::PlannerPtr &planner,
                                                                     const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                                    const moveit_msgs::MotionPlanRequest &req, 
-                                                                    moveit_msgs::MotionPlanResponse &res,
+                                                                    const planning_interface::MotionPlanRequest &req, 
+                                                                    planning_interface::MotionPlanResponse &res,
                                                                     std::vector<std::size_t> &added_path_index) const
 {
   return adaptAndPlan(boost::bind(&callPlannerInterfaceSolve, planner.get(), _1, _2, _3), planning_scene, req, res, added_path_index);
@@ -61,8 +63,8 @@ bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planni
 
 bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planning_interface::PlannerPtr &planner,
                                                                     const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                                    const moveit_msgs::MotionPlanRequest &req, 
-                                                                    moveit_msgs::MotionPlanResponse &res) const
+                                                                    const planning_interface::MotionPlanRequest &req, 
+                                                                    planning_interface::MotionPlanResponse &res) const
 {
   std::vector<std::size_t> dummy;
   return adaptAndPlan(planner, planning_scene, req, res, dummy);
@@ -79,13 +81,19 @@ namespace
 bool callAdapter1(const PlanningRequestAdapter *adapter,
                   const planning_interface::PlannerPtr &planner,
                   const planning_scene::PlanningSceneConstPtr& planning_scene,
-                  const moveit_msgs::MotionPlanRequest &req, 
-                  moveit_msgs::MotionPlanResponse &res,
+                  const planning_interface::MotionPlanRequest &req, 
+                  planning_interface::MotionPlanResponse &res,
                   std::vector<std::size_t> &added_path_index)
 {
   try
   {
     return adapter->adaptAndPlan(planner, planning_scene, req, res, added_path_index);
+  } 
+  catch(std::runtime_error &ex)
+  {    
+    logError("Exception caught executing adapter '%s': %s", adapter->getDescription().c_str(), ex.what());
+    added_path_index.clear();
+    return planner->solve(planning_scene, req, res);
   }
   catch(...)
   {
@@ -98,13 +106,19 @@ bool callAdapter1(const PlanningRequestAdapter *adapter,
 bool callAdapter2(const PlanningRequestAdapter *adapter,
                   const PlanningRequestAdapter::PlannerFn &planner,
                   const planning_scene::PlanningSceneConstPtr& planning_scene,
-                  const moveit_msgs::MotionPlanRequest &req, 
-                  moveit_msgs::MotionPlanResponse &res,
+                  const planning_interface::MotionPlanRequest &req, 
+                  planning_interface::MotionPlanResponse &res,
                   std::vector<std::size_t> &added_path_index)
 {
   try
   {
     return adapter->adaptAndPlan(planner, planning_scene, req, res, added_path_index);
+  }
+  catch(std::runtime_error &ex)
+  {    
+    logError("Exception caught executing adapter '%s': %s", adapter->getDescription().c_str(), ex.what());
+    added_path_index.clear();
+    return planner(planning_scene, req, res);
   }
   catch(...)
   {    
@@ -120,8 +134,8 @@ bool callAdapter2(const PlanningRequestAdapter *adapter,
 
 bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::PlannerPtr &planner,
                                                                          const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                                         const moveit_msgs::MotionPlanRequest &req, 
-                                                                         moveit_msgs::MotionPlanResponse &res) const
+                                                                         const planning_interface::MotionPlanRequest &req, 
+                                                                         planning_interface::MotionPlanResponse &res) const
 {
   std::vector<std::size_t> dummy;
   return adaptAndPlan(planner, planning_scene, req, res, dummy);
@@ -129,8 +143,8 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const p
 
 bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::PlannerPtr &planner,
                                                                          const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                                         const moveit_msgs::MotionPlanRequest &req, 
-                                                                         moveit_msgs::MotionPlanResponse &res,
+                                                                         const planning_interface::MotionPlanRequest &req, 
+                                                                         planning_interface::MotionPlanResponse &res,
                                                                          std::vector<std::size_t> &added_path_index) const
 {
   // if there are no adapters, run the planner directly 
