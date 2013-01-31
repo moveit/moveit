@@ -73,11 +73,8 @@ struct ManipulationPlan
   kinematic_state::KinematicStatePtr approach_state_;
   kinematic_state::KinematicStatePtr translation_state_;
   
-  // The full starting state of the robot at the start of the trajectory
-  moveit_msgs::RobotState trajectory_start_;
-  
   // The sequence of trajectories produced for execution
-  std::vector<moveit_msgs::RobotTrajectory> trajectories_;
+  std::vector<kinematic_trajectory::KinematicTrajectoryPtr> trajectories_;
   
   // String descriptors of the trajectories
   std::vector<std::string> trajectory_descriptions_;

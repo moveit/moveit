@@ -83,8 +83,13 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr &plan) const
 { 
   moveit_msgs::DisplayTrajectory dtraj;
   dtraj.model_id = getKinematicModel()->getName();
-  dtraj.trajectory_start = plan->trajectory_start_; 
-  dtraj.trajectory = plan->trajectories_;
+  if (!plan->trajectories_.empty())
+  {
+    kinematic_state::kinematicStateToRobotState(plan->trajectories_.front()->getFirstWayPoint(), dtraj.trajectory_start);
+    dtraj.trajectory.resize(plan->trajectories_.size());
+    for (std::size_t i = 0 ; i < plan->trajectories_.size() ; ++i)
+      plan->trajectories_[i]->getRobotTrajectoryMsg(dtraj.trajectory[i]);
+  }
   display_path_publisher_.publish(dtraj);
 }
 

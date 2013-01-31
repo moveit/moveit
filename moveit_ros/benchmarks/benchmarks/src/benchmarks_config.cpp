@@ -257,7 +257,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
           req.benchmark_request.motion_plan_request.group_name = opt_.group_override;
 
         if (opt_.timeout > 0.0)
-          req.benchmark_request.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+          req.benchmark_request.motion_plan_request.allowed_planning_time = opt_.timeout;
 
         if (!opt_.default_constrained_link.empty())
         {
@@ -326,7 +326,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
           if (!opt_.group_override.empty())
             req.benchmark_request.motion_plan_request.group_name = opt_.group_override;
           if (opt_.timeout > 0.0)
-            req.benchmark_request.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+            req.benchmark_request.motion_plan_request.allowed_planning_time = opt_.timeout;
           if (!opt_.default_constrained_link.empty())
             checkConstrainedLink(req.benchmark_request.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
           if (!opt_.planning_frame.empty())

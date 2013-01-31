@@ -83,12 +83,12 @@ public:
   }
   
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const moveit_msgs::MotionPlanRequest& req,
-                    moveit_msgs::MotionPlanResponse& res) const;
+                    const planning_interface::MotionPlanRequest& req,
+                    planning_interface::MotionPlanResponse& res) const;
   
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const moveit_msgs::MotionPlanRequest& req,
-                    moveit_msgs::MotionPlanResponse& res,
+                    const planning_interface::MotionPlanRequest& req,
+                    planning_interface::MotionPlanResponse& res,
                     std::vector<std::size_t> &adapter_added_state_index) const;
 
   /// Request termination, if a generatePlan() function is currently computing plans

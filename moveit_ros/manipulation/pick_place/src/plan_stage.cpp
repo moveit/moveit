@@ -57,24 +57,23 @@ void PlanStage::signalStop(void)
 
 bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 {
-  moveit_msgs::MotionPlanRequest req;
-  moveit_msgs::MotionPlanResponse res;
+  planning_interface::MotionPlanRequest req;
+  planning_interface::MotionPlanResponse res;
   req.group_name = plan->planning_group_;
   req.num_planning_attempts = 1;
-  req.allowed_planning_time = ros::Duration((plan->timeout_ - ros::WallTime::now()).toSec());
+  req.allowed_planning_time = (plan->timeout_ - ros::WallTime::now()).toSec();
 
   req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->planning_group_)));
   
-  if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
-    plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory);
-    plan->trajectory_start_ = res.trajectory_start;
+    plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory_);
     plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), name_);
-    plan->error_code_ = res.error_code;
+    plan->error_code_ = res.error_code_;
     return true;
   }
   else
-    plan->error_code_ = res.error_code;
+    plan->error_code_ = res.error_code_;
   return false;
 }
 

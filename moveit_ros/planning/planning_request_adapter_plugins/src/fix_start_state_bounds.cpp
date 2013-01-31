@@ -75,8 +75,8 @@ public:
   
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::MotionPlanRequest &req, 
-                            moveit_msgs::MotionPlanResponse &res,
+                            const planning_interface::MotionPlanRequest &req, 
+                            planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
@@ -91,7 +91,6 @@ public:
       start_state.getJointStateVector(); 
     
     bool change_req = false;
-    std::map<std::string, double> continuous_joints;
     for (std::size_t i = 0 ; i < jstates.size() ; ++i)
     { 
       // Check if we have a revolute, continuous joint. If we do, then we only need to make sure
@@ -108,7 +107,6 @@ public:
           double initial = jstates[i]->getVariableValues()[0];
           jstates[i]->enforceBounds();
           double after = jstates[i]->getVariableValues()[0];
-          continuous_joints[jstates[i]->getName()] = initial - after;
           if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
             change_req = true;
         } 
@@ -166,7 +164,7 @@ public:
     // if we made any changes, use them
     if (change_req)
     {
-      moveit_msgs::MotionPlanRequest req2 = req;
+      planning_interface::MotionPlanRequest req2 = req;
       kinematic_state::kinematicStateToRobotState(start_state, req2.start_state);
       solved = planner(planning_scene, req2, res);
     }
@@ -175,43 +173,14 @@ public:
 
     // re-add the prefix state, if it was constructed
     if (prefix_state)
-    {      
-      kinematic_state::kinematicStateToRobotState(*prefix_state, res.trajectory_start);
-      if (solved)
-      {
+    {    
+      if (!res.trajectory_->empty())
         // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-        double d = std::min(max_dt_offset_, trajectory_processing::averageSegmentDuration(res.trajectory));
-        trajectory_processing::addPrefixState(*prefix_state, res.trajectory, d, planning_scene->getTransforms());
-        added_path_index.push_back(0);
-      }
+        res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
+      res.trajectory_->insertWayPoint(0, prefix_state, 0.0);
+      added_path_index.push_back(0);
     }
 
-    if (!continuous_joints.empty())
-    {
-      ROS_DEBUG("'%s' is now unwiding joints", getDescription().c_str());
-      trajectory_processing::unwindJointTrajectory(planning_scene->getKinematicModel(), res.trajectory.joint_trajectory);
-      
-      // re-add continuous joint offsets
-      for (std::map<std::string, double>::const_iterator it = continuous_joints.begin() ; it != continuous_joints.end() ; ++it)
-      {
-        // update the start state with the original request value
-        for (std::size_t i = 0 ; i < res.trajectory_start.joint_state.name.size() ; ++i)
-          if (res.trajectory_start.joint_state.name[i] == it->first)
-          {
-            res.trajectory_start.joint_state.position[i] += it->second;
-            break;
-          }
-        
-        for (std::size_t i = 0 ; i < res.trajectory.joint_trajectory.joint_names.size() ; ++i)
-          if (res.trajectory.joint_trajectory.joint_names[i] == it->first)
-          {
-            // undo wrapping due to start state
-            for (std::size_t j = 0 ; j < res.trajectory.joint_trajectory.points.size() ; ++j)
-              res.trajectory.joint_trajectory.points[j].positions[i] += it->second;
-            break;
-          }
-      }
-    }
     return solved;
   }
   

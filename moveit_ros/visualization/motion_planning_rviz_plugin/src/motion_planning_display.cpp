@@ -70,47 +70,6 @@
 namespace moveit_rviz_plugin
 {
 
-MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message,
-                                                                              const planning_scene::PlanningSceneConstPtr &scene)
-{
-  start_state_.reset(new kinematic_state::KinematicState(scene->getCurrentState()));
-  kinematic_state::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
-  for (std::size_t j = 0 ; j < message->trajectory.size() ; ++j)
-  {
-    // convert the path to kinematic states
-    if (trajectory_.empty())
-      trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory[j], *start_state_, scene->getTransforms());
-    else
-    {
-      static const moveit_msgs::RobotState empty_diff_state;
-      kinematic_state::KinematicTrajectory tmp;  
-      trajectory_processing::convertToKinematicStates(tmp, empty_diff_state, message->trajectory[j], *trajectory_.back(), scene->getTransforms());
-      trajectory_.insert(trajectory_.end(), tmp.begin(), tmp.end());
-    }
-    
-    // compute the display durations
-    std::vector<double> tmp2;
-    if (message->trajectory[j].joint_trajectory.points.size() > message->trajectory[j].multi_dof_joint_trajectory.points.size())
-      for (std::size_t i = 0 ; i < message->trajectory[j].joint_trajectory.points.size() ; ++i)
-        tmp2.push_back(message->trajectory[j].joint_trajectory.points[i].time_from_start.toSec());
-    else
-      for (std::size_t i = 0 ; i < message->trajectory[j].multi_dof_joint_trajectory.points.size() ; ++i)
-        tmp2.push_back(message->trajectory[j].multi_dof_joint_trajectory.points[i].time_from_start.toSec());
-    for (int i = (int)tmp2.size() - 1 ; i > 0 ; --i)
-      tmp2[i] -= tmp2[i - 1];
-    if (display_duration_.empty())
-      display_duration_.swap(tmp2);
-    else
-      display_duration_.insert(display_duration_.end(), tmp2.begin(), tmp2.end());
-  }
-}
-
-MotionPlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state,
-                                                                              const kinematic_state::KinematicTrajectory &trajectory) :
-  start_state_(start_state), trajectory_(trajectory)
-{
-}
-
 // ******************************************************************************************
 // Base class contructor
 // ******************************************************************************************
@@ -496,23 +455,24 @@ void MotionPlanningDisplay::changedLoopDisplay()
 void MotionPlanningDisplay::changedShowTrail(void)
 {
   clearTrajectoryTrail();
+
   if (!trail_display_property_->getBool() || !planning_scene_monitor_)
     return;
-  boost::shared_ptr<TrajectoryMessageToDisplay> t = trajectory_message_to_display_;
+  kinematic_trajectory::KinematicTrajectoryPtr t = trajectory_message_to_display_;
   if (!t)
     t = displaying_trajectory_message_;
   if (!t)
     return;
 
-  trajectory_trail_.resize(t->trajectory_.size());
+  trajectory_trail_.resize(t->getWayPointCount());
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
   {
     rviz::Robot *r = new rviz::Robot(planning_scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL);
     r->load(*getKinematicModel()->getURDF());
-    r->setVisualVisible(display_path_visual_enabled_property_->getBool() );
-    r->setCollisionVisible(display_path_collision_enabled_property_->getBool() );
-    r->update(PlanningLinkUpdater(t->trajectory_[i]));
-    r->setVisible(isEnabled() && (!animating_path_ || i<=current_state_));
+    r->setVisualVisible(display_path_visual_enabled_property_->getBool());
+    r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
+    r->update(PlanningLinkUpdater(t->getWayPointPtr(i)));
+    r->setVisible(isEnabled() && (!animating_path_ || i <= current_state_));
     trajectory_trail_[i] = r;
   }
 }
@@ -984,12 +944,6 @@ void MotionPlanningDisplay::changedStateDisplayTime()
 {
 }
 
-void MotionPlanningDisplay::displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
-                                                   const kinematic_state::KinematicTrajectory &trajectory)
-{
-  trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(start_state, trajectory));
-}
-
 void MotionPlanningDisplay::changedDisplayPathVisualEnabled()
 {
   if (isEnabled())
@@ -1286,7 +1240,7 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     display_path_robot_->setVisible(isEnabled());
   }
 
-  if (!animating_path_ && trajectory_message_to_display_)
+  if (!animating_path_ && trajectory_message_to_display_ && !trajectory_message_to_display_->empty())
   {
     planning_scene_monitor_->updateFrameTransforms();
     displaying_trajectory_message_ = trajectory_message_to_display_;
@@ -1295,29 +1249,22 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
     animating_path_ = true;
     current_state_ = -1;
     current_state_time_ = std::numeric_limits<float>::infinity();
-    display_path_robot_->update(displaying_trajectory_message_->start_state_);
+    display_path_robot_->update(displaying_trajectory_message_->getFirstWayPointPtr());
   }
 
   if (animating_path_)
   {
     float tm = getStateDisplayTime();
     if (tm < 0.0) // if we should use realtime
-    {
-      if ((std::size_t) (current_state_ + 1) < displaying_trajectory_message_->display_duration_.size())
-        tm = displaying_trajectory_message_->display_duration_[current_state_ + 1];
-      else
-        tm = 0.0f;
-    }
+      tm = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_ + 1);
     if (current_state_time_ > tm)
     {
       ++current_state_;
-      if ((std::size_t) current_state_ < displaying_trajectory_message_->trajectory_.size())
+      if ((std::size_t) current_state_ < displaying_trajectory_message_->getWayPointCount())
       {
-        display_path_robot_->update(displaying_trajectory_message_->trajectory_[current_state_]);
+        display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));
         for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
-        {
           trajectory_trail_[i]->setVisible(i <= current_state_);
-        }
       }
       else
       {
@@ -1376,16 +1323,32 @@ void MotionPlanningDisplay::save( rviz::Config config ) const
 
 void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
-  if (planning_scene_monitor_)
-    if (!msg->model_id.empty() && msg->model_id != getKinematicModel()->getName())
-      ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
-               msg->model_id.c_str(), getKinematicModel()->getName().c_str());
-
-  {
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
-    trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, ps));
-  }
-
+  if (!planning_scene_monitor_)
+    return;
+  
+  if (!msg->model_id.empty() && msg->model_id != getKinematicModel()->getName())
+    ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
+             msg->model_id.c_str(), getKinematicModel()->getName().c_str());
+  
+  trajectory_message_to_display_.reset();
+  
+  kinematic_trajectory::KinematicTrajectoryPtr t(new kinematic_trajectory::KinematicTrajectory(planning_scene_monitor_->getKinematicModel(), "")); 
+  for (std::size_t i = 0 ; i < msg->trajectory.size() ; ++i)
+    if (t->empty())
+    {
+      const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
+      t->setRobotTrajectoryMsg(ps->getCurrentState(), msg->trajectory_start, msg->trajectory[i]);
+    }
+    else
+    {
+      kinematic_trajectory::KinematicTrajectory tmp(planning_scene_monitor_->getKinematicModel(), ""); 
+      tmp.setRobotTrajectoryMsg(t->getLastWayPoint(), msg->trajectory[i]);
+      t->append(tmp, 0.0);
+    }
+  
+  if (!t->empty())
+    trajectory_message_to_display_.swap(t);
+  
   if (trail_display_property_->getBool())
     changedShowTrail();
 }

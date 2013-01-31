@@ -705,27 +705,20 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
       {
         std::vector<std::string> &jnames = parts[i].multi_dof_joint_trajectory.joint_names;
         jnames.insert(jnames.end(), intersect_mdof.begin(), intersect_mdof.end());
-        parts[i].multi_dof_joint_trajectory.frame_ids.resize(jnames.size());
-        parts[i].multi_dof_joint_trajectory.child_frame_ids.resize(jnames.size());
         std::map<std::string, std::size_t> index;
         for (std::size_t j = 0 ; j < trajectory.multi_dof_joint_trajectory.joint_names.size() ; ++j)
           index[trajectory.multi_dof_joint_trajectory.joint_names[j]] = j;
         std::vector<std::size_t> bijection(jnames.size());
         for (std::size_t j = 0 ; j < jnames.size() ; ++j)
-        {
           bijection[j] = index[jnames[j]];
-          if (trajectory.multi_dof_joint_trajectory.frame_ids.size() > bijection[j])
-            parts[i].multi_dof_joint_trajectory.frame_ids[j] = trajectory.multi_dof_joint_trajectory.frame_ids[bijection[j]];
-          if (trajectory.multi_dof_joint_trajectory.child_frame_ids.size() > bijection[j])
-            parts[i].multi_dof_joint_trajectory.child_frame_ids[j] = trajectory.multi_dof_joint_trajectory.child_frame_ids[bijection[j]];
-        }
+
         parts[i].multi_dof_joint_trajectory.points.resize(trajectory.multi_dof_joint_trajectory.points.size());
         for (std::size_t j = 0 ; j < trajectory.multi_dof_joint_trajectory.points.size() ; ++j)
         {
           parts[i].multi_dof_joint_trajectory.points[j].time_from_start = trajectory.multi_dof_joint_trajectory.points[j].time_from_start;
-          parts[i].multi_dof_joint_trajectory.points[j].poses.resize(bijection.size());
+          parts[i].multi_dof_joint_trajectory.points[j].values.resize(bijection.size());
           for (std::size_t k = 0 ; k < bijection.size() ; ++k)
-            parts[i].multi_dof_joint_trajectory.points[j].poses[k] = trajectory.multi_dof_joint_trajectory.points[j].poses[bijection[k]];
+            parts[i].multi_dof_joint_trajectory.points[j].values[k] = trajectory.multi_dof_joint_trajectory.points[j].values[bijection[k]];
         }        
       }
       if (!intersect_single.empty())

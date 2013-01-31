@@ -38,7 +38,7 @@
 #define MOVEIT_PLANNING_SCENE_MONITOR_TRAJECTORY_MONITOR_
 
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
-#include <moveit_msgs/RobotTrajectory.h>
+#include <moveit/kinematic_trajectory/kinematic_trajectory.h>
 #include <boost/thread.hpp>
 
 namespace planning_scene_monitor
@@ -74,18 +74,15 @@ public:
   void setSamplingFrequency(double sampling_frequency);
   
   /// Return the current maintained trajectory. This function is not thread safe (hence NOT const), because the trajectory could be modified.
-  const std::vector<kinematic_state::KinematicStateConstPtr>& getTrajectoryStates(void)
+  const kinematic_trajectory::KinematicTrajectory& getTrajectory()
   {
-    return trajectory_states_;
+    return trajectory_;
   }
-
-  /// Return the time stamps for the current maintained trajectory. This function is not thread safe (hence NOT const), because the trajectory could be modified.
-  const std::vector<ros::Time>& getTrajectoryStamps(void)
+  
+  void swapTrajectory(kinematic_trajectory::KinematicTrajectory &other)
   {
-    return trajectory_stamps_;
+    trajectory_.swap(other);
   }
-
-  void getTrajectory(moveit_msgs::RobotTrajectory &trajectory);
   
   void setOnStateAddCallback(const TrajectoryStateAddedCallback &callback)
   {
@@ -99,8 +96,9 @@ private:
   CurrentStateMonitorConstPtr current_state_monitor_;
   double sampling_frequency_;
 
-  std::vector<kinematic_state::KinematicStateConstPtr> trajectory_states_;
-  std::vector<ros::Time> trajectory_stamps_;
+  kinematic_trajectory::KinematicTrajectory trajectory_;
+  ros::Time trajectory_start_time_;
+  ros::Time last_recorded_state_time_;
 
   boost::scoped_ptr<boost::thread> record_states_thread_;
   TrajectoryStateAddedCallback state_add_callback_;

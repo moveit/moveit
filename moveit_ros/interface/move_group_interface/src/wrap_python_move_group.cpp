@@ -239,29 +239,13 @@ public:
 
     joint_trajectory["points"] = joint_traj_points;
  
-    bp::list frame_ids = moveit_py_bindings_tools::listFromString(plan.trajectory_.multi_dof_joint_trajectory.frame_ids);
-    bp::list child_frame_ids = moveit_py_bindings_tools::listFromString(plan.trajectory_.multi_dof_joint_trajectory.child_frame_ids);
-    multi_dof_joint_trajectory["frame_ids"] = frame_ids;
-    multi_dof_joint_trajectory["child_frame_ids"] = child_frame_ids;
-
     for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = plan.trajectory_.multi_dof_joint_trajectory.points.begin() ;
          it != plan.trajectory_.multi_dof_joint_trajectory.points.end() ; ++it)
     {
-      for (std::vector<geometry_msgs::Pose>::const_iterator itr = it->poses.begin() ; itr != it->poses.end() ; ++itr)
-      {
-        position["x"] = itr->position.x;
-        position["y"] = itr->position.y;
-        position["z"] = itr->position.z;
-        pose["position"] = position;
-
-        orientation["x"] = itr->orientation.x;
-        orientation["y"] = itr->orientation.y;
-        orientation["z"] = itr->orientation.z;
-        orientation["w"] = itr->orientation.w;
-        pose["orientation"] = orientation;
-        poses.append(pose);
-      }
-      multi_dof_traj_point["poses"] = poses;
+      bp::list vals;
+      for (std::size_t k = 0 ; k < it->values.size() ; ++k)
+        vals.append(moveit_py_bindings_tools::listFromDouble(it->values[k].values));
+      multi_dof_traj_point["values"] = vals;      
       multi_dof_traj_points.append(multi_dof_traj_point);
     }
     
