@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/pick_place/pick_place.h>
 #include <moveit/pick_place/plan_stage.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <ros/console.h>
@@ -65,11 +66,24 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 
   req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->planning_group_)));
   
-  if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) && res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) &&
+      res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && 
+      res.trajectory_ && !res.trajectory_->empty())
   {
+    if (!plan->grasp_.pre_grasp_posture.name.empty())
+    {
+      kinematic_state::KinematicStatePtr state(new kinematic_state::KinematicState(res.trajectory_->getLastWayPoint()));
+      state->setStateValues(plan->grasp_.pre_grasp_posture);
+      kinematic_trajectory::KinematicTrajectoryPtr traj(new kinematic_trajectory::KinematicTrajectory(state->getKinematicModel(), plan->end_effector_group_));
+      traj->addWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+      plan->trajectories_.insert(plan->trajectories_.begin(), traj);
+      plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), "pre_grasp");
+    }
+    
     plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory_);
     plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), name_);
     plan->error_code_ = res.error_code_;
+    
     return true;
   }
   else

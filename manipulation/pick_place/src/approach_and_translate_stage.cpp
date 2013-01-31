@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/pick_place/pick_place.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -41,9 +42,6 @@
 
 namespace pick_place
 {
-
-// the amount of time (maximum) to wait for achieving a grasp posture
-static const double GRASP_POSTURE_COMPLETION_DURATION = 7.0; // seconds
 
 ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &pre_grasp_scene,
                                                      const planning_scene::PlanningSceneConstPtr &post_grasp_scene,
@@ -108,7 +106,7 @@ void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Join
     kinematic_state::KinematicStatePtr state(new kinematic_state::KinematicState(plan->trajectories_.back()->getLastWayPoint()));
     state->setStateValues(grasp_posture);
     kinematic_trajectory::KinematicTrajectoryPtr traj(new kinematic_trajectory::KinematicTrajectory(state->getKinematicModel(), plan->end_effector_group_));
-    traj->addWayPoint(state, GRASP_POSTURE_COMPLETION_DURATION);
+    traj->addWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan->trajectories_.push_back(traj);
     plan->trajectory_descriptions_.push_back(name);
   }
@@ -167,8 +165,6 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
           if (d_translation > plan->grasp_.min_translation_distance && !signal_stop_)
           {
-            addGraspTrajectory(plan, plan->grasp_.pre_grasp_posture, "pre_grasp");
-            
             plan->approach_state_.swap(first_approach_state);
             plan->translation_state_.swap(last_translation_state);
 
@@ -194,9 +190,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           }
         }
         else
-        {
-          addGraspTrajectory(plan, plan->grasp_.pre_grasp_posture, "pre_grasp");
-          
+        {          
           plan->approach_state_.swap(first_approach_state);
           std::reverse(approach_states.begin(), approach_states.end());
           kinematic_trajectory::KinematicTrajectoryPtr approach_traj(new kinematic_trajectory::KinematicTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));

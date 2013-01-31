@@ -831,6 +831,10 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
         return true;
     }
   }
+  std::stringstream ss;
+  for (std::set<std::string>::const_iterator it = actuated_joints.begin() ; it != actuated_joints.end() ; ++it)
+    ss << *it << " ";
+  ROS_ERROR("Unable to identify any set of controllers that can actuate the specified joints: [ %s]", ss.str().c_str());
   return false;
 }
 

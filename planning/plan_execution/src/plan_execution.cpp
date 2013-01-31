@@ -239,7 +239,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     return result;
   }
-
+  
   if (plan.planned_trajectory_.empty())
   {
     result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -249,14 +249,42 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   execution_complete_ = false;
   
   // push the trajectories we have slated for execution to the trajectory execution manager
+  int prev = -1;
   for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
-  {
-    moveit_msgs::RobotTrajectory msg;
-    // unwind the path to execute based on the current state of the system
-    plan.planned_trajectory_[i]->unwind(plan.planning_scene_monitor_ && plan.planning_scene_monitor_->getStateMonitor() ? 
-                                        *plan.planning_scene_monitor_->getStateMonitor()->getCurrentState() : 
-                                        plan.planning_scene_->getCurrentState());
+  {ROS_ERROR("XX %d", i);
+    
+    if (!plan.planned_trajectory_[i] || plan.planned_trajectory_[i]->empty())
+      continue;
+    
+    // \todo should this be in thajectory_execution ? Maybe. Then that will have to use kinematic_trajectory too; 
+    // spliting trajectories for controllers becomes interesting: tied to groups instead of joints. this could cause some problems
+    // in the meantime we do a hack:
+    
+    bool unwound = false;
+    for (std::size_t j = 0 ; j < i ; ++j)
+      // if we ran unwind on a path for the same group
+      if (plan.planned_trajectory_[j] && plan.planned_trajectory_[j]->getGroup() == plan.planned_trajectory_[i]->getGroup() && !plan.planned_trajectory_[j]->empty())
+      {
+        plan.planned_trajectory_[i]->unwind(plan.planned_trajectory_[j]->getLastWayPoint());
+        unwound = true;
+        break;        
+      }
+    
+    if (!unwound)
+    {
+      // unwind the path to execute based on the current state of the system
+      if (prev < 0)
+        plan.planned_trajectory_[i]->unwind(plan.planning_scene_monitor_ && plan.planning_scene_monitor_->getStateMonitor() ? 
+                                            *plan.planning_scene_monitor_->getStateMonitor()->getCurrentState() : 
+                                            plan.planning_scene_->getCurrentState());
+      else
+        plan.planned_trajectory_[i]->unwind(plan.planned_trajectory_[prev]->getLastWayPoint());
+    }
+    
+    prev = i;
+    
     // convert to message, pass along
+    moveit_msgs::RobotTrajectory msg;
     plan.planned_trajectory_[i]->getRobotTrajectoryMsg(msg);
     if (!trajectory_execution_manager_->push(msg))
     {

@@ -46,6 +46,7 @@ namespace pick_place
 
 const std::string PickPlace::DISPLAY_PATH_TOPIC = planning_pipeline::PlanningPipeline::DISPLAY_PATH_TOPIC;
 const std::string PickPlace::DISPLAY_GRASP_TOPIC = "display_grasp_markers";
+const double PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION = 7.0; // seconds
 
 // functionality specific to pick-only is in pick.cpp;
 // functionality specific to place-only is in place.cpp;
