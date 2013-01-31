@@ -150,6 +150,53 @@ void Trajectory::connectEndMarker()
   end_marker->connect(this, SLOT( endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 }
 
+void Trajectory::rebuildWayPointMarkers()
+{
+  waypoint_markers.clear();
+  if (start_marker && end_marker)
+  {
+    Eigen::Vector3d start_t(control_marker_start_pose.translation());
+    Eigen::Vector3d end_t(control_marker_end_pose.translation());
+
+    Eigen::Quaterniond start_r(control_marker_start_pose.rotation());
+    Eigen::Quaterniond end_r(control_marker_end_pose.rotation());
+
+
+    Eigen::Affine3d wMh = Eigen::Affine3d(Eigen::Quaterniond(hand_marker->imarker->getOrientation().w, hand_marker->imarker->getOrientation().x,
+                                                             hand_marker->imarker->getOrientation().y, hand_marker->imarker->getOrientation().z));
+    wMh.translation() = Eigen::Vector3d(hand_marker->imarker->getPosition().x,
+                                        hand_marker->imarker->getPosition().y,
+                                        hand_marker->imarker->getPosition().z);
+
+    Eigen::Affine3d wMt = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
+                                                             control_marker->imarker->getOrientation().y, control_marker->imarker->getOrientation().z));
+    wMt.translation() = Eigen::Vector3d(control_marker->imarker->getPosition().x,
+                                        control_marker->imarker->getPosition().y,
+                                        control_marker->imarker->getPosition().z);
+
+    Eigen::Affine3d tMh = wMt.inverse() * wMh;
+
+    static std::size_t nfragments = 6;
+    for (std::size_t i = 1; i < nfragments; ++i)
+    {
+      Eigen::Vector3d waypoint_t = ((nfragments - i) * start_t + i * end_t) / nfragments;
+      Eigen::Quaterniond waypoint_r = start_r.slerp( (double)i / (double)nfragments, end_r );
+      Eigen::Affine3d wMwpt(waypoint_r);
+      wMwpt.translation() = waypoint_t;
+
+      Eigen::Affine3d wMwph = wMwpt * tMh;
+
+      GripperMarkerPtr waypoint(new GripperMarker(*hand_marker));
+      waypoint->unselect(true);
+      waypoint->setColor(0.0, 0.9, 0.0, 0.6);
+      Eigen::Quaterniond rotation(wMwph.rotation());
+      waypoint->imarker->setPose(Ogre::Vector3(wMwph(0,3), wMwph(1,3), wMwph(2,3)),
+                                 Ogre::Quaternion(rotation.w(), rotation.x(), rotation.y(), rotation.z()), "");
+      waypoint_markers.push_back(waypoint);
+    }
+  }
+}
+
 void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
   if (feedback.event_type == feedback.MENU_SELECT)
@@ -157,15 +204,33 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
     if (feedback.menu_entry_id == TRAJECTORY_SET_START_POSE)
     {
       //Create start marker
+      control_marker_start_pose = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
+                                                                     control_marker->imarker->getOrientation().y, control_marker->imarker->getOrientation().z));
+      control_marker_start_pose.translation() = Eigen::Vector3d(control_marker->imarker->getPosition().x,
+                                                                control_marker->imarker->getPosition().y,
+                                                                control_marker->imarker->getPosition().z);
+
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::createStartMarker, this));
+      JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::rebuildWayPointMarkers, this));
     }
     else if (feedback.menu_entry_id == TRAJECTORY_SET_END_POSE)
     {
       //Create end marker
+      control_marker_end_pose = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
+                                                                   control_marker->imarker->getOrientation().y, control_marker->imarker->getOrientation().z));
+      control_marker_end_pose.translation() = Eigen::Vector3d(control_marker->imarker->getPosition().x,
+                                                                control_marker->imarker->getPosition().y,
+                                                                control_marker->imarker->getPosition().z);
+
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::createEndMarker, this));
+      JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::rebuildWayPointMarkers, this));
     }
     else if (feedback.menu_entry_id == TRAJECTORY_EDIT_CONTROL_FRAME)
     {
+      start_marker.reset();
+      end_marker.reset();
+      waypoint_markers.clear();
+
       control_marker_mode_ = CONTROL_MARKER_FLOATING;
 
       std::vector<visualization_msgs::MenuEntry> menu_entries;
@@ -224,11 +289,11 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
     hand_marker_start_pose(1,3) = hand_marker->imarker->getPosition().y;
     hand_marker_start_pose(2,3) = hand_marker->imarker->getPosition().z;
 
-    control_marker_start_pose = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
+    control_marker_drag_start_pose = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
                                                  control_marker->imarker->getOrientation().y, control_marker->imarker->getOrientation().z));
-    control_marker_start_pose(0,3) = control_marker->imarker->getPosition().x;
-    control_marker_start_pose(1,3) = control_marker->imarker->getPosition().y;
-    control_marker_start_pose(2,3) = control_marker->imarker->getPosition().z;
+    control_marker_drag_start_pose(0,3) = control_marker->imarker->getPosition().x;
+    control_marker_drag_start_pose(1,3) = control_marker->imarker->getPosition().y;
+    control_marker_drag_start_pose(2,3) = control_marker->imarker->getPosition().z;
     dragging_=true;
   }
   else if (feedback.event_type == feedback.POSE_UPDATE && dragging_ && control_marker_mode_ == CONTROL_MARKER_FIXED)
@@ -237,10 +302,10 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
     Eigen::Affine3d current_pose_eigen;
     tf::poseMsgToEigen(feedback.pose, current_pose_eigen);
 
-    Eigen::Affine3d current_wrt_initial = control_marker_start_pose.inverse() * current_pose_eigen;
+    Eigen::Affine3d current_wrt_initial = control_marker_drag_start_pose.inverse() * current_pose_eigen;
 
     visualization_msgs::InteractiveMarkerPose impose;
-    Eigen::Affine3d newpose = control_marker_start_pose * current_wrt_initial * control_marker_start_pose.inverse() * hand_marker_start_pose;
+    Eigen::Affine3d newpose = control_marker_drag_start_pose * current_wrt_initial * control_marker_drag_start_pose.inverse() * hand_marker_start_pose;
     tf::poseEigenToMsg(newpose, impose.pose);
 
     hand_marker->imarker->setPose(Ogre::Vector3(impose.pose.position.x, impose.pose.position.y, impose.pose.position.z),
