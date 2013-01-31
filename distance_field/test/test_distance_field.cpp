@@ -43,6 +43,7 @@
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <octomap/octomap.h>
+#include <boost/make_shared.hpp>
 
 using namespace distance_field;
 
@@ -639,6 +640,27 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
   df_highres.addOcTreeToField(&tree_lowres);
   EXPECT_EQ(countOccupiedCells(df_highres), 3*(6*6*6));
   std::cout << "Occupied cells " << countOccupiedCells(df_highres) << std::endl;
+
+  //testing adding shape that happens to be octree
+  boost::shared_ptr<octomap::OcTree> tree_shape(new octomap::OcTree(.05));
+  octomap::point3d tpoint1(1.0,.5,1.0);  
+  octomap::point3d tpoint2(1.7,.5,.5);  
+  octomap::point3d tpoint3(1.8,.5,.5);  
+  tree_shape->updateNode(tpoint1, true);
+  tree_shape->updateNode(tpoint2, true);
+  tree_shape->updateNode(tpoint3, true);
+  
+  boost::shared_ptr<shapes::OcTree> shape_oc(new shapes::OcTree(tree_shape));
+
+  PropagationDistanceField df_test_shape_1(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+                                           PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);  
+
+  PropagationDistanceField df_test_shape_2(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+                                           PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);  
+  
+  df_test_shape_1.addOcTreeToField(tree_shape.get());
+  df_test_shape_2.addShapeToField(shape_oc.get(), geometry_msgs::Pose());
+  EXPECT_TRUE(areDistanceFieldsDistancesEqual(df_test_shape_1, df_test_shape_2));
 }
 
 TEST(TestSignedPropagationDistanceField, TestReadWrite)
