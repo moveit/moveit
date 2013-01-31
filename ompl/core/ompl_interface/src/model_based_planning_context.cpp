@@ -244,59 +244,19 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution(void)
   }
 }
 
-void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometric::PathGeometric &pg, moveit_msgs::RobotTrajectory &traj) const
+void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometric::PathGeometric &pg, kinematic_trajectory::KinematicTrajectory &traj) const
 {
   kinematic_state::KinematicState ks = complete_initial_robot_state_;
-  const std::vector<const kinematic_model::JointModel*> &jnt = getJointModelGroup()->getJointModels();
-  std::vector<const kinematic_model::JointModel*> onedof;
-  std::vector<const kinematic_model::JointModel*> mdof;
-  traj.joint_trajectory.header.frame_id = getPlanningScene()->getPlanningFrame();
-  traj.joint_trajectory.joint_names.clear();
-  traj.multi_dof_joint_trajectory.joint_names.clear();
-  traj.multi_dof_joint_trajectory.child_frame_ids.clear();
-  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
-    if (jnt[i]->getVariableCount() == 1)
-    {
-      traj.joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      onedof.push_back(jnt[i]);
-    }
-    else
-    {
-      traj.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      traj.multi_dof_joint_trajectory.frame_ids.push_back(traj.joint_trajectory.header.frame_id);
-      traj.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
-      mdof.push_back(jnt[i]);
-    }
-  if (!onedof.empty())
-    traj.joint_trajectory.points.resize(pg.getStateCount());
-  if (!mdof.empty())
-    traj.multi_dof_joint_trajectory.points.resize(pg.getStateCount());
-
   for (std::size_t i = 0 ; i < pg.getStateCount() ; ++i)
   {
     spec_.state_space_->copyToKinematicState(ks, pg.getState(i));
-    if (!onedof.empty())
-    {
-      traj.joint_trajectory.points[i].positions.resize(onedof.size());
-      for (std::size_t j = 0 ; j < onedof.size() ; ++j)
-        traj.joint_trajectory.points[i].positions[j] = ks.getJointState(onedof[j]->getName())->getVariableValues()[0];
-      traj.joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
-    }
-    if (!mdof.empty())
-    {
-      traj.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
-      for (std::size_t j = 0 ; j < mdof.size() ; ++j)
-      {
-        tf::poseEigenToMsg(ks.getJointState(mdof[j]->getName())->getVariableTransform(),
-                           traj.multi_dof_joint_trajectory.points[i].poses[j]);
-      }
-      traj.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
-    }
+    traj.addWayPoint(ks, 0.0);
   }
 }
 
-bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(moveit_msgs::RobotTrajectory &traj) const
+bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(kinematic_trajectory::KinematicTrajectory &traj) const
 {
+  traj.clear();
   if (!ompl_simple_setup_.haveSolutionPath())
     return false;
   convertPath(ompl_simple_setup_.getSolutionPath(), traj);
