@@ -43,6 +43,8 @@
 #include <moveit/collision_detection/collision_world.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/kinematic_trajectory/kinematic_trajectory.h>
+#include <moveit/macros/deprecation.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
@@ -428,17 +430,20 @@ public:
   bool isStateValid(const kinematic_state::KinematicState &state, const kinematic_constraints::KinematicConstraintSet &constr, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
+  MOVEIT_DEPRECATED
   bool isPathValid(const moveit_msgs::RobotState &start_state,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  MOVEIT_DEPRECATED
   bool isPathValid(const moveit_msgs::RobotState &start_state,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  MOVEIT_DEPRECATED
   bool isPathValid(const moveit_msgs::RobotState &start_state,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
@@ -446,6 +451,7 @@ public:
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  MOVEIT_DEPRECATED
   bool isPathValid(const moveit_msgs::RobotState &start_state,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
@@ -453,6 +459,7 @@ public:
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  MOVEIT_DEPRECATED
   bool isPathValid(const kinematic_state::KinematicState &start_state,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
@@ -460,17 +467,20 @@ public:
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  MOVEIT_DEPRECATED
   bool isPathValid(const kinematic_state::KinematicState &start_state,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  MOVEIT_DEPRECATED
   bool isPathValid(const kinematic_state::KinematicState &start_state,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
   
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  MOVEIT_DEPRECATED
   bool isPathValid(const kinematic_state::KinematicState &start_state,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
@@ -478,27 +488,32 @@ public:
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
-  bool isPathValid(const kinematic_state::KinematicTrajectory &trajectory,
+  bool isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const std::vector<moveit_msgs::Constraints>& goal_constraints,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
-  bool isPathValid(const kinematic_state::KinematicTrajectory &trajectory,
+  bool isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const moveit_msgs::Constraints& goal_constraints,
+                   const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
+
+  /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). */
+  bool isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+                   const moveit_msgs::Constraints& path_constraints,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
-  bool isPathValid(const kinematic_state::KinematicTrajectory &trajectory,
+  bool isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
   
   /** \brief Get the top \e max_costs cost sources for a specified trajectory. The resulting costs are stored in \e costs */
-  void getCostSources(const kinematic_state::KinematicTrajectory &trajectory, std::size_t max_costs,
+  void getCostSources(const kinematic_trajectory::KinematicTrajectory &trajectory, std::size_t max_costs,
                       std::set<collision_detection::CostSource> &costs, double overlap_fraction = 0.9) const;
 
   /** \brief Get the top \e max_costs cost sources for a specified trajectory, but only for group \e group_name. The resulting costs are stored in \e costs */
-  void getCostSources(const kinematic_state::KinematicTrajectory &trajectory, std::size_t max_costs,
+  void getCostSources(const kinematic_trajectory::KinematicTrajectory &trajectory, std::size_t max_costs,
                       const std::string &group_name, std::set<collision_detection::CostSource> &costs, double overlap_fraction = 0.9) const;
 
   /** \brief Get the top \e max_costs cost sources for a specified state. The resulting costs are stored in \e costs */

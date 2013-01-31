@@ -469,4 +469,38 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
   return success;
 }
 
+bool IterativeParabolicTimeParameterization::computeTimeStamps(kinematic_trajectory::KinematicTrajectory& trajectory,
+                                                               const moveit_msgs::RobotState& start_state) const
+{ 
+  if (trajectory.empty())
+    return true;
+  
+  if (!trajectory.getGroup())
+  {
+    logError("It looks like the planner did not set the group the plan was computed for");
+    return false;
+  }
+
+  // \todo this lib does not actually work properly when angles wrap around, so we need to unwind the path first
+  trajectory.unwind();
+  
+  // \todo this is inefficient  (we should avoid conversions back & forth)
+  moveit_msgs::RobotTrajectory msg;
+  trajectory.getRobotTrajectoryMsg(msg);
+  const std::vector<moveit_msgs::JointLimits> &jlim = trajectory.getGroup()->getVariableLimits();
+  if (computeTimeStamps(msg.joint_trajectory, jlim, start_state))
+  {
+    trajectory.setRobotTrajectoryMsg(trajectory.getFirstWayPoint(), msg);
+    return true;
+  }
+  else 
+    return false;
+}
+
+bool IterativeParabolicTimeParameterization::computeTimeStamps(kinematic_trajectory::KinematicTrajectory& trajectory) const
+{
+  static const moveit_msgs::RobotState start_state;
+  return computeTimeStamps(trajectory, start_state);
+}
+
 }

@@ -43,6 +43,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     kinematics_metrics/include
     kinematic_model/include
     kinematic_state/include
+    kinematic_trajectory/include
     kinematics_planner/include
     kinematic_constraints/include
     macros/include
@@ -61,6 +62,8 @@ catkin_package(
   LIBRARIES
     moveit_kinematic_model
     moveit_kinematic_state
+    moveit_kinematic_trajectory
+    moveit_planning_interface
     moveit_collision_detection
     moveit_collision_detection_fcl
     moveit_kinematic_constraints
@@ -111,6 +114,7 @@ add_subdirectory(controller_manager)
 add_subdirectory(sensor_manager)
 add_subdirectory(kinematic_model)
 add_subdirectory(kinematic_state)
+add_subdirectory(kinematic_trajectory)
 add_subdirectory(collision_detection)
 add_subdirectory(collision_detection_fcl)
 add_subdirectory(kinematic_constraints)

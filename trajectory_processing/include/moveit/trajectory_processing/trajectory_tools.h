@@ -41,46 +41,31 @@
 #include <moveit/kinematic_state/transforms.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
+#include <moveit/macros/deprecation.h>
 
 namespace trajectory_processing
 {
 
+MOVEIT_DEPRECATED
 void convertToKinematicStates(std::vector<kinematic_state::KinematicStatePtr> &states,
                               const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
                               const kinematic_state::KinematicState &reference_state, const kinematic_state::TransformsConstPtr &transforms);
 
-void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
-                              const std::vector<kinematic_state::KinematicStateConstPtr> &states,
-                              const std::vector<ros::Duration> &stamps = std::vector<ros::Duration>(),
-                              const std::string &group = std::string());
-
-void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
-                              const std::vector<kinematic_state::KinematicStateConstPtr> &states, 
-                              const std::string &group);
-
-void addPrefixState(const kinematic_state::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
-                    double dt_offset, const kinematic_state::TransformsConstPtr &transforms);
-
+MOVEIT_DEPRECATED
 bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory);
 
+MOVEIT_DEPRECATED
 double getTrajectoryDuration(const moveit_msgs::RobotTrajectory &trajectory);
 
+MOVEIT_DEPRECATED
 double averageSegmentDuration(const moveit_msgs::RobotTrajectory &trajectory);
 
+MOVEIT_DEPRECATED
 std::size_t trajectoryPointCount(const moveit_msgs::RobotTrajectory &trajectory);
 
-void reverseTrajectory(moveit_msgs::RobotTrajectory &trajectory);
-
-void unwindJointTrajectory(const kinematic_model::KinematicModelConstPtr &kmodel, trajectory_msgs::JointTrajectory &joint_trajectory);
-
-/**
- * @brief Convert a RobotTrajectoryPoint (in a RobotTrajectory) to a RobotState message
- * @param rt The input RobotTrajectory
- * @param index The index of the point that we want to convert
- * @param rs The resultant robot state
- * @return True if any data was copied to \e rs. If \e index is out of range, no data is copied and false is returned.
- */
+MOVEIT_DEPRECATED
 bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &trajectory, std::size_t index, moveit_msgs::RobotState &rs);
+
 
 }
 

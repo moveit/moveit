@@ -40,6 +40,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <moveit_msgs/JointLimits.h>
 #include <moveit_msgs/RobotState.h>
+#include <moveit/kinematic_trajectory/kinematic_trajectory.h>
 
 namespace trajectory_processing
 {
@@ -52,6 +53,10 @@ public:
   IterativeParabolicTimeParameterization(unsigned int max_iterations = 100,
                                          double max_time_change_per_it = .01);
   ~IterativeParabolicTimeParameterization(void);
+
+  bool computeTimeStamps(kinematic_trajectory::KinematicTrajectory& trajectory) const;
+  bool computeTimeStamps(kinematic_trajectory::KinematicTrajectory& trajectory,
+                         const moveit_msgs::RobotState& start_state) const;
   
   /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
   /// points that exceed the velocity or acceleration bounds.

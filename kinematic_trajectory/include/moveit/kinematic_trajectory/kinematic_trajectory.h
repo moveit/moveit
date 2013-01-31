@@ -103,9 +103,19 @@ public:
     return duration_from_previous_;
   }
   
-  double& getWayPointDurationFromPrevious(std::size_t index)
+  double getWayPointDurationFromPrevious(std::size_t index)
   {
-    return duration_from_previous_[index];
+    if (duration_from_previous_.size() > index)
+      return duration_from_previous_[index];
+    else
+      return 0.0;
+  }
+
+  void setWayPointDurationFromPrevious(std::size_t index, double value)
+  {
+    if (duration_from_previous_.size() <= index)
+      duration_from_previous_.resize(index + 1, 0.0);
+    duration_from_previous_[index] = value;
   }
   
   bool empty() const
@@ -153,7 +163,8 @@ public:
   
     
   void reverse(void);
-  
+
+  void unwind();
   void unwind(const kinematic_state::KinematicState &state);
   
 private:

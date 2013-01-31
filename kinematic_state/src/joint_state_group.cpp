@@ -804,38 +804,7 @@ bool kinematic_state::JointStateGroup::avoidJointLimitsSecondaryTask(const kinem
   return true;
 }
 
-namespace
-{
-
-void addTrajectoryPoint(const kinematic_state::KinematicState *state,
-                        const std::vector<const kinematic_model::JointModel*> &onedof,
-                        const std::vector<const kinematic_model::JointModel*> &mdof,
-                        moveit_msgs::RobotTrajectory &traj)
-{ 
-  if (!onedof.empty())
-  { 
-    traj.joint_trajectory.points.resize(traj.joint_trajectory.points.size() + 1);
-    traj.joint_trajectory.points.back().positions.resize(onedof.size());
-    for (std::size_t j = 0 ; j < onedof.size() ; ++j)
-      traj.joint_trajectory.points.back().positions[j] = state->getJointState(onedof[j]->getName())->getVariableValues()[0];
-    traj.joint_trajectory.points.back().time_from_start = ros::Duration(0.0);
-  }
-  if (!mdof.empty())
-  {
-    traj.multi_dof_joint_trajectory.points.resize(traj.multi_dof_joint_trajectory.points.size() + 1);
-    traj.multi_dof_joint_trajectory.points.back().poses.resize(mdof.size());
-    for (std::size_t j = 0 ; j < mdof.size() ; ++j)
-    {
-      tf::poseEigenToMsg(state->getJointState(mdof[j]->getName())->getVariableTransform(),
-                         traj.multi_dof_joint_trajectory.points.back().poses[j]);
-    }
-    traj.multi_dof_joint_trajectory.points.back().time_from_start = ros::Duration(0.0);
-  }
-}
-
-}
-
-double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::RobotTrajectory &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
+double kinematic_state::JointStateGroup::computeCartesianPath(std::vector<KinematicStatePtr> &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
                                                               double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback)
 {
   const LinkState *link_state = kinematic_state_->getLinkState(link_name);
@@ -869,31 +838,9 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
   // decide how many steps we will need for this trajectory
   unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
   
-  // precompute some information about the type of joints we will need to include in the result
-
-  std::vector<const kinematic_model::JointModel*> onedof;
-  std::vector<const kinematic_model::JointModel*> mdof;
-  traj.joint_trajectory.header.frame_id = kinematic_state_->getKinematicModel()->getModelFrame();
-  traj.joint_trajectory.joint_names.clear();
-  traj.multi_dof_joint_trajectory.joint_names.clear();
-  traj.multi_dof_joint_trajectory.child_frame_ids.clear();
-  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
-    if (jnt[i]->getVariableCount() == 1)
-    {
-      traj.joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      onedof.push_back(jnt[i]);
-    }
-    else
-    {
-      traj.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      traj.multi_dof_joint_trajectory.frame_ids.push_back(traj.joint_trajectory.header.frame_id);
-      traj.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
-      mdof.push_back(jnt[i]);
-    }
+  traj.clear();
+  traj.push_back(KinematicStatePtr(new KinematicState(*kinematic_state_)));
   
-  // add the current state as the first point on the trajectory
-  addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
-
   std::vector<std::vector<double> > previous_values(joint_state_vector_.size());
   std::vector<double> dist_vector;
   double total_dist = 0.0;
@@ -901,8 +848,7 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
   if (test_joint_space_jump) // the joint values we start with
     for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
       previous_values[k] = joint_state_vector_[k]->getVariableValues();
-
-
+  
   double last_valid_distance = 0.0;
   for (unsigned int i = 1; i <= steps ; ++i)
   {
@@ -911,7 +857,7 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
     pose.translation() = pose.translation() + rotated_direction * d;
     if (setFromIK(pose, link_name, 1, 0.0, validCallback))
     {
-      addTrajectoryPoint(kinematic_state_, onedof, mdof, traj);
+      traj.push_back(KinematicStatePtr(new KinematicState(*kinematic_state_)));
       
       // compute the distance to the previous point (infinity norm)
       if (test_joint_space_jump)
@@ -932,19 +878,6 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
       break;
     last_valid_distance = d;
   }
-
-  
-  // re-add continuous joint offsets; NOTE: THIS IS ONLY DONE FOR revolute cont. joints; perhaps we want to do more than this in the future
-  for (std::map<std::string, double>::const_iterator it = upd_continuous_joints.begin() ; it != upd_continuous_joints.end() ; ++it)
-  {
-    for (std::size_t i = 0 ; i < traj.joint_trajectory.joint_names.size() ; ++i)
-      if (traj.joint_trajectory.joint_names[i] == it->first)
-      {
-        for (std::size_t j = 0 ; j < traj.joint_trajectory.points.size() ; ++j)
-          traj.joint_trajectory.points[j].positions[i] += it->second;
-        break;
-      }
-  }
   
   if (test_joint_space_jump)
   {
@@ -955,10 +888,7 @@ double kinematic_state::JointStateGroup::computeCartesianPath(moveit_msgs::Robot
       {
 	logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
 	last_valid_distance = distance * (double)i / (double)steps;
-	if (!traj.multi_dof_joint_trajectory.points.empty())
-	  traj.multi_dof_joint_trajectory.points.resize(i);
-	if (!traj.joint_trajectory.points.empty())
-	  traj.joint_trajectory.points.resize(i);
+        traj.resize(i);
 	break;
       }
   }

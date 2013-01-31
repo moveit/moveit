@@ -152,6 +152,13 @@ public:
     return joint_model_names_vector_;
   }
   
+  /** \brief Get the array of continuous joints, in the order they appear
+      in the robot state. */
+  const std::vector<const JointModel*>& getContinuousJointModels(void) const
+  {
+    return continuous_joint_model_vector_const_;
+  }
+
   /** \brief Get the array of links  */
   const std::vector<const LinkModel*>& getLinkModels(void) const
   {
@@ -341,6 +348,9 @@ protected:
   
   /** \brief The vector of joint names that corresponds to joint_model_vector_ */
   std::vector<std::string>                      joint_model_names_vector_;
+  
+  /** \brief The set of continuous joints this model contains */
+  std::vector<const JointModel*>                continuous_joint_model_vector_const_;
   
   /** \brief The names of the DOF that make up this state (this is just a sequence of joint variable names; not necessarily joint names!) */
   std::vector<std::string>                      active_variable_names_;

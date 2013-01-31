@@ -36,9 +36,8 @@
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
 
 #include <moveit/planning_scene/planning_scene.h>
-#include <moveit_msgs/MotionPlanRequest.h>
-#include <moveit_msgs/MotionPlanResponse.h>
-#include <moveit_msgs/MotionPlanDetailedResponse.h>
+#include <moveit/planning_interface/planning_request.h>
+#include <moveit/planning_interface/planning_response.h>
 
 /** \brief This namespace includes the base class for MoveIt planners */
 namespace planning_interface
@@ -52,31 +51,29 @@ public:
   Planner(void)
   {
   }
-
+  
   virtual ~Planner(void) 
   {
   };
   
   /// Subclass may implement methods below
-  virtual void init(const kinematic_model::KinematicModelConstPtr& model) { }
+  virtual bool initialize(const kinematic_model::KinematicModelConstPtr& model) { return true; }
   
   /// Get a short string that identifies the planning interface
   virtual std::string getDescription(void) const { return ""; }
   
   /// Get the names of the known planning algorithms (values that can be filled as planner_id in the planning request)
   virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const { }
-
+  
   /// Subclass must implement methods below
   virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const moveit_msgs::MotionPlanRequest &req, 
-                     moveit_msgs::MotionPlanResponse &res) const = 0;
+                     const MotionPlanRequest &req, MotionPlanResponse &res) const = 0;
   
   virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const moveit_msgs::MotionPlanRequest &req, 
-                     moveit_msgs::MotionPlanDetailedResponse &res) const = 0;
+                     const MotionPlanRequest &req, MotionPlanDetailedResponse &res) const = 0;
   
   /// Determine whether this plugin instance is able to represent this planning request
-  virtual bool canServiceRequest(const moveit_msgs::MotionPlanRequest &req)  const = 0;
+  virtual bool canServiceRequest(const MotionPlanRequest &req)  const = 0;
   
   /// Request termination, if a solve() function is currently computing plans
   virtual void terminate(void) const = 0;
