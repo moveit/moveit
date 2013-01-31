@@ -5,6 +5,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/planning_scene_storage.cpp
   src/planning_scene_world_storage.cpp
   src/constraints_storage.cpp
+  src/trajectory_constraints_storage.cpp
   src/state_storage.cpp
   src/warehouse_connector.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
