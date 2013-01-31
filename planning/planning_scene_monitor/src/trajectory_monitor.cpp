@@ -40,7 +40,9 @@
 #include <limits>
 
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency) :
-  current_state_monitor_(state_monitor), sampling_frequency_(5.0)
+  current_state_monitor_(state_monitor), 
+  trajectory_(current_state_monitor_->getKinematicModel(), ""),
+  sampling_frequency_(5.0)
 {
   setSamplingFrequency(sampling_frequency);
 }
@@ -87,9 +89,8 @@ void planning_scene_monitor::TrajectoryMonitor::clearTrajectory(void)
 {  
   bool restart = isActive();
   if (restart)
-    stopTrajectoryMonitor();
-  trajectory_states_.clear();
-  trajectory_stamps_.clear();
+    stopTrajectoryMonitor(); 
+  trajectory_.clear();
   if (restart)
     startTrajectoryMonitor();
 }
@@ -100,21 +101,23 @@ void planning_scene_monitor::TrajectoryMonitor::recordStates(void)
     return;
   
   ros::Rate rate(sampling_frequency_);
+  
   while (record_states_thread_)
   {
     rate.sleep();
     std::pair<kinematic_state::KinematicStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
-    trajectory_states_.push_back(state.first);
-    trajectory_stamps_.push_back(state.second);
+    if (trajectory_.empty())
+    {
+      trajectory_.addWayPoint(state.first, 0.0);
+      trajectory_start_time_ = state.second;
+      last_recorded_state_time_ = state.second;
+    }
+    else
+    {
+      trajectory_.addWayPoint(state.first, (state.second - last_recorded_state_time_).toSec());
+      last_recorded_state_time_ = state.second;
+    }
     if (state_add_callback_)
-      state_add_callback_(trajectory_states_.back(), trajectory_stamps_.back());
+      state_add_callback_(state.first, state.second);
   }
-}
-
-void planning_scene_monitor::TrajectoryMonitor::getTrajectory(moveit_msgs::RobotTrajectory &trajectory)
-{
-  std::vector<ros::Duration> durations(trajectory_stamps_.size(), ros::Duration(0.0));
-  for (std::size_t i = 1 ; i < trajectory_stamps_.size() ; ++i)
-    durations[i] = trajectory_stamps_[i] - trajectory_stamps_[i - 1];
-  trajectory_processing::convertToRobotTrajectory(trajectory, trajectory_states_, durations);
 }

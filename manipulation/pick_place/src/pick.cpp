@@ -76,7 +76,7 @@ PickPlan::~PickPlan(void)
 
 bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
 {
-  double timeout = goal.allowed_planning_time.toSec();
+  double timeout = goal.allowed_planning_time;
   ros::WallTime endtime = ros::WallTime::now() + ros::WallDuration(timeout);
   
   std::string planning_group = goal.group_name;
@@ -160,9 +160,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     grasp_order[i] = i;
   OrderGraspQuality oq(goal.possible_grasps);
   std::sort(grasp_order.begin(), grasp_order.end(), oq);
-  moveit_msgs::RobotState start;
-  kinematic_state::kinematicStateToRobotState(planning_scene->getCurrentState(), start);
-  
+
   done_ = false;
   
   // feed the available grasps to the stages we set up
@@ -174,7 +172,6 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     p->end_effector_group_ = eef->getName();
     p->ik_link_name_ = ik_link;    
     p->timeout_ = endtime;
-    p->trajectory_start_ = start;
     p->processing_stage_ = 0;
     pipeline_.push(p);
   }

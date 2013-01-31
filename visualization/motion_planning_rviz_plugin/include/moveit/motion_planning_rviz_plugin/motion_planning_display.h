@@ -78,16 +78,6 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   
   public:
   
-  struct TrajectoryMessageToDisplay
-  {
-    TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningSceneConstPtr &scene);
-    TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const kinematic_state::KinematicTrajectory &trajectory);
-    
-    kinematic_state::KinematicStatePtr start_state_;
-    kinematic_state::KinematicTrajectory trajectory_;
-    std::vector<double> display_duration_;
-  };
-  
   MotionPlanningDisplay();
   
   virtual ~MotionPlanningDisplay();
@@ -139,9 +129,6 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   
   void queueRenderSceneGeometry(void);
   
-  void displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
-                              const kinematic_state::KinematicTrajectory &trajectory);
-                                                                                                
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -232,8 +219,8 @@ protected:
   bool text_display_for_start_;                     ///< indicates whether the text display is for the start state or not
   rviz::MovableText *text_to_display_;
     
-  boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
-  boost::shared_ptr<TrajectoryMessageToDisplay> trajectory_message_to_display_;
+  kinematic_trajectory::KinematicTrajectoryPtr displaying_trajectory_message_;
+  kinematic_trajectory::KinematicTrajectoryPtr trajectory_message_to_display_;
   std::vector<rviz::Robot*> trajectory_trail_;
   ros::Subscriber trajectory_topic_sub_;
   bool animating_path_;

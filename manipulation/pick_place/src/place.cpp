@@ -55,7 +55,7 @@ PlacePlan::~PlacePlan(void)
 
 bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal)
 {
-  double timeout = goal.allowed_planning_time.toSec();
+  double timeout = goal.allowed_planning_time;
   ros::WallTime endtime = ros::WallTime::now() + ros::WallDuration(timeout);
   std::string planning_group = goal.group_name;
   

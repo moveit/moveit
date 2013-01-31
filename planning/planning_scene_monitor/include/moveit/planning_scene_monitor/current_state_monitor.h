@@ -75,6 +75,12 @@ public:
   
   /** @brief Check if the state monitor is started */
   bool isActive(void) const;
+
+  /** @brief Get the KinematicModel for which we are monitoring state */
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  {
+    return kmodel_;
+  }
   
   /** @brief Get the name of the topic being monitored. Returns an empty string if the monitor is inactive. */
   std::string getMonitoredTopic(void) const;

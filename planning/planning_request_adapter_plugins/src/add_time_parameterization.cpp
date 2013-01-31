@@ -54,22 +54,15 @@ public:
   
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::MotionPlanRequest &req, 
-                            moveit_msgs::MotionPlanResponse &res,
+                            const planning_interface::MotionPlanRequest &req, 
+                            planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   { 
     bool result = planner(planning_scene, req, res);
-    if (result)
+    if (result && res.trajectory_)
     {  
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(res.group_name);
-      if (jmg)
-      {
-        const std::vector<moveit_msgs::JointLimits> &jlim = jmg->getVariableLimits();
-        time_param_.computeTimeStamps(res.trajectory.joint_trajectory, jlim, req.start_state);
-      }
-      else
-        ROS_ERROR("It looks like the planner did not set the group the plan was computed for");
+      time_param_.computeTimeStamps(*res.trajectory_, req.start_state);
     }
     
     return result;

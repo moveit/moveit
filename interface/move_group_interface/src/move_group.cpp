@@ -158,7 +158,7 @@ public:
     can_look_ = false;
     can_replan_ = false;
     goal_tolerance_ = 1e-4;
-    planning_time_ = ros::Duration(5.0);
+    planning_time_ = 5.0;
     
     const kinematic_model::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
@@ -578,7 +578,7 @@ public:
   void setPlanningTime(double seconds)
   {
     if (seconds > 0.0)
-      planning_time_ = ros::Duration(seconds);
+      planning_time_ = seconds;
   }
   
   void constructGoal(moveit_msgs::MoveGroupGoal &goal_out)
@@ -728,7 +728,7 @@ private:
   // general planning params
   kinematic_state::KinematicStatePtr considered_start_state_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
-  ros::Duration planning_time_;
+  double planning_time_;
   std::string planner_id_;
   double goal_tolerance_;
   bool can_look_;
