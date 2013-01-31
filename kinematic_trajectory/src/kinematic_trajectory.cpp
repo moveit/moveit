@@ -146,6 +146,8 @@ void kinematic_trajectory::KinematicTrajectory::unwind(const kinematic_state::Ki
   {
     const kinematic_state::JointState *jstate = state.getJointState(cont_joints[i]);
     std::vector<double> reference_value = jstate->getVariableValues();
+    logError("unwind %d wrt %lf", i, reference_value[0]);
+    
     jstate->getJointModel()->enforceBounds(reference_value);
     
     // unwrap continuous joints
@@ -212,14 +214,14 @@ void kinematic_trajectory::KinematicTrajectory::getRobotTrajectoryMsg(moveit_msg
   if (!onedof.empty())
   {  
     trajectory.joint_trajectory.header.frame_id = kmodel_->getModelFrame();
-    trajectory.joint_trajectory.header.stamp = ros::Time::now();
+    trajectory.joint_trajectory.header.stamp = ros::Time(0);
     trajectory.joint_trajectory.points.resize(waypoints_.size());
   }
   
   if (!mdof.empty())
   {
     trajectory.multi_dof_joint_trajectory.header.frame_id = kmodel_->getModelFrame();
-    trajectory.multi_dof_joint_trajectory.header.stamp = ros::Time::now();
+    trajectory.multi_dof_joint_trajectory.header.stamp = ros::Time(0);
     trajectory.multi_dof_joint_trajectory.points.resize(waypoints_.size());
   }
   

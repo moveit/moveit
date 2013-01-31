@@ -154,8 +154,8 @@ public:
   
   double getAverageSegmentDuration(void) const;
   
-  void getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory &msg) const;
-  
+  void getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory &trajectory) const;
+
   void setRobotTrajectoryMsg(const kinematic_state::KinematicState &reference_state,
                              const moveit_msgs::RobotTrajectory &trajectory);
   void setRobotTrajectoryMsg(const kinematic_state::KinematicState &reference_state,
