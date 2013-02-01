@@ -56,6 +56,12 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   setWindowTitle("Benchmark Tool");
 
   ui_.setupUi(this);
+  settings_.reset(new QSettings("WillowGarage", "Benchmark Tool"));
+  QVariant previous_database_name = settings_->value("database_name", "");
+  if ( ! previous_database_name.toString().isEmpty() )
+  {
+    ui_.db_combo->addItem(previous_database_name.toString());
+  }
 
   //Rviz render panel
   render_panel_ = new rviz::RenderPanel();
@@ -398,6 +404,7 @@ void MainWindow::scheduleStateUpdateBackgroundJob()
 
 void MainWindow::dbConnectButtonClicked()
 {
+  settings_->setValue("database_name", ui_.db_combo->currentText());
   JobProcessing::addBackgroundJob(boost::bind(&MainWindow::dbConnectButtonClickedBackgroundJob, this));
 }
 
