@@ -137,7 +137,7 @@ void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distanc
 void DistanceField::getGradientMarkers(double min_distance, 
                                        double max_distance,
                                        const std::string& frame_id, 
-                                       const ros::Time stamp,
+                                       const ros::Time& stamp,
                                        visualization_msgs::MarkerArray& marker_array) const
 {
   Eigen::Vector3d unitX(1, 0, 0);
@@ -160,7 +160,7 @@ void DistanceField::getGradientMarkers(double min_distance,
         double distance = getDistanceGradient(worldX, worldY, worldZ, gradientX, gradientY, gradientZ, in_bounds);
         Eigen::Vector3d gradient(gradientX, gradientY, gradientZ);
 
-        if (in_bounds && distance >= min_radius && distance <= max_radius && gradient.norm() > 0)
+        if (in_bounds && distance >= min_distance && distance <= max_distance && gradient.norm() > 0)
         {
           visualization_msgs::Marker marker;
 
@@ -194,7 +194,7 @@ void DistanceField::getGradientMarkers(double min_distance,
           marker.color.b = 1.0;
           marker.color.a = 1.0;
 
-          markers.push_back(marker);
+          marker_array.markers.push_back(marker);
         }
       }
     }
