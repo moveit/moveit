@@ -130,6 +130,16 @@ public:
     rebuild();
   }
 
+  const std::string &getName()
+  {
+    return imarker_msg.name;
+  }
+
+  void setName(const std::string &name)
+  {
+    imarker_msg.name = name;
+  }
+
   bool isSelected(void)
   {
     return selected_;

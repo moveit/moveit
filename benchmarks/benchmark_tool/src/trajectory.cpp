@@ -180,6 +180,9 @@ void Trajectory::rebuildWayPointMarkers()
       Eigen::Affine3d wMwph = wMwpt * tMh;
 
       GripperMarkerPtr waypoint(new GripperMarker(*hand_marker));
+      std::stringstream name;
+      name << hand_marker->getName() << "_wp" << i;
+      waypoint->setName(name.str());
       waypoint->unselect(true);
       waypoint->setColor(0.0, 0.9, 0.0, 1 - (double)i / (double)nfragments);
       Eigen::Quaterniond rotation(wMwph.rotation());
