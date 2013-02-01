@@ -57,11 +57,8 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
   ui_.setupUi(this);
   settings_.reset(new QSettings("WillowGarage", "Benchmark Tool"));
-  QVariant previous_database_name = settings_->value("database_name", "");
-  if ( ! previous_database_name.toString().isEmpty() )
-  {
-    ui_.db_combo->addItem(previous_database_name.toString());
-  }
+  QVariant previous_database_names = settings_->value("database_name", QStringList());
+  ui_.db_combo->addItems(previous_database_names.toStringList());
 
   //Rviz render panel
   render_panel_ = new rviz::RenderPanel();
@@ -404,7 +401,6 @@ void MainWindow::scheduleStateUpdateBackgroundJob()
 
 void MainWindow::dbConnectButtonClicked()
 {
-  settings_->setValue("database_name", ui_.db_combo->currentText());
   JobProcessing::addBackgroundJob(boost::bind(&MainWindow::dbConnectButtonClickedBackgroundJob, this));
 }
 
@@ -441,6 +437,19 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
 
     if (port > 0 && ! host_port[0].isEmpty())
     {
+      //Store into settings
+      QVariant previous_database_names = settings_->value("database_name", QStringList());
+      QStringList name_list = previous_database_names.toStringList();
+      name_list.removeAll(ui_.db_combo->currentText());
+      name_list.push_front(ui_.db_combo->currentText());
+      static const short db_names_history_size = 5;
+      if (name_list.size() > db_names_history_size)
+        name_list.pop_back();
+      settings_->setValue("database_name", name_list);
+      ui_.db_combo->clear();
+      ui_.db_combo->addItems(name_list);
+
+      //Connect
       JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : yellow }"));
       try
       {
