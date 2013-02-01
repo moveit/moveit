@@ -37,7 +37,7 @@
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/collision_detection_fcl/collision_robot.h>
 #include <moveit/collision_detection_fcl/collision_world.h>
 #include <boost/scoped_ptr.hpp>
@@ -60,12 +60,12 @@ static double normalizeAngle(double angle)
 }
 }
 
-kinematic_constraints::KinematicConstraint::KinematicConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
+kinematic_constraints::KinematicConstraint::KinematicConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
   type_(UNKNOWN_CONSTRAINT), kmodel_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
 
-kinematic_constraints::KinematicConstraint::~KinematicConstraint(void)
+kinematic_constraints::KinematicConstraint::~KinematicConstraint()
 {
 }
 
@@ -205,12 +205,12 @@ bool kinematic_constraints::JointConstraint::equal(const KinematicConstraint &ot
   return false;
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointConstraint::decide(const kinematic_state::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointConstraint::decide(const robot_state::RobotState &state, bool verbose) const
 {
   if (!joint_model_)
     return ConstraintEvaluationResult(true, 0.0);
   
-  const kinematic_state::JointState *joint = state.getJointState(joint_model_->getName());
+  const robot_state::JointState *joint = state.getJointState(joint_model_->getName());
   
   if (!joint)
   {
@@ -257,12 +257,12 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
   return ConstraintEvaluationResult(result, constraint_weight_ * fabs(dif));
 }
 
-bool kinematic_constraints::JointConstraint::enabled(void) const
+bool kinematic_constraints::JointConstraint::enabled() const
 {
   return joint_model_;
 }
 
-void kinematic_constraints::JointConstraint::clear(void)
+void kinematic_constraints::JointConstraint::clear()
 {
   joint_model_ = NULL;
   joint_is_continuous_ = false;
@@ -447,12 +447,12 @@ kinematic_constraints::ConstraintEvaluationResult finishPositionConstraintDecisi
 }
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::PositionConstraint::decide(const kinematic_state::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::PositionConstraint::decide(const robot_state::RobotState &state, bool verbose) const
 {
   if (!link_model_ || constraint_region_.empty())
     return ConstraintEvaluationResult(true, 0.0);
   
-  const kinematic_state::LinkState *link_state = state.getLinkState(link_model_->getName());
+  const robot_state::LinkState *link_state = state.getLinkState(link_model_->getName());
   
   if (!link_state)
   {
@@ -496,7 +496,7 @@ void kinematic_constraints::PositionConstraint::print(std::ostream &out) const
     out << "No constraint" << std::endl;
 }
 
-void kinematic_constraints::PositionConstraint::clear(void)
+void kinematic_constraints::PositionConstraint::clear()
 {
   offset_ = Eigen::Vector3d(0.0,0.0,0.0);
   has_offset_ = false;
@@ -507,7 +507,7 @@ void kinematic_constraints::PositionConstraint::clear(void)
   link_model_ = NULL;
 }
 
-bool kinematic_constraints::PositionConstraint::enabled(void) const
+bool kinematic_constraints::PositionConstraint::enabled() const
 {
   return link_model_ && !constraint_region_.empty();
 }
@@ -591,7 +591,7 @@ bool kinematic_constraints::OrientationConstraint::equal(const KinematicConstrai
   return false;
 }
 
-void kinematic_constraints::OrientationConstraint::clear(void)
+void kinematic_constraints::OrientationConstraint::clear()
 {
   link_model_ = NULL;
   desired_rotation_matrix_ = Eigen::Matrix3d::Identity();
@@ -601,17 +601,17 @@ void kinematic_constraints::OrientationConstraint::clear(void)
   absolute_z_axis_tolerance_ = absolute_y_axis_tolerance_ = absolute_x_axis_tolerance_ = 0.0;
 }
 
-bool kinematic_constraints::OrientationConstraint::enabled(void) const
+bool kinematic_constraints::OrientationConstraint::enabled() const
 {
   return link_model_;
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::OrientationConstraint::decide(const kinematic_state::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::OrientationConstraint::decide(const robot_state::RobotState &state, bool verbose) const
 {
   if (!link_model_) 
     return ConstraintEvaluationResult(true, 0.0);
 
-  const kinematic_state::LinkState *link_state = state.getLinkState(link_model_->getName());
+  const robot_state::LinkState *link_state = state.getLinkState(link_model_->getName());
   
   if (!link_state)
   {
@@ -667,13 +667,13 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
     out << "No constraint" << std::endl;
 }
 
-kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
+kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
   KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotFCL(model))
 {
   type_ = VISIBILITY_CONSTRAINT;
 }
 
-void kinematic_constraints::VisibilityConstraint::clear(void)
+void kinematic_constraints::VisibilityConstraint::clear()
 {
   mobile_sensor_frame_ = false;
   mobile_target_frame_ = false;
@@ -789,12 +789,12 @@ bool kinematic_constraints::VisibilityConstraint::equal(const KinematicConstrain
   return false;
 }
 
-bool kinematic_constraints::VisibilityConstraint::enabled(void) const
+bool kinematic_constraints::VisibilityConstraint::enabled() const
 {
   return target_radius_ > std::numeric_limits<double>::epsilon();
 }
 
-shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const kinematic_state::KinematicState &state) const
+shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const robot_state::RobotState &state) const
 {
   // the current pose of the sensor
   const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) * sensor_pose_ : sensor_pose_;
@@ -865,7 +865,7 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
   return m;
 }
 
-void kinematic_constraints::VisibilityConstraint::getMarkers(const kinematic_state::KinematicState &state, visualization_msgs::MarkerArray &markers) const
+void kinematic_constraints::VisibilityConstraint::getMarkers(const robot_state::RobotState &state, visualization_msgs::MarkerArray &markers) const
 {
   shapes::Mesh *m = getVisibilityCone(state);
   visualization_msgs::Marker mk;
@@ -934,7 +934,7 @@ void kinematic_constraints::VisibilityConstraint::getMarkers(const kinematic_sta
   markers.markers.push_back(mka);
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::VisibilityConstraint::decide(const kinematic_state::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotState &state, bool verbose) const
 {
   if (target_radius_ <= std::numeric_limits<double>::epsilon())
     return ConstraintEvaluationResult(true, 0.0);
@@ -1044,7 +1044,7 @@ void kinematic_constraints::VisibilityConstraint::print(std::ostream &out) const
     out << "No constraint" << std::endl;
 }
 
-void kinematic_constraints::KinematicConstraintSet::clear(void)
+void kinematic_constraints::KinematicConstraintSet::clear()
 {
   all_constraints_ = moveit_msgs::Constraints();
   kinematic_constraints_.clear();
@@ -1123,7 +1123,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const moveit_msgs::Const
   return j && p && o && v;
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(const kinematic_state::KinematicState &state, bool verbose) const
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(const robot_state::RobotState &state, bool verbose) const
 {
   ConstraintEvaluationResult res(true, 0.0);
   for (unsigned int i = 0 ; i < kinematic_constraints_.size() ; ++i)
@@ -1136,7 +1136,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Kinemat
   return res;
 }
 
-kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(const kinematic_state::KinematicState &state,
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(const robot_state::RobotState &state,
                                                                                                         std::vector<ConstraintEvaluationResult> &results, 
                                                                                                         bool verbose) const
 {

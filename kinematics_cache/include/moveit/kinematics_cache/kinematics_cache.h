@@ -40,7 +40,7 @@
 
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -104,19 +104,19 @@ namespace kinematics_cache
                     const KinematicsCache::Options &opt);    
 
     /** @brief Return the instance of the kinematics solver */
-    const kinematics::KinematicsBaseConstPtr& getSolverInstance(void) const
+    const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
     {
       return kinematics_solver_;
     }
     
     /** @brief Return the instance of the kinematics model */
-    const kinematic_model::KinematicModelConstPtr& getModelInstance(void) const
+    const kinematic_model::KinematicModelConstPtr& getModelInstance() const
     {
       return kinematic_model_;
     }
     
     /** @brief Return the cache parameters used for cache construction */
-    const Options& getCacheParameters(void) const
+    const Options& getCacheParameters() const
     {
       return options_;
     }
@@ -170,10 +170,10 @@ namespace kinematics_cache
     kinematics::KinematicsBaseConstPtr kinematics_solver_;/** An instance of the kinematics solver */
         
     kinematic_model::KinematicModelConstPtr kinematic_model_; /** An instance of the kinematic model */
-    kinematic_state::KinematicStatePtr kinematic_state_; /** An instance of the kinematic state */
+    robot_state::RobotStatePtr kinematic_state_; /** An instance of the kinematic state */
     
     const kinematic_model::JointModelGroup* joint_model_group_; /** Joint model group associated with this cache */
-    boost::shared_ptr<kinematic_state::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
+    boost::shared_ptr<robot_state::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
     
     //    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */
 

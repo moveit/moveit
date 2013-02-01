@@ -44,7 +44,7 @@ kinematic_model::PrismaticJointModel::PrismaticJointModel(const std::string& nam
   variable_names_.push_back(name_);
 }
 
-unsigned int kinematic_model::PrismaticJointModel::getStateSpaceDimension(void) const
+unsigned int kinematic_model::PrismaticJointModel::getStateSpaceDimension() const
 {
   return 1;
 }

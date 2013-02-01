@@ -38,12 +38,12 @@
 #define MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
 
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
-#include <moveit/kinematic_state/transforms.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/transforms.h>
 #include <moveit/collision_detection/collision_world.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/kinematic_trajectory/kinematic_trajectory.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/macros/deprecation.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
@@ -64,12 +64,12 @@ typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
 
 /** \brief This is the function signature for additional feasibility checks to be imposed on states (in addition to respecting constraints and collision avoidance).
     The first argument is the state to check the feasibility for, the second one is whether the check should be verbose or not. */
-typedef boost::function<bool(const kinematic_state::KinematicState&, bool)> StateFeasibilityFn;
+typedef boost::function<bool(const robot_state::RobotState&, bool)> StateFeasibilityFn;
 
 /** \brief This is the function signature for additional feasibility checks to be imposed on motions segments between states (in addition to respecting constraints and collision avoidance). 
     The order of the arguments matters: the notion of feasibility is to be checked for motion segments that start at the first state and end at the second state. The third argument indicates
     whether the check should be verbose or not. */
-typedef boost::function<bool(const kinematic_state::KinematicState&, const kinematic_state::KinematicState&, bool)> MotionFeasibilityFn;
+typedef boost::function<bool(const robot_state::RobotState&, const robot_state::RobotState&, bool)> MotionFeasibilityFn;
 
 /** \brief A map from object names (e.g., attached bodies, collision objects) to their colors */
 typedef std::map<std::string, std_msgs::ColorRGBA> ColorMap;
@@ -84,7 +84,7 @@ public:
   
   /** \brief Constructor. Allocate an empty planning scene. Before use, this instance needs to be configured
       by calling the configure() function. */
-  PlanningScene(void);
+  PlanningScene();
 
   static const std::string COLLISION_MAP_NS;
   static const std::string OCTOMAP_NS;
@@ -102,12 +102,12 @@ protected:
   
 public:
   
-  virtual ~PlanningScene(void)
+  virtual ~PlanningScene()
   {
   }
 
   /** \brief Get the name of the planning scene. This is empty by default */
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return name_;
   }
@@ -120,7 +120,7 @@ public:
   
   /** \brief Set the types that satisfy the interfaces for collision_space::CollisionWorld and collision_space::CollisionRobot that should be used for collision checking. */
   template<typename CollisionWorldType, typename CollisionRobotType>
-  void setCollisionDetectionTypes(void)
+  void setCollisionDetectionTypes()
   {
     collision_detection_allocator_.reset(new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
   }
@@ -137,87 +137,87 @@ public:
   bool configure(const kinematic_model::KinematicModelPtr &kmodel);
 
   /** \brief Return a new planning scene that uses this one as parent. */
-  PlanningScenePtr diff(void) const;
+  PlanningScenePtr diff() const;
   
   /** \brief Return a new planning scene that uses this one as parent and has the diffs specified by \e msg applied. */
   PlanningScenePtr diff(const moveit_msgs::PlanningScene &msg) const;
   
   /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
-  const PlanningSceneConstPtr& getParent(void) const
+  const PlanningSceneConstPtr& getParent() const
   {
     return parent_;
   }
 
   /** \brief Get the frame in which planning is performed */
-  const std::string& getPlanningFrame(void) const
+  const std::string& getPlanningFrame() const
   {
     // if we have an updated set of transforms, return it; otherwise, return the parent one
     return ftf_ ? ftf_->getTargetFrame() : parent_->getPlanningFrame();
   }
 
   /** \brief Get the kinematic model for which the planning scene is maintained */
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     // the kinematic model does not change
     return parent_ ? parent_->getKinematicModel() : kmodel_const_;
   }
 
   /** \brief Get the state at which the robot is assumed to be */
-  const kinematic_state::KinematicState& getCurrentState(void) const
+  const robot_state::RobotState& getCurrentState() const
   {
     // if we have an updated state, return it; otherwise, return the parent one
     return kstate_ ? *kstate_ : parent_->getCurrentState();
   }
   /** \brief Get the state at which the robot is assumed to be */
-  kinematic_state::KinematicState& getCurrentState(void);
+  robot_state::RobotState& getCurrentState();
 
   /** \brief Get the allowed collision matrix */
-  const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix(void) const
+  const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix() const
   {
     return acm_ ? *acm_ : parent_->getAllowedCollisionMatrix();
   }
   /** \brief Get the allowed collision matrix */
-  collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix(void);
+  collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix();
 
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
-  const kinematic_state::TransformsConstPtr& getTransforms(void) const
+  const robot_state::TransformsConstPtr& getTransforms() const
   {
     // if we have updated transforms, return those
     return (ftf_const_ || !parent_) ? ftf_const_ : parent_->getTransforms();
   }
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
-  const kinematic_state::TransformsPtr& getTransforms(void);
+  const robot_state::TransformsPtr& getTransforms();
 
   /** \brief Get the representation of the collision world */
-  const collision_detection::CollisionWorldConstPtr& getCollisionWorld(void) const
+  const collision_detection::CollisionWorldConstPtr& getCollisionWorld() const
   {
     // we always have a world representation
     return cworld_const_;
   }
 
   //brief Get the representation of the collision world
-  const collision_detection::CollisionWorldPtr& getCollisionWorld(void)
+  const collision_detection::CollisionWorldPtr& getCollisionWorld()
   {
     // we always have a world representation
     return cworld_;
   }
 
   /** \brief Get the representation of the collision robot */
-  const collision_detection::CollisionRobotConstPtr& getCollisionRobot(void) const
+  const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
   {
     // if we have an updated robot, return that one
     return (crobot_const_ || !parent_) ? crobot_const_ : parent_->getCollisionRobot();
   }
 
   /** \brief Get the representation of the collision robot */
-  const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded(void) const
+  const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded() const
   {
     // if we have an updated robot, return that one
     return (crobot_unpadded_const_ || !parent_) ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
   }
 
   /** \brief Get the representation of the collision robot */
-  const collision_detection::CollisionRobotPtr& getCollisionRobot(void);
+  const collision_detection::CollisionRobotPtr& getCollisionRobot();
 
   /** \brief Check whether the current state is in collision */
   void checkCollision(const collision_detection::CollisionRequest& req,
@@ -226,13 +226,13 @@ public:
   /** \brief Check whether a specified state (\e kstate) is in collision */
   void checkCollision(const collision_detection::CollisionRequest& req,
                       collision_detection::CollisionResult &res,
-                      const kinematic_state::KinematicState &kstate) const;
+                      const robot_state::RobotState &kstate) const;
 
   /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
       allowed collision matrix (\e acm) */
   void checkCollision(const collision_detection::CollisionRequest& req,
                       collision_detection::CollisionResult &res,
-                      const kinematic_state::KinematicState &kstate,
+                      const robot_state::RobotState &kstate,
                       const collision_detection::AllowedCollisionMatrix& acm) const;
     
   /** \brief Check whether the current state is in collision, 
@@ -244,13 +244,13 @@ public:
       but use a collision_detection::CollisionRobot instance that has no padding.  */
   void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                               collision_detection::CollisionResult &res,
-                              const kinematic_state::KinematicState &kstate) const;
+                              const robot_state::RobotState &kstate) const;
 
   /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
       allowed collision matrix (\e acm), but use a collision_detection::CollisionRobot instance that has no padding.  */
   void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                               collision_detection::CollisionResult &res,
-                              const kinematic_state::KinematicState &kstate,
+                              const robot_state::RobotState &kstate,
                               const collision_detection::AllowedCollisionMatrix& acm) const;
 
   /** \brief Check whether the current state is in self collision */
@@ -260,13 +260,13 @@ public:
   /** \brief Check whether a specified state (\e kstate) is in self collision */
   void checkSelfCollision(const collision_detection::CollisionRequest& req,
                           collision_detection::CollisionResult &res,
-                          const kinematic_state::KinematicState &kstate) const;
+                          const robot_state::RobotState &kstate) const;
 
   /** \brief Check whether a specified state (\e kstate) is in self collision, with respect to a given
       allowed collision matrix (\e acm) */
   void checkSelfCollision(const collision_detection::CollisionRequest& req,
                           collision_detection::CollisionResult &res,
-                          const kinematic_state::KinematicState &kstate,
+                          const robot_state::RobotState &kstate,
                           const collision_detection::AllowedCollisionMatrix& acm) const;
   
   /** \brief Get the names of the links that are involved in collisions for the current state */
@@ -274,28 +274,28 @@ public:
   
   /** \brief Get the names of the links that are involved in collisions for the state \e kstate */
   void getCollidingLinks(std::vector<std::string> &links,
-                         const kinematic_state::KinematicState &kstate) const;
+                         const robot_state::RobotState &kstate) const;
   
   /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
       allowed collision matrix (\e acm) */
   void getCollidingLinks(std::vector<std::string> &links,
-                         const kinematic_state::KinematicState &kstate,
+                         const robot_state::RobotState &kstate,
                          const collision_detection::AllowedCollisionMatrix& acm) const;
   
   /** \brief The distance between the robot model at state \e kstate to the nearest collision */
-  double distanceToCollision(const kinematic_state::KinematicState &kstate) const;
+  double distanceToCollision(const robot_state::RobotState &kstate) const;
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, if the robot has no padding */
-  double distanceToCollisionUnpadded(const kinematic_state::KinematicState &kstate) const;
+  double distanceToCollisionUnpadded(const robot_state::RobotState &kstate) const;
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide. */
-  double distanceToCollision(const kinematic_state::KinematicState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
+  double distanceToCollision(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide, if the robot has no padding. */
-  double distanceToCollisionUnpadded(const kinematic_state::KinematicState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
+  double distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
   
   /** \brief Check if this planning scene has been configured or not */
-  bool isConfigured(void) const
+  bool isConfigured() const
   {
     return parent_ ? configured_ && parent_->isConfigured() : configured_;
   }
@@ -341,7 +341,7 @@ public:
   void setCurrentState(const moveit_msgs::RobotState &state);
 
   /** \brief Set the current robot state */
-  void setCurrentState(const kinematic_state::KinematicState &state);
+  void setCurrentState(const robot_state::RobotState &state);
     
   bool hasColor(const std::string &id) const;
 
@@ -351,7 +351,7 @@ public:
   void getKnownColors(ColorMap &kc) const;
   
   /** \brief Clear the diffs accumulated for this planning scene, with respect to the parent. This function is a no-op if there is no parent specified. */
-  void clearDiffs(void);
+  void clearDiffs();
 
   /** \brief If there is a parent specified for this scene, then the diffs with respect to that parent are applied to a specified planning scene, whatever
       that scene may be. If there is no parent specified, this function is a no-op. */
@@ -360,7 +360,7 @@ public:
   /** \brief Make sure that all the data maintained in this
       scene is local. All unmodified data is copied from the
       parent and the pointer to the parent is discarded. */
-  void decoupleParent(void);
+  void decoupleParent();
   
   /** \brief Specify a predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation.
       This is useful for setting up problem specific constraints (e.g., stability) */
@@ -370,7 +370,7 @@ public:
   }
 
   /** \brief Get the predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation. */
-  const StateFeasibilityFn& getStateFeasibilityPredicate(void) const
+  const StateFeasibilityFn& getStateFeasibilityPredicate() const
   {
     return state_feasibility_;
   }
@@ -382,7 +382,7 @@ public:
   }
 
   /** \brief Get the predicate that decides whether motion segments are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation. */
-  const MotionFeasibilityFn& getMotionFeasibilityPredicate(void) const
+  const MotionFeasibilityFn& getMotionFeasibilityPredicate() const
   {
     return motion_feasibility_;
   }
@@ -394,40 +394,40 @@ public:
   bool isStateColliding(const moveit_msgs::RobotState &state, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given state is in collision (with the environment or self collision) */
-  bool isStateColliding(const kinematic_state::KinematicState &state, const std::string &group = "", bool verbose = false) const;
+  bool isStateColliding(const robot_state::RobotState &state, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given state is feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
   bool isStateFeasible(const moveit_msgs::RobotState &state, bool verbose = false) const;
 
   /** \brief Check if a given state is feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
-  bool isStateFeasible(const kinematic_state::KinematicState &state, bool verbose = false) const;
+  bool isStateFeasible(const robot_state::RobotState &state, bool verbose = false) const;
 
   /** \brief Check if a given state satisfies a set of constraints */
   bool isStateConstrained(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
 
   /** \brief Check if a given state satisfies a set of constraints */
-  bool isStateConstrained(const kinematic_state::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
+  bool isStateConstrained(const robot_state::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
 
   /** \brief Check if a given state satisfies a set of constraints */
   bool isStateConstrained(const moveit_msgs::RobotState &state,  const kinematic_constraints::KinematicConstraintSet &constr, bool verbose = false) const;
 
   /** \brief Check if a given state satisfies a set of constraints */
-  bool isStateConstrained(const kinematic_state::KinematicState &state,  const kinematic_constraints::KinematicConstraintSet &constr, bool verbose = false) const;
+  bool isStateConstrained(const robot_state::RobotState &state,  const kinematic_constraints::KinematicConstraintSet &constr, bool verbose = false) const;
 
   /** \brief Check if a given state is valid. This means checking for collisions and feasibility */
   bool isStateValid(const moveit_msgs::RobotState &state, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given state is valid. This means checking for collisions and feasibility */
-  bool isStateValid(const kinematic_state::KinematicState &state, const std::string &group = "", bool verbose = false) const;
+  bool isStateValid(const robot_state::RobotState &state, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given state is valid. This means checking for collisions, feasibility  and whether the user specified validity conditions hold as well */
   bool isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given state is valid. This means checking for collisions, feasibility  and whether the user specified validity conditions hold as well */
-  bool isStateValid(const kinematic_state::KinematicState &state, const moveit_msgs::Constraints &constr, const std::string &group = "", bool verbose = false) const;
+  bool isStateValid(const robot_state::RobotState &state, const moveit_msgs::Constraints &constr, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given state is valid. This means checking for collisions, feasibility  and whether the user specified validity conditions hold as well */
-  bool isStateValid(const kinematic_state::KinematicState &state, const kinematic_constraints::KinematicConstraintSet &constr, const std::string &group = "", bool verbose = false) const;
+  bool isStateValid(const robot_state::RobotState &state, const kinematic_constraints::KinematicConstraintSet &constr, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
   bool isPathValid(const moveit_msgs::RobotState &start_state,
@@ -455,40 +455,40 @@ public:
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
-  bool isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+  bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const std::vector<moveit_msgs::Constraints>& goal_constraints,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
-  bool isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+  bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const moveit_msgs::Constraints& goal_constraints,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). */
-  bool isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+  bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
-  bool isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+  bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
   
   /** \brief Get the top \e max_costs cost sources for a specified trajectory. The resulting costs are stored in \e costs */
-  void getCostSources(const kinematic_trajectory::KinematicTrajectory &trajectory, std::size_t max_costs,
+  void getCostSources(const robot_trajectory::RobotTrajectory &trajectory, std::size_t max_costs,
                       std::set<collision_detection::CostSource> &costs, double overlap_fraction = 0.9) const;
 
   /** \brief Get the top \e max_costs cost sources for a specified trajectory, but only for group \e group_name. The resulting costs are stored in \e costs */
-  void getCostSources(const kinematic_trajectory::KinematicTrajectory &trajectory, std::size_t max_costs,
+  void getCostSources(const robot_trajectory::RobotTrajectory &trajectory, std::size_t max_costs,
                       const std::string &group_name, std::set<collision_detection::CostSource> &costs, double overlap_fraction = 0.9) const;
 
   /** \brief Get the top \e max_costs cost sources for a specified state. The resulting costs are stored in \e costs */
-  void getCostSources(const kinematic_state::KinematicState &state, std::size_t max_costs,
+  void getCostSources(const robot_state::RobotState &state, std::size_t max_costs,
                       std::set<collision_detection::CostSource> &costs) const;
   
   /** \brief Get the top \e max_costs cost sources for a specified state, but only for group \e group_name. The resulting costs are stored in \e costs */
-  void getCostSources(const kinematic_state::KinematicState &state, std::size_t max_costs,
+  void getCostSources(const robot_state::RobotState &state, std::size_t max_costs,
                       const std::string &group_name, std::set<collision_detection::CostSource> &costs) const;
   
   /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message. */
@@ -506,7 +506,7 @@ public:
 protected:
 
   /** \brief Get the non-const kinematic model for which the planning scene is maintained */
-  const kinematic_model::KinematicModelPtr& getKinematicModelNonConst(void);
+  const kinematic_model::KinematicModelPtr& getKinematicModelNonConst();
 
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
@@ -517,9 +517,9 @@ protected:
   {         
     virtual collision_detection::CollisionRobotPtr allocateRobot(const kinematic_model::KinematicModelConstPtr &kmodel) = 0;
     virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy) = 0;
-    virtual collision_detection::CollisionWorldPtr allocateWorld(void) = 0;
+    virtual collision_detection::CollisionWorldPtr allocateWorld() = 0;
     virtual collision_detection::CollisionWorldPtr allocateWorld(const collision_detection::CollisionWorldConstPtr &copy) = 0;
-    virtual CollisionDetectionAllocBase* clone(void) = 0;
+    virtual CollisionDetectionAllocBase* clone() = 0;
   };
   
   template<typename CollisionWorldType, typename CollisionRobotType>
@@ -532,7 +532,7 @@ protected:
     {
       return collision_detection::CollisionRobotPtr(new CollisionRobotType(kmodel));
     }
-    virtual collision_detection::CollisionWorldPtr allocateWorld(void)
+    virtual collision_detection::CollisionWorldPtr allocateWorld()
     {    
       return collision_detection::CollisionWorldPtr(new CollisionWorldType());
     }
@@ -544,7 +544,7 @@ protected:
     {    
       return collision_detection::CollisionWorldPtr(new CollisionWorldType(static_cast<const CollisionWorldType&>(*copy)));
     }
-    virtual CollisionDetectionAllocBase* clone(void)
+    virtual CollisionDetectionAllocBase* clone()
     {
       return new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>();
     }    
@@ -557,10 +557,10 @@ protected:
   kinematic_model::KinematicModelPtr             kmodel_;
   kinematic_model::KinematicModelConstPtr        kmodel_const_;
 
-  kinematic_state::KinematicStatePtr             kstate_;
+  robot_state::RobotStatePtr             kstate_;
 
-  kinematic_state::TransformsPtr                 ftf_;
-  kinematic_state::TransformsConstPtr            ftf_const_;
+  robot_state::TransformsPtr                 ftf_;
+  robot_state::TransformsConstPtr            ftf_const_;
 
   boost::scoped_ptr<CollisionDetectionAllocBase> collision_detection_allocator_;
   

@@ -66,7 +66,7 @@ struct ExecutionStatus
     return status_ == SUCCEEDED;
   }
   
-  std::string asString(void) const
+  std::string asString() const
   {
     switch (status_)
     {
@@ -99,21 +99,21 @@ public:
   {
   }
 
-  virtual ~MoveItControllerHandle(void)
+  virtual ~MoveItControllerHandle()
   {
   }
   
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return name_;
   }
   
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &trajectory) = 0;
-  virtual bool cancelExecution(void) = 0;
+  virtual bool cancelExecution() = 0;
 
   /// Return true if the execution is complete (whether successful or not). Return false if timeout was reached
   virtual bool waitForExecution(const ros::Duration &timeout = ros::Duration(0)) = 0;
-  virtual ExecutionStatus getLastExecutionStatus(void) = 0;
+  virtual ExecutionStatus getLastExecutionStatus() = 0;
 
 protected:
   
@@ -135,11 +135,11 @@ public:
     bool default_;
   };
       
-  MoveItControllerManager(void)
+  MoveItControllerManager()
   {
   }
 
-  virtual ~MoveItControllerManager(void)
+  virtual ~MoveItControllerManager()
   {
   }
   

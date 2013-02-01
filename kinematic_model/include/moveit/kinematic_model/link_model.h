@@ -59,29 +59,29 @@ public:
   typedef std::map<const LinkModel*, Eigen::Affine3d, std::less<const LinkModel*>, 
                    Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > > AssociatedFixedTransformMap;
 
-  LinkModel(void);
-  ~LinkModel(void);
+  LinkModel();
+  ~LinkModel();
   
   /** \brief The name of this link */
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return name_;
   }
 
   /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
-  int getTreeIndex(void) const
+  int getTreeIndex() const
   {
     return tree_index_;
   }
   
   /** \brief Get the joint model whose child this link is. There will always be a parent joint */
-  const JointModel* getParentJointModel(void) const
+  const JointModel* getParentJointModel() const
   {
     return parent_joint_model_;
   }
   
   /** \brief A link may have 0 or more child joints. From those joints there will certainly be other descendant links */
-  const std::vector<JointModel*>& getChildJointModels(void) const
+  const std::vector<JointModel*>& getChildJointModels() const
   {
     return child_joint_models_;
   }
@@ -90,7 +90,7 @@ public:
       they are usually applied to the link's origin. The
       joint origin transform acts as an offset -- it is
       pre-applied before any other transform */
-  const Eigen::Affine3d& getJointOriginTransform(void) const
+  const Eigen::Affine3d& getJointOriginTransform() const
   {
     return joint_origin_transform_;
   }
@@ -99,7 +99,7 @@ public:
       than the one in the URDF, some joints need to be applied in
       reverse. This flag indicates whether the joint connecting from
       the parent link should be reversed or not.*/
-  bool isJointReversed(void) const
+  bool isJointReversed() const
   {
     return reverse_joint_;
   }
@@ -107,43 +107,43 @@ public:
   /** \brief In addition to the link transform, the geometry
       of a link that is used for collision checking may have
       a different offset itself, with respect to the origin */
-  const Eigen::Affine3d& getCollisionOriginTransform(void) const
+  const Eigen::Affine3d& getCollisionOriginTransform() const
   {
     return collision_origin_transform_;
   }
   
   /** \brief Get shape associated to the collision geometry for this link */
-  const shapes::ShapeConstPtr& getShape(void) const
+  const shapes::ShapeConstPtr& getShape() const
   {
     return shape_;
   }
 
   /** \brief Get shape associated to the collision geometry for this link */
-  const shapes::ShapeMsg& getShapeMsg(void) const
+  const shapes::ShapeMsg& getShapeMsg() const
   {
     return shape_msg_;
   }
   
   /** \brief Get the extenrs of the link's geometry (dimensions of axis-aligned bounding box when the link is positioned at origin) */
-  const Eigen::Vector3d& getShapeExtentsAtOrigin(void) const
+  const Eigen::Vector3d& getShapeExtentsAtOrigin() const
   {
     return shape_extents_;
   }
 
   /** \brief Get the set of links that are attached to this one via fixed transforms */
-  const AssociatedFixedTransformMap& getAssociatedFixedTransforms(void) const
+  const AssociatedFixedTransformMap& getAssociatedFixedTransforms() const
   {
     return associated_fixed_transforms_;
   }
     
   /** \brief Get the filename of the mesh resource for this link */
-  const std::string& getMeshFilename(void) const
+  const std::string& getMeshFilename() const
   {
     return filename_;
   }
   
   /** \brief Get the filename of the mesh resource for this link */
-  const std::string& getVisualMeshFilename(void) const
+  const std::string& getVisualMeshFilename() const
   {
     return visual_filename_;
   }

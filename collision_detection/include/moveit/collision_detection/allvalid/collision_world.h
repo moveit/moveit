@@ -46,19 +46,19 @@ class CollisionWorldAllValid : public CollisionWorld
 {
 public:
   
-  CollisionWorldAllValid(void);
+  CollisionWorldAllValid();
   CollisionWorldAllValid(const CollisionWorld &other);
   
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state) const;
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2) const;
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2, const AllowedCollisionMatrix &acm) const;
+  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const;
+  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
+  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state1, const robot_state::RobotState &state2) const;
+  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state1, const robot_state::RobotState &state2, const AllowedCollisionMatrix &acm) const;
 
   virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
   virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
 
-  virtual double distanceRobot(const CollisionRobot &robot, const kinematic_state::KinematicState &state) const;
-  virtual double distanceRobot(const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+  virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state) const;
+  virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
   virtual double distanceWorld(const CollisionWorld &world) const;
   virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
 };

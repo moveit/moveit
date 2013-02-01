@@ -47,7 +47,7 @@ kinematic_model::RevoluteJointModel::RevoluteJointModel(const std::string& name)
   variable_names_.push_back(name_);
 }
 
-unsigned int kinematic_model::RevoluteJointModel::getStateSpaceDimension(void) const
+unsigned int kinematic_model::RevoluteJointModel::getStateSpaceDimension() const
 {
   return 1;
 }
@@ -156,7 +156,7 @@ void kinematic_model::RevoluteJointModel::enforceBounds(std::vector<double> &val
   }
 }
 
-void kinematic_model::RevoluteJointModel::computeDefaultVariableLimits(void)
+void kinematic_model::RevoluteJointModel::computeDefaultVariableLimits()
 {
   JointModel::computeDefaultVariableLimits();
   if (continuous_)

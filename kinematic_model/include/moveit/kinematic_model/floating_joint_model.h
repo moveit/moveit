@@ -58,12 +58,12 @@ public:
   virtual double getMaximumExtent(const Bounds &other_bounds) const;
   virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
   virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
-  virtual unsigned int getStateSpaceDimension(void) const;
+  virtual unsigned int getStateSpaceDimension() const;
   virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
   virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
   virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
   
-  double getAngularDistanceWeight(void) const
+  double getAngularDistanceWeight() const
   {
     return angular_distance_weight_;
   }

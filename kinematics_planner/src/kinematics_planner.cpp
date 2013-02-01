@@ -106,9 +106,9 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
     }
 
     /* make sure that we have goal positions for all groups which have start positions */
-    kinematic_state::KinematicState kinematic_state = planning_scene->getCurrentState();
+    robot_state::RobotState kinematic_state = planning_scene->getCurrentState();
     std::vector<std::string> group_names;
-    std::map<std::string, kinematic_state::JointStateGroup*> joint_state_groups;
+    std::map<std::string, robot_state::JointStateGroup*> joint_state_groups;
     std::map<std::string,geometry_msgs::PoseStamped>::const_iterator group_iter;
     for(group_iter = start_request.begin(); group_iter != start_request.end(); ++group_iter)
     {

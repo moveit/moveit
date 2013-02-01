@@ -41,7 +41,7 @@
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/QuaternionStamped.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <limits>
 
 namespace kinematic_constraints
@@ -73,7 +73,7 @@ moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first,
  * 
  * @return A full constraint message containing all the joint constraints
  */
-moveit_msgs::Constraints constructGoalConstraints(const kinematic_state::JointStateGroup *jsg,
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::JointStateGroup *jsg,
                                                   double tolerance_below, double tolerance_above);
 
 /** 
@@ -86,7 +86,7 @@ moveit_msgs::Constraints constructGoalConstraints(const kinematic_state::JointSt
  * 
  * @return A full constraint message containing all the joint constraints
  */
-moveit_msgs::Constraints constructGoalConstraints(const kinematic_state::JointStateGroup *jsg,
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::JointStateGroup *jsg,
                                                   double tolerance = std::numeric_limits<double>::epsilon());
 
 

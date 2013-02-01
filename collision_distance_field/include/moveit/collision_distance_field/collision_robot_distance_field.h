@@ -88,36 +88,36 @@ public:
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const kinematic_state::KinematicState &state) const;
+                                  const robot_state::RobotState &state) const;
 
   void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                           collision_detection::CollisionResult &res, 
-                          const kinematic_state::KinematicState &state,
+                          const robot_state::RobotState &state,
                           boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const kinematic_state::KinematicState &state,
+                                  const robot_state::RobotState &state,
                                   const collision_detection::AllowedCollisionMatrix &acm) const;
 
   void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                           collision_detection::CollisionResult &res, 
-                          const kinematic_state::KinematicState &state,
+                          const robot_state::RobotState &state,
                           const collision_detection::AllowedCollisionMatrix &acm,
                           boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const kinematic_state::KinematicState &state1, 
-                                  const kinematic_state::KinematicState &state2) const
+                                  const robot_state::RobotState &state1, 
+                                  const robot_state::RobotState &state2) const
   {
     logWarn("Not implemented");
   };
   
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const kinematic_state::KinematicState &state1, 
-                                  const kinematic_state::KinematicState &state2, 
+                                  const robot_state::RobotState &state1, 
+                                  const robot_state::RobotState &state2, 
                                   const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
@@ -125,60 +125,60 @@ public:
   
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const kinematic_state::KinematicState &state,
+                                   const robot_state::RobotState &state,
                                    const CollisionRobot &other_robot, 
-                                   const kinematic_state::KinematicState &other_state) const
+                                   const robot_state::RobotState &other_state) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const kinematic_state::KinematicState &state,
+                                   const robot_state::RobotState &state,
                                    const CollisionRobot &other_robot, 
-                                   const kinematic_state::KinematicState &other_state,
+                                   const robot_state::RobotState &other_state,
                                    const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, collision_detection::CollisionResult &res, 
-                                   const kinematic_state::KinematicState &state1, 
-                                   const kinematic_state::KinematicState &state2,
+                                   const robot_state::RobotState &state1, 
+                                   const robot_state::RobotState &state2,
                                    const CollisionRobot &other_robot, 
-                                   const kinematic_state::KinematicState &other_state1, 
-                                   const kinematic_state::KinematicState &other_state2) const
+                                   const robot_state::RobotState &other_state1, 
+                                   const robot_state::RobotState &other_state2) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const kinematic_state::KinematicState &state1, 
-                                   const kinematic_state::KinematicState &state2,
+                                   const robot_state::RobotState &state1, 
+                                   const robot_state::RobotState &state2,
                                    const CollisionRobot &other_robot, 
-                                   const kinematic_state::KinematicState &other_state1, 
-                                   const kinematic_state::KinematicState &other_state2,
+                                   const robot_state::RobotState &other_state1, 
+                                   const robot_state::RobotState &other_state2,
                                    const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
   };
   
-  virtual double distanceSelf(const kinematic_state::KinematicState &state) const
+  virtual double distanceSelf(const robot_state::RobotState &state) const
   {
     return 0.0;
   };
-  virtual double distanceSelf(const kinematic_state::KinematicState &state, const collision_detection::AllowedCollisionMatrix &acm) const
+  virtual double distanceSelf(const robot_state::RobotState &state, const collision_detection::AllowedCollisionMatrix &acm) const
   {
     return 0.0;
   };
-  virtual double distanceOther(const kinematic_state::KinematicState &state,
-                               const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state) const
+  virtual double distanceOther(const robot_state::RobotState &state,
+                               const CollisionRobot &other_robot, const robot_state::RobotState &other_state) const
   {
     return 0.0;
   };
-  virtual double distanceOther(const kinematic_state::KinematicState &state, const CollisionRobot &other_robot,
-                               const kinematic_state::KinematicState &other_state, const collision_detection::AllowedCollisionMatrix &acm) const
+  virtual double distanceOther(const robot_state::RobotState &state, const CollisionRobot &other_robot,
+                               const robot_state::RobotState &other_state, const collision_detection::AllowedCollisionMatrix &acm) const
   {
     return 0.0;
   };
@@ -189,7 +189,7 @@ public:
 
   // void getSelfCollisionsGradients(const collision_detection::CollisionRequest &req, 
   //                                 collision_detection::CollisionResult &res, 
-  //                                 const kinematic_state::KinematicState &state, 
+  //                                 const robot_state::RobotState &state, 
   //                                 const collision_detection::AllowedCollisionMatrix &acm) const;  
 protected:
 
@@ -207,28 +207,28 @@ protected:
 
   void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,
-                                const kinematic_state::KinematicState& state,
+                                const robot_state::RobotState& state,
                                 const collision_detection::AllowedCollisionMatrix *acm,
                                 boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  void updateGroupStateRepresentationState(const kinematic_state::KinematicState& state,
+  void updateGroupStateRepresentationState(const robot_state::RobotState& state,
                                            boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   void generateCollisionCheckingStructures(const std::string& group_name,
-                                           const kinematic_state::KinematicState& state,
+                                           const robot_state::RobotState& state,
                                            const collision_detection::AllowedCollisionMatrix *acm,
                                            boost::shared_ptr<GroupStateRepresentation>& gsr,
                                            bool generate_distance_field) const;
 
   boost::shared_ptr<const DistanceFieldCacheEntry> 
   getDistanceFieldCacheEntry(const std::string& group_name,
-                             const kinematic_state::KinematicState& state,
+                             const robot_state::RobotState& state,
                              const collision_detection::AllowedCollisionMatrix *acm) const;
   
 
   boost::shared_ptr<DistanceFieldCacheEntry> 
   generateDistanceFieldCacheEntry(const std::string& group_name,
-                                  const kinematic_state::KinematicState& state,
+                                  const robot_state::RobotState& state,
                                   const collision_detection::AllowedCollisionMatrix *acm,
                                   bool generate_distance_field) const;
     
@@ -238,17 +238,17 @@ protected:
                                  const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions);
 
   PosedBodySphereDecompositionPtr 
-  getPosedLinkBodySphereDecomposition(const kinematic_state::LinkState* ls,
+  getPosedLinkBodySphereDecomposition(const robot_state::LinkState* ls,
                                       unsigned int ind) const;
 
-  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const kinematic_state::LinkState* ls) const;
+  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const robot_state::LinkState* ls) const;
 
   void getGroupStateRepresentation(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
-                                   const kinematic_state::KinematicState& state,
+                                   const robot_state::RobotState& state,
                                    boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   bool compareCacheEntryToState(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
-                                const kinematic_state::KinematicState& state) const;
+                                const robot_state::RobotState& state) const;
 
   bool compareCacheEntryToAllowedCollisionMatrix(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
                                                  const collision_detection::AllowedCollisionMatrix& acm) const;

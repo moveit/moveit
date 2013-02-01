@@ -38,7 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_COLLISION_ROBOT_
 
 #include <moveit/collision_detection/collision_matrix.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/LinkPadding.h>
 #include <moveit_msgs/LinkScale.h>
 
@@ -62,7 +62,7 @@ namespace collision_detection
     /**  @brief A copy constructor*/
     CollisionRobot(const CollisionRobot &other);
     
-    virtual ~CollisionRobot(void)
+    virtual ~CollisionRobot()
     {
     }
     
@@ -71,7 +71,7 @@ namespace collision_detection
      *  @param req A CollisionRequest object that encapsulates the collision request
      *  @param res A CollisionResult object that encapsulates the collision result
      *  @param state The kinematic state for which checks are being made */
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state) const = 0;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state) const = 0;
     
     /** \brief Check for self collision. Allowed collisions specified by the allowed collision matrix are
      *   taken into account.
@@ -79,7 +79,7 @@ namespace collision_detection
      *  @param res A CollisionResult object that encapsulates the collision result
      *  @param state The kinematic state for which checks are being made
      *  @param acm The allowed collision matrix. */
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const = 0;
     
     /** @brief Check for self collision in a continuous manner. Any collision between any pair of links is checked for,
      *  NO collisions are ignored.
@@ -87,7 +87,7 @@ namespace collision_detection
      *  @param res A CollisionResult object that encapsulates the collision result
      *  @param state1 The kinematic state at the start of the segment for which checks are being made
      *  @param state2 The kinematic state at the end of the segment for which checks are being made */
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2) const = 0;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2) const = 0;
     
     /** \brief Check for self collision. Allowed collisions specified by the allowed collision matrix are
      *   taken into account.
@@ -96,7 +96,7 @@ namespace collision_detection
      *  @param state1 The kinematic state at the start of the segment for which checks are being made
      *  @param state2 The kinematic state at the end of the segment for which checks are being made
      *  @param acm The allowed collision matrix. */
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2, const AllowedCollisionMatrix &acm) const = 0;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2, const AllowedCollisionMatrix &acm) const = 0;
     
     /** \brief Check for collision with a different robot (possibly a different kinematic model as well).
      *  Any collision between any pair of links is checked for, NO collisions are ignored.
@@ -106,9 +106,9 @@ namespace collision_detection
      *  @param other_robot The collision representation for the other robot
      *  @param other_state The kinematic state corresponding to the other robot */
     virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
-				     const kinematic_state::KinematicState &state,
+				     const robot_state::RobotState &state,
 				     const CollisionRobot &other_robot,
-				     const kinematic_state::KinematicState &other_state) const = 0;
+				     const robot_state::RobotState &other_state) const = 0;
     
     /** \brief Check for collision with a different robot (possibly a different kinematic model as well).
      *  Allowed collisions specified by the allowed collision matrix are taken into account.
@@ -119,9 +119,9 @@ namespace collision_detection
      *  @param other_state The kinematic state corresponding to the other robot
      *  @param acm The allowed collision matrix. */
     virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
-				     const kinematic_state::KinematicState &state,
+				     const robot_state::RobotState &state,
 				     const CollisionRobot &other_robot,
-				     const kinematic_state::KinematicState &other_state,
+				     const robot_state::RobotState &other_state,
 				     const AllowedCollisionMatrix &acm) const = 0;
 
     /** \brief Check for collision with a different robot (possibly a different kinematic model as well), in a continuous fashion.
@@ -134,11 +134,11 @@ namespace collision_detection
      *  @param other_state1 The kinematic state at the start of the segment for which checks are being made (other robot)
      *  @param other_state2 The kinematic state at the end of the segment for which checks are being made (other robot) */
     virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
-				     const kinematic_state::KinematicState &state1,
-				     const kinematic_state::KinematicState &state2,
+				     const robot_state::RobotState &state1,
+				     const robot_state::RobotState &state2,
 				     const CollisionRobot &other_robot,
-				     const kinematic_state::KinematicState &other_state1,
-                                     const kinematic_state::KinematicState &other_state2) const = 0;
+				     const robot_state::RobotState &other_state1,
+                                     const robot_state::RobotState &other_state2) const = 0;
     
     /** \brief Check for collision with a different robot (possibly a different kinematic model as well), in a continuous fashion.
      *  Allowed collisions specified by the allowed collision matrix are taken into account.
@@ -151,41 +151,41 @@ namespace collision_detection
      *  @param other_state2 The kinematic state at the end of the segment for which checks are being made (other robot) 
      *  @param acm The allowed collision matrix. */
     virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
-				     const kinematic_state::KinematicState &state1,
-				     const kinematic_state::KinematicState &state2,
+				     const robot_state::RobotState &state1,
+				     const robot_state::RobotState &state2,
 				     const CollisionRobot &other_robot,
-				     const kinematic_state::KinematicState &other_state1,
-				     const kinematic_state::KinematicState &other_state2,
+				     const robot_state::RobotState &other_state1,
+				     const robot_state::RobotState &other_state2,
 				     const AllowedCollisionMatrix &acm) const = 0;
 
     /** \brief The distance to self-collision given the robot is at state \e state. */
-    virtual double distanceSelf(const kinematic_state::KinematicState &state) const = 0;
+    virtual double distanceSelf(const robot_state::RobotState &state) const = 0;
     
     /** \brief The distance to self-collision given the robot is at state \e state, ignoring 
         the distances between links that are allowed to always collide (as specified by \e acm) */
-    virtual double distanceSelf(const kinematic_state::KinematicState &state,
+    virtual double distanceSelf(const robot_state::RobotState &state,
                                 const AllowedCollisionMatrix &acm) const = 0;
 
     /** \brief The distance to another robot instance.
         @param state The state of this robot to consider
         @param other_robot The other robot instance to measure distance to
         @param other_state The state of the other robot */
-    virtual double distanceOther(const kinematic_state::KinematicState &state,
+    virtual double distanceOther(const robot_state::RobotState &state,
                                  const CollisionRobot &other_robot,
-                                 const kinematic_state::KinematicState &other_state) const = 0;
+                                 const robot_state::RobotState &other_state) const = 0;
 
     /** \brief The distance to another robot instance, ignoring distances between links that are allowed to always collide.
         @param state The state of this robot to consider
         @param other_robot The other robot instance to measure distance to
         @param other_state The state of the other robot 
         @param acm The collision matrix specifying which links are allowed to always collide */
-    virtual double distanceOther(const kinematic_state::KinematicState &state,
+    virtual double distanceOther(const robot_state::RobotState &state,
                                  const CollisionRobot &other_robot,
-                                 const kinematic_state::KinematicState &other_state,
+                                 const robot_state::RobotState &other_state,
                                  const AllowedCollisionMatrix &acm) const = 0;
     
     /** @brief The kinematic model corresponding to this collision model*/
-    const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+    const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
     {
       return kmodel_;
     }
@@ -203,7 +203,7 @@ namespace collision_detection
     void setLinkPadding(const std::map<std::string, double> &padding);
     
     /** @brief Get the link paddings as a map (from link names to padding value) */
-    const std::map<std::string, double> &getLinkPadding(void) const;
+    const std::map<std::string, double> &getLinkPadding() const;
     
     /** @brief Set the scaling for a particular link*/
     void setLinkScale(const std::string &link_name, double scale);
@@ -215,7 +215,7 @@ namespace collision_detection
     void setLinkScale(const std::map<std::string, double> &scale);
     
     /** @brief Get the link scaling as a map (from link names to scale value)*/
-    const std::map<std::string, double> &getLinkScale(void) const;
+    const std::map<std::string, double> &getLinkScale() const;
     
     /** @brief Set the link padding (for every link)*/
     void setPadding(double padding);

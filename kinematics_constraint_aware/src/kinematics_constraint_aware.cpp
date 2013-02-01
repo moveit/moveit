@@ -116,7 +116,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
 
   if(!response.solution_)
   {
-    response.solution_.reset(new kinematic_state::KinematicState(planning_scene->getCurrentState()));
+    response.solution_.reset(new robot_state::RobotState(planning_scene->getCurrentState()));
   }
   
   ros::WallTime start_time = ros::WallTime::now();
@@ -127,7 +127,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
   }
   
   // Setup the seed and the values for all other joints in the robot
-  kinematic_state::KinematicState kinematic_state = *request.robot_state_;
+  robot_state::RobotState kinematic_state = *request.robot_state_;
   std::vector<std::string> ik_link_names = request.ik_link_names_;
 
   // Transform request to tip frame if necessary
@@ -161,7 +161,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
                                                       request.pose_stamped_vector_,
                                                       kinematic_model_->getModelFrame());
 
-  kinematic_state::StateValidityCallbackFn constraint_callback_fn = boost::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response, _1, _2);
+  robot_state::StateValidityCallbackFn constraint_callback_fn = boost::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response, _1, _2);
   
   bool result = false;  
   if(has_sub_groups_)
@@ -199,7 +199,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
 bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::PlanningSceneConstPtr &planning_scene,
                                                    const kinematics_constraint_aware::KinematicsRequest &request,
                                                    kinematics_constraint_aware::KinematicsResponse &response,
-                                                   kinematic_state::JointStateGroup *joint_state_group,
+                                                   robot_state::JointStateGroup *joint_state_group,
                                                    const std::vector<double> &joint_group_variable_values) const
 {
   joint_state_group->setVariableValues(joint_group_variable_values);  
@@ -210,7 +210,7 @@ bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::Plannin
     collision_detection::CollisionRequest collision_request;
     collision_detection::CollisionResult collision_result;  
     collision_request.group_name = request.group_name_;
-    planning_scene->checkCollision(collision_request, collision_result, *joint_state_group->getKinematicState());    
+    planning_scene->checkCollision(collision_request, collision_result, *joint_state_group->getRobotState());    
     if(collision_result.collision)
     {
       logDebug("IK solution is in collision");      
@@ -223,7 +223,7 @@ bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::Plannin
   if(request.constraints_)
   {
     kinematic_constraints::ConstraintEvaluationResult constraint_result;
-    constraint_result = request.constraints_->decide(*joint_state_group->getKinematicState(), 
+    constraint_result = request.constraints_->decide(*joint_state_group->getRobotState(), 
                                                      response.constraint_eval_results_);
     if(!constraint_result.satisfied)
     {
@@ -318,7 +318,7 @@ bool KinematicsConstraintAware::convertServiceRequest(const planning_scene::Plan
   else
     kinematics_request.pose_stamped_vector_ = request.ik_request.pose_stamped_vector;
 
-  kinematics_request.robot_state_.reset(new kinematic_state::KinematicState(planning_scene->getCurrentState()));
+  kinematics_request.robot_state_.reset(new robot_state::RobotState(planning_scene->getCurrentState()));
   kinematics_request.robot_state_->setStateValues(request.ik_request.robot_state.joint_state);    
   kinematics_request.constraints_.reset(new kinematic_constraints::KinematicConstraintSet(kinematic_model_, planning_scene->getTransforms()));
   kinematics_request.constraints_->add(request.constraints);
@@ -326,13 +326,13 @@ bool KinematicsConstraintAware::convertServiceRequest(const planning_scene::Plan
   kinematics_request.group_name_ = request.ik_request.group_name;
   kinematics_request.check_for_collisions_ = true;
   
-  kinematics_response.solution_.reset(new kinematic_state::KinematicState(planning_scene->getCurrentState()));
+  kinematics_response.solution_.reset(new robot_state::RobotState(planning_scene->getCurrentState()));
 
   return true;  
 }
 
 std::vector<Eigen::Affine3d> KinematicsConstraintAware::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                                       const kinematic_state::KinematicState &kinematic_state,
+                                                                       const robot_state::RobotState &kinematic_state,
                                                                        const std::vector<geometry_msgs::PoseStamped> &poses,
                                                                        const std::string &target_frame) const
 {
@@ -355,7 +355,7 @@ std::vector<Eigen::Affine3d> KinematicsConstraintAware::transformPoses(const pla
 }
 
 geometry_msgs::Pose KinematicsConstraintAware::getTipFramePose(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                               const kinematic_state::KinematicState &kinematic_state,
+                                                               const robot_state::RobotState &kinematic_state,
                                                                const geometry_msgs::Pose &pose,
                                                                const std::string &link_name,
                                                                unsigned int sub_group_index) const

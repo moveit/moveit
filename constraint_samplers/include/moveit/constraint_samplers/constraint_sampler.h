@@ -70,7 +70,7 @@ public:
    */
   ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
   
-  virtual ~ConstraintSampler(void)
+  virtual ~ConstraintSampler()
   {
   }
   
@@ -88,7 +88,7 @@ public:
    * 
    * @return The group name
    */
-  const std::string& getGroupName(void) const
+  const std::string& getGroupName() const
   {
     return getJointModelGroup()->getName();
   }
@@ -99,7 +99,7 @@ public:
    * 
    * @return The joint model group
    */
-  const kinematic_model::JointModelGroup* getJointModelGroup(void) const
+  const kinematic_model::JointModelGroup* getJointModelGroup() const
   {
     return jmg_;
   }
@@ -110,7 +110,7 @@ public:
    * 
    * @return The planning scene as a const ptr
    */
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return scene_;
   }
@@ -126,7 +126,7 @@ public:
    * 
    * @return The list of names whose pose is needed
    */
-  const std::vector<std::string>& getFrameDependency(void) const
+  const std::vector<std::string>& getFrameDependency() const
   {
     return frame_depends_;
   }
@@ -134,7 +134,7 @@ public:
   /** 
    * \brief Gets the callback used to determine state validity during sampling. The sampler will attempt to satisfy this constraint if possible, but there is no guarantee.
    */
-  const kinematic_state::StateValidityCallbackFn& getStateValidityCallback(void) const
+  const robot_state::StateValidityCallbackFn& getStateValidityCallback() const
   {
     return state_validity_callback_;
   }
@@ -144,7 +144,7 @@ public:
    * 
    * @param callback The callback to set
    */
-  void setStateValidityCallback(const kinematic_state::StateValidityCallbackFn &callback)
+  void setStateValidityCallback(const robot_state::StateValidityCallbackFn &callback)
   {
     state_validity_callback_ = callback;
   }
@@ -159,8 +159,8 @@ public:
    * 
    * @return True if a sample was successfully taken, false otherwise
    */
-  bool sample(kinematic_state::JointStateGroup *jsg, 
-              const kinematic_state::KinematicState &reference_state)
+  bool sample(robot_state::JointStateGroup *jsg, 
+              const robot_state::RobotState &reference_state)
   {
     return sample(jsg, reference_state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   } 
@@ -175,8 +175,8 @@ public:
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  bool project(kinematic_state::JointStateGroup *jsg, 
-               const kinematic_state::KinematicState &reference_state)
+  bool project(robot_state::JointStateGroup *jsg, 
+               const robot_state::RobotState &reference_state)
   {
     return project(jsg, reference_state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
@@ -191,8 +191,8 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  virtual bool sample(kinematic_state::JointStateGroup *jsg, 
-                      const kinematic_state::KinematicState &reference_state, 
+  virtual bool sample(robot_state::JointStateGroup *jsg, 
+                      const robot_state::RobotState &reference_state, 
                       unsigned int max_attempts) = 0;
 
   /** 
@@ -205,8 +205,8 @@ public:
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  virtual bool project(kinematic_state::JointStateGroup *jsg, 
-                       const kinematic_state::KinematicState &reference_state, 
+  virtual bool project(robot_state::JointStateGroup *jsg, 
+                       const robot_state::RobotState &reference_state, 
                        unsigned int max_attempts) = 0;
 
   /** 
@@ -214,7 +214,7 @@ public:
    * 
    * @return True if the sampler is valid, and otherwise false.
    */
-  bool isValid(void) const
+  bool isValid() const
   {
     return is_valid_;
   }
@@ -225,14 +225,14 @@ protected:
    * \brief Clears all data from the constraint.
    * 
    */
-  virtual void clear(void);
+  virtual void clear();
 
   bool                                     is_valid_;  /**< \brief  Holds the value for validity */
 
   planning_scene::PlanningSceneConstPtr    scene_; /**< \brief Holds the planning scene */
   const kinematic_model::JointModelGroup  *jmg_; /**< \brief Holds the joint model group associated with this constraint */
   std::vector<std::string>                 frame_depends_; /**< \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
-  kinematic_state::StateValidityCallbackFn state_validity_callback_; /**< \brief Holds the callback for state validity */
+  robot_state::StateValidityCallbackFn state_validity_callback_; /**< \brief Holds the callback for state validity */
 };
 
 typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr; /**< \brief boost shared_ptr to a ConstraintSampler */

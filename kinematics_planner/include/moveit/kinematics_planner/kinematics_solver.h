@@ -53,7 +53,7 @@
 
 // MoveIt!
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 
@@ -96,22 +96,22 @@ protected:
   geometry_msgs::Pose getPose(const std::vector<double> &values) const;
   
   std::map<std::string,geometry_msgs::PoseStamped> transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                                  const kinematic_state::KinematicState &kinematic_state,
+                                                                  const robot_state::RobotState &kinematic_state,
                                                                   const std::map<std::string,geometry_msgs::PoseStamped> &poses,
                                                                   const std::map<std::string,std::string> &target_frames) const;
 
   bool getGoal(const planning_scene::PlanningSceneConstPtr &planning_scene,
-               const kinematic_state::KinematicState &kinematic_state,
+               const robot_state::RobotState &kinematic_state,
                const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
                std::map<std::string,geometry_msgs::PoseStamped>& pose_stamped) const;
 
   geometry_msgs::Pose getTipFramePose(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                      const kinematic_state::KinematicState &kinematic_state,
+                                      const robot_state::RobotState &kinematic_state,
                                       const geometry_msgs::Pose &pose,
                                       const std::string &link_name,
                                       const std::string &group_name) const;
   
-  moveit_msgs::RobotState getRobotState(const kinematics_planner::SolutionStateMap &solutions,
+  moveit_msgs::RobotState *getRobotState(const kinematics_planner::SolutionStateMap &solutions,
                                         const std::vector<std::string> &group_names) const;  
   
   std::vector<kinematics::KinematicsBaseConstPtr> getKinematicsSolvers(const std::vector<std::string> &group_names) const;

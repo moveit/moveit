@@ -41,7 +41,7 @@ kinematic_model::FixedJointModel::FixedJointModel(const std::string& name) : Joi
   type_ = FIXED;
 }
 
-unsigned int kinematic_model::FixedJointModel::getStateSpaceDimension(void) const
+unsigned int kinematic_model::FixedJointModel::getStateSpaceDimension() const
 {
   return 0;
 }

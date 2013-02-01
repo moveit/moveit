@@ -36,12 +36,12 @@
 
 #include <moveit/kinematic_model/link_model.h>
 
-kinematic_model::LinkModel::LinkModel(void) : parent_joint_model_(NULL), tree_index_(-1)
+kinematic_model::LinkModel::LinkModel() : parent_joint_model_(NULL), tree_index_(-1)
 {
   joint_origin_transform_.setIdentity();
   collision_origin_transform_.setIdentity();
 }
 
-kinematic_model::LinkModel::~LinkModel(void)
+kinematic_model::LinkModel::~LinkModel()
 {
 }

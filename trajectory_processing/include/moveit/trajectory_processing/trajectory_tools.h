@@ -37,8 +37,8 @@
 #ifndef MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
 #define MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
 
-#include <moveit/kinematic_state/kinematic_state.h>
-#include <moveit/kinematic_state/transforms.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/transforms.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit/macros/deprecation.h>

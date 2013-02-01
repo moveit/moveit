@@ -103,7 +103,7 @@ public:
    *
    * \li At least one constraint must reference a joint in the
    * indicated group.  If no additional bounds exist for this group,
-   * then kinematic_state::JointStateGroup::setToRandomValues can be
+   * then robot_state::JointStateGroup::setToRandomValues can be
    * used to generate a sample independently from the
    * constraint_samplers infrastructure.
    *
@@ -117,12 +117,12 @@ public:
    */  
   bool configure(const std::vector<kinematic_constraints::JointConstraint> &jc);
 
-  virtual bool sample(kinematic_state::JointStateGroup *jsg, 
-                      const kinematic_state::KinematicState &ks,  
+  virtual bool sample(robot_state::JointStateGroup *jsg, 
+                      const robot_state::RobotState &ks,  
                       unsigned int max_attempts);
 
-  virtual bool project(kinematic_state::JointStateGroup *jsg, 
-                       const kinematic_state::KinematicState &reference_state, 
+  virtual bool project(robot_state::JointStateGroup *jsg, 
+                       const robot_state::RobotState &reference_state, 
                        unsigned int max_attempts);
 
   /** 
@@ -132,7 +132,7 @@ public:
    * 
    * @return The number of constrained joints.
    */
-  std::size_t getConstrainedJointCount(void) const
+  std::size_t getConstrainedJointCount() const
   {
     return bounds_.size();
   }
@@ -143,7 +143,7 @@ public:
    * 
    * @return The number of unconstrained joints.
    */
-  std::size_t getUnconstrainedJointCount(void) const
+  std::size_t getUnconstrainedJointCount() const
   {
     return unbounded_.size();
   }
@@ -206,7 +206,7 @@ struct IKSamplingPose
    * 
    * @return 
    */
-  IKSamplingPose(void);
+  IKSamplingPose();
 
   /** 
    * \brief Constructor that takes a single pose constraint, doing a copy
@@ -358,7 +358,7 @@ public:
    * 
    * @return The IK timeout
    */
-  double getIKTimeout(void) const
+  double getIKTimeout() const
   {
     return ik_timeout_;
   }
@@ -379,7 +379,7 @@ public:
    * 
    * @return The position constraint, or an empty boost::shared_ptr if none has been specified
    */
-  const boost::shared_ptr<kinematic_constraints::PositionConstraint>& getPositionConstraint(void) const
+  const boost::shared_ptr<kinematic_constraints::PositionConstraint>& getPositionConstraint() const
   {
     return sampling_pose_.position_constraint_;
   }
@@ -389,7 +389,7 @@ public:
    * 
    * @return The orientation constraint, or an empty boost::shared_ptr if none has been specified
    */
-  const boost::shared_ptr<kinematic_constraints::OrientationConstraint>& getOrientationConstraint(void) const
+  const boost::shared_ptr<kinematic_constraints::OrientationConstraint>& getOrientationConstraint() const
   {
     return sampling_pose_.orientation_constraint_;
   }
@@ -407,7 +407,7 @@ public:
    * @return Returns the sum of the volumes of all constraint regions
    * associated with the position and orientation constraints.
    */
-  double getSamplingVolume(void) const;
+  double getSamplingVolume() const;
 
   /** 
    * \brief Gets the link name associated with this sampler
@@ -415,7 +415,7 @@ public:
    * 
    * @return The associated link name
    */
-  const std::string& getLinkName(void) const;
+  const std::string& getLinkName() const;
   
   /** 
    * \brief Produces an IK sample, putting the result in the JointStateGroup. 
@@ -438,10 +438,10 @@ public:
    * 
    * @return True if a valid sample pose was produced and valid IK found for that pose.  Otherwise false. 
    */
-  virtual bool sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts);
+  virtual bool sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts);
 
-  virtual bool project(kinematic_state::JointStateGroup *jsg, 
-                       const kinematic_state::KinematicState &reference_state, 
+  virtual bool project(robot_state::JointStateGroup *jsg, 
+                       const robot_state::RobotState &reference_state, 
                        unsigned int max_attempts);
   /** 
    * \brief Returns a pose that falls within the constraint regions. 
@@ -465,7 +465,7 @@ public:
    * 
    * @return True if a sample was successfully produced, otherwise false
    */
-  bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const kinematic_state::KinematicState &ks, unsigned int max_attempts);
+  bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const robot_state::RobotState &ks, unsigned int max_attempts);
   
 protected:
   
@@ -476,7 +476,7 @@ protected:
    * 
    * @return True if the IK solver exists and if it associated with the expected base frame and tip frames.  Otherwise false.
    */
-  bool loadIKSolver(void);
+  bool loadIKSolver();
   
   /** 
    * \brief Actually calls IK on the given pose, generating a random seed state.
@@ -489,9 +489,9 @@ protected:
    * @return True if IK returns successfully with the timeout, and otherwise false.
    */
   bool callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback, double timeout,
-              kinematic_state::JointStateGroup *jsg, bool use_as_seed);
+              robot_state::JointStateGroup *jsg, bool use_as_seed);
 
-  bool sampleHelper(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts, bool project);
+  bool sampleHelper(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts, bool project);
 
   random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random generator used by the sampler */
   IKSamplingPose                        sampling_pose_; /**< \brief Holder for the pose used for sampling */

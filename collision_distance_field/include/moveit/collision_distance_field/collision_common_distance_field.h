@@ -37,7 +37,7 @@
 #ifndef MOVEIT_COLLISION_DETECTION_DISTANCE_FIELD_COLLISION_COMMON_
 #define MOVEIT_COLLISION_DETECTION_DISTANCE_FIELD_COLLISION_COMMON_
 
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_world.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
@@ -70,7 +70,7 @@ struct GroupStateRepresentation {
 
 struct DistanceFieldCacheEntry {
   std::string group_name_;
-  boost::shared_ptr<kinematic_state::KinematicState> state_;
+  boost::shared_ptr<robot_state::RobotState> state_;
   std::vector<unsigned int> state_check_indices_;
   std::vector<double> state_values_;
   collision_detection::AllowedCollisionMatrix acm_;
@@ -92,10 +92,10 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
 PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::CollisionWorld::Object& obj,
                                                                           double resolution);
 
-PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const kinematic_state::AttachedBody* att,
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody* att,
                                                                          double resolution);
 
-PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const kinematic_state::AttachedBody* att,
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
                                                                        double resolution);
 
 

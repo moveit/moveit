@@ -157,7 +157,7 @@ bool kinematic_model::FloatingJointModel::normalizeRotation(std::vector<double> 
     double norm = sqrt(normSqr);
     if (norm < std::numeric_limits<double>::epsilon() * 100.0)
     {
-      logWarn("Quaternion is zero in KinematicState representation. Setting to identity");
+      logWarn("Quaternion is zero in RobotState *representation. Setting to identity");
       values[3] = 0.0;
       values[4] = 0.0;
       values[5] = 0.0;
@@ -176,7 +176,7 @@ bool kinematic_model::FloatingJointModel::normalizeRotation(std::vector<double> 
     return false;
 }
 
-unsigned int kinematic_model::FloatingJointModel::getStateSpaceDimension(void) const
+unsigned int kinematic_model::FloatingJointModel::getStateSpaceDimension() const
 {
   return 6;
 }

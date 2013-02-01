@@ -40,7 +40,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <octomap_msgs/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <set>
@@ -76,7 +76,7 @@ planning_scene::PlanningScenePtr planning_scene::PlanningScene::clone(const plan
   return result;
 }
 
-planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(void) const
+planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff() const
 {
   return PlanningScenePtr(new PlanningScene(shared_from_this()));
 }
@@ -88,7 +88,7 @@ planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(const movei
   return result;
 }
 
-planning_scene::PlanningScene::PlanningScene(void) : configured_(false)
+planning_scene::PlanningScene::PlanningScene() : configured_(false)
 {
   name_ = DEFAULT_SCENE_NAME;
   setCollisionDetectionTypes<collision_detection::CollisionWorldFCL, collision_detection::CollisionRobotFCL>();
@@ -166,7 +166,7 @@ bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicMo
     {
       kmodel_ = kmodel;
       kmodel_const_ = kmodel_;
-      ftf_.reset(new kinematic_state::Transforms(kmodel_->getModelFrame()));
+      ftf_.reset(new robot_state::Transforms(kmodel_->getModelFrame()));
       ftf_const_ = ftf_;
       
       if (kstate_)
@@ -174,12 +174,12 @@ bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicMo
         // keep the same joint values, update the transforms if needed
         std::map<std::string, double> jsv;
         kstate_->getStateValues(jsv);
-        kstate_.reset(new kinematic_state::KinematicState(kmodel_));
+        kstate_.reset(new robot_state::RobotState(kmodel_));
         kstate_->setStateValues(jsv);
       }
       else
       {
-        kstate_.reset(new kinematic_state::KinematicState(kmodel_));
+        kstate_.reset(new robot_state::RobotState(kmodel_));
         kstate_->setToDefaultValues();
       }
       
@@ -237,7 +237,7 @@ bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicMo
   return isConfigured();
 }
 
-const kinematic_model::KinematicModelPtr& planning_scene::PlanningScene::getKinematicModelNonConst(void)
+const kinematic_model::KinematicModelPtr& planning_scene::PlanningScene::getKinematicModelNonConst()
 {
   if (kmodel_ || !parent_)
     return kmodel_;
@@ -251,7 +251,7 @@ const kinematic_model::KinematicModelPtr& planning_scene::PlanningScene::getKine
   return *r;
 }
 
-void planning_scene::PlanningScene::clearDiffs(void)
+void planning_scene::PlanningScene::clearDiffs()
 {
   if (!parent_)
     return;
@@ -320,22 +320,22 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
   }
 }
 
-double planning_scene::PlanningScene::distanceToCollisionUnpadded(const kinematic_state::KinematicState &kstate) const
+double planning_scene::PlanningScene::distanceToCollisionUnpadded(const robot_state::RobotState &kstate) const
 {
   return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate);
 }
 
-double planning_scene::PlanningScene::distanceToCollisionUnpadded(const kinematic_state::KinematicState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
+double planning_scene::PlanningScene::distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
 {
   return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, acm);
 }
 
-double planning_scene::PlanningScene::distanceToCollision(const kinematic_state::KinematicState &kstate) const
+double planning_scene::PlanningScene::distanceToCollision(const robot_state::RobotState &kstate) const
 {
   return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate);
 }
 
-double planning_scene::PlanningScene::distanceToCollision(const kinematic_state::KinematicState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
+double planning_scene::PlanningScene::distanceToCollision(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
 {
   return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, acm);
 }
@@ -351,7 +351,7 @@ void planning_scene::PlanningScene::checkSelfCollision(const collision_detection
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
-                                                   const kinematic_state::KinematicState &kstate) const
+                                                   const robot_state::RobotState &kstate) const
 {
   // check collision with the world using the padded version
   if (parent_)
@@ -370,7 +370,7 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
 }
 
 void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
-                                                       const kinematic_state::KinematicState &kstate) const
+                                                       const robot_state::RobotState &kstate) const
 {
   // do self-collision checking with the unpadded version of the robot
   getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
@@ -378,7 +378,7 @@ void planning_scene::PlanningScene::checkSelfCollision(const collision_detection
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
                                                    collision_detection::CollisionResult &res,
-                                                   const kinematic_state::KinematicState &kstate,
+                                                   const robot_state::RobotState &kstate,
                                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
@@ -397,14 +397,14 @@ void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detec
 
 void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
 							   collision_detection::CollisionResult &res,
-							   const kinematic_state::KinematicState &kstate) const
+							   const robot_state::RobotState &kstate) const
 {
   return checkCollisionUnpadded(req, res, kstate, getAllowedCollisionMatrix());
 }
 
 void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                                                            collision_detection::CollisionResult &res,
-                                                           const kinematic_state::KinematicState &kstate,
+                                                           const robot_state::RobotState &kstate,
                                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
@@ -419,7 +419,7 @@ void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detec
 
 void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
                                                        collision_detection::CollisionResult &res,
-                                                       const kinematic_state::KinematicState &kstate,
+                                                       const robot_state::RobotState &kstate,
                                                        const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // do self-collision checking with the unpadded version of the robot
@@ -433,14 +433,14 @@ void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &
 
 
 void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
-                                                      const kinematic_state::KinematicState &kstate) const
+                                                      const robot_state::RobotState &kstate) const
 {
   getCollidingLinks(links, kstate, getAllowedCollisionMatrix());
 }
 
 
 void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
-                                                      const kinematic_state::KinematicState &kstate,
+                                                      const robot_state::RobotState &kstate,
                                                       const collision_detection::AllowedCollisionMatrix& acm) const
 { 
   collision_detection::CollisionRequest req;
@@ -460,7 +460,7 @@ void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &
     }
 }
 
-const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::getCollisionRobot(void)
+const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::getCollisionRobot()
 {
   if (!crobot_)
   {
@@ -470,25 +470,25 @@ const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::get
   return crobot_;
 }
 
-kinematic_state::KinematicState& planning_scene::PlanningScene::getCurrentState(void)
+robot_state::RobotState& planning_scene::PlanningScene::getCurrentState()
 {
   if (!kstate_)
-    kstate_.reset(new kinematic_state::KinematicState(parent_->getCurrentState()));
+    kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
   return *kstate_;
 }
 
-collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getAllowedCollisionMatrix(void)
+collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getAllowedCollisionMatrix()
 {
   if (!acm_)
     acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
   return *acm_;
 }
 
-const kinematic_state::TransformsPtr& planning_scene::PlanningScene::getTransforms(void)
+const robot_state::TransformsPtr& planning_scene::PlanningScene::getTransforms()
 {
   if (!ftf_)
   {
-    ftf_.reset(new kinematic_state::Transforms(*parent_->getTransforms()));
+    ftf_.reset(new robot_state::Transforms(*parent_->getTransforms()));
     ftf_const_ = ftf_;
   }
   return ftf_;
@@ -507,7 +507,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
     scene.fixed_frame_transforms.clear();
 
   if (kstate_)
-    kinematic_state::kinematicStateToRobotState(*kstate_, scene.robot_state);
+    robot_state::kinematicStateToRobotState(*kstate_, scene.robot_state);
   else
     scene.robot_state = moveit_msgs::RobotState();
 
@@ -707,7 +707,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   scene.robot_model_name = getKinematicModel()->getName();
   getTransforms()->getTransforms(scene.fixed_frame_transforms);
 
-  kinematic_state::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
+  robot_state::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
   getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
   getCollisionRobot()->getPadding(scene.link_padding);
   getCollisionRobot()->getScale(scene.link_scale);
@@ -814,28 +814,28 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   if (parent_)
   {
     if (!kstate_)
-      kstate_.reset(new kinematic_state::KinematicState(parent_->getCurrentState()));
+      kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
     else
       // attached bodies are sent fully, so we need to clear old ones, if any
       kstate_->clearAttachedBodies();
-    kinematic_state::robotStateToKinematicState(*getTransforms(), state, *kstate_);
+    robot_state::robotStateToRobotState(*getTransforms(), state, *kstate_);
   }
   else
   {   
     // attached bodies are sent fully, so we need to clear old ones, if any
     kstate_->clearAttachedBodies();
-    kinematic_state::robotStateToKinematicState(*ftf_, state, *kstate_);
+    robot_state::robotStateToRobotState(*ftf_, state, *kstate_);
   }
 }
 
-void planning_scene::PlanningScene::setCurrentState(const kinematic_state::KinematicState &state)
+void planning_scene::PlanningScene::setCurrentState(const robot_state::RobotState &state)
 {
   if (!kstate_)
-    kstate_.reset(new kinematic_state::KinematicState(getKinematicModel()));
+    kstate_.reset(new robot_state::RobotState(getKinematicModel()));
   *kstate_ = state;
 }
 
-void planning_scene::PlanningScene::decoupleParent(void)
+void planning_scene::PlanningScene::decoupleParent()
 {
   if (!parent_)
     return;
@@ -846,12 +846,12 @@ void planning_scene::PlanningScene::decoupleParent(void)
 
     if (!ftf_)
     {
-      ftf_.reset(new kinematic_state::Transforms(*parent_->getTransforms()));
+      ftf_.reset(new robot_state::Transforms(*parent_->getTransforms()));
       ftf_const_ = ftf_;
     }
 
     if (!kstate_)
-      kstate_.reset(new kinematic_state::KinematicState(parent_->getCurrentState()));
+      kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
 
     if (!acm_)
       acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
@@ -919,7 +919,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   {
     if (!ftf_)
     {
-      ftf_.reset(new kinematic_state::Transforms(getKinematicModel()->getModelFrame()));
+      ftf_.reset(new robot_state::Transforms(getKinematicModel()->getModelFrame()));
       ftf_const_ = ftf_;
     }
     ftf_->setTransforms(scene.fixed_frame_transforms);
@@ -984,12 +984,12 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 
     if (!ftf_)
     {
-      ftf_.reset(new kinematic_state::Transforms(kmodel_->getModelFrame()));
+      ftf_.reset(new robot_state::Transforms(kmodel_->getModelFrame()));
       ftf_const_ = ftf_;
     }
 
     if (!kstate_)
-      kstate_.reset(new kinematic_state::KinematicState(kmodel_));
+      kstate_.reset(new robot_state::RobotState(kmodel_));
 
     if (!crobot_)
     {
@@ -1159,7 +1159,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
   }
 
   if (!kstate_) // there must be a parent in this case
-    kstate_.reset(new kinematic_state::KinematicState(parent_->getCurrentState()));
+    kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
 
   if (object.object.operation == moveit_msgs::CollisionObject::ADD)
   {
@@ -1181,7 +1181,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       return false;
     }
 
-    kinematic_state::LinkState *ls = kstate_->getLinkState(object.link_name);
+    robot_state::LinkState *ls = kstate_->getLinkState(object.link_name);
     if (ls)
     {
       std::vector<shapes::ShapeConstPtr> shapes;
@@ -1285,10 +1285,10 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
   else
     if (object.object.operation == moveit_msgs::CollisionObject::REMOVE)
     {
-      kinematic_state::LinkState *ls = kstate_->getLinkState(object.link_name);
+      robot_state::LinkState *ls = kstate_->getLinkState(object.link_name);
       if (ls)
       {
-        const kinematic_state::AttachedBody *ab = ls->getAttachedBody(object.object.id);
+        const robot_state::AttachedBody *ab = ls->getAttachedBody(object.object.id);
         if (ab)
         {
           std::vector<shapes::ShapeConstPtr> shapes = ab->getShapes();
@@ -1448,8 +1448,8 @@ void planning_scene::PlanningScene::removeColor(const std::string &id)
 
 bool planning_scene::PlanningScene::isStateColliding(const moveit_msgs::RobotState &state, const std::string &group, bool verbose) const
 {
-  kinematic_state::KinematicState s(getCurrentState());
-  kinematic_state::robotStateToKinematicState(*getTransforms(), state, s);
+  robot_state::RobotState s(getCurrentState());
+  robot_state::robotStateToRobotState(*getTransforms(), state, s);
   return isStateColliding(s, group, verbose);
 }
 
@@ -1458,7 +1458,7 @@ bool planning_scene::PlanningScene::isStateColliding(const std::string &group, b
   return isStateColliding(getCurrentState(), group, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateColliding(const kinematic_state::KinematicState &state, const std::string &group, bool verbose) const
+bool planning_scene::PlanningScene::isStateColliding(const robot_state::RobotState &state, const std::string &group, bool verbose) const
 { 
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
@@ -1472,14 +1472,14 @@ bool planning_scene::PlanningScene::isStateFeasible(const moveit_msgs::RobotStat
 {
   if (state_feasibility_)
   {
-    kinematic_state::KinematicState s(getCurrentState());
-    kinematic_state::robotStateToKinematicState(*getTransforms(), state, s);
+    robot_state::RobotState s(getCurrentState());
+    robot_state::robotStateToRobotState(*getTransforms(), state, s);
     return state_feasibility_(s, verbose);
   }
   return true;
 }
 
-bool planning_scene::PlanningScene::isStateFeasible(const kinematic_state::KinematicState &state, bool verbose) const
+bool planning_scene::PlanningScene::isStateFeasible(const robot_state::RobotState &state, bool verbose) const
 {
   if (state_feasibility_)
     return state_feasibility_(state, verbose);
@@ -1488,13 +1488,13 @@ bool planning_scene::PlanningScene::isStateFeasible(const kinematic_state::Kinem
 
 bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
 {   
-  kinematic_state::KinematicState s(getCurrentState());
-  kinematic_state::robotStateToKinematicState(*getTransforms(), state, s);
+  robot_state::RobotState s(getCurrentState());
+  robot_state::robotStateToRobotState(*getTransforms(), state, s);
   return isStateConstrained(s, constr, verbose);
 }
 
 
-bool planning_scene::PlanningScene::isStateConstrained(const kinematic_state::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose) const
+bool planning_scene::PlanningScene::isStateConstrained(const robot_state::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
 {
   kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(getKinematicModel(), getTransforms()));
   ks->add(constr);
@@ -1506,17 +1506,17 @@ bool planning_scene::PlanningScene::isStateConstrained(const kinematic_state::Ki
 
 bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState &state, const kinematic_constraints::KinematicConstraintSet &constr, bool verbose) const
 {
-  kinematic_state::KinematicState s(getCurrentState());
-  kinematic_state::robotStateToKinematicState(*getTransforms(), state, s);
+  robot_state::RobotState s(getCurrentState());
+  robot_state::robotStateToRobotState(*getTransforms(), state, s);
   return isStateConstrained(s, constr, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateConstrained(const kinematic_state::KinematicState &state,  const kinematic_constraints::KinematicConstraintSet &constr, bool verbose) const
+bool planning_scene::PlanningScene::isStateConstrained(const robot_state::RobotState &state,  const kinematic_constraints::KinematicConstraintSet &constr, bool verbose) const
 { 
   return constr.decide(state, verbose).satisfied;
 }
 
-bool planning_scene::PlanningScene::isStateValid(const kinematic_state::KinematicState &state, const std::string &group, bool verbose) const
+bool planning_scene::PlanningScene::isStateValid(const robot_state::RobotState &state, const std::string &group, bool verbose) const
 {
   static const moveit_msgs::Constraints emp_constraints;
   return isStateValid(state, emp_constraints, group, verbose);
@@ -1530,12 +1530,12 @@ bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &
 
 bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, const std::string &group, bool verbose) const
 {
-  kinematic_state::KinematicState s(getCurrentState());
-  kinematic_state::robotStateToKinematicState(*getTransforms(), state, s);
+  robot_state::RobotState s(getCurrentState());
+  robot_state::robotStateToRobotState(*getTransforms(), state, s);
   return isStateValid(s, constr, group, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateValid(const kinematic_state::KinematicState &state, const moveit_msgs::Constraints &constr, const std::string &group, bool verbose) const
+bool planning_scene::PlanningScene::isStateValid(const robot_state::RobotState &state, const moveit_msgs::Constraints &constr, const std::string &group, bool verbose) const
 {
   if (isStateColliding(state, group, verbose))
     return false;
@@ -1544,7 +1544,7 @@ bool planning_scene::PlanningScene::isStateValid(const kinematic_state::Kinemati
   return isStateConstrained(state, constr, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateValid(const kinematic_state::KinematicState &state, const kinematic_constraints::KinematicConstraintSet &constr, const std::string &group, bool verbose) const
+bool planning_scene::PlanningScene::isStateValid(const robot_state::RobotState &state, const kinematic_constraints::KinematicConstraintSet &constr, const std::string &group, bool verbose) const
 {
   if (isStateColliding(state, group, verbose))
     return false;
@@ -1591,14 +1591,14 @@ bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &s
                                                 const std::string &group, bool verbose,
                                                 std::vector<std::size_t> *invalid_index) const
 {  
-  kinematic_trajectory::KinematicTrajectory t(getKinematicModel(), group);
-  kinematic_state::KinematicState start(getCurrentState());
-  kinematic_state::robotStateToKinematicState(*getTransforms(), start_state, start);
+  robot_trajectory::RobotTrajectory t(getKinematicModel(), group);
+  robot_state::RobotState start(getCurrentState());
+  robot_state::robotStateToRobotState(*getTransforms(), start_state, start);
   t.setRobotTrajectoryMsg(start, trajectory);
   return isPathValid(t, path_constraints, goal_constraints, group, verbose, invalid_index);
 }
 
-bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const std::vector<moveit_msgs::Constraints>& goal_constraints,
                                                 const std::string &group, bool verbose, std::vector<std::size_t> *invalid_index) const
@@ -1611,7 +1611,7 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::Kine
   std::size_t n_wp = trajectory.getWayPointCount();
   for (std::size_t i = 0 ; i < n_wp ; ++i)
   {
-    const kinematic_state::KinematicState &st = trajectory.getWayPoint(i);
+    const robot_state::RobotState &st = trajectory.getWayPoint(i);
     
     bool this_state_valid = true;
     if (isStateColliding(st, group, verbose))
@@ -1656,7 +1656,7 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::Kine
 }
 
 
-bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const moveit_msgs::Constraints& goal_constraints,
                                                 const std::string &group, bool verbose, std::vector<std::size_t> *invalid_index) const
@@ -1665,7 +1665,7 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::Kine
   return isPathValid(trajectory, path_constraints, goal_constraints_vector, group, verbose, invalid_index);
 }
 
-bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const std::string &group, bool verbose, std::vector<std::size_t> *invalid_index) const
 {
@@ -1673,7 +1673,7 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::Kine
   return isPathValid(trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
-bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
+bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                                                 const std::string &group, bool verbose, std::vector<std::size_t> *invalid_index) const
 { 
   static const moveit_msgs::Constraints emp_constraints;
@@ -1681,14 +1681,14 @@ bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::Kine
   return isPathValid(trajectory, emp_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
-void planning_scene::PlanningScene::getCostSources(const kinematic_trajectory::KinematicTrajectory &trajectory, std::size_t max_costs,
+void planning_scene::PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory &trajectory, std::size_t max_costs,
                                                    std::set<collision_detection::CostSource> &costs, double overlap_fraction) const
 {
   getCostSources(trajectory, max_costs, std::string(), costs, overlap_fraction);
 }
 
 
-void planning_scene::PlanningScene::getCostSources(const kinematic_trajectory::KinematicTrajectory &trajectory, std::size_t max_costs,
+void planning_scene::PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory &trajectory, std::size_t max_costs,
                                                    const std::string &group_name, std::set<collision_detection::CostSource> &costs,
                                                    double overlap_fraction) const
 {
@@ -1722,13 +1722,13 @@ void planning_scene::PlanningScene::getCostSources(const kinematic_trajectory::K
   collision_detection::removeOverlapping(costs, overlap_fraction);
 }
 
-void planning_scene::PlanningScene::getCostSources(const kinematic_state::KinematicState &state, std::size_t max_costs,
+void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState &state, std::size_t max_costs,
                                                    std::set<collision_detection::CostSource> &costs) const
 {
   getCostSources(state, max_costs, std::string(), costs);
 }
 
-void planning_scene::PlanningScene::getCostSources(const kinematic_state::KinematicState &state, std::size_t max_costs,
+void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState &state, std::size_t max_costs,
                                                    const std::string &group_name, std::set<collision_detection::CostSource> &costs) const
 {
   collision_detection::CollisionRequest creq;

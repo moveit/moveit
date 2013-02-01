@@ -43,7 +43,7 @@ kinematic_model::JointModel::JointModel(const std::string& name) :
 {
 }
 
-kinematic_model::JointModel::~JointModel(void)
+kinematic_model::JointModel::~JointModel()
 {
 }
 
@@ -89,7 +89,7 @@ void kinematic_model::JointModel::getVariableRandomValues(random_numbers::Random
     values[variable_names_[i]] = rv[i];
 }
 
-void kinematic_model::JointModel::computeDefaultVariableLimits(void)
+void kinematic_model::JointModel::computeDefaultVariableLimits()
 {
   default_limits_.clear();
   for (std::size_t i = 0; i < variable_names_.size(); ++i)

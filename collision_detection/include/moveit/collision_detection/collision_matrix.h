@@ -78,7 +78,7 @@ namespace collision_detection
   {
   public:
     
-    AllowedCollisionMatrix(void);
+    AllowedCollisionMatrix();
     
     /** @brief Instantiate using a vector of names (corresponding to all the elements in the collision world).
      *  @param names a vector of names (corresponding to object IDs in the collision world).
@@ -176,10 +176,10 @@ namespace collision_detection
     void getMessage(moveit_msgs::AllowedCollisionMatrix &msg) const;
     
     /** @brief Clear the allowed collision matrix */
-    void clear(void);
+    void clear();
     
     /** @brief Get the size of the allowed collision matrix (number of specified entries) */
-    std::size_t getSize(void) const
+    std::size_t getSize() const
     {
       return entries_.size();
     }

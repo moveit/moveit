@@ -38,7 +38,7 @@
 #include <boost/bind.hpp>
 #include <iomanip>
 
-collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(void)
+collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix()
 {
 }
 
@@ -313,7 +313,7 @@ bool collision_detection::AllowedCollisionMatrix::getAllowedCollision(const std:
   }  
 }
 
-void collision_detection::AllowedCollisionMatrix::clear(void)
+void collision_detection::AllowedCollisionMatrix::clear()
 {
   entries_.clear();
   allowed_contacts_.clear();

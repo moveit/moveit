@@ -157,7 +157,7 @@ void collision_detection::CollisionRobot::setLinkPadding(const std::map<std::str
     updatedPaddingOrScaling(u);
 }
 
-const std::map<std::string, double> &collision_detection::CollisionRobot::getLinkPadding(void) const
+const std::map<std::string, double> &collision_detection::CollisionRobot::getLinkPadding() const
 {
   return link_padding_;
 }
@@ -196,7 +196,7 @@ void collision_detection::CollisionRobot::setLinkScale(const std::map<std::strin
     updatedPaddingOrScaling(u);
 }
 
-const std::map<std::string, double> &collision_detection::CollisionRobot::getLinkScale(void) const
+const std::map<std::string, double> &collision_detection::CollisionRobot::getLinkScale() const
 {
   return link_scale_;
 }

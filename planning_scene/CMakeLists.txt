@@ -5,10 +5,10 @@ add_library(${MOVEIT_LIB_NAME} src/planning_scene.cpp)
 add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
 target_link_libraries(${MOVEIT_LIB_NAME} 
   moveit_kinematic_model
-  moveit_kinematic_state
+  moveit_robot_state
   moveit_collision_detection_fcl
   moveit_kinematic_constraints 
-  moveit_kinematic_trajectory
+  moveit_robot_trajectory
   moveit_trajectory_processing
   ${LIBOCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 

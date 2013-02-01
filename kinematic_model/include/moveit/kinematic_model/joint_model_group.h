@@ -61,16 +61,16 @@ public:
   
   JointModelGroup(const std::string& name, const std::vector<const JointModel*>& joint_vector, const KinematicModel *parent_model);
   
-  ~JointModelGroup(void);
+  ~JointModelGroup();
   
   /** \brief Get the kinematic model this group is part of */
-  const KinematicModel* getParentModel(void) const
+  const KinematicModel* getParentModel() const
   {
     return parent_model_;
   }
   
   /** \brief Get the name of the joint group */
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return name_;
   }
@@ -89,31 +89,31 @@ public:
   
   /** \brief Get the active joints in this group (that  have controllable DOF).
       This may not be the complete set of joints (see getFixedJointModels() and getMimicJointModels() ) */
-  const std::vector<const JointModel*>& getJointModels(void) const
+  const std::vector<const JointModel*>& getJointModels() const
   {
     return joint_model_vector_;
   }
 
   /** \brief Get the names of the active joints in this group. These are the names of the joints returned by getJointModels(). */
-  const std::vector<std::string>& getJointModelNames(void) const
+  const std::vector<std::string>& getJointModelNames() const
   {
     return joint_model_name_vector_;
   }
 
   /** \brief Get the fixed joints that are part of this group */
-  const std::vector<const JointModel*>& getFixedJointModels(void) const
+  const std::vector<const JointModel*>& getFixedJointModels() const
   {
     return fixed_joints_;
   }
   
   /** \brief Get the mimic joints that are part of this group */
-  const std::vector<const JointModel*>& getMimicJointModels(void) const
+  const std::vector<const JointModel*>& getMimicJointModels() const
   {
     return mimic_joints_;
   }
 
   /** \brief Get the array of continuous joints used in thir group. */
-  const std::vector<const JointModel*>& getContinuousJointModels(void) const
+  const std::vector<const JointModel*>& getContinuousJointModels() const
   {
     return continuous_joint_model_vector_const_;
   }
@@ -121,7 +121,7 @@ public:
   /** \brief Get the names of the variables that make up the joints included in this group. Only active joints (not
       fixed, not mimic) are included. Effectively, these are the names of the DOF for this group. The number of
       returned elements is always equal to getVariableCount() */
-  const std::vector<std::string>& getVariableNames(void) const
+  const std::vector<std::string>& getVariableNames() const
   {
     return active_variable_names_;
   }
@@ -133,19 +133,19 @@ public:
       the roots are on different branches in the kinematic
       tree. This means that in following any root in the given
       list, none of the other returned roots will be encountered. */
-  const std::vector<const JointModel*>& getJointRoots(void) const
+  const std::vector<const JointModel*>& getJointRoots() const
   {
     return joint_roots_;
   }
   
   /** \brief Get the links that are part of this joint group */
-  const std::vector<const LinkModel*>& getLinkModels(void) const
+  const std::vector<const LinkModel*>& getLinkModels() const
   {
     return link_model_vector_;
   }
   
   /** \brief Get the names of the links that are part of this joint group */
-  const std::vector<std::string>& getLinkModelNames(void) const
+  const std::vector<std::string>& getLinkModelNames() const
   {
     return link_model_name_vector_;
   }
@@ -153,13 +153,13 @@ public:
   /** \brief Get the names of the links that are to be updated when the state of this group changes. This
       includes links that are in the kinematic model but outside this group, if those links are descendants of
       joints in this group that have their values updated. The order is the correct order for updating the corresponding states. */
-  const std::vector<const LinkModel*>& getUpdatedLinkModels(void) const
+  const std::vector<const LinkModel*>& getUpdatedLinkModels() const
   {
     return updated_link_model_vector_;
   }
   
   /** \brief Get the names of the links returned by getUpdatedLinkModels() */
-  const std::vector<std::string>& getUpdatedLinkModelNames(void) const
+  const std::vector<std::string>& getUpdatedLinkModelNames() const
   {
     return updated_link_model_name_vector_;
   }
@@ -167,25 +167,25 @@ public:
   /** \brief Get the names of the links that are to be updated when the state of this group changes. This
       includes links that are in the kinematic model but outside this group, if those links are descendants of
       joints in this group that have their values updated. */
-  const std::vector<const LinkModel*>& getUpdatedLinkModelsWithGeometry(void) const
+  const std::vector<const LinkModel*>& getUpdatedLinkModelsWithGeometry() const
   {
     return updated_link_model_with_geometry_vector_;
   }
   
   /** \brief Return the same data as getUpdatedLinkModelsWithGeometry() but as a set */
-  const std::set<const LinkModel*>& getUpdatedLinkModelsWithGeometrySet(void) const
+  const std::set<const LinkModel*>& getUpdatedLinkModelsWithGeometrySet() const
   {
     return updated_link_model_with_geometry_set_;
   }
   
   /** \brief Get the names of the links returned by getUpdatedLinkModels() */
-  const std::vector<std::string>& getUpdatedLinkModelsWithGeometryNames(void) const
+  const std::vector<std::string>& getUpdatedLinkModelsWithGeometryNames() const
   {
     return updated_link_model_with_geometry_name_vector_;
   }
 
   /** \brief Get the names of the links returned by getUpdatedLinkModels() */
-  const std::set<std::string>& getUpdatedLinkModelsWithGeometryNamesSet(void) const
+  const std::set<std::string>& getUpdatedLinkModelsWithGeometryNamesSet() const
   {
     return updated_link_model_with_geometry_name_set_;
   }
@@ -208,7 +208,7 @@ public:
   /** \brief A joint group consists of an array of joints. Each joint has a specific ordering of its variables.
       Given the ordering of joints the group maintains, an ordering of all the variables of the group can be then constructed.
       The map from variable names to their position in the joint group state is given by this function */
-  const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
+  const std::map<std::string, unsigned int>& getJointVariablesIndexMap() const
   {
     return joint_variables_index_map_;
   }
@@ -232,13 +232,13 @@ public:
   void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const;
   
   /** \brief Get the number of variables that describe this joint group */
-  unsigned int getVariableCount(void) const
+  unsigned int getVariableCount() const
   {
     return variable_count_;
   }
   
   /** \brief Get the names of the groups that are subsets of this one (in terms of joints set) */
-  const std::vector<std::string>& getSubgroupNames(void) const
+  const std::vector<std::string>& getSubgroupNames() const
   {
     return subgroup_names_;
   }
@@ -247,45 +247,45 @@ public:
   bool isSubgroup(const std::string& group) const;
   
   /** \brief Check if this group is a linear chain */
-  bool isChain(void) const
+  bool isChain() const
   {
     return is_chain_;
   }
   
   /** \brief Check if this group was designated as an end-effector in the SRDF */
-  bool isEndEffector(void) const
+  bool isEndEffector() const
   {
     return is_end_effector_;
   }
 
   /** \brief Return the name of the end effector, if this group is an end-effector */
-  const std::string& getEndEffectorName(void) const
+  const std::string& getEndEffectorName() const
   {
     return end_effector_name_;
   }
   
   /** \brief Get the name of the group this end-effector attaches to (first) and the name of the link in that group (second) */
-  const std::pair<std::string, std::string>& getEndEffectorParentGroup(void) const
+  const std::pair<std::string, std::string>& getEndEffectorParentGroup() const
   {
     return end_effector_parent_;
   }
 
   /** \brief Get the names of the end effectors attached to this group */
-  const std::vector<std::string>& getAttachedEndEffectorNames(void) const
+  const std::vector<std::string>& getAttachedEndEffectorNames() const
   {
     return attached_end_effector_names_;
   }
 
   /** \brief Get the joint limits as read from the URDF */
-  std::vector<moveit_msgs::JointLimits> getVariableDefaultLimits(void) const;
+  std::vector<moveit_msgs::JointLimits> getVariableDefaultLimits() const;
 
   /** \brief Get the joint limits specified by the user with setJointLimits() or the default joint limits using getVariableDefaultLimits(), if no joint limits were specified. */
-  std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
+  std::vector<moveit_msgs::JointLimits> getVariableLimits() const;
   
   /** \brief Override joint limits */
   void setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim);
   
-  const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& getSolverAllocators(void) const
+  const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& getSolverAllocators() const
   {
     return solver_allocators_;
   }
@@ -297,7 +297,7 @@ public:
   
   void setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers);
 
-  const kinematics::KinematicsBaseConstPtr& getSolverInstance(void) const
+  const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
   {
     return solver_instance_;
   }
@@ -305,7 +305,7 @@ public:
   bool canSetStateFromIK(const std::string &tip) const;
 
   /** \brief Get the default IK timeout */
-  double getDefaultIKTimeout(void) const
+  double getDefaultIKTimeout() const
   {
     return default_ik_timeout_;
   }
@@ -317,7 +317,7 @@ public:
   }
 
   /** \brief Get the default IK attempts */
-  unsigned int getDefaultIKAttempts(void) const
+  unsigned int getDefaultIKAttempts() const
   {
     return default_ik_attempts_;
   }
@@ -329,7 +329,7 @@ public:
   }
   
   /** \brief Return the mapping between the order of the joints in this group and the order of the joints in the kinematics solver */
-  const std::vector<unsigned int>& getKinematicsSolverJointBijection(void) const
+  const std::vector<unsigned int>& getKinematicsSolverJointBijection() const
   {
     return ik_joint_bijection_;
   }

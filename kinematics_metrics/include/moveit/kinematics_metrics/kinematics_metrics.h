@@ -38,7 +38,7 @@
 #ifndef MOVEIT_KINEMATICS_METRICS_KINEMATICS_METRICS_
 #define MOVEIT_KINEMATICS_METRICS_KINEMATICS_METRICS_
 
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit/planning_scene/planning_scene.h>
 
 /** @brief Namespace for kinematics metrics */
@@ -66,7 +66,7 @@ public:
    * @param manipulability_index The computed manipulability = sqrt(det(JJ^T))
    * @return False if the group was not found
    */
-  bool getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state, 
+  bool getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
                               const std::string &group_name,
                               double &manipulability_index) const;
 
@@ -77,7 +77,7 @@ public:
    * @param manipulability_index The computed manipulability = sqrt(det(JJ^T))
    * @return False if the group was not found
    */
-  bool getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state, 
+  bool getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
                               const kinematic_model::JointModelGroup *joint_model_group,
                               double &manipulability_index) const;
     
@@ -89,7 +89,7 @@ public:
    * @param eigen_vectors The eigen vectors for the translation part of JJ^T
    * @return False if the group was not found
    */
-  bool getManipulabilityEllipsoid(const kinematic_state::KinematicState &kinematic_state,
+  bool getManipulabilityEllipsoid(const robot_state::RobotState &kinematic_state,
                                   const std::string &group_name,
                                   Eigen::MatrixXcd &eigen_values,
                                   Eigen::MatrixXcd &eigen_vectors) const;
@@ -102,7 +102,7 @@ public:
    * @param eigen_vectors The eigen vectors for the translation part of JJ^T
    * @return False if the group was not found
    */
-  bool getManipulabilityEllipsoid(const kinematic_state::KinematicState &kinematic_state,
+  bool getManipulabilityEllipsoid(const robot_state::RobotState &kinematic_state,
                                   const kinematic_model::JointModelGroup *joint_model_group,
                                   Eigen::MatrixXcd &eigen_values,
                                   Eigen::MatrixXcd &eigen_vectors) const;
@@ -116,7 +116,7 @@ public:
    * @param condition_number Condition number for JJ^T
    * @return False if the group was not found
    */
-  bool getManipulability(const kinematic_state::KinematicState &kinematic_state,
+  bool getManipulability(const robot_state::RobotState &kinematic_state,
                          const std::string &group_name,
                          double &condition_number) const;
 
@@ -129,7 +129,7 @@ public:
    * @param condition_number Condition number for JJ^T
    * @return False if the group was not found
    */
-  bool getManipulability(const kinematic_state::KinematicState &kinematic_state,
+  bool getManipulability(const robot_state::RobotState &kinematic_state,
                          const kinematic_model::JointModelGroup *joint_model_group,
                          double &condition_number) const;
 
@@ -137,7 +137,7 @@ protected:
   
   kinematic_model::KinematicModelConstPtr kinematic_model_;
     
-  Eigen::MatrixXd getJacobian(const kinematic_state::KinematicState &kinematic_state,
+  Eigen::MatrixXd getJacobian(const robot_state::RobotState &kinematic_state,
                               const kinematic_model::JointModelGroup *joint_model_group) const;  
   
 };

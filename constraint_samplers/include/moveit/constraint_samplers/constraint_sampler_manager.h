@@ -60,7 +60,7 @@ public:
    * \brief Empty constructor
    * 
    */
-  ConstraintSamplerManager(void)
+  ConstraintSamplerManager()
   {
   }
   /** 

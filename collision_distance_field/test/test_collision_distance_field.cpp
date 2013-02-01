@@ -35,8 +35,8 @@
 /** \author E. Gil Jones */
 
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
-#include <moveit/kinematic_state/transforms.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/transforms.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
 #include <moveit/collision_distance_field/collision_robot_distance_field.h>
 #include <moveit/collision_distance_field/collision_world_distance_field.h>
@@ -103,8 +103,8 @@ protected:
   
   kinematic_model::KinematicModelPtr             kmodel_;
   
-  kinematic_state::TransformsPtr                 ftf_;
-  kinematic_state::TransformsConstPtr            ftf_const_;
+  robot_state::TransformsPtr                 ftf_;
+  robot_state::TransformsConstPtr            ftf_const_;
   
   boost::shared_ptr<collision_detection::CollisionRobot>        crobot_;
   boost::shared_ptr<collision_detection::CollisionWorld>        cworld_;
@@ -115,7 +115,7 @@ protected:
 
 TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
 {
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   collision_detection::CollisionRequest req;
@@ -126,7 +126,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
 }
 
 TEST_F(DistanceFieldCollisionDetectionTester, ChangeTorsoPosition) {
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
   
   collision_detection::CollisionRequest req;
@@ -152,7 +152,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, LinksInCollision)
   //req.max_contacts = 100;
   req.group_name = "whole_body";
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
@@ -184,7 +184,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
   req.max_contacts = 1;
   req.group_name = "whole_body";
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
@@ -233,7 +233,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
   req.max_contacts = 1;
   req.group_name = "whole_body";
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
@@ -294,7 +294,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
 
   acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true)); 
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();

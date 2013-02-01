@@ -67,7 +67,7 @@ kinematic_model::KinematicModel::KinematicModel(const boost::shared_ptr<const ur
   buildModel(urdf_model, srdf_model, root_link);
 }
 
-kinematic_model::KinematicModel::~KinematicModel(void)
+kinematic_model::KinematicModel::~KinematicModel()
 {
   for (std::map<std::string, JointModelGroup*>::iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
     delete it->second;
@@ -129,12 +129,12 @@ void kinematic_model::KinematicModel::computeTreeStructure(const boost::shared_p
         }
     }
     
-    const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& getParentMap(void) const
+    const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& getParentMap() const
     {
       return parent_map_;
     }
     
-    const std::map<const urdf::Link*, std::vector<const urdf::Link*> >& getChildMap(void) const
+    const std::map<const urdf::Link*, std::vector<const urdf::Link*> >& getChildMap() const
     {
       return child_map_;
     }
@@ -200,7 +200,7 @@ void kinematic_model::KinematicModel::buildModel(const boost::shared_ptr<const u
     logWarn("No root link found");
 }
 
-void kinematic_model::KinematicModel::buildJointInfo(void)
+void kinematic_model::KinematicModel::buildJointInfo()
 {    
   // construct additional maps for easy access by name
   variable_count_ = 0;
@@ -957,13 +957,13 @@ shapes::ShapePtr kinematic_model::KinematicModel::constructShape(const urdf::Geo
   return shapes::ShapePtr(result);
 }
 
-const std::string& kinematic_model::KinematicModel::getRootJointName(void) const
+const std::string& kinematic_model::KinematicModel::getRootJointName() const
 {
   static const std::string empty;
   return getRoot() ? getRoot()->getName() : empty;
 }
 
-const std::string& kinematic_model::KinematicModel::getRootLinkName(void) const
+const std::string& kinematic_model::KinematicModel::getRootLinkName() const
 {
   static const std::string empty;
   return getRootLink() ? getRootLink()->getName() : empty;

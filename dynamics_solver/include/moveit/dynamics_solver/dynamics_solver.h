@@ -41,7 +41,7 @@
 #include <kdl/chain.hpp>
 #include <kdl/chainidsolver_recursive_newton_euler.hpp>
 
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Wrench.h>
 
@@ -155,8 +155,8 @@ private:
   kinematic_model::KinematicModelConstPtr kinematic_model_; // kinematic model
   const kinematic_model::JointModelGroup* joint_model_group_; //joint model group
 
-  kinematic_state::KinematicStatePtr kinematic_state_; //kinematic state
-  kinematic_state::JointStateGroup* joint_state_group_; //joint state for the group
+  robot_state::RobotStatePtr kinematic_state_; //kinematic state
+  robot_state::JointStateGroup* joint_state_group_; //joint state for the group
   
   double gravity_; //Norm of the gravity vector passed in initialize()
   

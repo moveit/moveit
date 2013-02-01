@@ -49,14 +49,14 @@ double constraint_samplers::countSamplesPerSecond(const moveit_msgs::Constraints
   return countSamplesPerSecond(ConstraintSamplerManager::selectDefaultSampler(scene, group, constr), scene->getCurrentState());
 }
 
-double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sampler, const kinematic_state::KinematicState &reference_state)
+double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sampler, const robot_state::RobotState &reference_state)
 {
   if (!sampler)
   {
     logError("No sampler specified for counting samples per second");
     return 0.0;
   }
-  kinematic_state::KinematicState ks(reference_state); 
+  robot_state::RobotState ks(reference_state); 
   unsigned long int valid = 0;
   unsigned long int total = 0;
   ros::WallTime end = ros::WallTime::now() + ros::WallDuration(1.0);
@@ -74,7 +74,7 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sa
   return (double)valid / (double)total;  
 }
 
-void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &sampler, const kinematic_state::KinematicState &reference_state,
+void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &sampler, const robot_state::RobotState &reference_state,
                                                 const std::string &link_name, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
 {
   if (!sampler)
@@ -83,7 +83,7 @@ void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &samp
     return;
   }
   
-  kinematic_state::KinematicState ks(reference_state); 
+  robot_state::RobotState ks(reference_state); 
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
   color.g = 0.0f;
@@ -93,7 +93,7 @@ void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &samp
   {
     if (!sampler->sample(ks.getJointStateGroup(sampler->getGroupName()), ks))
       continue;
-    const kinematic_state::LinkState *ls = ks.getLinkState(link_name);
+    const robot_state::LinkState *ls = ks.getLinkState(link_name);
     if (ls)
     {
       const Eigen::Vector3d &pos = ls->getGlobalLinkTransform().translation();

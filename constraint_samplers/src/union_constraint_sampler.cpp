@@ -122,24 +122,24 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
   }
 }
 
-bool constraint_samplers::UnionConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
+bool constraint_samplers::UnionConstraintSampler::sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts)
 {
   jsg->setToRandomValues(); 
   
   if (samplers_.size() >= 1)
   {
-    if (!samplers_[0]->sample(jsg->getKinematicState()->getJointStateGroup(samplers_[0]->getJointModelGroup()->getName()), ks, max_attempts))
+    if (!samplers_[0]->sample(jsg->getRobotState()->getJointStateGroup(samplers_[0]->getJointModelGroup()->getName()), ks, max_attempts))
       return false;
   }
   
   if (samplers_.size() > 1)
   {
-    kinematic_state::KinematicState temp = ks;
+    robot_state::RobotState temp = ks;
     *(temp.getJointStateGroup(jsg->getName())) = *jsg;
     
     for (std::size_t i = 1 ; i < samplers_.size() ; ++i)
     {
-      kinematic_state::JointStateGroup *x = jsg->getKinematicState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
+      robot_state::JointStateGroup *x = jsg->getRobotState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
       if (samplers_[i]->sample(x, temp, max_attempts))
       {
         if (i + 1 < samplers_.size())
@@ -153,22 +153,22 @@ bool constraint_samplers::UnionConstraintSampler::sample(kinematic_state::JointS
   return true;
 }
 
-bool constraint_samplers::UnionConstraintSampler::project(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
+bool constraint_samplers::UnionConstraintSampler::project(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts)
 {
   if (samplers_.size() >= 1)
   {
-    if (!samplers_[0]->project(jsg->getKinematicState()->getJointStateGroup(samplers_[0]->getJointModelGroup()->getName()), ks, max_attempts))
+    if (!samplers_[0]->project(jsg->getRobotState()->getJointStateGroup(samplers_[0]->getJointModelGroup()->getName()), ks, max_attempts))
       return false;
   }
   
   if (samplers_.size() > 1)
   {
-    kinematic_state::KinematicState temp = ks;
+    robot_state::RobotState temp = ks;
     *(temp.getJointStateGroup(jsg->getName())) = *jsg;
     
     for (std::size_t i = 1 ; i < samplers_.size() ; ++i)
     {
-      kinematic_state::JointStateGroup *x = jsg->getKinematicState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
+      robot_state::JointStateGroup *x = jsg->getRobotState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
       if (samplers_[i]->project(x, temp, max_attempts))
       {
         if (i + 1 < samplers_.size())
