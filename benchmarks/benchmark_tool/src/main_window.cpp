@@ -505,12 +505,19 @@ void MainWindow::populatePlanningSceneList(void)
 
 void MainWindow::loadSceneButtonClicked(QListWidgetItem *item)
 {
-  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+  loadSceneButtonClicked();
 }
 
 void MainWindow::loadSceneButtonClicked(void)
 {
-  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+  if (ui_.planning_scene_list->currentItem() && ui_.planning_scene_list->currentItem()->text().toStdString() != scene_display_->getPlanningSceneRO()->getName())
+  {
+    ui_.goal_poses_list->clear();
+    ui_.trajectory_list->clear();
+    goal_poses_.clear();
+    trajectories_.clear();
+    JobProcessing::addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+  }
 }
 
 void MainWindow::loadSceneButtonClickedBackgroundJob(void)
