@@ -28,6 +28,8 @@ set(THIS_PACKAGE_INCLUDE_DIRS
   planning_scene_interface/include
 )
 
+catkin_python_setup()
+
 catkin_package(
   LIBRARIES  
     moveit_robot_interaction
