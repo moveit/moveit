@@ -522,10 +522,13 @@ void MotionPlanningDisplay::computeMetrics(bool start, const std::string &group,
   if (!robot_interaction_)
     return;
   const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
+  if (eef.empty())
+    return;
+  boost::mutex::scoped_lock slock(update_metrics_lock_);
+  kinematic_state::KinematicStateConstPtr state = start ? getQueryStartState() : getQueryGoalState();
   for (std::size_t i = 0 ; i < eef.size() ; ++i)
     if (eef[i].parent_group == group)
-      computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i],
-                             start ? *getQueryStartState() : *getQueryGoalState(), payload);
+      computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i], *state, payload);
 }
 
 void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &ee,
@@ -589,7 +592,11 @@ void MotionPlanningDisplay::displayMetrics(bool start)
 
   static const Ogre::Quaternion orientation( 1.0, 0.0, 0.0, 0.0 );
   const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
-
+  if (eef.empty())
+    return;
+  
+  kinematic_state::KinematicStateConstPtr state = start ? getQueryStartState() : getQueryGoalState();
+  
   for (std::size_t i = 0 ; i < eef.size() ; ++i)
   {
     Ogre::Vector3 position(0.0, 0.0, 0.0);
@@ -614,14 +621,12 @@ void MotionPlanningDisplay::displayMetrics(bool start)
         copyItemIfExists(metrics_table, text_table, stream.str());
       }
     }
-
+    
     const kinematic_state::LinkState *ls = NULL;
     const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(eef[i].parent_group);
     if (jmg)
       if (!jmg->getLinkModelNames().empty())
-        ls = start ?
-          getQueryStartState()->getLinkState(jmg->getLinkModelNames().back()) :
-          getQueryGoalState()->getLinkState(jmg->getLinkModelNames().back());
+        ls = state->getLinkState(jmg->getLinkModelNames().back());
     if (ls)
     {
       const Eigen::Vector3d &t = ls->getGlobalLinkTransform().translation();
@@ -1103,7 +1108,7 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor:
   }
 
   if (query_goal_state_property_->getBool() && !group.empty())
-  {  
+  {
     kinematic_state::KinematicState goal = *getQueryGoalState();
     updateStateExceptGroup(goal, current_state, group);
     setQueryGoalState(goal);
