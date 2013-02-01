@@ -53,8 +53,8 @@ public:
   
   ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link);
   
-  virtual unsigned int getDimension(void) const;
-  virtual void defaultCellSizes(void);
+  virtual unsigned int getDimension() const;
+  virtual void defaultCellSizes();
   virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
   
 private:
@@ -72,8 +72,8 @@ class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
 public:
   ProjectionEvaluatorJointValue(const ModelBasedPlanningContext *pc, const std::vector<std::pair<std::string, unsigned int> > &joints);
   
-  virtual unsigned int getDimension(void) const;
-  virtual void defaultCellSizes(void);
+  virtual unsigned int getDimension() const;
+  virtual void defaultCellSizes();
   virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
   
 private:

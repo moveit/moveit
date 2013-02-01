@@ -245,7 +245,7 @@ ompl::base::StateSamplerAllocator ompl_interface::ConstraintApproximation::getSt
 
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const
 {
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
   
   ompl::RNG rng;
@@ -259,7 +259,7 @@ void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::s
   
   for (std::size_t i = 0 ; i < count ; ++i)
   {
-    state_storage_->getStateSpace()->as<ModelBasedStateSpace>()->copyToKinematicState(kstate, state_storage_->getState(rng.uniformInt(0, state_storage_->size() - 1)));
+    state_storage_->getStateSpace()->as<ModelBasedStateSpace>()->copyToRobotState(kstate, state_storage_->getState(rng.uniformInt(0, state_storage_->size() - 1)));
     const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
     
     visualization_msgs::Marker mk;
@@ -363,7 +363,7 @@ void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std:
   fout.close();
 }
 
-void ompl_interface::ConstraintsLibrary::clearConstraintApproximations(void)
+void ompl_interface::ConstraintsLibrary::clearConstraintApproximations()
 {
   constraint_approximations_.clear();
 }
@@ -456,10 +456,10 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   ob::StateStoragePtr sstor(cass);
   
   // construct a sampler for the sampling constraints
-  kinematic_constraints::KinematicConstraintSet kset(pcontext->getKinematicModel(), kinematic_state::TransformsConstPtr(new kinematic_state::Transforms(pcontext->getKinematicModel()->getModelFrame())));
+  kinematic_constraints::KinematicConstraintSet kset(pcontext->getKinematicModel(), robot_state::TransformsConstPtr(new robot_state::Transforms(pcontext->getKinematicModel()->getModelFrame())));
   kset.add(constr_hard);
 
-  const kinematic_state::KinematicState &default_state = pcontext->getCompleteInitialRobotState();
+  const robot_state::RobotState &default_state = pcontext->getCompleteInitialRobotState();
   
   int nthreads = 0;
   unsigned int attempts = 0;
@@ -476,7 +476,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 	nthreads = omp_get_num_threads();    
     }
     
-    kinematic_state::KinematicState kstate(default_state);
+    robot_state::RobotState kstate(default_state);
     const constraint_samplers::ConstraintSamplerManagerPtr &csmng = pcontext->getConstraintSamplerManager();
     ConstrainedSampler *csmp = NULL;
     if (csmng)
@@ -518,7 +518,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       }
       
       ss->sampleUniform(temp.get());
-      pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp.get());
+      pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp.get());
       if (kset.decide(kstate).satisfied)
       {
 #pragma omp critical
@@ -558,7 +558,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     
     // construct connexions
     const ob::StateSpacePtr &space = pcontext->getOMPLSimpleSetup().getStateSpace();
-    std::vector<kinematic_state::KinematicState> kstates(nthreads, default_state);
+    std::vector<robot_state::RobotState> kstates(nthreads, default_state);
     const std::vector<const ompl::base::State*> &states = sstor->getStates();
     std::vector<ompl::base::ScopedState<> > temps(nthreads, ompl::base::ScopedState<>(space));
     
@@ -570,8 +570,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     for (std::size_t j = 0 ; j < sstor->size() ; ++j)
     {
       int threadid = omp_get_thread_num();
-      kinematic_state::KinematicState &kstate = kstates[threadid];
-      kinematic_state::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
+      robot_state::RobotState &kstate = kstates[threadid];
+      robot_state::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
       ompl::base::State *temp = temps[threadid].get();
       int done_now = 100 * j / sstor->size();
       if (done != done_now)
@@ -588,15 +588,15 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
           continue;
         
         space->interpolate(states[j], states[i], 0.5, temp);
-        pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
+        pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp);
         if (kset.decide(kstate).satisfied)
         {
 	  space->interpolate(states[j], states[i], 0.25, temp);
-	  pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
+	  pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp);
 	  if (kset.decide(kstate).satisfied)
 	  {
             space->interpolate(states[j], states[i], 0.75, temp);
-            pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
+            pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp);
             if (kset.decide(kstate).satisfied)
             {
 #pragma omp critical

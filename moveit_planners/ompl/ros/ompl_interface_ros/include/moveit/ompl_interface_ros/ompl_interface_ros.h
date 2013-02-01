@@ -52,24 +52,24 @@ namespace ompl_interface_ros
       OMPLInterfaceROS(const kinematic_model::KinematicModelConstPtr &kmodel);
 
       /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint approximations to */
-      bool saveConstraintApproximations(void);
+      bool saveConstraintApproximations();
       
       /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint approximations to */
-      bool loadConstraintApproximations(void);
+      bool loadConstraintApproximations();
       
       /** @brief Print the status of this node*/
-      void printStatus(void);
+      void printStatus();
 
     protected:
 	
       /** @brief Configure everything using the param server */
-      void loadParams(void);
+      void loadParams();
 
       /** @brief Configure the planners*/
-      void loadPlannerConfigurations(void);
+      void loadPlannerConfigurations();
       
       /** @brief Load the additional plugins for sampling constraints */
-      void loadConstraintSamplers(void);
+      void loadConstraintSamplers();
       
       ros::NodeHandle nh_; /// The ROS node handle
 

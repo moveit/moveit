@@ -49,7 +49,7 @@ class OMPLPlanner : public planning_interface::Planner
 {
 public:
   
-  OMPLPlanner(void) : planning_interface::Planner(),
+  OMPLPlanner() : planning_interface::Planner(),
                       nh_("~")
   {
     dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle("~/ompl")));
@@ -88,7 +88,7 @@ public:
     return r;
   }
   
-  std::string getDescription(void) const { return "OMPL"; }
+  std::string getDescription() const { return "OMPL"; }
   
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
@@ -100,7 +100,7 @@ public:
       algs.push_back(it->first);
   }
   
-  void terminate(void) const
+  void terminate() const
   {
     ompl_interface_->terminateSolve();
   }
@@ -115,7 +115,7 @@ private:
     {
       ompl::base::PlannerData pd(pc->getOMPLSimpleSetup().getSpaceInformation());
       pc->getOMPLSimpleSetup().getPlannerData(pd);
-      kinematic_state::KinematicState kstate = planning_scene->getCurrentState();  
+      robot_state::RobotState kstate = planning_scene->getCurrentState();  
       visualization_msgs::MarkerArray arr; 
       std_msgs::ColorRGBA color;
       color.r = 1.0f;
@@ -125,7 +125,7 @@ private:
       unsigned int nv = pd.numVertices();
       for (unsigned int i = 0 ; i < nv ; ++i)
       {
-        pc->getOMPLStateSpace()->copyToKinematicState(kstate, pd.getVertex(i).getState());
+        pc->getOMPLStateSpace()->copyToRobotState(kstate, pd.getVertex(i).getState());
         kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
         const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
 	

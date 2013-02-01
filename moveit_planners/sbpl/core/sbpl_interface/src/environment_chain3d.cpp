@@ -429,7 +429,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   interpolation_state_2_ = planning_scene->getCurrentState();
   interpolation_state_temp_ = planning_scene->getCurrentState();
 
-  planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), mreq.motion_plan_request.start_state, state_);
+  planning_models::robotStateToRobotState(*planning_scene->getTransforms(), mreq.motion_plan_request.start_state, state_);
   joint_state_group_ = state_.getJointStateGroup(planning_group_);
   interpolation_joint_state_group_1_ = interpolation_state_1_.getJointStateGroup(planning_group_);
   interpolation_joint_state_group_2_ = interpolation_state_2_.getJointStateGroup(planning_group_);
@@ -525,7 +525,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
                                                                  0);
 
   //setting goal position
-  planning_models::KinematicState goal_state(state_);
+  planning_models::RobotState *goal_state(state_);
   std::map<std::string, double> goal_vals;
   for(unsigned int i = 0; i < mreq.motion_plan_request.goal_constraints[0].joint_constraints.size(); i++) {
     goal_vals[mreq.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name] = mreq.motion_plan_request.goal_constraints[0].joint_constraints[i].position;
@@ -547,7 +547,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
     return false;
   }
   std::vector<double> goal_joint_values;
-  planning_models::KinematicState::JointStateGroup* goal_joint_state_group = goal_state.getJointStateGroup(planning_group_);
+  planning_models::RobotState *::JointStateGroup* goal_joint_state_group = goal_state.getJointStateGroup(planning_group_);
   goal_joint_state_group->getGroupStateValues(goal_joint_values);
   std::vector<int> goal_coords;
   convertJointAnglesToCoord(goal_joint_values, goal_coords);
@@ -610,10 +610,10 @@ void EnvironmentChain3D::setMotionPrimitives(const std::string& group_name) {
 }
 
 void EnvironmentChain3D::determineMaximumEndEffectorTravel() {
-  planning_models::KinematicState def(state_);
+  planning_models::RobotState *def(state_);
   def.setToDefaultValues();
-  planning_models::KinematicState::JointStateGroup* jsg = def.getJointStateGroup(planning_group_);
-  planning_models::KinematicState::LinkState* tip_link_state = def.getLinkState(jsg->getJointModelGroup()->getLinkModelNames().back());
+  planning_models::RobotState *::JointStateGroup* jsg = def.getJointStateGroup(planning_group_);
+  planning_models::RobotState *::LinkState* tip_link_state = def.getLinkState(jsg->getJointModelGroup()->getLinkModelNames().back());
   std::vector<double> default_values;
   jsg->getGroupStateValues(default_values);
   Eigen::Affine3d default_pose = tip_link_state->getGlobalLinkTransform();

@@ -48,7 +48,7 @@ public:
    *  @param goals The input set of goals*/
   GoalSampleableRegionMux(const std::vector<ompl::base::GoalPtr> &goals);
   
-  virtual ~GoalSampleableRegionMux(void)
+  virtual ~GoalSampleableRegionMux()
   {
   }
   
@@ -56,10 +56,10 @@ public:
   virtual void sampleGoal(ompl::base::State *st) const;
   
   /** @brief Get the max sample count*/
-  virtual unsigned int maxSampleCount(void) const;
+  virtual unsigned int maxSampleCount() const;
   
   /** @brief Query if sampler can find any sample*/
-  virtual bool canSample(void) const;
+  virtual bool canSample() const;
   
   /** @brief Is the goal satisfied for this state (given a distance)*/
   virtual bool isSatisfied(const ompl::base::State *st, double *distance) const;

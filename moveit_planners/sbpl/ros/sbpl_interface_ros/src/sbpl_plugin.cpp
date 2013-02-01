@@ -99,7 +99,7 @@ public:
       return false;
   }
 
-  std::string getDescription(void) const { return "SBPL"; }
+  std::string getDescription() const { return "SBPL"; }
   
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
@@ -107,7 +107,7 @@ public:
     algs[0] = "SBPL";
   }
 
-  void terminate(void) const
+  void terminate() const
   {
     //TODO - make interruptible
   }

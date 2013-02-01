@@ -47,7 +47,7 @@ ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningC
   inv_dim_ = space_->getDimension() > 0 ? 1.0 / (double)space_->getDimension() : 1.0;
 }
 
-double ompl_interface::ConstrainedSampler::getConstrainedSamplingRate(void) const
+double ompl_interface::ConstrainedSampler::getConstrainedSamplingRate() const
 {
   if (constrained_success_ == 0)
     return 0.0;

@@ -78,8 +78,8 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 
 double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state) const
 { 
-  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
-  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+  robot_state::RobotState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
 
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
@@ -92,8 +92,8 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state
 
 double ompl_interface::StateValidityChecker::clearance(const ompl::base::State *state) const
 {
-  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
-  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+  robot_state::RobotState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
 
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_with_distance_, res, *kstate);
@@ -109,8 +109,8 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
     return false;
   }
   
-  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
-  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+  robot_state::RobotState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
   
   // check path constraints
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
@@ -136,8 +136,8 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
     return false;
   }
 
-  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
-  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+  robot_state::RobotState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
   
   // check path constraints
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
@@ -178,8 +178,8 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
     return false;
   }
   
-  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
-  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+  robot_state::RobotState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
 
   // check path constraints
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
@@ -227,8 +227,8 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
     return false;
   }
 
-  kinematic_state::KinematicState *kstate = tss_.getStateStorage();
-  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+  robot_state::RobotState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
   
   // check path constraints
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();

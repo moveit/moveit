@@ -45,7 +45,7 @@ class PoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
   
-  PoseModelStateSpaceFactory(void);
+  PoseModelStateSpaceFactory();
   
   virtual int canRepresentProblem(const std::string &group,
                                   const moveit_msgs::MotionPlanRequest &req,

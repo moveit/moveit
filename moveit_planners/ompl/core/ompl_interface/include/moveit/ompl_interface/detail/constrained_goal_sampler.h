@@ -63,8 +63,8 @@ private:
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
   constraint_samplers::ConstraintSamplerPtr        constraint_sampler_;
   ompl::base::StateSamplerPtr                      default_sampler_;
-  kinematic_state::KinematicState                  work_state_;
-  kinematic_state::JointStateGroup                *work_joint_group_state_;
+  robot_state::RobotState                  work_state_;
+  robot_state::JointStateGroup                *work_joint_group_state_;
   unsigned int                                     verbose_display_;
 };
 }

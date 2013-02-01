@@ -58,14 +58,14 @@ ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const kinem
   joint_bounds_ = joint_model_->getVariableBounds();
 }
 
-ompl_interface::ModelBasedJointStateSpace::~ModelBasedJointStateSpace(void)
+ompl_interface::ModelBasedJointStateSpace::~ModelBasedJointStateSpace()
 {
 }
 
-ompl::base::State* ompl_interface::ModelBasedJointStateSpace::allocState(void) const
+ompl::base::State* ompl_interface::ModelBasedJointStateSpace::allocState() const
 {
   StateType *st = new StateType();
-  st->joint_state = new kinematic_state::JointState(joint_model_);
+  st->joint_state = new robot_state::JointState(joint_model_);
   return st;
 }
 
@@ -75,12 +75,12 @@ void ompl_interface::ModelBasedJointStateSpace::freeState(ompl::base::State *sta
   delete state->as<StateType>();
 }
 
-unsigned int ompl_interface::ModelBasedJointStateSpace::getDimension(void) const
+unsigned int ompl_interface::ModelBasedJointStateSpace::getDimension() const
 {
   return joint_model_->getStateSpaceDimension();
 }
 
-double ompl_interface::ModelBasedJointStateSpace::getMaximumExtent(void) const
+double ompl_interface::ModelBasedJointStateSpace::getMaximumExtent() const
 {  
   return joint_model_->getMaximumExtent(joint_bounds_);
 }
@@ -116,7 +116,7 @@ void ompl_interface::ModelBasedJointStateSpace::interpolate(const ompl::base::St
   propagateJointStateUpdate(state);
 }
 
-unsigned int ompl_interface::ModelBasedJointStateSpace::getSerializationLength(void) const
+unsigned int ompl_interface::ModelBasedJointStateSpace::getSerializationLength() const
 {
   return sizeof(double) * joint_model_->getVariableCount();
 }
@@ -181,7 +181,7 @@ void ompl_interface::ModelBasedJointStateSpace::propagateJointStateUpdate(ompl::
   state->as<StateType>()->joint_state->updateMimicJoints();
 }
 
-ompl::base::StateSamplerPtr ompl_interface::ModelBasedJointStateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl_interface::ModelBasedJointStateSpace::allocDefaultStateSampler() const
 {
   class DefaultStateSampler : public ompl::base::StateSampler
   {

@@ -159,7 +159,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
   return ss->allocDefaultStateSampler();
 }
 
-void ompl_interface::ModelBasedPlanningContext::configure(void)
+void ompl_interface::ModelBasedPlanningContext::configure()
 {
   // convert the input state to the corresponding OMPL state
   ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
@@ -172,7 +172,7 @@ void ompl_interface::ModelBasedPlanningContext::configure(void)
     ompl_simple_setup_.setup();
 }
 
-void ompl_interface::ModelBasedPlanningContext::useConfig(void)
+void ompl_interface::ModelBasedPlanningContext::useConfig()
 {
   const std::map<std::string, std::string> &config = spec_.config_;
   if (config.empty())
@@ -235,7 +235,7 @@ void ompl_interface::ModelBasedPlanningContext::simplifySolution(double timeout)
   last_simplify_time_ = ompl_simple_setup_.getLastSimplificationTime();
 }
 
-void ompl_interface::ModelBasedPlanningContext::interpolateSolution(void)
+void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
 {
   if (ompl_simple_setup_.haveSolutionPath())
   {
@@ -244,17 +244,17 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution(void)
   }
 }
 
-void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometric::PathGeometric &pg, kinematic_trajectory::KinematicTrajectory &traj) const
+void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometric::PathGeometric &pg, robot_trajectory::RobotTrajectory &traj) const
 {
-  kinematic_state::KinematicState ks = complete_initial_robot_state_;
+  robot_state::RobotState ks = complete_initial_robot_state_;
   for (std::size_t i = 0 ; i < pg.getStateCount() ; ++i)
   {
-    spec_.state_space_->copyToKinematicState(ks, pg.getState(i));
+    spec_.state_space_->copyToRobotState(ks, pg.getState(i));
     traj.addSuffixWayPoint(ks, 0.0);
   }
 }
 
-bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(kinematic_trajectory::KinematicTrajectory &traj) const
+bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory::RobotTrajectory &traj) const
 {
   traj.clear();
   if (!ompl_simple_setup_.haveSolutionPath())
@@ -269,7 +269,7 @@ void ompl_interface::ModelBasedPlanningContext::setVerboseStateValidityChecks(bo
     static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->setVerbose(flag);
 }
 
-ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(void)
+ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
 { 
   // ******************* set up the goal representation, based on goal constraints
   
@@ -299,12 +299,12 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningScene(const planning_
   planning_scene_ = planning_scene;
 }
 
-void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(const kinematic_state::KinematicState &complete_initial_robot_state)
+void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(const robot_state::RobotState &complete_initial_robot_state)
 {
   complete_initial_robot_state_ = complete_initial_robot_state;
 }
 
-void ompl_interface::ModelBasedPlanningContext::clear(void)
+void ompl_interface::ModelBasedPlanningContext::clear()
 {
   ompl_simple_setup_.clear();
   ompl_simple_setup_.clearStartStates();
@@ -390,16 +390,16 @@ public:
   {
   }
 
-  ~Follower(void)
+  ~Follower()
   {
   }
   
-  const base::SpaceInformationPtr &getSpaceInformation(void) const
+  const base::SpaceInformationPtr &getSpaceInformation() const
   {
     return si_;
   }
   
-  const base::ProblemDefinitionPtr& getProblemDefinition(void) const
+  const base::ProblemDefinitionPtr& getProblemDefinition() const
   {
     return pdef_;
   }
@@ -410,12 +410,12 @@ public:
     pis_.use(pdef_);
   } 
 
-  base::ParamSet& params(void)
+  base::ParamSet& params()
   {
     return params_;
   }
 
-  const base::ParamSet& params(void) const
+  const base::ParamSet& params() const
   {
     return params_;
   }
@@ -721,7 +721,7 @@ bool ompl_interface::ModelBasedPlanningContext::follow(double timeout, unsigned 
   return result;
 }
 
-void ompl_interface::ModelBasedPlanningContext::preSolve(void)
+void ompl_interface::ModelBasedPlanningContext::preSolve()
 {
   // clear previously computed solutions
   ompl_simple_setup_.getProblemDefinition()->clearSolutionPaths();
@@ -736,7 +736,7 @@ void ompl_interface::ModelBasedPlanningContext::preSolve(void)
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
 }
 
-void ompl_interface::ModelBasedPlanningContext::postSolve(void)
+void ompl_interface::ModelBasedPlanningContext::postSolve()
 {  
   bool gls = ompl_simple_setup_.getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
   if (gls)
@@ -835,13 +835,13 @@ void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(con
   ptc_ = &ptc;
 }
 
-void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition(void)
+void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition()
 { 
   boost::mutex::scoped_lock slock(ptc_lock_);
   ptc_ = NULL;
 }
 
-void ompl_interface::ModelBasedPlanningContext::terminateSolve(void)
+void ompl_interface::ModelBasedPlanningContext::terminateSolve()
 {
   boost::mutex::scoped_lock slock(ptc_lock_);
   if (ptc_)

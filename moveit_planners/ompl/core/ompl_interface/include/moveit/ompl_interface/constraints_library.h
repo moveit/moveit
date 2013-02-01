@@ -66,43 +66,43 @@ public:
                           const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage, 
                           const ConstraintApproximationFactory *parent_factory = NULL);
   
-  virtual ~ConstraintApproximation(void)
+  virtual ~ConstraintApproximation()
   {
   }
   
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return constraint_msg_.name;
   }
   
   virtual ompl::base::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints &msg) const;
   
-  const std::vector<int>& getSpaceSignature(void) const
+  const std::vector<int>& getSpaceSignature() const
   {
     return space_signature_;
   }
   
-  const std::string& getGroup(void) const
+  const std::string& getGroup() const
   {
     return group_;
   }  
   
-  const std::string& getStateSpaceParameterization(void) const
+  const std::string& getStateSpaceParameterization() const
   {
     return state_space_parameterization_;
   }
   
-  const moveit_msgs::Constraints& getConstraintsMsg(void) const
+  const moveit_msgs::Constraints& getConstraintsMsg() const
   {
     return constraint_msg_;
   }
   
-  const ompl::base::StateStoragePtr& getStateStorage(void) const
+  const ompl::base::StateStoragePtr& getStateStorage() const
   {
     return state_storage_ptr_;
   }
   
-  const std::string& getFilename(void) const
+  const std::string& getFilename() const
   {
     return ompldb_filename_;
   }  
@@ -129,15 +129,15 @@ protected:
 class ConstraintApproximationFactory
 {
 public:
-  ConstraintApproximationFactory(void)
+  ConstraintApproximationFactory()
   {
   }
   
-  virtual ~ConstraintApproximationFactory(void)
+  virtual ~ConstraintApproximationFactory()
   {
   }
   
-  virtual ConstraintStateStorageOrderFn getOrderFunction(void) const
+  virtual ConstraintStateStorageOrderFn getOrderFunction() const
   {
     return ConstraintStateStorageOrderFn();    
   }
@@ -205,7 +205,7 @@ public:
                              unsigned int samples, unsigned int edges_per_sample);
   
   void printConstraintApproximations(std::ostream &out = std::cout) const;
-  void clearConstraintApproximations(void);
+  void clearConstraintApproximations();
   
   void registerConstraintApproximation(const ConstraintApproximationPtr &approx)
   {

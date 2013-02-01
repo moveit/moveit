@@ -61,14 +61,14 @@ class PlanningContextManager
 public: 
   
   PlanningContextManager(const kinematic_model::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm);
-  ~PlanningContextManager(void);
+  ~PlanningContextManager();
   
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
   void setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig);
 
   /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
-  unsigned int getMaximumStateSamplingAttempts(void) const
+  unsigned int getMaximumStateSamplingAttempts() const
   {
     return max_state_sampling_attempts_;
   }
@@ -80,7 +80,7 @@ public:
   }
 
   /* \brief Get the maximum number of sampling attempts allowed when sampling goals is needed */
-  unsigned int getMaximumGoalSamplingAttempts(void) const
+  unsigned int getMaximumGoalSamplingAttempts() const
   {
     return max_goal_sampling_attempts_;
   }
@@ -92,7 +92,7 @@ public:
   }
   
   /* \brief Get the maximum number of goal samples */
-  unsigned int getMaximumGoalSamples(void) const
+  unsigned int getMaximumGoalSamples() const
   {
     return max_goal_samples_;
   }
@@ -104,7 +104,7 @@ public:
   }
   
   /* \brief Get the maximum number of planning threads allowed */
-  unsigned int getMaximumPlanningThreads(void) const
+  unsigned int getMaximumPlanningThreads() const
   {
     return max_planning_threads_;
   }
@@ -116,7 +116,7 @@ public:
   }
   
   /* \brief Get the maximum solution segment length */
-  double getMaximumSolutionSegmentLength(void) const
+  double getMaximumSolutionSegmentLength() const
   {
     return max_solution_segment_length_;
   }
@@ -127,12 +127,12 @@ public:
     max_solution_segment_length_ = mssl;
   }
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return kmodel_;
   }
   
-  ModelBasedPlanningContextPtr getLastPlanningContext(void) const;
+  ModelBasedPlanningContextPtr getLastPlanningContext() const;
     
   ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const;
 
@@ -148,19 +148,19 @@ public:
     state_space_factories_[factory->getType()] = factory;
   }
   
-  const std::map<std::string, ConfiguredPlannerAllocator>& getRegisteredPlannerAllocators(void) const
+  const std::map<std::string, ConfiguredPlannerAllocator>& getRegisteredPlannerAllocators() const
   {
     return known_planners_;
   }
   
-  const std::map<std::string, ModelBasedStateSpaceFactoryPtr>& getRegisteredStateSpaceFactories(void) const
+  const std::map<std::string, ModelBasedStateSpaceFactoryPtr>& getRegisteredStateSpaceFactories() const
   {
     return state_space_factories_;
   }
   
-  ConfiguredPlannerSelector getPlannerSelector(void) const;
+  ConfiguredPlannerSelector getPlannerSelector() const;
 
-  const std::map<std::string, PlanningConfigurationSettings>& getPlanningConfigurations(void) const
+  const std::map<std::string, PlanningConfigurationSettings>& getPlanningConfigurations() const
   {
     return planner_configs_;
   }
@@ -171,8 +171,8 @@ protected:
 
   ConfiguredPlannerAllocator plannerSelector(const std::string &planner) const;
   
-  void registerDefaultPlanners(void);
-  void registerDefaultStateSpaces(void);
+  void registerDefaultPlanners();
+  void registerDefaultStateSpaces();
   
   ModelBasedPlanningContextPtr getPlanningContext(const PlanningConfigurationSettings &config, const FactoryTypeSelector &factory) const;
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory1(const std::string &group_name, const std::string &factory_type) const;

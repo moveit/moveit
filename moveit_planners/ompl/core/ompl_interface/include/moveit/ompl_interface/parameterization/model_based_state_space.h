@@ -82,7 +82,7 @@ public:
         IS_GOAL_STATE = 16
       };
     
-    StateType(void) : ompl::base::CompoundState(), tag(-1), flags(0), distance(0.0)
+    StateType() : ompl::base::CompoundState(), tag(-1), flags(0), distance(0.0)
     {
     }
     
@@ -93,7 +93,7 @@ public:
       markValid();
     }
     
-    void markValid(void)
+    void markValid()
     {
       flags |= (VALIDITY_KNOWN | VALIDITY_TRUE);
     }
@@ -105,53 +105,53 @@ public:
       markInvalid();
     }
     
-    void markInvalid(void)
+    void markInvalid()
     {
       flags &= ~VALIDITY_TRUE;
       flags |= VALIDITY_KNOWN;
     }
     
-    bool isValidityKnown(void) const
+    bool isValidityKnown() const
     {
       return flags & VALIDITY_KNOWN;
     }
     
-    void clearKnownInformation(void)
+    void clearKnownInformation()
     {
       flags = 0;
     }
     
-    bool isMarkedValid(void) const
+    bool isMarkedValid() const
     {
       return flags & VALIDITY_TRUE;
     }
     
-    bool isGoalDistanceKnown(void) const
+    bool isGoalDistanceKnown() const
     {
       return flags & GOAL_DISTANCE_KNOWN;
     }
     
-    bool isStartState(void) const
+    bool isStartState() const
     {
       return flags & IS_START_STATE;
     }
     
-    bool isGoalState(void) const
+    bool isGoalState() const
     {
       return flags & IS_GOAL_STATE;
     }
     
-    bool isInputState(void) const
+    bool isInputState() const
     {   
       return flags & (IS_START_STATE | IS_GOAL_STATE);
     }
     
-    void markStartState(void)
+    void markStartState()
     {
       flags |= IS_START_STATE;
     }
     
-    void markGoalState(void)
+    void markGoalState()
     {
       flags |= IS_GOAL_STATE;
     }
@@ -162,34 +162,34 @@ public:
   };
   
   ModelBasedStateSpace(const ModelBasedStateSpaceSpecification &spec);  
-  virtual ~ModelBasedStateSpace(void);
+  virtual ~ModelBasedStateSpace();
 
-  virtual ompl::base::State* allocState(void) const;
+  virtual ompl::base::State* allocState() const;
   virtual void freeState(ompl::base::State *state) const;
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
   virtual double distance(const ompl::base::State *state1, const ompl::base::State *state2) const;
-  virtual double getMaximumExtent(void) const;
+  virtual double getMaximumExtent() const;
   
-  virtual ompl::base::StateSamplerPtr allocStateSampler(void) const;  
+  virtual ompl::base::StateSamplerPtr allocStateSampler() const;  
   virtual ompl::base::StateSamplerPtr allocSubspaceStateSampler(const ompl::base::StateSpace *subspace) const;
 
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return spec_.kmodel_;
   }
   
-  const kinematic_model::JointModelGroup* getJointModelGroup(void) const
+  const kinematic_model::JointModelGroup* getJointModelGroup() const
   {
     return spec_.joint_model_group_;
   }  
   
-  const std::string& getJointModelGroupName(void) const
+  const std::string& getJointModelGroupName() const
   {
     return getJointModelGroup()->getName();
   }
 
-  const ModelBasedStateSpaceSpecification& getSpecification(void) const
+  const ModelBasedStateSpaceSpecification& getSpecification() const
   {
     return spec_;
   }
@@ -199,33 +199,33 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
-  const std::vector<kinematic_model::JointModel::Bounds>& getJointsBounds(void) const
+  const std::vector<kinematic_model::JointModel::Bounds>& getJointsBounds() const
   {
     return spec_.joints_bounds_;
   }
   
   /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToKinematicState(kinematic_state::JointStateGroup* jsg, const ompl::base::State *state) const;
+  virtual void copyToRobotState(robot_state::JointStateGroup* jsg, const ompl::base::State *state) const;
   
   /// Copy the data from an OMPL state to a kinematic state. The join states \b must be specified in the same order as the joint models in the constructor. This function is implemented in terms of the previous definition with the same name.
-  void copyToKinematicState(kinematic_state::KinematicState &kstate, const ompl::base::State *state) const
+  void copyToRobotState(robot_state::RobotState &kstate, const ompl::base::State *state) const
   {
-    copyToKinematicState(kstate.getJointStateGroup(getJointModelGroupName()), state);
+    copyToRobotState(kstate.getJointStateGroup(getJointModelGroupName()), state);
   }
   
   /// Copy the data from a value vector that corresponds to the state of the considered joint model group (or array of joints)
   //  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const = 0;
 
   /// Copy the data from a kinematic state to an OMPL state. Only needed joint states are copied. This function is implemented in terms of the previous definition with the same name.
-  void copyToOMPLState(ompl::base::State *state, const kinematic_state::KinematicState &kstate) const
+  void copyToOMPLState(ompl::base::State *state, const robot_state::RobotState &kstate) const
   {
     copyToOMPLState(state, kstate.getJointStateGroup(getJointModelGroupName()));
   }  
         
   /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToOMPLState(ompl::base::State *state, const kinematic_state::JointStateGroup* jsg) const;
+  virtual void copyToOMPLState(ompl::base::State *state, const robot_state::JointStateGroup* jsg) const;
   
-  double getTagSnapToSegment(void) const;
+  double getTagSnapToSegment() const;
   void setTagSnapToSegment(double snap);
   
 protected:

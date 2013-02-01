@@ -56,7 +56,7 @@ public:
 protected:
   
   /** @brief Configure everything using the param server */
-  void loadParams(void);
+  void loadParams();
   
   ros::NodeHandle nh_; /// The ROS node handle
 

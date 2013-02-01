@@ -37,7 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
 #define MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
 
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <boost/thread.hpp>
 
 namespace ompl_interface
@@ -48,15 +48,15 @@ class TSStateStorage
 public:
   
   TSStateStorage(const kinematic_model::KinematicModelPtr &kmodel);
-  TSStateStorage(const kinematic_state::KinematicState &start_state);
-  ~TSStateStorage(void);
+  TSStateStorage(const robot_state::RobotState &start_state);
+  ~TSStateStorage();
   
-  kinematic_state::KinematicState* getStateStorage(void) const;
+  robot_state::RobotState* getStateStorage() const;
   
 private:
   
-  kinematic_state::KinematicState                                       start_state_;
-  mutable std::map<boost::thread::id, kinematic_state::KinematicState*> thread_states_;
+  robot_state::RobotState                                       start_state_;
+  mutable std::map<boost::thread::id, robot_state::RobotState*> thread_states_;
   mutable boost::mutex                                                  lock_;
 };
 

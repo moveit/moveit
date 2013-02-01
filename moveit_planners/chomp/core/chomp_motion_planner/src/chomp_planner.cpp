@@ -98,8 +98,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   trajectory.fillInMinJerk();
 
   // optimize!
-  planning_models::KinematicState start_state(planning_scene->getCurrentState());
-  planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+  planning_models::RobotState *start_state(planning_scene->getCurrentState());
+  planning_models::robotStateToRobotState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
     
   ros::WallTime create_time = ros::WallTime::now();
   ChompOptimizer optimizer(&trajectory, 

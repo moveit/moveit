@@ -61,7 +61,7 @@ public:
                  const planning_scene::PlanningSceneConstPtr& planning_scene,
                  const std::string& planning_group, 
                  const ChompParameters *parameters,
-                 const planning_models::KinematicState& start_state);
+                 const planning_models::RobotState& start_state);
 
   virtual ~ChompOptimizer();
 
@@ -107,7 +107,7 @@ private:
                    std::string& jointName, 
                    Eigen::MatrixBase<Derived>& jacobian) const;
 
-  // void getRandomState(const planning_models::KinematicState& currentState, 
+  // void getRandomState(const planning_models::RobotState& currentState, 
   //                     const std::string& group_name,
   //                     Eigen::VectorXd& state_vec);
 
@@ -131,8 +131,8 @@ private:
   const ChompParameters *parameters_;
   ChompTrajectory group_trajectory_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
-  planning_models::KinematicState state_;
-  planning_models::KinematicState start_state_;
+  planning_models::RobotState *state_;
+  planning_models::RobotState *start_state_;
   const planning_models::KinematicModel::JointModelGroup* joint_model_group_;
   const collision_detection::CollisionWorldHybrid* hy_world_;
   const collision_detection::CollisionRobotHybrid* hy_robot_; 

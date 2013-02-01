@@ -69,11 +69,11 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
                                boost::bind(&ModelBasedStateSpace::getTagSnapToSegment, this));
 }
 
-ompl_interface::ModelBasedStateSpace::~ModelBasedStateSpace(void)
+ompl_interface::ModelBasedStateSpace::~ModelBasedStateSpace()
 {
 }
 
-double ompl_interface::ModelBasedStateSpace::getTagSnapToSegment(void) const
+double ompl_interface::ModelBasedStateSpace::getTagSnapToSegment() const
 {
   return tag_snap_to_segment_;
 }
@@ -89,7 +89,7 @@ void ompl_interface::ModelBasedStateSpace::setTagSnapToSegment(double snap)
   }
 }
 
-ompl::base::State* ompl_interface::ModelBasedStateSpace::allocState(void) const
+ompl::base::State* ompl_interface::ModelBasedStateSpace::allocState() const
 { 
   StateType *state = new StateType();
   allocStateComponents(state);
@@ -109,7 +109,7 @@ void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State *destinat
   destination->as<StateType>()->distance = source->as<StateType>()->distance;
 }
 
-double ompl_interface::ModelBasedStateSpace::getMaximumExtent(void) const
+double ompl_interface::ModelBasedStateSpace::getMaximumExtent() const
 { 
   double total = 0.0;
   for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
@@ -193,7 +193,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocSubspaceS
   return ompl::base::StateSamplerPtr(new WrappedStateSampler(this, ompl::base::CompoundStateSpace::allocSubspaceStateSampler(subspace)));
 }
 
-ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocStateSampler() const
 {
   return ompl::base::StateSamplerPtr(new WrappedStateSampler(this, ompl::base::CompoundStateSpace::allocStateSampler()));
 }
@@ -221,17 +221,17 @@ void ompl_interface::ModelBasedStateSpace::setPlanningVolume(double minX, double
     components_[i]->as<ModelBasedJointStateSpace>()->setPlanningVolume(minX, maxX, minY, maxY, minZ, maxZ);
 }
 
-void ompl_interface::ModelBasedStateSpace::copyToKinematicState(kinematic_state::JointStateGroup* jsg, const ompl::base::State *state) const
+void ompl_interface::ModelBasedStateSpace::copyToRobotState(robot_state::JointStateGroup* jsg, const ompl::base::State *state) const
 {
-  const std::vector<kinematic_state::JointState*> &dest = jsg->getJointStateVector();
+  const std::vector<robot_state::JointState*> &dest = jsg->getJointStateVector();
   for (std::size_t i = 0 ; i < dest.size() ; ++i)
     *dest[i] = *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state;
   jsg->updateLinkTransforms();
 }
 
-void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *state, const kinematic_state::JointStateGroup* jsg) const
+void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *state, const robot_state::JointStateGroup* jsg) const
 {
-  const std::vector<kinematic_state::JointState*> &src = jsg->getJointStateVector();
+  const std::vector<robot_state::JointState*> &src = jsg->getJointStateVector();
   for (std::size_t i = 0 ; i < src.size() ; ++i)
     *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state = *src[i];     
   state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();

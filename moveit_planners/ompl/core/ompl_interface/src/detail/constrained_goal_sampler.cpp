@@ -95,7 +95,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
       default_sampler_->sampleUniform(newGoal);
       if (static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(newGoal, verbose))
       {
-        planning_context_->getOMPLStateSpace()->copyToKinematicState(work_joint_group_state_, newGoal);
+        planning_context_->getOMPLStateSpace()->copyToRobotState(work_joint_group_state_, newGoal);
         if (kinematic_constraint_set_->decide(work_state_, verbose).satisfied)
           return true;
       }

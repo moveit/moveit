@@ -83,77 +83,77 @@ public:
   
   ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec);
   
-  virtual ~ModelBasedPlanningContext(void)
+  virtual ~ModelBasedPlanningContext()
   {
   }
   
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return name_;
   }
 
-  const ModelBasedPlanningContextSpecification& getSpecification(void) const
+  const ModelBasedPlanningContextSpecification& getSpecification() const
   {
     return spec_;
   }
 
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return spec_.state_space_->getKinematicModel();
   }
   
-  const kinematic_model::JointModelGroup* getJointModelGroup(void) const
+  const kinematic_model::JointModelGroup* getJointModelGroup() const
   {
     return spec_.state_space_->getJointModelGroup();
   }  
   
-  const std::string& getJointModelGroupName(void) const
+  const std::string& getJointModelGroupName() const
   {
     return spec_.state_space_->getJointModelGroupName();
   }
   
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return planning_scene_;
   }
   
-  const kinematic_state::KinematicState& getCompleteInitialRobotState(void) const
+  const robot_state::RobotState& getCompleteInitialRobotState() const
   {
     return complete_initial_robot_state_;
   }
   
-  const ModelBasedStateSpacePtr& getOMPLStateSpace(void) const
+  const ModelBasedStateSpacePtr& getOMPLStateSpace() const
   {
     return spec_.state_space_;
   }
   
-  const og::SimpleSetup& getOMPLSimpleSetup(void) const
+  const og::SimpleSetup& getOMPLSimpleSetup() const
   {
     return ompl_simple_setup_;
   }
 
-  og::SimpleSetup& getOMPLSimpleSetup(void)
+  og::SimpleSetup& getOMPLSimpleSetup()
   {
     return ompl_simple_setup_;
   }
 
-  const ot::Benchmark& getOMPLBenchmark(void) const
+  const ot::Benchmark& getOMPLBenchmark() const
   {
     return ompl_benchmark_;
   }
 
-  ot::Benchmark& getOMPLBenchmark(void)
+  ot::Benchmark& getOMPLBenchmark()
   {
     return ompl_benchmark_;
   }
 
-  const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints(void) const
+  const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints() const
   {
     return path_constraints_;
   }
   
   /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
-  unsigned int getMaximumStateSamplingAttempts(void) const
+  unsigned int getMaximumStateSamplingAttempts() const
   {
     return max_state_sampling_attempts_;
   }
@@ -165,7 +165,7 @@ public:
   }
 
   /* \brief Get the maximum number of sampling attempts allowed when sampling goals is needed */
-  unsigned int getMaximumGoalSamplingAttempts(void) const
+  unsigned int getMaximumGoalSamplingAttempts() const
   {
     return max_goal_sampling_attempts_;
   }
@@ -177,7 +177,7 @@ public:
   }
   
   /* \brief Get the maximum number of valid goal samples to store */
-  unsigned int getMaximumGoalSamples(void) const
+  unsigned int getMaximumGoalSamples() const
   {
     return max_goal_samples_;
   }
@@ -189,7 +189,7 @@ public:
   }
 
   /* \brief Get the maximum number of planning threads allowed */
-  unsigned int getMaximumPlanningThreads(void) const
+  unsigned int getMaximumPlanningThreads() const
   {
     return max_planning_threads_;
   }
@@ -201,7 +201,7 @@ public:
   }
   
   /* \brief Get the maximum solution segment length */
-  double getMaximumSolutionSegmentLength(void) const
+  double getMaximumSolutionSegmentLength() const
   {
     return max_solution_segment_length_;
   }
@@ -212,7 +212,7 @@ public:
     max_solution_segment_length_ = mssl;
   }
 
-  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager(void)
+  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager()
   {
     return spec_.constraint_sampler_manager_;
   }
@@ -229,7 +229,7 @@ public:
   void setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene);
   void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
-  void setCompleteInitialState(const kinematic_state::KinematicState &complete_initial_robot_state);
+  void setCompleteInitialState(const robot_state::RobotState &complete_initial_robot_state);
   
   bool setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
 			  const moveit_msgs::Constraints &path_constraints,
@@ -247,9 +247,9 @@ public:
     follow_samplers_ = samplers;
   }
   
-  void clear(void);
+  void clear();
   
-  bool useStateValidityCache(void) const
+  bool useStateValidityCache() const
   {
     return spec_.use_state_validity_cache_;
   }
@@ -273,16 +273,16 @@ public:
   */
   bool benchmark(double timeout, unsigned int count, const std::string &filename = "");
   
-  void terminateSolve(void);
+  void terminateSolve();
   
   /* @brief Get the amount of time spent computing the last plan */
-  double getLastPlanTime(void) const
+  double getLastPlanTime() const
   {
     return last_plan_time_;
   }
 
   /* @brief Get the amount of time spent simplifying the last plan */
-  double getLastSimplifyTime(void) const
+  double getLastSimplifyTime() const
   {
     return last_simplify_time_;
   }
@@ -295,21 +295,21 @@ public:
   void interpolateSolution();
   
   /* @brief Get the solution as a RobotTrajectory object*/
-  bool getSolutionPath(kinematic_trajectory::KinematicTrajectory &traj) const;
+  bool getSolutionPath(robot_trajectory::RobotTrajectory &traj) const;
   
-  void convertPath(const og::PathGeometric &pg, kinematic_trajectory::KinematicTrajectory &traj) const;  
+  void convertPath(const og::PathGeometric &pg, robot_trajectory::RobotTrajectory &traj) const;  
 
-  virtual void configure(void);
+  virtual void configure();
 
 protected:
   
-  void preSolve(void);
-  void postSolve(void);
+  void preSolve();
+  void postSolve();
   
   virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
   virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
-  virtual void useConfig(void);
-  virtual ob::GoalPtr constructGoal(void);
+  virtual void useConfig();
+  virtual ob::GoalPtr constructGoal();
 
   void registerTerminationCondition(const ob::PlannerTerminationCondition &ptc);
   void unregisterTerminationCondition();
@@ -318,7 +318,7 @@ protected:
   
   std::string name_;
   
-  kinematic_state::KinematicState complete_initial_robot_state_;
+  robot_state::RobotState complete_initial_robot_state_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used
