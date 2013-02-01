@@ -85,18 +85,13 @@ PropagationDistanceField::PropagationDistanceField(std::istream& is,
   readFromStream(is);
 }
 
-
-PropagationDistanceField::~PropagationDistanceField()
-{
-}
-
 void PropagationDistanceField::initialize()
 {
+  max_distance_sq_ = ceil(max_distance_/resolution_)*ceil(max_distance_/resolution_);
   voxel_grid_.reset(new VoxelGrid<PropDistanceFieldVoxel>(size_x_, size_y_, size_z_, 
                                                           resolution_, 
                                                           origin_x_, origin_y_, origin_z_, 
-                                                          PropDistanceFieldVoxel(max_distance_,0)));
-  max_distance_sq_ = ceil(max_distance_/resolution_)*ceil(max_distance_/resolution_);
+                                                          PropDistanceFieldVoxel(max_distance_sq_,0)));
 
   initNeighborhoods();
   
@@ -618,7 +613,7 @@ double PropagationDistanceField::getDistance(double x, double y, double z) const
   return getDistance((*voxel_grid_.get())(x,y,z));
 }
 
-double PropagationDistanceField::getDistanceFromCell(int x, int y, int z) const
+double PropagationDistanceField::getDistance(int x, int y, int z) const
 {
   return getDistance(voxel_grid_->getCell(x,y,z));
 }
@@ -656,8 +651,7 @@ bool PropagationDistanceField::worldToGrid(double world_x, double world_y, doubl
 bool PropagationDistanceField::writeToStream(std::ostream& os) const
 {
   os << "resolution: " << resolution_ << std::endl;
-  os << "size_x: " << size_x_ << std::endl;
-  os << "size_y: " << size_y_ << std::endl;
+  os << "size_x: " << size_x_ << std::endl;  os << "size_y: " << size_y_ << std::endl;
   os << "size_z: " << size_z_ << std::endl;
   os << "origin_x: " << origin_x_ << std::endl;
   os << "origin_y: " << origin_y_ << std::endl;

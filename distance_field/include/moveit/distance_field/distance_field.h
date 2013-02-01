@@ -97,7 +97,7 @@ public:
 
   /** 
    * \brief Add a set of obstacle points to the distance field,
-   * updating distance values accordingly.  The distance field can
+   * updating distance values accordingly.  The distance field may
    * already contain obstacle cells.
    * 
    * @param [in] points The set of obstacle points to add
@@ -244,9 +244,22 @@ public:
   
   /** 
    * \brief Gets not only the distance to the nearest cell but the
-   * gradient indicating the direction of the closest occupied cell.
-   * The distance and gradients at a location and the gradient of the
-   * field.
+   * gradient direction.  The gradient is computed as a function of
+   * the distances of near-by cells.  An uninitialized distance is
+   * returned if the cell is not valid for gradient production
+   * purposes.
+   *
+   * The closest cell to a given cell can be computed given the
+   * following formulation (this value will only be within the
+   * resolution parameter of the correct location): 
+   *
+   *\code{.cpp}
+   * Eigen::Vector3d grad; 
+   * double dist = getDistanceGradient(x,y,z,grad.x(),grad.y(),grad.z(),in_bounds);
+   * double closest_point_x = x-(grad.x()/grad.norm())*dist;
+   * double closest_point_y = y-(grad.y()/grad.norm())*dist;
+   * double closest_point_z = z-(grad.z()/grad.norm())*dist;
+   * \endcode
    * 
    * @param [in] x The X location of the cell 
    * @param [in] y The X location of the cell 
@@ -254,7 +267,11 @@ public:
    * @param [out] gradient_x The X component of the gradient to the closest occupied cell
    * @param [out] gradient_y The Y component of the gradient to the closest occupied cell
    * @param [out] gradient_z The Z component of the gradient to the closest occupied cell
-   * @param [out] in_bounds Whether or not the (x,y,z) values are within the bounds of the distance field.
+   *
+   * @param [out] in_bounds Whether or not the (x,y,z) is valid for
+   * gradient purposes.  Gradients are not valid at the boundary of
+   * the distance field (cells where one or more of the indexes are at
+   * 0 or at the maximum size).
    * 
    * @return The distance to the closest occupied cell
    */
@@ -272,7 +289,7 @@ public:
    * 
    * @return The distance to the closest occupied cell
    */
-  virtual double getDistanceFromCell(int x, int y, int z) const = 0;
+  virtual double getDistance(int x, int y, int z) const = 0;
   
   /** 
    * \brief Determines whether or not the cell associated with the
@@ -533,6 +550,14 @@ public:
   double getResolution() const {
     return resolution_;
   }
+
+  /** 
+   * \brief Gets a distance value for an invalid cell.  
+   * 
+   * 
+   * @return The distance associated with an unitialized cell
+   */
+  virtual double getUninitializedDistance() const = 0;
 
 protected:
   /** 

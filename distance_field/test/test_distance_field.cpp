@@ -109,7 +109,7 @@ bool areDistanceFieldsDistancesEqual(const PropagationDistanceField& df1,
   if(df1.getXNumCells() != df2.getXNumCells()) return false;
   if(df1.getYNumCells() != df2.getYNumCells()) return false;
   if(df1.getZNumCells() != df2.getZNumCells()) return false;
-  for (int z=0; z<df1.getYNumCells(); z++) {
+  for (int z=0; z<df1.getZNumCells(); z++) {
     for (int x=0; x<df1.getXNumCells(); x++) {
       for (int y=0; y<df1.getYNumCells(); y++) {
         if(df1.getCell(x,y,z).distance_square_ != df2.getCell(x,y,z).distance_square_) {
@@ -132,7 +132,7 @@ bool checkOctomapVersusDistanceField(const PropagationDistanceField& df,
                                      const octomap::OcTree& octree)
 {
   //just one way for now
-  for (int z=0; z<df.getYNumCells(); z++) {
+  for (int z=0; z<df.getZNumCells(); z++) {
     for (int x=0; x<df.getXNumCells(); x++) {
       for (int y=0; y<df.getYNumCells(); y++) {
         if(df.getCell(x,y,z).distance_square_ == 0) {
@@ -179,7 +179,7 @@ bool checkOctomapVersusDistanceField(const PropagationDistanceField& df,
 unsigned int countOccupiedCells(const PropagationDistanceField& df)
 {
   unsigned int count = 0;
-  for (int z=0; z<df.getYNumCells(); z++) {
+  for (int z=0; z<df.getZNumCells(); z++) {
     for (int x=0; x<df.getXNumCells(); x++) {
       for (int y=0; y<df.getYNumCells(); y++) {
         if(df.getCell(x,y,z).distance_square_ == 0) {
@@ -257,6 +257,13 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   EXPECT_EQ( numY, (int)(height/resolution+0.5) );
   EXPECT_EQ( numZ, (int)(depth/resolution+0.5) );
 
+  //getting a bad point
+  double tgx, tgy, tgz;
+  bool in_bounds;
+  EXPECT_NEAR(df.getDistance(1000.0,1000.0,1000.0), max_dist, .0001);
+  EXPECT_NEAR(df.getDistanceGradient(1000.0,1000.0,1000.0, tgx, tgy, tgz, in_bounds), max_dist, .0001);
+  EXPECT_FALSE(in_bounds);
+
   // Add points to the grid
   EigenSTL::vector_Vector3d points;
   points.push_back(point1);
@@ -284,6 +291,49 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   points.clear();
   points.push_back(point3);
   check_distance_field( df, points, numX, numY, numZ, false);
+
+  //now testing gradient calls
+  df.reset();
+  points.clear();
+  points.push_back(point1);
+  df.addPointsToField(points);
+  bool first = true;
+  for (int z=1; z<df.getZNumCells()-1; z++) {
+    for (int x=1; x<df.getXNumCells()-1; x++) {
+      for (int y=1; y<df.getYNumCells()-1; y++) {
+        double dist = df.getDistance(x,y,z);
+        double wx, wy, wz;
+        df.gridToWorld(x,y,z,wx,wy,wz);
+        Eigen::Vector3d grad(0.0,0.0,0.0);
+        bool grad_in_bounds;
+        double dist_grad = df.getDistanceGradient(wx, wy, wz,
+                                                  grad.x(), grad.y(), grad.z(), grad_in_bounds);
+        ASSERT_TRUE(grad_in_bounds) << x << " " << y << " " << z;
+        ASSERT_NEAR(dist, dist_grad, .0001);
+        if(dist > 0 &&
+           dist < max_dist) {
+          double xscale = grad.x()/grad.norm();
+          double yscale = grad.y()/grad.norm();
+          double zscale = grad.z()/grad.norm();
+          
+          double comp_x = wx-xscale*dist;
+          double comp_y = wy-yscale*dist;
+          double comp_z = wz-zscale*dist;
+          if(first) {
+            first = false;
+            std::cout << "Dist " << dist << std::endl;
+            std::cout << "Cell " << x << " " << y << " " << z << " " << wx << " " << wy << " " << wz << std::endl;
+            std::cout << "Scale " << xscale << " " << yscale << " " << zscale << std::endl; 
+            std::cout << "Grad " << grad.x() << " " << grad.y() << " " << grad.z() << " comp " << comp_x << " " << comp_y << " " << comp_z << std::endl;
+          }
+          ASSERT_NEAR(comp_x, point1.x(), resolution) << dist << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale << " " << yscale << " " << zscale << std::endl;
+          ASSERT_NEAR(comp_y, point1.y(), resolution) << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale << " " << yscale << " " << zscale << std::endl;
+          ASSERT_NEAR(comp_z, point1.z(), resolution) << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale << " " << yscale << " " << zscale << std::endl;
+        }
+      }
+    }
+  }
+  ASSERT_FALSE(first);
 }
 
 TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
