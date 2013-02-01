@@ -37,7 +37,7 @@
 #include <moveit/collision_detection/collision_world.h>
 #include <geometric_shapes/shape_operations.h>
 
-collision_detection::CollisionWorld::CollisionWorld(void) : record_changes_(false)
+collision_detection::CollisionWorld::CollisionWorld() : record_changes_(false)
 {
 }
 
@@ -46,14 +46,14 @@ collision_detection::CollisionWorld::CollisionWorld(const CollisionWorld &other)
   objects_ = other.objects_;
 }
 
-void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state) const
+void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const
 {
   robot.checkSelfCollision(req, res, state);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
     checkRobotCollision(req, res, robot, state);
 }
 
-void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const
+void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const
 {
   robot.checkSelfCollision(req, res, state, acm);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
@@ -61,7 +61,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
 }
 
 void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                                         const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2) const
+                                                         const robot_state::RobotState &state1, const robot_state::RobotState &state2) const
 {
   robot.checkSelfCollision(req, res, state1, state2);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
@@ -69,7 +69,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
 }
 
 void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                                         const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2, const AllowedCollisionMatrix &acm) const
+                                                         const robot_state::RobotState &state1, const robot_state::RobotState &state2, const AllowedCollisionMatrix &acm) const
 {
   robot.checkSelfCollision(req, res, state1, state2, acm);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
@@ -102,7 +102,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
   }
 }
 
-std::vector<std::string> collision_detection::CollisionWorld::getObjectIds(void) const
+std::vector<std::string> collision_detection::CollisionWorld::getObjectIds() const
 {
   std::vector<std::string> id;
   for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
@@ -217,7 +217,7 @@ void collision_detection::CollisionWorld::removeObject(const std::string &id)
       changeRemoveObject(id);
 }
 
-void collision_detection::CollisionWorld::clearObjects(void)
+void collision_detection::CollisionWorld::clearObjects()
 {
   if (record_changes_)
     for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
@@ -255,21 +255,21 @@ void collision_detection::CollisionWorld::recordChanges(bool flag)
   record_changes_ = flag;
 }
 
-bool collision_detection::CollisionWorld::isRecordingChanges(void) const
+bool collision_detection::CollisionWorld::isRecordingChanges() const
 {
   return record_changes_;
 }
 
-const std::vector<collision_detection::CollisionWorld::Change>& collision_detection::CollisionWorld::getChanges(void) const
+const std::vector<collision_detection::CollisionWorld::Change>& collision_detection::CollisionWorld::getChanges() const
 {
   return changes_;
 }
 
-void collision_detection::CollisionWorld::clearChanges(void)
+void collision_detection::CollisionWorld::clearChanges()
 {
   changes_.clear();
 }
 
-collision_detection::CollisionWorld::Object::~Object(void)
+collision_detection::CollisionWorld::Object::~Object()
 {
 }

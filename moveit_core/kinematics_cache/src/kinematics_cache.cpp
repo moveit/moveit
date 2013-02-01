@@ -54,8 +54,8 @@ bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_
   kinematics_solver_ = kinematics_solver;
   kinematic_model_   = kinematic_model;  
   joint_model_group_ =  kinematic_model_->getJointModelGroup(kinematics_solver_->getGroupName());
-  kinematic_state_.reset(new kinematic_state::KinematicState(kinematic_model));
-  joint_state_group_.reset(new kinematic_state::JointStateGroup(kinematic_state_.get(),joint_model_group_));
+  kinematic_state_.reset(new robot_state::RobotState(kinematic_model));
+  joint_state_group_.reset(new robot_state::JointStateGroup(kinematic_state_.get(),joint_model_group_));
 
   setup(opt);  
   return true;  

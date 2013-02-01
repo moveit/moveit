@@ -115,7 +115,7 @@ DynamicsSolver::DynamicsSolver(const kinematic_model::KinematicModelConstPtr &ki
   num_joints_ = kdl_chain_.getNrOfJoints();
   num_segments_ = kdl_chain_.getNrOfSegments();
 
-  kinematic_state_.reset(new kinematic_state::KinematicState(kinematic_model_));  
+  kinematic_state_.reset(new robot_state::RobotState(kinematic_model_));  
   joint_state_group_ = kinematic_state_->getJointStateGroup(joint_model_group_->getName());
 
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();

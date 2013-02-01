@@ -128,8 +128,8 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, 
-                                                         const kinematic_state::KinematicState & /* ks */,
+bool constraint_samplers::JointConstraintSampler::sample(robot_state::JointStateGroup *jsg, 
+                                                         const robot_state::RobotState & /* ks */,
                                                          unsigned int /* max_attempts */)
 {
   if (!is_valid_) 
@@ -164,14 +164,14 @@ bool constraint_samplers::JointConstraintSampler::sample(kinematic_state::JointS
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::project(kinematic_state::JointStateGroup *jsg, 
-                                                          const kinematic_state::KinematicState &reference_state, 
+bool constraint_samplers::JointConstraintSampler::project(robot_state::JointStateGroup *jsg, 
+                                                          const robot_state::RobotState &reference_state, 
                                                           unsigned int max_attempts)
 {
   return sample(jsg, reference_state, max_attempts);
 }
 
-void constraint_samplers::JointConstraintSampler::clear(void)
+void constraint_samplers::JointConstraintSampler::clear()
 {
   ConstraintSampler::clear();
   bounds_.clear();
@@ -180,7 +180,7 @@ void constraint_samplers::JointConstraintSampler::clear(void)
   values_.clear();
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(void)
+constraint_samplers::IKSamplingPose::IKSamplingPose()
 {
 }
 
@@ -281,7 +281,7 @@ bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Cons
   return false;
 }
 
-double constraint_samplers::IKConstraintSampler::getSamplingVolume(void) const
+double constraint_samplers::IKConstraintSampler::getSamplingVolume() const
 {
   double v = 1.0;
   if (sampling_pose_.position_constraint_)
@@ -299,14 +299,14 @@ double constraint_samplers::IKConstraintSampler::getSamplingVolume(void) const
   return v;
 }
 
-const std::string& constraint_samplers::IKConstraintSampler::getLinkName(void) const
+const std::string& constraint_samplers::IKConstraintSampler::getLinkName() const
 {
   if (sampling_pose_.orientation_constraint_)
     return sampling_pose_.orientation_constraint_->getLinkModel()->getName();
   return sampling_pose_.position_constraint_->getLinkModel()->getName();    
 }
 
-bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
+bool constraint_samplers::IKConstraintSampler::loadIKSolver()
 {  
   if (!kb_)
   {
@@ -344,7 +344,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
 }
 
 bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat,
-                                                          const kinematic_state::KinematicState &ks,
+                                                          const robot_state::RobotState &ks,
                                                           unsigned int max_attempts)
 {  
   if (sampling_pose_.position_constraint_)
@@ -375,15 +375,15 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the model
     if (sampling_pose_.position_constraint_->mobileReferenceFrame())
     {
-      const kinematic_state::LinkState *ls = ks.getLinkState(sampling_pose_.position_constraint_->getReferenceFrame());
+      const robot_state::LinkState *ls = ks.getLinkState(sampling_pose_.position_constraint_->getReferenceFrame());
       pos = ls->getGlobalLinkTransform() * pos;
     }
   }
   else
   {
     // do FK for rand state
-    kinematic_state::KinematicState tempState(ks);
-    kinematic_state::JointStateGroup *tmp = tempState.getJointStateGroup(jmg_->getName());
+    robot_state::RobotState tempState(ks);
+    robot_state::JointStateGroup *tmp = tempState.getJointStateGroup(jmg_->getName());
     if (tmp)
     {
       tmp->setToRandomValues();
@@ -411,7 +411,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the model
     if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
-      const kinematic_state::LinkState *ls = ks.getLinkState(sampling_pose_.orientation_constraint_->getReferenceFrame());
+      const robot_state::LinkState *ls = ks.getLinkState(sampling_pose_.orientation_constraint_->getReferenceFrame());
       if (ls)
       {
         Eigen::Affine3d rt(ls->getGlobalLinkTransform().rotation() * quat.toRotationMatrix());
@@ -440,7 +440,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     // both the planning frame and the frame for the IK are assumed to be robot links
     Eigen::Affine3d ikq(Eigen::Translation3d(pos) * quat.toRotationMatrix());
     
-    const kinematic_state::LinkState *ls = ks.getLinkState(ik_frame_);
+    const robot_state::LinkState *ls = ks.getLinkState(ik_frame_);
     ikq = ls->getGlobalLinkTransform().inverse() * ikq;
     
     pos = ikq.translation();
@@ -454,7 +454,7 @@ namespace constraint_samplers
 {
 namespace
 {
-void samplingIkCallbackFnAdapter(kinematic_state::JointStateGroup *jsg, const kinematic_state::StateValidityCallbackFn &constraint,
+void samplingIkCallbackFnAdapter(robot_state::JointStateGroup *jsg, const robot_state::StateValidityCallbackFn &constraint,
                                  const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
 {  
   const std::vector<unsigned int> &bij = jsg->getJointModelGroup()->getKinematicsSolverJointBijection();
@@ -469,12 +469,12 @@ void samplingIkCallbackFnAdapter(kinematic_state::JointStateGroup *jsg, const ki
 }
 }
 
-bool constraint_samplers::IKConstraintSampler::sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts)
+bool constraint_samplers::IKConstraintSampler::sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts)
 {
   return sampleHelper(jsg, ks, max_attempts, false);
 }
 
-bool constraint_samplers::IKConstraintSampler::sampleHelper(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts, bool project)
+bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts, bool project)
 {
   if (!is_valid_)
     return false;
@@ -513,15 +513,15 @@ bool constraint_samplers::IKConstraintSampler::sampleHelper(kinematic_state::Joi
   return false;
 }
 
-bool constraint_samplers::IKConstraintSampler::project(kinematic_state::JointStateGroup *jsg, 
-                                                       const kinematic_state::KinematicState &reference_state, 
+bool constraint_samplers::IKConstraintSampler::project(robot_state::JointStateGroup *jsg, 
+                                                       const robot_state::RobotState &reference_state, 
                                                        unsigned int max_attempts)
 {
   return sampleHelper(jsg, reference_state, max_attempts, true);
 }
 
 bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback,
-                                                      double timeout, kinematic_state::JointStateGroup *jsg, bool use_as_seed)
+                                                      double timeout, robot_state::JointStateGroup *jsg, bool use_as_seed)
 { 
   const std::vector<unsigned int>& ik_joint_bijection = jmg_->getKinematicsSolverJointBijection();
   std::vector<double> seed(ik_joint_bijection.size(), 0.0); 
@@ -550,8 +550,8 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
       solution[i] = ik_sol[ik_joint_bijection[i]];
     jsg->setVariableValues(solution);
 
-    //    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
-    //    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied);
+    //    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getRobotState(), false).satisfied);
+    //    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getRobotState(), false).satisfied);
     return true;
   }
   else

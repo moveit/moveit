@@ -35,8 +35,8 @@
 /** \author E. Gil Jones */
 
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
-#include <moveit/kinematic_state/transforms.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/transforms.h>
 #include <moveit/collision_detection_fcl/collision_world.h>
 #include <moveit/collision_detection_fcl/collision_robot.h>
 
@@ -102,8 +102,8 @@ protected:
   
   kinematic_model::KinematicModelPtr             kmodel_;
   
-  kinematic_state::TransformsPtr                 ftf_;
-  kinematic_state::TransformsConstPtr            ftf_const_;
+  robot_state::TransformsPtr                 ftf_;
+  robot_state::TransformsConstPtr            ftf_const_;
   
   boost::shared_ptr<collision_detection::CollisionRobot>        crobot_;
   boost::shared_ptr<collision_detection::CollisionWorld>        cworld_;
@@ -121,7 +121,7 @@ TEST_F(FclCollisionDetectionTester, InitOK)
 
 TEST_F(FclCollisionDetectionTester, DefaultNotInCollision)
 {
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   collision_detection::CollisionRequest req;
@@ -140,7 +140,7 @@ TEST_F(FclCollisionDetectionTester, LinksInCollision)
   //req.contacts = true;
   //req.max_contacts = 100;
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
@@ -172,7 +172,7 @@ TEST_F(FclCollisionDetectionTester, ContactReporting)
   req.contacts = true;
   req.max_contacts = 1;
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
@@ -220,7 +220,7 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
   req.contacts = true;
   req.max_contacts = 1;
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
@@ -279,7 +279,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
 
   acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true)); 
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
@@ -337,7 +337,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
 
 TEST_F(FclCollisionDetectionTester, DiffSceneTester)
 {
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
 
   collision_detection::CollisionRequest req;
@@ -402,7 +402,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
 
   cworld_->addToObject("kinect", shape, pos1);
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
   
   ros::WallTime before = ros::WallTime::now();
@@ -417,8 +417,8 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   collision_detection::CollisionWorld::ObjectPtr object = cworld_->getObject("kinect");
   cworld_->removeObject("kinect");
   
-  kinematic_state::KinematicState kstate1(kmodel_);
-  kinematic_state::KinematicState kstate2(kmodel_);
+  robot_state::RobotState kstate1(kmodel_);
+  robot_state::RobotState kstate2(kmodel_);
   kstate1.setToDefaultValues();
   kstate2.setToDefaultValues();
   
@@ -472,7 +472,7 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
 
 TEST_F(FclCollisionDetectionTester, MoveMesh) 
 {
-  kinematic_state::KinematicState kstate1(kmodel_);
+  robot_state::RobotState kstate1(kmodel_);
   kstate1.setToDefaultValues();
   
   Eigen::Affine3d kinect_pose;
@@ -498,7 +498,7 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
 
 TEST_F(FclCollisionDetectionTester, TestChangingShapeSize) 
 {
-  kinematic_state::KinematicState kstate1(kmodel_);
+  robot_state::RobotState kstate1(kmodel_);
   kstate1.setToDefaultValues();
    
   collision_detection::CollisionRequest req1;

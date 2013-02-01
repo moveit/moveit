@@ -97,7 +97,7 @@ bool KinematicsSolver::getIK(const planning_scene::PlanningSceneConstPtr &planni
   }
 
   // Setup the seed and the values for all other joints in the robot
-  kinematic_state::KinematicState kinematic_state = planning_scene->getCurrentState();
+  robot_state::RobotState kinematic_state = planning_scene->getCurrentState();
   kinematic_state.setStateValues(request.ik_request.robot_state.joint_state);
 
   // Get the set of sub-groups
@@ -119,7 +119,7 @@ bool KinematicsSolver::getIK(const planning_scene::PlanningSceneConstPtr &planni
   }
 
   // Get a joint state group for each sub-group that we are dealing with
-  std::vector<kinematic_state::JointStateGroup*> joint_state_groups(group_names.size());
+  std::vector<robot_state::JointStateGroup*> joint_state_groups(group_names.size());
   for(unsigned int i=0; i < group_names.size(); ++i)
     joint_state_groups[i] = kinematic_state.getJointStateGroup(group_names[i]);
 
@@ -191,7 +191,7 @@ bool KinematicsSolver::getIK(const planning_scene::PlanningSceneConstPtr &planni
 
 
 bool KinematicsSolver::getGoal(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                               const kinematic_state::KinematicState &kinematic_state,
+                               const robot_state::RobotState &kinematic_state,
                                const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
                                std::map<std::string,geometry_msgs::PoseStamped>& pose_stamped) const
 {
@@ -281,7 +281,7 @@ std::vector<kinematics::KinematicsBaseConstPtr> KinematicsSolver::getKinematicsS
 }
 
 std::map<std::string,geometry_msgs::PoseStamped> KinematicsSolver::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                                                  const kinematic_state::KinematicState &kinematic_state,
+                                                                                  const robot_state::RobotState &kinematic_state,
                                                                                   const std::map<std::string,geometry_msgs::PoseStamped> &poses,
                                                                                   const std::map<std::string,std::string> &target_frames) const
 {
@@ -307,7 +307,7 @@ std::map<std::string,geometry_msgs::PoseStamped> KinematicsSolver::transformPose
 }
 
 geometry_msgs::Pose KinematicsSolver::getTipFramePose(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                      const kinematic_state::KinematicState &kinematic_state,
+                                                      const robot_state::RobotState &kinematic_state,
                                                       const geometry_msgs::Pose &pose,
                                                       const std::string &link_name,
                                                       const std::string &group_name) const

@@ -37,7 +37,7 @@
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <moveit_msgs/JointLimits.h>
 #include <console_bridge/console.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 
 namespace trajectory_processing
 {
@@ -52,7 +52,7 @@ IterativeParabolicTimeParameterization::IterativeParabolicTimeParameterization(u
     max_time_change_per_it_(max_time_change_per_it)
 {}
 
-IterativeParabolicTimeParameterization::~IterativeParabolicTimeParameterization(void)
+IterativeParabolicTimeParameterization::~IterativeParabolicTimeParameterization()
 {}
 
 void IterativeParabolicTimeParameterization::printPoint(const trajectory_msgs::JointTrajectoryPoint& point, unsigned int i) const
@@ -469,7 +469,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
   return success;
 }
 
-bool IterativeParabolicTimeParameterization::computeTimeStamps(kinematic_trajectory::KinematicTrajectory& trajectory,
+bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                                const moveit_msgs::RobotState& start_state) const
 { 
   if (trajectory.empty())
@@ -497,7 +497,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(kinematic_traject
     return false;
 }
 
-bool IterativeParabolicTimeParameterization::computeTimeStamps(kinematic_trajectory::KinematicTrajectory& trajectory) const
+bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory) const
 {
   static const moveit_msgs::RobotState start_state;
   return computeTimeStamps(trajectory, start_state);

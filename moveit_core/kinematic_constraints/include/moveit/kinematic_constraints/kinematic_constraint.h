@@ -38,8 +38,8 @@
 #define MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
 
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
-#include <moveit/kinematic_state/transforms.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/transforms.h>
 #include <moveit/collision_detection/collision_world.h>
 
 #include <geometric_shapes/bodies.h>
@@ -90,11 +90,11 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  KinematicConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf);
-  virtual ~KinematicConstraint(void);
+  KinematicConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf);
+  virtual ~KinematicConstraint();
   
   /** \brief Clear the stored constraint */
-  virtual void clear(void) = 0;
+  virtual void clear() = 0;
   
   /** 
    * \brief Decide whether the constraint is satisfied in the indicated state
@@ -104,14 +104,14 @@ public:
    * 
    * @return 
    */
-  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const = 0;
+  virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const = 0;
   
   /** \brief This function returns true if this constraint is
       configured and able to decide whether states do meet the
       constraint or not. If this function returns false it means
       that decide() will always return true -- there is no
       constraint to be checked. */
-  virtual bool enabled(void) const = 0;
+  virtual bool enabled() const = 0;
   
   /** 
    * \brief Check if two constraints are the same.  This means that
@@ -132,7 +132,7 @@ public:
    * 
    * @return The constraint type
    */
-  ConstraintType getType(void) const
+  ConstraintType getType() const
   {
     return type_;
   }
@@ -152,7 +152,7 @@ public:
    * 
    * @return The constraint weight
    */
-  double getConstraintWeight(void) const
+  double getConstraintWeight() const
   {
     return constraint_weight_;
   }
@@ -163,7 +163,7 @@ public:
    * 
    * @return The kinematic model associated with this constraint
    */
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return kmodel_;
   }
@@ -173,7 +173,7 @@ public:
    * 
    * @return The transforms associated with this constraint
    */
-  const kinematic_state::TransformsConstPtr& getTransforms(void) const
+  const robot_state::TransformsConstPtr& getTransforms() const
   {
     return tf_;
   }
@@ -182,7 +182,7 @@ protected:
   
   ConstraintType                          type_; /**< \brief The type of the constraint */
   kinematic_model::KinematicModelConstPtr kmodel_; /**< \brief The kinematic model associated with this constraint */
-  kinematic_state::TransformsConstPtr     tf_; /**< \brief The transforms associated with the constraint */
+  robot_state::TransformsConstPtr     tf_; /**< \brief The transforms associated with the constraint */
   double                                  constraint_weight_; /**< \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function  */
 };
 
@@ -217,7 +217,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  JointConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
+  JointConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), joint_model_(NULL)
   {
     type_ = JOINT_CONSTRAINT;
@@ -254,9 +254,9 @@ public:
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
-  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
-  virtual bool enabled(void) const;
-  virtual void clear(void);
+  virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
+  virtual bool enabled() const;
+  virtual void clear();
   virtual void print(std::ostream &out = std::cout) const;
   
   /** 
@@ -264,7 +264,7 @@ public:
    * 
    * @return The relevant joint model if enabled, and otherwise NULL
    */
-  const kinematic_model::JointModel* getJointModel(void) const
+  const kinematic_model::JointModel* getJointModel() const
   {
     return joint_model_;
   }
@@ -276,7 +276,7 @@ public:
    * @return The component of the joint name after the slash, or the
    * empty string if there is no local variable name
    */  
-  const std::string& getLocalVariableName(void) const
+  const std::string& getLocalVariableName() const
   {
     return local_variable_name_;
   }
@@ -288,7 +288,7 @@ public:
    * 
    * @return The joint variable name
    */
-  const std::string& getJointVariableName(void) const
+  const std::string& getJointVariableName() const
   {
     return joint_variable_name_;
   }
@@ -299,7 +299,7 @@ public:
    * 
    * @return The desired joint position
    */
-  double getDesiredJointPosition(void) const
+  double getDesiredJointPosition() const
   {
     return joint_position_;
   }
@@ -310,7 +310,7 @@ public:
    * 
    * @return The above joint tolerance
    */
-  double getJointToleranceAbove(void) const
+  double getJointToleranceAbove() const
   {
     return joint_tolerance_above_;
   }
@@ -321,7 +321,7 @@ public:
    * 
    * @return The below joint tolerance
    */
-  double getJointToleranceBelow(void) const
+  double getJointToleranceBelow() const
   {
     return joint_tolerance_below_;
   }
@@ -358,7 +358,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  OrientationConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
+  OrientationConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
     type_ = ORIENTATION_CONSTRAINT;
@@ -396,9 +396,9 @@ public:
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
-  virtual void clear(void);
-  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
-  virtual bool enabled(void) const;
+  virtual void clear();
+  virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
+  virtual bool enabled() const;
   virtual void print(std::ostream &out = std::cout) const;
   
   /** 
@@ -407,7 +407,7 @@ public:
    * 
    * @return Returns the current link model
    */
-  const kinematic_model::LinkModel* getLinkModel(void) const
+  const kinematic_model::LinkModel* getLinkModel() const
   {
     return link_model_;
   }
@@ -418,7 +418,7 @@ public:
    *
    * @return The reference frame.
    */
-  const std::string& getReferenceFrame(void) const
+  const std::string& getReferenceFrame() const
   {
     return desired_rotation_frame_id_;
   }
@@ -429,7 +429,7 @@ public:
    * @return True if a mobile reference frame is being employed, and
    * otherwise false.
    */
-  bool mobileReferenceFrame(void) const
+  bool mobileReferenceFrame() const
   {
     return mobile_frame_;
   }
@@ -439,7 +439,7 @@ public:
    * 
     * @return The target rotation
    */
-  const Eigen::Matrix3d& getDesiredRotationMatrix(void) const
+  const Eigen::Matrix3d& getDesiredRotationMatrix() const
   {
     return desired_rotation_matrix_;
   }
@@ -450,7 +450,7 @@ public:
    * 
    * @return The X axis tolerance
    */
-  double getXAxisTolerance(void) const
+  double getXAxisTolerance() const
   {
     return absolute_x_axis_tolerance_;
   }
@@ -461,7 +461,7 @@ public:
    * 
    * @return The Y axis tolerance
    */  
-  double getYAxisTolerance(void) const
+  double getYAxisTolerance() const
   {
     return absolute_y_axis_tolerance_;
   }
@@ -472,7 +472,7 @@ public:
    * 
    * @return The Z axis tolerance
    */
-  double getZAxisTolerance(void) const
+  double getZAxisTolerance() const
   {
     return absolute_z_axis_tolerance_;
   }
@@ -514,7 +514,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  PositionConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
+  PositionConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
     type_ = POSITION_CONSTRAINT;
@@ -562,9 +562,9 @@ public:
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
-  virtual void clear(void);
-  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
-  virtual bool enabled(void) const;
+  virtual void clear();
+  virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
+  virtual bool enabled() const;
   virtual void print(std::ostream &out = std::cout) const;
 
   /** 
@@ -573,7 +573,7 @@ public:
    * 
    * @return The link model
    */  
-  const kinematic_model::LinkModel* getLinkModel(void) const
+  const kinematic_model::LinkModel* getLinkModel() const
   {
     return link_model_;
   }
@@ -584,7 +584,7 @@ public:
    * 
    * @return The target offset
    */
-  const Eigen::Vector3d& getLinkOffset(void) const
+  const Eigen::Vector3d& getLinkOffset() const
   {
     return offset_;
   }
@@ -596,7 +596,7 @@ public:
    * 
    * @return Whether or not there is a link offset
    */
-  bool hasLinkOffset(void) const
+  bool hasLinkOffset() const
   {
     if(!enabled()) return false;
     return has_offset_;
@@ -609,7 +609,7 @@ public:
    * 
    * @return The constraint regions
    */
-  const std::vector<bodies::BodyPtr>& getConstraintRegions(void) const
+  const std::vector<bodies::BodyPtr>& getConstraintRegions() const
   {
     return constraint_region_;
   }
@@ -620,7 +620,7 @@ public:
    * 
    * @return The reference frame
    */
-  const std::string& getReferenceFrame(void) const
+  const std::string& getReferenceFrame() const
   {
     return constraint_frame_id_;
   }
@@ -632,7 +632,7 @@ public:
    * 
    * @return Whether a mobile reference frame is being employed
    */
-  bool mobileReferenceFrame(void) const
+  bool mobileReferenceFrame() const
   {
     if(!enabled()) return false;
     return mobile_frame_;
@@ -757,7 +757,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  VisibilityConstraint(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf);
+  VisibilityConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf);
 
   /** 
    * \brief Configure the constraint based on a
@@ -791,7 +791,7 @@ public:
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
-  virtual void clear(void);
+  virtual void clear();
   
   /** 
    * \brief Gets a trimesh shape representing the visibility cone
@@ -800,7 +800,7 @@ public:
    *  
    * @return The shape associated with the cone
    */
-  shapes::Mesh* getVisibilityCone(const kinematic_state::KinematicState &state) const;
+  shapes::Mesh* getVisibilityCone(const robot_state::RobotState &state) const;
   
   /** 
    * \brief Adds markers associated with the visibility cone, sensor
@@ -813,10 +813,10 @@ public:
    * @param [in] state The state from which to produce the markers
    * @param [out] markers The marker array to which the markers will be added 
    */
-  void getMarkers(const kinematic_state::KinematicState &state, visualization_msgs::MarkerArray &markers) const;
+  void getMarkers(const robot_state::RobotState &state, visualization_msgs::MarkerArray &markers) const;
 
-  virtual bool enabled(void) const;
-  virtual ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
+  virtual bool enabled() const;
+  virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
   virtual void print(std::ostream &out = std::cout) const;
   
 protected:
@@ -849,7 +849,7 @@ protected:
 
 /**
  * \brief A class that contains many different constraints, and can
- * check KinematicState versus the full set.  A set is satisfied if
+ * check RobotState *versus the full set.  A set is satisfied if
  * and only if all constraints are satisfied.
  * 
  * The set may contain any number of different kinds of constraints.
@@ -868,18 +868,18 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  KinematicConstraintSet(const kinematic_model::KinematicModelConstPtr &model, const kinematic_state::TransformsConstPtr &tf) :
+  KinematicConstraintSet(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
     kmodel_(model), tf_(tf)
   {
   }
   
-  ~KinematicConstraintSet(void)
+  ~KinematicConstraintSet()
   {
     clear();
   }
   
   /** \brief Clear the stored constraints */
-  void clear(void);
+  void clear();
   
   /** 
    * \brief Add all known constraints
@@ -940,7 +940,7 @@ public:
    * report satisfied only if all constraints are satisfied, and with
    * a distance that is the sum of all individual distances.
    */
-  ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, bool verbose = false) const;
+  ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
 
   /** 
    * 
@@ -960,7 +960,7 @@ public:
    * report satisfied only if all constraints are satisfied, and with
    * a distance that is the sum of all individual distances.
    */
-  ConstraintEvaluationResult decide(const kinematic_state::KinematicState &state, std::vector<ConstraintEvaluationResult> &results, bool verbose = false) const;
+  ConstraintEvaluationResult decide(const robot_state::RobotState &state, std::vector<ConstraintEvaluationResult> &results, bool verbose = false) const;
   
   /** 
    * \brief Whether or not another KinematicConstraintSet is equal to
@@ -992,7 +992,7 @@ public:
    * 
    * @return All position constraints
    */
-  const std::vector<moveit_msgs::PositionConstraint>& getPositionConstraints(void) const
+  const std::vector<moveit_msgs::PositionConstraint>& getPositionConstraints() const
   {
     return position_constraints_;
   }
@@ -1003,7 +1003,7 @@ public:
    * 
    * @return All orientation constraints
    */
-  const std::vector<moveit_msgs::OrientationConstraint>& getOrientationConstraints(void) const
+  const std::vector<moveit_msgs::OrientationConstraint>& getOrientationConstraints() const
   {
     return orientation_constraints_;
   }
@@ -1014,7 +1014,7 @@ public:
    * 
    * @return All joint constraints
    */
-  const std::vector<moveit_msgs::JointConstraint>& getJointConstraints(void) const
+  const std::vector<moveit_msgs::JointConstraint>& getJointConstraints() const
   {
     return joint_constraints_;
   }
@@ -1025,7 +1025,7 @@ public:
    * 
    * @return All visibility constraints
    */
-  const std::vector<moveit_msgs::VisibilityConstraint>& getVisibilityConstraints(void) const
+  const std::vector<moveit_msgs::VisibilityConstraint>& getVisibilityConstraints() const
   {
     return visibility_constraints_;
   }
@@ -1036,7 +1036,7 @@ public:
    * 
    * @return All constraints in a single message
    */
-  const moveit_msgs::Constraints& getAllConstraints(void) const
+  const moveit_msgs::Constraints& getAllConstraints() const
   {
     return all_constraints_;
   }
@@ -1047,7 +1047,7 @@ public:
    * 
    * @return True if there are no constraints, otherwise false.
    */
-  bool empty(void) const
+  bool empty() const
   {
     return kinematic_constraints_.empty();
   }
@@ -1055,7 +1055,7 @@ public:
 protected:
   
   kinematic_model::KinematicModelConstPtr         kmodel_; /**< \brief The kinematic model used for by the Set */
-  kinematic_state::TransformsConstPtr             tf_; /**< \brief The transforms used by the Set */
+  robot_state::TransformsConstPtr             tf_; /**< \brief The transforms used by the Set */
   
   std::vector<KinematicConstraintPtr>             kinematic_constraints_; /**<  \brief Shared pointers to all the member constraints */
   

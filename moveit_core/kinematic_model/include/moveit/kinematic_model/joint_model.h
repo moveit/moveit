@@ -79,22 +79,22 @@ public:
   /** \brief Construct a joint named \e name */
   JointModel(const std::string& name);
   
-  virtual ~JointModel(void);
+  virtual ~JointModel();
   
   /** \brief Get the name of the joint */
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return name_;
   }
   
   /** \brief Get the type of joint */
-  JointType getType(void) const
+  JointType getType() const
   {
     return type_;
   }
   
   /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
-  int getTreeIndex(void) const
+  int getTreeIndex() const
   {
     return tree_index_;
   }
@@ -102,13 +102,13 @@ public:
   /** \brief Get the link that this joint connects to. The
       robot is assumed to start with a joint, so the root
       joint will return a NULL pointer here. */
-  const LinkModel* getParentLinkModel(void) const
+  const LinkModel* getParentLinkModel() const
   {
     return parent_link_model_;
   }
   
   /** \brief Get the link that this joint connects to. There will always be such a link */
-  const LinkModel* getChildLinkModel(void) const
+  const LinkModel* getChildLinkModel() const
   {
     return child_link_model_;
   }
@@ -119,7 +119,7 @@ public:
   /** \brief Get the names of the variables that make up this joint, in the order they appear in corresponding states.
       For single DOF joints, this will be just the joint name. For multi-DOF joints these will be the joint name followed by "/", followed by 
       the local names of the variables */
-  const std::vector<std::string>& getVariableNames(void) const
+  const std::vector<std::string>& getVariableNames() const
   {
     return variable_names_;
   }
@@ -131,21 +131,21 @@ public:
   }
   
   /** \brief Get the number of variables that describe this joint */
-  unsigned int getVariableCount(void) const
+  unsigned int getVariableCount() const
   {
     return variable_names_.size();
   }
   
   /** \brief The set of variables that make up the state value of a joint are stored in some order. This map
       gives the position of each variable in that order, for each variable name */
-  const std::map<std::string, unsigned int>& getVariableIndexMap(void) const
+  const std::map<std::string, unsigned int>& getVariableIndexMap() const
   {
     return variable_index_;
   }
   
   /** \brief Get the local names of the variable that make up the joint (suffixes that are attached to joint names to construct the variable names). 
       For single DOF joints, this will be empty. */
-  const std::vector<std::string>& getLocalVariableNames(void) const
+  const std::vector<std::string>& getLocalVariableNames() const
   {
     return local_variable_names_;
   }
@@ -237,7 +237,7 @@ public:
   bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
   
   /** \brief Get the variable bounds for this joint, in the same order as the names returned by getVariableNames() */
-  const Bounds& getVariableBounds(void) const
+  const Bounds& getVariableBounds() const
   {
     return variable_bounds_;
   }
@@ -246,7 +246,7 @@ public:
   bool setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds);
 
   /** \brief Get variable limits as a message type */
-  const std::vector<moveit_msgs::JointLimits>& getVariableDefaultLimits(void) const
+  const std::vector<moveit_msgs::JointLimits>& getVariableDefaultLimits() const
   {
     return default_limits_;
   }
@@ -255,12 +255,12 @@ public:
   void setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim);
   
   /** \brief Get the joint limits specified by the user with setLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
-  const std::vector<moveit_msgs::JointLimits>& getVariableLimits(void) const
+  const std::vector<moveit_msgs::JointLimits>& getVariableLimits() const
   {
     return user_specified_limits_.empty() ? getVariableDefaultLimits() : user_specified_limits_;
   }
 
-  virtual void computeDefaultVariableLimits(void);
+  virtual void computeDefaultVariableLimits();
   
   /** @} */
   
@@ -268,7 +268,7 @@ public:
   virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const = 0;
   
   /** \brief Get the factor that should be applied to the value returned by distance() when that value is used in compound distances */
-  double getDistanceFactor(void) const
+  double getDistanceFactor() const
   {
     return distance_factor_;
   }
@@ -280,40 +280,40 @@ public:
   }
   
   /** \brief Get the dimension of the state space that corresponds to this joint */
-  virtual unsigned int getStateSpaceDimension(void) const = 0;
+  virtual unsigned int getStateSpaceDimension() const = 0;
   
   /** \brief Get the joint this one is mimicking */
-  const JointModel* getMimic(void) const
+  const JointModel* getMimic() const
   {
     return mimic_;
   }
   
   /** \brief If mimicking a joint, this is the offset added to that joint's value */
-  double getMimicOffset(void) const
+  double getMimicOffset() const
   {
     return mimic_offset_;
   }
   
   /** \brief If mimicking a joint, this is the multiplicative factor for that joint's value */
-  double getMimicFactor(void) const
+  double getMimicFactor() const
   {
     return mimic_factor_;
   }
   
   /** \brief The joint models whose values would be modified if the value of this joint changed */
-  const std::vector<const JointModel*>& getMimicRequests(void) const
+  const std::vector<const JointModel*>& getMimicRequests() const
   {
     return mimic_requests_;
   }
 
   /** \brief Check if this joint is passive */
-  bool isPassive(void) const
+  bool isPassive() const
   {
     return passive_;
   }
   
   /** \brief Get the maximum velocity of this joint. If the result is zero, the value is assumed not to be specified. */
-  double getMaximumVelocity(void) const
+  double getMaximumVelocity() const
   {
     return max_velocity_;
   }
@@ -326,7 +326,7 @@ public:
   /** \brief Get the extent of the state space (the maximum value distance() can ever report) */
   virtual double getMaximumExtent(const Bounds &other_bounds) const = 0;
 
-  double getMaximumExtent(void) const
+  double getMaximumExtent() const
   {
     return getMaximumExtent(variable_bounds_);
   }

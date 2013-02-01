@@ -108,7 +108,7 @@ namespace collision_detection
     double                  cost;
     
     /// Get the volume of the AABB around the cost source
-    double getVolume(void) const
+    double getVolume() const
     {
       return (aabb_max[0] - aabb_min[0]) * (aabb_max[1] - aabb_min[1]) * (aabb_max[2] - aabb_min[2]);
     }
@@ -133,7 +133,7 @@ namespace collision_detection
   /** \brief Representation of a collision checking result */
   struct CollisionResult
   {
-    CollisionResult(void) : collision(false),
+    CollisionResult() : collision(false),
 			    distance(std::numeric_limits<double>::max()),
 			    direction(0.0, 0.0, 0.0),
 			    contact_count(0)
@@ -144,7 +144,7 @@ namespace collision_detection
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     /** \brief Clear a previously stored result */
-    void clear(void)
+    void clear()
     {
       collision = false;
       distance = std::numeric_limits<double>::max();
@@ -176,7 +176,7 @@ namespace collision_detection
   /** \brief Representation of a collision checking request */
   struct CollisionRequest
   {
-    CollisionRequest(void) : distance(false),
+    CollisionRequest() : distance(false),
                              cost(false),
 			     contacts(false),
 			     max_contacts(1),

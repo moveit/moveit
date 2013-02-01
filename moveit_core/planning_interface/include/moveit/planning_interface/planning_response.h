@@ -37,7 +37,7 @@
 #ifndef MOVEIT_PLANNING_INTERFACE_PLANNING_RESPONSE_
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_RESPONSE_
 
-#include <moveit/kinematic_trajectory/kinematic_trajectory.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 #include <moveit_msgs/MotionPlanDetailedResponse.h>
@@ -54,7 +54,7 @@ struct MotionPlanResponse
   
   void getMessage(moveit_msgs::MotionPlanResponse &msg) const;
 
-  kinematic_trajectory::KinematicTrajectoryPtr trajectory_;
+  robot_trajectory::RobotTrajectoryPtr trajectory_;
   double planning_time_;
   moveit_msgs::MoveItErrorCodes error_code_;
 };
@@ -63,7 +63,7 @@ struct MotionPlanDetailedResponse
 {
   void getMessage(moveit_msgs::MotionPlanDetailedResponse &msg) const;
 
-  std::vector<kinematic_trajectory::KinematicTrajectoryPtr> trajectory_;
+  std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory_;
   std::vector<std::string> description_;
   std::vector<double> processing_time_;
   moveit_msgs::MoveItErrorCodes error_code_;

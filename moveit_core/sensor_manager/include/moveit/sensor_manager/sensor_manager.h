@@ -50,7 +50,7 @@ namespace moveit_sensor_manager
 /** \brief Define the frame of reference and the frustum of a sensor (usually this is a visual sensor) */
 struct SensorInfo
 {
-  SensorInfo(void) : min_dist(0.), max_dist(0.0), x_angle(0.0), y_angle(0.0)
+  SensorInfo() : min_dist(0.), max_dist(0.0), x_angle(0.0), y_angle(0.0)
   {
   }
   
@@ -76,11 +76,11 @@ class MoveItSensorManager
 {
 public:
   
-  MoveItSensorManager(void)
+  MoveItSensorManager()
   {
   }
   
-  virtual ~MoveItSensorManager(void)
+  virtual ~MoveItSensorManager()
   {
   }
   
@@ -91,7 +91,7 @@ public:
   virtual SensorInfo getSensorInfo(const std::string &name) const = 0;
   
   /** \brief Check if any sensors are known to this manager */
-  virtual bool hasSensors(void) const = 0;
+  virtual bool hasSensors() const = 0;
   
   /// Point sensor \e name towards a particular point in space (\e target). This may require executing a trajectory, but it may or may not execute that trajectory.
   /// If it does not, it returns it as part of \e sensor_trajectory. This is the recommended behaviour, since the caller of this function can perform checks on the safety of the trajectory.

@@ -46,11 +46,11 @@ class ConstraintSamplerAllocator
 {
 public:
   
-  ConstraintSamplerAllocator(void)
+  ConstraintSamplerAllocator()
   {
   }
 
-  virtual ~ConstraintSamplerAllocator(void)
+  virtual ~ConstraintSamplerAllocator()
   {
   }
   

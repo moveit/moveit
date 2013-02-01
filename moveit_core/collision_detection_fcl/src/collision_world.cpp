@@ -40,7 +40,7 @@
 #include <fcl/traversal/traversal_node_setup.h>
 #include <fcl/collision_node.h>
 
-collision_detection::CollisionWorldFCL::CollisionWorldFCL(void) : CollisionWorld()
+collision_detection::CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
 {
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
@@ -59,31 +59,31 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFC
   // manager_->update();
 }
 
-collision_detection::CollisionWorldFCL::~CollisionWorldFCL(void)
+collision_detection::CollisionWorldFCL::~CollisionWorldFCL()
 {
 }
 
-void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state) const
+void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const
 {
   checkRobotCollisionHelper(req, res, robot, state, NULL);
 }
 
-void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const
+void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const
 {
   checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
-void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2) const
+void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state1, const robot_state::RobotState &state2) const
 {
   logError("FCL continuous collision checking not yet implemented");
 }
 
-void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2, const AllowedCollisionMatrix &acm) const
+void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state1, const robot_state::RobotState &state2, const AllowedCollisionMatrix &acm) const
 {
   logError("FCL continuous collision checking not yet implemented");
 }
 
-void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix *acm) const
+void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm) const
 {
   const CollisionRobotFCL &robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
@@ -216,7 +216,7 @@ void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
   cleanCollisionGeometryCache();
 }
 
-void collision_detection::CollisionWorldFCL::clearObjects(void)
+void collision_detection::CollisionWorldFCL::clearObjects()
 {
   CollisionWorld::clearObjects();
   manager_->clear();
@@ -224,7 +224,7 @@ void collision_detection::CollisionWorldFCL::clearObjects(void)
   cleanCollisionGeometryCache();
 }
 
-double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix *acm) const
+double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm) const
 {       
   const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
@@ -242,12 +242,12 @@ double collision_detection::CollisionWorldFCL::distanceRobotHelper(const Collisi
   return res.distance;
 }
 
-double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot &robot, const kinematic_state::KinematicState &state) const
+double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state) const
 {
   return distanceRobotHelper(robot, state, NULL);
 }
 
-double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot &robot, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const
+double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const
 {
   return distanceRobotHelper(robot, state, &acm);
 }

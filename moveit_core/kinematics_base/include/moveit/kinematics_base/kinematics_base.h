@@ -201,7 +201,7 @@ public:
    * @brief  Return the name of the group that the solver is operating on
    * @return The string name of the group that the solver is operating on
    */
-  virtual const std::string& getGroupName(void) const
+  virtual const std::string& getGroupName() const
   {
     return group_name_;    
   }
@@ -210,7 +210,7 @@ public:
    * @brief  Return the name of the frame in which the solver is operating
    * @return The string name of the frame in which the solver is operating
    */
-  virtual const std::string& getBaseFrame(void) const
+  virtual const std::string& getBaseFrame() const
   {
     return base_frame_;
   }
@@ -219,7 +219,7 @@ public:
    * @brief  Return the name of the tip frame of the chain on which the solver is operating
    * @return The string name of the tip frame of the chain on which the solver is operating
    */
-  virtual const std::string& getTipFrame(void) const
+  virtual const std::string& getTipFrame() const
   {
     return tip_frame_;
   }
@@ -255,12 +255,12 @@ public:
   /**
    * @brief  Return all the joint names in the order they are used internally
    */
-  virtual const std::vector<std::string>& getJointNames(void) const = 0;
+  virtual const std::vector<std::string>& getJointNames() const = 0;
 
   /**
    * @brief  Return all the link names in the order they are represented internally
    */
-  virtual const std::vector<std::string>& getLinkNames(void) const = 0;
+  virtual const std::vector<std::string>& getLinkNames() const = 0;
 
   /**
    * @brief  Set the search discretization
@@ -273,7 +273,7 @@ public:
   /**
    * @brief  Get the value of the search discretization
    */
-  double getSearchDiscretization(void) const
+  double getSearchDiscretization() const
   {
     return search_discretization_;
   }
@@ -281,7 +281,7 @@ public:
   /**
    * @brief  Virtual destructor for the interface
    */
-  virtual ~KinematicsBase(void) {}
+  virtual ~KinematicsBase() {}
 
 protected:
   std::string robot_description_;

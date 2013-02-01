@@ -52,12 +52,12 @@ namespace collision_detection
   public:
     
     /** @brief Constructor */
-    CollisionWorld(void);
+    CollisionWorld();
     
     /** @brief A copy constructor. \e other should not be changed while the copy constructor is running */
     CollisionWorld(const CollisionWorld &other);
     
-    virtual ~CollisionWorld(void)
+    virtual ~CollisionWorld()
     {
     }
     
@@ -73,7 +73,7 @@ namespace collision_detection
     virtual void checkCollision(const CollisionRequest &req,
                                 CollisionResult &res,
                                 const CollisionRobot &robot,
-                                const kinematic_state::KinematicState &state) const;
+                                const robot_state::RobotState &state) const;
     
     /** @brief Check whether the robot model is in collision with itself or the world at a particular state.
      *  Allowed collisions specified by the allowed collision matrix are taken into account.
@@ -84,7 +84,7 @@ namespace collision_detection
     virtual void checkCollision(const CollisionRequest &req,
                                 CollisionResult &res,
                                 const CollisionRobot &robot,
-                                const kinematic_state::KinematicState &state,
+                                const robot_state::RobotState &state,
                                 const AllowedCollisionMatrix &acm) const;
 
     /** @brief Check whether the robot model is in collision with itself or the world in a continuous manner
@@ -97,8 +97,8 @@ namespace collision_detection
     virtual void checkCollision(const CollisionRequest &req,
                                 CollisionResult &res,
                                 const CollisionRobot &robot,
-                                const kinematic_state::KinematicState &state1,
-                                const kinematic_state::KinematicState &state2) const;
+                                const robot_state::RobotState &state1,
+                                const robot_state::RobotState &state2) const;
     
     /** @brief Check whether the robot model is in collision with itself or the world in a continuous manner
      *  (between two robot states).
@@ -111,8 +111,8 @@ namespace collision_detection
     virtual void checkCollision(const CollisionRequest &req,
                                 CollisionResult &res,
                                 const CollisionRobot &robot,
-                                const kinematic_state::KinematicState &state1,
-                                const kinematic_state::KinematicState &state2,
+                                const robot_state::RobotState &state1,
+                                const robot_state::RobotState &state2,
                                 const AllowedCollisionMatrix &acm) const;
     
     /** \brief Check whether the robot model is in collision with the world. Any collisions between a robot link
@@ -125,7 +125,7 @@ namespace collision_detection
     virtual void checkRobotCollision(const CollisionRequest &req,
 				     CollisionResult &res,
 				     const CollisionRobot &robot,
-				     const kinematic_state::KinematicState &state) const = 0;
+				     const robot_state::RobotState &state) const = 0;
     
     /** \brief Check whether the robot model is in collision with the world.
      *  Allowed collisions are ignored. Self collisions are not checked.
@@ -137,7 +137,7 @@ namespace collision_detection
     virtual void checkRobotCollision(const CollisionRequest &req,
 				     CollisionResult &res,
 				     const CollisionRobot &robot,
-				     const kinematic_state::KinematicState &state,
+				     const robot_state::RobotState &state,
 				     const AllowedCollisionMatrix &acm) const = 0;
     
     /** \brief Check whether the robot model is in collision with the world in a continuous manner (between two robot states).
@@ -150,8 +150,8 @@ namespace collision_detection
     virtual void checkRobotCollision(const CollisionRequest &req,
 				     CollisionResult &res,
 				     const CollisionRobot &robot,
-				     const kinematic_state::KinematicState &state1,
-                                     const kinematic_state::KinematicState &state2) const = 0;
+				     const robot_state::RobotState &state1,
+                                     const robot_state::RobotState &state2) const = 0;
     
     /** \brief Check whether the robot model is in collision with the world in a continuous manner (between two robot states).
      *  Allowed collisions are ignored. Self collisions are not checked.
@@ -164,8 +164,8 @@ namespace collision_detection
     virtual void checkRobotCollision(const CollisionRequest &req,
 				     CollisionResult &res,
 				     const CollisionRobot &robot,
-				     const kinematic_state::KinematicState &state1,
-				     const kinematic_state::KinematicState &state2,
+				     const robot_state::RobotState &state1,
+				     const robot_state::RobotState &state2,
 				     const AllowedCollisionMatrix &acm) const = 0;
 
     /** \brief Check whether a given set of objects is in collision with objects from another world.
@@ -193,14 +193,14 @@ namespace collision_detection
      *  @param robot The robot to check distance for
      *  @param state The state for the robot to check distances from */
     virtual double distanceRobot(const CollisionRobot &robot,
-                                 const kinematic_state::KinematicState &state) const = 0;
+                                 const robot_state::RobotState &state) const = 0;
 
     /** \brief Compute the shortest distance between a robot and the world 
      *  @param robot The robot to check distance for
      *  @param state The state for the robot to check distances from 
      *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always allowed to be in collision. */    
     virtual double distanceRobot(const CollisionRobot &robot,
-                                 const kinematic_state::KinematicState &state,
+                                 const robot_state::RobotState &state,
                                  const AllowedCollisionMatrix &acm) const = 0;
 
     /** \brief The shortest distance to another world instance (\e world) */
@@ -220,7 +220,7 @@ namespace collision_detection
     {
       Object(const std::string &id);
 
-      virtual ~Object(void);
+      virtual ~Object();
       
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -246,10 +246,10 @@ namespace collision_detection
     };
     
     /** \brief Get the list of Object ids */
-    std::vector<std::string> getObjectIds(void) const;
+    std::vector<std::string> getObjectIds() const;
     
     /** \brief Get the number of objects in this collision world */
-    std::size_t getObjectsCount(void) const
+    std::size_t getObjectsCount() const
     {
       return objects_.size();
     }
@@ -279,16 +279,16 @@ namespace collision_detection
     virtual void removeObject(const std::string &id);
     
     /** \brief Clear all objects. If there are no other pointers to corresponding instances of Objects, the memory is freed. */
-    virtual void clearObjects(void);
+    virtual void clearObjects();
     
     /** \brief Set a flag that tells the world representation to record the changes made */
     virtual void recordChanges(bool flag);
     
     /** \brief Returns true if changes are being recorded */
-    bool isRecordingChanges(void) const;
+    bool isRecordingChanges() const;
     
     /** \brief Return all the changes that have been recorded */
-    const std::vector<Change>& getChanges(void) const;
+    const std::vector<Change>& getChanges() const;
 
     /** \brief Remember a change for removing the object named \e id */
     void changeRemoveObject(const std::string &id);
@@ -297,7 +297,7 @@ namespace collision_detection
     void changeAddObject(const std::string &id);
     
     /** \brief Clear the internally maintained vector of changes */
-    void clearChanges(void);
+    void clearChanges();
     
   protected:
     

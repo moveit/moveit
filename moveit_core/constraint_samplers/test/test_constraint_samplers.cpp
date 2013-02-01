@@ -41,7 +41,7 @@
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/constraint_samplers/constraint_sampler_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 
 #include <geometric_shapes/shape_operations.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -140,9 +140,9 @@ protected:
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
   
   kinematic_constraints::JointConstraint jc1(kmodel, tf);
   moveit_msgs::JointConstraint jcm1;
@@ -281,9 +281,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 
 TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
   
   kinematic_constraints::PositionConstraint pc(kmodel, tf);
   moveit_msgs::PositionConstraint pcm;
@@ -348,9 +348,9 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
   
   kinematic_constraints::OrientationConstraint oc(kmodel, tf);
   moveit_msgs::OrientationConstraint ocm;
@@ -385,9 +385,9 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 
 TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
   
   kinematic_constraints::PositionConstraint pc(kmodel, tf);
   moveit_msgs::PositionConstraint pcm;
@@ -459,9 +459,9 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 
 TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler) 
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
 
   kinematic_constraints::JointConstraint jc1(kmodel, tf);
 
@@ -615,9 +615,9 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
 
 TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager) 
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
   
   kinematic_constraints::PositionConstraint pc(kmodel, tf);
 
@@ -696,7 +696,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 
 TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager) 
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
 
   moveit_msgs::Constraints con;
@@ -861,9 +861,9 @@ TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
 
 TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
 
   std::map<std::string, double> state_values;
   ks.getStateValues(state_values);
@@ -935,9 +935,9 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 
 TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
   
   kinematic_constraints::JointConstraint jc1(kmodel, tf);
   moveit_msgs::JointConstraint jcm1;
@@ -1071,7 +1071,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
   ocm.weight = 1.0;
   c.orientation_constraints.push_back(ocm);
   
-  kinematic_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransforms();
   constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
   EXPECT_TRUE(s);
   constraint_samplers::UnionConstraintSampler* ucs = dynamic_cast<constraint_samplers::UnionConstraintSampler*>(s.get());
@@ -1080,7 +1080,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
   kinematic_constraints::KinematicConstraintSet kset(kmodel, tf);
   kset.add(c);
   
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();  
   static const int NT = 100;
   int succ = 0;

@@ -105,7 +105,7 @@ public:
    * 
    * @return The sorted internal list of constraint samplers
    */  
-  const std::vector<ConstraintSamplerPtr>& getSamplers(void) const
+  const std::vector<ConstraintSamplerPtr>& getSamplers() const
   {
     return samplers_;
   }
@@ -150,9 +150,9 @@ public:
    * 
    * @return True if all invidual samplers return true
    */
-  virtual bool sample(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts);
+  virtual bool sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts);
 
-  virtual bool project(kinematic_state::JointStateGroup *jsg, const kinematic_state::KinematicState &ks, unsigned int max_attempts);
+  virtual bool project(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts);
 
 protected:
 

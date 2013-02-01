@@ -52,44 +52,44 @@ namespace collision_detection
     
     CollisionRobotFCL(const CollisionRobotFCL &other);
     
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state) const;    
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2) const;
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2, const AllowedCollisionMatrix &acm) const;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state) const;    
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2) const;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2, const AllowedCollisionMatrix &acm) const;
 
-    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state,
-				     const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state) const;
-    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state,
-				     const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state,
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state,
+				     const CollisionRobot &other_robot, const robot_state::RobotState &other_state) const;
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state,
+				     const CollisionRobot &other_robot, const robot_state::RobotState &other_state,
 				     const AllowedCollisionMatrix &acm) const;
-    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2,
-                                     const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state1, const kinematic_state::KinematicState &other_state2) const;
-    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state1, const kinematic_state::KinematicState &state2,
-                                     const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state1, const kinematic_state::KinematicState &other_state2,
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2,
+                                     const CollisionRobot &other_robot, const robot_state::RobotState &other_state1, const robot_state::RobotState &other_state2) const;
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2,
+                                     const CollisionRobot &other_robot, const robot_state::RobotState &other_state1, const robot_state::RobotState &other_state2,
                                      const AllowedCollisionMatrix &acm) const;
 
-    virtual double distanceSelf(const kinematic_state::KinematicState &state) const;
-    virtual double distanceSelf(const kinematic_state::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-    virtual double distanceOther(const kinematic_state::KinematicState &state,
-                                 const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state) const;
-    virtual double distanceOther(const kinematic_state::KinematicState &state, const CollisionRobot &other_robot,
-                                 const kinematic_state::KinematicState &other_state, const AllowedCollisionMatrix &acm) const;
+    virtual double distanceSelf(const robot_state::RobotState &state) const;
+    virtual double distanceSelf(const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
+    virtual double distanceOther(const robot_state::RobotState &state,
+                                 const CollisionRobot &other_robot, const robot_state::RobotState &other_state) const;
+    virtual double distanceOther(const robot_state::RobotState &state, const CollisionRobot &other_robot,
+                                 const robot_state::RobotState &other_state, const AllowedCollisionMatrix &acm) const;
  
   protected:
     
     virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
-    void constructFCLObject(const kinematic_state::KinematicState &state, FCLObject &fcl_obj) const;
-    void allocSelfCollisionBroadPhase(const kinematic_state::KinematicState &state, FCLManager &manager) const;
-    void getAttachedBodyObjects(const kinematic_state::AttachedBody *ab, std::vector<FCLGeometryConstPtr> &geoms) const;
+    void constructFCLObject(const robot_state::RobotState &state, FCLObject &fcl_obj) const;
+    void allocSelfCollisionBroadPhase(const robot_state::RobotState &state, FCLManager &manager) const;
+    void getAttachedBodyObjects(const robot_state::AttachedBody *ab, std::vector<FCLGeometryConstPtr> &geoms) const;
     
-    void checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state,
+    void checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state,
 				  const AllowedCollisionMatrix *acm) const;
-    void checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const kinematic_state::KinematicState &state,
-				   const CollisionRobot &other_robot, const kinematic_state::KinematicState &other_state,
+    void checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state,
+				   const CollisionRobot &other_robot, const robot_state::RobotState &other_state,
 				   const AllowedCollisionMatrix *acm) const;
-    double distanceSelfHelper(const kinematic_state::KinematicState &state, const AllowedCollisionMatrix *acm) const;
-    double distanceOtherHelper(const kinematic_state::KinematicState &state, const CollisionRobot &other_robot,
-                               const kinematic_state::KinematicState &other_state, const AllowedCollisionMatrix *acm) const;
+    double distanceSelfHelper(const robot_state::RobotState &state, const AllowedCollisionMatrix *acm) const;
+    double distanceOtherHelper(const robot_state::RobotState &state, const CollisionRobot &other_robot,
+                               const robot_state::RobotState &other_state, const AllowedCollisionMatrix *acm) const;
     
     std::vector<const kinematic_model::LinkModel*> links_;
     std::vector<FCLGeometryConstPtr>               geoms_;

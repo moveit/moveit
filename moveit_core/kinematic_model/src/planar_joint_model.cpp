@@ -54,7 +54,7 @@ kinematic_model::PlanarJointModel::PlanarJointModel(const std::string& name) : J
   variable_bounds_[2] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
 }
 
-unsigned int kinematic_model::PlanarJointModel::getStateSpaceDimension(void) const
+unsigned int kinematic_model::PlanarJointModel::getStateSpaceDimension() const
 {
   return 3;
 }
@@ -219,7 +219,7 @@ void kinematic_model::PlanarJointModel::computeJointStateValues(const Eigen::Aff
   }
 }
 
-std::vector<moveit_msgs::JointLimits> kinematic_model::PlanarJointModel::getVariableLimits(void) const
+std::vector<moveit_msgs::JointLimits> kinematic_model::PlanarJointModel::getVariableLimits() const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getVariableLimits();
   ret_vec[2].has_position_limits = false;

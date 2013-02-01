@@ -48,11 +48,11 @@ class Planner
 {
 public:
   
-  Planner(void)
+  Planner()
   {
   }
   
-  virtual ~Planner(void) 
+  virtual ~Planner() 
   {
   };
   
@@ -60,7 +60,7 @@ public:
   virtual bool initialize(const kinematic_model::KinematicModelConstPtr& model) { return true; }
   
   /// Get a short string that identifies the planning interface
-  virtual std::string getDescription(void) const { return ""; }
+  virtual std::string getDescription() const { return ""; }
   
   /// Get the names of the known planning algorithms (values that can be filled as planner_id in the planning request)
   virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const { }
@@ -76,7 +76,7 @@ public:
   virtual bool canServiceRequest(const MotionPlanRequest &req)  const = 0;
   
   /// Request termination, if a solve() function is currently computing plans
-  virtual void terminate(void) const = 0;
+  virtual void terminate() const = 0;
   
 };
 

@@ -59,7 +59,7 @@ public:
   }
   
   /// Get a short string that identifies the planning request adapter
-  virtual std::string getDescription(void) const { return ""; }
+  virtual std::string getDescription() const { return ""; }
 
   bool adaptAndPlan(const planning_interface::PlannerPtr &planner,
                     const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -92,7 +92,7 @@ typedef boost::shared_ptr<const PlanningRequestAdapter> PlanningRequestAdapterCo
 class PlanningRequestAdapterChain
 {
 public:
-  PlanningRequestAdapterChain(void)
+  PlanningRequestAdapterChain()
   {
   }
   

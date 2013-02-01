@@ -193,7 +193,7 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
     is_chain_ = true;  
 }
 
-kinematic_model::JointModelGroup::~JointModelGroup(void)
+kinematic_model::JointModelGroup::~JointModelGroup()
 {
 }
 
@@ -295,7 +295,7 @@ void kinematic_model::JointModelGroup::getVariableDefaultValues(std::map<std::st
     joint_model_vector_[i]->getVariableDefaultValues(values);
 }
 
-std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVariableDefaultLimits(void) const
+std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVariableDefaultLimits() const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec;
   for(unsigned int i = 0; i < joint_model_vector_.size(); i++)
@@ -306,7 +306,7 @@ std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVaria
   return ret_vec;
 }
 
-std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVariableLimits(void) const
+std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVariableLimits() const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec;
   for(unsigned int i = 0; i < joint_model_vector_.size(); i++)

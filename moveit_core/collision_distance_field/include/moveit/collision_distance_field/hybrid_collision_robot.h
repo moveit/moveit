@@ -82,21 +82,21 @@ public:
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                        collision_detection::CollisionResult &res, 
-                                       const kinematic_state::KinematicState &state) const;
+                                       const robot_state::RobotState &state) const;
   
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                        collision_detection::CollisionResult &res, 
-                                       const kinematic_state::KinematicState &state,
+                                       const robot_state::RobotState &state,
                                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                        collision_detection::CollisionResult &res, 
-                                       const kinematic_state::KinematicState &state,
+                                       const robot_state::RobotState &state,
                                        const collision_detection::AllowedCollisionMatrix &acm) const;
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
                                        collision_detection::CollisionResult &res, 
-                                       const kinematic_state::KinematicState &state,
+                                       const robot_state::RobotState &state,
                                        const collision_detection::AllowedCollisionMatrix &acm,
                                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
   const boost::shared_ptr<const collision_detection::CollisionRobotDistanceField> getCollisionRobotDistanceField() const {

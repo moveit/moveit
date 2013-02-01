@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_interface/planning_response.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 
 void planning_interface::MotionPlanResponse::getMessage(moveit_msgs::MotionPlanResponse &msg) const
 {
@@ -43,7 +43,7 @@ void planning_interface::MotionPlanResponse::getMessage(moveit_msgs::MotionPlanR
   msg.planning_time = planning_time_;
   if (trajectory_ && !trajectory_->empty())
   {
-    kinematic_state::kinematicStateToRobotState(trajectory_->getFirstWayPoint(), msg.trajectory_start);
+    robot_state::kinematicStateToRobotState(trajectory_->getFirstWayPoint(), msg.trajectory_start);
     trajectory_->getRobotTrajectoryMsg(msg.trajectory);
     msg.group_name = trajectory_->getGroupName();
   }
@@ -66,7 +66,7 @@ void planning_interface::MotionPlanDetailedResponse::getMessage(moveit_msgs::Mot
     if (first)
     {
       first = false;
-      kinematic_state::kinematicStateToRobotState(trajectory_[i]->getFirstWayPoint(), msg.trajectory_start);
+      robot_state::kinematicStateToRobotState(trajectory_[i]->getFirstWayPoint(), msg.trajectory_start);
       msg.group_name = trajectory_[i]->getGroupName();
     }
     msg.trajectory.resize(msg.trajectory.size() + 1);

@@ -318,7 +318,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
 
 struct FCLShapeCache
 {
-  FCLShapeCache(void) : clean_count_(0) {}
+  FCLShapeCache() : clean_count_(0) {}
   
   void bumpUseCount(bool force = false) 
   { 
@@ -447,7 +447,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
 
 /* We template the function so we get a different cache for each of the template arguments combinations */
 template<typename BV, typename T>
-FCLShapeCache& GetShapeCache(void)
+FCLShapeCache& GetShapeCache()
 {
   static FCLShapeCache cache;
   return cache;
@@ -494,7 +494,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
   // attached objects could have previously been CollisionWorld::Object; we try to move them
   // from their old cache to the new one, if possible. the code is not pretty, but should help
   // when we attach/detach objects that are in the world
-  if (IfSameType<T, kinematic_state::AttachedBody>::value == 1)
+  if (IfSameType<T, robot_state::AttachedBody>::value == 1)
   {
     // get the cache that corresponds to objects; maybe this attached object used to be a world object
     FCLShapeCache &othercache = GetShapeCache<BV, CollisionWorld::Object>();
@@ -532,7 +532,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     if (IfSameType<T, CollisionWorld::Object>::value == 1)
     {
       // get the cache that corresponds to objects; maybe this attached object used to be a world object
-      FCLShapeCache &othercache = GetShapeCache<BV, kinematic_state::AttachedBody>();
+      FCLShapeCache &othercache = GetShapeCache<BV, robot_state::AttachedBody>();
       
       // attached bodies could be just moved from the environment.
       othercache.lock_.lock(); // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
@@ -660,9 +660,9 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const kinematic_state::AttachedBody *ab)
+                                            const robot_state::AttachedBody *ab)
 {
-  return createCollisionGeometry<fcl::OBBRSS, kinematic_state::AttachedBody>(shape, ab);
+  return createCollisionGeometry<fcl::OBBRSS, robot_state::AttachedBody>(shape, ab);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
@@ -691,9 +691,9 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const kinematic_state::AttachedBody *ab)
+                                            const robot_state::AttachedBody *ab)
 {
-  return createCollisionGeometry<fcl::OBBRSS, kinematic_state::AttachedBody>(shape, scale, padding, ab);
+  return createCollisionGeometry<fcl::OBBRSS, robot_state::AttachedBody>(shape, scale, padding, ab);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
@@ -702,14 +702,14 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
   return createCollisionGeometry<fcl::OBBRSS, CollisionWorld::Object>(shape, scale, padding, obj);
 }
 
-void cleanCollisionGeometryCache(void)
+void cleanCollisionGeometryCache()
 {
   FCLShapeCache &cache1 = GetShapeCache<fcl::OBBRSS, CollisionWorld::Object>();
   {
     boost::mutex::scoped_lock slock(cache1.lock_);
     cache1.bumpUseCount(true);
   }
-  FCLShapeCache &cache2 = GetShapeCache<fcl::OBBRSS, kinematic_state::AttachedBody>();
+  FCLShapeCache &cache2 = GetShapeCache<fcl::OBBRSS, robot_state::AttachedBody>();
   {   
     boost::mutex::scoped_lock slock(cache2.lock_);
     cache2.bumpUseCount(true);
@@ -741,7 +741,7 @@ void collision_detection::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionMana
     manager->unregisterObject(collision_objects_[i].get());
 }
 
-void collision_detection::FCLObject::clear(void)
+void collision_detection::FCLObject::clear()
 {
   collision_objects_.clear();
   collision_geometry_.clear();

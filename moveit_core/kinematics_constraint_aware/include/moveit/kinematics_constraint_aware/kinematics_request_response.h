@@ -47,7 +47,7 @@
 // MoveIt!
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit/kinematic_model/kinematic_model.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 
@@ -68,7 +68,7 @@ class KinematicsRequest
   
   std::vector<std::string> ik_link_names_;  
 
-  kinematic_state::KinematicStatePtr robot_state_;
+  robot_state::RobotStatePtr robot_state_;
 
   kinematic_constraints::KinematicConstraintSetPtr constraints_;  
 
@@ -78,7 +78,7 @@ class KinematicsRequest
 
   bool check_for_collisions_;
 
-  kinematic_state::StateValidityCallbackFn constraint_callback_;  
+  robot_state::StateValidityCallbackFn constraint_callback_;  
   
 };
 
@@ -93,7 +93,7 @@ public:
   
   virtual ~KinematicsResponse() {};
     
-  kinematic_state::KinematicStatePtr solution_;
+  robot_state::RobotStatePtr solution_;
 
   std::vector<kinematic_constraints::ConstraintEvaluationResult> constraint_eval_results_;
   

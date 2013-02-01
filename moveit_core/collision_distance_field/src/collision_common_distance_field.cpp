@@ -42,14 +42,14 @@ namespace collision_detection
 
 struct BodyDecompositionCache
 {
-  BodyDecompositionCache(void) : clean_count_(0) {}
+  BodyDecompositionCache() : clean_count_(0) {}
   static const unsigned int MAX_CLEAN_COUNT = 100;
   std::map<boost::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr> map_;
   unsigned int clean_count_;
   boost::mutex lock_;
 };
 
-BodyDecompositionCache& getBodyDecompositionCache(void) 
+BodyDecompositionCache& getBodyDecompositionCache() 
 {
   static BodyDecompositionCache cache;
   return cache;
@@ -90,7 +90,7 @@ PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const 
   return ret;
 }
 
-PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const kinematic_state::AttachedBody* att,
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody* att,
                                                                          double resolution)
 {
   PosedBodySphereDecompositionVectorPtr ret(new PosedBodySphereDecompositionVector());
@@ -102,7 +102,7 @@ PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const k
   return ret;
 }
 
-PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const kinematic_state::AttachedBody* att,
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
                                                                        double resolution)
 {
   PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());

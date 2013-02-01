@@ -77,9 +77,9 @@ protected:
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 {
-    kinematic_state::KinematicState ks(kmodel);
+    robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::JointConstraint jc(kmodel, tf);
     moveit_msgs::JointConstraint jcm;
@@ -192,9 +192,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 {
-    kinematic_state::KinematicState ks(kmodel);
+    robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::JointConstraint jc(kmodel, tf);
     moveit_msgs::JointConstraint jcm;
@@ -321,9 +321,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
 {
-    kinematic_state::KinematicState ks(kmodel);
+    robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::JointConstraint jc(kmodel, tf);
     moveit_msgs::JointConstraint jcm;
@@ -373,9 +373,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 {
-    kinematic_state::KinematicState ks(kmodel);
+    robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::PositionConstraint pc(kmodel, tf);
     moveit_msgs::PositionConstraint pcm;
@@ -448,9 +448,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 {
-    kinematic_state::KinematicState ks(kmodel);
+    robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::PositionConstraint pc(kmodel, tf);
     moveit_msgs::PositionConstraint pcm;
@@ -522,9 +522,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
 {
-    kinematic_state::KinematicState ks(kmodel);
+    robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::PositionConstraint pc(kmodel, tf);
     kinematic_constraints::PositionConstraint pc2(kmodel, tf);
@@ -609,9 +609,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 {
-    kinematic_state::KinematicState ks(kmodel);
+    robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::OrientationConstraint oc(kmodel, tf);
     moveit_msgs::OrientationConstraint ocm;
@@ -666,9 +666,9 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
 TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 {
-    kinematic_state::KinematicState ks(kmodel);
+    robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::VisibilityConstraint vc(kmodel, tf);
     moveit_msgs::VisibilityConstraint vcm;
@@ -717,9 +717,9 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
 {
 
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+  robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
   
   kinematic_constraints::VisibilityConstraint vc(kmodel, tf);
   moveit_msgs::VisibilityConstraint vcm;
@@ -789,9 +789,9 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
 
 TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+  robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
   kinematic_constraints::KinematicConstraintSet kcs(kmodel, tf);
   EXPECT_TRUE(kcs.empty());
@@ -854,9 +854,9 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
 
 TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSetEquality)
 {
-  kinematic_state::KinematicState ks(kmodel);
+  robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  kinematic_state::TransformsPtr tf(new kinematic_state::Transforms(kmodel->getModelFrame()));
+  robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
   kinematic_constraints::KinematicConstraintSet kcs(kmodel, tf);
   kinematic_constraints::KinematicConstraintSet kcs2(kmodel, tf);

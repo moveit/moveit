@@ -53,7 +53,7 @@ struct CollisionGeometryData
     ptr.link = link;
   }
   
-  CollisionGeometryData(const kinematic_state::AttachedBody *ab) : type(BodyTypes::ROBOT_ATTACHED)
+  CollisionGeometryData(const robot_state::AttachedBody *ab) : type(BodyTypes::ROBOT_ATTACHED)
   {
     ptr.ab = ab;
   }
@@ -63,7 +63,7 @@ struct CollisionGeometryData
     ptr.obj = obj;
   }
   
-  const std::string& getID(void) const
+  const std::string& getID() const
   {
     switch (type)
     {
@@ -77,7 +77,7 @@ struct CollisionGeometryData
     return ptr.obj->id_;
   }
 
-  std::string getTypeString(void) const
+  std::string getTypeString() const
   {
     switch (type)
     {
@@ -95,7 +95,7 @@ struct CollisionGeometryData
   union
   {
     const kinematic_model::LinkModel    *link;
-    const kinematic_state::AttachedBody *ab;
+    const robot_state::AttachedBody *ab;
     const CollisionWorld::Object        *obj;
     const void                          *raw;
   } ptr;
@@ -103,7 +103,7 @@ struct CollisionGeometryData
 
 struct CollisionData
 {
-  CollisionData(void) : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
+  CollisionData() : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
   {
   }
   
@@ -112,7 +112,7 @@ struct CollisionData
   {
   }
   
-  ~CollisionData(void)
+  ~CollisionData()
   {
   }
 
@@ -140,7 +140,7 @@ struct CollisionData
 
 struct FCLGeometry
 {
-  FCLGeometry(void)
+  FCLGeometry()
   {
   }
   
@@ -150,7 +150,7 @@ struct FCLGeometry
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const kinematic_state::AttachedBody *ab) :
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const robot_state::AttachedBody *ab) :
     collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
@@ -183,7 +183,7 @@ struct FCLObject
 {
   void registerTo(fcl::BroadPhaseCollisionManager *manager);
   void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
-  void clear(void);
+  void clear();
   
   std::vector<boost::shared_ptr<fcl::CollisionObject> > collision_objects_;
   std::vector<FCLGeometryConstPtr> collision_geometry_;
@@ -202,17 +202,17 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const kinematic_model::LinkModel *link);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const kinematic_state::AttachedBody *ab);
+                                            const robot_state::AttachedBody *ab);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const CollisionWorld::Object *obj);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const kinematic_model::LinkModel *link);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const kinematic_state::AttachedBody *ab);
+                                            const robot_state::AttachedBody *ab);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const CollisionWorld::Object *obj);
-void cleanCollisionGeometryCache(void);
+void cleanCollisionGeometryCache();
 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::Transform3f &f)
 {

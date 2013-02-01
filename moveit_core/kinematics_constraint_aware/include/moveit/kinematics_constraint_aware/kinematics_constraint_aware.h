@@ -54,7 +54,7 @@
 
 // MoveIt!
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_constraint_aware/kinematics_request_response.h>
@@ -115,7 +115,7 @@ class KinematicsConstraintAware
 private:
 
   std::vector<Eigen::Affine3d> transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                              const kinematic_state::KinematicState &kinematic_state,
+                                              const robot_state::RobotState &kinematic_state,
                                               const std::vector<geometry_msgs::PoseStamped> &poses,
                                               const std::string &target_frame) const;
 
@@ -125,7 +125,7 @@ private:
                              kinematics_constraint_aware::KinematicsResponse &kinematics_response) const;
 
   geometry_msgs::Pose getTipFramePose(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                      const kinematic_state::KinematicState &kinematic_state,
+                                      const robot_state::RobotState &kinematic_state,
                                       const geometry_msgs::Pose &pose,
                                       const std::string &link_name,
                                       unsigned int sub_group_index) const;
@@ -133,7 +133,7 @@ private:
   bool validityCallbackFn(const planning_scene::PlanningSceneConstPtr &planning_scene,
                           const kinematics_constraint_aware::KinematicsRequest &request,
                           kinematics_constraint_aware::KinematicsResponse &response,
-                          kinematic_state::JointStateGroup *joint_state_group,
+                          robot_state::JointStateGroup *joint_state_group,
                           const std::vector<double> &joint_group_variable_values) const;  
   
   std::vector<std::string> sub_groups_names_;
