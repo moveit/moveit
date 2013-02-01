@@ -70,49 +70,77 @@ static bool jointStateToKinematicState(const sensor_msgs::JointState &joint_stat
   return true;
 }
 
-static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState &mjs, KinematicState &state)
+static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState &mjs, KinematicState &state, const Transforms *tf)
 {
-  if (mjs.joint_names.size() != mjs.joint_values.size())
+  std::size_t nj = mjs.joint_names.size();
+  if (nj != mjs.joint_transforms.size())
   {
-    logError("Different number of names and values in MultiDOFJointState message.");
+    logError("Different number of names, values or frames in MultiDOFJointState message.");
     return false;
   }
   
-  bool ok = true;
+  bool error = false;
+  Eigen::Affine3d inv_t;
+  bool use_inv_t = false;
   
-  for (std::size_t i = 0 ; i < mjs.joint_names.size(); ++i)
+  if (mjs.header.frame_id != state.getKinematicModel()->getModelFrame())
   {
+    if (tf)
+      try
+      {
+        // find the transform that takes the given frame_id to the desired fixed frame
+        const Eigen::Affine3d &t2fixed_frame = tf->getTransform(mjs.header.frame_id);
+        // we update the value of the transform so that it transforms from the known fixed frame to the desired child link
+        inv_t = t2fixed_frame.inverse();
+        use_inv_t = true;
+      }
+      catch (std::runtime_error&)
+      {
+        error = true; 
+      }
+    else
+      error = true;
+    if (error)
+      logWarn("The transform for multi-dof joints  was specified in frame '%s' but it was not possible to update that transform to frame '%s'",
+              mjs.header.frame_id.c_str(), state.getKinematicModel()->getModelFrame().c_str());
+  }
+  
+  for (std::size_t i = 0 ; i < nj ; ++i)
+  {   
     const std::string &joint_name = mjs.joint_names[i];
     if (!state.hasJointState(joint_name))
     {
       logWarn("No joint matching multi-dof joint '%s'", joint_name.c_str());
-      ok = false;
+      error = true;
       continue;
     }
+    Eigen::Affine3d transf;
+    tf::transformMsgToEigen(mjs.joint_transforms[i], transf);
+    
+    // if frames do not mach, attempt to transform
+    if (use_inv_t)
+      transf = transf * inv_t;
+
     JointState *joint_state = state.getJointState(joint_name);
-    if (mjs.joint_values[i].values.size() != joint_state->getVariableCount())
-    {
-      ok = false;
-      logError("Expected %u values for joint '%s' but got %u instead", joint_state->getVariableCount(), joint_name.c_str(), (unsigned int)mjs.joint_values[i].values.size());
-    }
-    else
-      joint_state->setVariableValues(mjs.joint_values[i].values);
+    joint_state->setVariableValues(transf);
   }
   
-  return ok;
+  return !error;
 }
 
 static inline void kinematicStateToMultiDOFJointState(const KinematicState& state, moveit_msgs::MultiDOFJointState &mjs)
 {  
+  // \todo it would be nice if the kinematic model had a list of index values for the multi-dof joints (same for single-dof joints)
   const std::vector<JointState*> &js = state.getJointStateVector();
   mjs.joint_names.clear();
-  mjs.joint_values.clear();
+  mjs.joint_transforms.clear();
   for (std::size_t i = 0 ; i < js.size() ; ++i)
     if (js[i]->getVariableCount() > 1)
     {
+      geometry_msgs::Transform p;
+      tf::transformEigenToMsg(js[i]->getVariableTransform(), p);
       mjs.joint_names.push_back(js[i]->getName());
-      mjs.joint_values.resize(mjs.joint_names.size());
-      mjs.joint_values.back().values = js[i]->getVariableValues();
+      mjs.joint_transforms.push_back(p);
     }
 }
 
@@ -296,7 +324,7 @@ static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_
 {
   std::set<std::string> missing;
   bool result1 = jointStateToKinematicState(robot_state.joint_state, state, &missing);
-  bool result2 = multiDOFJointsToKinematicState(robot_state.multi_dof_joint_state, state);
+  bool result2 = multiDOFJointsToKinematicState(robot_state.multi_dof_joint_state, state, tf);
   state.updateLinkTransforms();
   
   if (copy_attached_bodies && !robot_state.attached_collision_objects.empty())

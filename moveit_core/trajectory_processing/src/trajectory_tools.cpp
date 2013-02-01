@@ -109,7 +109,7 @@ bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, st
   {
     rs.multi_dof_joint_state.joint_names = rt.multi_dof_joint_trajectory.joint_names;
     rs.multi_dof_joint_state.header.stamp = rt.joint_trajectory.header.stamp + rt.multi_dof_joint_trajectory.points[index].time_from_start;
-    rs.multi_dof_joint_state.joint_values = rt.multi_dof_joint_trajectory.points[index].values;
+    rs.multi_dof_joint_state.joint_transforms = rt.multi_dof_joint_trajectory.points[index].transforms;
     result = true;
   }
   else
