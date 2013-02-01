@@ -40,6 +40,7 @@
 #include <moveit/kinematic_state/kinematic_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
+#include <deque>
 
 namespace kinematic_trajectory
 {
@@ -98,7 +99,7 @@ public:
     return waypoints_.front();
   }
 
-  const std::vector<double>& getWayPointDurations(void) const
+  const std::deque<double>& getWayPointDurations(void) const
   {
     return duration_from_previous_;
   }
@@ -123,15 +124,26 @@ public:
     return waypoints_.empty();
   }
   
-  void addWayPoint(const kinematic_state::KinematicState &state, double dt)
+  void addSuffixWayPoint(const kinematic_state::KinematicState &state, double dt)
   {
-    addWayPoint(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(state)), dt);
+    addSuffixWayPoint(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(state)), dt);
   }
 
-  void addWayPoint(const kinematic_state::KinematicStatePtr &state, double dt)
+  void addSuffixWayPoint(const kinematic_state::KinematicStatePtr &state, double dt)
   {
     waypoints_.push_back(state);
     duration_from_previous_.push_back(dt);
+  }
+
+  void addPrefixWayPoint(const kinematic_state::KinematicState &state, double dt)
+  {
+    addPrefixWayPoint(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(state)), dt);
+  }
+
+  void addPrefixWayPoint(const kinematic_state::KinematicStatePtr &state, double dt)
+  {
+    waypoints_.push_front(state);
+    duration_from_previous_.push_front(dt);
   }
 
   void insertWayPoint(std::size_t index, const kinematic_state::KinematicState &state, double dt)
@@ -148,7 +160,6 @@ public:
   void append(const KinematicTrajectory &source, double dt);
 
   void swap(kinematic_trajectory::KinematicTrajectory &other);
-  void swap(std::vector<kinematic_state::KinematicStatePtr> &other);
   
   void clear();
   
@@ -171,8 +182,8 @@ private:
 
   kinematic_model::KinematicModelConstPtr kmodel_;
   const kinematic_model::JointModelGroup *group_;
-  std::vector<kinematic_state::KinematicStatePtr> waypoints_;
-  std::vector<double> duration_from_previous_;
+  std::deque<kinematic_state::KinematicStatePtr> waypoints_;
+  std::deque<double> duration_from_previous_;
 };
 
 typedef boost::shared_ptr<KinematicTrajectory> KinematicTrajectoryPtr;

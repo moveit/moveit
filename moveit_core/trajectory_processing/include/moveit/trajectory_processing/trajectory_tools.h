@@ -46,26 +46,7 @@
 namespace trajectory_processing
 {
 
-MOVEIT_DEPRECATED
-void convertToKinematicStates(std::vector<kinematic_state::KinematicStatePtr> &states,
-                              const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
-                              const kinematic_state::KinematicState &reference_state, const kinematic_state::TransformsConstPtr &transforms);
-
-MOVEIT_DEPRECATED
 bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory);
-
-MOVEIT_DEPRECATED
-double getTrajectoryDuration(const moveit_msgs::RobotTrajectory &trajectory);
-
-MOVEIT_DEPRECATED
-double averageSegmentDuration(const moveit_msgs::RobotTrajectory &trajectory);
-
-MOVEIT_DEPRECATED
-std::size_t trajectoryPointCount(const moveit_msgs::RobotTrajectory &trajectory);
-
-MOVEIT_DEPRECATED
-bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &trajectory, std::size_t index, moveit_msgs::RobotState &rs);
-
 
 }
 

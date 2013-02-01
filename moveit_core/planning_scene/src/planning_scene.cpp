@@ -1591,103 +1591,12 @@ bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &s
                                                 const std::string &group, bool verbose,
                                                 std::vector<std::size_t> *invalid_index) const
 {  
+  kinematic_trajectory::KinematicTrajectory t(getKinematicModel(), group);
   kinematic_state::KinematicState start(getCurrentState());
   kinematic_state::robotStateToKinematicState(*getTransforms(), start_state, start);
-  return isPathValid(start, trajectory, path_constraints, goal_constraints, group, verbose, invalid_index);
+  t.setRobotTrajectoryMsg(start, trajectory);
+  return isPathValid(t, path_constraints, goal_constraints, group, verbose, invalid_index);
 }
-
-bool planning_scene::PlanningScene::isPathValid(const kinematic_state::KinematicState &start,
-                                                const moveit_msgs::RobotTrajectory &trajectory,
-                                                const std::string &group, bool verbose,
-                                                std::vector<std::size_t> *invalid_index) const
-{
-  static const moveit_msgs::Constraints emp_constraints;
-  static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
-  return isPathValid(start, trajectory, emp_constraints, emp_constraints_vector, group, verbose, invalid_index);
-}
-
-bool planning_scene::PlanningScene::isPathValid(const kinematic_state::KinematicState &start,
-                                                const moveit_msgs::RobotTrajectory &trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const std::string &group, bool verbose,
-                                                std::vector<std::size_t> *invalid_index) const
-{ 
-  static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
-  return isPathValid(start, trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
-}
-
-bool planning_scene::PlanningScene::isPathValid(const kinematic_state::KinematicState &start,
-                                                const moveit_msgs::RobotTrajectory &trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const moveit_msgs::Constraints& goal_constraints,
-                                                const std::string &group, bool verbose,
-                                                std::vector<std::size_t> *invalid_index) const
-{
-  std::vector<moveit_msgs::Constraints> goal_constraints_vector(1, goal_constraints);
-  return isPathValid(start, trajectory, path_constraints, goal_constraints_vector, group, verbose, invalid_index);
-}
-
-bool planning_scene::PlanningScene::isPathValid(const kinematic_state::KinematicState &start,
-                                                const moveit_msgs::RobotTrajectory &trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const std::vector<moveit_msgs::Constraints>& goal_constraints,
-                                                const std::string &group, bool verbose,
-                                                std::vector<std::size_t> *invalid_index) const
-{
-  bool result = true;
-  if (invalid_index)
-    invalid_index->clear();
-  std::size_t state_count = trajectory_processing::trajectoryPointCount(trajectory);
-  kinematic_constraints::KinematicConstraintSet ks_p(getKinematicModel(), getTransforms());
-  ks_p.add(path_constraints);
-  for (std::size_t i = 0 ; i < state_count ; ++i)
-  {
-    moveit_msgs::RobotState rs;
-    trajectory_processing::robotTrajectoryPointToRobotState(trajectory, i, rs);
-    kinematic_state::KinematicStatePtr st(new kinematic_state::KinematicState(start));
-    kinematic_state::robotStateToKinematicState(*getTransforms(), rs, *st);
-
-    bool this_state_valid = true;
-    if (isStateColliding(*st, group, verbose))
-      this_state_valid = false;
-    if (!isStateFeasible(*st, verbose))
-      this_state_valid = false;
-    if (!ks_p.empty() && !ks_p.decide(*st, verbose).satisfied)
-      this_state_valid = false;
-    
-    if (!this_state_valid)
-    {
-      if (invalid_index)
-        invalid_index->push_back(i);
-      else
-        return false;
-      result = false;
-    }
-    
-    // check goal for last state
-    if (i + 1 == state_count && !goal_constraints.empty())
-    {
-      bool found = false;
-      for (std::size_t k = 0 ; k < goal_constraints.size() ; ++k)
-      {
-        if (isStateConstrained(*st, goal_constraints[k]))
-        {
-          found = true;
-          break;
-        }
-      }
-      if (!found)
-      {
-        if (verbose)
-          logInform("Goal not satisfied");
-        if (invalid_index)
-          invalid_index->push_back(i);
-        result = false;
-      }
-    }
-  }
-  return result;
-} 
 
 bool planning_scene::PlanningScene::isPathValid(const kinematic_trajectory::KinematicTrajectory &trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
