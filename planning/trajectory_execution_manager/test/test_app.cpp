@@ -85,7 +85,7 @@ int main(int argc, char **argv)
   traj2.joint_trajectory.points[0].positions.push_back(1.0);
   traj2.multi_dof_joint_trajectory.joint_names.push_back("basej");
   traj2.multi_dof_joint_trajectory.points.resize(1);
-  traj2.multi_dof_joint_trajectory.points[0].values.resize(1);
+  traj2.multi_dof_joint_trajectory.points[0].transforms.resize(1);
 
   if (!tem.push(traj2))
     ROS_ERROR("Fail!");

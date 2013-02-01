@@ -238,14 +238,25 @@ public:
     }
 
     joint_trajectory["points"] = joint_traj_points;
- 
+    
     for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = plan.trajectory_.multi_dof_joint_trajectory.points.begin() ;
          it != plan.trajectory_.multi_dof_joint_trajectory.points.end() ; ++it)
     {
-      bp::list vals;
-      for (std::size_t k = 0 ; k < it->values.size() ; ++k)
-        vals.append(moveit_py_bindings_tools::listFromDouble(it->values[k].values));
-      multi_dof_traj_point["values"] = vals;      
+      for (std::vector<geometry_msgs::Transform>::const_iterator itr = it->transforms.begin() ; itr != it->transforms.end() ; ++itr)
+      {
+        position["x"] = itr->translation.x;
+        position["y"] = itr->translation.y;
+        position["z"] = itr->translation.z;
+        pose["translation"] = position;
+        
+        orientation["x"] = itr->rotation.x;
+        orientation["y"] = itr->rotation.y;
+        orientation["z"] = itr->rotation.z;
+        orientation["w"] = itr->rotation.w;
+        pose["rotation"] = orientation;
+        poses.append(pose);
+      }
+      multi_dof_traj_point["poses"] = poses;
       multi_dof_traj_points.append(multi_dof_traj_point);
     }
     

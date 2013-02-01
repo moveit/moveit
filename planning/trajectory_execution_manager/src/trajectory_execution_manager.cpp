@@ -716,10 +716,10 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
         for (std::size_t j = 0 ; j < trajectory.multi_dof_joint_trajectory.points.size() ; ++j)
         {
           parts[i].multi_dof_joint_trajectory.points[j].time_from_start = trajectory.multi_dof_joint_trajectory.points[j].time_from_start;
-          parts[i].multi_dof_joint_trajectory.points[j].values.resize(bijection.size());
+          parts[i].multi_dof_joint_trajectory.points[j].transforms.resize(bijection.size());
           for (std::size_t k = 0 ; k < bijection.size() ; ++k)
-            parts[i].multi_dof_joint_trajectory.points[j].values[k] = trajectory.multi_dof_joint_trajectory.points[j].values[bijection[k]];
-        }        
+            parts[i].multi_dof_joint_trajectory.points[j].transforms[k] = trajectory.multi_dof_joint_trajectory.points[j].transforms[bijection[k]];
+        }
       }
       if (!intersect_single.empty())
       {
