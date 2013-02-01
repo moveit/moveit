@@ -388,7 +388,14 @@ results</string>
             <item row="5" column="1">
              <layout class="QHBoxLayout" name="horizontalLayout_3">
               <item>
-               <widget class="QLineEdit" name="trajectories_filter_text"/>
+               <widget class="QLineEdit" name="trajectories_filter_text">
+                <property name="inputMask">
+                 <string/>
+                </property>
+                <property name="text">
+                 <string>.*</string>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="trajectory_open_button">
@@ -453,6 +460,39 @@ results</string>
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
+            </item>
+            <item row="7" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <item>
+               <widget class="QLabel" name="trajectory_nwaypoints_label">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Number of waypoints</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="trajectory_nwaypoints_spin">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimum">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <number>10</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>

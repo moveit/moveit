@@ -60,16 +60,29 @@ public:
   static const std::string TRAJECTORY_EDIT_CONTROL_FRAME_STRING;
   static const std::string TRAJECTORY_FIX_CONTROL_FRAME_STRING;
 
-  Trajectory(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-             const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-             const GripperMarker::GripperMarkerState &state, bool is_selected = true, bool visible_x = true, bool visible_y = true, bool visible_z = true);
-
-  void setControlMarker(const GripperMarkerPtr control_marker);
-
   GripperMarkerPtr control_marker;
   GripperMarkerPtr hand_marker;
   GripperMarkerPtr start_marker, end_marker;
-  std::list<GripperMarkerPtr> waypoint_markers;
+  std::vector<GripperMarkerPtr> waypoint_markers;
+
+  Eigen::Affine3d control_marker_start_pose; // The control marker pose corresponding to the start marker
+  Eigen::Affine3d control_marker_end_pose;   // The control marker pose corresponding to the end marker
+
+  Trajectory(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+             const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
+             const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints, bool is_selected = true,
+             bool visible_x = true, bool visible_y = true, bool visible_z = true);
+
+  void setControlMarker(const GripperMarkerPtr control_marker);
+
+  void setNumberOfWaypoints(unsigned int n)
+  {
+    nwaypoints_ = n;
+    if (waypoint_markers.size())
+    {
+      rebuildWayPointMarkers();
+    }
+  }
 
   void hide()
   {
@@ -81,7 +94,7 @@ public:
       start_marker->hide();
     if (end_marker)
       end_marker->hide();
-    for (std::list<GripperMarkerPtr>::iterator it = waypoint_markers.begin(); it != waypoint_markers.end(); ++it)
+    for (std::vector<GripperMarkerPtr>::iterator it = waypoint_markers.begin(); it != waypoint_markers.end(); ++it)
     {
       (*it)->hide();
     }
@@ -97,10 +110,20 @@ public:
       start_marker->show(scene_node, context);
     if (end_marker)
       end_marker->show(scene_node, context);
-    for (std::list<GripperMarkerPtr>::iterator it = waypoint_markers.begin(); it != waypoint_markers.end(); ++it)
+    for (std::vector<GripperMarkerPtr>::iterator it = waypoint_markers.begin(); it != waypoint_markers.end(); ++it)
     {
       (*it)->show(scene_node, context);
     }
+  }
+
+  /** Gets the pose of a GripperMarker and sets it into an Eigen::Affine3d object */
+  void getGripperMarkerPose(GripperMarkerPtr source, Eigen::Affine3d &pose)
+  {
+    pose = Eigen::Affine3d(Eigen::Quaterniond(source->imarker->getOrientation().w, source->imarker->getOrientation().x,
+                                              source->imarker->getOrientation().y, source->imarker->getOrientation().z));
+    pose.translation() = Eigen::Vector3d(source->imarker->getPosition().x,
+                                         source->imarker->getPosition().y,
+                                         source->imarker->getPosition().z);
   }
 
   ~Trajectory() {}
@@ -108,7 +131,8 @@ public:
 protected:
   void createControlMarker(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                          const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-                         const GripperMarker::GripperMarkerState &state, bool is_selected = true, bool visible_x = true, bool visible_y = true, bool visible_z = true);
+                         const GripperMarker::GripperMarkerState &state, bool is_selected = true,
+                         bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
   void createHandMarker();
   void createStartMarker();
@@ -122,13 +146,15 @@ protected:
   void rebuildWayPointMarkers();
 
 private:
+  void editControlFrame();
+  void fixControlFrame();
+
   Eigen::Affine3d hand_marker_start_pose;
   Eigen::Affine3d control_marker_drag_start_pose;
 
-  Eigen::Affine3d control_marker_start_pose; // The control marker pose corresponding to the start marker
-  Eigen::Affine3d control_marker_end_pose;   // The control marker pose corresponding to the end marker
-
   bool dragging_;
+
+  unsigned int nwaypoints_;
 
   typedef enum {CONTROL_MARKER_FLOATING, CONTROL_MARKER_FIXED} ControlMarkerModeType;
   ControlMarkerModeType control_marker_mode_;
