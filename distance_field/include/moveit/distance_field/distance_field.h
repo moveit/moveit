@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Mrinal Kalakrishnan, Ken Anderson */
+/* Author: Mrinal Kalakrishnan, Ken Anderson, E. Gil Jones */
 
 #ifndef MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_
 #define MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_
@@ -41,6 +41,7 @@
 #include <vector>
 #include <list>
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <moveit_msgs/CollisionMap.h>

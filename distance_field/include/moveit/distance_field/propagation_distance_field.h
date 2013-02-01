@@ -48,7 +48,10 @@
 namespace distance_field
 {
 
-// Class
+/**
+ * \brief Struct for sorting type Eigen::Vector3i for use in sorted
+ * std containers.  Sorts in z order, then y order, then x order.  
+ */
 struct compareEigen_Vector3i
 {
   bool operator()(Eigen::Vector3i loc_1, Eigen::Vector3i loc_2) const
@@ -64,40 +67,84 @@ struct compareEigen_Vector3i
 };
 
 /**
- * \brief Structure that holds voxel information for the DistanceField.
+ * \brief Structure that holds voxel information for the
+ * DistanceField.  Will be used in VoxelGrid.
  */
 struct PropDistanceFieldVoxel
 {
+
+  /** 
+   * \brief Constructor.  All fields left uninitialized.
+   * 
+   * 
+   */
   PropDistanceFieldVoxel();
+
+  /** 
+   * \brief Constructor.  Sets values for distance_sq_ and
+   * negative_distance_square_, and sets all remaining internal values
+   * to uninitialized.
+   * 
+   * @param distance_sq_positive Value to which to initialize
+   * distance_sq_ for distance to closest obstalce
+   * 
+   * @param distance_sq_negative Value to which to initialize
+   * distance_sq_negative_ for distance to nearest non-obstacle cell
+   * 
+   */
   PropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative);
 
-  int distance_square_;         /**< Squared distance from the closest obstacle */
-  int negative_distance_square_;
-  Eigen::Vector3i closest_point_;	        /**< Closes obstacle from this voxel */
-  Eigen::Vector3i closest_negative_point_;
-  int update_direction_;        /**< Direction from which this voxel was updated */
-  int negative_update_direction_;        /**< Direction from which this voxel was updated */
+  int distance_square_;         /**< \brief Distance in cells to the closest obstacle, squared */
+  int negative_distance_square_; /**< \brief Distance in cells to the nearest unoccupied cell, squared */
+  Eigen::Vector3i closest_point_; /**< \brief Closest occupied cell */
+  Eigen::Vector3i closest_negative_point_; /**< \brief Closest unoccupied cell */
+  int update_direction_;        /**< \brief Direction from which this voxel was updated for occupied distance propogation */
+  int negative_update_direction_;        /**< \brief Direction from which this voxel was updated  for negative distance propogation*/
 
-  static const int UNINITIALIZED=-1;
+  static const int UNINITIALIZED=-1; /**< \brief Value that represents an unitialized voxel */
 };
 
 /**
- * \brief A DistanceField implementation that uses a vector propagation method.
- *
- * It computes the distance transform of the input points, and stores the distance to
- * the closest obstacle in each voxel. Also available is the location of the closest point,
- * and the gradient of the field at a point. Expansion of obstacles is performed upto a given
- * radius.
+ * \brief A DistanceField implementation that uses a vector
+ * propagation method.  Distances propogate outward from occupied
+ * cells, or inwards from unoccupied cells if negative distances are
+ * to be computed, which is optional.  Outward and inward propagation
+ * only occur to a desired maximum distance - cells that are more than
+ * this maximum distance from the nearest cell will have maximum
+ * distance measurements. 
+ * 
+ * Uses a \ref VoxelGrid to hold all data
  */
 class PropagationDistanceField: public DistanceField
 {
 public:
 
 
-  /**
-   * \brief Constructor for the DistanceField.
+  /** 
+   * \brief Constructor that initializes entire distance field to
+   * empty - all cells will be assigned maximum distance values.  All
+   * units are arbitrary but are assumed for documentation purposes to
+   * represent meters.
+   * 
+   * @param [in] size_x The X dimension in meters of the volume to represent
+   * @param [in] size_y The Y dimension in meters of the volume to represent
+   * @param [in] size_z The Z dimension in meters of the volume to represent
+   * @param [in] resolution The resolution in meters of the volume
+   * @param [in] origin_x The minimum X point of the volume
+   * @param [in] origin_y The minimum Y point of the volume
+   * @param [in] origin_z The minimum Z point of the volume
+
+   * @param [in] max_distance The maximum distance to which to
+   * propagate distance values.  Cells that are greater than this
+   * distance will be assigned the maximum distance value.
+   *
+   * @param propagate_negative_distances Whether or not to propagate negative distances.  
+   * 
+   * @return 
    */
-  PropagationDistanceField(double size_x, double size_y, double size_z, 
+  PropagationDistanceField(double size_x, 
+                           double size_y, 
+                           double size_z, 
                            double resolution,
                            double origin_x, double origin_y, double origin_z, 
                            double max_distance,
