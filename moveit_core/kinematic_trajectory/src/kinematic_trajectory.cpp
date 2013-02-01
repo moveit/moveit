@@ -141,8 +141,6 @@ void kinematic_trajectory::KinematicTrajectory::unwind(const kinematic_state::Ki
   {
     const kinematic_state::JointState *jstate = state.getJointState(cont_joints[i]);
     std::vector<double> reference_value = jstate->getVariableValues();
-    logError("unwind %d wrt %lf", i, reference_value[0]);
-    
     jstate->getJointModel()->enforceBounds(reference_value);
     
     // unwrap continuous joints

@@ -83,7 +83,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
   Eigen::Affine3d inv_t;
   bool use_inv_t = false;
   
-  if (mjs.header.frame_id != state.getKinematicModel()->getModelFrame())
+  if (nj > 0 && mjs.header.frame_id != state.getKinematicModel()->getModelFrame())
   {
     if (tf)
       try
@@ -101,7 +101,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
     else
       error = true;
     if (error)
-      logWarn("The transform for multi-dof joints  was specified in frame '%s' but it was not possible to update that transform to frame '%s'",
+      logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible to update that transform to frame '%s'",
               mjs.header.frame_id.c_str(), state.getKinematicModel()->getModelFrame().c_str());
   }
   
@@ -141,7 +141,8 @@ static inline void kinematicStateToMultiDOFJointState(const KinematicState& stat
       tf::transformEigenToMsg(js[i]->getVariableTransform(), p);
       mjs.joint_names.push_back(js[i]->getName());
       mjs.joint_transforms.push_back(p);
-    }
+    } 
+  mjs.header.frame_id = state.getKinematicModel()->getModelFrame();
 }
 
 class ShapeVisitorAddToCollisionObject : public boost::static_visitor<void>
