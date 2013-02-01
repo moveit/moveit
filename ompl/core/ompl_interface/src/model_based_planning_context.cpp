@@ -250,7 +250,7 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
   for (std::size_t i = 0 ; i < pg.getStateCount() ; ++i)
   {
     spec_.state_space_->copyToKinematicState(ks, pg.getState(i));
-    traj.addWayPoint(ks, 0.0);
+    traj.addSuffixWayPoint(ks, 0.0);
   }
 }
 
