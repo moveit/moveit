@@ -36,6 +36,7 @@
 
 #include <moveit/kinematic_trajectory/kinematic_trajectory.h>
 #include <moveit/kinematic_state/conversions.h>
+#include <eigen_conversions/eigen_msg.h>
 #include <boost/math/constants/constants.hpp>
 #include <numeric>
 
@@ -244,9 +245,9 @@ void kinematic_trajectory::KinematicTrajectory::getRobotTrajectoryMsg(moveit_msg
     }
     if (!mdof.empty())
     {
-      trajectory.multi_dof_joint_trajectory.points[i].values.resize(mdof.size());
+      trajectory.multi_dof_joint_trajectory.points[i].transforms.resize(mdof.size());
       for (std::size_t j = 0 ; j < mdof.size() ; ++j)
-        trajectory.multi_dof_joint_trajectory.points[i].values[j].values = waypoints_[i]->getJointState(mdof[j]->getName())->getVariableValues();
+        tf::transformEigenToMsg(waypoints_[i]->getJointState(mdof[j]->getName())->getVariableTransform(), trajectory.multi_dof_joint_trajectory.points[i].transforms[j]);
       if (duration_from_previous_.size() > i)
         trajectory.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(total_time);
       else
@@ -283,7 +284,7 @@ void kinematic_trajectory::KinematicTrajectory::setRobotTrajectoryMsg(const kine
     {
       rs.multi_dof_joint_state.joint_names = trajectory.multi_dof_joint_trajectory.joint_names;
       rs.multi_dof_joint_state.header.stamp = trajectory.joint_trajectory.header.stamp + trajectory.multi_dof_joint_trajectory.points[i].time_from_start;
-      rs.multi_dof_joint_state.joint_values = trajectory.multi_dof_joint_trajectory.points[i].values;
+      rs.multi_dof_joint_state.joint_transforms = trajectory.multi_dof_joint_trajectory.points[i].transforms;
       this_time_stamp = rs.multi_dof_joint_state.header.stamp;
     }
     
