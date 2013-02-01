@@ -103,7 +103,7 @@ void PassiveJointsWidget::focusGiven()
   joints_widget_->setSelected( passive_joints );
 }
 
-void PassiveJointsWidget::selectionUpdated(void)
+void PassiveJointsWidget::selectionUpdated()
 {
   config_data_->srdf_->passive_joints_.clear();
   for( int i = 0; i < joints_widget_->selected_data_table_->rowCount(); ++i )

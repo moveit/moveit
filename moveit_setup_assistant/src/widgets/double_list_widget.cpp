@@ -185,7 +185,7 @@ void DoubleListWidget::setSelected( const std::vector<std::string> &items )
   setTable( items, selected_data_table_ );
 }
 
-void DoubleListWidget::clearContents(void)
+void DoubleListWidget::clearContents()
 {
   selected_data_table_->clearContents();
   data_table_->clearContents();

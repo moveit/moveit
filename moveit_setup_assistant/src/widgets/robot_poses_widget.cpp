@@ -43,7 +43,7 @@
 #include <QDoubleValidator>
 #include <QApplication>
 
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayRobotState.h>
 
 namespace moveit_setup_assistant
@@ -855,7 +855,7 @@ void RobotPosesWidget::publishJoints()
 
   // Create a planning scene message
   moveit_msgs::DisplayRobotState msg;
-  kinematic_state::kinematicStateToRobotState(config_data_->getPlanningScene()->getCurrentState(), msg.state);
+  robot_state::kinematicStateToRobotState(config_data_->getPlanningScene()->getCurrentState(), msg.state);
   
   // Publish!
   pub_robot_state_.publish( msg );

@@ -1252,7 +1252,7 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
 // ******************************************************************************************
 // Call when edit screen is canceled
 // ******************************************************************************************
-void PlanningGroupsWidget::cancelEditing(void)
+void PlanningGroupsWidget::cancelEditing()
 { 
   if (!current_edit_group_.empty() && adding_new_group_)
   {

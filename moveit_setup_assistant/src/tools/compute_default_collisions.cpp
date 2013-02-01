@@ -620,7 +620,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
   const unsigned int progress_interval = tc.num_trials_ / 20; // show progress update every 5%
   
   // Create a new kinematic state for this thread to work on
-  kinematic_state::KinematicState kstate(tc.scene_.getKinematicModel());
+  robot_state::RobotState kstate(tc.scene_.getKinematicModel());
 
   // Do a large number of tests
   for (unsigned int i = 0 ; i < tc.num_trials_ ; ++i)
