@@ -40,7 +40,7 @@
 #include <urdf_parser/urdf_parser.h>
 
 #include <ompl/util/Exception.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <gtest/gtest.h>
 #include <fstream>
 
@@ -150,20 +150,20 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   }
   EXPECT_TRUE(passed);
 
-  kinematic_state::KinematicState kstate(kmodel_);
+  robot_state::RobotState kstate(kmodel_);
   kstate.setToRandomValues();
   EXPECT_TRUE(kstate.distance(kstate) < 1e-12);
   ompl::base::State *state = ss.allocState();
   for (int i = 0 ; i < 10 ; ++i)
   {
-    kinematic_state::KinematicState kstate2(kstate);
+    robot_state::RobotState kstate2(kstate);
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
     ss.copyToOMPLState(state, kstate);
     kstate.getJointStateGroup(ss.getJointModelGroupName())->setToRandomValues();
     std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() - 
                   kstate2.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation()) << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) > 1e-12);
-    ss.copyToKinematicState(kstate, state);
+    ss.copyToRobotState(kstate, state);
     std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() - 
                   kstate2.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation()) << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);

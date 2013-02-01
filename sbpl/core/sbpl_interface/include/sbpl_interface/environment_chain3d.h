@@ -250,13 +250,13 @@ protected:
   
   std::vector<boost::shared_ptr<JointMotionWrapper> > joint_motion_wrappers_;
   std::vector<boost::shared_ptr<JointMotionPrimitive> > possible_actions_;
-  planning_models::KinematicState state_;
+  planning_models::RobotState *state_;
   const collision_detection::CollisionWorldHybrid* hy_world_;
   const collision_detection::CollisionRobotHybrid* hy_robot_; 
-  planning_models::KinematicState::JointStateGroup* joint_state_group_;  
+  planning_models::RobotState *::JointStateGroup* joint_state_group_;  
   boost::shared_ptr<collision_detection::GroupStateRepresentation> gsr_;
   //boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
-  const planning_models::KinematicState::LinkState* tip_link_state_;
+  const planning_models::RobotState *::LinkState* tip_link_state_;
   EnvChain3DPlanningData planning_data_;
   kinematic_constraints::KinematicConstraintSet goal_constraint_set_;
   kinematic_constraints::KinematicConstraintSet path_constraint_set_;
@@ -266,12 +266,12 @@ protected:
   PlanningParameters planning_parameters_;
   int maximum_distance_for_motion_;
 
-  planning_models::KinematicState interpolation_state_1_;
-  planning_models::KinematicState interpolation_state_2_;
-  planning_models::KinematicState interpolation_state_temp_;
-  planning_models::KinematicState::JointStateGroup* interpolation_joint_state_group_1_;  
-  planning_models::KinematicState::JointStateGroup* interpolation_joint_state_group_2_;
-  planning_models::KinematicState::JointStateGroup* interpolation_joint_state_group_temp_;
+  planning_models::RobotState *interpolation_state_1_;
+  planning_models::RobotState *interpolation_state_2_;
+  planning_models::RobotState *interpolation_state_temp_;
+  planning_models::RobotState *::JointStateGroup* interpolation_joint_state_group_1_;  
+  planning_models::RobotState *::JointStateGroup* interpolation_joint_state_group_2_;
+  planning_models::RobotState *::JointStateGroup* interpolation_joint_state_group_temp_;
   std::map<int, std::map<int, std::vector<std::vector<double> > > > generated_interpolations_map_;
 
   void setMotionPrimitives(const std::string& group_name);

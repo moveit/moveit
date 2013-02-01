@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/ompl_interface/planning_context_manager.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <algorithm>
 #include <set>
 
@@ -65,7 +65,7 @@ class PlanningContextManager::LastPlanningContext
 {
 public:
   
-  ModelBasedPlanningContextPtr getContext(void)
+  ModelBasedPlanningContextPtr getContext()
   {
     boost::mutex::scoped_lock slock(lock_);
     return last_planning_context_solve_;
@@ -77,7 +77,7 @@ public:
     last_planning_context_solve_ = context;
   }
 
-  void clear(void)
+  void clear()
   {    
     boost::mutex::scoped_lock slock(lock_);
     last_planning_context_solve_.reset();
@@ -109,7 +109,7 @@ ompl_interface::PlanningContextManager::PlanningContextManager(const kinematic_m
   registerDefaultStateSpaces();
 }
 
-ompl_interface::PlanningContextManager::~PlanningContextManager(void)
+ompl_interface::PlanningContextManager::~PlanningContextManager()
 {
 }
 
@@ -155,7 +155,7 @@ ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManage
 }
   
 
-void ompl_interface::PlanningContextManager::registerDefaultPlanners(void)
+void ompl_interface::PlanningContextManager::registerDefaultPlanners()
 {
   registerPlannerAllocator("geometric::RRT", boost::bind(&allocatePlanner<og::RRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::RRTConnect", boost::bind(&allocatePlanner<og::RRTConnect>, _1, _2, _3));
@@ -171,13 +171,13 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners(void)
   registerPlannerAllocator("geometric::PRM", boost::bind(&allocatePlanner<og::PRM>, _1, _2, _3));
 }
 
-void ompl_interface::PlanningContextManager::registerDefaultStateSpaces(void)
+void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
 {
   registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new JointModelStateSpaceFactory()));
   registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new PoseModelStateSpaceFactory()));
 }
 
-ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager::getPlannerSelector(void) const
+ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager::getPlannerSelector() const
 {
   return boost::bind(&PlanningContextManager::plannerSelector, this, _1);
 }
@@ -354,7 +354,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req));
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext(void) const
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext() const
 {
   return last_planning_context_->getContext();
 }

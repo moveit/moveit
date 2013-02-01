@@ -45,7 +45,7 @@ class JointModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
 
-  JointModelStateSpaceFactory(void);
+  JointModelStateSpaceFactory();
   
   virtual int canRepresentProblem(const std::string &group,
                                   const moveit_msgs::MotionPlanRequest &req,

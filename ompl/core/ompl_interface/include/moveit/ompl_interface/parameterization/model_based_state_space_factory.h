@@ -50,17 +50,17 @@ class ModelBasedStateSpaceFactory
 {
 public:
   
-  ModelBasedStateSpaceFactory(void)
+  ModelBasedStateSpaceFactory()
   {
   }
   
-  virtual ~ModelBasedStateSpaceFactory(void)
+  virtual ~ModelBasedStateSpaceFactory()
   {
   }
   
   ModelBasedStateSpacePtr getNewStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
 
-  const std::string& getType(void) const
+  const std::string& getType() const
   {
     return type_;
   }

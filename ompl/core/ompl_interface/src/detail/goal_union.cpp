@@ -71,7 +71,7 @@ void ompl_interface::GoalSampleableRegionMux::sampleGoal(ompl::base::State *st) 
   throw ompl::Exception("There are no states to sample");
 }
 
-unsigned int ompl_interface::GoalSampleableRegionMux::maxSampleCount(void) const
+unsigned int ompl_interface::GoalSampleableRegionMux::maxSampleCount() const
 {
   unsigned int sc = 0;
   for (std::size_t i = 0 ; i < goals_.size() ; ++i)
@@ -79,7 +79,7 @@ unsigned int ompl_interface::GoalSampleableRegionMux::maxSampleCount(void) const
   return sc;
 }
 
-bool ompl_interface::GoalSampleableRegionMux::canSample(void) const
+bool ompl_interface::GoalSampleableRegionMux::canSample() const
 {
   for (std::size_t i = 0 ; i < goals_.size() ; ++i)
     if (goals_[i]->as<ompl::base::GoalSampleableRegion>()->canSample())

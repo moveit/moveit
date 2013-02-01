@@ -65,7 +65,7 @@ public:
   /** @brief Sample a state using the specified Gaussian*/
   virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
   
-  double getConstrainedSamplingRate(void) const;
+  double getConstrainedSamplingRate() const;
 
 private:
   
@@ -74,8 +74,8 @@ private:
   const ModelBasedPlanningContext                  *planning_context_;  
   ompl::base::StateSamplerPtr                       default_;
   constraint_samplers::ConstraintSamplerPtr         constraint_sampler_;
-  kinematic_state::KinematicState                   work_state_;
-  kinematic_state::JointStateGroup                 *work_joint_group_state_;
+  robot_state::RobotState                   work_state_;
+  robot_state::JointStateGroup                 *work_joint_group_state_;
   unsigned int                                      constrained_success_;
   unsigned int                                      constrained_failure_;
   double                                            inv_dim_;

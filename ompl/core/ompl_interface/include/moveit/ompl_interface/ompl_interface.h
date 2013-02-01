@@ -59,7 +59,7 @@ class OMPLInterface
 public: 
   
   OMPLInterface(const kinematic_model::KinematicModelConstPtr &kmodel);
-  virtual ~OMPLInterface(void);
+  virtual ~OMPLInterface();
   
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
@@ -88,7 +88,7 @@ public:
    *  @param timeout The amount of time to spend on planning
    */
   ob::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const std::string &config, const kinematic_state::KinematicState &start_state,
+                    const std::string &config, const robot_state::RobotState &start_state,
                     const moveit_msgs::Constraints &goal_constraints, double timeout,
                     const std::string &factory_type = "") const;
   
@@ -100,42 +100,42 @@ public:
    *  @param timeout The amount of time to spend on planning
    */
   ob::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const std::string &config, const kinematic_state::KinematicState &start_state,
+                    const std::string &config, const robot_state::RobotState &start_state,
                     const moveit_msgs::Constraints &goal_constraints,
                     const moveit_msgs::Constraints &path_constraints, double timeout,
                     const std::string &factory_type = "") const;
   
-  void terminateSolve(void);
+  void terminateSolve();
 
   ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::MotionPlanRequest &req) const;
   ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const;
 
-  ModelBasedPlanningContextPtr getLastPlanningContext(void) const
+  ModelBasedPlanningContextPtr getLastPlanningContext() const
   {
     return context_manager_.getLastPlanningContext();    
   }
   
-  const PlanningContextManager& getPlanningContextManager(void) const
+  const PlanningContextManager& getPlanningContextManager() const
   {
     return context_manager_;
   }
   
-  PlanningContextManager& getPlanningContextManager(void)
+  PlanningContextManager& getPlanningContextManager()
   {
     return context_manager_;
   }
 
-  ConstraintsLibrary& getConstraintsLibrary(void)
+  ConstraintsLibrary& getConstraintsLibrary()
   {
     return *constraints_library_;
   }
 
-  const ConstraintsLibrary& getConstraintsLibrary(void) const
+  const ConstraintsLibrary& getConstraintsLibrary() const
   {
     return *constraints_library_;
   }
 
-  constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager(void)
+  constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager()
   {
     return *constraint_sampler_manager_;
   }
@@ -145,7 +145,7 @@ public:
     use_constraints_approximations_ = flag;
   }
   
-  bool isUsingConstraintsApproximations(void) const
+  bool isUsingConstraintsApproximations() const
   {
     return use_constraints_approximations_;
   }

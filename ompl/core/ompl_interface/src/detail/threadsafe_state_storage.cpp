@@ -41,24 +41,24 @@ ompl_interface::TSStateStorage::TSStateStorage(const kinematic_model::KinematicM
   start_state_.setToDefaultValues();
 }
 
-ompl_interface::TSStateStorage::TSStateStorage(const kinematic_state::KinematicState &start_state) : start_state_(start_state)
+ompl_interface::TSStateStorage::TSStateStorage(const robot_state::RobotState &start_state) : start_state_(start_state)
 {
 }
 
-ompl_interface::TSStateStorage::~TSStateStorage(void)
+ompl_interface::TSStateStorage::~TSStateStorage()
 {    
-  for (std::map<boost::thread::id, kinematic_state::KinematicState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
+  for (std::map<boost::thread::id, robot_state::RobotState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
     delete it->second;
 }
 
-kinematic_state::KinematicState* ompl_interface::TSStateStorage::getStateStorage(void) const
+robot_state::RobotState* ompl_interface::TSStateStorage::getStateStorage() const
 {
-  kinematic_state::KinematicState *st = NULL;
+  robot_state::RobotState *st = NULL;
   boost::mutex::scoped_lock slock(lock_);/// \todo use Thread Local Storage?
-  std::map<boost::thread::id, kinematic_state::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
+  std::map<boost::thread::id, robot_state::RobotState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
   if (it == thread_states_.end())
   {
-    st = new kinematic_state::KinematicState(start_state_);
+    st = new robot_state::RobotState(start_state_);
     thread_states_[boost::this_thread::get_id()] = st;
   }
   else

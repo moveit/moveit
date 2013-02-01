@@ -36,7 +36,7 @@
 
 #include <moveit/ompl_interface_ros/ompl_interface_ros.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <tf/transform_listener.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <ompl/tools/debug/Profiler.h>
@@ -105,7 +105,7 @@ public:
   bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
   {
     planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
-    kinematic_state::robotStateToKinematicState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentState());
+    robot_state::robotStateToRobotState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentState());
     ompl_interface::ConstraintApproximationConstructionResults ca_res = 
       ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
                                                                          diff_scene, req.samples, req.edges_per_sample);
@@ -121,7 +121,7 @@ public:
       return false;
   }
   
-  void status(void)
+  void status()
   {
     ompl_interface_.printStatus();
     ROS_INFO("Responding to planning and bechmark requests");

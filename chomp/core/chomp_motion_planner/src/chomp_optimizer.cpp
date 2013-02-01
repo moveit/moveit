@@ -53,7 +53,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
                                const planning_scene::PlanningSceneConstPtr& planning_scene,
                                const std::string& planning_group,
                                const ChompParameters *parameters,
-                               const planning_models::KinematicState& start_state) :
+                               const planning_models::RobotState& start_state) :
   full_trajectory_(trajectory), 
   kmodel_(planning_scene->getKinematicModel()), 
   planning_group_(planning_group), 
@@ -760,7 +760,7 @@ void ChompOptimizer::computeJointProperties(int trajectory_point)
   //tf::Transform inverseWorldTransform = collision_space_->getInverseWorldTransform(*state_);
   for(int j = 0; j < num_joints_; j++)
   {
-    const planning_models::KinematicState::JointState* joint_state = state_.getJointState(joint_names_[j]);
+    const planning_models::RobotState *::JointState* joint_state = state_.getJointState(joint_names_[j]);
     const planning_models::KinematicModel::JointModel* joint_model = joint_state->getJointModel();
     const planning_models::KinematicModel::RevoluteJointModel* revolute_joint 
       = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model);
@@ -1012,7 +1012,7 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   }
 
   //ros::WallTime timer = ros::WallTime::now();
-  planning_models::KinematicState::JointStateGroup* group = state_.getJointStateGroup(planning_group_);
+  planning_models::RobotState *::JointStateGroup* group = state_.getJointStateGroup(planning_group_);
   group->setStateValues(joint_states);
   //timer = ros::WallTime::now();
 }
@@ -1023,7 +1023,7 @@ void ChompOptimizer::perturbTrajectory()
   if(worst_collision_cost_state_ < 0)
     return;
   int mid_point = worst_collision_cost_state_;
-  planning_models::KinematicState random_state(state_);
+  planning_models::RobotState *random_state(state_);
   random_state.getJointStateGroup(planning_group_)->setToRandomValues();
   std::vector<double> vals;
   random_state.getJointStateGroup(planning_group_)->getGroupStateValues(vals);
@@ -1048,16 +1048,16 @@ void ChompOptimizer::perturbTrajectory()
   }
 }
 
-// void ChompOptimizer::getRandomState(const KinematicState* currentState, const string& groupName, Eigen::VectorXd& state_vec)
+// void ChompOptimizer::getRandomState(const RobotState currentState, const string& groupName, Eigen::VectorXd& state_vec)
 // {
-//   const vector<KinematicState::JointState*>& jointStates =
+//   const vector<RobotState *::JointState*>& jointStates =
 //     currentState->getJointStateGroup(groupName)->getJointStateVector();
 //   for(size_t i = 0; i < jointStates.size(); i++)
 //   {
 
 //     bool continuous = false;
       
-//     KinematicState::JointState* jointState = jointStates[i];
+//     RobotState *::JointState* jointState = jointStates[i];
 //     const KinematicModel::RevoluteJointModel* revolute_joint 
 //       = dynamic_cast<const KinematicModel::RevoluteJointModel*>(jointState->getJointModel());
 //     if(revolute_joint && revolute_joint->continuous_) {

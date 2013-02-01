@@ -39,7 +39,7 @@
 
 #include <ompl/base/StateSpace.h>
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace ompl_interface
 {
@@ -51,20 +51,20 @@ public:
   class StateType : public ompl::base::State
   {
   public:
-    kinematic_state::JointState *joint_state;
+    robot_state::JointState *joint_state;
   };
   
   ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model);
   ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model,
                             const kinematic_model::JointModel::Bounds &joint_bounds);
   
-  virtual ~ModelBasedJointStateSpace(void);
+  virtual ~ModelBasedJointStateSpace();
   
-  virtual ompl::base::State* allocState(void) const;
+  virtual ompl::base::State* allocState() const;
   virtual void freeState(ompl::base::State *state) const;
   
-  virtual unsigned int getDimension(void) const;
-  virtual double getMaximumExtent(void) const;
+  virtual unsigned int getDimension() const;
+  virtual double getMaximumExtent() const;
   virtual void enforceBounds(ompl::base::State *state) const;
   virtual bool satisfiesBounds(const ompl::base::State *state) const;
   
@@ -73,21 +73,21 @@ public:
   virtual bool equalStates(const ompl::base::State *state1, const ompl::base::State *state2) const;
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
   
-  virtual unsigned int getSerializationLength(void) const;
+  virtual unsigned int getSerializationLength() const;
   virtual void serialize(void *serialization, const ompl::base::State *state) const;
   virtual void deserialize(ompl::base::State *state, const void *serialization) const;
   virtual double* getValueAddressAtIndex(ompl::base::State *state, const unsigned int index) const;
   virtual void printState(const ompl::base::State *state, std::ostream &out) const;
   virtual void printSettings(std::ostream &out) const;
   
-  virtual ompl::base::StateSamplerPtr allocDefaultStateSampler(void) const;  
+  virtual ompl::base::StateSamplerPtr allocDefaultStateSampler() const;  
   
-  const kinematic_model::JointModel* getJointModel(void) const
+  const kinematic_model::JointModel* getJointModel() const
   {
     return joint_model_;
   }  
   
-  const std::string& getJointName(void) const
+  const std::string& getJointName() const
   {
     return getJointModel()->getName();
   }
@@ -95,7 +95,7 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
-  const kinematic_model::JointModel::Bounds& getJointBounds(void) const
+  const kinematic_model::JointModel::Bounds& getJointBounds() const
   {
     return joint_bounds_;
   }

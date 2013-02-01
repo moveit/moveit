@@ -43,7 +43,7 @@ class OutputHandlerROS : public ompl::msg::OutputHandler
 {
 public:
   
-  OutputHandlerROS(void) : OutputHandler()
+  OutputHandlerROS() : OutputHandler()
   {
   }
   
@@ -94,7 +94,7 @@ public:
 
 struct RegisterOH
 {
-  RegisterOH(void)
+  RegisterOH()
   {
     static OutputHandlerROS oh_ros;
     ompl::msg::useOutputHandler(&oh_ros);

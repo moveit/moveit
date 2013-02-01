@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include <moveit/ompl_interface/ompl_interface.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <ompl/tools/debug/Profiler.h>
@@ -50,7 +50,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const kinematic_model::KinematicMod
 {
 }
 
-ompl_interface::OMPLInterface::~OMPLInterface(void)
+ompl_interface::OMPLInterface::~OMPLInterface()
 {
 }
 
@@ -92,8 +92,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
     return ModelBasedPlanningContextPtr();
   }
   
-  kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-  kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
+  robot_state::RobotState start_state = planning_scene->getCurrentState();
+  robot_state::robotStateToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
 
   ModelBasedPlanningContextPtr context = getPlanningContext(req);
   if (!context)
@@ -190,7 +190,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (!context)
     return false;
   
-  res.trajectory_.reset(new kinematic_trajectory::KinematicTrajectory(kmodel_, context->getJointModelGroupName()));
+  res.trajectory_.reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
   
   bool follow = !req.trajectory_constraints.constraints.empty();
   if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
@@ -242,7 +242,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     res.processing_time_.push_back(ptime);
     res.description_.push_back("plan");
     res.trajectory_.resize(res.trajectory_.size() + 1);
-    res.trajectory_.back().reset(new kinematic_trajectory::KinematicTrajectory(kmodel_, context->getJointModelGroupName()));
+    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
     context->getSolutionPath(*res.trajectory_.back());
     
     // simplify solution if time remains
@@ -252,7 +252,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
       res.processing_time_.push_back(context->getLastSimplifyTime());
       res.description_.push_back("simplify");
       res.trajectory_.resize(res.trajectory_.size() + 1);
-      res.trajectory_.back().reset(new kinematic_trajectory::KinematicTrajectory(kmodel_, context->getJointModelGroupName()));
+      res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
       context->getSolutionPath(*res.trajectory_.back());
     }
     
@@ -261,7 +261,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     res.processing_time_.push_back((ros::WallTime::now() - start_interpolate).toSec());
     res.description_.push_back("interpolate");
     res.trajectory_.resize(res.trajectory_.size() + 1);
-    res.trajectory_.back().reset(new kinematic_trajectory::KinematicTrajectory(kmodel_, context->getJointModelGroupName()));
+    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
     context->getSolutionPath(*res.trajectory_.back());
     
     // fill the response
@@ -291,7 +291,7 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
 }
 
 ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                         const std::string &config, const kinematic_state::KinematicState &start_state,
+                                                         const std::string &config, const robot_state::RobotState &start_state,
                                                          const moveit_msgs::Constraints &goal_constraints, double timeout,
                                                          const std::string &factory_type) const
 {
@@ -300,7 +300,7 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
 }
 
 ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                         const std::string &config, const kinematic_state::KinematicState &start_state,
+                                                         const std::string &config, const robot_state::RobotState &start_state,
                                                          const moveit_msgs::Constraints &goal_constraints,
                                                          const moveit_msgs::Constraints &path_constraints, double timeout,
                                                          const std::string &factory_type) const
@@ -332,7 +332,7 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
   return ob::PathPtr();  
 }
 
-void ompl_interface::OMPLInterface::terminateSolve(void)
+void ompl_interface::OMPLInterface::terminateSolve()
 {
   const ModelBasedPlanningContextPtr &context = getLastPlanningContext();
   if (context)

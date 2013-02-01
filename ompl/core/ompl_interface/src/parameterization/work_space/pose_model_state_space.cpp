@@ -56,11 +56,11 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
   constructSpaceFromPoses();
 }
 
-ompl_interface::PoseModelStateSpace::~PoseModelStateSpace(void)
+ompl_interface::PoseModelStateSpace::~PoseModelStateSpace()
 {
 }
 
-void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)
+void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses()
 {
   std::sort(poses_.begin(), poses_.end());  
   for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
@@ -79,7 +79,7 @@ double ompl_interface::PoseModelStateSpace::distance(const ompl::base::State *st
   return total;
 }
 
-double ompl_interface::PoseModelStateSpace::getMaximumExtent(void) const
+double ompl_interface::PoseModelStateSpace::getMaximumExtent() const
 {
   double total = 0.0;
   for (unsigned int i = jointSubspaceCount_ ; i < componentCount_ ; ++i)
@@ -87,7 +87,7 @@ double ompl_interface::PoseModelStateSpace::getMaximumExtent(void) const
   return total;
 }
 
-ompl::base::State* ompl_interface::PoseModelStateSpace::allocState(void) const
+ompl::base::State* ompl_interface::PoseModelStateSpace::allocState() const
 {
   StateType *state = new StateType();
   allocStateComponents(state);
@@ -108,7 +108,7 @@ void ompl_interface::PoseModelStateSpace::copyState(ompl::base::State *destinati
   computeStateK(destination);
 }
 
-void ompl_interface::PoseModelStateSpace::sanityChecks(void) const
+void ompl_interface::PoseModelStateSpace::sanityChecks() const
 {
   ModelBasedStateSpace::sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), ~ompl::base::StateSpace::STATESPACE_TRIANGLE_INEQUALITY);
 }
@@ -281,7 +281,7 @@ void ompl_interface::PoseModelStateSpace::afterStateSample(ompl::base::State *sa
   std::cout << "---------- SAMPLE\n"; */
 }
 
-void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State *state, const kinematic_state::JointStateGroup* jsg) const
+void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State *state, const robot_state::JointStateGroup* jsg) const
 {
   ModelBasedStateSpace::copyToOMPLState(state, jsg);
   state->as<StateType>()->setJointsComputed(true);  

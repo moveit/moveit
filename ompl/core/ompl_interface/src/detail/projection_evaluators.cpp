@@ -44,12 +44,12 @@ ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const M
 {
 }
 
-unsigned int ompl_interface::ProjectionEvaluatorLinkPose::getDimension(void) const
+unsigned int ompl_interface::ProjectionEvaluatorLinkPose::getDimension() const
 {
   return 3;
 }
 
-void ompl_interface::ProjectionEvaluatorLinkPose::defaultCellSizes(void)
+void ompl_interface::ProjectionEvaluatorLinkPose::defaultCellSizes()
 {
   cellSizes_.resize(3);
   cellSizes_[0] = 0.1;
@@ -59,10 +59,10 @@ void ompl_interface::ProjectionEvaluatorLinkPose::defaultCellSizes(void)
 
 void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
 {
-  kinematic_state::KinematicState *s = tss_.getStateStorage();
-  planning_context_->getOMPLStateSpace()->copyToKinematicState(*s, state);
+  robot_state::RobotState *s = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToRobotState(*s, state);
   
-  const kinematic_state::LinkState *ls = s->getLinkState(link_name_);
+  const robot_state::LinkState *ls = s->getLinkState(link_name_);
   const Eigen::Vector3d &o = ls->getGlobalLinkTransform().translation();
   projection(0) = o.x();
   projection(1) = o.y();
@@ -78,12 +78,12 @@ ompl_interface::ProjectionEvaluatorJointValue::ProjectionEvaluatorJointValue(con
     dimension_ += joints_[i].second;
 }
 
-unsigned int ompl_interface::ProjectionEvaluatorJointValue::getDimension(void) const
+unsigned int ompl_interface::ProjectionEvaluatorJointValue::getDimension() const
 {
   return dimension_;
 }
 
-void ompl_interface::ProjectionEvaluatorJointValue::defaultCellSizes(void)
+void ompl_interface::ProjectionEvaluatorJointValue::defaultCellSizes()
 {
   cellSizes_.clear();
   cellSizes_.resize(dimension_, 0.1);

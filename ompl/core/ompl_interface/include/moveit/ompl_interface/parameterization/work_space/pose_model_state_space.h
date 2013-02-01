@@ -58,17 +58,17 @@ public:
         POSE_COMPUTED = 512
       };
     
-    StateType(void) : ModelBasedStateSpace::StateType()
+    StateType() : ModelBasedStateSpace::StateType()
     {
       flags |= JOINTS_COMPUTED;
     }    
 
-    bool jointsComputed(void) const
+    bool jointsComputed() const
     {
       return flags & JOINTS_COMPUTED;
     }
     
-    bool poseComputed(void) const
+    bool poseComputed() const
     {
       return flags & POSE_COMPUTED;
     }
@@ -92,22 +92,22 @@ public:
   };
   
   PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
-  virtual ~PoseModelStateSpace(void);
+  virtual ~PoseModelStateSpace();
   
-  virtual ompl::base::State* allocState(void) const;
+  virtual ompl::base::State* allocState() const;
   virtual void freeState(ompl::base::State *state) const;  
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
   virtual double distance(const ompl::base::State *state1, const ompl::base::State *state2) const;
-  virtual double getMaximumExtent(void) const;
+  virtual double getMaximumExtent() const;
 
   bool computeStateFK(ompl::base::State *state) const;
   bool computeStateIK(ompl::base::State *state) const;
   bool computeStateK(ompl::base::State *state) const;
 
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
-  virtual void copyToOMPLState(ompl::base::State *state, const kinematic_state::JointStateGroup* jsg) const;
-  virtual void sanityChecks(void) const;
+  virtual void copyToOMPLState(ompl::base::State *state, const robot_state::JointStateGroup* jsg) const;
+  virtual void sanityChecks() const;
   
 private:
 
@@ -132,7 +132,7 @@ private:
     unsigned int variable_count_;
   };
   
-  void constructSpaceFromPoses(void);
+  void constructSpaceFromPoses();
   virtual void afterStateSample(ompl::base::State *sample) const;
 
   std::vector<PoseComponent> poses_;

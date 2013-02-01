@@ -43,7 +43,7 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const kinematic_model::Ki
   loadParams();
 }
 
-bool ompl_interface_ros::OMPLInterfaceROS::saveConstraintApproximations(void)
+bool ompl_interface_ros::OMPLInterfaceROS::saveConstraintApproximations()
 {
   std::string cpath;
   if (nh_.getParam("constraint_approximations", cpath))
@@ -55,7 +55,7 @@ bool ompl_interface_ros::OMPLInterfaceROS::saveConstraintApproximations(void)
   return false;
 }
 
-bool ompl_interface_ros::OMPLInterfaceROS::loadConstraintApproximations(void)
+bool ompl_interface_ros::OMPLInterfaceROS::loadConstraintApproximations()
 {
   std::string cpath;
   if (nh_.getParam("constraint_approximations_path", cpath))
@@ -66,12 +66,12 @@ bool ompl_interface_ros::OMPLInterfaceROS::loadConstraintApproximations(void)
   return false;
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::loadConstraintSamplers(void)
+void ompl_interface_ros::OMPLInterfaceROS::loadConstraintSamplers()
 {
   constraint_sampler_manager_loader_.reset(new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader(constraint_sampler_manager_));
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::loadParams(void)
+void ompl_interface_ros::OMPLInterfaceROS::loadParams()
 { 
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
@@ -79,7 +79,7 @@ void ompl_interface_ros::OMPLInterfaceROS::loadParams(void)
   loadConstraintSamplers();
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations(void)
+void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations()
 {
   const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();  
   std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
@@ -193,7 +193,7 @@ void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations(void)
   setPlanningConfigurations(pconfig);
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::printStatus(void)
+void ompl_interface_ros::OMPLInterfaceROS::printStatus()
 {
   ROS_INFO("OMPL ROS interface is running.");
 }
