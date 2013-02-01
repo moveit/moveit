@@ -45,7 +45,7 @@ namespace moveit_benchmarks
 
 // keep this function in a separate file so we don't have the class_loader and mongoDB in the same namespace
 // as that couses boost::filesystem version issues (redefinition of symbols)
-std::vector<std::string> benchmarkGetAvailablePluginNames(void)
+std::vector<std::string> benchmarkGetAvailablePluginNames()
 {
   // load the planning plugins
   boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader;
@@ -64,7 +64,7 @@ std::vector<std::string> benchmarkGetAvailablePluginNames(void)
     return std::vector<std::string>();
 }
 
-std::string getHostname(void) const
+std::string getHostname() const
 {
   static const int BUF_SIZE = 1024;
   char buffer[BUF_SIZE];

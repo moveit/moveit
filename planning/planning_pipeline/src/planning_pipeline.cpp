@@ -33,7 +33,7 @@
 *********************************************************************/
 
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
@@ -78,7 +78,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::Kin
   configure();
 }
 
-void planning_pipeline::PlanningPipeline::configure(void)
+void planning_pipeline::PlanningPipeline::configure()
 {
   check_solution_paths_ = false;          // this is set to true below
   publish_received_requests_ = false;
@@ -289,7 +289,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             for (std::size_t i = 0 ; i < index.size() ; ++i)
             {
               // check validity with verbose on
-              const kinematic_state::KinematicState &kstate = res.trajectory_->getWayPoint(index[i]);
+              const robot_state::RobotState &kstate = res.trajectory_->getWayPoint(index[i]);
               planning_scene->isStateValid(kstate, req.group_name, true);
               
               // compute the contacts if any
@@ -326,14 +326,14 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     disp.model_id = kmodel_->getName();
     disp.trajectory.resize(1);
     res.trajectory_->getRobotTrajectoryMsg(disp.trajectory[0]);
-    kinematic_state::kinematicStateToRobotState(res.trajectory_->getFirstWayPoint(), disp.trajectory_start);
+    robot_state::kinematicStateToRobotState(res.trajectory_->getFirstWayPoint(), disp.trajectory_start);
     display_path_publisher_.publish(disp);      
   }
   
   return solved && valid;
 }
 
-void planning_pipeline::PlanningPipeline::terminate(void) const
+void planning_pipeline::PlanningPipeline::terminate() const
 {
   if (planner_instance_)
     planner_instance_->terminate();

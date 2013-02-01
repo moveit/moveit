@@ -121,7 +121,7 @@ plan_execution::PlanWithSensing::PlanWithSensing(const trajectory_execution_mana
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 }
 
-plan_execution::PlanWithSensing::~PlanWithSensing(void)
+plan_execution::PlanWithSensing::~PlanWithSensing()
 {
   delete reconfigure_impl_;
 }

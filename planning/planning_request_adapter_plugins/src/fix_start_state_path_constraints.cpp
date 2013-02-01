@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <class_loader/class_loader.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <ros/ros.h>
@@ -47,11 +47,11 @@ class FixStartStatePathConstraints : public planning_request_adapter::PlanningRe
 {
 public:
 
-  FixStartStatePathConstraints(void) : planning_request_adapter::PlanningRequestAdapter()
+  FixStartStatePathConstraints() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
   
-  virtual std::string getDescription(void) const { return "Fix Start State Path Constraints"; }
+  virtual std::string getDescription() const { return "Fix Start State Path Constraints"; }
   
   
   virtual bool adaptAndPlan(const PlannerFn &planner,
@@ -63,8 +63,8 @@ public:
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
     // get the specified start state
-    kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::RobotState start_state = planning_scene->getCurrentState();
+    robot_state::robotStateToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
     
     // if the start state is otherwise valid but does not meet path constraints
     if (planning_scene->isStateValid(start_state) && 
@@ -85,7 +85,7 @@ public:
         ROS_DEBUG("Planned to path constraints. Resuming original planning request.");
         
         // extract the last state of the computed motion plan and set it as the new start state
-        kinematic_state::kinematicStateToRobotState(res2.trajectory_->getLastWayPoint(), req3.start_state);
+        robot_state::kinematicStateToRobotState(res2.trajectory_->getLastWayPoint(), req3.start_state);
         bool solved2 = planner(planning_scene, req3, res);
         res.planning_time_ += res2.planning_time_;
         

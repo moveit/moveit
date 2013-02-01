@@ -92,22 +92,22 @@ public:
     rememberJointValues(string, moveit_py_bindings_tools::doubleFromList(values));
   }
 
-  bp::list getJointsList(void)
+  bp::list getJointsList()
   {
     return moveit_py_bindings_tools::listFromString(getJoints());
   }
 
-  bp::list getCurrentJointValuesList(void)
+  bp::list getCurrentJointValuesList()
   {
     return moveit_py_bindings_tools::listFromDouble(getCurrentJointValues());
   }
   
-  bp::list getRandomJointValuesList(void)
+  bp::list getRandomJointValuesList()
   {
     return moveit_py_bindings_tools::listFromDouble(getRandomJointValues());
   }
   
-  bp::dict getRememberedJointValuesPython(void) const
+  bp::dict getRememberedJointValuesPython() const
   {
     const std::map<std::string, std::vector<double> > &rv = getRememberedJointValues();
     bp::dict d;
@@ -141,7 +141,7 @@ public:
     return poseToList(pose);
   }
 
-  bp::list getKnownConstraintsList(void) const
+  bp::list getKnownConstraintsList() const
   {
     return moveit_py_bindings_tools::listFromString(getKnownConstraints());
   }
@@ -202,22 +202,22 @@ public:
         ROS_ERROR("Pose description expected to consist of either 6 or 7 values");
   }
 
-  const char* getEndEffectorLinkCStr(void) const
+  const char* getEndEffectorLinkCStr() const
   {
     return getEndEffectorLink().c_str();
   }  
   
-  const char* getPoseReferenceFrameCStr(void) const
+  const char* getPoseReferenceFrameCStr() const
   {
     return getPoseReferenceFrame().c_str();
   }
   
-  const char* getNameCStr(void) const
+  const char* getNameCStr() const
   {
     return getName().c_str();
   }
 
-  bp::dict getPlanPythonDict(void)
+  bp::dict getPlanPythonDict()
   {
     MoveGroup::Plan plan;
     MoveGroup::plan(plan);

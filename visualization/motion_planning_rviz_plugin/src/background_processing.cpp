@@ -35,7 +35,7 @@
 namespace moveit_rviz_plugin
 {
 
-BackgroundProcessing::BackgroundProcessing(void)
+BackgroundProcessing::BackgroundProcessing()
 {
   // spin a thread that will process user events
   run_processing_thread_ = true;
@@ -43,14 +43,14 @@ BackgroundProcessing::BackgroundProcessing(void)
   processing_thread_.reset(new boost::thread(boost::bind(&BackgroundProcessing::processingThread, this)));
 }
 
-BackgroundProcessing::~BackgroundProcessing(void)
+BackgroundProcessing::~BackgroundProcessing()
 {
   run_processing_thread_ = false; 
   new_action_condition_.notify_all();
   processing_thread_->join();
 }
 
-void BackgroundProcessing::processingThread(void)
+void BackgroundProcessing::processingThread()
 {
   boost::unique_lock<boost::mutex> ulock(action_lock_);
 
@@ -61,7 +61,7 @@ void BackgroundProcessing::processingThread(void)
     
     while (!actions_.empty())
     {
-      boost::function<void(void)> fn = actions_.front();
+      boost::function<void()> fn = actions_.front();
       actions_.pop_front();
       
       // make sure we are unlocked while we process the event
@@ -87,26 +87,26 @@ void BackgroundProcessing::processingThread(void)
   }
 }
 
-void BackgroundProcessing::addJob(const boost::function<void(void)> &job)
+void BackgroundProcessing::addJob(const boost::function<void()> &job)
 {
   boost::mutex::scoped_lock slock(action_lock_);
   actions_.push_back(job);
   new_action_condition_.notify_all();
 }
 
-void BackgroundProcessing::clear(void)
+void BackgroundProcessing::clear()
 {
   boost::mutex::scoped_lock slock(action_lock_);
   actions_.clear();
 }
 
-std::size_t BackgroundProcessing::getJobCount(void) const
+std::size_t BackgroundProcessing::getJobCount() const
 {
   boost::mutex::scoped_lock slock(action_lock_);
   return actions_.size() + (processing_ ? 1 : 0);
 }
 
-void BackgroundProcessing::setCompletionEvent(const boost::function<void(void)> &completion_event)
+void BackgroundProcessing::setCompletionEvent(const boost::function<void()> &completion_event)
 { 
   boost::mutex::scoped_lock slock(action_lock_);
   completion_event_ = completion_event;

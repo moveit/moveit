@@ -38,7 +38,7 @@
 #define MOVEIT_PLAN_EXECUTION_PLAN_REPRESENTATION_
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/kinematic_trajectory/kinematic_trajectory.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <boost/function.hpp>
 
@@ -51,11 +51,11 @@ struct ExecutableMotionPlan
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   
-  std::vector<kinematic_trajectory::KinematicTrajectoryPtr> planned_trajectory_;
+  std::vector<robot_trajectory::RobotTrajectoryPtr> planned_trajectory_;
   std::vector<std::string> planned_trajectory_descriptions_;
 
   // The trace of the trajectory recorded during execution
-  kinematic_trajectory::KinematicTrajectoryPtr executed_trajectory_;
+  robot_trajectory::RobotTrajectoryPtr executed_trajectory_;
   
   /// An error code reflecting what went wrong (if anything)
   moveit_msgs::MoveItErrorCodes error_code_;

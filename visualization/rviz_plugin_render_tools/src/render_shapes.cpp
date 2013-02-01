@@ -29,8 +29,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/render_tools/render_shapes.h>
-#include <moveit/render_tools/octomap_render.h>
+#include <moveit/rviz_plugin_render_tools/render_shapes.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
@@ -51,12 +51,12 @@ RenderShapes::RenderShapes(rviz::DisplayContext *context) : context_(context)
 {
 }
 
-RenderShapes::~RenderShapes(void)
+RenderShapes::~RenderShapes()
 {
   clear();
 }
 
-void RenderShapes::clear(void)
+void RenderShapes::clear()
 {
   scene_shapes_.clear();
   for (std::size_t i = 0 ; i < movable_objects_.size() ; ++i)

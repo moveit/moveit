@@ -46,12 +46,12 @@
 namespace moveit_rviz_plugin
 {
 
-void MotionPlanningFrame::databaseConnectButtonClicked(void)
+void MotionPlanningFrame::databaseConnectButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClicked, this));
 }
 
-void MotionPlanningFrame::publishSceneButtonClicked(void)
+void MotionPlanningFrame::publishSceneButtonClicked()
 {
   const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
   if (ps)
@@ -73,7 +73,7 @@ void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
   }
 }
 
-void MotionPlanningFrame::resetDbButtonClicked(void)
+void MotionPlanningFrame::resetDbButtonClicked()
 {
   if (QMessageBox::warning(this, "Data about to be deleted", "The following dialog will allow you to drop a MoveIt Warehouse database. Are you sure you want to continue?",
                            QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
@@ -97,7 +97,7 @@ void MotionPlanningFrame::resetDbButtonClicked(void)
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeResetDbButtonClicked, this, response.toStdString()));
 }
 
-void MotionPlanningFrame::computeDatabaseConnectButtonClicked(void)
+void MotionPlanningFrame::computeDatabaseConnectButtonClicked()
 {
   if (planning_scene_storage_)
   {

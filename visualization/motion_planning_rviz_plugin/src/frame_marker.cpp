@@ -79,7 +79,7 @@ FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *con
   buildFrom(name, frame_id, pose, scale, color_);
 }
 
-void FrameMarker::hide(void)
+void FrameMarker::hide()
 {
   if (imarker)
   {
@@ -164,13 +164,13 @@ void FrameMarker::setColor(float r, float g, float b, float a)
   }
 }
 
-void FrameMarker::select(void)
+void FrameMarker::select()
 {
   selected_ = true;
   rebuild();
 }
 
-void FrameMarker::unselect(void)
+void FrameMarker::unselect()
 {
   selected_ = false;
   rebuild();
@@ -272,7 +272,7 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
 }
 
 
-GripperMarker::GripperMarker(const kinematic_state::KinematicStateConstPtr& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+GripperMarker::GripperMarker(const robot_state::RobotStateConstPtr& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                              const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                              const GripperMarkerState &state, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
   FrameMarker(parent_node, context, name, frame_id, pose, scale, stateToColor(state), is_selected, visible_x, visible_y, visible_z),
@@ -314,8 +314,8 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   if (isSelected() && display_gripper_mesh_)
   {
     //If selected and gripper_mesh enabled, display the actual end effector mesh
-    const kinematic_state::JointStateGroup *joint_state_group = kinematic_state_->getJointStateGroup(eef_.eef_group);
-    const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
+    const robot_state::JointStateGroup *joint_state_group = kinematic_state_->getJointStateGroup(eef_.eef_group);
+    const robot_state::RobotState *kinematic_state = joint_state_group->getRobotState();
     
     const kinematic_model::JointModelGroup *joint_model_group = joint_state_group->getJointModelGroup();
     const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();

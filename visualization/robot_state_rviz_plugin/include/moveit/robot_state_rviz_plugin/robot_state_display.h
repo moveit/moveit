@@ -36,7 +36,7 @@
 
 #ifndef Q_MOC_RUN
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/render_tools/kinematic_state_visualization.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit_msgs/DisplayRobotState.h>
 #include <ros/ros.h>
 #endif
@@ -59,7 +59,7 @@ class ColorProperty;
 namespace moveit_rviz_plugin
 {
 
-class KinematicStateVisualization;
+class RobotStateVisualization;
 
 class RobotStateDisplay : public rviz::Display
 {
@@ -67,13 +67,13 @@ class RobotStateDisplay : public rviz::Display
 
 public:
 
-  RobotStateDisplay(void);
-  virtual ~RobotStateDisplay(void);
+  RobotStateDisplay();
+  virtual ~RobotStateDisplay();
 
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return kmodel_;
   }
@@ -100,7 +100,7 @@ protected:
   /**
    * \brief Set the scene node's position, given the target frame and the planning frame
    */
-  void calculateOffsetPosition(void);
+  void calculateOffsetPosition();
 
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
@@ -117,10 +117,10 @@ protected:
   ros::NodeHandle root_nh_;
   ros::Subscriber robot_state_subscriber_;
   
-  KinematicStateVisualizationPtr robot_;  
+  RobotStateVisualizationPtr robot_;  
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
   kinematic_model::KinematicModelConstPtr kmodel_;
-  kinematic_state::KinematicStatePtr kstate_;
+  robot_state::RobotStatePtr kstate_;
   bool update_state_;
   
   rviz::StringProperty* robot_description_property_;

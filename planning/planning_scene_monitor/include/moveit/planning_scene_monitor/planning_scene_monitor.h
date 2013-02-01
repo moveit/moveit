@@ -116,32 +116,32 @@ public:
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string &name = "");
 
-  ~PlanningSceneMonitor(void);
+  ~PlanningSceneMonitor();
   
   /** \brief Get the name of this monitor */
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return monitor_name_;
   }
   
   /** \brief Get the user kinematic model loader */
-  const planning_models_loader::KinematicModelLoaderPtr& getKinematicModelLoader(void) const
+  const planning_models_loader::KinematicModelLoaderPtr& getKinematicModelLoader() const
   {
     return kinematics_loader_;
   }
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const;
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const;
   
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
-  const planning_scene::PlanningScenePtr& getPlanningScene(void)
+  const planning_scene::PlanningScenePtr& getPlanningScene()
   {
     return scene_;
   }
   
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return scene_const_;
   }
@@ -160,37 +160,37 @@ public:
   
   /** @brief Get the stored robot description
    *  @return An instance of the stored robot description*/
-  const std::string& getRobotDescription(void) const
+  const std::string& getRobotDescription() const
   {
     return robot_description_;
   }
 
   /// Get the default robot padding
-  double getDefaultRobotPadding(void) const
+  double getDefaultRobotPadding() const
   {
     return default_robot_padd_;
   }
   
   /// Get the default robot scaling
-  double getDefaultRobotScale(void) const
+  double getDefaultRobotScale() const
   {
     return default_robot_scale_;
   }
     
   /// Get the default object padding
-  double getDefaultObjectPadding(void) const
+  double getDefaultObjectPadding() const
   {
     return default_object_padd_;
   }
   
   /// Get the default attached padding
-  double getDefaultAttachedObjectPadding(void) const
+  double getDefaultAttachedObjectPadding() const
   {
     return default_attached_padd_;
   }
   
   /** @brief Get the instance of the TF client that was passed to the constructor of this class. */
-  const boost::shared_ptr<tf::Transformer>& getTFClient(void) const
+  const boost::shared_ptr<tf::Transformer>& getTFClient() const
   {
     return tf_;
   }
@@ -206,20 +206,20 @@ public:
   void startPublishingPlanningScene(SceneUpdateType event, const std::string &planning_scene_topic = "monitored_planning_scene");
 
   /** \brief Stop publishing the maintained planning scene. */
-  void stopPublishingPlanningScene(void);
+  void stopPublishingPlanningScene();
 
   /** \brief Set the maximum frequency at which planning scenes are being published */
   void setPlanningScenePublishingFrequency(double hz);
   
   /** \brief Get the maximum frequency at which planning scenes are published (Hz) */
-  double getPlanningScenePublishingFrequency(void) const
+  double getPlanningScenePublishingFrequency() const
   {
     return publish_planning_scene_frequency_;
   }
   
   /** @brief Get the stored instance of the stored current state monitor
    *  @return An instance of the stored current state monitor*/
-  const CurrentStateMonitorPtr& getStateMonitor(void) const
+  const CurrentStateMonitorPtr& getStateMonitor() const
   {
     return current_state_monitor_;
   }
@@ -228,7 +228,7 @@ public:
    *  Examples of these frames are the "map" and "odom_combined" transforms. This function is automatically called when data that uses transforms is received.
    *  However, this function should also be called before starting a planning request, for example.
    */
-  void updateFrameTransforms(void);
+  void updateFrameTransforms();
 
   /** @brief Start the current state monitor
       @param joint_states_topic the topic to listen to for joint states
@@ -236,11 +236,11 @@ public:
   void startStateMonitor(const std::string &joint_states_topic = "joint_states", const std::string &attached_objects_topic = "attached_collision_object");
 
   /** @brief Stop the state monitor*/
-  void stopStateMonitor(void);
+  void stopStateMonitor();
 
   /** @brief Update the scene using the monitored state. This function is automatically called when an update to the current state is received (if startStateMonitor() has been called).
       The updates are throttled to a maximum update frequency however, which is set by setStateUpdateFrequency(). */
-  void updateSceneWithCurrentState(void);
+  void updateSceneWithCurrentState();
 
   /** @brief Update the scene using the monitored state at a specified frequency, in Hz. This function has an effect only when updates from the CurrentStateMonitor are received at a higher frequency.
       In that case, the updates are throttled down, so that they do not exceed a maximum update frequency specified here.
@@ -248,7 +248,7 @@ public:
   void setStateUpdateFrequency(double hz);
 
   /** @brief Get the maximum frequency (Hz) at which the current state of the planning scene is updated.*/
-  double getStateUpdateFrequency(void);
+  double getStateUpdateFrequency();
   
   /** @brief Sometimes the state reported by the robot is outside bounds (outside safety limits). This parameter specifies the accepted error in bounds.
       If the read value is within \e error distance to the accepted safety limit bounds, the value is actually assumed to be the value of the bound itself,
@@ -256,7 +256,7 @@ public:
   void setStateUpdateBoundsError(double error);
 
   /** @brief Get the error that is considered acceptable for a state to be outside bounds. */
-  double getStateUpdateBoundsError(void) const
+  double getStateUpdateBoundsError() const
   {
     return bounds_error_;
   }  
@@ -267,7 +267,7 @@ public:
   void startSceneMonitor(const std::string &scene_topic = "planning_scene");
 
   /** @brief Stop the scene monitor*/
-  void stopSceneMonitor(void);
+  void stopSceneMonitor();
 
   /** @brief Start listening for objects in the world, the collision map and attached collision objects. Additionally, this function starts the OccupancyMapMonitor as well.
    *  @param collision_objects_topic The topic on which to listen for collision objects
@@ -278,34 +278,34 @@ public:
                                  const std::string &planning_scene_world_topic = "planning_scene_world");
 
   /** @brief Stop the world geometry monitor */
-  void stopWorldGeometryMonitor(void);
+  void stopWorldGeometryMonitor();
 
   /** @brief Add a function to be called when an update to the scene is received */
   void addUpdateCallback(const boost::function<void(SceneUpdateType)> &fn);
 
   /** @brief Clear the functions to be called when an update to the scene is received */
-  void clearUpdateCallbacks(void);
+  void clearUpdateCallbacks();
   
   /** @brief Get the topic names that the monitor is listening to */
   void getMonitoredTopics(std::vector<std::string> &topics) const;
   
   /** \brief Return the time when the last update was made to the planning scene (by the monitor) */
-  const ros::Time& getLastUpdateTime(void) const
+  const ros::Time& getLastUpdateTime() const
   {
     return last_update_time_;
   }
 
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
-  void lockSceneRead(void);
+  void lockSceneRead();
 
   /** \brief Unlock the scene from reading (multiple threads can lock for reading at the same time) */
-  void unlockSceneRead(void);
+  void unlockSceneRead();
 
   /** \brief Lock the scene for writing (only one thread can lock for writing and no other thread can lock for reading) */
-  void lockSceneWrite(void);
+  void lockSceneWrite();
 
   /** \brief Lock the scene from writing (only one thread can lock for writing and no other thread can lock for reading) */
-  void unlockSceneWrite(void);
+  void unlockSceneWrite();
 
 protected:
   
@@ -317,7 +317,7 @@ protected:
   void configureCollisionMatrix(const planning_scene::PlanningScenePtr &scene);
   
   /** @brief Configure the default padding*/
-  void configureDefaultPadding(void);
+  void configureDefaultPadding();
 
   /** @brief Callback for a new planning scene msg*/
   void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
@@ -332,7 +332,7 @@ protected:
   void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
 
   /** @brief Callback for octomap updates */
-  void octomapUpdateCallback(void);
+  void octomapUpdateCallback();
   
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
@@ -406,7 +406,7 @@ private:
   void processSceneUpdateEvent(SceneUpdateType update_type);
   
   /** @brief */
-  void scenePublishingThread(void);
+  void scenePublishingThread();
   
   void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
 
@@ -428,7 +428,7 @@ public:
     initialize(true);
   }
   
-  const PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)
+  const PlanningSceneMonitorPtr& getPlanningSceneMonitor()
   {
     return planning_scene_monitor_;
   }
@@ -474,7 +474,7 @@ protected:
       else
         planning_scene_monitor_->lockSceneWrite();
     }
-    ~SingleUnlock(void)
+    ~SingleUnlock()
     { 
       if (read_only_)
         planning_scene_monitor_->unlockSceneRead();

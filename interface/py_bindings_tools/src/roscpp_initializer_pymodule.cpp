@@ -43,7 +43,7 @@ void roscpp_init(bp::list &argv, const std::string &node_name)
   //  ros::init();
 }
 
-void roscpp_shutdown(void)
+void roscpp_shutdown()
 {
   ros::shutdown();
 }

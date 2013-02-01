@@ -57,26 +57,26 @@ class PickPlan
 public:
   
   PickPlan(const PickPlaceConstPtr &pick_place);
-  ~PickPlan(void);
+  ~PickPlan();
   
   bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal);
-  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans() const
   {
     return pipeline_.getSuccessfulManipulationPlans();
   }
-  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans(void) const
+  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans() const
   {
     return pipeline_.getFailedManipulationPlans();  
   }
 
-  const moveit_msgs::MoveItErrorCodes& getErrorCode(void) const
+  const moveit_msgs::MoveItErrorCodes& getErrorCode() const
   {
     return error_code_;
   }
   
 private:
   
-  void foundSolution(void);
+  void foundSolution();
   
   PickPlaceConstPtr pick_place_;  
   ManipulationPipeline pipeline_;
@@ -95,26 +95,26 @@ class PlacePlan
 public:
   
   PlacePlan(const PickPlaceConstPtr &pick_place);
-  ~PlacePlan(void);
+  ~PlacePlan();
   
   bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
-  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans() const
   {
     return pipeline_.getSuccessfulManipulationPlans();
   }  
-  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans(void) const
+  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans() const
   {
     return pipeline_.getFailedManipulationPlans();  
   }
 
-  const moveit_msgs::MoveItErrorCodes& getErrorCode(void) const
+  const moveit_msgs::MoveItErrorCodes& getErrorCode() const
   {
     return error_code_;
   }
   
 private:
   
-  void foundSolution(void);
+  void foundSolution();
   
   PickPlaceConstPtr pick_place_;  
   ManipulationPipeline pipeline_; 
@@ -141,17 +141,17 @@ public:
 
   PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
   
-  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager(void) const
+  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager() const
   {
     return constraint_sampler_manager_loader_->getConstraintSamplerManager();
   }
   
-  const planning_pipeline::PlanningPipelinePtr& getPlanningPipeline(void) const
+  const planning_pipeline::PlanningPipelinePtr& getPlanningPipeline() const
   {
     return planning_pipeline_;
   }
 
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return planning_pipeline_->getKinematicModel();
   }

@@ -49,7 +49,7 @@ PlacePlan::PlacePlan(const PickPlaceConstPtr &pick_place) :
   pipeline_.setSolutionCallback(boost::bind(&PlacePlan::foundSolution, this));
 }
 
-PlacePlan::~PlacePlan(void)
+PlacePlan::~PlacePlan()
 {
 }
 
@@ -84,7 +84,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
-void PlacePlan::foundSolution(void)
+void PlacePlan::foundSolution()
 {
   boost::mutex::scoped_lock slock(done_mutex_);
   done_ = true;

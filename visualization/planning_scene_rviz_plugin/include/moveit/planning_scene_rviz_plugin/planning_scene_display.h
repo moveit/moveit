@@ -35,7 +35,7 @@
 #include <rviz/display.h>
 
 #ifndef Q_MOC_RUN
-#include <moveit/render_tools/planning_scene_render.h>
+#include <moveit/rviz_plugin_render_tools/planning_scene_render.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <ros/ros.h>
 #endif
@@ -77,12 +77,12 @@ public:
   void setLinkColor(const std::string &link_name, const QColor &color);
   void unsetLinkColor(const std::string& link_name);
   
-  void queueRenderSceneGeometry(void);
+  void queueRenderSceneGeometry();
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void);
-  planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO(void) const;
-  planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW(void);
-  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void);
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel();
+  planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO() const;
+  planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
+  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();
                                                                                                 
 private Q_SLOTS:
 
@@ -111,7 +111,7 @@ protected:
   void calculateOffsetPosition();
 
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  void renderPlanningScene(void);
+  void renderPlanningScene();
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
   void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color);
@@ -133,7 +133,7 @@ protected:
   Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
   
   // render the planning scene
-  KinematicStateVisualizationPtr planning_scene_robot_;  
+  RobotStateVisualizationPtr planning_scene_robot_;  
   PlanningSceneRenderPtr planning_scene_render_;
   
   bool planning_scene_needs_render_;

@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <class_loader/class_loader.h>
 #include <ros/ros.h>
@@ -51,7 +51,7 @@ public:
   static const std::string JIGGLE_PARAM_NAME;
   static const std::string ATTEMPTS_PARAM_NAME;
 
-  FixStartStateCollision(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateCollision() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(DT_PARAM_NAME, max_dt_offset_))
     {
@@ -86,7 +86,7 @@ public:
 
   }
 
-  virtual std::string getDescription(void) const { return "Fix Start State In Collision"; }
+  virtual std::string getDescription() const { return "Fix Start State In Collision"; }
 
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -97,8 +97,8 @@ public:
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
     // get the specified start state
-    kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::RobotState start_state = planning_scene->getCurrentState();
+    robot_state::robotStateToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
 
     collision_detection::CollisionRequest creq;
     creq.group_name = req.group_name;
@@ -117,10 +117,10 @@ public:
       else
         ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
       
-      kinematic_state::KinematicStatePtr prefix_state(new kinematic_state::KinematicState(start_state));
+      robot_state::RobotStatePtr prefix_state(new robot_state::RobotState(start_state));
       random_numbers::RandomNumberGenerator rng;
 
-      const std::vector<kinematic_state::JointState*> &jstates =
+      const std::vector<robot_state::JointState*> &jstates =
         planning_scene->getKinematicModel()->hasJointModelGroup(req.group_name) ?
         start_state.getJointStateGroup(req.group_name)->getJointStateVector() :
         start_state.getJointStateVector();
@@ -148,7 +148,7 @@ public:
       if (found)
       {
         planning_interface::MotionPlanRequest req2 = req;
-        kinematic_state::kinematicStateToRobotState(start_state, req2.start_state);
+        robot_state::kinematicStateToRobotState(start_state, req2.start_state);
         bool solved = planner(planning_scene, req2, res);
         if (solved)
         {

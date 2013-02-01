@@ -47,7 +47,7 @@ public:
   
   static const std::string WBOUNDS_PARAM_NAME;
   
-  FixWorkspaceBounds(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixWorkspaceBounds() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(WBOUNDS_PARAM_NAME, workspace_extent_))
     {
@@ -59,7 +59,7 @@ public:
     workspace_extent_ /= 2.0;
   }
   
-  virtual std::string getDescription(void) const { return "Fix Workspace Bounds"; }
+  virtual std::string getDescription() const { return "Fix Workspace Bounds"; }
   
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,

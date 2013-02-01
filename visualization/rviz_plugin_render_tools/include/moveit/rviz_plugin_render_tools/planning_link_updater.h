@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,60 +29,32 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
+#ifndef MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
+#define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
 
-#include <geometric_shapes/shapes.h>
-#include <rviz/helpers/color.h>
-#include <OGRE/OgreMaterial.h>
-#include <Eigen/Geometry>
-#include <string>
-#include <boost/shared_ptr.hpp>
-
-namespace Ogre
-{
-class Entity;
-class SceneNode;
-class ManualObject;
-}
-
-namespace rviz
-{
-class DisplayContext;
-class Shape;
-}
+#include <rviz/robot/link_updater.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace moveit_rviz_plugin
 {
 
-// forward delcaration
-class OcTreeRender;
-
-class RenderShapes
+/** \brief Update the links of an rviz::Robot using a robot_state::RobotState */
+class PlanningLinkUpdater : public rviz::LinkUpdater
 {
 public:
-
-  RenderShapes(rviz::DisplayContext *context);
-  ~RenderShapes(void);
   
-  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
-  void clear();
+  PlanningLinkUpdater(const robot_state::RobotStateConstPtr &state)
+    : kinematic_state_(state)
+  {
+  }
+  
+  virtual bool getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
+                                 Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const;
   
 private:
-
-  rviz::DisplayContext *context_;
-  
-  std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
-  std::vector< Ogre::MovableObject* > movable_objects_;
-  std::vector< boost::shared_ptr<OcTreeRender> > octree_voxel_grids_;
-
-  std::vector<Ogre::MaterialPtr> materials_;
+  robot_state::RobotStateConstPtr kinematic_state_;
 };
-
-typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
-typedef boost::shared_ptr<const RenderShapes> RenderShapesConstPtr;
 
 }
 
 #endif
-

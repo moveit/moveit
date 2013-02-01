@@ -67,17 +67,17 @@ public:
   
   void checkSolutionPaths(bool flag);
   
-  bool getDisplayComputedMotionPlans(void) const
+  bool getDisplayComputedMotionPlans() const
   {
     return display_computed_motion_plans_;
   }
   
-  bool getPublishReceivedRequests(void) const
+  bool getPublishReceivedRequests() const
   {
     return publish_received_requests_;
   }
 
-  bool getCheckSolutionPaths(void) const
+  bool getCheckSolutionPaths() const
   {
     return check_solution_paths_;
   }
@@ -92,31 +92,31 @@ public:
                     std::vector<std::size_t> &adapter_added_state_index) const;
 
   /// Request termination, if a generatePlan() function is currently computing plans
-  void terminate(void) const;
+  void terminate() const;
   
-  const std::string& getPlannerPluginName(void) const
+  const std::string& getPlannerPluginName() const
   {
     return planner_plugin_name_;
   }
   
-  const std::vector<std::string>& getAdapterPluginNames(void) const
+  const std::vector<std::string>& getAdapterPluginNames() const
   {
     return adapter_plugin_names_;
   }
 
-  const planning_interface::PlannerPtr& getPlannerInterface(void)
+  const planning_interface::PlannerPtr& getPlannerInterface()
   {
     return planner_instance_;
   }
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return kmodel_;
   }
 
 private:
   
-  void configure(void);
+  void configure();
   
   ros::NodeHandle nh_;
 

@@ -53,21 +53,21 @@ public:
   {
   }
   
-  virtual ~ManipulationStage(void)
+  virtual ~ManipulationStage()
   {
   }
   
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return name_;
   }
   
-  virtual void resetStopSignal(void)
+  virtual void resetStopSignal()
   {
     signal_stop_ = false;
   }
   
-  virtual void signalStop(void)
+  virtual void signalStop()
   {
     signal_stop_ = true;
   }

@@ -36,7 +36,7 @@
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 
 #include <moveit/robot_interaction/robot_interaction.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 
 
 #include <string>
@@ -77,12 +77,12 @@ public:
               const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const float color[4],
               bool is_selected = false, bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
-  virtual void updateMarker(void)
+  virtual void updateMarker()
   {
     imarker->processMessage(imarker_msg);
   }
 
-  virtual void hide(void);
+  virtual void hide();
   virtual void show(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context);
 
   virtual void setAxisVisibility(bool x, bool y, bool z)
@@ -98,10 +98,10 @@ public:
   virtual void getPosition(geometry_msgs::Point &position);
   virtual void getOrientation(geometry_msgs::Quaternion &orientation);
 
-  virtual void select(void);
-  virtual void unselect(void);
+  virtual void select();
+  virtual void unselect();
 
-  bool isSelected(void)
+  bool isSelected()
   {
     return selected_;
   }
@@ -157,7 +157,7 @@ public:
    * @param is_selected whether this frame marker is selected or not by default. When selected, controls are displayed
    * @param visible_x, visible_y, visible_z define the visibility of each axis
    */
-  GripperMarker(const kinematic_state::KinematicStateConstPtr& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+  GripperMarker(const robot_state::RobotStateConstPtr& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                 const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                 const GripperMarkerState &state, bool is_selected = false, bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
@@ -183,7 +183,7 @@ protected:
 
   const float *stateToColor(const GripperMarkerState &state);
 
-  kinematic_state::KinematicStateConstPtr kinematic_state_;
+  robot_state::RobotStateConstPtr kinematic_state_;
   robot_interaction::RobotInteraction::EndEffector eef_;
 
   bool display_gripper_mesh_;

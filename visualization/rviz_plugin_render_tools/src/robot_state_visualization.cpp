@@ -29,14 +29,14 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/render_tools/kinematic_state_visualization.h>
-#include <moveit/render_tools/planning_link_updater.h>
-#include <moveit/render_tools/render_shapes.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
+#include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
+#include <moveit/rviz_plugin_render_tools/render_shapes.h>
 
 namespace moveit_rviz_plugin
 {
 
-KinematicStateVisualization::KinematicStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
+RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
                                                          const std::string& name, rviz::Property* parent_property) :
   robot_(root_node, context, name, parent_property),
   visible_(true),
@@ -50,7 +50,7 @@ KinematicStateVisualization::KinematicStateVisualization(Ogre::SceneNode* root_n
   render_shapes_.reset(new RenderShapes(context));
 }
 
-void KinematicStateVisualization::load(const urdf::ModelInterface &descr, bool visual, bool collision)
+void RobotStateVisualization::load(const urdf::ModelInterface &descr, bool visual, bool collision)
 {
   robot_.load(descr, visual, collision); 
   robot_.setVisualVisible(visual_visible_);
@@ -58,43 +58,43 @@ void KinematicStateVisualization::load(const urdf::ModelInterface &descr, bool v
   robot_.setVisible(visible_);
 }
 
-void KinematicStateVisualization::clear()
+void RobotStateVisualization::clear()
 {
   robot_.clear(); 
   render_shapes_->clear();
 }
 
-void KinematicStateVisualization::setDefaultAttachedObjectColor(const std_msgs::ColorRGBA &default_attached_object_color)
+void RobotStateVisualization::setDefaultAttachedObjectColor(const std_msgs::ColorRGBA &default_attached_object_color)
 {
   default_attached_object_color_ = default_attached_object_color;
 }
 
-void KinematicStateVisualization::update(const kinematic_state::KinematicStateConstPtr &kinematic_state)
+void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kinematic_state)
 {
   updateHelper(kinematic_state, default_attached_object_color_, NULL);
 }
 
 
-void KinematicStateVisualization::update(const kinematic_state::KinematicStateConstPtr &kinematic_state,
+void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kinematic_state,
                                          const  std_msgs::ColorRGBA &default_attached_object_color)
 {
   updateHelper(kinematic_state, default_attached_object_color, NULL);
 }
 
-void KinematicStateVisualization::update(const kinematic_state::KinematicStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color, 
+void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color, 
                                          const std::map<std::string, std_msgs::ColorRGBA> &color_map)
 {
   updateHelper(kinematic_state, default_attached_object_color, &color_map);
 }
 
-void KinematicStateVisualization::updateHelper(const kinematic_state::KinematicStateConstPtr &kinematic_state,
+void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr &kinematic_state,
                                                const std_msgs::ColorRGBA &default_attached_object_color,
                                                const std::map<std::string, std_msgs::ColorRGBA> *color_map)
 {
   robot_.update(PlanningLinkUpdater(kinematic_state));
   render_shapes_->clear();
 
-  std::vector<const kinematic_state::AttachedBody*> attached_bodies;
+  std::vector<const robot_state::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
   for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
   {
@@ -123,25 +123,25 @@ void KinematicStateVisualization::updateHelper(const kinematic_state::KinematicS
   robot_.setVisible(visible_);
 }
 
-void KinematicStateVisualization::setVisible(bool visible)
+void RobotStateVisualization::setVisible(bool visible)
 {
   visible_ = visible;
   robot_.setVisible(visible);
 }
 
-void KinematicStateVisualization::setVisualVisible(bool visible)
+void RobotStateVisualization::setVisualVisible(bool visible)
 {
   visual_visible_ = visible;
   robot_.setVisualVisible(visible);
 }
 
-void KinematicStateVisualization::setCollisionVisible(bool visible)
+void RobotStateVisualization::setCollisionVisible(bool visible)
 {  
   collision_visible_ = visible;
   robot_.setCollisionVisible(visible);
 }
 
-void KinematicStateVisualization::setAlpha(float alpha)
+void RobotStateVisualization::setAlpha(float alpha)
 {
   robot_.setAlpha(alpha);
 }
