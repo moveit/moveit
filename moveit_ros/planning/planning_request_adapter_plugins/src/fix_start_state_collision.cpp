@@ -155,7 +155,7 @@ public:
           if (!res.trajectory_->empty())
             // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
             res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
-          res.trajectory_->insertWayPoint(0, prefix_state, 0.0);
+          res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
           added_path_index.push_back(0);
         }
         return solved;

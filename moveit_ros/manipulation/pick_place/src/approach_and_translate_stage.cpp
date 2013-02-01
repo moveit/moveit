@@ -106,7 +106,7 @@ void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Join
     kinematic_state::KinematicStatePtr state(new kinematic_state::KinematicState(plan->trajectories_.back()->getLastWayPoint()));
     state->setStateValues(grasp_posture);
     kinematic_trajectory::KinematicTrajectoryPtr traj(new kinematic_trajectory::KinematicTrajectory(state->getKinematicModel(), plan->end_effector_group_));
-    traj->addWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+    traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan->trajectories_.push_back(traj);
     plan->trajectory_descriptions_.push_back(name);
   }
@@ -165,15 +165,14 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
           if (d_translation > plan->grasp_.min_translation_distance && !signal_stop_)
           {
-            plan->approach_state_.swap(first_approach_state);
-            plan->translation_state_.swap(last_translation_state);
-
             std::reverse(approach_states.begin(), approach_states.end());
             kinematic_trajectory::KinematicTrajectoryPtr approach_traj(new kinematic_trajectory::KinematicTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
-            approach_traj->swap(approach_states);
-
+            for (std::size_t k = 0 ; k < approach_states.size() ; ++k)
+              approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
+            
             kinematic_trajectory::KinematicTrajectoryPtr translation_traj(new kinematic_trajectory::KinematicTrajectory(post_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
-            translation_traj->swap(translation_states);
+            for (std::size_t k = 0 ; k < translation_states.size() ; ++k)
+              translation_traj->addSuffixWayPoint(translation_states[k], 0.0);
             
             time_param_.computeTimeStamps(*approach_traj); 
             time_param_.computeTimeStamps(*translation_traj);            
@@ -186,6 +185,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             plan->trajectories_.push_back(translation_traj);
             plan->trajectory_descriptions_.push_back("translation");
             
+            plan->approach_state_ = approach_states.front();
             return true;          
           }
         }
@@ -194,14 +194,16 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           plan->approach_state_.swap(first_approach_state);
           std::reverse(approach_states.begin(), approach_states.end());
           kinematic_trajectory::KinematicTrajectoryPtr approach_traj(new kinematic_trajectory::KinematicTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
-          approach_traj->swap(approach_states);
-          
+          for (std::size_t k = 0 ; k < approach_states.size() ; ++k)
+            approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
+
           time_param_.computeTimeStamps(*approach_traj);
           
           plan->trajectories_.push_back(approach_traj);
           plan->trajectory_descriptions_.push_back("approach");
           
           addGraspTrajectory(plan, plan->grasp_.grasp_posture, "grasp");
+          plan->approach_state_ = approach_states.front();
           
           return true;          
         }
