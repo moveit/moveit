@@ -324,11 +324,11 @@ class MoveGroupCommander:
         multi_dof_joint_traj.child_frame_ids = plan["multi_dof_joint_trajectory"]["child_frame_ids"]
         for point in plan["multi_dof_joint_trajectory"]["points"]:
              multi_dof_joint_traj_point = MultiDOFJointTrajectoryPoint()
-             for pose in point["poses"]:
-                 multi_dof_joint_traj_point.poses.append(Point(
-                     position = Point(x = pose["position"]["x"], y = pose["position"]["y"], z = pose["position"]["z"]),
-                     orientation = Quaternion(x = pose["orientation"]["x"], y = pose["orientation"]["y"],
-                                              z = pose["orientation"]["z"], w = pose["orientation"]["w"])))
+             for t in point["transforms"]:
+                 multi_dof_joint_traj_point.poses.append(Transform(
+                         translation = Vector(x = t["translation"]["x"], y = t["translation"]["y"], z = t["translation"]["z"]),
+                         rotation = Quaternion(x = t["rotation"]["x"], y = t["rotation"]["y"],
+                                               z = t["rotation"]["z"], w = t["rotation"]["w"])))
              multi_dof_joint_traj.points.append(multi_dof_joint_traj_point)
         plan_msg.joint_trajectory = joint_traj
         plan_msg.multi_dof_joint_trajectory = multi_dof_joint_traj
