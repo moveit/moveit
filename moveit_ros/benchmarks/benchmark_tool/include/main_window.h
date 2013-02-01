@@ -90,7 +90,8 @@ public Q_SLOTS:
   void checkGoalsInCollision(void);
   void checkGoalsReachable(void);
   void loadBenchmarkResults(void);
-  void updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
+  void updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state);
+  void updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
 
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
