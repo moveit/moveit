@@ -108,13 +108,13 @@ void planning_scene_monitor::TrajectoryMonitor::recordStates(void)
     std::pair<kinematic_state::KinematicStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
     if (trajectory_.empty())
     {
-      trajectory_.addWayPoint(state.first, 0.0);
+      trajectory_.addSuffixWayPoint(state.first, 0.0);
       trajectory_start_time_ = state.second;
       last_recorded_state_time_ = state.second;
     }
     else
     {
-      trajectory_.addWayPoint(state.first, (state.second - last_recorded_state_time_).toSec());
+      trajectory_.addSuffixWayPoint(state.first, (state.second - last_recorded_state_time_).toSec());
       last_recorded_state_time_ = state.second;
     }
     if (state_add_callback_)

@@ -71,7 +71,6 @@ struct ManipulationPlan
   std::vector<kinematic_state::KinematicStatePtr> possible_goal_states_;
 
   kinematic_state::KinematicStatePtr approach_state_;
-  kinematic_state::KinematicStatePtr translation_state_;
   
   // The sequence of trajectories produced for execution
   std::vector<kinematic_trajectory::KinematicTrajectoryPtr> trajectories_;

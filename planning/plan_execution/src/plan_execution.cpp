@@ -251,8 +251,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   // push the trajectories we have slated for execution to the trajectory execution manager
   int prev = -1;
   for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
-  {ROS_ERROR("XX %d", i);
-    
+  {    
     if (!plan.planned_trajectory_[i] || plan.planned_trajectory_[i]->empty())
       continue;
     
