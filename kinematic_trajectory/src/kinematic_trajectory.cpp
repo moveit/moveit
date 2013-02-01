@@ -75,12 +75,6 @@ void kinematic_trajectory::KinematicTrajectory::swap(kinematic_trajectory::Kinem
   duration_from_previous_.swap(duration_from_previous_);
 }
 
-void kinematic_trajectory::KinematicTrajectory::swap(std::vector<kinematic_state::KinematicStatePtr> &other)
-{
-  waypoints_.swap(other);
-  duration_from_previous_.clear();
-}
-
 void kinematic_trajectory::KinematicTrajectory::append(const KinematicTrajectory &source, double dt)
 {
   waypoints_.insert(waypoints_.end(), source.waypoints_.begin(),source.waypoints_.end());
@@ -290,7 +284,7 @@ void kinematic_trajectory::KinematicTrajectory::setRobotTrajectoryMsg(const kine
     
     kinematic_state::KinematicStatePtr st(new kinematic_state::KinematicState(copy));
     kinematic_state::robotStateToKinematicState(rs, *st);
-    addWayPoint(st, (this_time_stamp - last_time_stamp).toSec());
+    addSuffixWayPoint(st, (this_time_stamp - last_time_stamp).toSec());
     last_time_stamp = this_time_stamp;
   }
 }

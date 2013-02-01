@@ -35,86 +35,13 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/kinematic_state/conversions.h>
-#include <boost/math/constants/constants.hpp>
-#include <eigen_conversions/eigen_msg.h>
   
 namespace trajectory_processing
 {
 
-void convertToKinematicStates(std::vector<kinematic_state::KinematicStatePtr> &states,
-                              const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
-                              const kinematic_state::KinematicState &reference_state, const kinematic_state::TransformsConstPtr &transforms)
-{
-  states.clear();
-  kinematic_state::KinematicState start(reference_state);
-  kinematic_state::robotStateToKinematicState(*transforms, start_state, start);
-  std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
-                                     trajectory.multi_dof_joint_trajectory.points.size());
-  states.resize(state_count);
-  for (std::size_t i = 0 ; i < state_count ; ++i)
-  {
-    moveit_msgs::RobotState rs;
-    robotTrajectoryPointToRobotState(trajectory, i, rs);
-    kinematic_state::KinematicStatePtr st(new kinematic_state::KinematicState(start));
-    kinematic_state::robotStateToKinematicState(*transforms, rs, *st);
-    states[i] = st;
-  }
-}
-
-double getTrajectoryDuration(const moveit_msgs::RobotTrajectory &trajectory)
-{
-  if (trajectory.joint_trajectory.points.size() > 1 || trajectory.multi_dof_joint_trajectory.points.size() > 1)
-    return (trajectory.joint_trajectory.points.size() > trajectory.multi_dof_joint_trajectory.points.size()) ? 
-      trajectory.joint_trajectory.points.back().time_from_start.toSec() : trajectory.multi_dof_joint_trajectory.points.back().time_from_start.toSec();
-  else
-    return 0.0;
-}
-
 bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory)
 { 
   return trajectory.joint_trajectory.points.empty() && trajectory.multi_dof_joint_trajectory.points.empty();
-}
-
-double averageSegmentDuration(const moveit_msgs::RobotTrajectory &trajectory)
-{   
-  if (trajectory.joint_trajectory.points.size() > 1 || trajectory.multi_dof_joint_trajectory.points.size() > 1)
-    return (trajectory.joint_trajectory.points.size() > trajectory.multi_dof_joint_trajectory.points.size()) ? 
-      trajectory.joint_trajectory.points.back().time_from_start.toSec() / (double)(trajectory.joint_trajectory.points.size() - 1) :
-      trajectory.multi_dof_joint_trajectory.points.back().time_from_start.toSec() / (double)(trajectory.multi_dof_joint_trajectory.points.size() - 1);
-  else
-    return 0.0;
-}
-
-std::size_t trajectoryPointCount(const moveit_msgs::RobotTrajectory &trajectory)
-{
-  return std::max(trajectory.joint_trajectory.points.size(), trajectory.multi_dof_joint_trajectory.points.size());
-}
-
-bool robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, std::size_t index, moveit_msgs::RobotState &rs)
-{
-  bool result = false;
-  if (rt.joint_trajectory.points.size() > index)
-  {
-    rs.joint_state.header = rt.joint_trajectory.header;
-    rs.joint_state.header.stamp = rs.joint_state.header.stamp + rt.joint_trajectory.points[index].time_from_start;
-    rs.joint_state.name = rt.joint_trajectory.joint_names;
-    rs.joint_state.position = rt.joint_trajectory.points[index].positions;
-    rs.joint_state.velocity = rt.joint_trajectory.points[index].velocities;
-    result = true;
-  }
-  else
-    rs.joint_state = sensor_msgs::JointState();
-  if (rt.multi_dof_joint_trajectory.points.size() > index)
-  {
-    rs.multi_dof_joint_state.joint_names = rt.multi_dof_joint_trajectory.joint_names;
-    rs.multi_dof_joint_state.header.stamp = rt.joint_trajectory.header.stamp + rt.multi_dof_joint_trajectory.points[index].time_from_start;
-    rs.multi_dof_joint_state.joint_transforms = rt.multi_dof_joint_trajectory.points[index].transforms;
-    result = true;
-  }
-  else
-    rs.multi_dof_joint_state = moveit_msgs::MultiDOFJointState();
-  return result;
 }
 
 }
