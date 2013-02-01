@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Willow Garage, Inc.
+ * Copyright (c) 2012, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,60 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/render_tools/planning_link_updater.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreVector3.h>
+#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
+#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
 
-bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
-                                                                Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
+#include <geometric_shapes/shapes.h>
+#include <rviz/helpers/color.h>
+#include <OGRE/OgreMaterial.h>
+#include <Eigen/Geometry>
+#include <string>
+#include <boost/shared_ptr.hpp>
+
+namespace Ogre
 {
-  const kinematic_state::LinkState* link_state = kinematic_state_->getLinkState(link_name);
-
-  if (!link_state)
-  {
-    return false;
-  }
-  
-  const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
-  Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
-  visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
-  visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
-  collision_position = visual_position;
-  collision_orientation = visual_orientation;
-  
-  return true;
+class Entity;
+class SceneNode;
+class ManualObject;
 }
+
+namespace rviz
+{
+class DisplayContext;
+class Shape;
+}
+
+namespace moveit_rviz_plugin
+{
+
+// forward delcaration
+class OcTreeRender;
+
+class RenderShapes
+{
+public:
+
+  RenderShapes(rviz::DisplayContext *context);
+  ~RenderShapes();
+  
+  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
+  void clear();
+  
+private:
+
+  rviz::DisplayContext *context_;
+  
+  std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
+  std::vector< Ogre::MovableObject* > movable_objects_;
+  std::vector< boost::shared_ptr<OcTreeRender> > octree_voxel_grids_;
+
+  std::vector<Ogre::MaterialPtr> materials_;
+};
+
+typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
+typedef boost::shared_ptr<const RenderShapes> RenderShapesConstPtr;
+
+}
+
+#endif
 

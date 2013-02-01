@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/pick_place/pick_place.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -86,7 +86,7 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr &plan) const
   dtraj.model_id = getKinematicModel()->getName();
   if (!plan->trajectories_.empty())
   {
-    kinematic_state::kinematicStateToRobotState(plan->trajectories_.front()->getFirstWayPoint(), dtraj.trajectory_start);
+    robot_state::kinematicStateToRobotState(plan->trajectories_.front()->getFirstWayPoint(), dtraj.trajectory_start);
     dtraj.trajectory.resize(plan->trajectories_.size());
     for (std::size_t i = 0 ; i < plan->trajectories_.size() ; ++i)
       plan->trajectories_[i]->getRobotTrajectoryMsg(dtraj.trajectory[i]);
@@ -102,7 +102,7 @@ void PickPlace::visualizeGrasp(const ManipulationPlanPtr &plan) const
 namespace
 {
 
-std::vector<std_msgs::ColorRGBA> setupDefaultGraspColors(void)
+std::vector<std_msgs::ColorRGBA> setupDefaultGraspColors()
 {
   std::vector<std_msgs::ColorRGBA> result;
   result.resize(6);
@@ -122,7 +122,7 @@ void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) c
   if (plans.empty())
     return;
   
-  kinematic_state::KinematicState state(getKinematicModel());
+  robot_state::RobotState state(getKinematicModel());
   state.setToDefaultValues();
   
   static std::vector<std_msgs::ColorRGBA> colors(setupDefaultGraspColors());

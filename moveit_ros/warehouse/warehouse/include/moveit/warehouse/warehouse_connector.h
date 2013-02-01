@@ -48,7 +48,7 @@ public:
   
   WarehouseConnector(const std::string &mongoexec);
   
-  ~WarehouseConnector(void);
+  ~WarehouseConnector();
   
   bool connectToDatabase(const std::string& db_dirname);
   

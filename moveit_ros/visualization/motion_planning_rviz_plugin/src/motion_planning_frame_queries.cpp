@@ -32,7 +32,7 @@
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 
@@ -52,7 +52,7 @@
 namespace moveit_rviz_plugin
 {
 
-void MotionPlanningFrame::createGoalPoseButtonClicked(void)
+void MotionPlanningFrame::createGoalPoseButtonClicked()
 {
   std::stringstream ss;
 
@@ -145,7 +145,7 @@ void MotionPlanningFrame::createGoalPoseButtonClicked(void)
   populateGoalPosesList();
 }
 
-void MotionPlanningFrame::removeSelectedGoalsButtonClicked(void)
+void MotionPlanningFrame::removeSelectedGoalsButtonClicked()
 {
   QList<QListWidgetItem*> found_items = ui_->goal_poses_list->selectedItems();
   for ( unsigned int i = 0 ; i < found_items.size() ; i++ )
@@ -155,13 +155,13 @@ void MotionPlanningFrame::removeSelectedGoalsButtonClicked(void)
   populateGoalPosesList();
 }
 
-void MotionPlanningFrame::removeAllGoalsButtonClicked(void)
+void MotionPlanningFrame::removeAllGoalsButtonClicked()
 {
   goal_poses_.clear();
   populateGoalPosesList();
 }
 
-void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
+void MotionPlanningFrame::loadGoalsFromDBButtonClicked()
 {
   //Get all the constraints from the database, convert to goal pose markers
   if (constraints_storage_ && !planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
@@ -227,7 +227,7 @@ void MotionPlanningFrame::loadGoalsFromDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
+void MotionPlanningFrame::saveGoalsOnDBButtonClicked()
 {
   if (constraints_storage_)
   {
@@ -276,7 +276,7 @@ void MotionPlanningFrame::saveGoalsOnDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::deleteGoalsOnDBButtonClicked(void)
+void MotionPlanningFrame::deleteGoalsOnDBButtonClicked()
 {
   if (constraints_storage_)
   {
@@ -313,7 +313,7 @@ void MotionPlanningFrame::deleteGoalsOnDBButtonClicked(void)
 }
 
 
-void MotionPlanningFrame::loadStatesFromDBButtonClicked(void)
+void MotionPlanningFrame::loadStatesFromDBButtonClicked()
 {
   //Get all the start states from the database
   if (robot_state_storage_)
@@ -364,7 +364,7 @@ void MotionPlanningFrame::loadStatesFromDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::saveStatesOnDBButtonClicked(void)
+void MotionPlanningFrame::saveStatesOnDBButtonClicked()
 {
   if (robot_state_storage_)
   {
@@ -385,7 +385,7 @@ void MotionPlanningFrame::saveStatesOnDBButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::deleteStatesOnDBButtonClicked(void)
+void MotionPlanningFrame::deleteStatesOnDBButtonClicked()
 {
   if (robot_state_storage_)
   {
@@ -435,7 +435,7 @@ void MotionPlanningFrame::visibleAxisChanged(int state)
   }
 }
 
-void MotionPlanningFrame::populateGoalPosesList(void)
+void MotionPlanningFrame::populateGoalPosesList()
 {
   ui_->goal_poses_list->clear();
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
@@ -454,7 +454,7 @@ void MotionPlanningFrame::populateGoalPosesList(void)
   }
 }
 
-void MotionPlanningFrame::switchGoalVisibilityButtonClicked(void)
+void MotionPlanningFrame::switchGoalVisibilityButtonClicked()
 {
   QList<QListWidgetItem*> selection = ui_->goal_poses_list->selectedItems();
   for (std::size_t i = 0; i < selection.size() ; ++i)
@@ -475,7 +475,7 @@ void MotionPlanningFrame::switchGoalVisibilityButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::goalPoseSelectionChanged(void)
+void MotionPlanningFrame::goalPoseSelectionChanged()
 {
   for (unsigned int i = 0; i < ui_->goal_poses_list->count() ; ++i)
   {
@@ -503,7 +503,7 @@ void MotionPlanningFrame::computeGoalPoseDoubleClicked(QListWidgetItem * item)
   //Switch the marker color to processing color while processing
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateMarkerStateFromName, this, item_text, GripperMarker::PROCESSING));
 
-  kinematic_state::KinematicStatePtr tmp(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
+  robot_state::RobotStatePtr tmp(new robot_state::RobotState(*planning_display_->getQueryGoalState()));
   checkIfGoalReachable(tmp, item_text);
   planning_display_->setQueryGoalState(*tmp);
 }
@@ -592,21 +592,21 @@ void MotionPlanningFrame::goalPoseFeedback(visualization_msgs::InteractiveMarker
   }
 }
 
-void MotionPlanningFrame::checkGoalsReachable(void)
+void MotionPlanningFrame::checkGoalsReachable()
 {
-  kinematic_state::KinematicStatePtr tmp(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
+  robot_state::RobotStatePtr tmp(new robot_state::RobotState(*planning_display_->getQueryGoalState()));
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::checkIfGoalReachable, this, tmp, it->first));
 }
 
-void MotionPlanningFrame::checkGoalsInCollision(void)
+void MotionPlanningFrame::checkGoalsInCollision()
 {
-  kinematic_state::KinematicStatePtr tmp(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
+  robot_state::RobotStatePtr tmp(new robot_state::RobotState(*planning_display_->getQueryGoalState()));
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::checkIfGoalInCollision, this, tmp, it->first));
 }
 
-void MotionPlanningFrame::checkIfGoalReachable(const kinematic_state::KinematicStatePtr &work_state, const std::string &goal_name)
+void MotionPlanningFrame::checkIfGoalReachable(const robot_state::RobotStatePtr &work_state, const std::string &goal_name)
 {
   if ( ! goal_poses_[goal_name].isVisible())
     return;
@@ -642,7 +642,7 @@ void MotionPlanningFrame::checkIfGoalReachable(const kinematic_state::KinematicS
   }
 }
 
-void MotionPlanningFrame::checkIfGoalInCollision(const kinematic_state::KinematicStatePtr &work_state, const std::string & goal_name)
+void MotionPlanningFrame::checkIfGoalInCollision(const robot_state::RobotStatePtr &work_state, const std::string & goal_name)
 {
   // Check if the end-effector is in collision at the current pose
   if ( ! goal_poses_[goal_name].isVisible())
@@ -666,7 +666,7 @@ void MotionPlanningFrame::checkIfGoalInCollision(const kinematic_state::Kinemati
 
 void MotionPlanningFrame::checkIfGoalInCollision(const std::string &goal_name)
 {
-  kinematic_state::KinematicStatePtr tmp(new kinematic_state::KinematicState(*planning_display_->getQueryGoalState()));
+  robot_state::RobotStatePtr tmp(new robot_state::RobotState(*planning_display_->getQueryGoalState()));
   checkIfGoalInCollision(tmp, goal_name);
 }
 
@@ -695,7 +695,7 @@ void MotionPlanningFrame::switchGoalPoseMarkerSelection(const std::string &marke
   connect( goal_poses_[marker_name].imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 }
 
-void MotionPlanningFrame::copySelectedGoalPoses(void)
+void MotionPlanningFrame::copySelectedGoalPoses()
 {
   QList<QListWidgetItem *> sel = ui_->goal_poses_list->selectedItems();
   if (sel.empty() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
@@ -745,7 +745,7 @@ void MotionPlanningFrame::copySelectedGoalPoses(void)
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateGoalPosesList, this));
 }
 
-void MotionPlanningFrame::saveStartStateButtonClicked(void)
+void MotionPlanningFrame::saveStartStateButtonClicked()
 {
   bool ok = false;
 
@@ -769,7 +769,7 @@ void MotionPlanningFrame::saveStartStateButtonClicked(void)
       {
         //Store the current start state
         moveit_msgs::RobotState msg;
-        kinematic_state::kinematicStateToRobotState(*planning_display_->getQueryStartState(), msg);
+        robot_state::kinematicStateToRobotState(*planning_display_->getQueryStartState(), msg);
         start_states_.insert(StartStatePair(name,  StartState(msg)));
 
         //Save to the database if connected
@@ -792,7 +792,7 @@ void MotionPlanningFrame::saveStartStateButtonClicked(void)
   populateStartStatesList();
 }
 
-void MotionPlanningFrame::removeSelectedStatesButtonClicked(void)
+void MotionPlanningFrame::removeSelectedStatesButtonClicked()
 {
   QList<QListWidgetItem*> found_items = ui_->start_states_list->selectedItems();
   for (unsigned int i = 0; i < found_items.size(); i++)
@@ -802,13 +802,13 @@ void MotionPlanningFrame::removeSelectedStatesButtonClicked(void)
   populateStartStatesList();
 }
 
-void MotionPlanningFrame::removeAllStatesButtonClicked(void)
+void MotionPlanningFrame::removeAllStatesButtonClicked()
 {
   start_states_.clear();
   populateStartStatesList();
 }
 
-void MotionPlanningFrame::populateStartStatesList(void)
+void MotionPlanningFrame::populateStartStatesList()
 {
   ui_->start_states_list->clear();
   for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
@@ -826,12 +826,12 @@ void MotionPlanningFrame::populateStartStatesList(void)
 void MotionPlanningFrame::startStateItemDoubleClicked(QListWidgetItem * item)
 {
   //If a start state item is double clicked, apply it to the start query
-  kinematic_state::KinematicStatePtr ks(new kinematic_state::KinematicState(*planning_display_->getQueryStartState()));
-  kinematic_state::robotStateToKinematicState(start_states_[item->text().toStdString()].state_msg, *ks);
+  robot_state::RobotStatePtr ks(new robot_state::RobotState(*planning_display_->getQueryStartState()));
+  robot_state::robotStateToRobotState(start_states_[item->text().toStdString()].state_msg, *ks);
   planning_display_->setQueryStartState(*ks);
 }
 
-void MotionPlanningFrame::loadBenchmarkResults(void)
+void MotionPlanningFrame::loadBenchmarkResults()
 {
   //Select a log file of the set.
   QString path = QFileDialog::getOpenFileName(this, tr("Select a log file in the set"), tr(""), tr("Log files (*.log)"));

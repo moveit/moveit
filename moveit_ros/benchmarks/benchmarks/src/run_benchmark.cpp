@@ -40,7 +40,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/benchmarks/benchmarks_utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 
 #include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
@@ -58,7 +58,7 @@ class BenchmarkService
 {
 public:
   
-  BenchmarkService(void) : scene_monitor_(ROBOT_DESCRIPTION)
+  BenchmarkService() : scene_monitor_(ROBOT_DESCRIPTION)
   {
     // initialize a planning scene
     
@@ -139,7 +139,7 @@ public:
         L = 0.0;
         clearance = 0.0;
         smoothness = 0.0;
-        const kinematic_trajectory::KinematicTrajectory &p = *mp_res.trajectory_[j];
+        const robot_trajectory::RobotTrajectory &p = *mp_res.trajectory_[j];
         
         // compute path length
         for (std::size_t k = 1 ; k < p.getWayPointCount() ; ++k)
@@ -456,8 +456,8 @@ public:
     ik_pose.orientation.z = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z;
     ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
     
-    kinematic_state::KinematicState kinematic_state(scene_monitor_.getPlanningScene()->getCurrentState());
-    kinematic_state::robotStateToKinematicState(req.motion_plan_request.start_state, kinematic_state);
+    robot_state::RobotState kinematic_state(scene_monitor_.getPlanningScene()->getCurrentState());
+    robot_state::robotStateToRobotState(req.motion_plan_request.start_state, kinematic_state);
     
     // Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
@@ -502,17 +502,17 @@ public:
     return true;
   }
   
-  void status(void) const
+  void status() const
   {
   }
   
 private:
   
-  bool isIKSolutionCollisionFree(bool *reachable, kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
+  bool isIKSolutionCollisionFree(bool *reachable, robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
   {
     group->setVariableValues(ik_solution);
     *reachable = true;
-    if (scene_monitor_.getPlanningScene()->isStateColliding(*group->getKinematicState(), group->getName(), false))
+    if (scene_monitor_.getPlanningScene()->isStateColliding(*group->getRobotState(), group->getName(), false))
       return false;
     else
       return true;

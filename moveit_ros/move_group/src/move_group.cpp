@@ -46,7 +46,7 @@
 #include <moveit/plan_execution/plan_with_sensing.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/pick_place/pick_place.h>
 
 namespace move_group
@@ -123,7 +123,7 @@ public:
     place_action_server_->start();
   }
   
-  ~MoveGroupServer(void)
+  ~MoveGroupServer()
   {
     move_action_server_.reset();
     pickup_action_server_.reset();
@@ -134,7 +134,7 @@ public:
     planning_scene_monitor_.reset();
   }
   
-  void status(void)
+  void status()
   {
     const planning_interface::PlannerPtr &planner_interface = planning_pipeline_->getPlannerInterface();
     if (planner_interface)
@@ -145,7 +145,7 @@ public:
   
 private:
 
-  void convertToMsg(const std::vector<kinematic_trajectory::KinematicTrajectoryPtr> trajectory,
+  void convertToMsg(const std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory,
                     moveit_msgs::RobotState &first_state_msg, std::vector<moveit_msgs::RobotTrajectory> &trajectory_msg)
   {
     if (!trajectory.empty())
@@ -158,7 +158,7 @@ private:
         {          
           if (first && !trajectory[i]->empty())
           {
-            kinematic_state::kinematicStateToRobotState(trajectory[i]->getFirstWayPoint(), first_state_msg);
+            robot_state::kinematicStateToRobotState(trajectory[i]->getFirstWayPoint(), first_state_msg);
             first = false;
           }
           trajectory[i]->getRobotTrajectoryMsg(trajectory_msg[i]);
@@ -167,17 +167,17 @@ private:
     }
   }
   
-  void convertToMsg(const kinematic_trajectory::KinematicTrajectoryPtr &trajectory,
+  void convertToMsg(const robot_trajectory::RobotTrajectoryPtr &trajectory,
                     moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg)
   {     
     if (trajectory && !trajectory->empty())
     {
-      kinematic_state::kinematicStateToRobotState(trajectory->getFirstWayPoint(), first_state_msg);
+      robot_state::kinematicStateToRobotState(trajectory->getFirstWayPoint(), first_state_msg);
       trajectory->getRobotTrajectoryMsg(trajectory_msg);
     }
   }
   
-  void convertToMsg(const std::vector<kinematic_trajectory::KinematicTrajectoryPtr> trajectory,
+  void convertToMsg(const std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory,
                     moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg)
   {
     if (trajectory.size() > 1)
@@ -218,11 +218,11 @@ private:
     return solved;
   }
   
-  void startMoveExecutionCallback(void) { setMoveState(MONITOR); }
-  void startMoveLookCallback(void) { setMoveState(LOOK); }
+  void startMoveExecutionCallback() { setMoveState(MONITOR); }
+  void startMoveLookCallback() { setMoveState(LOOK); }
 
-  void startPickupExecutionCallback(void) { setPickupState(MONITOR); }
-  void startPickupLookCallback(void) { setPickupState(LOOK); }
+  void startPickupExecutionCallback() { setPickupState(MONITOR); }
+  void startPickupLookCallback() { setPickupState(LOOK); }
 
   void executeMoveCallback_PlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal, moveit_msgs::MoveGroupResult &action_res)
   {
@@ -274,7 +274,7 @@ private:
     if (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff))
     {
       planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
-      const kinematic_state::KinematicState &current_state = lscene->getCurrentState();
+      const robot_state::RobotState &current_state = lscene->getCurrentState();
       
       // check to see if the desired constraints are already met
       for (std::size_t i = 0 ; i < goal->request.goal_constraints.size() ; ++i)
@@ -345,7 +345,7 @@ private:
     setMoveState(IDLE);
   }
 
-  void preemptMoveCallback(void)
+  void preemptMoveCallback()
   {
     plan_execution_->stop();
   }
@@ -568,11 +568,11 @@ private:
     
   }
   
-  void preemptPickupCallback(void)
+  void preemptPickupCallback()
   {
   }
 
-  void preemptPlaceCallback(void)
+  void preemptPlaceCallback()
   {
   }
 
@@ -621,7 +621,7 @@ private:
     }
 
     // \todo unwind trajectory before execution
-    //    kinematic_trajectory::KinematicTrajectory to_exec(planning_scene_monitor_->getKinematicModel(), ;
+    //    robot_trajectory::RobotTrajectory to_exec(planning_scene_monitor_->getKinematicModel(), ;
     
     trajectory_execution_manager_->clear();
     if (trajectory_execution_manager_->push(req.trajectory))

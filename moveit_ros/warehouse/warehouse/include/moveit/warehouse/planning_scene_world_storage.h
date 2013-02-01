@@ -74,11 +74,11 @@ public:
 
   void removePlanningSceneWorld(const std::string &name);
 
-  void reset(void);
+  void reset();
 
 private:
 
-  void createCollections(void);
+  void createCollections();
   
   PlanningSceneWorldCollection planning_scene_world_collection_;
 

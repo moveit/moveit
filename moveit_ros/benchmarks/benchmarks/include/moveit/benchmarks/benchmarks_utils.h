@@ -39,6 +39,6 @@
 
 namespace moveit_benchmarks
 {
-std::vector<std::string> benchmarkGetAvailablePluginNames(void);
-std::string getHostname(void);
+std::vector<std::string> benchmarkGetAvailablePluginNames();
+std::string getHostname();
 }

@@ -53,16 +53,16 @@ class PlanWithSensing
 public:
 
   PlanWithSensing(const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution);
-  ~PlanWithSensing(void);
+  ~PlanWithSensing();
 
-  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager(void) const
+  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager() const
   {
     return trajectory_execution_manager_;
   }
 
   bool computePlan(ExecutableMotionPlan &plan, const ExecutableMotionPlanComputationFn &motion_planner, unsigned int max_look_attempts, double max_safe_path_cost);
   
-  double getMaxSafePathCost(void) const
+  double getMaxSafePathCost() const
   {
     return default_max_safe_path_cost_;
   }
@@ -77,12 +77,12 @@ public:
     default_max_look_attempts_ = attempts;
   }
   
-  unsigned int getMaxLookAttempts(void) const
+  unsigned int getMaxLookAttempts() const
   {
     return default_max_look_attempts_;
   }
 
-  unsigned int getMaxCostSources(void) const
+  unsigned int getMaxCostSources() const
   {
     return max_cost_sources_;
   }
@@ -92,7 +92,7 @@ public:
     max_cost_sources_ = value;
   }
   
-  double getDiscardOverlappingCostSources(void) const
+  double getDiscardOverlappingCostSources() const
   {
     return discard_overlapping_cost_sources_;
   }

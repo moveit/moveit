@@ -154,7 +154,7 @@ public:
     }
   }
   
-  void status(void) const
+  void status() const
   {
     for (std::map<std::string, std::vector<std::string> >::const_iterator it = possible_kinematics_solvers_.begin() ; it != possible_kinematics_solvers_.end() ; ++it)
       for (std::size_t i = 0 ; i < it->second.size() ; ++i)
@@ -175,7 +175,7 @@ private:
 
 }
 
-void kinematics_plugin_loader::KinematicsPluginLoader::status(void) const
+void kinematics_plugin_loader::KinematicsPluginLoader::status() const
 {
   if (loader_)
     loader_->status();
@@ -183,7 +183,7 @@ void kinematics_plugin_loader::KinematicsPluginLoader::status(void) const
     ROS_INFO("Loader function was never required");
 }
 
-kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(void)
+kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction()
 {  
   robot_model_loader::RobotModelLoader rml(robot_description_);
   robot_description_ = rml.getRobotDescription();

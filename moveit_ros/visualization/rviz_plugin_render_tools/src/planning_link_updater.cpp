@@ -29,32 +29,27 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
-#define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
+#include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
+#include <OGRE/OgreQuaternion.h>
+#include <OGRE/OgreVector3.h>
 
-#include <rviz/robot/link_updater.h>
-#include <moveit/kinematic_state/kinematic_state.h>
-
-namespace moveit_rviz_plugin
+bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
+                                                                Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
 {
+  const robot_state::LinkState* link_state = kinematic_state_->getLinkState(link_name);
 
-/** \brief Update the links of an rviz::Robot using a kinematic_state::KinematicState */
-class PlanningLinkUpdater : public rviz::LinkUpdater
-{
-public:
-  
-  PlanningLinkUpdater(const kinematic_state::KinematicStateConstPtr &state)
-    : kinematic_state_(state)
+  if (!link_state)
   {
+    return false;
   }
   
-  virtual bool getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
-                                 Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const;
+  const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
+  Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
+  visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
+  visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
+  collision_position = visual_position;
+  collision_orientation = visual_orientation;
   
-private:
-  kinematic_state::KinematicStateConstPtr kinematic_state_;
-};
-
+  return true;
 }
 
-#endif

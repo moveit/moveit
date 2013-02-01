@@ -61,7 +61,7 @@
 // MoveIt!
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/kinematic_model/kinematic_model.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace kdl_kinematics_plugin                        
 {
@@ -211,9 +211,9 @@ namespace kdl_kinematics_plugin
 
     kinematic_model::KinematicModelPtr kinematic_model_;
 
-    kinematic_state::KinematicStatePtr kinematic_state_, kinematic_state_2_;
+    robot_state::RobotStatePtr kinematic_state_, kinematic_state_2_;
 
-    //    kinematic_state::JointStateGroup* joint_state_group_, joint_state_group_2_;
+    //    robot_state::JointStateGroup* joint_state_group_, joint_state_group_2_;
     
   };
 }

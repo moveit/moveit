@@ -43,14 +43,14 @@ namespace moveit_rviz_plugin
 class BackgroundProcessing
 {
 public:
-  BackgroundProcessing(void);
-  ~BackgroundProcessing(void);
+  BackgroundProcessing();
+  ~BackgroundProcessing();
 
-  void addJob(const boost::function<void(void)> &job);
-  std::size_t getJobCount(void) const;
-  void clear(void);
+  void addJob(const boost::function<void()> &job);
+  std::size_t getJobCount() const;
+  void clear();
   
-  void setCompletionEvent(const boost::function<void(void)> &completion_event);
+  void setCompletionEvent(const boost::function<void()> &completion_event);
   
 private:
   
@@ -59,11 +59,11 @@ private:
   
   mutable boost::mutex action_lock_;
   boost::condition_variable new_action_condition_;
-  std::deque<boost::function<void(void)> > actions_;
-  boost::function<void(void)> completion_event_;
+  std::deque<boost::function<void()> > actions_;
+  boost::function<void()> completion_event_;
   bool processing_;
   
-  void processingThread(void);
+  void processingThread();
 };
 
 }

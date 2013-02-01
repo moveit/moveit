@@ -57,7 +57,7 @@
 #include <moveit/kinematics_constraint_aware/kinematics_constraint_aware.h>
 #include <moveit/kinematics_cache/kinematics_cache.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <Eigen/Eigenvalues>
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
@@ -280,14 +280,14 @@ private:
 
   void  getColorFromManipulability(double manipulability_index, double highest);
 
-  bool getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state,
+  bool getManipulabilityIndex(const robot_state::RobotState &kinematic_state,
                               const std::string &group_name,
                               double &manipulability_index) const;
 
-  bool checkState(const kinematic_state::KinematicState &kinematic_state,
+  bool checkState(const robot_state::RobotState &kinematic_state,
                   const std::string &group_name) const;  
 
-  Eigen::MatrixXd getJacobian(const kinematic_state::KinematicState &kinematic_state,
+  Eigen::MatrixXd getJacobian(const robot_state::RobotState &kinematic_state,
                               const std::string &group_name) const;  
 
   void getManipulabilityMarkers(const moveit_ros_planning::WorkspacePoints &workspace,

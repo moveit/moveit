@@ -48,7 +48,7 @@ ManipulationPipeline::ManipulationPipeline(const std::string &name, unsigned int
   processing_threads_.resize(nthreads, NULL);
 }
 
-ManipulationPipeline::~ManipulationPipeline(void)
+ManipulationPipeline::~ManipulationPipeline()
 {  
   reset();
 }
@@ -59,7 +59,7 @@ ManipulationPipeline& ManipulationPipeline::addStage(const ManipulationStagePtr 
   return *this;
 } 
 
-const ManipulationStagePtr& ManipulationPipeline::getFirstStage(void) const
+const ManipulationStagePtr& ManipulationPipeline::getFirstStage() const
 {
   if (stages_.empty())
   {
@@ -70,7 +70,7 @@ const ManipulationStagePtr& ManipulationPipeline::getFirstStage(void) const
     return stages_.front();    
 }
 
-const ManipulationStagePtr& ManipulationPipeline::getLastStage(void) const
+const ManipulationStagePtr& ManipulationPipeline::getLastStage() const
 {
   if (stages_.empty())
   {
@@ -81,13 +81,13 @@ const ManipulationStagePtr& ManipulationPipeline::getLastStage(void) const
     return stages_.back();
 }
 
-void ManipulationPipeline::reset(void)
+void ManipulationPipeline::reset()
 {
   clear();
   stages_.clear();
 }
 
-void ManipulationPipeline::clear(void)
+void ManipulationPipeline::clear()
 {
   stop();
   {
@@ -101,7 +101,7 @@ void ManipulationPipeline::clear(void)
   }
 }
 
-void ManipulationPipeline::start(void)
+void ManipulationPipeline::start()
 {
   stop_processing_ = false; 
   for (std::size_t i = 0 ; i < stages_.size() ; ++i)
@@ -111,7 +111,7 @@ void ManipulationPipeline::start(void)
       processing_threads_[i] = new boost::thread(boost::bind(&ManipulationPipeline::processingThread, this, i));
 }
 
-void ManipulationPipeline::signalStop(void)
+void ManipulationPipeline::signalStop()
 {
   for (std::size_t i = 0 ; i < stages_.size() ; ++i)
     stages_[i]->signalStop();
@@ -119,7 +119,7 @@ void ManipulationPipeline::signalStop(void)
   queue_access_cond_.notify_all();  
 }
 
-void ManipulationPipeline::stop(void)
+void ManipulationPipeline::stop()
 { 
   signalStop(); 
   for (std::size_t i = 0; i < processing_threads_.size() ; ++i)

@@ -30,7 +30,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
-#include <moveit/render_tools/kinematic_state_visualization.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
@@ -129,24 +129,24 @@ PlanningSceneDisplay::PlanningSceneDisplay() :
 // ******************************************************************************************
 // Deconstructor
 // ******************************************************************************************
-PlanningSceneDisplay::~PlanningSceneDisplay(void)
+PlanningSceneDisplay::~PlanningSceneDisplay()
 { 
   planning_scene_render_.reset();
   context_->getSceneManager()->destroySceneNode(planning_scene_node_->getName());
 }
 
-void PlanningSceneDisplay::onInitialize(void)
+void PlanningSceneDisplay::onInitialize()
 {  
   Display::onInitialize();
   
   // the scene node that contains everything
   planning_scene_node_ = scene_node_->createChildSceneNode();
   
-  planning_scene_robot_.reset(new KinematicStateVisualization(planning_scene_node_, context_, "Planning Scene", robot_category_));
+  planning_scene_robot_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Scene", robot_category_));
   planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
 }
 
-void PlanningSceneDisplay::reset(void)
+void PlanningSceneDisplay::reset()
 { 
   planning_scene_render_.reset();
   planning_scene_robot_->clear();
@@ -157,12 +157,12 @@ void PlanningSceneDisplay::reset(void)
   planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
 }
 
-const planning_scene_monitor::PlanningSceneMonitorPtr& PlanningSceneDisplay::getPlanningSceneMonitor(void)
+const planning_scene_monitor::PlanningSceneMonitorPtr& PlanningSceneDisplay::getPlanningSceneMonitor()
 {
   return planning_scene_monitor_;
 }
 
-const kinematic_model::KinematicModelConstPtr& PlanningSceneDisplay::getKinematicModel(void)
+const kinematic_model::KinematicModelConstPtr& PlanningSceneDisplay::getKinematicModel()
 {
   if (planning_scene_monitor_)
     return planning_scene_monitor_->getKinematicModel();
@@ -173,46 +173,46 @@ const kinematic_model::KinematicModelConstPtr& PlanningSceneDisplay::getKinemati
   }
 }
 
-planning_scene_monitor::LockedPlanningSceneRO PlanningSceneDisplay::getPlanningSceneRO(void) const
+planning_scene_monitor::LockedPlanningSceneRO PlanningSceneDisplay::getPlanningSceneRO() const
 {
   return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
 }
 
-planning_scene_monitor::LockedPlanningSceneRW PlanningSceneDisplay::getPlanningSceneRW(void)
+planning_scene_monitor::LockedPlanningSceneRW PlanningSceneDisplay::getPlanningSceneRW()
 {
   return planning_scene_monitor::LockedPlanningSceneRW(planning_scene_monitor_);
 }
 
-void PlanningSceneDisplay::changedAttachedBodyColor(void)
+void PlanningSceneDisplay::changedAttachedBodyColor()
 {
   queueRenderSceneGeometry();
 }
 
-void PlanningSceneDisplay::changedSceneColor(void)
+void PlanningSceneDisplay::changedSceneColor()
 {
   queueRenderSceneGeometry();
 }
 
-void PlanningSceneDisplay::changedRobotDescription(void)
+void PlanningSceneDisplay::changedRobotDescription()
 {
   if (isEnabled())
     reset();
 }
 
-void PlanningSceneDisplay::changedSceneName(void)
+void PlanningSceneDisplay::changedSceneName()
 {
   planning_scene_monitor::LockedPlanningSceneRW ps = getPlanningSceneRW();
   if (ps)
     ps->setName(scene_name_property_->getStdString());
 }
 
-void PlanningSceneDisplay::changedRootLinkName(void)
+void PlanningSceneDisplay::changedRootLinkName()
 {
   if (getKinematicModel())
     root_link_name_property_->setStdString(getKinematicModel()->getRootLinkName());
 }
 
-void PlanningSceneDisplay::renderPlanningScene(void)
+void PlanningSceneDisplay::renderPlanningScene()
 {
   if (planning_scene_render_ && planning_scene_needs_render_)
   {
@@ -236,28 +236,28 @@ void PlanningSceneDisplay::renderPlanningScene(void)
   }
 }
 
-void PlanningSceneDisplay::changedSceneAlpha(void)
+void PlanningSceneDisplay::changedSceneAlpha()
 {
   queueRenderSceneGeometry();
 }
 
-void PlanningSceneDisplay::changedRobotSceneAlpha(void)
+void PlanningSceneDisplay::changedRobotSceneAlpha()
 {
   planning_scene_robot_->setAlpha(robot_alpha_property_->getFloat());
   queueRenderSceneGeometry();
 }
 
-void PlanningSceneDisplay::changedPlanningSceneTopic(void)
+void PlanningSceneDisplay::changedPlanningSceneTopic()
 {
   if (planning_scene_monitor_)
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
 }
 
-void PlanningSceneDisplay::changedSceneDisplayTime(void)
+void PlanningSceneDisplay::changedSceneDisplayTime()
 {
 }
 
-void PlanningSceneDisplay::changedSceneRobotEnabled(void)
+void PlanningSceneDisplay::changedSceneRobotEnabled()
 {
   if (isEnabled())
     planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
@@ -338,7 +338,7 @@ void PlanningSceneDisplay::unsetLinkColor(rviz::Robot* robot, const std::string&
 // ******************************************************************************************
 // Load
 // ******************************************************************************************
-void PlanningSceneDisplay::loadRobotModel(void)
+void PlanningSceneDisplay::loadRobotModel()
 {
   planning_scene_render_.reset();
   planning_scene_monitor_.reset(); // this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
@@ -361,11 +361,11 @@ void PlanningSceneDisplay::loadRobotModel(void)
   }
 }
 
-void PlanningSceneDisplay::onRobotModelLoaded(void)
+void PlanningSceneDisplay::onRobotModelLoaded()
 {
   planning_scene_robot_->load(*getKinematicModel()->getURDF());
   const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
-  planning_scene_robot_->update(kinematic_state::KinematicStatePtr(new kinematic_state::KinematicState(ps->getCurrentState())));
+  planning_scene_robot_->update(robot_state::RobotStatePtr(new robot_state::RobotState(ps->getCurrentState())));
 
   bool oldState = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(ps->getName());
@@ -394,7 +394,7 @@ void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::
   planning_scene_needs_render_ = true;
 }
 
-void PlanningSceneDisplay::onEnable(void)
+void PlanningSceneDisplay::onEnable()
 {
   Display::onEnable();
   
@@ -410,7 +410,7 @@ void PlanningSceneDisplay::onEnable(void)
 // ******************************************************************************************
 // Disable
 // ******************************************************************************************
-void PlanningSceneDisplay::onDisable(void)
+void PlanningSceneDisplay::onDisable()
 {
   if (planning_scene_monitor_)
   {
@@ -422,7 +422,7 @@ void PlanningSceneDisplay::onDisable(void)
   Display::onDisable();
 }
 
-void PlanningSceneDisplay::queueRenderSceneGeometry(void)
+void PlanningSceneDisplay::queueRenderSceneGeometry()
 {
   planning_scene_needs_render_ = true;
 }
@@ -455,7 +455,7 @@ void PlanningSceneDisplay::save( rviz::Config config ) const
 // ******************************************************************************************
 // Calculate Offset Position
 // ******************************************************************************************
-void PlanningSceneDisplay::calculateOffsetPosition(void)
+void PlanningSceneDisplay::calculateOffsetPosition()
 {  
   if (!getKinematicModel())
     return;
@@ -486,7 +486,7 @@ void PlanningSceneDisplay::calculateOffsetPosition(void)
   planning_scene_node_->setOrientation(orientation);
 }
 
-void PlanningSceneDisplay::fixedFrameChanged(void)
+void PlanningSceneDisplay::fixedFrameChanged()
 {
   Display::fixedFrameChanged(); 
   calculateOffsetPosition();  

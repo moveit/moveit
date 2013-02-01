@@ -38,7 +38,7 @@
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -70,7 +70,7 @@ PickPlan::PickPlan(const PickPlaceConstPtr &pick_place) :
   pipeline_.setSolutionCallback(boost::bind(&PickPlan::foundSolution, this));
 }
 
-PickPlan::~PickPlan(void)
+PickPlan::~PickPlan()
 {
 }
 
@@ -200,7 +200,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
-void PickPlan::foundSolution(void)
+void PickPlan::foundSolution()
 {
   boost::mutex::scoped_lock slock(done_mutex_);
   done_ = true;

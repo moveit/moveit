@@ -63,21 +63,21 @@ namespace
 bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene, 
                           const collision_detection::AllowedCollisionMatrix *collision_matrix,
                           const sensor_msgs::JointState *grasp_posture, 
-                          kinematic_state::JointStateGroup *joint_state_group,
+                          robot_state::JointStateGroup *joint_state_group,
                           const std::vector<double> &joint_group_variable_values)
 {
   joint_state_group->setVariableValues(joint_group_variable_values);
   // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-  joint_state_group->getKinematicState()->setStateValues(*grasp_posture);
-  return !planning_scene->isStateColliding(*joint_state_group->getKinematicState(), joint_state_group->getName()) && 
-    planning_scene->isStateFeasible(*joint_state_group->getKinematicState());
+  joint_state_group->getRobotState()->setStateValues(*grasp_posture);
+  return !planning_scene->isStateColliding(*joint_state_group->getRobotState(), joint_state_group->getName()) && 
+    planning_scene->isStateFeasible(*joint_state_group->getRobotState());
 }
 
-bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const kinematic_state::KinematicState &reference_state, double min_distance, unsigned int attempts) 
+bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state::RobotState &reference_state, double min_distance, unsigned int attempts) 
 {
   // initialize with scene state 
-  kinematic_state::KinematicStatePtr token_state(new kinematic_state::KinematicState(reference_state));
-  kinematic_state::JointStateGroup *jsg = token_state->getJointStateGroup(plan->planning_group_);
+  robot_state::RobotStatePtr token_state(new robot_state::RobotState(reference_state));
+  robot_state::JointStateGroup *jsg = token_state->getJointStateGroup(plan->planning_group_);
   for (unsigned int j = 0 ; j < attempts ; ++j)
   {
     double min_d = std::numeric_limits<double>::infinity();
@@ -103,9 +103,9 @@ void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Join
 {
   if (!grasp_posture.name.empty())
   {
-    kinematic_state::KinematicStatePtr state(new kinematic_state::KinematicState(plan->trajectories_.back()->getLastWayPoint()));
+    robot_state::RobotStatePtr state(new robot_state::RobotState(plan->trajectories_.back()->getLastWayPoint()));
     state->setStateValues(grasp_posture);
-    kinematic_trajectory::KinematicTrajectoryPtr traj(new kinematic_trajectory::KinematicTrajectory(state->getKinematicModel(), plan->end_effector_group_));
+    robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getKinematicModel(), plan->end_effector_group_));
     traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan->trajectories_.push_back(traj);
     plan->trajectory_descriptions_.push_back(name);
@@ -132,19 +132,19 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
   tf::vectorMsgToEigen(plan->grasp_.translation_direction, translation_direction);
   
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
-  kinematic_state::StateValidityCallbackFn approach_validCallback = boost::bind(&isStateCollisionFree, pre_grasp_planning_scene_.get(), 
+  robot_state::StateValidityCallbackFn approach_validCallback = boost::bind(&isStateCollisionFree, pre_grasp_planning_scene_.get(), 
                                                                                 collision_matrix_.get(), &plan->grasp_.pre_grasp_posture, _1, _2);
   
   // state validity checking during the translation after the grasp must ensure the gripper posture is that of the actual grasp
-  kinematic_state::StateValidityCallbackFn translation_validCallback = boost::bind(&isStateCollisionFree, post_grasp_planning_scene_.get(),
+  robot_state::StateValidityCallbackFn translation_validCallback = boost::bind(&isStateCollisionFree, post_grasp_planning_scene_.get(),
                                                                                    collision_matrix_.get(), &plan->grasp_.grasp_posture, _1, _2);
   do 
   {
     for (std::size_t i = 0 ; i < plan->possible_goal_states_.size() && !signal_stop_ ; ++i)
     {
       // try to compute a straight line path that arrives at the goal using the specified approach direction
-      kinematic_state::KinematicStatePtr first_approach_state(new kinematic_state::KinematicState(*plan->possible_goal_states_[i]));
-      std::vector<kinematic_state::KinematicStatePtr> approach_states;
+      robot_state::RobotStatePtr first_approach_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
+      std::vector<robot_state::RobotStatePtr> approach_states;
       double d_approach = first_approach_state->getJointStateGroup(plan->planning_group_)->computeCartesianPath(approach_states, plan->ik_link_name_, -approach_direction,
                                                                                                                 false, plan->grasp_.desired_approach_distance, 
                                                                                                                 max_step_, jump_factor_, approach_validCallback);
@@ -156,8 +156,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
         {
           
           // try to compute a straight line path that moves from the goal in a desired direction
-          kinematic_state::KinematicStatePtr last_translation_state(new kinematic_state::KinematicState(*plan->possible_goal_states_[i]));  
-          std::vector<kinematic_state::KinematicStatePtr> translation_states;
+          robot_state::RobotStatePtr last_translation_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));  
+          std::vector<robot_state::RobotStatePtr> translation_states;
           double d_translation = last_translation_state->getJointStateGroup(plan->planning_group_)->computeCartesianPath(translation_states, plan->ik_link_name_, 
                                                                                                                          translation_direction, true, 
                                                                                                                          plan->grasp_.desired_translation_distance, 
@@ -166,11 +166,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           if (d_translation > plan->grasp_.min_translation_distance && !signal_stop_)
           {
             std::reverse(approach_states.begin(), approach_states.end());
-            kinematic_trajectory::KinematicTrajectoryPtr approach_traj(new kinematic_trajectory::KinematicTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
+            robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
             for (std::size_t k = 0 ; k < approach_states.size() ; ++k)
               approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
             
-            kinematic_trajectory::KinematicTrajectoryPtr translation_traj(new kinematic_trajectory::KinematicTrajectory(post_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
+            robot_trajectory::RobotTrajectoryPtr translation_traj(new robot_trajectory::RobotTrajectory(post_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
             for (std::size_t k = 0 ; k < translation_states.size() ; ++k)
               translation_traj->addSuffixWayPoint(translation_states[k], 0.0);
             
@@ -193,7 +193,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
         {          
           plan->approach_state_.swap(first_approach_state);
           std::reverse(approach_states.begin(), approach_states.end());
-          kinematic_trajectory::KinematicTrajectoryPtr approach_traj(new kinematic_trajectory::KinematicTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
+          robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
           for (std::size_t k = 0 ; k < approach_states.size() ; ++k)
             approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
 

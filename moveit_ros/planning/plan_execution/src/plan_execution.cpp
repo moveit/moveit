@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/plan_execution/plan_execution.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <boost/algorithm/string/join.hpp>
@@ -92,12 +92,12 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 }
 
-plan_execution::PlanExecution::~PlanExecution(void)
+plan_execution::PlanExecution::~PlanExecution()
 {
   delete reconfigure_impl_;
 }
 
-void plan_execution::PlanExecution::stop(void)
+void plan_execution::PlanExecution::stop()
 {
   preempt_requested_ = true;
 }

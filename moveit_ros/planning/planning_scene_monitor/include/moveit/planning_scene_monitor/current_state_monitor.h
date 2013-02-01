@@ -39,7 +39,7 @@
 
 #include <ros/ros.h>
 #include <tf/tf.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <sensor_msgs/JointState.h>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -62,7 +62,7 @@ public:
    */
   CurrentStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
   
-  ~CurrentStateMonitor(void);
+  ~CurrentStateMonitor();
   
   /** @brief Start monitoring joint states on a particular topic
    *  @param joint_states_topic The topic name for joint states (defaults to "joint_states")
@@ -71,24 +71,24 @@ public:
   
   /** @brief Stop monitoring the "joint_states" topic
    */
-  void stopStateMonitor(void);
+  void stopStateMonitor();
   
   /** @brief Check if the state monitor is started */
-  bool isActive(void) const;
+  bool isActive() const;
 
   /** @brief Get the KinematicModel for which we are monitoring state */
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return kmodel_;
   }
   
   /** @brief Get the name of the topic being monitored. Returns an empty string if the monitor is inactive. */
-  std::string getMonitoredTopic(void) const;
+  std::string getMonitoredTopic() const;
   
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @return False if we have no joint state information for one or more of the joints
    */
-  bool haveCompleteState(void) const;
+  bool haveCompleteState() const;
   
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @return False if we have no joint state information for one of the joints or if our state
@@ -111,18 +111,18 @@ public:
   
   /** @brief Get the current state
    *  @return Returns the current state */
-  kinematic_state::KinematicStatePtr getCurrentState(void) const;
+  robot_state::RobotStatePtr getCurrentState() const;
   
   /** @brief Get the time stamp for the current state */
-  ros::Time getCurrentStateTime(void) const;
+  ros::Time getCurrentStateTime() const;
 
   /** @brief Get the current state and its time stamp
    *  @return Returns a pair of the current state and its time stamp */
-  std::pair<kinematic_state::KinematicStatePtr, ros::Time> getCurrentStateAndTime(void) const;
+  std::pair<robot_state::RobotStatePtr, ros::Time> getCurrentStateAndTime() const;
   
   /** @brief Get the current state values as a map from joint names to joint state values
    *  @return Returns the map from joint names to joint state values*/
-  std::map<std::string, double> getCurrentStateValues(void) const;
+  std::map<std::string, double> getCurrentStateValues() const;
   
 //  /** @brief Set a callback that will be called whenever the joint state is updated*/
 //  void setOnStateUpdateCallback(const JointStateUpdateCallback &callback);
@@ -131,7 +131,7 @@ public:
   void addUpdateCallback(const JointStateUpdateCallback &fn);
 
   /** @brief Clear the functions to be called when an update to the joint state is received */
-  void clearUpdateCallbacks(void);
+  void clearUpdateCallbacks();
   
   /** @brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
    *  if the difference is less than a specified value (labeled the "allowed bounds error").
@@ -146,7 +146,7 @@ public:
    *  if the difference is less than a specified value (labeled the "allowed bounds error").
    *  @return The stored value for the "allowed bounds error"
    */
-  double getBoundsError(void) const
+  double getBoundsError() const
   {
     return error_;
   }
@@ -159,8 +159,8 @@ private:
   ros::NodeHandle                              nh_;
   boost::shared_ptr<tf::Transformer>           tf_;
   kinematic_model::KinematicModelConstPtr      kmodel_;
-  kinematic_state::KinematicState              kstate_;
-  kinematic_state::JointState                 *root_;
+  robot_state::RobotState              kstate_;
+  robot_state::JointState                 *root_;
   std::map<std::string, ros::Time>             joint_time_;
   bool                                         state_monitor_started_;
   double                                       error_;

@@ -47,7 +47,7 @@ planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateM
   setSamplingFrequency(sampling_frequency);
 }
 
-planning_scene_monitor::TrajectoryMonitor::~TrajectoryMonitor(void)
+planning_scene_monitor::TrajectoryMonitor::~TrajectoryMonitor()
 {
   stopTrajectoryMonitor();
 }
@@ -60,12 +60,12 @@ void planning_scene_monitor::TrajectoryMonitor::setSamplingFrequency(double samp
     sampling_frequency_ = sampling_frequency;
 }
 
-bool planning_scene_monitor::TrajectoryMonitor::isActive(void) const
+bool planning_scene_monitor::TrajectoryMonitor::isActive() const
 {
   return record_states_thread_;
 }
 
-void planning_scene_monitor::TrajectoryMonitor::startTrajectoryMonitor(void)
+void planning_scene_monitor::TrajectoryMonitor::startTrajectoryMonitor()
 {
   if (!record_states_thread_)
   {
@@ -74,7 +74,7 @@ void planning_scene_monitor::TrajectoryMonitor::startTrajectoryMonitor(void)
   }
 }
 
-void planning_scene_monitor::TrajectoryMonitor::stopTrajectoryMonitor(void)
+void planning_scene_monitor::TrajectoryMonitor::stopTrajectoryMonitor()
 {
   if (record_states_thread_)
   {
@@ -85,7 +85,7 @@ void planning_scene_monitor::TrajectoryMonitor::stopTrajectoryMonitor(void)
   }
 }
 
-void planning_scene_monitor::TrajectoryMonitor::clearTrajectory(void)
+void planning_scene_monitor::TrajectoryMonitor::clearTrajectory()
 {  
   bool restart = isActive();
   if (restart)
@@ -95,7 +95,7 @@ void planning_scene_monitor::TrajectoryMonitor::clearTrajectory(void)
     startTrajectoryMonitor();
 }
 
-void planning_scene_monitor::TrajectoryMonitor::recordStates(void)
+void planning_scene_monitor::TrajectoryMonitor::recordStates()
 {
   if (!current_state_monitor_)
     return;
@@ -105,7 +105,7 @@ void planning_scene_monitor::TrajectoryMonitor::recordStates(void)
   while (record_states_thread_)
   {
     rate.sleep();
-    std::pair<kinematic_state::KinematicStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
+    std::pair<robot_state::RobotStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
     if (trajectory_.empty())
     {
       trajectory_.addSuffixWayPoint(state.first, 0.0);

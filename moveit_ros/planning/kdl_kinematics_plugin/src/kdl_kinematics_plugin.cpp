@@ -61,7 +61,7 @@ KDLKinematicsPlugin::KDLKinematicsPlugin():active_(false){}
 void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array) const
 {
   std::vector<double> jnt_array_vector(dimension_,0.0);  
-  kinematic_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
+  robot_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
   joint_state_group->setToRandomValues();  
   joint_state_group->getVariableValues(jnt_array_vector);
   for(std::size_t i=0; i < dimension_; ++i)
@@ -77,7 +77,7 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state
   {  
     near.push_back(seed_state(i));    
   }  
-  kinematic_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
+  robot_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
   joint_state_group->setToRandomValuesNearBy(near, consistency_limits);
   joint_state_group->getVariableValues(values);
   for(std::size_t i=0; i < dimension_; ++i) 
@@ -96,13 +96,13 @@ bool KDLKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
     seed_state_vector[i] = seed_state(i);
     solution_vector[i] = solution(i);    
   }
-  kinematic_state::JointStateGroup* joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
-  kinematic_state::JointStateGroup* joint_state_group_2 = kinematic_state_2_->getJointStateGroup(getGroupName());
+  robot_state::JointStateGroup* joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
+  robot_state::JointStateGroup* joint_state_group_2 = kinematic_state_2_->getJointStateGroup(getGroupName());
   joint_state_group->setVariableValues(seed_state_vector);  
   joint_state_group_2->setVariableValues(solution_vector);
 
-  const std::vector<kinematic_state::JointState*>& joint_state_vector = joint_state_group->getJointStateVector();
-  const std::vector<kinematic_state::JointState*>& joint_state_vector_2 = joint_state_group_2->getJointStateVector();
+  const std::vector<robot_state::JointState*>& joint_state_vector = joint_state_group->getJointStateVector();
+  const std::vector<robot_state::JointState*>& joint_state_vector_2 = joint_state_group_2->getJointStateVector();
   
   for(std::size_t i = 0; i < joint_state_vector.size(); ++i)
   {
@@ -193,8 +193,8 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
 
   // Setup the joint state groups that we need
-  kinematic_state_.reset(new kinematic_state::KinematicState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));
-  kinematic_state_2_.reset(new kinematic_state::KinematicState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));  
+  kinematic_state_.reset(new robot_state::RobotState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));
+  kinematic_state_2_.reset(new robot_state::RobotState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));  
 
   active_ = true;  
   ROS_DEBUG("KDL solver initialized");  
