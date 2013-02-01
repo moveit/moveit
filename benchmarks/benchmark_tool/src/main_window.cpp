@@ -551,6 +551,7 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
 
         //Configure ui elements
         ui_.load_poses_filter_text->setText(QString::fromStdString(scene + ".*"));
+        ui_.trajectories_filter_text->setText(QString::fromStdString(scene + ".*"));
         setStatusFromBackground(STATUS_INFO, QString::fromStdString(""));
       }
       else
