@@ -48,6 +48,7 @@
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/trajectory_constraints_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 #include <moveit/robot_interaction/robot_interaction.h>
@@ -108,6 +109,7 @@ public Q_SLOTS:
   void removeTrajectoryButtonClicked(void);
   void loadTrajectoriesFromDBButtonClicked(void);
   void saveTrajectoriesOnDBButtonClicked(void);
+  void trajectoryNWaypointsChanged(int);
 
   //main loop processing
   void MainLoop();
@@ -140,6 +142,7 @@ private:
   //Warehouse
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
   boost::shared_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
+  boost::shared_ptr<moveit_warehouse::TrajectoryConstraintsStorage> trajectory_constraints_storage_;
   boost::shared_ptr<moveit_warehouse::RobotStateStorage> robot_state_storage_;
 
   void populatePlanningSceneList(void);

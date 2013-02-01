@@ -32,14 +32,17 @@
 #ifndef BT_UI_UTILS_
 #define BT_UI_UTILS_
 
- #include <QPushButton>
+#include <QPushButton>
 #include <QString>
+#include <QListWidget>
 
 namespace benchmark_tool
 {
 
 void setButtonState(QPushButton *button, bool checked, const QString &text, const QString &style);
 void showCriticalMessage(QWidget *parent, const QString &title, const QString &text);
+void selectFirstItemInList(QListWidget *list);
+void selectLastItemInList(QListWidget *list);
 
 }
 

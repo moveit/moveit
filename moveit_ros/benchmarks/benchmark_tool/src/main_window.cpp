@@ -160,6 +160,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect( ui_.trajectory_open_button, SIGNAL( clicked() ), this, SLOT( loadTrajectoriesFromDBButtonClicked() ));
     connect( ui_.trajectory_save_button, SIGNAL( clicked() ), this, SLOT( saveTrajectoriesOnDBButtonClicked() ));
     connect( ui_.trajectory_list, SIGNAL( itemSelectionChanged() ), this, SLOT( trajectorySelectionChanged() ));
+    connect( ui_.trajectory_nwaypoints_spin, SIGNAL( valueChanged ( int )), this, SLOT( trajectoryNWaypointsChanged( int ) ));
 
     //Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));
@@ -407,6 +408,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
     planning_scene_storage_.reset();
     robot_state_storage_.reset();
     constraints_storage_.reset();
+    trajectory_constraints_storage_.reset();
     ui_.planning_scene_list->clear();
 
     JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
@@ -440,6 +442,8 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
         robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(host_port[0].toStdString(),
                                                                            port, 5.0));
         constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host_port[0].toStdString(),
+                                                                            port, 5.0));
+        trajectory_constraints_storage_.reset(new moveit_warehouse::TrajectoryConstraintsStorage(host_port[0].toStdString(),
                                                                             port, 5.0));
         JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...", "QPushButton { color : yellow }"));
 

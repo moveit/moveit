@@ -49,4 +49,20 @@ void showCriticalMessage(QWidget *parent, const QString &title, const QString &t
   QMessageBox::critical(parent, title, text);
 }
 
+void selectFirstItemInList(QListWidget *list)
+{
+  if (list->count() > 0)
+  {
+    list->item(0)->setSelected(true);
+  }
 }
+
+void selectLastItemInList(QListWidget *list)
+{
+  if (list->count() > 0)
+  {
+    list->item(list->count() - 1)->setSelected(true);
+  }
+}
+
+} //namespace

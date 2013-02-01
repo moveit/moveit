@@ -48,8 +48,8 @@ const std::string Trajectory::TRAJECTORY_FIX_CONTROL_FRAME_STRING = "Fix control
 
 Trajectory::Trajectory(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                        const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-                       const GripperMarker::GripperMarkerState &state, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
-                       dragging_(false), control_marker_mode_(CONTROL_MARKER_FIXED)
+                       const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
+                       dragging_(false), control_marker_mode_(CONTROL_MARKER_FIXED), nwaypoints_(nwaypoints)
 {
   createControlMarker(kinematic_state, parent_node, context, name, frame_id, eef, pose, scale, state, is_selected, visible_x, visible_y, visible_z);
   createHandMarker();
@@ -105,7 +105,7 @@ void Trajectory::createStartMarker()
   {
     start_marker = GripperMarkerPtr(new GripperMarker(*hand_marker));
     start_marker->unselect(true);
-    start_marker->setColor(0.0, 0.9, 0.0, 0.9);
+    start_marker->setColor(0.0, 0.9, 0.0, 1.0);
     start_marker->showDescription("Start");
     connectStartMarker();
   }
@@ -121,7 +121,7 @@ void Trajectory::createEndMarker()
   {
     end_marker = GripperMarkerPtr(new GripperMarker(*hand_marker));
     end_marker->unselect(true);
-    end_marker->setColor(0.0, 0.9, 0.0, 0.4);
+    end_marker->setColor(0.0, 0.9, 0.0, 0.5);
     end_marker->showDescription("End");
     connectEndMarker();
   }
@@ -161,23 +161,16 @@ void Trajectory::rebuildWayPointMarkers()
     Eigen::Quaterniond start_r(control_marker_start_pose.rotation());
     Eigen::Quaterniond end_r(control_marker_end_pose.rotation());
 
+    Eigen::Affine3d wMh;
+    getGripperMarkerPose(hand_marker, wMh);
 
-    Eigen::Affine3d wMh = Eigen::Affine3d(Eigen::Quaterniond(hand_marker->imarker->getOrientation().w, hand_marker->imarker->getOrientation().x,
-                                                             hand_marker->imarker->getOrientation().y, hand_marker->imarker->getOrientation().z));
-    wMh.translation() = Eigen::Vector3d(hand_marker->imarker->getPosition().x,
-                                        hand_marker->imarker->getPosition().y,
-                                        hand_marker->imarker->getPosition().z);
-
-    Eigen::Affine3d wMt = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
-                                                             control_marker->imarker->getOrientation().y, control_marker->imarker->getOrientation().z));
-    wMt.translation() = Eigen::Vector3d(control_marker->imarker->getPosition().x,
-                                        control_marker->imarker->getPosition().y,
-                                        control_marker->imarker->getPosition().z);
+    Eigen::Affine3d wMt;
+    getGripperMarkerPose(control_marker, wMt);
 
     Eigen::Affine3d tMh = wMt.inverse() * wMh;
 
-    static std::size_t nfragments = 6;
-    for (std::size_t i = 1; i < nfragments; ++i)
+    unsigned int nfragments = nwaypoints_ + 1;
+    for (std::size_t i = 0; i <= nfragments; ++i)
     {
       Eigen::Vector3d waypoint_t = ((nfragments - i) * start_t + i * end_t) / nfragments;
       Eigen::Quaterniond waypoint_r = start_r.slerp( (double)i / (double)nfragments, end_r );
@@ -188,7 +181,7 @@ void Trajectory::rebuildWayPointMarkers()
 
       GripperMarkerPtr waypoint(new GripperMarker(*hand_marker));
       waypoint->unselect(true);
-      waypoint->setColor(0.0, 0.9, 0.0, 0.6);
+      waypoint->setColor(0.0, 0.9, 0.0, 1 - (double)i / (double)nfragments);
       Eigen::Quaterniond rotation(wMwph.rotation());
       waypoint->imarker->setPose(Ogre::Vector3(wMwph(0,3), wMwph(1,3), wMwph(2,3)),
                                  Ogre::Quaternion(rotation.w(), rotation.x(), rotation.y(), rotation.z()), "");
@@ -203,97 +196,47 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
   {
     if (feedback.menu_entry_id == TRAJECTORY_SET_START_POSE)
     {
-      //Create start marker
-      control_marker_start_pose = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
-                                                                     control_marker->imarker->getOrientation().y, control_marker->imarker->getOrientation().z));
-      control_marker_start_pose.translation() = Eigen::Vector3d(control_marker->imarker->getPosition().x,
-                                                                control_marker->imarker->getPosition().y,
-                                                                control_marker->imarker->getPosition().z);
+      if (control_marker_mode_ == CONTROL_MARKER_FLOATING)
+      {
+        //If the control marker is not fixed, fix it
+        fixControlFrame();
+      }
 
+      getGripperMarkerPose(control_marker, control_marker_start_pose);
+
+      //Create start marker
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::createStartMarker, this));
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::rebuildWayPointMarkers, this));
     }
     else if (feedback.menu_entry_id == TRAJECTORY_SET_END_POSE)
     {
-      //Create end marker
-      control_marker_end_pose = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
-                                                                   control_marker->imarker->getOrientation().y, control_marker->imarker->getOrientation().z));
-      control_marker_end_pose.translation() = Eigen::Vector3d(control_marker->imarker->getPosition().x,
-                                                                control_marker->imarker->getPosition().y,
-                                                                control_marker->imarker->getPosition().z);
+      if (control_marker_mode_ == CONTROL_MARKER_FLOATING)
+      {
+        //If the control marker is not fixed, fix it
+        fixControlFrame();
+      }
 
+      getGripperMarkerPose(control_marker, control_marker_end_pose);
+
+      //Create end marker
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::createEndMarker, this));
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::rebuildWayPointMarkers, this));
     }
     else if (feedback.menu_entry_id == TRAJECTORY_EDIT_CONTROL_FRAME)
     {
-      start_marker.reset();
-      end_marker.reset();
-      waypoint_markers.clear();
-
-      control_marker_mode_ = CONTROL_MARKER_FLOATING;
-
-      std::vector<visualization_msgs::MenuEntry> menu_entries;
-      visualization_msgs::MenuEntry m;
-      m.id = TRAJECTORY_SET_START_POSE;
-      m.command_type = m.FEEDBACK;
-      m.parent_id = 0;
-      m.title = TRAJECTORY_SET_START_POSE_STRING;
-      menu_entries.push_back(m);
-      m.id = TRAJECTORY_SET_END_POSE;
-      m.command_type = m.FEEDBACK;
-      m.parent_id = 0;
-      m.title = TRAJECTORY_SET_END_POSE_STRING;
-      menu_entries.push_back(m);
-      m.id = TRAJECTORY_FIX_CONTROL_FRAME;
-      m.command_type = m.FEEDBACK;
-      m.parent_id = 0;
-      m.title = TRAJECTORY_FIX_CONTROL_FRAME_STRING;
-      menu_entries.push_back(m);
-
-      JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::GripperMarker::setMenu, control_marker, menu_entries));
-      JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::connectControlMarker, this));
+      editControlFrame();
     }
     else if (feedback.menu_entry_id == TRAJECTORY_FIX_CONTROL_FRAME)
     {
-      control_marker_mode_ = CONTROL_MARKER_FIXED;
-
-      std::vector<visualization_msgs::MenuEntry> menu_entries;
-      visualization_msgs::MenuEntry m;
-      m.id = TRAJECTORY_SET_START_POSE;
-      m.command_type = m.FEEDBACK;
-      m.parent_id = 0;
-      m.title = TRAJECTORY_SET_START_POSE_STRING;
-      menu_entries.push_back(m);
-      m.id = TRAJECTORY_SET_END_POSE;
-      m.command_type = m.FEEDBACK;
-      m.parent_id = 0;
-      m.title = TRAJECTORY_SET_END_POSE_STRING;
-      menu_entries.push_back(m);
-      m.id = TRAJECTORY_EDIT_CONTROL_FRAME;
-      m.command_type = m.FEEDBACK;
-      m.parent_id = 0;
-      m.title = TRAJECTORY_EDIT_CONTROL_FRAME_STRING;
-      menu_entries.push_back(m);
-
-      JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::GripperMarker::setMenu, control_marker, menu_entries));
-      JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::connectControlMarker, this));
+      fixControlFrame();
     }
   }
   else if (feedback.event_type == feedback.MOUSE_DOWN && control_marker_mode_ == CONTROL_MARKER_FIXED)
   {
     //Store current hand pose
-    hand_marker_start_pose = Eigen::Affine3d(Eigen::Quaterniond(hand_marker->imarker->getOrientation().w, hand_marker->imarker->getOrientation().x,
-                                              hand_marker->imarker->getOrientation().y, hand_marker->imarker->getOrientation().z));
-    hand_marker_start_pose(0,3) = hand_marker->imarker->getPosition().x;
-    hand_marker_start_pose(1,3) = hand_marker->imarker->getPosition().y;
-    hand_marker_start_pose(2,3) = hand_marker->imarker->getPosition().z;
+    getGripperMarkerPose(hand_marker, hand_marker_start_pose);
+    getGripperMarkerPose(control_marker, control_marker_drag_start_pose);
 
-    control_marker_drag_start_pose = Eigen::Affine3d(Eigen::Quaterniond(control_marker->imarker->getOrientation().w, control_marker->imarker->getOrientation().x,
-                                                 control_marker->imarker->getOrientation().y, control_marker->imarker->getOrientation().z));
-    control_marker_drag_start_pose(0,3) = control_marker->imarker->getPosition().x;
-    control_marker_drag_start_pose(1,3) = control_marker->imarker->getPosition().y;
-    control_marker_drag_start_pose(2,3) = control_marker->imarker->getPosition().z;
     dragging_=true;
   }
   else if (feedback.event_type == feedback.POSE_UPDATE && dragging_ && control_marker_mode_ == CONTROL_MARKER_FIXED)
@@ -315,6 +258,62 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
   {
     dragging_ = false;
   }
+}
+
+void Trajectory::editControlFrame()
+{
+  start_marker.reset();
+  end_marker.reset();
+  waypoint_markers.clear();
+
+  control_marker_mode_ = CONTROL_MARKER_FLOATING;
+
+  std::vector<visualization_msgs::MenuEntry> menu_entries;
+  visualization_msgs::MenuEntry m;
+  m.id = TRAJECTORY_SET_START_POSE;
+  m.command_type = m.FEEDBACK;
+  m.parent_id = 0;
+  m.title = TRAJECTORY_SET_START_POSE_STRING;
+  menu_entries.push_back(m);
+  m.id = TRAJECTORY_SET_END_POSE;
+  m.command_type = m.FEEDBACK;
+  m.parent_id = 0;
+  m.title = TRAJECTORY_SET_END_POSE_STRING;
+  menu_entries.push_back(m);
+  m.id = TRAJECTORY_FIX_CONTROL_FRAME;
+  m.command_type = m.FEEDBACK;
+  m.parent_id = 0;
+  m.title = TRAJECTORY_FIX_CONTROL_FRAME_STRING;
+  menu_entries.push_back(m);
+
+  JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::GripperMarker::setMenu, control_marker, menu_entries));
+  JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::connectControlMarker, this));
+}
+
+void Trajectory::fixControlFrame()
+{
+  control_marker_mode_ = CONTROL_MARKER_FIXED;
+
+  std::vector<visualization_msgs::MenuEntry> menu_entries;
+  visualization_msgs::MenuEntry m;
+  m.id = TRAJECTORY_SET_START_POSE;
+  m.command_type = m.FEEDBACK;
+  m.parent_id = 0;
+  m.title = TRAJECTORY_SET_START_POSE_STRING;
+  menu_entries.push_back(m);
+  m.id = TRAJECTORY_SET_END_POSE;
+  m.command_type = m.FEEDBACK;
+  m.parent_id = 0;
+  m.title = TRAJECTORY_SET_END_POSE_STRING;
+  menu_entries.push_back(m);
+  m.id = TRAJECTORY_EDIT_CONTROL_FRAME;
+  m.command_type = m.FEEDBACK;
+  m.parent_id = 0;
+  m.title = TRAJECTORY_EDIT_CONTROL_FRAME_STRING;
+  menu_entries.push_back(m);
+
+  JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::GripperMarker::setMenu, control_marker, menu_entries));
+  JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::connectControlMarker, this));
 }
 
 void Trajectory::startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)

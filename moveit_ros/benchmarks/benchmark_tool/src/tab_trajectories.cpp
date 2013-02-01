@@ -32,6 +32,7 @@
 #include <main_window.h>
 #include <trajectory.h>
 #include <job_processing.h>
+#include <ui_utils.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
@@ -83,7 +84,8 @@ void MainWindow::createTrajectoryButtonClicked(void)
 
         TrajectoryPtr trajectory_marker( new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
                                                               name, scene_display_->getKinematicModel()->getModelFrame(),
-                                                              robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED));
+                                                              robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED,
+                                                              ui_.trajectory_nwaypoints_spin->value()));
 
         trajectories_.insert(TrajectoryPair(name,  trajectory_marker));
       }
@@ -93,6 +95,7 @@ void MainWindow::createTrajectoryButtonClicked(void)
   }
 
   populateTrajectoriesList();
+  selectLastItemInList(ui_.trajectory_list);
 }
 
 void MainWindow::populateTrajectoriesList(void)
@@ -140,7 +143,20 @@ void MainWindow::removeTrajectoryButtonClicked(void)
     {
       case QMessageBox::Yes:
       {
-        trajectories_.erase(ui_.trajectory_list->currentItem()->text().toStdString());
+        //Go through the list of trajectories, and delete those selected
+        QList<QListWidgetItem*> found_items = ui_.trajectory_list->selectedItems();
+        for ( std::size_t i = 0 ; i < found_items.size() ; i++ )
+        {
+          try
+          {
+            trajectory_constraints_storage_->removeTrajectoryConstraints(found_items[i]->text().toStdString());
+          }
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("%s", ex.what());
+          }
+          trajectories_.erase(found_items[i]->text().toStdString());
+        }
         populateTrajectoriesList();
       }
       break;
@@ -150,12 +166,154 @@ void MainWindow::removeTrajectoryButtonClicked(void)
 
 void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
 {
-  ROS_WARN("TODO");
+  //Get all the trajectory constraints from the database
+  if (trajectory_constraints_storage_ && !robot_interaction_->getActiveEndEffectors().empty())
+  {
+    //First clear the current list
+    trajectories_.clear();
+
+    std::vector<std::string> names;
+    try
+    {
+      trajectory_constraints_storage_->getKnownTrajectoryConstraints(ui_.trajectories_filter_text->text().toStdString(), names);
+    }
+    catch (std::runtime_error &ex)
+    {
+      QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for trajectory contraints: ").append(ex.what()));
+      return;
+    }
+
+    for (unsigned int i = 0 ; i < names.size() ; i++)
+    {
+      //Create a trajectory constraint
+      moveit_warehouse::TrajectoryConstraintsWithMetadata tc;
+      bool got_constraint = false;
+      try
+      {
+        got_constraint = trajectory_constraints_storage_->getTrajectoryConstraints(tc, names[i]);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("%s", ex.what());
+      }
+      if (!got_constraint)
+        continue;
+
+      if (tc->constraints.size() > 0 && tc->constraints[0].position_constraints[0].constraint_region.primitive_poses.size() > 0 && tc->constraints[0].orientation_constraints.size() > 0)
+      {
+        geometry_msgs::Pose shape_pose;
+        shape_pose.position = tc->constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position;
+        shape_pose.orientation = tc->constraints[0].orientation_constraints[0].orientation;
+        static const float marker_scale = 0.15;
+        TrajectoryPtr trajectory_marker( new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
+                                                        names[i], scene_display_->getKinematicModel()->getModelFrame(),
+                                                        robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED,
+                                                        ui_.trajectory_nwaypoints_spin->value()));
+
+        if ( trajectories_.find(names[i]) != trajectories_.end() )
+        {
+          trajectories_.erase(names[i]);
+        }
+        trajectories_.insert(TrajectoryPair(names[i], trajectory_marker));
+
+        for (std::size_t c = 0; c < tc->constraints.size(); ++c)
+        {
+          if (tc->constraints[c].position_constraints.size() > 0 && tc->constraints[c].position_constraints[0].constraint_region.primitive_poses.size() > 0 && tc->constraints[c].orientation_constraints.size() > 0 )
+          {
+            shape_pose.position = tc->constraints[c].position_constraints[0].constraint_region.primitive_poses[0].position;
+            shape_pose.orientation = tc->constraints[c].orientation_constraints[0].orientation;
+
+            static const float marker_scale = 0.15;
+            GripperMarkerPtr waypoint_marker( new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
+                                                                names[i], scene_display_->getKinematicModel()->getModelFrame(),
+                                                                robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED));
+            waypoint_marker->unselect(true);
+            waypoint_marker->setColor(0.0, 0.9, 0.0, 1 - (double)c / (double)tc->constraints.size());
+            trajectory_marker->waypoint_markers.push_back(waypoint_marker);
+          }
+        }
+
+        if (trajectory_marker->waypoint_markers.size() > 0)
+        {
+          trajectory_marker->start_marker = GripperMarkerPtr(new GripperMarker(*trajectory_marker->waypoint_markers.front()));
+          trajectory_marker->end_marker = GripperMarkerPtr(new GripperMarker(*trajectory_marker->waypoint_markers.back()));
+          trajectory_marker->getGripperMarkerPose(trajectory_marker->waypoint_markers.front(), trajectory_marker->control_marker_start_pose);
+          trajectory_marker->getGripperMarkerPose(trajectory_marker->waypoint_markers.back(), trajectory_marker->control_marker_end_pose);
+        }
+        populateTrajectoriesList();
+        selectFirstItemInList(ui_.trajectory_list);
+      }
+    }
+   }
+  else
+  {
+    if (!trajectory_constraints_storage_)
+      QMessageBox::warning(this, "Warning", "Not connected to a database.");
+  }
 }
 
 void MainWindow::saveTrajectoriesOnDBButtonClicked(void)
 {
-  ROS_WARN("TODO");
+  if (trajectory_constraints_storage_)
+  {
+    //Convert all goal trajectory markers into constraints and store them
+    for (TrajectoryMap::iterator it = trajectories_.begin(); it != trajectories_.end(); ++it)
+    {
+      moveit_msgs::TrajectoryConstraints tc;
+
+      for (std::size_t w = 0; w < it->second->waypoint_markers.size(); ++w)
+      {
+        moveit_msgs::Constraints c;
+        c.name = it->first;
+
+        shape_msgs::SolidPrimitive sp;
+        sp.type = sp.BOX;
+        sp.dimensions.resize(3, std::numeric_limits<float>::epsilon() * 10.0);
+
+        moveit_msgs::PositionConstraint pc;
+        pc.constraint_region.primitives.push_back(sp);
+        geometry_msgs::Pose posemsg;
+        it->second->waypoint_markers[w]->getPosition(posemsg.position);
+        posemsg.orientation.x = 0.0;
+        posemsg.orientation.y = 0.0;
+        posemsg.orientation.z = 0.0;
+        posemsg.orientation.w = 1.0;
+        pc.constraint_region.primitive_poses.push_back(posemsg);
+        pc.weight = 1.0;
+        c.position_constraints.push_back(pc);
+
+        moveit_msgs::OrientationConstraint oc;
+        it->second->waypoint_markers[w]->getOrientation(oc.orientation);
+        oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
+            oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
+        oc.weight = 1.0;
+        c.orientation_constraints.push_back(oc);
+        tc.constraints.push_back(c);
+      }
+
+      try
+      {
+        trajectory_constraints_storage_->addTrajectoryConstraints(tc, it->first);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("Cannot save trajectory constraint: %s", ex.what());
+      }
+    }
+  }
+  else
+  {
+    QMessageBox::warning(this, "Warning", "Not connected to a database.");
+  }
+}
+
+void MainWindow::trajectoryNWaypointsChanged(int n)
+{
+  if (ui_.trajectory_list->currentItem())
+  {
+    TrajectoryMap::iterator it = trajectories_.find(ui_.trajectory_list->currentItem()->text().toStdString());
+    it->second->setNumberOfWaypoints(n);
+  }
 }
 
 } // namespace
