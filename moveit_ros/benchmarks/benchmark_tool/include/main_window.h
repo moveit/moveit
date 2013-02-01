@@ -38,6 +38,7 @@
 
 #include <QtGui/QMainWindow>
 #include <QTimer>
+#include <QSettings>
 #include "ui_main_window.h"
 
 #include <rviz/render_panel.h>
@@ -121,6 +122,7 @@ private:
   const static unsigned int DEFAULT_WAREHOUSE_PORT;
 
   Ui::MainWindow ui_;
+  boost::shared_ptr<QSettings> settings_;
 
   //rviz
   rviz::RenderPanel *render_panel_;
