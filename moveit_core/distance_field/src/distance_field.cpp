@@ -69,7 +69,7 @@ double DistanceField::getDistanceGradient(double x, double y, double z, double& 
 
   worldToGrid(x, y, z, gx, gy, gz);
 
-  // if out of bounds, return 0 distance, and 0 gradient
+  // if out of bounds, return max_distance, and 0 gradient
   // we need extra padding of 1 to get gradients
   if (gx<1 || gy<1 || gz<1 || gx>=getXNumCells()-1 || gy>=getYNumCells()-1 || gz>=getZNumCells()-1)
   {
@@ -77,15 +77,15 @@ double DistanceField::getDistanceGradient(double x, double y, double z, double& 
     gradient_y = 0.0;
     gradient_z = 0.0;
     in_bounds = false;
-    return 0;
+    return getUninitializedDistance();
   }
 
-  gradient_x = (getDistanceFromCell(gx+1,gy,gz) - getDistanceFromCell(gx-1,gy,gz))*inv_twice_resolution_;
-  gradient_y = (getDistanceFromCell(gx,gy+1,gz) - getDistanceFromCell(gx,gy-1,gz))*inv_twice_resolution_;
-  gradient_z = (getDistanceFromCell(gx,gy,gz+1) - getDistanceFromCell(gx,gy,gz-1))*inv_twice_resolution_;
+  gradient_x = (getDistance(gx+1,gy,gz) - getDistance(gx-1,gy,gz))*inv_twice_resolution_;
+  gradient_y = (getDistance(gx,gy+1,gz) - getDistance(gx,gy-1,gz))*inv_twice_resolution_;
+  gradient_z = (getDistance(gx,gy,gz+1) - getDistance(gx,gy,gz-1))*inv_twice_resolution_;
 
   in_bounds = true;
-  return getDistanceFromCell(gx,gy,gz);
+  return getDistance(gx,gy,gz);
 }
 
 void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance,
@@ -115,7 +115,7 @@ void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distanc
     {
       for (int z = 0; z < getZNumCells(); ++z)
       {
-        double dist = getDistanceFromCell(x,y,z);
+        double dist = getDistance(x,y,z);
         
         if (dist >= min_distance && dist <= max_distance)
         {
@@ -387,7 +387,7 @@ void DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type,
         {
           continue;
         }
-        double dist = getDistanceFromCell(x, y, z);
+        double dist = getDistance(x, y, z);
         int last = plane_marker.points.size();
         plane_marker.points.resize(last + 1);
         plane_marker.colors.resize(last + 1);
@@ -466,7 +466,7 @@ void DistanceField::getProjectionPlanes(const std::string& frame_id,
   for( int z = 0; z < maxZCell; z++ ) {
     for( int y = 0; y < maxYCell; y++ ) {
       for( int x = 0; x < maxXCell; x++ ) {
-        double dist = getDistanceFromCell(x,y,z);
+        double dist = getDistance(x,y,z);
         z_projection[x+y*maxXCell] = std::min( dist, z_projection[x+y*maxXCell]);
         x_projection[y+z*maxYCell] = std::min( dist, x_projection[y+z*maxYCell]);
         y_projection[x+z*maxXCell] = std::min( dist, y_projection[x+z*maxXCell]);
