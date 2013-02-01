@@ -251,7 +251,8 @@ protected:
   //Metric calculations
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  
   std::map<std::string, dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
-     
+  boost::mutex update_metrics_lock_;
+  
   // properties to show on side panel
   rviz::Property* path_category_;
   rviz::Property* plan_category_;
