@@ -855,7 +855,7 @@ void RobotPosesWidget::publishJoints()
 
   // Create a planning scene message
   moveit_msgs::DisplayRobotState msg;
-  robot_state::kinematicStateToRobotState(config_data_->getPlanningScene()->getCurrentState(), msg.state);
+  robot_state::robotStateToRobotStateMsg(config_data_->getPlanningScene()->getCurrentState(), msg.state);
   
   // Publish!
   pub_robot_state_.publish( msg );
