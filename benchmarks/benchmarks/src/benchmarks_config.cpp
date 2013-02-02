@@ -277,6 +277,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
       }
     }
     
+    //Goals in the cartesian space
     if (!opt_.goal_regex.empty())
     {
       std::vector<std::string> cnames;
@@ -338,6 +339,72 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
         }
       }
     }
+
+    //Trajectories
+    if (!opt_.trajectory_regex.empty())
+    {
+      std::vector<std::string> cnames;
+      tcs_.getKnownTrajectoryConstraints(opt_.trajectory_regex, cnames);
+      for (std::size_t i = 0 ; i < cnames.size() ; ++i)
+      {
+        moveit_warehouse::TrajectoryConstraintsWithMetadata constr;
+        bool got_constraints = false;
+        try
+        {
+          got_constraints = tcs_.getTrajectoryConstraints(constr, cnames[i]);
+        }
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
+
+        if (got_constraints)
+        {
+          // construct a planning request from the trajectory constraints message
+          req.benchmark_request.motion_plan_request = moveit_msgs::MotionPlanRequest();
+          if (start_state_to_use)
+            req.benchmark_request.motion_plan_request.start_state = *start_state_to_use;
+          req.benchmark_request.motion_plan_request.trajectory_constraints = *constr;
+
+          //Apply waypoint offsets, check fields
+          for (std::size_t tc = 0; tc < constr->constraints.size(); ++tc)
+          {
+            geometry_msgs::Pose wMc_msg, wMnc_msg;
+            wMc_msg.position = req.benchmark_request.motion_plan_request.trajectory_constraints.constraints[tc].position_constraints[0].constraint_region.primitive_poses[0].position;
+            wMc_msg.orientation = req.benchmark_request.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation;
+            Eigen::Affine3d wMc, wMnc;
+            tf::poseMsgToEigen(wMc_msg, wMc);
+
+            Eigen::Affine3d cMnc;
+            cMnc = Eigen::AngleAxis<double>(opt_.offsets[3], Eigen::Vector3d::UnitX()) *
+                Eigen::AngleAxis<double>(opt_.offsets[4], Eigen::Vector3d::UnitY()) *
+                Eigen::AngleAxis<double>(opt_.offsets[5], Eigen::Vector3d::UnitZ());
+
+            cMnc.translation() = Eigen::Vector3d(opt_.offsets[0], opt_.offsets[1], opt_.offsets[2]);
+
+            wMnc = wMc * cMnc;
+            tf::poseEigenToMsg(wMnc, wMnc_msg);
+
+            req.benchmark_request.motion_plan_request.trajectory_constraints.constraints[tc].position_constraints[0].constraint_region.primitive_poses[0].position = wMnc_msg.position;
+            req.benchmark_request.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation = wMnc_msg.orientation;
+
+            if (!opt_.default_constrained_link.empty())
+              checkConstrainedLink(req.benchmark_request.motion_plan_request.trajectory_constraints.constraints[tc], opt_.default_constrained_link);
+            if (!opt_.planning_frame.empty())
+              checkHeader(req.benchmark_request.motion_plan_request.trajectory_constraints.constraints[tc], opt_.planning_frame);
+          }
+
+          if (!opt_.group_override.empty())
+            req.benchmark_request.motion_plan_request.group_name = opt_.group_override;
+          if (opt_.timeout > 0.0)
+            req.benchmark_request.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+          req.benchmark_request.filename = opt_.output + ".trajectory." + boost::lexical_cast<std::string>(i+1) + ".log";
+
+          ROS_INFO("Benckmarking trajectory '%s' (%d of %d)", cnames[i].c_str(), (int)i+1, (int)cnames.size());
+          call(boost::ref(req));
+        }
+      }
+    }
   }
 }
 
@@ -362,6 +429,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
       ("scene.start", boost::program_options::value<std::string>()->default_value(""), "Regex for the start states to use")
       ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
       ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
+      ("scene.trajectory", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as trajectories")
       ("scene.group", boost::program_options::value<std::string>()->default_value(""), "Override the group to plan for")
       ("scene.planning_frame", boost::program_options::value<std::string>()->default_value(""), "Override the planning frame to use")
       ("scene.default_constrained_link", boost::program_options::value<std::string>()->default_value(""),
@@ -388,6 +456,7 @@ bool moveit_benchmarks::BenchmarkConfig::readOptions(const char *filename)
     opt_.start_regex = declared_options["scene.start"];
     opt_.query_regex = declared_options["scene.query"];
     opt_.goal_regex = declared_options["scene.goal"];
+    opt_.trajectory_regex = declared_options["scene.trajectory"];
     opt_.group_override = declared_options["scene.group"];
     opt_.default_constrained_link = declared_options["scene.default_constrained_link"];
     opt_.planning_frame = declared_options["scene.planning_frame"];
@@ -513,6 +582,8 @@ void moveit_benchmarks::BenchmarkConfig::printOptions(std::ostream &out)
     out << "Planning requests associated to the scene that match '" << opt_.query_regex << "' will be evaluated" << std::endl;
   if (!opt_.goal_regex.empty())
     out << "Planning requests constructed from goal constraints that match '" << opt_.goal_regex << "' will be evaluated" << std::endl;
+  if (!opt_.trajectory_regex.empty())
+      out << "Planning requests constructed from trajectory constraints that match '" << opt_.trajectory_regex << "' will be evaluated" << std::endl;
   out << "Plugins:" << std::endl;
   for (std::size_t i = 0 ; i < opt_.plugins.size() ; ++i)
   {
