@@ -326,7 +326,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     disp.model_id = kmodel_->getName();
     disp.trajectory.resize(1);
     res.trajectory_->getRobotTrajectoryMsg(disp.trajectory[0]);
-    robot_state::kinematicStateToRobotState(res.trajectory_->getFirstWayPoint(), disp.trajectory_start);
+    robot_state::robotStateToRobotStateMsg(res.trajectory_->getFirstWayPoint(), disp.trajectory_start);
     display_path_publisher_.publish(disp);      
   }
   

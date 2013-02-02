@@ -46,20 +46,20 @@ const std::string Trajectory::TRAJECTORY_SET_END_POSE_STRING = "Set end pose";
 const std::string Trajectory::TRAJECTORY_EDIT_CONTROL_FRAME_STRING = "Edit control frame";
 const std::string Trajectory::TRAJECTORY_FIX_CONTROL_FRAME_STRING = "Fix control frame";
 
-Trajectory::Trajectory(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+Trajectory::Trajectory(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                        const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                        const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
                        dragging_(false), control_marker_mode_(CONTROL_MARKER_FIXED), nwaypoints_(nwaypoints)
 {
-  createControlMarker(kinematic_state, parent_node, context, name, frame_id, eef, pose, scale, state, is_selected, visible_x, visible_y, visible_z);
+  createControlMarker(robot_state, parent_node, context, name, frame_id, eef, pose, scale, state, is_selected, visible_x, visible_y, visible_z);
   createHandMarker();
 }
 
-void Trajectory::createControlMarker(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+void Trajectory::createControlMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                        const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                        const GripperMarker::GripperMarkerState &state, bool is_selected, bool visible_x, bool visible_y, bool visible_z)
 {
-  GripperMarkerPtr control( new GripperMarker(kinematic_state, parent_node, context, name, frame_id, eef, pose, scale, state));
+  GripperMarkerPtr control( new GripperMarker(robot_state, parent_node, context, name, frame_id, eef, pose, scale, state));
   control->select(true);
   std::vector<visualization_msgs::MenuEntry> menu_entries;
   visualization_msgs::MenuEntry m;

@@ -217,7 +217,7 @@ void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanReques
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
   mreq.num_planning_attempts = 1;
   mreq.allowed_planning_time = ui_->planning_time->value();
-  robot_state::kinematicStateToRobotState(*planning_display_->getQueryStartState(), mreq.start_state);
+  robot_state::robotStateToRobotStateMsg(*planning_display_->getQueryStartState(), mreq.start_state);
   mreq.workspace_parameters.min_corner.x = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
   mreq.workspace_parameters.min_corner.y = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
   mreq.workspace_parameters.min_corner.z = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;

@@ -33,7 +33,7 @@
 #include <job_processing.h>
 
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 
@@ -621,7 +621,7 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
 
   // Call to IK
   setStatusFromBackground(STATUS_INFO, "Computing inverse kinematics...");
-  kinematic_state::KinematicState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
+  robot_state::RobotState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
   static const int ik_attempts = 5;
   static const float ik_timeout = 0.2;
   bool feasible = robot_interaction_->updateState(ks,
@@ -662,7 +662,7 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
   Eigen::Affine3d marker_pose_eigen = Eigen::Translation3d(im->getPosition().x, im->getPosition().y, im->getPosition().z) *
     Eigen::Quaterniond(im->getOrientation().w, im->getOrientation().x, im->getOrientation().y, im->getOrientation().z);
 
-  kinematic_state::KinematicState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
+  robot_state::RobotState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
   ks.updateStateWithLinkAt(eef.parent_link, marker_pose_eigen);
   bool in_collision = scene_display_->getPlanningSceneRO()->isStateColliding(ks, eef.eef_group);
 
@@ -769,7 +769,7 @@ void MainWindow::saveStartStateButtonClicked(void)
       {
         //Store the current start state
         moveit_msgs::RobotState msg;
-        kinematic_state::kinematicStateToRobotState(scene_display_->getPlanningSceneRO()->getCurrentState(), msg);
+        robot_state::robotStateToRobotStateMsg(scene_display_->getPlanningSceneRO()->getCurrentState(), msg);
         start_states_.insert(StartStatePair(name, StartStatePtr(new StartState(msg))));
 
         //Save to the database if connected

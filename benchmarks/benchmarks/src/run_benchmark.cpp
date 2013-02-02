@@ -465,15 +465,15 @@ public:
       ik_pose.orientation.z = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z;
       ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
 
-      kinematic_state::KinematicState kinematic_state(scene_monitor_.getPlanningScene()->getCurrentState());
-      kinematic_state::robotStateToKinematicState(req.motion_plan_request.start_state, kinematic_state);
+      robot_state::RobotState robot_state(scene_monitor_.getPlanningScene()->getCurrentState());
+      robot_state::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
 
       // Compute IK
       ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
       ros::WallTime startTime = ros::WallTime::now();
-      success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts,
-                                                                                                       req.motion_plan_request.allowed_planning_time.toSec(),
-                                                                                                       boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
+      success = robot_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts,
+                                                                                              req.motion_plan_request.allowed_planning_time,
+                                                                                              boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
       if (success)
       {
         ROS_INFO("  Success!");
@@ -495,7 +495,7 @@ public:
       out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
       out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
       out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
-      out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
+      out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
       out << duration << " seconds spent to collect the data" << std::endl;
       out << "reachable BOOLEAN" << std::endl;
       out << "collision_free BOOLEAN" << std::endl;
@@ -516,7 +516,7 @@ public:
       out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
       out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
       out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
-      out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
+      out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
       out << "reachable BOOLEAN" << std::endl;
       out << "collision_free BOOLEAN" << std::endl;
       out << "total_time REAL" << std::endl;
@@ -532,15 +532,15 @@ public:
         ik_pose.orientation.z = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.z;
         ik_pose.orientation.w = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.w;
 
-        kinematic_state::KinematicState kinematic_state(scene_monitor_.getPlanningScene()->getCurrentState());
-        kinematic_state::robotStateToKinematicState(req.motion_plan_request.start_state, kinematic_state);
+        robot_state::RobotState robot_state(scene_monitor_.getPlanningScene()->getCurrentState());
+        robot_state::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
 
         // Compute IK
         ROS_INFO_STREAM("Processing trajectory waypoint " << req.motion_plan_request.trajectory_constraints.constraints[tc].name << " ...");
         startTime = ros::WallTime::now();
-        success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts,
-                                                                                                    req.motion_plan_request.allowed_planning_time.toSec(),
-                                                                                                    boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
+        success = robot_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts,
+                                                                                                req.motion_plan_request.allowed_planning_time,
+                                                                                                boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
         double duration = (ros::WallTime::now() - startTime).toSec();
 
         if (success)

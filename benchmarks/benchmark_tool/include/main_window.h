@@ -45,7 +45,7 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 
-#include <moveit/render_tools/kinematic_state_visualization.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/warehouse/planning_scene_storage.h>
@@ -132,7 +132,7 @@ private:
 
   void scheduleStateUpdate();
   void scheduleStateUpdateBackgroundJob();
-  bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution);
+  bool isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution);
   bool configure();
   void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);

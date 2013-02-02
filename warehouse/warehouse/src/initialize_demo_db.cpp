@@ -94,7 +94,7 @@ int main(int argc, char **argv)
   pss.addPlanningScene(psmsg);
 
   moveit_msgs::RobotState rsmsg;
-  robot_state::kinematicStateToRobotState(psm.getPlanningScene()->getCurrentState(), rsmsg);
+  robot_state::robotStateToRobotStateMsg(psm.getPlanningScene()->getCurrentState(), rsmsg);
   rs.addRobotState(rsmsg, "S1");
   rs.addRobotState(rsmsg, "S2");
 

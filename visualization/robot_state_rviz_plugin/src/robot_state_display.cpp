@@ -178,7 +178,7 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   if (!kstate_)
     kstate_.reset(new robot_state::RobotState(kmodel_)); 
   // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion functio?
-  robot_state::robotStateToRobotState(state->state, *kstate_);
+  robot_state::robotStateMsgToRobotState(state->state, *kstate_);
   update_state_ = true;
 }
 

@@ -769,7 +769,7 @@ void MotionPlanningFrame::saveStartStateButtonClicked()
       {
         //Store the current start state
         moveit_msgs::RobotState msg;
-        robot_state::kinematicStateToRobotState(*planning_display_->getQueryStartState(), msg);
+        robot_state::robotStateToRobotStateMsg(*planning_display_->getQueryStartState(), msg);
         start_states_.insert(StartStatePair(name,  StartState(msg)));
 
         //Save to the database if connected
@@ -827,7 +827,7 @@ void MotionPlanningFrame::startStateItemDoubleClicked(QListWidgetItem * item)
 {
   //If a start state item is double clicked, apply it to the start query
   robot_state::RobotStatePtr ks(new robot_state::RobotState(*planning_display_->getQueryStartState()));
-  robot_state::robotStateToRobotState(start_states_[item->text().toStdString()].state_msg, *ks);
+  robot_state::robotStateMsgToRobotState(start_states_[item->text().toStdString()].state_msg, *ks);
   planning_display_->setQueryStartState(*ks);
 }
 

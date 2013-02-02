@@ -146,7 +146,7 @@ int main(int argc, char **argv)
             moveit_warehouse::RobotStateWithMetadata robotState;
             rss.getRobotState(robotState, robotStateNames[k]);
             robot_state::RobotState ks(km);
-            robot_state::robotStateToRobotState(*robotState, ks, false);
+            robot_state::robotStateMsgToRobotState(*robotState, ks, false);
             ks.printStateInfo(qfout);
             qfout << "." << std::endl;
           }

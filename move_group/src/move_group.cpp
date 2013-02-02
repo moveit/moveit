@@ -158,7 +158,7 @@ private:
         {          
           if (first && !trajectory[i]->empty())
           {
-            robot_state::kinematicStateToRobotState(trajectory[i]->getFirstWayPoint(), first_state_msg);
+            robot_state::robotStateToRobotStateMsg(trajectory[i]->getFirstWayPoint(), first_state_msg);
             first = false;
           }
           trajectory[i]->getRobotTrajectoryMsg(trajectory_msg[i]);
@@ -172,7 +172,7 @@ private:
   {     
     if (trajectory && !trajectory->empty())
     {
-      robot_state::kinematicStateToRobotState(trajectory->getFirstWayPoint(), first_state_msg);
+      robot_state::robotStateToRobotStateMsg(trajectory->getFirstWayPoint(), first_state_msg);
       trajectory->getRobotTrajectoryMsg(trajectory_msg);
     }
   }

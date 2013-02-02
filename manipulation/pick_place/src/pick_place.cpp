@@ -86,7 +86,7 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr &plan) const
   dtraj.model_id = getKinematicModel()->getName();
   if (!plan->trajectories_.empty())
   {
-    robot_state::kinematicStateToRobotState(plan->trajectories_.front()->getFirstWayPoint(), dtraj.trajectory_start);
+    robot_state::robotStateToRobotStateMsg(plan->trajectories_.front()->getFirstWayPoint(), dtraj.trajectory_start);
     dtraj.trajectory.resize(plan->trajectories_.size());
     for (std::size_t i = 0 ; i < plan->trajectories_.size() ; ++i)
       plan->trajectories_[i]->getRobotTrajectoryMsg(dtraj.trajectory[i]);

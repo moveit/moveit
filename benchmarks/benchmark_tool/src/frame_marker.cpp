@@ -302,14 +302,14 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
 }
 
 
-GripperMarker::GripperMarker(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+GripperMarker::GripperMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                              const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                              const GripperMarkerState &state, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
                              FrameMarker(parent_node, context, name, frame_id, pose, scale, stateToColor(state), is_selected, visible_x, visible_y, visible_z),
                              state_(state),
                              eef_(eef)
 {
-  kinematic_state_ = &kinematic_state;
+  robot_state_ = &robot_state;
 }
 
 void GripperMarker::select(bool display_gripper_mesh)
@@ -353,8 +353,8 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   if (display_gripper_mesh_)
   {
     //If selected and gripper_mesh enabled, display the actual end effector mesh
-    const kinematic_state::JointStateGroup *joint_state_group = kinematic_state_->getJointStateGroup(eef_.eef_group);
-    const kinematic_state::KinematicState *kinematic_state = joint_state_group->getKinematicState();
+    const robot_state::JointStateGroup *joint_state_group = robot_state_->getJointStateGroup(eef_.eef_group);
+    const robot_state::RobotState *robot_state = joint_state_group->getRobotState();
 
     const kinematic_model::JointModelGroup *joint_model_group = joint_state_group->getJointModelGroup();
     const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();
@@ -362,7 +362,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
     std_msgs::ColorRGBA marker_color;
     marker_color = color;
     visualization_msgs::MarkerArray marker_array;
-    kinematic_state->getRobotMarkers(marker_array, link_names, marker_color, "goal_pose_marker", ros::Duration());
+    robot_state->getRobotMarkers(marker_array, link_names, marker_color, "goal_pose_marker", ros::Duration());
 
     for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
     {
@@ -370,7 +370,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
       m_control.markers.push_back(marker_array.markers[i]);
     }
 
-    Eigen::Affine3d tip_pose = kinematic_state_->getLinkState(eef_.parent_link)->getGlobalLinkTransform();
+    Eigen::Affine3d tip_pose = robot_state_->getLinkState(eef_.parent_link)->getGlobalLinkTransform();
     tf::poseEigenToMsg(tip_pose, int_marker.pose);
   }
   else
