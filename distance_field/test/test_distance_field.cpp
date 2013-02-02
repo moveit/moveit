@@ -415,6 +415,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   p.position.z = .5;
   
   gradient_df.addShapeToField(&sphere, p);
+  printNeg(gradient_df, numX, numY, numZ);
   EXPECT_GT(gradient_df.getCell(5,5,5).negative_distance_square_, 1);
   //all negative cells should have gradients that point towards cells with distance 1
   for (int z=1; z<df.getZNumCells()-1; z++) {
@@ -434,15 +435,15 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
           double xscale = grad.x()/grad.norm();
           double yscale = grad.y()/grad.norm();
           double zscale = grad.z()/grad.norm();
-          
-          double comp_x = wx+xscale*dist;
-          double comp_y = wy+yscale*dist;
-          double comp_z = wz+zscale*dist;
+
+          double comp_x = wx-xscale*dist;
+          double comp_y = wy-yscale*dist;
+          double comp_z = wz-zscale*dist;
           
           int cell_x, cell_y, cell_z;
           gradient_df.worldToGrid(comp_x, comp_y, comp_z,
                                   cell_x, cell_y, cell_z);
-          ASSERT_EQ(gradient_df.getCell(cell_x, cell_y, cell_z).distance_square_, 1);
+          ASSERT_GE(gradient_df.getCell(cell_x, cell_y, cell_z).distance_square_, 1) << dist << " " << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale << " " << yscale << " " << zscale << " cell " << comp_x << " " << comp_y << " " << comp_z << std::endl;
         }
       }
     }

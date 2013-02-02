@@ -83,12 +83,13 @@ struct PropDistanceFieldVoxel
   /** 
    * \brief Constructor.  Sets values for distance_sq_ and
    * negative_distance_square_, and sets all remaining internal values
-   * to uninitialized.
+   * to uninitialized.  These should be integers values which
+   * represent the distance in cells squared.
    * 
-   * @param distance_sq_positive Value to which to initialize
+   * @param [in] distance_sq_positive Value to which to initialize
    * distance_sq_ for distance to closest obstalce
    * 
-   * @param distance_sq_negative Value to which to initialize
+   * @param [in] distance_sq_negative Value to which to initialize
    * distance_sq_negative_ for distance to nearest non-obstacle cell
    * 
    */
@@ -106,7 +107,7 @@ struct PropDistanceFieldVoxel
 
 /**
  * \brief A DistanceField implementation that uses a vector
- * propagation method.  Distances propogate outward from occupied
+ * propagation method.  Distances propagate outward from occupied
  * cells, or inwards from unoccupied cells if negative distances are
  * to be computed, which is optional.  Outward and inward propagation
  * only occur to a desired maximum distance - cells that are more than
@@ -203,7 +204,7 @@ public:
    * propagate_negative_distances. Calls the function 
    * \ref readFromStream.
    * 
-   * @param stream The stream from which to read the data
+   * @param [in] stream The stream from which to read the data
    *
    * @param [in] max_distance The maximum distance to which to
    * propagate distance values.  Cells that are greater than this
@@ -280,6 +281,10 @@ public:
    * it is more efficient to first call \ref removePointsFromField on
    * the old_points and then \ref addPointsToField on the new points -
    * this does not require computing set differences.
+   *
+   * @param [in] old_points The set of points that all should be obstacle cells in the distance field
+   * @param [in] new_points The set of points, all of which are intended to be obstacle points in the distance field
+   *
    */
   virtual void updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
                                    const EigenSTL::vector_Vector3d& new_points);
@@ -344,7 +349,7 @@ public:
    * written to file, and the distances themselves will need to be
    * recreated on load.
    * 
-   * @param [in] stream The stream to which to write the distance field contents.
+   * @param [out] stream The stream to which to write the distance field contents.
    * 
    * @return True 
    */
@@ -361,7 +366,7 @@ public:
    * max_distance_ and propagate_negative_distances_.  All occupied
    * cells will be added to the distance field.
    * 
-   * @param stream The stream from which to read
+   * @param [in] stream The stream from which to read
    * 
    * @return True if reading, parameterizing, and populating the
    * distance field is successful; otherwise False.

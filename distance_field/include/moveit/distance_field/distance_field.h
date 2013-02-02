@@ -167,8 +167,8 @@ public:
    * bodies and poses please see the documentation for
    * geometric_shapes.
    *
-   * @param shape The shape to add to the distance field
-   * @param pose The pose of the shape
+   * @param [in] shape The shape to add to the distance field
+   * @param [in] pose The pose of the shape
    */
   void addShapeToField(const shapes::Shape* shape,
                        const geometry_msgs::Pose& pose);
@@ -184,7 +184,7 @@ public:
    * octree is greater than a 3D volume of the correct resolution will
    * be added for each occupied leaf node.
    *
-   * @param octree The octree to add to the distance field
+   * @param [in] octree The octree to add to the distance field
    */
   void addOcTreeToField(const octomap::OcTree* octree);
   
@@ -202,9 +202,9 @@ public:
    * different sources - a cup resting on a table that is moved make
    * take a chunk out of the top of the table.
    * 
-   * @param shape The shape to move in the distance field
-   * @param old_pose The old pose of the shape
-   * @param new_pose The new pose of the shape
+   * @param [in] shape The shape to move in the distance field
+   * @param [in] old_pose The old pose of the shape
+   * @param [in] new_pose The new pose of the shape
    */
   void moveShapeInField(const shapes::Shape* shape,
                         const geometry_msgs::Pose& old_pose,
@@ -216,8 +216,8 @@ public:
    *
    * The points needs not have been added using \ref addShapeToField.
    * 
-   * @param shape The shape to remove from the distance field
-   * @param pose The pose of the shape to remove
+   * @param [in] shape The shape to remove from the distance field
+   * @param [in] pose The pose of the shape to remove
    */
   void removeShapeFromField(const shapes::Shape* shape,
                             const geometry_msgs::Pose& pose);
@@ -254,18 +254,32 @@ public:
    * gradient direction.  The gradient is computed as a function of
    * the distances of near-by cells.  An uninitialized distance is
    * returned if the cell is not valid for gradient production
-   * purposes.
+   * purposes.  The gradient is pointing out of the obstacle - thus to
+   * recover the closest obstacle point, the normalized gradient value
+   * is multiplied by the distance and subtracted from the cell's
+   * location, as shown below. 
+   *
+   * A number of different cells will not have valid gradients.  Any
+   * cell that is entirely surrounded by cells of the same distance
+   * will not have a valid gradient.  Depending on the implementation
+   * of the distance field, such cells may be found far away from
+   * obstacles (if a distance is not computed for every cell), or deep
+   * within obstacles.  Such points can be detected as having zero
+   * magnitude for the gradient.
    *
    * The closest cell to a given cell can be computed given the
    * following formulation (this value will only be within the
-   * resolution parameter of the correct location): 
+   * resolution parameter of the correct location), including a test
+   * for a non-zero gradient magnitude:
    *
-   *\code{.cpp}
+   *\code
    * Eigen::Vector3d grad; 
-   * double dist = getDistanceGradient(x,y,z,grad.x(),grad.y(),grad.z(),in_bounds);
-   * double closest_point_x = x-(grad.x()/grad.norm())*dist;
-   * double closest_point_y = y-(grad.y()/grad.norm())*dist;
-   * double closest_point_z = z-(grad.z()/grad.norm())*dist;
+   * double dist = distance_field.getDistanceGradient(x,y,z,grad.x(),grad.y(),grad.z(),in_bounds);
+   * if(grad.norm() > 0) {
+   *   double closest_point_x = x-(grad.x()/grad.norm())*dist;
+   *   double closest_point_y = y-(grad.y()/grad.norm())*dist;
+   *   double closest_point_z = z-(grad.z()/grad.norm())*dist;
+   * }
    * \endcode
    * 
    * @param [in] x The X location of the cell 
@@ -290,9 +304,9 @@ public:
    * integer cell location. The particulars of this function are
    * heavily dependent on the behavior of the derived class.
    * 
-   * @param x The X index of the cell
-   * @param y The Y index of the cell
-   * @param z The Z index of the cell
+   * @param [in] x The X index of the cell
+   * @param [in] y The Y index of the cell
+   * @param [in] z The Z index of the cell
    * 
    * @return The distance to the closest occupied cell
    */
@@ -302,9 +316,9 @@ public:
    * \brief Determines whether or not the cell associated with the
    * supplied indices is valid for this distance field.
    * 
-   * @param x The X index of the cell
-   * @param y The Y index of the cell
-   * @param z The Z index of the cell
+   * @param [in] x The X index of the cell
+   * @param [in] y The Y index of the cell
+   * @param [in] z The Z index of the cell
    * 
    * @return True if the cell is valid, otherwise false.
    */
@@ -371,7 +385,7 @@ public:
   /** 
    * \brief Writes the contents of the distance field to the supplied stream.
    * 
-   * @param [in] stream The stream to which to write the distance field contents.
+   * @param [out] stream The stream to which to write the distance field contents.
    * 
    * @return True if the writing is successful; otherwise, false.
    */
