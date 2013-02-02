@@ -85,7 +85,7 @@ public:
   
   void runBenchmark(const BenchmarkCallFn &call);
 
-  const BenchmarkOptions& getOptions(void) const
+  const BenchmarkOptions& getOptions() const
   {
     return opt_;
   }

@@ -31,7 +31,7 @@
 
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
-#include <moveit/kinematic_state/transforms.h>
+#include <moveit/robot_state/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
@@ -54,10 +54,10 @@ static const float END_EFFECTOR_COLLISION_COLOR[4] = { 0.8, 0.8, 0.0, 1.0 };
 const std::string RobotInteraction::INTERACTIVE_MARKER_TOPIC = "robot_interaction_interactive_marker_topic";
 
 RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name,
-                                                         const kinematic_state::KinematicState &kstate,
+                                                         const robot_state::RobotState &kstate,
                                                          const boost::shared_ptr<tf::Transformer> &tf) :
   name_(name),
-  kstate_(new kinematic_state::KinematicState(kstate)),
+  kstate_(new robot_state::RobotState(kstate)),
   tf_(tf),
   interaction_mode_(POSITION_IK),
   display_meshes_(true),
@@ -70,7 +70,7 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
                                                          const kinematic_model::KinematicModelConstPtr &kmodel,
                                                          const boost::shared_ptr<tf::Transformer> &tf) :
   name_(name),
-  kstate_(new kinematic_state::KinematicState(kmodel)),
+  kstate_(new robot_state::RobotState(kmodel)),
   tf_(tf),
   interaction_mode_(POSITION_IK),
   display_meshes_(true),
@@ -79,7 +79,7 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   setup();
 }
 
-void RobotInteraction::InteractionHandler::setup(void)
+void RobotInteraction::InteractionHandler::setup()
 {
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name  
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
@@ -232,7 +232,7 @@ void RobotInteraction::InteractionHandler::clearSavedMarkerPoses()
 }
 
 
-kinematic_state::KinematicStateConstPtr RobotInteraction::InteractionHandler::getState(void) const
+robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState() const
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (kstate_)
@@ -247,7 +247,7 @@ kinematic_state::KinematicStateConstPtr RobotInteraction::InteractionHandler::ge
   }
 }
 
-void RobotInteraction::InteractionHandler::setState(const kinematic_state::KinematicState& kstate)
+void RobotInteraction::InteractionHandler::setState(const robot_state::RobotState& kstate)
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (kstate_)
@@ -262,9 +262,9 @@ void RobotInteraction::InteractionHandler::setState(const kinematic_state::Kinem
   }
 }
 
-kinematic_state::KinematicStatePtr RobotInteraction::InteractionHandler::getUniqueStateAccess(void)
+robot_state::RobotStatePtr RobotInteraction::InteractionHandler::getUniqueStateAccess()
 {
-  kinematic_state::KinematicStatePtr result;
+  robot_state::RobotStatePtr result;
   {
     boost::unique_lock<boost::mutex> ulock(state_lock_);
     if (kstate_)
@@ -279,11 +279,11 @@ kinematic_state::KinematicStatePtr RobotInteraction::InteractionHandler::getUniq
     }  
   }
   if (!result.unique())
-    result.reset(new kinematic_state::KinematicState(*result));
+    result.reset(new robot_state::RobotState(*result));
   return result;
 }
 
-void RobotInteraction::InteractionHandler::setStateToAccess(kinematic_state::KinematicStatePtr &state)
+void RobotInteraction::InteractionHandler::setStateToAccess(robot_state::RobotStatePtr &state)
 {      
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (state != kstate_)
@@ -309,14 +309,14 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   bool update_state_result = false;
   if (interaction_mode_ == POSITION_IK)
   {
-    kinematic_state::KinematicStatePtr state = getUniqueStateAccess();
+    robot_state::RobotStatePtr state = getUniqueStateAccess();
     update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
     setStateToAccess(state);
   }
   else 
     if (interaction_mode_ == VELOCITY_IK)
     {
-      kinematic_state::KinematicStatePtr state = getUniqueStateAccess();
+      robot_state::RobotStatePtr state = getUniqueStateAccess();
       // compute velocity from current pose to goal pose, in the current end-effector frame
       const Eigen::Affine3d &wMe = state->getLinkState(eef.parent_link)->getGlobalLinkTransform();
       Eigen::Affine3d wMt;
@@ -380,7 +380,7 @@ bool RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_intera
   else
     return false;
   
-  kinematic_state::KinematicStatePtr state = getUniqueStateAccess();
+  robot_state::RobotStatePtr state = getUniqueStateAccess();
   robot_interaction::RobotInteraction::updateState(*state, vj, tpose.pose);
   setStateToAccess(state);
   
@@ -445,7 +445,7 @@ RobotInteraction::RobotInteraction(const kinematic_model::KinematicModelConstPtr
   processing_thread_.reset(new boost::thread(boost::bind(&RobotInteraction::processingThread, this)));
 }
 
-RobotInteraction::~RobotInteraction(void)
+RobotInteraction::~RobotInteraction()
 {
   run_processing_thread_ = false;
   new_feedback_condition_.notify_all();
@@ -475,12 +475,12 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   std::vector<double> scale(3, 0.0);
   std::vector<double> low(3, std::numeric_limits<double>::infinity());
   std::vector<double> hi(3, -std::numeric_limits<double>::infinity());
-  kinematic_state::KinematicState default_state(kmodel_);
+  robot_state::RobotState default_state(kmodel_);
   default_state.setToDefaultValues();
   
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
-    kinematic_state::LinkState *ls = default_state.getLinkState(links[i]);
+    robot_state::LinkState *ls = default_state.getLinkState(links[i]);
     if (!ls)
       continue;
     const Eigen::Vector3d &ext = ls->getLinkModel()->getShapeExtentsAtOrigin();
@@ -529,7 +529,7 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
   if (!jmg->hasJointModel(kmodel_->getRootJointName()))
     return;
 
-  kinematic_state::KinematicState default_state(kmodel_);
+  robot_state::RobotState default_state(kmodel_);
   default_state.setToDefaultValues();
   std::vector<double> aabb;
   default_state.computeAABB(aabb);
@@ -615,7 +615,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   }
 }
 
-void RobotInteraction::clear(void)
+void RobotInteraction::clear()
 {  
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   active_eef_.clear();
@@ -624,13 +624,13 @@ void RobotInteraction::clear(void)
   publishInteractiveMarkers();
 }
 
-void RobotInteraction::clearInteractiveMarkers(void)
+void RobotInteraction::clearInteractiveMarkers()
 {  
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   clearInteractiveMarkersUnsafe();
 }
 
-void RobotInteraction::clearInteractiveMarkersUnsafe(void)
+void RobotInteraction::clearInteractiveMarkersUnsafe()
 { 
   handlers_.clear();
   shown_markers_.clear();
@@ -660,7 +660,7 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
   marker_color.b = color[2];
   marker_color.a = color[3];
 
-  kinematic_state::KinematicStateConstPtr kinematic_state = handler->getState();
+  robot_state::RobotStateConstPtr kinematic_state = handler->getState();
   const std::vector<std::string> &link_names = kinematic_state->getJointStateGroup(eef.eef_group)->getJointModelGroup()->getLinkModelNames();
   visualization_msgs::MarkerArray marker_array;
   kinematic_state->getRobotMarkers(marker_array, link_names, marker_color, eef.eef_group, ros::Duration());
@@ -706,8 +706,8 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = kmodel_->getModelFrame();
     pose.header.stamp = ros::Time::now();
-    kinematic_state::KinematicStateConstPtr s = handler->getState(); 
-    const kinematic_state::LinkState *ls = s->getLinkState(active_eef_[i].parent_link);
+    robot_state::RobotStateConstPtr s = handler->getState(); 
+    const robot_state::LinkState *ls = s->getLinkState(active_eef_[i].parent_link);
     // Need to allow for control pose offsets
     tf::Transform tf_root_to_link, tf_root_to_control;
     tf::poseEigenToTF(ls->getGlobalLinkTransform(), tf_root_to_link);
@@ -755,8 +755,8 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       geometry_msgs::PoseStamped pose;
       pose.header.frame_id = kmodel_->getModelFrame();
       pose.header.stamp = ros::Time::now();
-      kinematic_state::KinematicStateConstPtr s = handler->getState(); 
-      const kinematic_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
+      robot_state::RobotStateConstPtr s = handler->getState(); 
+      const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
       tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
       s.reset(); // to avoid spurious copies of states     
       std::string marker_name = "VJ:" + handler->getName() + "_" + active_vj_[i].connecting_link;
@@ -771,12 +771,12 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
   handlers_[handler->getName()] = handler;
 }
 
-void RobotInteraction::publishInteractiveMarkers(void)
+void RobotInteraction::publishInteractiveMarkers()
 {
   int_marker_server_->applyChanges();
 }
 
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose)
+bool RobotInteraction::updateState(robot_state::RobotState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose)
 {
   Eigen::Quaterniond q;
   tf::quaternionMsgToEigen(pose.orientation, q);
@@ -790,15 +790,15 @@ bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const
   return true;
 }
 
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
-                                   unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback)
+bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
+                                   unsigned int attempts, double ik_timeout, const robot_state::StateValidityCallbackFn &validity_callback)
 { 
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
 }
 
-bool RobotInteraction::updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain,
-                                   const kinematic_state::StateValidityCallbackFn &validity_callback,
-                                   const kinematic_state::SecondaryTaskFn &st_callback)
+bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain,
+                                   const robot_state::StateValidityCallbackFn &validity_callback,
+                                   const robot_state::SecondaryTaskFn &st_callback)
 {
   return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, validity_callback, st_callback);
 }
@@ -826,7 +826,7 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
   new_feedback_condition_.notify_all();
 }
 
-void RobotInteraction::processingThread(void)
+void RobotInteraction::processingThread()
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   

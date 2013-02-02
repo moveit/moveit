@@ -49,13 +49,13 @@ PlacePlan::PlacePlan(const PickPlaceConstPtr &pick_place) :
   pipeline_.setSolutionCallback(boost::bind(&PlacePlan::foundSolution, this));
 }
 
-PlacePlan::~PlacePlan(void)
+PlacePlan::~PlacePlan()
 {
 }
 
 bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal)
 {
-  double timeout = goal.allowed_planning_time.toSec();
+  double timeout = goal.allowed_planning_time;
   ros::WallTime endtime = ros::WallTime::now() + ros::WallDuration(timeout);
   std::string planning_group = goal.group_name;
   
@@ -84,7 +84,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
-void PlacePlan::foundSolution(void)
+void PlacePlan::foundSolution()
 {
   boost::mutex::scoped_lock slock(done_mutex_);
   done_ = true;

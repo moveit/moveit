@@ -126,7 +126,7 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const plannin
   initialize(scene);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
+planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
 {
   stopPublishingPlanningScene();
   stopStateMonitor();
@@ -219,7 +219,7 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stopPublishingPlanningScene(void)
+void planning_scene_monitor::PlanningSceneMonitor::stopPublishingPlanningScene()
 { 
   if (publish_planning_scene_)
   {
@@ -245,7 +245,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
+void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
 {
   ROS_DEBUG("Started scene publishing thread ...");
 
@@ -305,7 +305,7 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
   while (publish_planning_scene_);
 }
 
-const kinematic_model::KinematicModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getKinematicModel(void) const
+const kinematic_model::KinematicModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getKinematicModel() const
 {
   if (scene_)
     return scene_->getKinematicModel();
@@ -461,28 +461,28 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead(void)
+void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
 {
   scene_update_mutex_.lock_shared();
   if (octomap_monitor_)
     octomap_monitor_->lockOcTreeRead();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::unlockSceneRead(void)
+void planning_scene_monitor::PlanningSceneMonitor::unlockSceneRead()
 {
   scene_update_mutex_.unlock_shared();  
   if (octomap_monitor_)
     octomap_monitor_->unlockOcTreeRead();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::lockSceneWrite(void)
+void planning_scene_monitor::PlanningSceneMonitor::lockSceneWrite()
 {
   scene_update_mutex_.lock();
   if (octomap_monitor_)
     octomap_monitor_->lockOcTreeWrite();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::unlockSceneWrite(void)
+void planning_scene_monitor::PlanningSceneMonitor::unlockSceneWrite()
 {
   scene_update_mutex_.unlock();
   if (octomap_monitor_)
@@ -502,7 +502,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
+void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor()
 {
   if (planning_scene_subscriber_)
   {
@@ -569,7 +569,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
   octomap_monitor_->startMonitor();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void)
+void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor()
 {
   if (collision_object_subscriber_ || collision_object_filter_ ||
       collision_map_subscriber_ || collision_map_filter_)
@@ -613,7 +613,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
     ROS_ERROR("Cannot monitor robot state because planning scene is not configured");
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor(void)
+void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor()
 {
   if (current_state_monitor_)
     current_state_monitor_->stopStateMonitor();
@@ -632,7 +632,7 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_ms
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::octomapUpdateCallback(void)
+void planning_scene_monitor::PlanningSceneMonitor::octomapUpdateCallback()
 {
   updateFrameTransforms();
   {
@@ -669,7 +669,7 @@ void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateBoundsError(dou
     current_state_monitor_->setBoundsError(error);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(void)
+void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
 {
   if (current_state_monitor_)
   {
@@ -698,7 +698,7 @@ void planning_scene_monitor::PlanningSceneMonitor::addUpdateCallback(const boost
     update_callbacks_.push_back(fn);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::clearUpdateCallbacks(void)
+void planning_scene_monitor::PlanningSceneMonitor::clearUpdateCallbacks()
 {
   update_callbacks_.clear();
 }
@@ -760,7 +760,7 @@ void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(con
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
+void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
 {
   if (!tf_)
     return;
@@ -820,7 +820,7 @@ void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(cons
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding(void)
+void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding()
 {
   nh_.param(robot_description_ + "_planning/default_robot_padding", default_robot_padd_, 0.0);
   nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);

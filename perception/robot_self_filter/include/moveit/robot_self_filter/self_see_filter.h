@@ -124,13 +124,13 @@ namespace filters
         
       /** \brief Destructor to clean up
        */
-      virtual ~SelfFilter (void)
+      virtual ~SelfFilter ()
       {
         delete sm_;
       }
       
       virtual bool 
-        configure (void)
+        configure ()
       {
         // keep only the points that are outside of the robot
         // for testing purposes this may be changed to true

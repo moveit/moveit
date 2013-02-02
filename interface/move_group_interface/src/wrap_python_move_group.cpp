@@ -92,22 +92,22 @@ public:
     rememberJointValues(string, moveit_py_bindings_tools::doubleFromList(values));
   }
 
-  bp::list getJointsList(void)
+  bp::list getJointsList()
   {
     return moveit_py_bindings_tools::listFromString(getJoints());
   }
 
-  bp::list getCurrentJointValuesList(void)
+  bp::list getCurrentJointValuesList()
   {
     return moveit_py_bindings_tools::listFromDouble(getCurrentJointValues());
   }
   
-  bp::list getRandomJointValuesList(void)
+  bp::list getRandomJointValuesList()
   {
     return moveit_py_bindings_tools::listFromDouble(getRandomJointValues());
   }
   
-  bp::dict getRememberedJointValuesPython(void) const
+  bp::dict getRememberedJointValuesPython() const
   {
     const std::map<std::string, std::vector<double> > &rv = getRememberedJointValues();
     bp::dict d;
@@ -141,7 +141,7 @@ public:
     return poseToList(pose);
   }
 
-  bp::list getKnownConstraintsList(void) const
+  bp::list getKnownConstraintsList() const
   {
     return moveit_py_bindings_tools::listFromString(getKnownConstraints());
   }
@@ -202,22 +202,22 @@ public:
         ROS_ERROR("Pose description expected to consist of either 6 or 7 values");
   }
 
-  const char* getEndEffectorLinkCStr(void) const
+  const char* getEndEffectorLinkCStr() const
   {
     return getEndEffectorLink().c_str();
   }  
   
-  const char* getPoseReferenceFrameCStr(void) const
+  const char* getPoseReferenceFrameCStr() const
   {
     return getPoseReferenceFrame().c_str();
   }
   
-  const char* getNameCStr(void) const
+  const char* getNameCStr() const
   {
     return getName().c_str();
   }
 
-  bp::dict getPlanPythonDict(void)
+  bp::dict getPlanPythonDict()
   {
     MoveGroup::Plan plan;
     MoveGroup::plan(plan);
@@ -238,27 +238,22 @@ public:
     }
 
     joint_trajectory["points"] = joint_traj_points;
- 
-    bp::list frame_ids = moveit_py_bindings_tools::listFromString(plan.trajectory_.multi_dof_joint_trajectory.frame_ids);
-    bp::list child_frame_ids = moveit_py_bindings_tools::listFromString(plan.trajectory_.multi_dof_joint_trajectory.child_frame_ids);
-    multi_dof_joint_trajectory["frame_ids"] = frame_ids;
-    multi_dof_joint_trajectory["child_frame_ids"] = child_frame_ids;
-
+    
     for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = plan.trajectory_.multi_dof_joint_trajectory.points.begin() ;
          it != plan.trajectory_.multi_dof_joint_trajectory.points.end() ; ++it)
     {
-      for (std::vector<geometry_msgs::Pose>::const_iterator itr = it->poses.begin() ; itr != it->poses.end() ; ++itr)
+      for (std::vector<geometry_msgs::Transform>::const_iterator itr = it->transforms.begin() ; itr != it->transforms.end() ; ++itr)
       {
-        position["x"] = itr->position.x;
-        position["y"] = itr->position.y;
-        position["z"] = itr->position.z;
-        pose["position"] = position;
-
-        orientation["x"] = itr->orientation.x;
-        orientation["y"] = itr->orientation.y;
-        orientation["z"] = itr->orientation.z;
-        orientation["w"] = itr->orientation.w;
-        pose["orientation"] = orientation;
+        position["x"] = itr->translation.x;
+        position["y"] = itr->translation.y;
+        position["z"] = itr->translation.z;
+        pose["translation"] = position;
+        
+        orientation["x"] = itr->rotation.x;
+        orientation["y"] = itr->rotation.y;
+        orientation["z"] = itr->rotation.z;
+        orientation["w"] = itr->rotation.w;
+        pose["rotation"] = orientation;
         poses.append(pose);
       }
       multi_dof_traj_point["poses"] = poses;

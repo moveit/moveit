@@ -29,9 +29,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/render_tools/planning_scene_render.h>
-#include <moveit/render_tools/kinematic_state_visualization.h>
-#include <moveit/render_tools/render_shapes.h>
+#include <moveit/rviz_plugin_render_tools/planning_scene_render.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
+#include <moveit/rviz_plugin_render_tools/render_shapes.h>
 #include <rviz/display_context.h>
 
 #include <OGRE/OgreSceneNode.h>
@@ -40,7 +40,7 @@
 namespace moveit_rviz_plugin
 {
 
-PlanningSceneRender::PlanningSceneRender(Ogre::SceneNode *node, rviz::DisplayContext *context, const KinematicStateVisualizationPtr &robot) :
+PlanningSceneRender::PlanningSceneRender(Ogre::SceneNode *node, rviz::DisplayContext *context, const RobotStateVisualizationPtr &robot) :
   planning_scene_geometry_node_(node->createChildSceneNode()),
   context_(context),
   scene_robot_(robot)
@@ -48,12 +48,12 @@ PlanningSceneRender::PlanningSceneRender(Ogre::SceneNode *node, rviz::DisplayCon
   render_shapes_.reset(new RenderShapes(context));
 }
 
-PlanningSceneRender::~PlanningSceneRender(void)
+PlanningSceneRender::~PlanningSceneRender()
 {
   context_->getSceneManager()->destroySceneNode(planning_scene_geometry_node_->getName());
 }
 
-void PlanningSceneRender::clear(void)
+void PlanningSceneRender::clear()
 {
   render_shapes_->clear();
 }
@@ -70,7 +70,7 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
   
   if (scene_robot_)
   {
-    kinematic_state::KinematicStateConstPtr ks(new kinematic_state::KinematicState(scene->getCurrentState()));
+    robot_state::RobotStateConstPtr ks(new robot_state::RobotState(scene->getCurrentState()));
     std_msgs::ColorRGBA color;
     color.r = default_attached_color.r_;
     color.g = default_attached_color.g_;

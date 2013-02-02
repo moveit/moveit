@@ -34,7 +34,7 @@
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <visualization_msgs/InteractiveMarker.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
 #include <tf/tf.h>
@@ -94,40 +94,40 @@ public:
     typedef enum {POSITION_IK, VELOCITY_IK} IKInteractionType;
 
     InteractionHandler(const std::string &name,
-                       const kinematic_state::KinematicState &kstate,
+                       const robot_state::RobotState &kstate,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
     InteractionHandler(const std::string &name,
                        const kinematic_model::KinematicModelConstPtr &kmodel,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
     
-    virtual ~InteractionHandler(void)
+    virtual ~InteractionHandler()
     {
     }
     
-    const std::string& getName(void) const
+    const std::string& getName() const
     {
       return name_;
     }
     
-    kinematic_state::KinematicStateConstPtr getState(void) const;    
-    void setState(const kinematic_state::KinematicState& kstate);
+    robot_state::RobotStateConstPtr getState() const;    
+    void setState(const robot_state::RobotState& kstate);
     
     void setUpdateCallback(const InteractionHandlerCallbackFn &callback)
     {
       update_callback_ = callback;
     }    
     
-    const InteractionHandlerCallbackFn& getUpdateCallback(void) const
+    const InteractionHandlerCallbackFn& getUpdateCallback() const
     {
       return update_callback_;
     }    
 
-    void setStateValidityCallback(const kinematic_state::StateValidityCallbackFn &callback)
+    void setStateValidityCallback(const robot_state::StateValidityCallbackFn &callback)
     {
       state_validity_callback_fn_ = callback;
     }
     
-    const kinematic_state::StateValidityCallbackFn& getStateValidityCallback(void) const
+    const robot_state::StateValidityCallbackFn& getStateValidityCallback() const
     {
       return state_validity_callback_fn_;
     }
@@ -137,7 +137,7 @@ public:
       ik_timeout_ = timeout;
     }
     
-    double getIKTimeout(void) const
+    double getIKTimeout() const
     {
       return ik_timeout_;
     }
@@ -147,7 +147,7 @@ public:
       ik_attempts_ = attempts;
     }
     
-    unsigned int getIKAttempts(void) const
+    unsigned int getIKAttempts() const
     {
       return ik_attempts_;
     }
@@ -157,7 +157,7 @@ public:
       interaction_mode_ = imode;
     }
     
-    IKInteractionType getInteractionMode(void) const
+    IKInteractionType getInteractionMode() const
     {
       return interaction_mode_;
     }
@@ -167,7 +167,7 @@ public:
       display_meshes_ = visible;
     }
 
-    bool getMeshesVisible(void) const
+    bool getMeshesVisible() const
     {
       return display_meshes_;
     }
@@ -177,12 +177,12 @@ public:
       display_controls_ = visible;
     }
 
-    bool getControlsVisible(void) const
+    bool getControlsVisible() const
     {
       return display_controls_;
     }
 
-    double getVelocityGain(void) const
+    double getVelocityGain() const
     {
       return velocity_gain_;
     }
@@ -228,20 +228,20 @@ public:
                                const geometry_msgs::Pose &offset,
                                geometry_msgs::PoseStamped &tpose);
 
-    kinematic_state::KinematicStatePtr getUniqueStateAccess(void);
-    void setStateToAccess(kinematic_state::KinematicStatePtr &state);
+    robot_state::RobotStatePtr getUniqueStateAccess();
+    void setStateToAccess(robot_state::RobotStatePtr &state);
     
     std::string name_;
     std::string planning_frame_;
-    kinematic_state::KinematicStatePtr kstate_;
+    robot_state::RobotStatePtr kstate_;
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
     std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
     std::map<std::string, geometry_msgs::Pose> offset_map_;
     // bool can be used to signal a change in "state" (e.g. error, other properties?)
     boost::function<void(InteractionHandler*, bool)> update_callback_;
-    kinematic_state::StateValidityCallbackFn state_validity_callback_fn_;
-    kinematic_state::SecondaryTaskFn secondary_task_callback_fn_;
+    robot_state::StateValidityCallbackFn state_validity_callback_fn_;
+    robot_state::SecondaryTaskFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
     IKInteractionType interaction_mode_;
@@ -256,42 +256,42 @@ public:
     boost::mutex pose_map_lock_;
     boost::mutex offset_map_lock_;
 
-    void setup(void);
+    void setup();
   };
 
   typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
   typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
   
   RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel, const std::string &ns = "");
-  ~RobotInteraction(void);
+  ~RobotInteraction();
   
   void decideActiveComponents(const std::string &group);
   void decideActiveEndEffectors(const std::string &group);
   void decideActiveVirtualJoints(const std::string &group);
   
-  void clear(void);
+  void clear();
   
   void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0.0);
 
-  void publishInteractiveMarkers(void);
-  void clearInteractiveMarkers(void);
+  void publishInteractiveMarkers();
+  void clearInteractiveMarkers();
   
-  const std::vector<EndEffector>& getActiveEndEffectors(void) const
+  const std::vector<EndEffector>& getActiveEndEffectors() const
   {
     return active_eef_;
   }
 
-  const std::vector<VirtualJoint>& getActiveVirtualJoints(void) const
+  const std::vector<VirtualJoint>& getActiveVirtualJoints() const
   {
     return active_vj_;
   }
   
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
-                          unsigned int attempts, double ik_timeout, const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn());
-  static bool updateState(kinematic_state::KinematicState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain, 
-                          const kinematic_state::StateValidityCallbackFn &validity_callback = kinematic_state::StateValidityCallbackFn(),
-                          const kinematic_state::SecondaryTaskFn &st_callback = kinematic_state::SecondaryTaskFn());
-  static bool updateState(kinematic_state::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
+  static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
+                          unsigned int attempts, double ik_timeout, const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn());
+  static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain, 
+                          const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn(),
+                          const robot_state::SecondaryTaskFn &st_callback = robot_state::SecondaryTaskFn());
+  static bool updateState(robot_state::RobotState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
 
 private:
   
@@ -302,8 +302,8 @@ private:
   void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
                              const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
-  void processingThread(void);
-  void clearInteractiveMarkersUnsafe(void);
+  void processingThread();
+  void clearInteractiveMarkersUnsafe();
   
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;

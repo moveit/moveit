@@ -53,8 +53,8 @@ class OccupancyMapUpdater
 {
 public:
   /** @brief Constructor */
-  OccupancyMapUpdater(void) {}
-  virtual ~OccupancyMapUpdater(void) {}
+  OccupancyMapUpdater() {}
+  virtual ~OccupancyMapUpdater() {}
 
   /** @brief Server calls this
        *  @param notify_func Function which updater should call when ready to update the map
@@ -65,7 +65,7 @@ public:
   virtual bool setParams(XmlRpc::XmlRpcValue &params) = 0;
 
   /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
-  virtual void initialize(void) = 0;
+  virtual void initialize() = 0;
 
   /** @brief Update the map
        *  @param tree Pointer to octree which represents the occupancy map
@@ -75,7 +75,7 @@ public:
 protected:
 
   /** @brief Updater calls this to notify the server that it is ready to modify the map */
-  void notifyUpdateReady(void)
+  void notifyUpdateReady()
   {
     if (notify_func_)
       notify_func_(this);

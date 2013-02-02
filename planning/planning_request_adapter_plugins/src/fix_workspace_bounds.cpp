@@ -47,7 +47,7 @@ public:
   
   static const std::string WBOUNDS_PARAM_NAME;
   
-  FixWorkspaceBounds(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixWorkspaceBounds() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(WBOUNDS_PARAM_NAME, workspace_extent_))
     {
@@ -59,12 +59,12 @@ public:
     workspace_extent_ /= 2.0;
   }
   
-  virtual std::string getDescription(void) const { return "Fix Workspace Bounds"; }
+  virtual std::string getDescription() const { return "Fix Workspace Bounds"; }
   
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::MotionPlanRequest &req, 
-                            moveit_msgs::MotionPlanResponse &res,
+                            const planning_interface::MotionPlanRequest &req, 
+                            planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
@@ -74,7 +74,7 @@ public:
         wparams.min_corner.z == wparams.max_corner.z && wparams.min_corner.z == 0.0)
     {
       ROS_DEBUG("It looks like the planning volume was not specified. Using default values.");
-      moveit_msgs::MotionPlanRequest req2 = req;
+      planning_interface::MotionPlanRequest req2 = req;
       moveit_msgs::WorkspaceParameters &default_wp = req2.workspace_parameters;
       default_wp.min_corner.x = default_wp.min_corner.y = default_wp.min_corner.z = -workspace_extent_;
       default_wp.max_corner.x = default_wp.max_corner.y = default_wp.max_corner.z = workspace_extent_;

@@ -32,12 +32,12 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
   LIBRARIES
-    moveit_render_tools
+    moveit_rviz_plugin_render_tools
     moveit_robot_state_rviz_plugin_core 
     moveit_motion_planning_rviz_plugin_core 
     moveit_planning_scene_rviz_plugin_core
   INCLUDE_DIRS
-    render_tools/include
+    rviz_plugin_render_tools/include
     robot_state_rviz_plugin/include
     planning_scene_rviz_plugin/include
     motion_planning_rviz_plugin/include  
@@ -45,7 +45,7 @@ catkin_package(
     moveit_ros_planning_interface
     )
 
-include_directories(render_tools/include
+include_directories(rviz_plugin_render_tools/include
                     robot_state_rviz_plugin/include
                     planning_scene_rviz_plugin/include
                     motion_planning_rviz_plugin/include
@@ -59,7 +59,7 @@ include_directories(SYSTEM
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-add_subdirectory(render_tools)
+add_subdirectory(rviz_plugin_render_tools)
 add_subdirectory(robot_state_rviz_plugin)
 add_subdirectory(planning_scene_rviz_plugin)
 add_subdirectory(motion_planning_rviz_plugin)

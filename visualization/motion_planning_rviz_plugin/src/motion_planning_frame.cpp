@@ -154,7 +154,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
 
-MotionPlanningFrame::~MotionPlanningFrame(void)
+MotionPlanningFrame::~MotionPlanningFrame()
 {
 }
 
@@ -170,7 +170,7 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
     found_items[i]->setSelected(selection);
 }
 
-void MotionPlanningFrame::changePlanningGroupHelper(void)
+void MotionPlanningFrame::changePlanningGroupHelper()
 { 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
@@ -206,7 +206,7 @@ void MotionPlanningFrame::changePlanningGroupHelper(void)
   } 
 }
 
-void MotionPlanningFrame::changePlanningGroup(void)
+void MotionPlanningFrame::changePlanningGroup()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::changePlanningGroupHelper, this));
 }
@@ -308,7 +308,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
   }
 }
 
-void MotionPlanningFrame::enable(void)
+void MotionPlanningFrame::enable()
 {
   ui_->planning_algorithm_combo_box->clear();  
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
@@ -325,7 +325,7 @@ void MotionPlanningFrame::enable(void)
   show();
 }
 
-void MotionPlanningFrame::disable(void)
+void MotionPlanningFrame::disable()
 {
   move_group_.reset();
   hide();

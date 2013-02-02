@@ -47,7 +47,7 @@ class TestSelfFilter
 {
 public:
 
-  TestSelfFilter(void)
+  TestSelfFilter()
   {
     id_ = 1;
     vmPub_ = nodeHandle_.advertise<visualization_msgs::Marker>("visualization_marker", 10240);
@@ -128,7 +128,7 @@ public:
 
   }
 
-  ~TestSelfFilter(void)
+  ~TestSelfFilter()
   {
     delete sf_;
   }
@@ -167,7 +167,7 @@ public:
     vmPub_.publish(mk);
   }
 
-  void run(void)
+  void run()
   {
     pcl::PointCloud<pcl::PointXYZ> in;
 

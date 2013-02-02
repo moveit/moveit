@@ -37,7 +37,7 @@
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/PlannerInterfaceDescription.h>
@@ -106,24 +106,24 @@ public:
   MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::Duration &wait_for_server = ros::Duration(0, 0));
   
-  ~MoveGroup(void);
+  ~MoveGroup();
   
   /** \brief Get the name of the group this instance operates on */
-  const std::string& getName(void) const;
+  const std::string& getName() const;
   
   /** \brief Get the joints this instance operates on */
-  const std::vector<std::string>& getJoints(void) const;
+  const std::vector<std::string>& getJoints() const;
 
   /** \brief Get the description of the planning plugin loaded by the action server */
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc);
   
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
-  bool asyncMove(void);
+  bool asyncMove();
   
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is always blocking (waits for the execution of the trajectory to complete). */
-  bool move(void);
+  bool move();
 
   /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the specified
       target. No execution is performed. The resulting plan is stored in \e plan*/
@@ -142,7 +142,7 @@ public:
   bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps);
   
   /** \brief Stop any trajectory execution, if one is active */
-  void stop(void);
+  void stop();
   
   /** \brief Specify whether the robot is allowed to look around before moving if it determines it should (default is true) */
   void allowLooking(bool flag);
@@ -160,7 +160,7 @@ public:
       joint state goals, this will be distance for each joint, in the
       configuration space. For pose goals this will be the side of a
       cube where the end-effector must reach.*/
-  double getGoalTolerance(void) const;
+  double getGoalTolerance() const;
   
   /** \brief Set the tolerance that is used for reaching the goal. For
       joint state goals, this will be distance for each joint, in the
@@ -172,10 +172,10 @@ public:
   void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz);
   
   /** \brief If a different start state should be considered instead of the current state of the robot, this function sets that state */
-  void setStartState(const kinematic_state::KinematicState &start_state);
+  void setStartState(const robot_state::RobotState &start_state);
   
   /** \brief Set the starting state for planning to be that reported by the robot's joint state publication */
-  void setStartStateToCurrentState(void);
+  void setStartStateToCurrentState();
 
   /**
    * \defgroup set_joint_goal Setting a joint state goal
@@ -189,13 +189,13 @@ public:
   void setJointValueTarget(const std::map<std::string, double> &variable_values);
 
   /** \brief Set the joint state goal from corresponding joint values from the specified state */
-  void setJointValueTarget(const kinematic_state::KinematicState &kinematic_state);
+  void setJointValueTarget(const robot_state::RobotState &kinematic_state);
 
   /** \brief Set the joint state goal from corresponding joint values from the specified state */
-  void setJointValueTarget(const kinematic_state::JointStateGroup &joint_state_group);
+  void setJointValueTarget(const robot_state::JointStateGroup &joint_state_group);
   
   /** \brief Set the joint state goal for a particula joint */
-  void setJointValueTarget(const kinematic_state::JointState &joint_state);
+  void setJointValueTarget(const robot_state::JointState &joint_state);
 
   /** \brief Set the joint state goal for a particular joint */
   void setJointValueTarget(const std::string &joint_name, const std::vector<double> &values);
@@ -207,14 +207,14 @@ public:
   void setJointValueTarget(const sensor_msgs::JointState &state);
 
   /** \brief Set the joint state goal to a random joint configuration */
-  void setRandomTarget(void);
+  void setRandomTarget();
   
   /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found,
       that are specified in the SRDF under the name \e name as a group state*/
   bool setNamedTarget(const std::string &name);
 
   /// Get the currently set joint state goal
-  const kinematic_state::JointStateGroup& getJointValueTarget(void) const;
+  const robot_state::JointStateGroup& getJointValueTarget() const;
 
   /**@}*/
 
@@ -273,7 +273,7 @@ public:
   void clearPoseTarget(const std::string &end_effector_link = "");
 
   /// Forget any poses specified for any end-effector
-  void clearPoseTargets(void);
+  void clearPoseTargets();
 
   /** Get the currently set pose goal for the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
@@ -288,15 +288,15 @@ public:
       If setEndEffectorLink() was not called, this function reports the link name that serves as parent
       of an end-effector attached to this group. If there are multiple end-effectors, one of them is returned.
       If no such link is known, the empty string is returned. */
-  const std::string& getEndEffectorLink(void) const;
+  const std::string& getEndEffectorLink() const;
 
   /** \brief Get the current end-effector name. This returns the value set by setEndEffector().
       If setEndEffector() was not called, this function reports an end-effector attached to this group.
       If there are multiple end-effectors, one of them is returned. If no end-effector is known, the empty string is returned. */
-  const std::string& getEndEffector(void) const;
+  const std::string& getEndEffector() const;
   
   /** \brief Get the reference frame set by setPoseReferenceFrame(). By default this is the reference frame of the kinematic model */
-  const std::string& getPoseReferenceFrame(void) const;
+  const std::string& getPoseReferenceFrame() const;
 
   /**@}*/
 
@@ -334,17 +334,17 @@ public:
   /**@{*/
   
   /** \brief Get the current joint values for the joints planned for by this instance (see getJoints()) */
-  std::vector<double> getCurrentJointValues(void);
+  std::vector<double> getCurrentJointValues();
   
   /** \brief Get the current state of the robot */
-  kinematic_state::KinematicStatePtr getCurrentState(void);
+  robot_state::RobotStatePtr getCurrentState();
 
   /** \brief Get the pose for the end-effector \e end_effector_link. 
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
   geometry_msgs::PoseStamped getCurrentPose(const std::string &end_effector_link = "");
 
   /** \brief Get random joint values for the joints planned for by this instance (see getJoints()) */
-  std::vector<double> getRandomJointValues(void);
+  std::vector<double> getRandomJointValues();
 
   /** \brief Get a random reachable pose for the end-effector \e end_effector_link. 
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
@@ -364,7 +364,7 @@ public:
   void rememberJointValues(const std::string &name, const std::vector<double> &values);
 
   /** \brief Get the currently remembered map of names to joint values */
-  const std::map<std::string, std::vector<double> >& getRememberedJointValues(void) const
+  const std::map<std::string, std::vector<double> >& getRememberedJointValues() const
   {
     return remembered_joint_values_;
   }
@@ -383,13 +383,13 @@ public:
   void setConstraintsDatabase(const std::string &host, unsigned int port);
   
   /** \brief Get the names of the constraints known (as read from the warehouse, if a connection was achieved) */
-  std::vector<std::string> getKnownConstraints(void) const;
+  std::vector<std::string> getKnownConstraints() const;
   
   /** \brief Specify a set of path constraints to use */
   bool setPathConstraints(const std::string &constraint);
 
   /** \brief Specify that no path constraints are to be used */
-  void clearPathConstraints(void);
+  void clearPathConstraints();
 
   /**@}*/
 

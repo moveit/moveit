@@ -38,7 +38,7 @@
 #include <moveit/pick_place/reachable_valid_grasp_filter.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -70,13 +70,13 @@ PickPlan::PickPlan(const PickPlaceConstPtr &pick_place) :
   pipeline_.setSolutionCallback(boost::bind(&PickPlan::foundSolution, this));
 }
 
-PickPlan::~PickPlan(void)
+PickPlan::~PickPlan()
 {
 }
 
 bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
 {
-  double timeout = goal.allowed_planning_time.toSec();
+  double timeout = goal.allowed_planning_time;
   ros::WallTime endtime = ros::WallTime::now() + ros::WallDuration(timeout);
   
   std::string planning_group = goal.group_name;
@@ -160,9 +160,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     grasp_order[i] = i;
   OrderGraspQuality oq(goal.possible_grasps);
   std::sort(grasp_order.begin(), grasp_order.end(), oq);
-  moveit_msgs::RobotState start;
-  kinematic_state::kinematicStateToRobotState(planning_scene->getCurrentState(), start);
-  
+
   done_ = false;
   
   // feed the available grasps to the stages we set up
@@ -174,7 +172,6 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     p->end_effector_group_ = eef->getName();
     p->ik_link_name_ = ik_link;    
     p->timeout_ = endtime;
-    p->trajectory_start_ = start;
     p->processing_stage_ = 0;
     pipeline_.push(p);
   }
@@ -203,7 +200,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
-void PickPlan::foundSolution(void)
+void PickPlan::foundSolution()
 {
   boost::mutex::scoped_lock slock(done_mutex_);
   done_ = true;

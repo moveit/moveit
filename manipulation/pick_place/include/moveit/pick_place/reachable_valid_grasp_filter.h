@@ -57,10 +57,10 @@ public:
 private:
 
   bool isStateCollisionFree(const ManipulationPlan *manipulation_plan,
-                            kinematic_state::JointStateGroup *joint_state_group,
+                            robot_state::JointStateGroup *joint_state_group,
                             const std::vector<double> &joint_group_variable_values) const;
   
-  bool isEndEffectorFree(const ManipulationPlanPtr &plan, kinematic_state::KinematicState &token_state) const;
+  bool isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const;
   
   planning_scene::PlanningSceneConstPtr planning_scene_;
   collision_detection::AllowedCollisionMatrixConstPtr collision_matrix_;

@@ -51,7 +51,7 @@ public:
   PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
             const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
   
-  virtual void signalStop(void);
+  virtual void signalStop();
   
   virtual bool evaluate(const ManipulationPlanPtr &plan) const;
   
