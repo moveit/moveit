@@ -33,7 +33,7 @@
 *********************************************************************/
 
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
@@ -78,7 +78,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::Kin
   configure();
 }
 
-void planning_pipeline::PlanningPipeline::configure(void)
+void planning_pipeline::PlanningPipeline::configure()
 {
   check_solution_paths_ = false;          // this is set to true below
   publish_received_requests_ = false;
@@ -108,7 +108,8 @@ void planning_pipeline::PlanningPipeline::configure(void)
   try
   {
     planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planner_plugin_name_));
-    planner_instance_->init(kmodel_);
+    if (!planner_instance_->initialize(kmodel_))
+      throw std::runtime_error("Unable to initialize planning plugin");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
   }
   catch(pluginlib::PluginlibException& ex)
@@ -192,23 +193,23 @@ void planning_pipeline::PlanningPipeline::checkSolutionPaths(bool flag)
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                       const moveit_msgs::MotionPlanRequest& req,
-                                                       moveit_msgs::MotionPlanResponse& res) const
+                                                       const planning_interface::MotionPlanRequest& req,
+                                                       planning_interface::MotionPlanResponse& res) const
 {
   std::vector<std::size_t> dummy;
   return generatePlan(planning_scene, req, res, dummy);
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                       const moveit_msgs::MotionPlanRequest& req,
-                                                       moveit_msgs::MotionPlanResponse& res,
+                                                       const planning_interface::MotionPlanRequest& req,
+                                                       planning_interface::MotionPlanResponse& res,
                                                        std::vector<std::size_t> &adapter_added_state_index) const
 {
   // broadcast the request we are about to work on, if needed
   if (publish_received_requests_)
     received_request_publisher_.publish(req);
   adapter_added_state_index.clear();
-
+  
   if (!planner_instance_)
   {
     ROS_ERROR("No planning plugin loaded. Cannot plan.");
@@ -244,16 +245,14 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   }
   bool valid = true;
   
-  if (solved)
+  if (solved && res.trajectory_)
   {
-    unsigned int state_count = std::max(res.trajectory.joint_trajectory.points.size(),
-                                        res.trajectory.multi_dof_joint_trajectory.points.size());
-    ROS_DEBUG("Motion planner reported a solution path with %u states", state_count);
+    std::size_t state_count = res.trajectory_->getWayPointCount();
+    ROS_DEBUG_STREAM("Motion planner reported a solution path with " << state_count << " states");
     if (check_solution_paths_)
     {
       std::vector<std::size_t> index;
-      if (!planning_scene->isPathValid(res.trajectory_start, res.trajectory, req.path_constraints,
-                                       req.group_name, false, &index))
+      if (!planning_scene->isPathValid(*res.trajectory_, req.path_constraints, req.group_name, false, &index))
       {
         // check to see if there is any problem with the states that are found to be invalid
         // they are considered ok if they were added by a planning request adapter
@@ -277,25 +276,20 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
           else
           {
             valid = false;
-            res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;            
+            res.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;            
             
             // display error messages
             std::stringstream ss;
             for (std::size_t i = 0 ; i < index.size() ; ++i)
               ss << index[i] << " ";
-            ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s] out of %u", ss.str().c_str(), state_count);
+            ROS_ERROR_STREAM("Computed path is not valid. Invalid states at index locations: [ " << ss.str() << "] out of " << state_count);
             
             // call validity checks in verbose mode for the problematic states
-            kinematic_state::KinematicState kstate(planning_scene->getCurrentState());
-            kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), res.trajectory_start, kstate);
             visualization_msgs::MarkerArray arr;
             for (std::size_t i = 0 ; i < index.size() ; ++i)
             {
-              // compute the full kinematic state
-              moveit_msgs::RobotState rs;
-              trajectory_processing::robotTrajectoryPointToRobotState(res.trajectory, index[i], rs);
-              kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), rs, kstate);
               // check validity with verbose on
+              const robot_state::RobotState &kstate = res.trajectory_->getWayPoint(index[i]);
               planning_scene->isStateValid(kstate, req.group_name, true);
               
               // compute the contacts if any
@@ -330,15 +324,16 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   { 
     moveit_msgs::DisplayTrajectory disp;
     disp.model_id = kmodel_->getName();
-    disp.trajectory_start = res.trajectory_start;
-    disp.trajectory.resize(1, res.trajectory);
+    disp.trajectory.resize(1);
+    res.trajectory_->getRobotTrajectoryMsg(disp.trajectory[0]);
+    robot_state::kinematicStateToRobotState(res.trajectory_->getFirstWayPoint(), disp.trajectory_start);
     display_path_publisher_.publish(disp);      
   }
   
   return solved && valid;
 }
 
-void planning_pipeline::PlanningPipeline::terminate(void) const
+void planning_pipeline::PlanningPipeline::terminate() const
 {
   if (planner_instance_)
     planner_instance_->terminate();

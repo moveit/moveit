@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <class_loader/class_loader.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <ros/ros.h>
@@ -47,24 +47,24 @@ class FixStartStatePathConstraints : public planning_request_adapter::PlanningRe
 {
 public:
 
-  FixStartStatePathConstraints(void) : planning_request_adapter::PlanningRequestAdapter()
+  FixStartStatePathConstraints() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
   
-  virtual std::string getDescription(void) const { return "Fix Start State Path Constraints"; }
+  virtual std::string getDescription() const { return "Fix Start State Path Constraints"; }
   
   
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::MotionPlanRequest &req, 
-                            moveit_msgs::MotionPlanResponse &res,
+                            const planning_interface::MotionPlanRequest &req, 
+                            planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
     // get the specified start state
-    kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::RobotState start_state = planning_scene->getCurrentState();
+    robot_state::robotStateToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
     
     // if the start state is otherwise valid but does not meet path constraints
     if (planning_scene->isStateValid(start_state) && 
@@ -72,76 +72,27 @@ public:
     {
       ROS_DEBUG("Planning to path constraints...");
       
-      moveit_msgs::MotionPlanRequest req2 = req;
+      planning_interface::MotionPlanRequest req2 = req;
       req2.goal_constraints.resize(1);
       req2.goal_constraints[0] = req.path_constraints;
       req2.path_constraints = moveit_msgs::Constraints();
-      moveit_msgs::MotionPlanResponse res2;
+      planning_interface::MotionPlanResponse res2;
       bool solved1 = planner(planning_scene, req2, res2);
 
       if (solved1)
       { 
-        moveit_msgs::MotionPlanRequest req3 = req;
-        std::size_t last_index = trajectory_processing::trajectoryPointCount(res2.trajectory);
+        planning_interface::MotionPlanRequest req3 = req;
         ROS_DEBUG("Planned to path constraints. Resuming original planning request.");
-        assert(last_index > 0);
+        
         // extract the last state of the computed motion plan and set it as the new start state
-        moveit_msgs::RobotState new_start;
-        trajectory_processing::robotTrajectoryPointToRobotState(res2.trajectory, last_index - 1, new_start);
-        kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), new_start, start_state);
-        kinematic_state::kinematicStateToRobotState(start_state, req3.start_state);
-                
+        robot_state::kinematicStateToRobotState(res2.trajectory_->getLastWayPoint(), req3.start_state);
         bool solved2 = planner(planning_scene, req3, res);
+        res.planning_time_ += res2.planning_time_;
+        
         if (solved2)
         {
           // we need to append the solution paths. 
-          res.trajectory_start = res2.trajectory_start;
-          
-          if (last_index > 1)
-          {
-            // if the structure of the paths is the same, then things are easy
-            if (res2.trajectory.joint_trajectory.joint_names == res.trajectory.joint_trajectory.joint_names &&
-                res2.trajectory.multi_dof_joint_trajectory.joint_names == res.trajectory.multi_dof_joint_trajectory.joint_names &&
-                res2.trajectory.multi_dof_joint_trajectory.frame_ids == res.trajectory.multi_dof_joint_trajectory.frame_ids &&
-                res2.trajectory.multi_dof_joint_trajectory.child_frame_ids == res.trajectory.multi_dof_joint_trajectory.child_frame_ids)
-            {
-              // insert all but the last point
-              if (!res2.trajectory.joint_trajectory.points.empty())
-              {
-                res.trajectory.joint_trajectory.points.insert(res.trajectory.joint_trajectory.points.begin(),
-                                                              res2.trajectory.joint_trajectory.points.begin(),
-                                                              --res2.trajectory.joint_trajectory.points.end());
-                for (std::size_t i = res2.trajectory.joint_trajectory.points.size() - 1 ; i < res.trajectory.joint_trajectory.points.size() ; ++i)
-                  res.trajectory.joint_trajectory.points[i].time_from_start += res2.trajectory.joint_trajectory.points.back().time_from_start;
-              }     
-              if (!res2.trajectory.multi_dof_joint_trajectory.points.empty())
-              {
-                res.trajectory.multi_dof_joint_trajectory.points.insert(res.trajectory.multi_dof_joint_trajectory.points.begin(),
-                                                                        res2.trajectory.multi_dof_joint_trajectory.points.begin(),
-                                                                        --res2.trajectory.multi_dof_joint_trajectory.points.end());
-                for (std::size_t i = res2.trajectory.multi_dof_joint_trajectory.points.size() - 1 ; i < res.trajectory.multi_dof_joint_trajectory.points.size() ; ++i)
-                  res.trajectory.multi_dof_joint_trajectory.points[i].time_from_start += res2.trajectory.multi_dof_joint_trajectory.points.back().time_from_start;
-              }
-            }
-            else
-            {
-              // paths do not have the same structure. We merge them in an inefficient but hopefuly safe way
-              kinematic_state::KinematicState st = planning_scene->getCurrentState();
-              kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), res2.trajectory_start, st);
-              
-              for (int i = last_index - 2 ; i >= 0 ; --i)
-              {
-                // take states from the first path one by one, in reverse, and add them as prefix
-                moveit_msgs::RobotState temp;
-                trajectory_processing::robotTrajectoryPointToRobotState(res2.trajectory, i, temp);
-                kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), temp, st);
-                double dt = ((int)res.trajectory.joint_trajectory.points.size() > i + 1) ?
-                  (res.trajectory.joint_trajectory.points[i + 1].time_from_start - res.trajectory.joint_trajectory.points[i].time_from_start).toSec() : 
-                  (res.trajectory.multi_dof_joint_trajectory.points[i + 1].time_from_start - res.trajectory.multi_dof_joint_trajectory.points[i].time_from_start).toSec();
-                trajectory_processing::addPrefixState(st, res.trajectory, dt, planning_scene->getTransforms());
-              }
-            }
-          }
+          res.trajectory_->append(*res2.trajectory_, 0.0);
           return true;
         }
         else
@@ -150,7 +101,9 @@ public:
       else
       { 
         ROS_WARN("Unable to plan to path constraints. Running usual motion plan.");
-        return planner(planning_scene, req, res);
+        bool result = planner(planning_scene, req, res);
+        res.planning_time_ += res2.planning_time_;
+        return result;
       }
     }
     else

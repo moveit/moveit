@@ -53,13 +53,13 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const kinematic_model::Ki
   initialize();
 }
 
-TrajectoryExecutionManager::~TrajectoryExecutionManager(void)
+TrajectoryExecutionManager::~TrajectoryExecutionManager()
 {
   run_continuous_execution_thread_ = false;
   stopExecution(true);
 }
 
-void TrajectoryExecutionManager::initialize(void)
+void TrajectoryExecutionManager::initialize()
 {
   verbose_ = false;
   execution_complete_ = true;
@@ -116,12 +116,12 @@ void TrajectoryExecutionManager::initialize(void)
     ROS_INFO("Trajectory execution is not managing controllers");
 }
 
-bool TrajectoryExecutionManager::isManagingControllers(void) const
+bool TrajectoryExecutionManager::isManagingControllers() const
 {
   return manage_controllers_;
 }
 
-const moveit_controller_manager::MoveItControllerManagerPtr& TrajectoryExecutionManager::getControllerManager(void) const
+const moveit_controller_manager::MoveItControllerManagerPtr& TrajectoryExecutionManager::getControllerManager() const
 {
   return controller_manager_;
 }
@@ -269,7 +269,7 @@ bool TrajectoryExecutionManager::pushAndExecute(const moveit_msgs::RobotTrajecto
   }
 }
 
-void TrajectoryExecutionManager::continuousExecutionThread(void)
+void TrajectoryExecutionManager::continuousExecutionThread()
 {
   std::set<moveit_controller_manager::MoveItControllerHandlePtr> used_handles;
   while (run_continuous_execution_thread_)
@@ -404,7 +404,7 @@ void TrajectoryExecutionManager::continuousExecutionThread(void)
   }
 }
 
-void TrajectoryExecutionManager::reloadControllerInformation(void)
+void TrajectoryExecutionManager::reloadControllerInformation()
 {
   known_controllers_.clear();
   if (controller_manager_)
@@ -705,28 +705,21 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
       {
         std::vector<std::string> &jnames = parts[i].multi_dof_joint_trajectory.joint_names;
         jnames.insert(jnames.end(), intersect_mdof.begin(), intersect_mdof.end());
-        parts[i].multi_dof_joint_trajectory.frame_ids.resize(jnames.size());
-        parts[i].multi_dof_joint_trajectory.child_frame_ids.resize(jnames.size());
         std::map<std::string, std::size_t> index;
         for (std::size_t j = 0 ; j < trajectory.multi_dof_joint_trajectory.joint_names.size() ; ++j)
           index[trajectory.multi_dof_joint_trajectory.joint_names[j]] = j;
         std::vector<std::size_t> bijection(jnames.size());
         for (std::size_t j = 0 ; j < jnames.size() ; ++j)
-        {
           bijection[j] = index[jnames[j]];
-          if (trajectory.multi_dof_joint_trajectory.frame_ids.size() > bijection[j])
-            parts[i].multi_dof_joint_trajectory.frame_ids[j] = trajectory.multi_dof_joint_trajectory.frame_ids[bijection[j]];
-          if (trajectory.multi_dof_joint_trajectory.child_frame_ids.size() > bijection[j])
-            parts[i].multi_dof_joint_trajectory.child_frame_ids[j] = trajectory.multi_dof_joint_trajectory.child_frame_ids[bijection[j]];
-        }
+
         parts[i].multi_dof_joint_trajectory.points.resize(trajectory.multi_dof_joint_trajectory.points.size());
         for (std::size_t j = 0 ; j < trajectory.multi_dof_joint_trajectory.points.size() ; ++j)
         {
           parts[i].multi_dof_joint_trajectory.points[j].time_from_start = trajectory.multi_dof_joint_trajectory.points[j].time_from_start;
-          parts[i].multi_dof_joint_trajectory.points[j].poses.resize(bijection.size());
+          parts[i].multi_dof_joint_trajectory.points[j].transforms.resize(bijection.size());
           for (std::size_t k = 0 ; k < bijection.size() ; ++k)
-            parts[i].multi_dof_joint_trajectory.points[j].poses[k] = trajectory.multi_dof_joint_trajectory.points[j].poses[bijection[k]];
-        }        
+            parts[i].multi_dof_joint_trajectory.points[j].transforms[k] = trajectory.multi_dof_joint_trajectory.points[j].transforms[bijection[k]];
+        }
       }
       if (!intersect_single.empty())
       {
@@ -838,6 +831,10 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
         return true;
     }
   }
+  std::stringstream ss;
+  for (std::set<std::string>::const_iterator it = actuated_joints.begin() ; it != actuated_joints.end() ; ++it)
+    ss << *it << " ";
+  ROS_ERROR("Unable to identify any set of controllers that can actuate the specified joints: [ %s]", ss.str().c_str());
   return false;
 }
 
@@ -847,7 +844,7 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::executeAn
   return waitForExecution();
 }
 
-void TrajectoryExecutionManager::stopExecutionInternal(void)
+void TrajectoryExecutionManager::stopExecutionInternal()
 {
   // execution_state_mutex_ needs to have been locked by the caller
   for (std::size_t i = 0 ; i < active_handles_.size() ; ++i)
@@ -907,7 +904,7 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callba
   execution_thread_.reset(new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, auto_clear));
 }
 
-moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForExecution(void)
+moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForExecution()
 {
   {
     boost::unique_lock<boost::mutex> ulock(execution_state_mutex_);
@@ -926,7 +923,7 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForEx
   return last_execution_status_;
 }
 
-void TrajectoryExecutionManager::clear(void)
+void TrajectoryExecutionManager::clear()
 {
   if (execution_complete_)
   {
@@ -1162,7 +1159,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
     return false;
 }
 
-std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryIndex(void) const
+std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryIndex() const
 {
   boost::mutex::scoped_lock slock(time_index_mutex_);
   if (current_context_ < 0)
@@ -1174,12 +1171,12 @@ std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryInde
   return std::make_pair((int)current_context_, pos);
 }
 
-const std::vector<TrajectoryExecutionManager::TrajectoryExecutionContext*>& TrajectoryExecutionManager::getTrajectories(void) const
+const std::vector<TrajectoryExecutionManager::TrajectoryExecutionContext*>& TrajectoryExecutionManager::getTrajectories() const
 {
   return trajectories_;
 }
 
-moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::getLastExecutionStatus(void) const
+moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::getLastExecutionStatus() const
 {
   return last_execution_status_;
 }

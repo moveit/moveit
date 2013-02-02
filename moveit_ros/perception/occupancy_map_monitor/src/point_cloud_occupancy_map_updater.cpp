@@ -54,7 +54,7 @@ PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const boost::shared
 {
 }
 
-PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater(void)
+PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater()
 {
   delete point_cloud_filter_;
   delete point_cloud_subscriber_;

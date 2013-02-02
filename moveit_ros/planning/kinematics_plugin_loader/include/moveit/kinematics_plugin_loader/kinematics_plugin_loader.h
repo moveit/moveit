@@ -57,25 +57,25 @@ public:
   {
   }
   
-  KinematicsLoaderFn getLoaderFunction(void);
+  KinematicsLoaderFn getLoaderFunction();
   KinematicsLoaderFn getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model);
 
-  const std::vector<std::string>& getKnownGroups(void) const
+  const std::vector<std::string>& getKnownGroups() const
   {
     return groups_;
   }
   
-  const std::map<std::string, double>& getIKTimeout(void) const
+  const std::map<std::string, double>& getIKTimeout() const
   {
     return ik_timeout_;
   }
 
-  const std::map<std::string, unsigned int>& getIKAttempts(void) const
+  const std::map<std::string, unsigned int>& getIKAttempts() const
   {
     return ik_attempts_;
   }
 
-  void status(void) const;
+  void status() const;
   
 private:
 

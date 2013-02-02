@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/plan_execution/plan_execution.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <boost/algorithm/string/join.hpp>
@@ -92,12 +92,12 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 }
 
-plan_execution::PlanExecution::~PlanExecution(void)
+plan_execution::PlanExecution::~PlanExecution()
 {
   delete reconfigure_impl_;
 }
 
-void plan_execution::PlanExecution::stop(void)
+void plan_execution::PlanExecution::stop()
 {
   preempt_requested_ = true;
 }
@@ -207,16 +207,21 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
     
-    for (std::size_t j = expected.first ; j < plan.planned_trajectory_states_.size() ; ++j)
-      for (std::size_t i = (j == expected.first ? std::max(expected.second - 1, 0) : 0) ; i < plan.planned_trajectory_states_[j].size() ; ++i)
-        if (!plan.planning_scene_->isStateFeasible(*plan.planned_trajectory_states_[j][i], false) ||
-            plan.planning_scene_->isStateColliding(*plan.planned_trajectory_states_[j][i], plan.planning_group_, false))
+    for (std::size_t j = expected.first ; j < plan.planned_trajectory_.size() ; ++j)
+    {
+      std::size_t wpc = plan.planned_trajectory_[j]->getWayPointCount();
+      for (std::size_t i = (j == expected.first ? std::max(expected.second - 1, 0) : 0) ; i < wpc ; ++i)
+        if (!plan.planning_scene_->isStateFeasible(plan.planned_trajectory_[j]->getWayPoint(i), false) ||
+            plan.planning_scene_->isStateColliding(plan.planned_trajectory_[j]->getWayPoint(i), 
+                                                   plan.planned_trajectory_[j]->getGroupName(), false))
         {
           // call the same functions again, in verbose mode, to show what issues have been detected
-          plan.planning_scene_->isStateFeasible(*plan.planned_trajectory_states_[j][i], true);
-          plan.planning_scene_->isStateColliding(*plan.planned_trajectory_states_[j][i], plan.planning_group_, true);
+          plan.planning_scene_->isStateFeasible(plan.planned_trajectory_[j]->getWayPoint(i), true);
+          plan.planning_scene_->isStateColliding(plan.planned_trajectory_[j]->getWayPoint(i),
+                                                 plan.planned_trajectory_[j]->getGroupName(), true);
           return false;
         }
+    }
   }
   return true;
 }
@@ -234,7 +239,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     return result;
   }
-
+  
   if (plan.planned_trajectory_.empty())
   {
     result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -244,8 +249,43 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   execution_complete_ = false;
   
   // push the trajectories we have slated for execution to the trajectory execution manager
+  int prev = -1;
   for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
-    if (!trajectory_execution_manager_->push(plan.planned_trajectory_[i]))
+  {    
+    if (!plan.planned_trajectory_[i] || plan.planned_trajectory_[i]->empty())
+      continue;
+    
+    // \todo should this be in thajectory_execution ? Maybe. Then that will have to use kinematic_trajectory too; 
+    // spliting trajectories for controllers becomes interesting: tied to groups instead of joints. this could cause some problems
+    // in the meantime we do a hack:
+    
+    bool unwound = false;
+    for (std::size_t j = 0 ; j < i ; ++j)
+      // if we ran unwind on a path for the same group
+      if (plan.planned_trajectory_[j] && plan.planned_trajectory_[j]->getGroup() == plan.planned_trajectory_[i]->getGroup() && !plan.planned_trajectory_[j]->empty())
+      {
+        plan.planned_trajectory_[i]->unwind(plan.planned_trajectory_[j]->getLastWayPoint());
+        unwound = true;
+        break;        
+      }
+    
+    if (!unwound)
+    {
+      // unwind the path to execute based on the current state of the system
+      if (prev < 0)
+        plan.planned_trajectory_[i]->unwind(plan.planning_scene_monitor_ && plan.planning_scene_monitor_->getStateMonitor() ? 
+                                            *plan.planning_scene_monitor_->getStateMonitor()->getCurrentState() : 
+                                            plan.planning_scene_->getCurrentState());
+      else
+        plan.planned_trajectory_[i]->unwind(plan.planned_trajectory_[prev]->getLastWayPoint());
+    }
+    
+    prev = i;
+    
+    // convert to message, pass along
+    moveit_msgs::RobotTrajectory msg;
+    plan.planned_trajectory_[i]->getRobotTrajectoryMsg(msg);
+    if (!trajectory_execution_manager_->push(msg))
     {
       trajectory_execution_manager_->clear();
       ROS_INFO_STREAM("Apparently trajectory initialization failed");
@@ -253,6 +293,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
       result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
       return result;
     }
+  }
   
   // start recording trajectory states
   trajectory_monitor_->startTrajectoryMonitor();

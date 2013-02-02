@@ -39,7 +39,7 @@
 #include <moveit/warehouse/state_storage.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -78,10 +78,10 @@ void parseStart(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *
       }
       if (!v.empty())
       {
-        kinematic_state::KinematicState st = psm->getPlanningScene()->getCurrentState();
+        robot_state::RobotState st = psm->getPlanningScene()->getCurrentState();
         st.setStateValues(v);
         moveit_msgs::RobotState msg;
-        kinematic_state::kinematicStateToRobotState(st, msg); 
+        robot_state::kinematicStateToRobotState(st, msg); 
         ROS_INFO("Parsed start state '%s'", name.c_str());
         rs->addRobotState(msg, name);
       }

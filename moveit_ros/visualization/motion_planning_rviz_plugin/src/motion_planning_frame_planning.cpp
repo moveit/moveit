@@ -33,42 +33,42 @@
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
 namespace moveit_rviz_plugin
 {
 
-void MotionPlanningFrame::planButtonClicked(void)
+void MotionPlanningFrame::planButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanButtonClicked, this));
 }
 
-void MotionPlanningFrame::executeButtonClicked(void)
+void MotionPlanningFrame::executeButtonClicked()
 {
   ui_->execute_button->setEnabled(false);
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeExecuteButtonClicked, this));
 }
 
-void MotionPlanningFrame::planAndExecuteButtonClicked(void)
+void MotionPlanningFrame::planAndExecuteButtonClicked()
 {
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this));
 }
 
-void MotionPlanningFrame::randomStatesButtonClicked(void)
+void MotionPlanningFrame::randomStatesButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeRandomStatesButtonClicked, this));
 }
 
-void MotionPlanningFrame::setStartToCurrentButtonClicked(void)
+void MotionPlanningFrame::setStartToCurrentButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSetStartToCurrentButtonClicked, this));
 }
 
-void MotionPlanningFrame::setGoalToCurrentButtonClicked(void)
+void MotionPlanningFrame::setGoalToCurrentButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSetGoalToCurrentButtonClicked, this));
 }
@@ -96,7 +96,7 @@ void MotionPlanningFrame::pathConstraintsIndexChanged(int index)
   }
 }
 
-void MotionPlanningFrame::computePlanButtonClicked(void)
+void MotionPlanningFrame::computePlanButtonClicked()
 {
   if (!move_group_)
     return;
@@ -108,13 +108,13 @@ void MotionPlanningFrame::computePlanButtonClicked(void)
     current_plan_.reset();
 }
 
-void MotionPlanningFrame::computeExecuteButtonClicked(void)
+void MotionPlanningFrame::computeExecuteButtonClicked()
 {
   if (move_group_ && current_plan_)
     move_group_->execute(*current_plan_);
 }
 
-void MotionPlanningFrame::computePlanAndExecuteButtonClicked(void)
+void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
 {
   if (!move_group_)
     return;
@@ -123,28 +123,28 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked(void)
   ui_->plan_and_execute_button->setEnabled(true);
 }
 
-void MotionPlanningFrame::computeSetStartToCurrentButtonClicked(void)
+void MotionPlanningFrame::computeSetStartToCurrentButtonClicked()
 {
   const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
   if (ps)
     planning_display_->setQueryStartState(ps->getCurrentState());
 }
 
-void MotionPlanningFrame::computeSetGoalToCurrentButtonClicked(void)
+void MotionPlanningFrame::computeSetGoalToCurrentButtonClicked()
 {
   const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
   if (ps)
     planning_display_->setQueryGoalState(ps->getCurrentState());
 }
 
-void MotionPlanningFrame::computeRandomStatesButtonClicked(void)
+void MotionPlanningFrame::computeRandomStatesButtonClicked()
 {
   std::string group_name = planning_display_->getCurrentPlanningGroup();
 
   if (planning_display_->getQueryStartState())
   {
-    kinematic_state::KinematicState start = *planning_display_->getQueryStartState();
-    kinematic_state::JointStateGroup *jsg = start.getJointStateGroup(group_name);
+    robot_state::RobotState start = *planning_display_->getQueryStartState();
+    robot_state::JointStateGroup *jsg = start.getJointStateGroup(group_name);
     if (jsg)
       jsg->setToRandomValues();
     planning_display_->setQueryStartState(start);
@@ -152,8 +152,8 @@ void MotionPlanningFrame::computeRandomStatesButtonClicked(void)
 
   if (planning_display_->getQueryGoalState())
   {
-    kinematic_state::KinematicState goal = *planning_display_->getQueryGoalState();
-    kinematic_state::JointStateGroup *jsg = goal.getJointStateGroup(group_name);
+    robot_state::RobotState goal = *planning_display_->getQueryGoalState();
+    robot_state::JointStateGroup *jsg = goal.getJointStateGroup(group_name);
     if (jsg)
       jsg->setToRandomValues();
     planning_display_->setQueryGoalState(goal);
@@ -192,7 +192,7 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
   ui_->planning_algorithm_combo_box->setCurrentIndex(0);
 }
 
-void MotionPlanningFrame::populateConstraintsList(void)
+void MotionPlanningFrame::populateConstraintsList()
 {
   if (move_group_)
   {
@@ -216,15 +216,15 @@ void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanReques
 {
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
   mreq.num_planning_attempts = 1;
-  mreq.allowed_planning_time = ros::Duration(ui_->planning_time->value());
-  kinematic_state::kinematicStateToRobotState(*planning_display_->getQueryStartState(), mreq.start_state);
+  mreq.allowed_planning_time = ui_->planning_time->value();
+  robot_state::kinematicStateToRobotState(*planning_display_->getQueryStartState(), mreq.start_state);
   mreq.workspace_parameters.min_corner.x = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
   mreq.workspace_parameters.min_corner.y = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
   mreq.workspace_parameters.min_corner.z = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;
   mreq.workspace_parameters.max_corner.x = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
   mreq.workspace_parameters.max_corner.y = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
   mreq.workspace_parameters.max_corner.z = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
-  const kinematic_state::JointStateGroup *jsg = planning_display_->getQueryGoalState()->getJointStateGroup(mreq.group_name);
+  const robot_state::JointStateGroup *jsg = planning_display_->getQueryGoalState()->getJointStateGroup(mreq.group_name);
   if (jsg)
   {
     mreq.goal_constraints.resize(1);
@@ -232,7 +232,7 @@ void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanReques
   }
 }
 
-void MotionPlanningFrame::configureForPlanning(void)
+void MotionPlanningFrame::configureForPlanning()
 {
   move_group_->setStartState(*planning_display_->getQueryStartState());
   move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());

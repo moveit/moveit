@@ -44,32 +44,32 @@ planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const kinematic
   kstate_.setToDefaultValues();
 }
 
-planning_scene_monitor::CurrentStateMonitor::~CurrentStateMonitor(void)
+planning_scene_monitor::CurrentStateMonitor::~CurrentStateMonitor()
 {
   stopStateMonitor();
 }
 
-kinematic_state::KinematicStatePtr planning_scene_monitor::CurrentStateMonitor::getCurrentState(void) const
+robot_state::RobotStatePtr planning_scene_monitor::CurrentStateMonitor::getCurrentState() const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
-  kinematic_state::KinematicState *result = new kinematic_state::KinematicState(kstate_);
-  return kinematic_state::KinematicStatePtr(result);
+  robot_state::RobotState *result = new robot_state::RobotState(kstate_);
+  return robot_state::RobotStatePtr(result);
 }
 
-ros::Time planning_scene_monitor::CurrentStateMonitor::getCurrentStateTime(void) const
+ros::Time planning_scene_monitor::CurrentStateMonitor::getCurrentStateTime() const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
   return current_state_time_;
 }
 
-std::pair<kinematic_state::KinematicStatePtr, ros::Time> planning_scene_monitor::CurrentStateMonitor::getCurrentStateAndTime(void) const
+std::pair<robot_state::RobotStatePtr, ros::Time> planning_scene_monitor::CurrentStateMonitor::getCurrentStateAndTime() const
 {  
   boost::mutex::scoped_lock slock(state_update_lock_);
-  kinematic_state::KinematicState *result = new kinematic_state::KinematicState(kstate_);
-  return std::make_pair(kinematic_state::KinematicStatePtr(result), current_state_time_);
+  robot_state::RobotState *result = new robot_state::RobotState(kstate_);
+  return std::make_pair(robot_state::RobotStatePtr(result), current_state_time_);
 }
 
-std::map<std::string, double> planning_scene_monitor::CurrentStateMonitor::getCurrentStateValues(void) const
+std::map<std::string, double> planning_scene_monitor::CurrentStateMonitor::getCurrentStateValues() const
 {
   std::map<std::string, double> m;
   boost::mutex::scoped_lock slock(state_update_lock_);
@@ -88,7 +88,7 @@ void planning_scene_monitor::CurrentStateMonitor::addUpdateCallback(const JointS
     update_callbacks_.push_back(fn);
 }
 
-void planning_scene_monitor::CurrentStateMonitor::clearUpdateCallbacks(void)
+void planning_scene_monitor::CurrentStateMonitor::clearUpdateCallbacks()
 {
   update_callbacks_.clear();
 }
@@ -107,12 +107,12 @@ void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::s
   }
 }
 
-bool planning_scene_monitor::CurrentStateMonitor::isActive(void) const
+bool planning_scene_monitor::CurrentStateMonitor::isActive() const
 {
   return state_monitor_started_;
 }
 
-void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor(void)
+void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor()
 {
   if (state_monitor_started_)
   {
@@ -122,7 +122,7 @@ void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor(void)
   }
 }
 
-std::string planning_scene_monitor::CurrentStateMonitor::getMonitoredTopic(void) const
+std::string planning_scene_monitor::CurrentStateMonitor::getMonitoredTopic() const
 {
   if (joint_state_subscriber_)
     return joint_state_subscriber_.getTopic();
@@ -152,7 +152,7 @@ bool planning_scene_monitor::CurrentStateMonitor::isPassiveDOF(const std::string
   return false;
 }
 
-bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(void) const
+bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
 {
   bool result = true;
   const std::vector<std::string> &dof = kmodel_->getVariableNames();

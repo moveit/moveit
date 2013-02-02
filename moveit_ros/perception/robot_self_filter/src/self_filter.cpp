@@ -46,7 +46,7 @@
 class SelfFilter
 {
   public:
-    SelfFilter (void): nh_ ("~")
+    SelfFilter (): nh_ ("~")
     {
       nh_.param<std::string> ("sensor_frame", sensor_frame_, std::string ());
       nh_.param<double> ("subsample_value", subsample_param_, 0.01);
@@ -72,7 +72,7 @@ class SelfFilter
       }
     }
       
-    ~SelfFilter (void)
+    ~SelfFilter ()
     {
       delete self_filter_;
       delete mn_;

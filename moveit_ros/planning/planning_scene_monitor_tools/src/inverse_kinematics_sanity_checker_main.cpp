@@ -4,7 +4,7 @@
 
 static const std::string VIS_TOPIC_NAME = "inverse_kinematics_sanity_checker";
 
-boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
+boost::shared_ptr<RobotState *JointStatePublisher> joint_state_publisher_;
 boost::shared_ptr<tf::TransformListener> transformer_;
 boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
 
@@ -15,7 +15,7 @@ void publisherFunction(bool joint_states) {
   {
     joint_state_publisher_->broadcastRootTransform(planning_scene_monitor_->getPlanningScene()->getCurrentState());
     if(joint_states) {
-      joint_state_publisher_->publishKinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState());
+      joint_state_publisher_->publishRobotState(planning_scene_monitor_->getPlanningScene()->getCurrentState());
     }
     r.sleep();
   }
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(kinematics_model_loader_));
 
-  joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
+  joint_state_publisher_.reset(new RobotState *JointStatePublisher());
 
   boost::thread publisher_thread(boost::bind(&publisherFunction, true));
 
@@ -78,8 +78,8 @@ int main(int argc, char **argv) {
 
   visualization_msgs::MarkerArray mark;
   
-  planning_models::KinematicState& state =  planning_scene_monitor_->getPlanningScene()->getCurrentState();
-  planning_models::KinematicState::JointStateGroup* jsg = state.getJointStateGroup(group_name);
+  planning_models::RobotState& state =  planning_scene_monitor_->getPlanningScene()->getCurrentState();
+  planning_models::RobotState *::JointStateGroup* jsg = state.getJointStateGroup(group_name);
   jsg->setStateValues(wrong_solutions[0].first);
   state.getRobotMarkers(cola,
                         "sample",

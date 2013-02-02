@@ -29,7 +29,7 @@
 
 /* Author: Julius Kammerl */
 
-#include <moveit/render_tools/octomap_render.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 #include <octomap_msgs/Octomap.h>
 #include <octomap/octomap.h>
@@ -77,7 +77,7 @@ OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octre
   octreeDecoding(octree);
 }
 
-OcTreeRender::~OcTreeRender(void)
+OcTreeRender::~OcTreeRender()
 {
   scene_node_->detachAllObjects();
 

@@ -56,14 +56,14 @@ public:
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
   MoveItMessageStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
 
-  virtual ~MoveItMessageStorage(void);
+  virtual ~MoveItMessageStorage();
   
-  const std::string& getDatabaseHost(void) const
+  const std::string& getDatabaseHost() const
   {
     return db_host_;    
   }
   
-  unsigned int getDatabasePort(void) const
+  unsigned int getDatabasePort() const
   {
     return db_port_;
   }

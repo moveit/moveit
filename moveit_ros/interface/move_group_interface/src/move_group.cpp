@@ -39,7 +39,7 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_models_loader/kinematic_model_loader.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
@@ -67,11 +67,11 @@ namespace
 
 struct SharedStorage
 {
-  SharedStorage(void)
+  SharedStorage()
   {
   }
 
-  ~SharedStorage(void)
+  ~SharedStorage()
   {
     tf_.reset();
     state_monitors_.clear();
@@ -84,13 +84,13 @@ struct SharedStorage
   std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors_;
 };
 
-SharedStorage& getSharedStorage(void)
+SharedStorage& getSharedStorage()
 {
   static SharedStorage storage;
   return storage;
 }
 
-boost::shared_ptr<tf::Transformer> getSharedTF(void)
+boost::shared_ptr<tf::Transformer> getSharedTF()
 {
   SharedStorage &s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
@@ -152,13 +152,13 @@ public:
       throw std::runtime_error(error);
     }
 
-    joint_state_target_.reset(new kinematic_state::KinematicState(getKinematicModel()));
+    joint_state_target_.reset(new robot_state::RobotState(getKinematicModel()));
     joint_state_target_->setToDefaultValues();
     active_target_ = JOINT;
     can_look_ = false;
     can_replan_ = false;
     goal_tolerance_ = 1e-4;
-    planning_time_ = ros::Duration(5.0);
+    planning_time_ = 5.0;
     
     const kinematic_model::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
@@ -222,7 +222,7 @@ public:
       throw std::runtime_error("Unable to connect to action server within allotted time");
   }
   
-  ~MoveGroupImpl(void)
+  ~MoveGroupImpl()
   {
     if (constraints_init_thread_)
     {
@@ -231,17 +231,17 @@ public:
     }
   }
   
-  const boost::shared_ptr<tf::Transformer>& getTF(void) const
+  const boost::shared_ptr<tf::Transformer>& getTF() const
   {
     return tf_;
   }
   
-  const Options& getOptions(void) const
+  const Options& getOptions() const
   {
     return opt_;
   }
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel(void) const
+  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
   {
     return kinematic_model_;
   }
@@ -264,17 +264,17 @@ public:
     planner_id_ = planner_id;
   }
   
-  kinematic_state::JointStateGroup* getJointStateTarget(void)
+  robot_state::JointStateGroup* getJointStateTarget()
   {
     return joint_state_target_->getJointStateGroup(opt_.group_name_);
   }
   
-  void setStartState(const kinematic_state::KinematicState &start_state)
+  void setStartState(const robot_state::RobotState &start_state)
   {
-    considered_start_state_.reset(new kinematic_state::KinematicState(start_state));
+    considered_start_state_.reset(new robot_state::RobotState(start_state));
   }
 
-  void setStartStateToCurrentState(void)
+  void setStartStateToCurrentState()
   {
     considered_start_state_.reset();
   }
@@ -289,17 +289,17 @@ public:
     pose_targets_.erase(end_effector_link);
   }
 
-  void clearPoseTargets(void)
+  void clearPoseTargets()
   {
     pose_targets_.clear();
   }
   
-  const std::string &getEndEffectorLink(void) const
+  const std::string &getEndEffectorLink() const
   {
     return end_effector_link_;
   }
 
-  const std::string& getEndEffector(void) const
+  const std::string& getEndEffector() const
   {
     if (!end_effector_link_.empty())
     {   
@@ -374,22 +374,22 @@ public:
     pose_reference_frame_ = pose_reference_frame;
   }
   
-  const std::string& getPoseReferenceFrame(void) const
+  const std::string& getPoseReferenceFrame() const
   {
     return pose_reference_frame_;
   }
   
-  void useJointStateTarget(void)
+  void useJointStateTarget()
   {
     active_target_ = JOINT;    
   }
   
-  void usePoseTarget(void)
+  void usePoseTarget()
   {
     active_target_ = POSE;
   }
   
-  void useFollowTarget(void)
+  void useFollowTarget()
   {
     active_target_ = FOLLOW;
   }
@@ -404,7 +404,7 @@ public:
     can_replan_ = flag;
   }
   
-  bool getCurrentState(kinematic_state::KinematicStatePtr &current_state)
+  bool getCurrentState(robot_state::RobotStatePtr &current_state)
   {
     if (!current_state_monitor_)
     {
@@ -555,7 +555,7 @@ public:
       return false;
   }
   
-  void stop(void)
+  void stop()
   {
     if (trajectory_event_publisher_)
     {
@@ -565,7 +565,7 @@ public:
     }
   }
   
-  double getGoalTolerance(void) const
+  double getGoalTolerance() const
   {
     return goal_tolerance_;
   }
@@ -578,7 +578,7 @@ public:
   void setPlanningTime(double seconds)
   {
     if (seconds > 0.0)
-      planning_time_ = ros::Duration(seconds);
+      planning_time_ = seconds;
   }
   
   void constructGoal(moveit_msgs::MoveGroupGoal &goal_out)
@@ -591,7 +591,7 @@ public:
     goal.request.workspace_parameters = workspace_parameters_;
     
     if (considered_start_state_)
-      kinematic_state::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
+      robot_state::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
     
     if (active_target_ == JOINT)
     {    
@@ -653,12 +653,12 @@ public:
       return false;
   }
 
-  void clearPathConstraints(void)
+  void clearPathConstraints()
   {
     path_constraints_.reset();
   }
   
-  std::vector<std::string> getKnownConstraints(void) const
+  std::vector<std::string> getKnownConstraints() const
   {
     std::vector<std::string> c;
     if (constraints_storage_)
@@ -726,16 +726,16 @@ private:
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
 
   // general planning params
-  kinematic_state::KinematicStatePtr considered_start_state_;
+  robot_state::RobotStatePtr considered_start_state_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
-  ros::Duration planning_time_;
+  double planning_time_;
   std::string planner_id_;
   double goal_tolerance_;
   bool can_look_;
   bool can_replan_;
   
   // joint state goal
-  kinematic_state::KinematicStatePtr joint_state_target_;
+  robot_state::RobotStatePtr joint_state_target_;
 
   // pose goal
   std::map<std::string, std::vector<geometry_msgs::PoseStamped> > pose_targets_;
@@ -770,12 +770,12 @@ MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer
   impl_ = new MoveGroupImpl(opt, tf ? tf : getSharedTF(), wait_for_server);
 }
 
-MoveGroup::~MoveGroup(void)
+MoveGroup::~MoveGroup()
 {
   delete impl_;
 }
 
-const std::string& MoveGroup::getName(void) const
+const std::string& MoveGroup::getName() const
 {
   return impl_->getOptions().group_name_;
 }
@@ -790,12 +790,12 @@ void MoveGroup::setPlannerId(const std::string &planner_id)
   impl_->setPlannerId(planner_id);
 }
 
-bool MoveGroup::asyncMove(void)
+bool MoveGroup::asyncMove()
 {
   return impl_->move(false);
 }
 
-bool MoveGroup::move(void)
+bool MoveGroup::move()
 {
   return impl_->move(true);
 }
@@ -825,22 +825,22 @@ bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_m
   return impl_->pick(object, grasps);
 }
 
-void MoveGroup::stop(void)
+void MoveGroup::stop()
 {
   impl_->stop();
 }
 
-void MoveGroup::setStartState(const kinematic_state::KinematicState &start_state)
+void MoveGroup::setStartState(const robot_state::RobotState &start_state)
 {
   impl_->setStartState(start_state);
 }
 
-void MoveGroup::setStartStateToCurrentState(void)
+void MoveGroup::setStartStateToCurrentState()
 {
   impl_->setStartStateToCurrentState();
 }
 
-void MoveGroup::setRandomTarget(void)
+void MoveGroup::setRandomTarget()
 { 
   impl_->getJointStateTarget()->setToRandomValues();
   impl_->useJointStateTarget();
@@ -877,19 +877,19 @@ void MoveGroup::setJointValueTarget(const std::map<std::string, double> &joint_v
   impl_->useJointStateTarget();
 }
 
-void MoveGroup::setJointValueTarget(const kinematic_state::KinematicState &kinematic_state)
+void MoveGroup::setJointValueTarget(const robot_state::RobotState &kinematic_state)
 {
   setJointValueTarget(*kinematic_state.getJointStateGroup(getName()));
 }
 
-void MoveGroup::setJointValueTarget(const kinematic_state::JointStateGroup &joint_state_group)
+void MoveGroup::setJointValueTarget(const robot_state::JointStateGroup &joint_state_group)
 {  
   std::map<std::string, double> variable_values;
   joint_state_group.getVariableValues(variable_values);
   setJointValueTarget(variable_values);
 }
 
-void MoveGroup::setJointValueTarget(const kinematic_state::JointState &joint_state)
+void MoveGroup::setJointValueTarget(const robot_state::JointState &joint_state)
 {
   setJointValueTarget(joint_state.getName(), joint_state.getVariableValues());
 }
@@ -902,7 +902,7 @@ void MoveGroup::setJointValueTarget(const std::string &joint_name, double value)
 
 void MoveGroup::setJointValueTarget(const std::string &joint_name, const std::vector<double> &values)
 { 
-  kinematic_state::JointState *joint_state = impl_->getJointStateTarget()->getJointState(joint_name);
+  robot_state::JointState *joint_state = impl_->getJointStateTarget()->getJointState(joint_name);
   if (joint_state)
     if (!joint_state->setVariableValues(values))
       ROS_ERROR("Unable to set target");
@@ -915,17 +915,17 @@ void MoveGroup::setJointValueTarget(const sensor_msgs::JointState &state)
   impl_->useJointStateTarget();
 }
 
-const kinematic_state::JointStateGroup& MoveGroup::getJointValueTarget(void) const
+const robot_state::JointStateGroup& MoveGroup::getJointValueTarget() const
 {
   return *impl_->getJointStateTarget();
 }
 
-const std::string& MoveGroup::getEndEffectorLink(void) const
+const std::string& MoveGroup::getEndEffectorLink() const
 {
   return impl_->getEndEffectorLink();
 }
 
-const std::string& MoveGroup::getEndEffector(void) const
+const std::string& MoveGroup::getEndEffector() const
 {
   return impl_->getEndEffector();
 }
@@ -948,7 +948,7 @@ void MoveGroup::clearPoseTarget(const std::string &end_effector_link)
   impl_->clearPoseTarget(end_effector_link);
 }
 
-void MoveGroup::clearPoseTargets(void)
+void MoveGroup::clearPoseTargets()
 {
   impl_->clearPoseTargets();
 }
@@ -1163,12 +1163,12 @@ void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
   impl_->setPoseReferenceFrame(pose_reference_frame);
 }
 
-const std::string& MoveGroup::getPoseReferenceFrame(void) const
+const std::string& MoveGroup::getPoseReferenceFrame() const
 {
   return impl_->getPoseReferenceFrame();
 }
 
-double MoveGroup::getGoalTolerance(void) const
+double MoveGroup::getGoalTolerance() const
 {
   return impl_->getGoalTolerance();
 }
@@ -1183,16 +1183,16 @@ void MoveGroup::rememberJointValues(const std::string &name)
   rememberJointValues(name, getCurrentJointValues());
 }
 
-std::vector<double> MoveGroup::getCurrentJointValues(void)
+std::vector<double> MoveGroup::getCurrentJointValues()
 { 
-  kinematic_state::KinematicStatePtr current_state;
+  robot_state::RobotStatePtr current_state;
   std::vector<double> values;
   if (impl_->getCurrentState(current_state))
     current_state->getJointStateGroup(getName())->getVariableValues(values);
   return values;
 }
 
-std::vector<double> MoveGroup::getRandomJointValues(void)
+std::vector<double> MoveGroup::getRandomJointValues()
 {
   std::vector<double> backup;
   impl_->getJointStateTarget()->getVariableValues(backup);
@@ -1214,11 +1214,11 @@ geometry_msgs::PoseStamped MoveGroup::getRandomPose(const std::string &end_effec
     ROS_ERROR("No end-effector specified");
   else
   {  
-    kinematic_state::KinematicStatePtr current_state;
+    robot_state::RobotStatePtr current_state;
     if (impl_->getCurrentState(current_state))
     {
       current_state->getJointStateGroup(getName())->setToRandomValues();
-      const kinematic_state::LinkState *ls = current_state->getLinkState(eef);
+      const robot_state::LinkState *ls = current_state->getLinkState(eef);
       if (ls)
         pose = ls->getGlobalLinkTransform();
     }
@@ -1239,10 +1239,10 @@ geometry_msgs::PoseStamped MoveGroup::getCurrentPose(const std::string &end_effe
     ROS_ERROR("No end-effector specified");
   else
   {
-    kinematic_state::KinematicStatePtr current_state;
+    robot_state::RobotStatePtr current_state;
     if (impl_->getCurrentState(current_state))
     {
-      const kinematic_state::LinkState *ls = current_state->getLinkState(eef);
+      const robot_state::LinkState *ls = current_state->getLinkState(eef);
       if (ls)
         pose = ls->getGlobalLinkTransform();
     }
@@ -1254,14 +1254,14 @@ geometry_msgs::PoseStamped MoveGroup::getCurrentPose(const std::string &end_effe
   return pose_msg;
 }
 
-const std::vector<std::string>& MoveGroup::getJoints(void) const
+const std::vector<std::string>& MoveGroup::getJoints() const
 {
   return impl_->getJointStateTarget()->getJointModelGroup()->getJointModelNames();
 }
 
-kinematic_state::KinematicStatePtr MoveGroup::getCurrentState(void)
+robot_state::RobotStatePtr MoveGroup::getCurrentState()
 {
-  kinematic_state::KinematicStatePtr current_state;
+  robot_state::RobotStatePtr current_state;
   impl_->getCurrentState(current_state);
   return current_state;
 }
@@ -1286,7 +1286,7 @@ void MoveGroup::allowReplanning(bool flag)
   impl_->allowReplanning(flag);
 }
 
-std::vector<std::string> MoveGroup::getKnownConstraints(void) const
+std::vector<std::string> MoveGroup::getKnownConstraints() const
 {
   return impl_->getKnownConstraints();
 }
@@ -1296,7 +1296,7 @@ bool MoveGroup::setPathConstraints(const std::string &constraint)
   return impl_->setPathConstraints(constraint);
 }
 
-void MoveGroup::clearPathConstraints(void)
+void MoveGroup::clearPathConstraints()
 {
   impl_->clearPathConstraints();
 }
