@@ -40,6 +40,7 @@
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/planning_scene_world_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
+#include <moveit/warehouse/trajectory_constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 #include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <boost/function.hpp>
@@ -54,6 +55,7 @@ struct BenchmarkOptions
   std::string start_regex;
   std::string query_regex;
   std::string goal_regex;
+  std::string trajectory_regex;
   std::string group_override;
   std::string planning_frame;
   std::string default_constrained_link;
@@ -96,6 +98,7 @@ private:
   moveit_warehouse::PlanningSceneStorage pss_; 
   moveit_warehouse::PlanningSceneWorldStorage psws_;
   moveit_warehouse::ConstraintsStorage cs_;
+  moveit_warehouse::TrajectoryConstraintsStorage tcs_;
   moveit_warehouse::RobotStateStorage rs_;
 };
 
