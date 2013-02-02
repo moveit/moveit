@@ -47,7 +47,7 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
   res.trajectory.joint_trajectory.points.clear();
   (const_cast<SBPLInterface*>(this))->last_planning_statistics_ = PlanningStatistics(); 
   planning_models::RobotState *start_state(planning_scene->getCurrentState());
-  planning_models::robotStateToRobotState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+  planning_models::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
 
   ros::WallTime wt = ros::WallTime::now();  
   boost::shared_ptr<EnvironmentChain3D> env_chain(new EnvironmentChain3D(planning_scene));

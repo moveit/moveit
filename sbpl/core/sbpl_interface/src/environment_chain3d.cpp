@@ -429,7 +429,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   interpolation_state_2_ = planning_scene->getCurrentState();
   interpolation_state_temp_ = planning_scene->getCurrentState();
 
-  planning_models::robotStateToRobotState(*planning_scene->getTransforms(), mreq.motion_plan_request.start_state, state_);
+  planning_models::robotStateMsgToRobotState(*planning_scene->getTransforms(), mreq.motion_plan_request.start_state, state_);
   joint_state_group_ = state_.getJointStateGroup(planning_group_);
   interpolation_joint_state_group_1_ = interpolation_state_1_.getJointStateGroup(planning_group_);
   interpolation_joint_state_group_2_ = interpolation_state_2_.getJointStateGroup(planning_group_);
