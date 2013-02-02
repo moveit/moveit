@@ -83,7 +83,7 @@ public:
     
     // get the specified start state
     robot_state::RobotState start_state = planning_scene->getCurrentState();
-    robot_state::robotStateToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
 
     const std::vector<robot_state::JointState*> &jstates = 
       planning_scene->getKinematicModel()->hasJointModelGroup(req.group_name) ? 
@@ -165,7 +165,7 @@ public:
     if (change_req)
     {
       planning_interface::MotionPlanRequest req2 = req;
-      robot_state::kinematicStateToRobotState(start_state, req2.start_state);
+      robot_state::robotStateToRobotStateMsg(start_state, req2.start_state);
       solved = planner(planning_scene, req2, res);
     }
     else

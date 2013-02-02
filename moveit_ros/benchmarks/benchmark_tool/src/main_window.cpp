@@ -349,7 +349,7 @@ void MainWindow::planningGroupChanged(const QString &text)
       //Update the kinematic state associated to the goals
       for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
       {
-        it->second->setKinematicState(scene_display_->getPlanningSceneRO()->getCurrentState());
+        it->second->setRobotState(scene_display_->getPlanningSceneRO()->getCurrentState());
         it->second->setEndEffector(robot_interaction_->getActiveEndEffectors()[0]);
       }
     }
@@ -377,12 +377,12 @@ void MainWindow::robotInteractionButtonClicked()
   robot_interaction_->publishInteractiveMarkers();
 }
 
-bool MainWindow::isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution)
+bool MainWindow::isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution)
 {
   if (scene_display_)
   {
     group->setVariableValues(ik_solution);
-    return !scene_display_->getPlanningSceneRO()->isStateColliding(*group->getKinematicState(), group->getName());
+    return !scene_display_->getPlanningSceneRO()->isStateColliding(*group->getRobotState(), group->getName());
   }
   else
     return true;

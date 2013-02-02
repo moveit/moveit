@@ -591,7 +591,7 @@ public:
     goal.request.workspace_parameters = workspace_parameters_;
     
     if (considered_start_state_)
-      robot_state::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
+      robot_state::robotStateToRobotStateMsg(*considered_start_state_, goal.request.start_state);
     
     if (active_target_ == JOINT)
     {    

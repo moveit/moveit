@@ -397,7 +397,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
           if (!opt_.group_override.empty())
             req.benchmark_request.motion_plan_request.group_name = opt_.group_override;
           if (opt_.timeout > 0.0)
-            req.benchmark_request.motion_plan_request.allowed_planning_time = ros::Duration(opt_.timeout);
+            req.benchmark_request.motion_plan_request.allowed_planning_time = opt_.timeout;
           req.benchmark_request.filename = opt_.output + ".trajectory." + boost::lexical_cast<std::string>(i+1) + ".log";
 
           ROS_INFO("Benckmarking trajectory '%s' (%d of %d)", cnames[i].c_str(), (int)i+1, (int)cnames.size());

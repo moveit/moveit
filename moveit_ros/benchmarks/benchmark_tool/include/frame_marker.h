@@ -36,7 +36,7 @@
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 
 #include <moveit/robot_interaction/robot_interaction.h>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 
 #include <QObject>
 
@@ -196,7 +196,7 @@ public:
   /** Copy constructor */
   GripperMarker(const GripperMarker &gripper_marker) : FrameMarker(gripper_marker)
   {
-    kinematic_state_ = gripper_marker.kinematic_state_;
+    robot_state_ = gripper_marker.robot_state_;
     eef_ = gripper_marker.eef_;
     state_ = gripper_marker.state_;
     display_gripper_mesh_ = gripper_marker.display_gripper_mesh_;
@@ -205,7 +205,7 @@ public:
   }
 
   /** Constructor
-   * @param kinematic_state the kinematic state of the robot
+   * @param robot_state the kinematic state of the robot
    * @param parent_node the Ogre node that will hold this interactive marker
    * @param context the display context
    * @param name the name for the interactive marker
@@ -217,7 +217,7 @@ public:
    * @param is_selected whether this frame marker is selected or not by default. When selected, controls are displayed
    * @param visible_x, visible_y, visible_z define the visibility of each axis
    */
-  GripperMarker(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+  GripperMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                 const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                 const GripperMarkerState &state, bool is_selected = false, bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
@@ -239,14 +239,14 @@ public:
     return state_;
   }
 
-  void setKinematicState(const kinematic_state::KinematicState& kinematic_state)
+  void setRobotState(const robot_state::RobotState& robot_state)
   {
-    kinematic_state_ = &kinematic_state;
+    robot_state_ = &robot_state;
   }
 
-  const kinematic_state::KinematicState *getKinematicState()
+  const robot_state::RobotState *getRobotState()
   {
-    return kinematic_state_;
+    return robot_state_;
   }
 
   void setEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef)
@@ -270,7 +270,7 @@ protected:
 
   const float *stateToColor(const GripperMarkerState &state);
 
-  const kinematic_state::KinematicState *kinematic_state_;
+  const robot_state::RobotState *robot_state_;
   robot_interaction::RobotInteraction::EndEffector eef_;
 
   bool display_gripper_mesh_;
