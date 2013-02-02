@@ -285,7 +285,6 @@ void DistanceField::moveShapeInField(const shapes::Shape* shape,
   body->setPose(new_pose_e);
   EigenSTL::vector_Vector3d new_point_vec = determineCollisionPoints(body, resolution_);
   delete body;
-  std::cout << "Old set " << old_point_vec.size() << " new set " << new_point_vec.size() << std::endl;
   updatePointsInField(old_point_vec,
                       new_point_vec);
 }

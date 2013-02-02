@@ -185,10 +185,6 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
     //logInform("Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
   }
 
-  std::cout << "old " << old_not_new.size() 
-            << " new but in current " << new_not_old.size()-new_not_in_current.size()
-            << " new " << new_not_in_current.size()
-            << " orig " << old_points.size()+new_points.size() << std::endl;
   removeObstacleVoxels(old_not_new);
   addNewObstacleVoxels(new_not_in_current);
 
@@ -464,7 +460,6 @@ void PropagationDistanceField::propagateNegative()
   // now process the queue:
   for (unsigned int i=0; i<negative_bucket_queue_.size(); ++i)
   {
-    //std::cout << " Here " << i << " " << negative_bucket_queue_[i].size() << std::endl;
   
     std::vector<Eigen::Vector3i>::iterator list_it = negative_bucket_queue_[i].begin();
     while(list_it!=negative_bucket_queue_[i].end())
@@ -736,8 +731,6 @@ bool PropagationDistanceField::readFromStream(std::istream& is)
       for(unsigned int z = 0; z < getZNumCells(); z+=8) {
         char inchar;
         if(!in.good()) {
-          std::cout << "Is says no good at " << x << " " << y << " " << z << std::endl;
-          std::cout << "Eof " << is.eof() << " fail " << is.fail() << " bad " << is.bad() << std::endl;
           return false;
         }
         in.get(inchar);
