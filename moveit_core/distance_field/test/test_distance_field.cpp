@@ -403,6 +403,50 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   }
   test_df.addPointsToField(test_points);  
   ASSERT_TRUE(areDistanceFieldsDistancesEqual(df, test_df));
+
+  PropagationDistanceField gradient_df( width, height, depth, resolution, origin_x, origin_y, origin_z, max_dist, true);
+
+  shapes::Sphere sphere(.25);
+
+  geometry_msgs::Pose p;
+  p.orientation.w = 1.0;
+  p.position.x = .5;
+  p.position.y = .5;
+  p.position.z = .5;
+  
+  gradient_df.addShapeToField(&sphere, p);
+  EXPECT_GT(gradient_df.getCell(5,5,5).negative_distance_square_, 1);
+  //all negative cells should have gradients that point towards cells with distance 1
+  for (int z=1; z<df.getZNumCells()-1; z++) {
+    for (int x=1; x<df.getXNumCells()-1; x++) {
+      for (int y=1; y<df.getYNumCells()-1; y++) {
+        if(gradient_df.getCell(x,y,z).negative_distance_square_ > 0) {
+          double dist = gradient_df.getDistance(x,y,z);
+          ASSERT_LT(dist, 0) << "Pos " << gradient_df.getCell(x,y,z).distance_square_ << " " << gradient_df.getCell(x,y,z).negative_distance_square_;
+          double wx, wy, wz;
+          df.gridToWorld(x,y,z,wx,wy,wz);
+          Eigen::Vector3d grad(0.0,0.0,0.0);
+          bool grad_in_bounds;
+          double dist_grad = gradient_df.getDistanceGradient(wx, wy, wz,
+                                                             grad.x(), grad.y(), grad.z(), grad_in_bounds);
+          ASSERT_TRUE(grad_in_bounds) << x << " " << y << " " << z;
+          ASSERT_NEAR(dist, dist_grad, .0001);
+          double xscale = grad.x()/grad.norm();
+          double yscale = grad.y()/grad.norm();
+          double zscale = grad.z()/grad.norm();
+          
+          double comp_x = wx+xscale*dist;
+          double comp_y = wy+yscale*dist;
+          double comp_z = wz+zscale*dist;
+          
+          int cell_x, cell_y, cell_z;
+          gradient_df.worldToGrid(comp_x, comp_y, comp_z,
+                                  cell_x, cell_y, cell_z);
+          ASSERT_EQ(gradient_df.getCell(cell_x, cell_y, cell_z).distance_square_, 1);
+        }
+      }
+    }
+  }
 }
 
 

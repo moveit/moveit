@@ -45,12 +45,18 @@ namespace distance_field
 {
 
 /** 
+ * \brief Determines a set of obstacle points given a body and a particular resolution. 
  * 
+ * This function computes a bounding sphere and iterates through it in
+ * 3D at the specified resolution.  It tests each iterated for
+ * inclusion in the body, returning the set of points that are
+ * reported as being included in the body.
+ *
+ * @param [in] body The body to discretize
+ * @param [in] resolution The resolution at which to test
  * 
- * @param body 
- * @param resolution 
- * 
- * @return 
+ * @return The set of points in the bounding sphere that return as
+ * included in the body
  */
 EigenSTL::vector_Vector3d static inline determineCollisionPoints(const bodies::Body* body, double resolution)
 {
