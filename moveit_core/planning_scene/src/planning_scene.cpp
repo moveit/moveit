@@ -507,7 +507,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
     scene.fixed_frame_transforms.clear();
 
   if (kstate_)
-    robot_state::kinematicStateToRobotState(*kstate_, scene.robot_state);
+    robot_state::robotStateToRobotStateMsg(*kstate_, scene.robot_state);
   else
     scene.robot_state = moveit_msgs::RobotState();
 
@@ -707,7 +707,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   scene.robot_model_name = getKinematicModel()->getName();
   getTransforms()->getTransforms(scene.fixed_frame_transforms);
 
-  robot_state::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
+  robot_state::robotStateToRobotStateMsg(getCurrentState(), scene.robot_state);
   getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
   getCollisionRobot()->getPadding(scene.link_padding);
   getCollisionRobot()->getScale(scene.link_scale);
@@ -818,13 +818,13 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
     else
       // attached bodies are sent fully, so we need to clear old ones, if any
       kstate_->clearAttachedBodies();
-    robot_state::robotStateToRobotState(*getTransforms(), state, *kstate_);
+    robot_state::robotStateMsgToRobotState(*getTransforms(), state, *kstate_);
   }
   else
   {   
     // attached bodies are sent fully, so we need to clear old ones, if any
     kstate_->clearAttachedBodies();
-    robot_state::robotStateToRobotState(*ftf_, state, *kstate_);
+    robot_state::robotStateMsgToRobotState(*ftf_, state, *kstate_);
   }
 }
 
@@ -1449,7 +1449,7 @@ void planning_scene::PlanningScene::removeColor(const std::string &id)
 bool planning_scene::PlanningScene::isStateColliding(const moveit_msgs::RobotState &state, const std::string &group, bool verbose) const
 {
   robot_state::RobotState s(getCurrentState());
-  robot_state::robotStateToRobotState(*getTransforms(), state, s);
+  robot_state::robotStateMsgToRobotState(*getTransforms(), state, s);
   return isStateColliding(s, group, verbose);
 }
 
@@ -1473,7 +1473,7 @@ bool planning_scene::PlanningScene::isStateFeasible(const moveit_msgs::RobotStat
   if (state_feasibility_)
   {
     robot_state::RobotState s(getCurrentState());
-    robot_state::robotStateToRobotState(*getTransforms(), state, s);
+    robot_state::robotStateMsgToRobotState(*getTransforms(), state, s);
     return state_feasibility_(s, verbose);
   }
   return true;
@@ -1489,7 +1489,7 @@ bool planning_scene::PlanningScene::isStateFeasible(const robot_state::RobotStat
 bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
 {   
   robot_state::RobotState s(getCurrentState());
-  robot_state::robotStateToRobotState(*getTransforms(), state, s);
+  robot_state::robotStateMsgToRobotState(*getTransforms(), state, s);
   return isStateConstrained(s, constr, verbose);
 }
 
@@ -1507,7 +1507,7 @@ bool planning_scene::PlanningScene::isStateConstrained(const robot_state::RobotS
 bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState &state, const kinematic_constraints::KinematicConstraintSet &constr, bool verbose) const
 {
   robot_state::RobotState s(getCurrentState());
-  robot_state::robotStateToRobotState(*getTransforms(), state, s);
+  robot_state::robotStateMsgToRobotState(*getTransforms(), state, s);
   return isStateConstrained(s, constr, verbose);
 }
 
@@ -1531,7 +1531,7 @@ bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &
 bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, const std::string &group, bool verbose) const
 {
   robot_state::RobotState s(getCurrentState());
-  robot_state::robotStateToRobotState(*getTransforms(), state, s);
+  robot_state::robotStateMsgToRobotState(*getTransforms(), state, s);
   return isStateValid(s, constr, group, verbose);
 }
 
@@ -1593,7 +1593,7 @@ bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &s
 {  
   robot_trajectory::RobotTrajectory t(getKinematicModel(), group);
   robot_state::RobotState start(getCurrentState());
-  robot_state::robotStateToRobotState(*getTransforms(), start_state, start);
+  robot_state::robotStateMsgToRobotState(*getTransforms(), start_state, start);
   t.setRobotTrajectoryMsg(start, trajectory);
   return isPathValid(t, path_constraints, goal_constraints, group, verbose, invalid_index);
 }

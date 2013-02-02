@@ -58,28 +58,28 @@ bool jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotSta
  * @param state The resultant kinematic state
  * @return True if successful, false if failed for any reason
  */
-bool robotStateToRobotState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies = true);
+bool robotStateMsgToRobotState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies = true);
 /**
  * @brief Convert a robot state (with accompanying extra transforms) to a kinematic state
  * @param robot_state The input robot state
  * @param state The resultant kinematic state
  * @return True if successful, false if failed for any reason
  */
-bool robotStateToRobotState(const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies = true);
+bool robotStateMsgToRobotState(const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies = true);
 
 /**
  * @brief Convert a kinematic state to a robot state message
  * @param state The input kinematic state object
  * @param robot_state The resultant RobotState *message
  */
-void kinematicStateToRobotState(const RobotState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies = true);
+void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies = true);
 
 /**
  * @brief Convert a kinematic state to a joint state message
  * @param state The input kinematic state object
  * @param robot_state The resultant JointState message
  */
-void kinematicStateToJointState(const RobotState& state, sensor_msgs::JointState &joint_state);
+void robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState &joint_state);
 
 }
 

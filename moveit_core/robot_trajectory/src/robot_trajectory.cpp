@@ -281,7 +281,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
     }
     
     robot_state::RobotStatePtr st(new robot_state::RobotState(copy));
-    robot_state::robotStateToRobotState(rs, *st);
+    robot_state::robotStateMsgToRobotState(rs, *st);
     addSuffixWayPoint(st, (this_time_stamp - last_time_stamp).toSec());
     last_time_stamp = this_time_stamp;
   }
@@ -291,6 +291,6 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
                                                                       const moveit_msgs::RobotState &state, const moveit_msgs::RobotTrajectory &trajectory)
 {
   robot_state::RobotState st(reference_state);
-  robot_state::robotStateToRobotState(state, st);
+  robot_state::robotStateMsgToRobotState(state, st);
   setRobotTrajectoryMsg(st, trajectory);
 }

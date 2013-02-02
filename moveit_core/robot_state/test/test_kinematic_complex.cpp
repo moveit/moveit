@@ -207,10 +207,10 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     jv["base_joint.theta"] = -0.5;
     ks.setStateValues(jv);
     moveit_msgs::RobotState robot_state;
-    robot_state::kinematicStateToRobotState(ks, robot_state);
+    robot_state::robotStateToRobotStateMsg(ks, robot_state);
 
     robot_state::RobotState ks2(kin_model2);
-    robotStateToRobotState(robot_state, ks2);
+    robotStateMsgToRobotState(robot_state, ks2);
     std::vector<double> v1;
     ks.getStateValues(v1);
     std::vector<double> v2;
