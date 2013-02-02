@@ -72,17 +72,17 @@ public:
    * parameters.  The data structure will remain unintialized until
    * the \ref VoxelGrid::reset function is called.
    *
-   * @param size_x Size of the X axis in meters
-   * @param size_y Size of the Y axis in meters
-   * @param size_z Size of the Z axis in meters
-   
-   * @param resolution: Resolution of a single cell in meters
-   
-   * @param origin_x Minimum point along the X axis of the volume
-   * @param origin_y Minimum point along the Y axis of the volume
-   * @param origin_z Minimum point along the Z axis of the volume
+   * @param [in] size_x Size of the X axis in meters
+   * @param [in] size_y Size of the Y axis in meters
+   * @param [in] size_z Size of the Z axis in meters
+   *
+   * @param [in] resolution Resolution of a single cell in meters
+   *
+   * @param [in] origin_x Minimum point along the X axis of the volume
+   * @param [in] origin_y Minimum point along the Y axis of the volume
+   * @param [in] origin_z Minimum point along the Z axis of the volume
    * 
-   * @param default_object An object that will be returned for any
+   * @param [in] default_object An object that will be returned for any
    * future queries that are not valid
    */
   VoxelGrid(double size_x, double size_y, double size_z, double resolution,
@@ -95,9 +95,9 @@ public:
    * represents a location in the original coordinate frame used to
    * construct the voxel grid.
    * 
-   * @param x X component of the desired location
-   * @param y Y component of the desired location
-   * @param z Z component of the desired location
+   * @param [in] x X component of the desired location
+   * @param [in] y Y component of the desired location
+   * @param [in] z Z component of the desired location
    * 
    * @return The data stored at that location, or a default value
    * supplied in the constructor if the location is not valid.
@@ -114,9 +114,9 @@ public:
    * (origin_x+x_size, origin_y+y_size, origin_z+z_size) will be
    * (size_x/resolution, size_y/resolution, size_z/resolution).
    * 
-   * @param x The X index of the desired cell 
-   * @param y The Y index of the desired cell
-   * @param z The Z index of the desired cell
+   * @param [in] x The X index of the desired cell 
+   * @param [in] y The Y index of the desired cell
+   * @param [in] z The Z index of the desired cell
    * 
    * @return The data in the indicated cell, or a default value
    * supplied in the constructor if the location is not valid.
@@ -136,10 +136,10 @@ public:
    * If the arguments do not indicate a valid cell, no action is
    * taken.
    *
-   * @param x The X index of the desired cell 
-   * @param y The Y index of the desired cell
-   * @param z The Z index of the desired cell
-   * @param obj The data to place into the given cell
+   * @param [in] x The X index of the desired cell 
+   * @param [in] y The Y index of the desired cell
+   * @param [in] z The Z index of the desired cell
+   * @param [out] obj The data to place into the given cell
    */
   void setCell(int x, int y, int z, T& obj);
 
@@ -151,14 +151,14 @@ public:
   /** 
    * \brief Sets every cell in the voxel grid to the supplied data
    * 
-   * @param initial The template variable to which to set the data
+   * @param [in] initial The template variable to which to set the data
    */
   void reset(const T& initial);
 
   /** 
    * \brief Gets the size in arbitrary units of the indicated dimension
    * 
-   * @param dim The dimension for the query
+   * @param [in] dim The dimension for the query
    * 
    * @return The size in meters
    */
@@ -167,7 +167,7 @@ public:
   /** 
    * \brief Gets the resolution of the indicated dimension in arbitrary consistent units
    * 
-   * @param dim The dimension for the query
+   * @param [in] dim The dimension for the query
    *
    * @return The resolution in meters
    */
@@ -176,7 +176,7 @@ public:
   /** 
    * \brief Gets the origin (miniumum point) of the indicated dimension
    * 
-   * @param dim The dimension for the query
+   * @param [in] dim The dimension for the query
    *
    * @return The indicated axis origin
    */
@@ -185,7 +185,7 @@ public:
   /** 
    * \brief Gets the number of cells in the indicated dimension
    * 
-   * @param dim The dimension for the query
+   * @param [in] dim The dimension for the query
    * 
    * @return The number of cells for the indicated dimension
    */
@@ -243,8 +243,8 @@ public:
   /** 
    * \brief Checks if the indicated index is valid along a particular dimension.  
    * 
-   * @param dim The dimension for the query
-   * @param cell The index along that dimension
+   * @param [in] dim The dimension for the query
+   * @param [in] cell The index along that dimension
    * 
    * @return True if the cell is valid along that dimension; otherwise False.
    */
@@ -280,8 +280,8 @@ protected:
    * \brief Gets the cell number in a given dimension given a world
    * value.  No validity check.
    * 
-   * @param dim The dimension of the query 
-   * @param loc The world location along that dimension
+   * @param [in] dim The dimension of the query 
+   * @param [in] loc The world location along that dimension
    * 
    * @return The computed cell index along the given dimension
    */
@@ -291,8 +291,8 @@ protected:
    * \brief Gets the center of the cell in world coordinates along the
    * given dimension.  No validity check.  
    * 
-   * @param dim The dimension of the query
-   * @param cell The cell along the given dimension 
+   * @param [in] dim The dimension of the query
+   * @param [in] cell The cell along the given dimension 
    * 
    * @return The world coordinate of the center of the cell
    */
