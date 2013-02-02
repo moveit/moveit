@@ -93,7 +93,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   }
   
   robot_state::RobotState start_state = planning_scene->getCurrentState();
-  robot_state::robotStateToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
+  robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
 
   ModelBasedPlanningContextPtr context = getPlanningContext(req);
   if (!context)
