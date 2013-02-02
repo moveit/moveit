@@ -48,6 +48,13 @@
 #include <eigen_stl_containers/eigen_stl_containers.h>
 #include <geometric_shapes/shapes.h>
 
+/**
+ * \brief Namespace for holding classes that generate distance fields.
+ *
+ * Distance fields are dense 3D representations containing the
+ * distance to the nearest obstacles.
+ * 
+ */
 namespace distance_field
 {
 
@@ -63,7 +70,7 @@ enum PlaneVisualizationType
 * \brief DistanceField is an abstract base class for computing
 * distances from sets of 3D obstacle points.  The distance assigned to
 * a freespace cell should be the distance to the closest obstacle
-* cell.  Cells that are obstacle cells should either be marked as 0
+* cell.  Cells that are obstacle cells should either be marked as zero
 * distance, or may have a negative distance if a signed version of the
 * distance field is being used and an obstacle point is internal to an
 * obstacle volume.

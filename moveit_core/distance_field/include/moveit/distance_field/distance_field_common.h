@@ -44,7 +44,14 @@
 namespace distance_field
 {
 
-//determines a set of points at the indicated resolution that are inside the supplied body 
+/** 
+ * 
+ * 
+ * @param body 
+ * @param resolution 
+ * 
+ * @return 
+ */
 EigenSTL::vector_Vector3d static inline determineCollisionPoints(const bodies::Body* body, double resolution)
 {
   EigenSTL::vector_Vector3d ret_vec;
