@@ -525,13 +525,11 @@ void MotionPlanningDisplay::computeMetrics(bool start, const std::string &group,
   if (eef.empty())
     return;
   boost::mutex::scoped_lock slock(update_metrics_lock_);
-  ROS_ERROR("A");
   
   robot_state::RobotStateConstPtr state = start ? getQueryStartState() : getQueryGoalState();
   for (std::size_t i = 0 ; i < eef.size() ; ++i)
     if (eef[i].parent_group == group)
       computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i], *state, payload);
-  ROS_ERROR("B");
 }
 
 void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &ee,
@@ -653,8 +651,7 @@ void MotionPlanningDisplay::drawQueryStartState()
   if (query_start_state_property_->getBool())
   {
     if (isEnabled())
-    { ROS_ERROR("d1");
-      
+    {
       robot_state::RobotStateConstPtr state = getQueryStartState();
       // update link poses
       query_robot_start_->update(state);
@@ -672,7 +669,7 @@ void MotionPlanningDisplay::drawQueryStartState()
           collision_links_start_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
       updateLinkColors();
       // update metrics text
-      displayMetrics(true);ROS_ERROR("d2");
+      displayMetrics(true);
     }
   }
   else
@@ -719,7 +716,7 @@ void MotionPlanningDisplay::drawQueryGoalState()
   if (query_goal_state_property_->getBool())
   {
     if (isEnabled())
-    {ROS_ERROR("d1");
+    {
       robot_state::RobotStateConstPtr state = getQueryGoalState();
       
       // update link poses
@@ -741,7 +738,7 @@ void MotionPlanningDisplay::drawQueryGoalState()
       updateLinkColors();
 
       // update metrics text
-      displayMetrics(false);ROS_ERROR("d2");
+      displayMetrics(false);
     }
   }
   else
