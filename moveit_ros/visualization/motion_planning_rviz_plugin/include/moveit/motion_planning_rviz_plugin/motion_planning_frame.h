@@ -42,9 +42,9 @@
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
+#include <moveit/motion_planning_rviz_plugin/frame_marker.h>
 #endif
 
-#include <moveit/motion_planning_rviz_plugin/frame_marker.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <map>
 #include <string>
