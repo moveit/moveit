@@ -32,7 +32,9 @@
 #ifndef BT_TRAJECTORY
 #define BT_TRAJECTORY
 
+#ifndef Q_MOC_RUN
 #include <frame_marker.h>
+#endif
 
 namespace benchmark_tool
 {

@@ -32,14 +32,17 @@
 #ifndef BT_MAIN_WINDOW_
 #define BT_MAIN_WINDOW_
 
-#include <frame_marker.h>
-#include <trajectory.h>
-#include <job_processing.h>
-
 #include <QtGui/QMainWindow>
 #include <QTimer>
 #include <QSettings>
+
 #include "ui_main_window.h"
+
+#ifndef Q_MOC_RUN
+
+#include <frame_marker.h>
+#include <trajectory.h>
+#include <job_processing.h>
 
 #include <rviz/render_panel.h>
 #include <rviz/visualization_manager.h>
@@ -53,6 +56,8 @@
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 #include <moveit/robot_interaction/robot_interaction.h>
+
+#endif
 
 namespace benchmark_tool
 {
