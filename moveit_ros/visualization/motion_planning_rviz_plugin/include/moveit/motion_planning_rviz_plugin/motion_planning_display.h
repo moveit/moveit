@@ -35,9 +35,9 @@
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
-#include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 
 #ifndef Q_MOC_RUN
+#include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/background_processing.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 
