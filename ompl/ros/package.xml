@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ompl_planners_ros_plugin</name>
-  <version>0.3.5</version>
+  <version>0.3.6</version>
   <description>MoveIt plugin for the OMPL interface</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
