@@ -93,7 +93,8 @@ protected:
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 
     pr2_kinematics_plugin_right_arm_->setRobotModel(urdf_model);
-    pr2_kinematics_plugin_right_arm_->initialize("right_arm",
+    pr2_kinematics_plugin_right_arm_->initialize("",
+                                                 "right_arm",
                                                  "torso_lift_link",
                                                  "r_wrist_roll_link",
                                                  .01);
@@ -101,7 +102,8 @@ protected:
     pr2_kinematics_plugin_left_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 
     pr2_kinematics_plugin_left_arm_->setRobotModel(urdf_model);
-    pr2_kinematics_plugin_left_arm_->initialize("left_arm",
+    pr2_kinematics_plugin_left_arm_->initialize("", 
+                                                "left_arm",
                                                 "torso_lift_link",
                                                 "l_wrist_roll_link",
                                                 .01);
@@ -118,7 +120,7 @@ protected:
     kmodel->setKinematicsAllocators(allocators);
     
     ps.reset(new planning_scene::PlanningScene());
-    ps->configure(urdf_model, srdf_model, kmodel);
+    ps->configure(kmodel);
     
   };
   

@@ -233,7 +233,8 @@ public:
    * @brief  Initialization function for the kinematics
    * @return True if initialization was successful, false otherwise
    */
-  virtual bool initialize(const std::string& group_name,
+  virtual bool initialize(const std::string& robot_description,
+                          const std::string& group_name,
                           const std::string& base_name,
                           const std::string& tip_name,
                           double search_discretization);

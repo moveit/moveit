@@ -106,9 +106,6 @@ struct GradientInfo
 //determines set of collision spheres given a posed body; this is BAD! Allocation erorrs will happen; change this function so it does not return that vector by value
 std::vector<CollisionSphere> determineCollisionSpheres(const bodies::Body* body, Eigen::Affine3d& relativeTransform);
 
-//determines a set of points at the indicated resolution that are inside the supplied body 
-EigenSTL::vector_Vector3d determineCollisionPoints(const bodies::Body* body, double resolution);
-
 //determines a set of gradients of the given collision spheres in the distance field
 bool getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
                                  const std::vector<CollisionSphere>& sphere_list, 

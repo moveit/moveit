@@ -36,6 +36,7 @@
 
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
 #include <geometric_shapes/body_operations.h>
+#include <moveit/distance_field/distance_field_common.h>
 
 std::vector<collision_detection::CollisionSphere> collision_detection::determineCollisionSpheres(const bodies::Body* body, 
                                                                                                            Eigen::Affine3d& relative_transform)
@@ -55,26 +56,6 @@ std::vector<collision_detection::CollisionSphere> collision_detection::determine
   }
   relative_transform = body->getPose().inverse() * cyl.pose;
   return css; 
-}
-
-EigenSTL::vector_Vector3d collision_detection::determineCollisionPoints(const bodies::Body* body, double resolution)
-{
-  EigenSTL::vector_Vector3d ret_vec;
-  bodies::BoundingSphere sphere;
-  body->computeBoundingSphere(sphere);
-  //ROS_INFO_STREAM("Radius is " << sphere.radius);
-  //ROS_INFO_STREAM("Center is " << sphere.center.z() << " " << sphere.center.y() << " " << sphere.center.z());
-  for(double xval = sphere.center.x()-sphere.radius-resolution; xval <= sphere.center.x()+sphere.radius+resolution; xval += resolution) {
-    for(double yval = sphere.center.y()-sphere.radius-resolution; yval <= sphere.center.y()+sphere.radius+resolution; yval += resolution) {
-      for(double zval = sphere.center.z()-sphere.radius-resolution; zval <= sphere.center.z()+sphere.radius+resolution; zval += resolution) {
-        Eigen::Vector3d rel_vec(xval, yval, zval);
-        if(body->containsPoint(rel_vec)) {
-          ret_vec.push_back(rel_vec);
-        }
-      }
-    }
-  }
-  return ret_vec;
 }
 
 bool collision_detection::getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
@@ -185,7 +166,7 @@ collision_detection::BodyDecomposition::BodyDecomposition(const shapes::ShapeCon
   body_->setPose(Eigen::Affine3d::Identity());
   body_->setPadding(padding);
   collision_spheres_ = determineCollisionSpheres(body_, relative_cylinder_pose_);
-  relative_collision_points_ = determineCollisionPoints(body_, resolution);
+  relative_collision_points_ = distance_field::determineCollisionPoints(body_, resolution);
   sphere_radii_.resize(collision_spheres_.size());
   for(unsigned int i = 0; i < collision_spheres_.size(); i++) {
     sphere_radii_[i] = collision_spheres_[i].radius_;
