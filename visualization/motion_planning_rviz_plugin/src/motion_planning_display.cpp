@@ -113,9 +113,6 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   planning_group_property_ = new rviz::EditableEnumProperty("Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
                                                             plan_category_,
                                                             SLOT( changedPlanningGroup() ), this );
-  cartesian_teleop_property_ = new rviz::BoolProperty( "Cartesian teleop", false, "Sets cartesian teleoperation interaction mode",
-                                                            plan_category_,
-                                                            SLOT( changedCartesianTeleopState() ), this);
   show_workspace_property_ = new rviz::BoolProperty( "Show Workspace", false, "Shows the axis-aligned bounding box for the workspace allowed for planning",
                                                      plan_category_,
                                                      SLOT( changedWorkspace() ), this );
@@ -922,20 +919,6 @@ void MotionPlanningDisplay::changedPlanningGroup()
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
 }
 
-void MotionPlanningDisplay::changedCartesianTeleopState()
-{
-  if (cartesian_teleop_property_->getBool())
-  {
-    query_start_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::VELOCITY_IK);
-    query_goal_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::VELOCITY_IK);
-  }
-  else
-  {
-    query_start_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::POSITION_IK);
-    query_goal_state_->setInteractionMode(robot_interaction::RobotInteraction::InteractionHandler::POSITION_IK);
-  }
-}
-
 void MotionPlanningDisplay::changedWorkspace()
 {
   renderWorkspaceBox();
@@ -1229,7 +1212,6 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
 {
   int_marker_display_->update(wall_dt, ros_dt);
   frame_->updateSceneMarkers(wall_dt, ros_dt);
-  frame_->updateGoalPoseMarkers(wall_dt, ros_dt);
 
   Display::update(wall_dt, ros_dt);
   

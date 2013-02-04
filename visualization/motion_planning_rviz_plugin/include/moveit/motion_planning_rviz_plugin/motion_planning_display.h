@@ -157,7 +157,6 @@ private Q_SLOTS:
   void changedShowManipulability();
   void changedShowJointTorques();
   void changedMetricsSetPayload();
-  void changedCartesianTeleopState();
   void changedWorkspace();
   
 protected:
@@ -259,7 +258,6 @@ protected:
   rviz::Property* metrics_category_;
   
   rviz::EditableEnumProperty* planning_group_property_;
-  rviz::BoolProperty* cartesian_teleop_property_;
   rviz::BoolProperty* query_start_state_property_;
   rviz::BoolProperty* query_goal_state_property_;
   rviz::FloatProperty* query_marker_scale_property_;
