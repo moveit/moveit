@@ -43,106 +43,293 @@
 #include <list>
 #include <Eigen/Core>
 #include <set>
+#include <octomap/octomap.h>
 
 namespace distance_field
 {
 
-// less-than Comparison
-bool lessThan(int3 loc_1, int3 loc_2);
-
-int equal(int3 loc_1, int3 loc_2);
-
-// Class
-struct compareInt3
+/**
+ * \brief Struct for sorting type Eigen::Vector3i for use in sorted
+ * std containers.  Sorts in z order, then y order, then x order.  
+ */
+struct compareEigen_Vector3i
 {
-  bool operator()(int3 loc_1, int3 loc_2) const
+  bool operator()(Eigen::Vector3i loc_1, Eigen::Vector3i loc_2) const
   {
-    return lessThan(loc_1,loc_2);
+    if( loc_1.z() != loc_2.z() )
+      return ( loc_1.z() < loc_2.z() );
+    else if( loc_1.y() != loc_2.y() )
+      return ( loc_1.y() < loc_2.y() );
+    else if( loc_1.x() != loc_2.x() )
+      return ( loc_1.x() < loc_2.x() );
+    return false;
   }
 };
 
-
 /**
- * \brief Structure that holds voxel information for the DistanceField.
+ * \brief Structure that holds voxel information for the
+ * DistanceField.  Will be used in VoxelGrid.
  */
 struct PropDistanceFieldVoxel
 {
+
+  /** 
+   * \brief Constructor.  All fields left uninitialized.
+   * 
+   * 
+   */
   PropDistanceFieldVoxel();
-  PropDistanceFieldVoxel(int distance_sq);
 
-  int distance_square_;         /**< Squared distance from the closest obstacle */
-  int3 closest_point_;	        /**< Closes obstacle from this voxel */
-  int update_direction_;        /**< Direction from which this voxel was updated */
+  /** 
+   * \brief Constructor.  Sets values for distance_sq_ and
+   * negative_distance_square_, and sets all remaining internal values
+   * to uninitialized.  These should be integers values which
+   * represent the distance in cells squared.
+   * 
+   * @param [in] distance_sq_positive Value to which to initialize
+   * distance_sq_ for distance to closest obstalce
+   * 
+   * @param [in] distance_sq_negative Value to which to initialize
+   * distance_sq_negative_ for distance to nearest non-obstacle cell
+   * 
+   */
+  PropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative);
 
-  static const int UNINITIALIZED=-1;
-};
+  int distance_square_;         /**< \brief Distance in cells to the closest obstacle, squared */
+  int negative_distance_square_; /**< \brief Distance in cells to the nearest unoccupied cell, squared */
+  Eigen::Vector3i closest_point_; /**< \brief Closest occupied cell */
+  Eigen::Vector3i closest_negative_point_; /**< \brief Closest unoccupied cell */
+  int update_direction_;        /**< \brief Direction from which this voxel was updated for occupied distance propagation */
+  int negative_update_direction_;        /**< \brief Direction from which this voxel was updated  for negative distance propagation*/
 
-struct SignedPropDistanceFieldVoxel : public PropDistanceFieldVoxel
-{
-    SignedPropDistanceFieldVoxel();
-    SignedPropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative);
-    int positive_distance_square_;
-    int negative_distance_square_;
-    int3 closest_positive_point_;
-    int3 closest_negative_point_;
-
-    static const int UNINITIALIZED=-999;
+  static const int UNINITIALIZED=-1; /**< \brief Value that represents an unitialized voxel */
 };
 
 /**
- * \brief A DistanceField implementation that uses a vector propagation method.
- *
- * It computes the distance transform of the input points, and stores the distance to
- * the closest obstacle in each voxel. Also available is the location of the closest point,
- * and the gradient of the field at a point. Expansion of obstacles is performed upto a given
- * radius.
+ * \brief A DistanceField implementation that uses a vector
+ * propagation method.  Distances propagate outward from occupied
+ * cells, or inwards from unoccupied cells if negative distances are
+ * to be computed, which is optional.  Outward and inward propagation
+ * only occur to a desired maximum distance - cells that are more than
+ * this maximum distance from the nearest cell will have maximum
+ * distance measurements. 
+ * 
+ * This class uses a \ref VoxelGrid to hold all data.  One important
+ * decision that must be made on construction is whether or not to
+ * create a signed version of the distance field.  If the distance
+ * field is unsigned, it means that the minumum obstacle distance is
+ * 0, a value that will be assigned to all obstacle cells.  Gradient
+ * queries for obstacle cells will not give useful information, as the
+ * gradient at an obstacle cell will point to the cell itself.  If
+ * this behavior is acceptable, then the performance of this mode will
+ * be more efficient, as no propagation will occur for obstacle cells.
+ * The other option is to calculate signed distances.  In this case,
+ * negative distances up to the maximum distance are calculated for
+ * obstacle volumes.  This distance encodes the distance of an
+ * obstacle cell to the nearest unoccupied obstacle voxel.  Furthmore,
+ * gradients pointing out of the volume will be produced.  Depending
+ * on the data, calculating this data can significantly impact the
+ * time it takes to add and remove obstacle cells.
  */
 class PropagationDistanceField: public DistanceField
 {
 public:
 
 
-  /**
-   * \brief Constructor for the DistanceField.
-   */
-  PropagationDistanceField(double size_x, double size_y, double size_z, double resolution,
-                           double origin_x, double origin_y, double origin_z, double max_distance);
-  
-  virtual ~PropagationDistanceField();
-  
-  /**
-   * \brief Change the set of obstacle points and recalculate the distance field (if there are any changes).
-   * \param iterative Calculate the changes in the object voxels, and propogate the changes outward.
-   *        Otherwise, clear the distance map and recalculate the entire voxel map.
-   */
-  virtual void updatePointsInField(const EigenSTL::vector_Vector3d& points, const bool iterative=true);
+  /** 
+   * \brief Constructor that initializes entire distance field to
+   * empty - all cells will be assigned maximum distance values.  All
+   * units are arbitrary but are assumed for documentation purposes to
+   * represent meters.
+   * 
+   * @param [in] size_x The X dimension in meters of the volume to represent
+   * @param [in] size_y The Y dimension in meters of the volume to represent
+   * @param [in] size_z The Z dimension in meters of the volume to represent
+   * @param [in] resolution The resolution in meters of the volume
+   * @param [in] origin_x The minimum X point of the volume
+   * @param [in] origin_y The minimum Y point of the volume
+   * @param [in] origin_z The minimum Z point of the volume
 
+   * @param [in] max_distance The maximum distance to which to
+   * propagate distance values.  Cells that are greater than this
+   * distance will be assigned the maximum distance value.
+   *
+   * @param [in] propagate_negative_distances Whether or not to
+   * propagate negative distances.  If false, no propagation occurs,
+   * and all obstacle cells will be assigned zero distance.  See the
+   * \ref PropagationDistanceField description for more information on
+   * the implications of this.
+   * 
+   */
+  PropagationDistanceField(double size_x, 
+                           double size_y, 
+                           double size_z, 
+                           double resolution,
+                           double origin_x, double origin_y, double origin_z, 
+                           double max_distance,
+                           bool propagate_negative_distances=false);
+
+  /** 
+   * \brief Constructor based on an OcTree and bounding box
+   * information.  A distance field will be constructed with
+   * dimensions based on the supplied bounding box at the resolution
+   * of the OcTree.  All octree obstacle cells will be added to the
+   * resulting distance field using the \ref DistanceField::addOcTreeToField 
+   * function.
+   * 
+   * @param [in] octree The OcTree from which to construct the distance field
+   * @param [in] bbx_min The minimum world coordinates of the bounding box
+   * @param [in] bbx_max The maximum world coordinates of the bounding box
+   * 
+   * @param [in] max_distance The maximum distance to which to
+   * propagate distance values.  Cells that are greater than this
+   * distance will be assigned the maximum distance value.
+   *
+   * @param [in] propagate_negative_distances Whether or not to
+   * propagate negative distances.  If false, no propagation occurs,
+   * and all obstacle cells will be assigned zero distance.  See the
+   * \ref PropagationDistanceField description for more information on
+   * the implications of this.
+   */
+  PropagationDistanceField(const octomap::OcTree& octree,
+                           const octomap::point3d& bbx_min,
+                           const octomap::point3d& bbx_max,
+                           double max_distance,
+                           bool propagate_negative_distances=false);
+
+  /** 
+   * \brief Constructor that takes an istream and reads the contents
+   * of a saved distance field, adding all obstacle points and running
+   * propagation given the arguments for max_distance and
+   * propagate_negative_distances. Calls the function 
+   * \ref readFromStream.
+   * 
+   * @param [in] stream The stream from which to read the data
+   *
+   * @param [in] max_distance The maximum distance to which to
+   * propagate distance values.  Cells that are greater than this
+   * distance will be assigned the maximum distance value.
+   *
+   * @param [in] propagate_negative_distances Whether or not to
+   * propagate negative distances.  If false, no propagation occurs,
+   * and all obstacle cells will be assigned zero distance.  See the
+   * \ref PropagationDistanceField description for more information on
+   * the implications of this.
+   * 
+   * @return 
+   */
+  PropagationDistanceField(std::istream& stream,
+                           double max_distance,
+                           bool propagate_negative_distances=false);
+  /** 
+   * \brief Empty destructor
+   * 
+   * 
+   */  
+  virtual ~PropagationDistanceField(){}
+  
   /**
-   * \brief Add (and expand) a set of points to the distance field.
+   * \brief Add a set of obstacle points to the distance field,
+   * updating distance values accordingly.  The distance field may
+   * already contain obstacle cells.
+   *
+   * The function first checks that each location represents a valid
+   * point - only valid points will be added.  It takes the vector of
+   * valid points and performs positive propagation on them.  If the
+   * class has been set up to propagate negative distance, those will
+   * also be propagated.
+   * 
+   * @param [in] points The set of obstacle points to add
    */
   virtual void addPointsToField(const EigenSTL::vector_Vector3d& points);
 
-  /**
-   * \brief Incrementally remove the set of points in the distance field.
+  /** 
+   * \brief Remove a set of obstacle points from the distance field,
+   * updating distance values accordingly.
+   * 
+   * This function is relatively less efficient than adding points to
+   * the field in terms of positive distances - adding a given number
+   * of points will be less comptationally expensive than removing the
+   * same number of points.  This is due to the nature of the
+   * propagation algorithm - when removing sets of cells, we must
+   * search outward from the freed cells and then propagate inward.
+   * Negative distances can be propagated more efficiently, as
+   * propagation can occur outward from newly freed cells without
+   * requiring a search step.  If the set of occupied points that
+   * remain after removal is small it may be more efficient to call
+   * \ref reset and then to add the remaining points rather than
+   * removing a set of points.
+   * 
+   * @param [in] points The set of obstacle points that will be set as free
    */
   virtual void removePointsFromField(const EigenSTL::vector_Vector3d& points);
 
-  /**
-   * \brief Resets the distance field to the max_distance.
+  /** 
+   * \brief This function will remove any obstacle points that are in
+   * the old point set but not the new point set, and add any obstacle
+   * points that are in the new block set but not the old block set.
+   * Any points that are in both sets are left unchanged.  For more
+   * information see \ref DistanceField::updatePointsInField.
+   *
+   * The implementation of this function finds the set of points that
+   * are in the old_points and not the new_points, and the in the
+   * new_points and not the old_points using std::set_difference.  It
+   * then calls a removal function on the former set, and an addition
+   * function on the latter set.
+   *
+   * If there is no overlap between the old_points and the new_points
+   * it is more efficient to first call \ref removePointsFromField on
+   * the old_points and then \ref addPointsToField on the new points -
+   * this does not require computing set differences.
+   *
+   * @param [in] old_points The set of points that all should be obstacle cells in the distance field
+   * @param [in] new_points The set of points, all of which are intended to be obstacle points in the distance field
+   *
+   */
+  virtual void updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
+                                   const EigenSTL::vector_Vector3d& new_points);
+
+  /** 
+   * \brief Resets the entire distance field to max_distance for
+   * positive values and zero for negative values.
+   * 
    */
   virtual void reset();
 
-  /**
-   * \brief Gets the distance to the closest obstacle at the given location.
+  /** 
+   * \brief Get the distance value associated with the cell indicated
+   * by the world coordinate.  If the cell is invalid, max_distance
+   * will be returned.  If running without negative distances, all
+   * obstacle cells will have zero distance.  If running with negative
+   * distances, the distance will be between -max_distance and
+   * max_distance, with no values having a 0 distance.
+   * 
+   * 
+   * @param [in] x The X location of the cell 
+   * @param [in] y The X location of the cell 
+   * @param [in] z The X location of the cell 
+   * 
+   * @return The distance value
    */
   virtual double getDistance(double x, double y, double z) const;
 
-  /**
-   * \brief Gets the distance to the closest obstacle at the given integer cell location.
+  /** 
+   * \brief Get the distance value associated with the cell indicated
+   * by the index coordinates.  If the cell is invalid, max_distance
+   * will be returned.  If running without negative distances, all
+   * obstacle cells will have zero distance.  If running with negative
+   * distances, the distance will be between -max_distance and
+   * max_distance, with no values having a 0 distance.
+   * 
+   * 
+   * @param [in] x The integer X location
+   * @param [in] y The integer Y location
+   * @param [in] z The integer Z location
+   * 
+   * @return The distance value for the cell
    */
-  virtual double getDistanceFromCell(int x, int y, int z) const;
+  virtual double getDistance(int x, int y, int z) const;
 
-  //pass-throughs to voxel grid
   virtual bool isCellValid(int x, int y, int z) const;
   virtual int getXNumCells() const;
   virtual int getYNumCells() const;
@@ -150,55 +337,223 @@ public:
   virtual bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
   virtual bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
 
+  /** 
+   * \brief Writes the contents of the distance field to the supplied stream.
+   *
+   * This function writes the resolution, size, and origin parameters
+   * to the file in ASCII.  It then writes the occupancy data only in
+   * bit form (with values or 1 representing occupancy, and 0
+   * representing empty space).  It further runs Zlib compression on
+   * the binary data before actually writing to disk.  The
+   * max_distance and propagate_negative_distances values are not
+   * written to file, and the distances themselves will need to be
+   * recreated on load.
+   * 
+   * @param [out] stream The stream to which to write the distance field contents.
+   * 
+   * @return True 
+   */
+  virtual bool writeToStream(std::ostream& stream) const;
+
+  /** 
+   * \brief Reads, parameterizes, and populates the distance field
+   * based on the supplied stream.
+   *
+   * This function assumes that the file begins with ASCII data, and
+   * that the binary data has been written in bit formulation and
+   * compressed using Zlib.  The function will reinitialize all data
+   * members based on the data in the file, using preset values for
+   * max_distance_ and propagate_negative_distances_.  All occupied
+   * cells will be added to the distance field.
+   * 
+   * @param [in] stream The stream from which to read
+   * 
+   * @return True if reading, parameterizing, and populating the
+   * distance field is successful; otherwise False.
+   */
+  virtual bool readFromStream(std::istream& stream);
+
+  //passthrough docs to DistanceField
+  virtual double getUninitializedDistance() const 
+  {
+    return max_distance_;
+  }
+  
+  /** 
+   * \brief Gets full cell data given an indexes. 
+   *
+   * 
+   * @param [in] x The integer X location
+   * @param [in] y The integer Y location
+   * @param [in] z The integer Z location
+   * 
+   * @return The data in the indicated cell or an unitialized
+   * voxel if the indexes are not valid.
+   */
   const PropDistanceFieldVoxel& getCell(int x, int y, int z) const {
-    return voxel_grid_.getCell(x, y, z);
+    return voxel_grid_->getCell(x, y, z);
+  }
+
+  /** 
+   * \brief Gets the maximum distance squared value.
+   * 
+   * Produced by taking the ceiling of the maximum distance divided by
+   * the resolution, and then squaring that value.
+   * 
+   * @return The maximum distance squared.
+   */
+  int getMaximumDistanceSquared() const 
+  {
+    return max_distance_sq_;
   }
 
 private:
 
-  VoxelGrid<PropDistanceFieldVoxel> voxel_grid_;
+  typedef std::set<Eigen::Vector3i, compareEigen_Vector3i> VoxelSet; /**< \brief Typedef for set of integer indices */
+  
+  /** 
+   * \brief Initializes the field, resetting the voxel grid and
+   * building a sqrt lookup table for efficiency based on
+   * max_distance_.
+   * 
+   */
+  void initialize();
 
-  /// \brief The set of all the obstacle voxels
-  typedef std::set<int3, compareInt3> VoxelSet;
-  VoxelSet object_voxel_locations_;
+  /** 
+   * \brief Adds a valid set of integer points to the voxel grid
+   * 
+   * @param voxel_points Valid set of voxel points for addition
+   */
+  void addNewObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points);
 
-  /// \brief Structure used to hold propogation frontier
-  std::vector<std::vector<int3> > bucket_queue_;
-  double max_distance_;
-  int max_distance_sq_;
+  /** 
+   * \brief Removes a valid set of integer points from the voxel grid
+   * 
+   * @param voxel_points Valid set of voxel points for removal
+   */
+  void removeObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points);
 
-  std::vector<double> sqrt_table_;
+  /** 
+   * \brief Propagates outward to the maximum distance given the
+   * contents of the \ref bucket_queue_, and clears the \ref
+   * bucket_queue_.
+   * 
+   */
+  void propagatePositive();
 
-  // neighborhoods:
-  // [0] - for expansion of d=0
-  // [1] - for expansion of d>=1
-  // Under this, we have the 27 directions
-  // Then, a list of neighborhoods for each direction
-  std::vector<std::vector<std::vector<int3 > > > neighborhoods_;
+  /** 
+   * \brief Propagates inward to a maximum distance given the contents
+   * of the \ref negative_bucket_queue_, and clears the \ref
+   * negative_bucket_queue_.
+   * 
+   */
+  void propagateNegative();
 
-  std::vector<int3 > direction_number_to_direction_;
-
-  void addNewObstacleVoxels(const VoxelSet& points);
-  void removeObstacleVoxels(const VoxelSet& points);
-  // starting with the voxels on the queue, propogate values to neighbors up to a certain distance.
-  void propogate();
+  /** 
+   * \brief Determines distance based on actual voxel data
+   * 
+   * @param object Actual voxel data
+   * 
+   * @return The distance reported by the cell
+   */
   virtual double getDistance(const PropDistanceFieldVoxel& object) const;
+
+  /** 
+   * \brief Helper function to get a single number in a 27 connected
+   * 3D voxel grid given dx, dy, and dz values.
+   * 
+   * @param dx The change in the X direction
+   * @param dy The change in the X direction
+   * @param dz The change in the Z direction
+   * 
+   * @return Single number 0-26 representing direction
+   */
   int getDirectionNumber(int dx, int dy, int dz) const;
-  int3 getLocationDifference(int directionNumber) const;	// TODO- separate out neighborhoods
+
+  /** 
+   * \brief Helper function that gets change values given single
+   * number representing update direction.
+   * 
+   * @param directionNumber Direction number 0-26
+   * 
+   * @return Integer changes
+   */
+  Eigen::Vector3i getLocationDifference(int directionNumber) const;
+
+  /** 
+   * \brief Helper function for computing location and neighborhood
+   * information in 27 connected voxel grid.
+   * 
+   */
   void initNeighborhoods();
-  static int eucDistSq(int3 point1, int3 point2);
+
+  /** 
+   * \brief Debug function that prints all voxels in a set to logDebug
+   * 
+   * @param set Voxel set to print
+   */
   void print(const VoxelSet & set);
+
+  /** 
+   * \brief Debug function that prints all points in a vector to logDebug
+   * 
+   * @param points Points to print
+   */
   void print(const EigenSTL::vector_Vector3d& points);
+
+  /** 
+   * \brief Computes squared distance between two 3D integer points
+   * 
+   * @param point1 Point 1 for distance
+   * @param point2 Point 2 for distance
+   * 
+   * @return Distance between points squared
+   */
+  static int eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i point2);
+
+  bool propagate_negative_;     /**< \brief Whether or not to propagate negative distances */
+
+  boost::shared_ptr<VoxelGrid<PropDistanceFieldVoxel> > voxel_grid_; /**< \brief Actual container for distance data */
+
+  /// \brief Structure used to hold propagation frontier
+  std::vector<std::vector<Eigen::Vector3i> > bucket_queue_; /**< \brief Data member that holds points from which to propagate, where each vector holds points that are a particular integer distance from the closest obstacle points*/
+
+  std::vector<std::vector<Eigen::Vector3i> > negative_bucket_queue_;/**< \brief Data member that holds points from which to propagate in the negative, where each vector holds points that are a particular integer distance from the closest unoccupied points*/
+
+  double max_distance_;         /**< \brief Holds maximum distance  */
+  int max_distance_sq_;         /**< \brief Holds maximum distance squared in cells */
+
+  std::vector<double> sqrt_table_; /**< \brief Precomputed square root table for faster distance lookups */
+
+  /**
+   * \brief Holds information on neighbor direction, with 27 different
+   * directions.  Shows where to propagate given an integer distance
+   * and an update direction.
+   *
+   * [0] - for expansion of d=0
+   * [1] - for expansion of d>=1
+   * Under this, we have the 27 directions
+   * Then, a list of neighborhoods for each direction
+   * 
+   */
+
+  std::vector<std::vector<std::vector<Eigen::Vector3i > > > neighborhoods_;
+
+  std::vector<Eigen::Vector3i > direction_number_to_direction_; /**< \brief Holds conversion from direction number to integer changes */
 };
 
 ////////////////////////// inline functions follow ////////////////////////////////////////
 
-inline PropDistanceFieldVoxel::PropDistanceFieldVoxel(int distance_sq):
-  distance_square_(distance_sq)
+inline PropDistanceFieldVoxel::PropDistanceFieldVoxel(int distance_square, int negative_distance_squared):
+  distance_square_(distance_square),
+  negative_distance_square_(negative_distance_squared)
 {
   closest_point_.x() = PropDistanceFieldVoxel::UNINITIALIZED;
   closest_point_.y() = PropDistanceFieldVoxel::UNINITIALIZED;
   closest_point_.z() = PropDistanceFieldVoxel::UNINITIALIZED;
+  closest_negative_point_.x() = PropDistanceFieldVoxel::UNINITIALIZED;
+  closest_negative_point_.y() = PropDistanceFieldVoxel::UNINITIALIZED;
+  closest_negative_point_.z() = PropDistanceFieldVoxel::UNINITIALIZED;
 }
 
 inline PropDistanceFieldVoxel::PropDistanceFieldVoxel()
@@ -207,91 +562,7 @@ inline PropDistanceFieldVoxel::PropDistanceFieldVoxel()
 
 inline double PropagationDistanceField::getDistance(const PropDistanceFieldVoxel& object) const
 {
-  return sqrt_table_[object.distance_square_];
-}
-
-
-class SignedPropagationDistanceField : public DistanceField
-{
-  public:
-  
-  SignedPropagationDistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
-                                 double origin_y, double origin_z, double max_distance);
-  virtual ~SignedPropagationDistanceField();
-  
-  virtual void addPointsToField(const EigenSTL::vector_Vector3d &points);
-
-  virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)
-  {
-    reset();
-  }
-  
-  virtual void reset();
-
-  /**
-   * \brief Gets the distance to the closest obstacle at the given location.
-   */
-  virtual double getDistance(double x, double y, double z) const;
-
-  /**
-   * \brief Gets the distance to the closest obstacle at the given integer cell location.
-   */
-  virtual double getDistanceFromCell(int x, int y, int z) const;
-
-  //pass-throughs to voxel grid
-  virtual bool isCellValid(int x, int y, int z) const;
-  virtual int getXNumCells() const;
-  virtual int getYNumCells() const;
-  virtual int getZNumCells() const;
-  virtual bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
-  virtual bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
-
-private:
-
-  VoxelGrid<SignedPropDistanceFieldVoxel> voxel_grid_;
-
-  std::vector<std::vector<int3> > positive_bucket_queue_;
-  std::vector<std::vector<int3> > negative_bucket_queue_;
-  double max_distance_;
-  int max_distance_sq_;
-  
-  std::vector<double> sqrt_table_;
-  
-  // [0] - for expansion of d=0
-  // [1] - for expansion of d>=1
-  // Under this, we have the 27 directions
-  // Then, a list of neighborhoods for each direction
-  std::vector<std::vector<std::vector<int3 > > > neighborhoods_;
-  
-  std::vector<int3 > direction_number_to_direction_;
-  
-  virtual double getDistance(const SignedPropDistanceFieldVoxel& object) const;
-  int getDirectionNumber(int dx, int dy, int dz) const;
-  void initNeighborhoods();
-  static int eucDistSq(int3 point1, int3 point2);
-};
-
-
-
-inline SignedPropDistanceFieldVoxel::SignedPropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative):
-  positive_distance_square_(distance_sq_positive),
-  negative_distance_square_(distance_sq_negative),
-  closest_positive_point_(SignedPropDistanceFieldVoxel::UNINITIALIZED),
-  closest_negative_point_(SignedPropDistanceFieldVoxel::UNINITIALIZED)
-{
-}
-
-inline SignedPropDistanceFieldVoxel::SignedPropDistanceFieldVoxel()
-{
-}
-
-inline double SignedPropagationDistanceField::getDistance(const SignedPropDistanceFieldVoxel& object) const
-{
-  if(object.negative_distance_square_ != 0)
-  {
-    //ROS_INFO("Positive Distance %d, Negative Distance %d",object.positive_distance_square_,object.negative_distance_square_ );
-  }
-  return sqrt_table_[object.positive_distance_square_] - sqrt_table_[object.negative_distance_square_];
+  return sqrt_table_[object.distance_square_]-sqrt_table_[object.negative_distance_square_];
 }
 
 }

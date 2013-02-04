@@ -37,54 +37,76 @@
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <visualization_msgs/Marker.h>
 #include <console_bridge/console.h>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/copy.hpp>
+#include <boost/iostreams/filter/zlib.hpp>
 
 namespace distance_field
 {
 
-bool lessThan(int3 loc_1, int3 loc_2)
+PropagationDistanceField::PropagationDistanceField(double size_x, double size_y, double size_z, 
+                                                   double resolution,
+                                                   double origin_x, double origin_y, double origin_z, 
+                                                   double max_distance,
+                                                   bool propagate_negative):
+  DistanceField(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z),
+  propagate_negative_(propagate_negative),
+  max_distance_(max_distance)
 {
-  if( loc_1.z() != loc_2.z() )
-    return ( loc_1.z() < loc_2.z() );
-  else if( loc_1.y() != loc_2.y() )
-    return ( loc_1.y() < loc_2.y() );
-  else if( loc_1.x() != loc_2.x() )
-    return ( loc_1.x() < loc_2.x() );
-  return false;
+  initialize();
 }
 
-int equal(int3 loc_1, int3 loc_2)
+PropagationDistanceField::PropagationDistanceField(const octomap::OcTree& octree,
+                                                   const octomap::point3d& bbx_min,
+                                                   const octomap::point3d& bbx_max,
+                                                   double max_distance,
+                                                   bool propagate_negative_distances) :
+  DistanceField(bbx_max.x()-bbx_min.x(), 
+                bbx_max.y()-bbx_min.y(),
+                bbx_max.z()-bbx_min.z(),
+                octree.getResolution(),
+                bbx_min.x(),
+                bbx_min.y(),
+                bbx_min.z()),
+  propagate_negative_(propagate_negative_distances),
+  max_distance_(max_distance)
 {
-  return(
-      loc_1.z() == loc_2.z() &&
-      loc_1.y() == loc_2.y() &&
-      loc_1.x() == loc_2.x() );
+  initialize();
+  addOcTreeToField(&octree);
 }
 
-PropagationDistanceField::PropagationDistanceField(double size_x, double size_y, double size_z, double resolution,
-                                                   double origin_x, double origin_y, double origin_z, double max_distance):
-  DistanceField(resolution),
-  voxel_grid_(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z, PropDistanceFieldVoxel(max_distance))
+PropagationDistanceField::PropagationDistanceField(std::istream& is,
+                                                   double max_distance,
+                                                   bool propagate_negative_distances) :
+  DistanceField(0,0,0,0,0,0,0),
+  propagate_negative_(propagate_negative_distances),
+  max_distance_(max_distance)
 {
-  max_distance_ = max_distance;
-  int max_dist_int = ceil(max_distance_/resolution);
-  max_distance_sq_ = (max_dist_int*max_dist_int);
+  readFromStream(is);
+}
+
+void PropagationDistanceField::initialize()
+{
+  max_distance_sq_ = ceil(max_distance_/resolution_)*ceil(max_distance_/resolution_);
+  voxel_grid_.reset(new VoxelGrid<PropDistanceFieldVoxel>(size_x_, size_y_, size_z_, 
+                                                          resolution_, 
+                                                          origin_x_, origin_y_, origin_z_, 
+                                                          PropDistanceFieldVoxel(max_distance_sq_,0)));
+
   initNeighborhoods();
   
   bucket_queue_.resize(max_distance_sq_+1);
+  negative_bucket_queue_.resize(max_distance_sq_+1);
   
   // create a sqrt table:
   sqrt_table_.resize(max_distance_sq_+1);
   for (int i=0; i<=max_distance_sq_; ++i)
-    sqrt_table_[i] = sqrt(double(i))*resolution;
+    sqrt_table_[i] = sqrt(double(i))*resolution_;
 
   reset();
 }
 
-PropagationDistanceField::~PropagationDistanceField()
-{
-}
-
-int PropagationDistanceField::eucDistSq(int3 point1, int3 point2)
+int PropagationDistanceField::eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i point2)
 {
   int dx = point1.x() - point2.x();
   int dy = point1.y() - point2.y();
@@ -98,7 +120,7 @@ void PropagationDistanceField::print(const VoxelSet & set)
   VoxelSet::const_iterator it;
   for( it=set.begin(); it!=set.end(); ++it)
   {
-    int3 loc1 = *it;
+    Eigen::Vector3i loc1 = *it;
     logDebug( "%d, %d, %d ", loc1.x(), loc1.y(), loc1.z() );
   }
   logDebug( "] size=%u\n", (unsigned int)set.size());
@@ -117,204 +139,238 @@ void PropagationDistanceField::print(const EigenSTL::vector_Vector3d& points)
 }
 
 
-void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector3d& points, bool iterative)
+void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
+                                                   const EigenSTL::vector_Vector3d& new_points)
 {
-  VoxelSet points_added;
-  VoxelSet points_removed(object_voxel_locations_);
-
-  logDebug( "obstacle_voxel_locations_=" );
-  print(object_voxel_locations_);
-  logDebug( "points=" );
-  print(points);
-
-  if( iterative )
-  {
-
-    // Compare and figure out what points are new,
-    // and what points are to be deleted
-    for( unsigned int i=0; i<points.size(); i++)
+  VoxelSet old_point_set;
+  for(unsigned int i = 0; i < old_points.size(); i++) {
+    Eigen::Vector3i voxel_loc;
+    bool valid = worldToGrid(old_points[i].x(), old_points[i].y(), old_points[i].z(),
+                             voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+    if( valid )
     {
-      // Convert to voxel coordinates
-      int3 voxel_loc;
-      bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
-                                voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
-      if( valid )
-      {
-        logDebug( " checking for %d, %d, %d\n", voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
-        bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
-        if( !already_obstacle_voxel )
-        {
-          logDebug( " didn't find it" );
-          // Not already in set of existing obstacles, so add to voxel list
-          object_voxel_locations_.insert(voxel_loc);
-
-          // Add point to the set for expansion
-          points_added.insert(voxel_loc);
-        }
-        else
-        {
-          logDebug( " found it" );
-          // Already an existing obstacle, so take off removal list
-          points_removed.erase(voxel_loc);
-        }
-      }
+      old_point_set.insert(voxel_loc);
     }
-
-    removeObstacleVoxels( points_removed );
-    addNewObstacleVoxels( points_added );
   }
 
-  else	// !iterative
-  {
-    reset();
-
-    for( unsigned int i=0; i<points.size(); i++)
+  VoxelSet new_point_set;
+  for(unsigned int i = 0; i < new_points.size(); i++) {
+    Eigen::Vector3i voxel_loc;
+    bool valid = worldToGrid(new_points[i].x(), new_points[i].y(), new_points[i].z(),
+                             voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+    if( valid )
     {
-      // Convert to voxel coordinates
-      int3 voxel_loc;
-      bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
-                                voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
-      if( valid )
-      {
-        object_voxel_locations_.insert(voxel_loc);
-        points_added.insert(voxel_loc);
-      }
+      new_point_set.insert(voxel_loc);
     }
-    addNewObstacleVoxels( points_added );
+  }
+  compareEigen_Vector3i comp;
+
+  std::vector<Eigen::Vector3i> old_not_new;
+  std::set_difference(old_point_set.begin(), old_point_set.end(), 
+                      new_point_set.begin(), new_point_set.end(), 
+                      std::inserter(old_not_new, old_not_new.end()), 
+                      comp);
+  
+  std::vector<Eigen::Vector3i> new_not_old;
+  std::set_difference(new_point_set.begin(), new_point_set.end(), 
+                      old_point_set.begin(), old_point_set.end(), 
+                      std::inserter(new_not_old, new_not_old.end()), 
+                      comp);
+
+  std::vector<Eigen::Vector3i> new_not_in_current;
+  for(unsigned int i = 0; i < new_not_old.size(); i++) {
+    if(voxel_grid_->getCell(new_not_old[i].x(),new_not_old[i].y(),new_not_old[i].z()).distance_square_ != 0) {
+      new_not_in_current.push_back(new_not_old[i]);
+    }
+    //logInform("Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
   }
 
-  logDebug( "new=" );
-  print(points_added);
-  logDebug( "removed=" );
-  print(points_removed);
-  logDebug( "obstacle_voxel_locations_=" );
-  print(object_voxel_locations_);
-  logDebug("");  
+  removeObstacleVoxels(old_not_new);
+  addNewObstacleVoxels(new_not_in_current);
+
+  // logDebug( "new=" );
+  // print(points_added);
+  // logDebug( "removed=" );
+  // print(points_removed);
+  // logDebug( "obstacle_voxel_locations_=" );
+  // print(object_voxel_locations_);
+  // logDebug("");  
 }
 
 void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
 {
-  VoxelSet voxel_locs;
+  std::vector<Eigen::Vector3i> voxel_points;
 
   for( unsigned int i=0; i<points.size(); i++)
   {
     // Convert to voxel coordinates
-    int3 voxel_loc;
+    Eigen::Vector3i voxel_loc;
     bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
-                              voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+                             voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
 
     if( valid )
     {
-      bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
-      if( !already_obstacle_voxel )
-      {
-        // Not already in set of existing obstacles, so add to voxel list
-        object_voxel_locations_.insert(voxel_loc);
-
-        // Add point to the queue for expansion
-        voxel_locs.insert(voxel_loc);
+      if(voxel_grid_->getCell(voxel_loc.x(),voxel_loc.y(),voxel_loc.z()).distance_square_ > 0) {
+        voxel_points.push_back(voxel_loc);
       }
     }
   }
-
-  addNewObstacleVoxels( voxel_locs );
+  addNewObstacleVoxels(voxel_points);
 }
 
 void PropagationDistanceField::removePointsFromField(const EigenSTL::vector_Vector3d& points)
 {
-  VoxelSet voxel_locs;
+  std::vector<Eigen::Vector3i> voxel_points;
+  //VoxelSet voxel_locs;
 
   for( unsigned int i=0; i<points.size(); i++)
   {
     // Convert to voxel coordinates
-    int3 voxel_loc;
+    Eigen::Vector3i voxel_loc;
     bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
-                              voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+                             voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
 
     if( valid )
     {
-      bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
-      if( already_obstacle_voxel )
-      {
-        // Not already in set of existing obstacles, so add to voxel list
-        //object_voxel_locations_.erase(voxel_loc);
-
-        // Add point to the queue for expansion
-        voxel_locs.insert(voxel_loc);
-      }
+      voxel_points.push_back(voxel_loc);
+      //if(voxel_grid_->getCell(voxel_loc.x(),voxel_loc.y(),voxel_loc.z()).distance_square_ == 0) {
+      //  voxel_locs.insert(voxel_loc);
+      //}
     }
   }
 
-  removeObstacleVoxels( voxel_locs );
+  removeObstacleVoxels( voxel_points );
 }
 
-void PropagationDistanceField::addNewObstacleVoxels(const VoxelSet& locations)
+void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points)
 {
   int initial_update_direction = getDirectionNumber(0,0,0);
-  bucket_queue_[0].reserve(locations.size());
+  bucket_queue_[0].reserve(voxel_points.size());
+  std::vector<Eigen::Vector3i> negative_stack;
+  if(propagate_negative_) {
+    negative_stack.reserve(getXNumCells() * getYNumCells() * getZNumCells());
+    negative_bucket_queue_[0].reserve(voxel_points.size());
+  }
 
-  VoxelSet::const_iterator it = locations.begin();
-  for( it=locations.begin(); it!=locations.end(); ++it)
-  {
-    int3 loc = (*it);
-    bool valid = isCellValid( loc.x(),loc.y(),loc.z() );
-    if (!valid) {
-      continue;
-    }
-    PropDistanceFieldVoxel& voxel = voxel_grid_.getCell( loc.x(),loc.y(),loc.z() );
+  for(unsigned int i = 0; i < voxel_points.size(); i++) {
+    PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
+    Eigen::Vector3i loc = voxel_points[i];
     voxel.distance_square_ = 0;
     voxel.closest_point_ = loc;
     voxel.update_direction_ = initial_update_direction;
     bucket_queue_[0].push_back(loc);
+    if(propagate_negative_) {
+      voxel.negative_distance_square_ = max_distance_sq_;
+      voxel.closest_negative_point_.x() = PropDistanceFieldVoxel::UNINITIALIZED;
+      voxel.closest_negative_point_.y() = PropDistanceFieldVoxel::UNINITIALIZED;
+      voxel.closest_negative_point_.z() = PropDistanceFieldVoxel::UNINITIALIZED;
+      negative_stack.push_back(loc);
+    }
   }
+  propagatePositive();
+  
+  if(propagate_negative_) {
+    while(negative_stack.size() > 0)
+    {
+      Eigen::Vector3i loc = negative_stack.back();
+      negative_stack.pop_back();
+      
+      for( int neighbor=0; neighbor<27; neighbor++ )
+      {
+        Eigen::Vector3i diff = getLocationDifference(neighbor);
+        Eigen::Vector3i nloc( loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z() );
 
-  propogate();
+        if( isCellValid(nloc.x(), nloc.y(), nloc.z()) )
+        {
+          PropDistanceFieldVoxel& nvoxel = voxel_grid_->getCell(nloc.x(), nloc.y(), nloc.z());
+          Eigen::Vector3i& close_point = nvoxel.closest_negative_point_;
+          if( !isCellValid( close_point.x(), close_point.y(), close_point.z() ) )
+          {
+            close_point = nloc;
+          }
+          PropDistanceFieldVoxel& closest_point_voxel = voxel_grid_->getCell( close_point.x(), close_point.y(), close_point.z() );
+          
+          //our closest non-obstacle cell has become an obstacle
+          if( closest_point_voxel.negative_distance_square_ != 0 )
+          {	
+            if( nvoxel.negative_distance_square_!=max_distance_sq_)
+            {
+              nvoxel.negative_distance_square_ = max_distance_sq_;
+              nvoxel.closest_negative_point_.x() = PropDistanceFieldVoxel::UNINITIALIZED;
+              nvoxel.closest_negative_point_.y() = PropDistanceFieldVoxel::UNINITIALIZED;
+              nvoxel.closest_negative_point_.z() = PropDistanceFieldVoxel::UNINITIALIZED;
+              nvoxel.update_direction_ = initial_update_direction;
+              negative_stack.push_back(nloc);
+            }
+          }
+          else
+          {
+            //this cell still has a valid non-obstacle cell, so we need to propogate from it
+            negative_bucket_queue_[0].push_back(nloc);
+          }
+        }
+      }
+    }
+    propagateNegative();
+  }
 }
 
-void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
+void PropagationDistanceField::removeObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points)
+//const VoxelSet& locations )
 {
-  std::vector<int3> stack;
+  std::vector<Eigen::Vector3i> stack;
+  std::vector<Eigen::Vector3i> negative_stack;
   int initial_update_direction = getDirectionNumber(0,0,0);
 
   stack.reserve(getXNumCells() * getYNumCells() * getZNumCells());
-  bucket_queue_[0].reserve(locations.size());
+  bucket_queue_[0].reserve(voxel_points.size());
+  if(propagate_negative_) {
+    negative_stack.reserve(getXNumCells() * getYNumCells() * getZNumCells());
+    negative_bucket_queue_[0].reserve(voxel_points.size());
+  }
 
   // First reset the obstacle voxels,
-  VoxelSet::const_iterator it = locations.begin();
-  for( it=locations.begin(); it!=locations.end(); ++it)
-  {
-    int3 loc = *it;
-    bool valid = isCellValid( loc.x(), loc.y(), loc.z());
-    if (!valid)
-      continue;
-    PropDistanceFieldVoxel& voxel = voxel_grid_.getCell(loc.x(), loc.y(), loc.z());
+  // VoxelSet::const_iterator it = locations.begin();
+  // for( it=locations.begin(); it!=locations.end(); ++it)
+  // {
+  //   Eigen::Vector3i loc = *it;
+  //   bool valid = isCellValid( loc.x(), loc.y(), loc.z());
+  //   if (!valid)
+  //     continue;
+  for(unsigned int i = 0; i < voxel_points.size(); i++) {
+    PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
     voxel.distance_square_ = max_distance_sq_;
-    voxel.closest_point_ = loc;
+    voxel.closest_point_ = voxel_points[i];
     voxel.update_direction_ = initial_update_direction;
-    stack.push_back(loc);
-    object_voxel_locations_.erase(loc);
+    stack.push_back(voxel_points[i]);
+    if(propagate_negative_) {
+      voxel.negative_distance_square_ = 0.0;
+      voxel.closest_negative_point_ = voxel_points[i];
+      voxel.negative_update_direction_ = initial_update_direction;
+      negative_bucket_queue_[0].push_back(voxel_points[i]);
+    }
   }
 
   // Reset all neighbors who's closest point is now gone.
   while(stack.size() > 0)
   {
-    int3 loc = stack.back();
+    Eigen::Vector3i loc = stack.back();
     stack.pop_back();
 
     for( int neighbor=0; neighbor<27; neighbor++ )
     {
-      int3 diff = getLocationDifference(neighbor);
-      int3 nloc( loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z() );
+      Eigen::Vector3i diff = getLocationDifference(neighbor);
+      Eigen::Vector3i nloc( loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z() );
 
       if( isCellValid(nloc.x(), nloc.y(), nloc.z()) )
       {
-        PropDistanceFieldVoxel& nvoxel = voxel_grid_.getCell(nloc.x(), nloc.y(), nloc.z());
-        int3& close_point = nvoxel.closest_point_;
+        PropDistanceFieldVoxel& nvoxel = voxel_grid_->getCell(nloc.x(), nloc.y(), nloc.z());
+        Eigen::Vector3i& close_point = nvoxel.closest_point_;
         if( !isCellValid( close_point.x(), close_point.y(), close_point.z() ) )
         {
           close_point = nloc;
         }
-        PropDistanceFieldVoxel& closest_point_voxel = voxel_grid_.getCell( close_point.x(), close_point.y(), close_point.z() );
+        PropDistanceFieldVoxel& closest_point_voxel = voxel_grid_->getCell( close_point.x(), close_point.y(), close_point.z() );
 
         if( closest_point_voxel.distance_square_ != 0 )
         {	// closest point no longer exists
@@ -327,37 +383,40 @@ void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
           }
         }
         else
-        {	// add to queue so we can propogate the values
+        {	// add to queue so we can propagate the values
           bucket_queue_[0].push_back(nloc);
         }
       }
     }
   }
+  propagatePositive();
 
-  propogate();
+  if(propagate_negative_) {
+    propagateNegative();
+  }    
 }
 
-void PropagationDistanceField::propogate()
+void PropagationDistanceField::propagatePositive()
 {
 
   // now process the queue:
   for (unsigned int i=0; i<bucket_queue_.size(); ++i)
   {
-    std::vector<int3>::iterator list_it = bucket_queue_[i].begin();
+    std::vector<Eigen::Vector3i>::iterator list_it = bucket_queue_[i].begin();
     while(list_it!=bucket_queue_[i].end())
     {
-      int3 loc = *list_it;
-      PropDistanceFieldVoxel* vptr = &voxel_grid_.getCell(loc.x(), loc.y(), loc.z());
+      Eigen::Vector3i loc = *list_it;
+      PropDistanceFieldVoxel* vptr = &voxel_grid_->getCell(loc.x(), loc.y(), loc.z());
 
       // select the neighborhood list based on the update direction:
-      std::vector<int3 >* neighborhood;
+      std::vector<Eigen::Vector3i >* neighborhood;
       int D = i;
       if (D>1)
         D=1;
       // avoid a possible segfault situation:
       if (vptr->update_direction_<0 || vptr->update_direction_>26)
       {
-   //     ROS_WARN("Invalid update direction detected: %d", vptr->update_direction_);
+        //     ROS_WARN("Invalid update direction detected: %d", vptr->update_direction_);
         ++list_it;
         continue;
       }
@@ -366,14 +425,14 @@ void PropagationDistanceField::propogate()
 
       for (unsigned int n=0; n<neighborhood->size(); n++)
       {
-        int3 diff = (*neighborhood)[n];
-        int3 nloc( loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z() );
+        Eigen::Vector3i diff = (*neighborhood)[n];
+        Eigen::Vector3i nloc( loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z() );
         if (!isCellValid(nloc.x(), nloc.y(), nloc.z()) )
           continue;
 
         // the real update code:
         // calculate the neighbor's new distance based on my closest filled voxel:
-        PropDistanceFieldVoxel* neighbor = &voxel_grid_.getCell(nloc.x(),nloc.y(),nloc.z());
+        PropDistanceFieldVoxel* neighbor = &voxel_grid_->getCell(nloc.x(),nloc.y(),nloc.z());
         int new_distance_sq = eucDistSq(vptr->closest_point_, nloc);
         if (new_distance_sq > max_distance_sq_)
           continue;
@@ -395,10 +454,85 @@ void PropagationDistanceField::propogate()
   }
 }
 
+void PropagationDistanceField::propagateNegative()
+{
+  
+  // now process the queue:
+  for (unsigned int i=0; i<negative_bucket_queue_.size(); ++i)
+  {
+  
+    std::vector<Eigen::Vector3i>::iterator list_it = negative_bucket_queue_[i].begin();
+    while(list_it!=negative_bucket_queue_[i].end())
+    {
+      Eigen::Vector3i loc = *list_it;
+      PropDistanceFieldVoxel* vptr = &voxel_grid_->getCell(loc.x(), loc.y(), loc.z());
+
+      // select the neighborhood list based on the update direction:
+      std::vector<Eigen::Vector3i >* neighborhood;
+      int D = i;
+      if (D>1)
+        D=1;
+      // avoid a possible segfault situation:
+      if (vptr->negative_update_direction_<0 || vptr->negative_update_direction_>26)
+      {
+        //     ROS_WARN("Invalid update direction detected: %d", vptr->update_direction_);
+        ++list_it;
+        continue;
+      }
+
+      neighborhood = &neighborhoods_[D][vptr->negative_update_direction_];
+
+      for (unsigned int n=0; n<neighborhood->size(); n++)
+      {
+        Eigen::Vector3i diff = (*neighborhood)[n];
+        Eigen::Vector3i nloc( loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z() );
+        if (!isCellValid(nloc.x(), nloc.y(), nloc.z()) )
+          continue;
+
+        // the real update code:
+        // calculate the neighbor's new distance based on my closest filled voxel:
+        PropDistanceFieldVoxel* neighbor = &voxel_grid_->getCell(nloc.x(),nloc.y(),nloc.z());
+        int new_distance_sq = eucDistSq(vptr->closest_negative_point_, nloc);
+        if (new_distance_sq > max_distance_sq_)
+          continue;
+        //std::cout << "Looking at " << nloc.x() << " " << nloc.y() << " " << nloc.z() << " " << new_distance_sq << " " << neighbor->negative_distance_square_ << std::endl;
+        if (new_distance_sq < neighbor->negative_distance_square_)
+        {
+          //std::cout << "Updating " << nloc.x() << " " << nloc.y() << " " << nloc.z() << " " << new_distance_sq << std::endl;
+          // update the neighboring voxel
+          neighbor->negative_distance_square_ = new_distance_sq;
+          neighbor->closest_negative_point_ = vptr->closest_negative_point_;
+          neighbor->negative_update_direction_ = getDirectionNumber(diff.x(), diff.y(), diff.z());
+
+          // and put it in the queue:
+          negative_bucket_queue_[new_distance_sq].push_back(nloc);
+        }
+      }
+
+      ++list_it;
+    }
+    negative_bucket_queue_[i].clear();
+  }
+}
+
 void PropagationDistanceField::reset()
 {
-  voxel_grid_.reset(PropDistanceFieldVoxel(max_distance_sq_));
-  object_voxel_locations_.clear();
+  voxel_grid_->reset(PropDistanceFieldVoxel(max_distance_sq_,0));
+  for(int x = 0; x < getXNumCells(); x++)
+  {
+    for(int y = 0; y < getYNumCells(); y++)
+    {
+      for(int z = 0; z < getZNumCells(); z++)
+      {
+        PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(x,y,z);
+        voxel.closest_negative_point_.x() = x;
+        voxel.closest_negative_point_.y() = y;
+        voxel.closest_negative_point_.z() = z;
+        voxel.negative_distance_square_ = 0;
+      }
+    }
+  }
+  //object_voxel_locations_.clear();
 }
 
 void PropagationDistanceField::initNeighborhoods()
@@ -412,7 +546,7 @@ void PropagationDistanceField::initNeighborhoods()
       for (int dz=-1; dz<=1; ++dz)
       {
         int direction_number = getDirectionNumber(dx, dy, dz);
-        int3 n_point( dx, dy, dz);
+        Eigen::Vector3i n_point( dx, dy, dz);
         direction_number_to_direction_[direction_number] = n_point;
       }
     }
@@ -446,7 +580,7 @@ void PropagationDistanceField::initNeighborhoods()
                   if (dx*tdx<0 || dy*tdy<0 || dz*tdz <0)
                     continue;
                 }
-                int3 n_point(tdx,tdy,tdz);
+                Eigen::Vector3i n_point(tdx,tdy,tdz);
                 neighborhoods_[n][direction_number].push_back(n_point);
               }
             }
@@ -464,402 +598,154 @@ int PropagationDistanceField::getDirectionNumber(int dx, int dy, int dz) const
   return (dx+1)*9 + (dy+1)*3 + dz+1;
 }
 
-int3 PropagationDistanceField::getLocationDifference(int directionNumber) const
+Eigen::Vector3i PropagationDistanceField::getLocationDifference(int directionNumber) const
 {
   return direction_number_to_direction_[ directionNumber ];
 }
 
 double PropagationDistanceField::getDistance(double x, double y, double z) const
 {
-  return getDistance(voxel_grid_(x,y,z));
+  return getDistance((*voxel_grid_.get())(x,y,z));
 }
 
-double PropagationDistanceField::getDistanceFromCell(int x, int y, int z) const
+double PropagationDistanceField::getDistance(int x, int y, int z) const
 {
-  return getDistance(voxel_grid_.getCell(x,y,z));
+  return getDistance(voxel_grid_->getCell(x,y,z));
 }
 
 bool PropagationDistanceField::isCellValid(int x, int y, int z) const
 {
-  return voxel_grid_.isCellValid(x,y,z);
+  return voxel_grid_->isCellValid(x,y,z);
 }
 
 int PropagationDistanceField::getXNumCells() const
 {
-  return voxel_grid_.getNumCells(DIM_X);
+  return voxel_grid_->getNumCells(DIM_X);
 }
 
 int PropagationDistanceField::getYNumCells() const
 {
-  return voxel_grid_.getNumCells(DIM_Y);
+  return voxel_grid_->getNumCells(DIM_Y);
 }
 
 int PropagationDistanceField::getZNumCells() const
 {
-  return voxel_grid_.getNumCells(DIM_Z);
+  return voxel_grid_->getNumCells(DIM_Z);
 }
 
 bool PropagationDistanceField::gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const
 {
-  return voxel_grid_.gridToWorld(x, y, z, world_x, world_y, world_z);
+  return voxel_grid_->gridToWorld(x, y, z, world_x, world_y, world_z);
 }
 
 bool PropagationDistanceField::worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const
 {
-  return voxel_grid_.worldToGrid(world_x, world_y, world_z, x, y, z);
+  return voxel_grid_->worldToGrid(world_x, world_y, world_z, x, y, z);
 }
 
-SignedPropagationDistanceField::SignedPropagationDistanceField(double size_x, double size_y, double size_z, double resolution,
-                                                               double origin_x, double origin_y, double origin_z, double max_distance):
-
-  DistanceField(resolution),
-  voxel_grid_(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z, SignedPropDistanceFieldVoxel(max_distance, 0))
+bool PropagationDistanceField::writeToStream(std::ostream& os) const
 {
-  max_distance_ = max_distance;
-  int max_dist_int = ceil(max_distance_/resolution);
-  max_distance_sq_ = (max_dist_int*max_dist_int);
-  initNeighborhoods();
+  os << "resolution: " << resolution_ << std::endl;
+  os << "size_x: " << size_x_ << std::endl;  os << "size_y: " << size_y_ << std::endl;
+  os << "size_z: " << size_z_ << std::endl;
+  os << "origin_x: " << origin_x_ << std::endl;
+  os << "origin_y: " << origin_y_ << std::endl;
+  os << "origin_z: " << origin_z_ << std::endl;
+  //now the binary stuff
+  
+  //first writing to zlib compressed buffer
+  boost::iostreams::filtering_ostream out;
+  out.push(boost::iostreams::zlib_compressor());
+  out.push(os);
 
-  // create a sqrt table:
-  sqrt_table_.resize(max_distance_sq_+1);
-  for (int i=0; i<=max_distance_sq_; ++i)
-    sqrt_table_[i] = sqrt(double(i))*resolution;
-}
-
-SignedPropagationDistanceField::~SignedPropagationDistanceField()
-{
-}
-
-int SignedPropagationDistanceField::eucDistSq(int3 point1, int3 point2)
-{
-  int dx = point1.x() - point2.x();
-  int dy = point1.y() - point2.y();
-  int dz = point1.z() - point2.z();
-  return dx*dx + dy*dy + dz*dz;
-}
-
-void SignedPropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
-{
-  // initialize the bucket queue
-  positive_bucket_queue_.resize(max_distance_sq_+1);
-  negative_bucket_queue_.resize(max_distance_sq_+1);
-
-  positive_bucket_queue_[0].reserve(points.size());
-  negative_bucket_queue_[0].reserve(points.size());
-
-  for(int x = 0; x < getXNumCells(); x++)
-  {
-    for(int y = 0; y < getYNumCells(); y++)
-    {
-      for(int z = 0; z < getZNumCells(); z++)
-      {
-        SignedPropDistanceFieldVoxel& voxel = voxel_grid_.getCell(x,y,z);
-        voxel.closest_negative_point_.x() = x;
-        voxel.closest_negative_point_.y() = y;
-        voxel.closest_negative_point_.z() = z;
-        voxel.negative_distance_square_ = 0;
-      }
-    }
-  }
-
-  // first mark all the points as distance=0, and add them to the queue
-  int x, y, z, nx, ny, nz;
-  int3 loc;
-  int initial_update_direction = getDirectionNumber(0,0,0);
-  for (unsigned int i=0; i<points.size(); ++i)
-  {
-    bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(), x, y, z);
-    if (!valid)
-      continue;
-		int3 loc(x,y,z);
-    SignedPropDistanceFieldVoxel& voxel = voxel_grid_.getCell(x,y,z);
-    voxel.positive_distance_square_ = 0;
-    voxel.negative_distance_square_ = max_distance_sq_;
-    voxel.closest_positive_point_.x() = x;
-    voxel.closest_positive_point_.y() = y;
-    voxel.closest_positive_point_.z() = z;
-    voxel.closest_negative_point_.x() = SignedPropDistanceFieldVoxel::UNINITIALIZED;
-    voxel.closest_negative_point_.y() = SignedPropDistanceFieldVoxel::UNINITIALIZED;
-    voxel.closest_negative_point_.z() = SignedPropDistanceFieldVoxel::UNINITIALIZED;
-    voxel.update_direction_ = initial_update_direction;
-    positive_bucket_queue_[0].push_back(loc);
-  }
-
-  // now process the queue:
-  for (unsigned int i=0; i<positive_bucket_queue_.size(); ++i)
-  {
-    std::vector<int3>::iterator list_it = positive_bucket_queue_[i].begin();
-    while(list_it!=positive_bucket_queue_[i].end())
-    {
-      int3 loc = *list_it;
-      SignedPropDistanceFieldVoxel* vptr = &voxel_grid_.getCell(loc.x(),loc.y(),loc.z());
-
-      x = loc.x();
-      y = loc.y();
-      z = loc.z();
-
-      // select the neighborhood list based on the update direction:
-      std::vector<int3 >* neighborhood;
-      int D = i;
-      if (D>1)
-        D=1;
-      // avoid a possible segfault situation:
-      if (vptr->update_direction_<0 || vptr->update_direction_>26)
-      {
-   //     ROS_WARN("Invalid update direction detected: %d", vptr->update_direction_);
-        ++list_it;
-        continue;
-      }
-
-      neighborhood = &neighborhoods_[D][vptr->update_direction_];
-
-      for (unsigned int n=0; n<neighborhood->size(); n++)
-      {
-        int dx = (*neighborhood)[n].x();
-        int dy = (*neighborhood)[n].y();
-        int dz = (*neighborhood)[n].z();
-        nx = x + dx;
-        ny = y + dy;
-        nz = z + dz;
-        if (!isCellValid(nx,ny,nz))
-          continue;
-
-        // the real update code:
-        // calculate the neighbor's new distance based on my closest filled voxel:
-        SignedPropDistanceFieldVoxel* neighbor = &voxel_grid_.getCell(nx, ny, nz);
-        loc.x() = nx;
-        loc.y() = ny;
-        loc.z() = nz;
-        int new_distance_sq = eucDistSq(vptr->closest_positive_point_, loc);
-        if (new_distance_sq > max_distance_sq_)
-          continue;
-        if (new_distance_sq < neighbor->positive_distance_square_)
-        {
-          // update the neighboring voxel
-          neighbor->positive_distance_square_ = new_distance_sq;
-          neighbor->closest_positive_point_ = vptr->closest_positive_point_;
-          neighbor->update_direction_ = getDirectionNumber(dx, dy, dz);
-
-          // and put it in the queue:
-          positive_bucket_queue_[new_distance_sq].push_back(loc);
+  for(unsigned int x = 0; x < getXNumCells(); x++) {
+    for(unsigned int y = 0; y < getYNumCells(); y++) {
+      for(unsigned int z = 0; z < getZNumCells(); z+=8) {
+        std::bitset<8> bs(0);
+        unsigned int zv = std::min((unsigned int)8, getZNumCells()-z);
+        for(unsigned int zi = 0; zi < zv; zi++) {            
+          if(getCell(x,y,z+zi).distance_square_ == 0) {
+            //std::cout << "Marking obs cell " << x << " " << y << " " << z+zi << std::endl; 
+            bs[zi] = 1;
+          } 
         }
+        out.write((char*)&bs, sizeof(char));
       }
-
-      ++list_it;
     }
-    positive_bucket_queue_[i].clear();
   }
-
-
-  for(unsigned int i = 0; i < points.size(); i++)
-    {
-      bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(), x, y, z);
-      if(!valid)
-        continue;
-
-      for(int dx = -1; dx <= 1; dx ++)
-      {
-        for(int dy = -1; dy<= 1; dy ++)
-        {
-          for(int dz = -1; dz <= 1; dz++)
-          {
-            nx = x + dx;
-            ny = y + dy;
-            nz = z + dz;
-
-            if(!isCellValid(nx, ny, nz))
-              continue;
-
-            int3 nloc(nx,ny,nz);
-            SignedPropDistanceFieldVoxel* neighbor = &voxel_grid_.getCell(nx, ny, nz);
-
-            if(neighbor->closest_negative_point_.x() != SignedPropDistanceFieldVoxel::UNINITIALIZED)
-            {
-              neighbor->update_direction_ = initial_update_direction;
-              negative_bucket_queue_[0].push_back(nloc);
-            }
-          }
-        }
-      }
-
-    }
-
-  for (unsigned int i=0; i<negative_bucket_queue_.size(); ++i)
-  {
-    std::vector<int3>::iterator list_it = negative_bucket_queue_[i].begin();
-    while(list_it!=negative_bucket_queue_[i].end())
-    {
-      int3 loc = *list_it;
-      SignedPropDistanceFieldVoxel* vptr = &voxel_grid_.getCell(loc.x(),loc.y(),loc.z());
-
-      x = loc.x();
-      y = loc.y();
-      z = loc.z();
-
-      // select the neighborhood list based on the update direction:
-      std::vector<int3 >* neighborhood;
-      int D = i;
-      if (D>1)
-        D=1;
-      // avoid a possible segfault situation:
-      if (vptr->update_direction_<0 || vptr->update_direction_>26)
-      {
-   //     ROS_WARN("Invalid update direction detected: %d", vptr->update_direction_);
-        ++list_it;
-        continue;
-      }
-
-      neighborhood = &neighborhoods_[D][vptr->update_direction_];
-
-      for (unsigned int n=0; n<neighborhood->size(); n++)
-      {
-        int dx = (*neighborhood)[n].x();
-        int dy = (*neighborhood)[n].y();
-        int dz = (*neighborhood)[n].z();
-        nx = x + dx;
-        ny = y + dy;
-        nz = z + dz;
-        int3 nloc(nx,ny,nz);
-        if (!isCellValid(nx,ny,nz))
-          continue;
-
-        // the real update code:
-        // calculate the neighbor's new distance based on my closest filled voxel:
-        SignedPropDistanceFieldVoxel* neighbor = &voxel_grid_.getCell(nx, ny, nz);
-        loc.x() = nx;
-        loc.y() = ny;
-        loc.z() = nz;
-        int new_distance_sq = eucDistSq(vptr->closest_negative_point_, loc);
-        if (new_distance_sq > max_distance_sq_)
-          continue;
-        if (new_distance_sq < neighbor->negative_distance_square_)
-        {
-          // update the neighboring voxel
-          neighbor->negative_distance_square_ = new_distance_sq;
-          neighbor->closest_negative_point_ = vptr->closest_negative_point_;
-          neighbor->update_direction_ = getDirectionNumber(dx, dy, dz);
-
-          // and put it in the queue:
-          negative_bucket_queue_[new_distance_sq].push_back(nloc);
-        }
-      }
-
-      ++list_it;
-    }
-    negative_bucket_queue_[i].clear();
-  }
-
+  out.flush();
 }
 
-void SignedPropagationDistanceField::reset()
+bool PropagationDistanceField::readFromStream(std::istream& is)
 {
-  voxel_grid_.reset(SignedPropDistanceFieldVoxel(max_distance_sq_, 0));
-}
+  if(!is.good()) return false;
+  
+  std::string temp;
 
-void SignedPropagationDistanceField::initNeighborhoods()
-{
-  // first initialize the direction number mapping:
-  direction_number_to_direction_.resize(27);
-  for (int dx=-1; dx<=1; ++dx)
-  {
-    for (int dy=-1; dy<=1; ++dy)
-    {
-      for (int dz=-1; dz<=1; ++dz)
-      {
-        int direction_number = getDirectionNumber(dx, dy, dz);
-        int3 n_point( dx, dy, dz);
-        direction_number_to_direction_[direction_number] = n_point;
-      }
-    }
-  }
+  is >> temp;
+  if(temp != "resolution:") return false;
+  is >> resolution_;
+  
+  is >> temp;
+  if(temp != "size_x:") return false;
+  is >> size_x_;
 
-  neighborhoods_.resize(2);
-  for (int n=0; n<2; n++)
-  {
-    neighborhoods_[n].resize(27);
-    // source directions
-    for (int dx=-1; dx<=1; ++dx)
-    {
-      for (int dy=-1; dy<=1; ++dy)
-      {
-        for (int dz=-1; dz<=1; ++dz)
-        {
-          int direction_number = getDirectionNumber(dx, dy, dz);
-          // target directions:
-          for (int tdx=-1; tdx<=1; ++tdx)
-          {
-            for (int tdy=-1; tdy<=1; ++tdy)
-            {
-              for (int tdz=-1; tdz<=1; ++tdz)
-              {
-                if (tdx==0 && tdy==0 && tdz==0)
-                  continue;
-                if (n>=1)
-                {
-                  if ((abs(tdx) + abs(tdy) + abs(tdz))!=1)
-                    continue;
-                  if (dx*tdx<0 || dy*tdy<0 || dz*tdz <0)
-                    continue;
-                }
-                int3 n_point(tdx,tdy,tdz);
-                neighborhoods_[n][direction_number].push_back(n_point);
-              }
-            }
-          }
-          //printf("n=%d, dx=%d, dy=%d, dz=%d, neighbors = %d\n", n, dx, dy, dz, neighborhoods_[n][direction_number].size());
+  is >> temp;
+  if(temp != "size_y:") return false;
+  is >> size_y_;
+
+  is >> temp;
+  if(temp != "size_z:") return false;
+  is >> size_z_;
+  
+  is >> temp;
+  if(temp != "origin_x:") return false;
+  is >> origin_x_;
+
+  is >> temp;
+  if(temp != "origin_y:") return false;
+  is >> origin_y_;
+
+  is >> temp;
+  if(temp != "origin_z:") return false;
+  is >> origin_z_;
+
+  //previous values for propogation_negative_ and max_distance_ will be used
+
+  initialize();
+
+  //this should be newline
+  char nl;
+  is.get(nl);
+
+  //now we start the compressed portion
+  boost::iostreams::filtering_istream in;
+  in.push(boost::iostreams::zlib_decompressor());
+  in.push(is);
+
+  //std::cout << "Nums " << getXNumCells() << " " << getYNumCells() << " " << getZNumCells() << std::endl;
+
+  std::vector<Eigen::Vector3i> obs_points;
+  for(unsigned int x = 0; x < getXNumCells(); x++) {
+    for(unsigned int y = 0; y < getYNumCells(); y++) {
+      for(unsigned int z = 0; z < getZNumCells(); z+=8) {
+        char inchar;
+        if(!in.good()) {
+          return false;
+        }
+        in.get(inchar);
+        std::bitset<8> inbit((unsigned long long) inchar);
+        unsigned int zv = std::min((unsigned int)8, getZNumCells()-z);
+        for(unsigned int zi = 0; zi < zv; zi++) {
+          if(inbit[zi] == 1) {
+            //std::cout << "Adding obs cell " << x << " " << y << " " << z+zi << std::endl; 
+            obs_points.push_back(Eigen::Vector3i(x,y,z+zi));
+          } 
         }
       }
     }
   }
-
-
-
+  addNewObstacleVoxels(obs_points);
 }
-
-int SignedPropagationDistanceField::getDirectionNumber(int dx, int dy, int dz) const
-{
-  return (dx+1)*9 + (dy+1)*3 + dz+1;
-}
-
-double SignedPropagationDistanceField::getDistance(double x, double y, double z) const
-{
-  return getDistance(voxel_grid_(x,y,z));
-}
-
-double SignedPropagationDistanceField::getDistanceFromCell(int x, int y, int z) const
-{
-  return getDistance(voxel_grid_.getCell(x,y,z));
-}
-
-bool SignedPropagationDistanceField::isCellValid(int x, int y, int z) const
-{
-  return voxel_grid_.isCellValid(x,y,z);
-}
-
-int SignedPropagationDistanceField::getXNumCells() const
-{
-  return voxel_grid_.getNumCells(DIM_X);
-}
-
-int SignedPropagationDistanceField::getYNumCells() const
-{
-  return voxel_grid_.getNumCells(DIM_Y);
-}
-
-int SignedPropagationDistanceField::getZNumCells() const
-{
-  return voxel_grid_.getNumCells(DIM_Z);
-}
-
-bool SignedPropagationDistanceField::gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const
-{
-  return voxel_grid_.gridToWorld(x, y, z, world_x, world_y, world_z);
-}
-
-bool SignedPropagationDistanceField::worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const
-{
-  return voxel_grid_.worldToGrid(world_x, world_y, world_z, x, y, z);
-}
-
 
 }
