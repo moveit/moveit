@@ -22,9 +22,7 @@ set(SOURCE_FILES
   src/motion_planning_frame_planning.cpp
   src/motion_planning_frame_objects.cpp
   src/motion_planning_frame_scenes.cpp
-  src/motion_planning_frame_queries.cpp
   src/motion_planning_display.cpp
-  src/frame_marker.cpp
 )
 
 set(MOVEIT_LIB_NAME moveit_motion_planning_rviz_plugin)
