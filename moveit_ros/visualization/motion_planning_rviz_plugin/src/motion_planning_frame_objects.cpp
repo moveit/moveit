@@ -588,14 +588,6 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked()
           }
           else
             planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
-
-          //Automatically load constraints from the db, filtered with the scene name
-          ui_->load_states_filter_text->setText((planning_display_->getKinematicModel()->getName() + ".*").c_str());
-          ui_->load_poses_filter_text->setText((scene + ".*").c_str());
-          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllGoalsButtonClicked, this));
-          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::removeAllStatesButtonClicked, this));
-          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadGoalsFromDBButtonClicked, this));
-          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::loadStatesFromDBButtonClicked, this));
         }
         else
           ROS_WARN("Failed to load scene '%s'. Has the message format changed since the scene was saved?", scene.c_str());

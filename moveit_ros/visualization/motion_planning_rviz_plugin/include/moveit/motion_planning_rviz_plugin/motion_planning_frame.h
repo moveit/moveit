@@ -42,7 +42,6 @@
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
-#include <moveit/motion_planning_rviz_plugin/frame_marker.h>
 #endif
 
 #include <moveit_msgs/MotionPlanRequest.h>
@@ -91,7 +90,6 @@ protected:
   void constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq);
   
   void updateSceneMarkers(float wall_dt, float ros_dt);
-  void updateGoalPoseMarkers(float wall_dt, float ros_dt);
 
   MotionPlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
@@ -107,25 +105,6 @@ protected:
 
   boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
  
-  typedef std::map<std::string, GripperMarker> GoalPoseMap;
-  typedef std::pair<std::string, GripperMarker> GoalPosePair;
-  GoalPoseMap goal_poses_;
-          
-  class StartState
-  {
-  public:
-    moveit_msgs::RobotState state_msg;
-    bool selected;
-    
-    StartState(): selected(false) {}
-    StartState(const moveit_msgs::RobotState &state): state_msg(state), selected(false) {}
-    StartState(const moveit_msgs::RobotState &state, bool is_selected): state_msg(state), selected(is_selected) {}
-  };
-  
-  typedef std::map<std::string, StartState> StartStateMap;
-  typedef std::pair<std::string, StartState> StartStatePair;
-  StartStateMap start_states_;
-
 private Q_SLOTS:
 
   //Context tab
@@ -171,33 +150,6 @@ private Q_SLOTS:
   void loadQueryButtonClicked();
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
 
-  //Stored queries tab
-  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void createGoalPoseButtonClicked();
-  void removeSelectedGoalsButtonClicked();
-  void removeAllGoalsButtonClicked();
-  void goalPoseSelectionChanged();
-  void switchGoalVisibilityButtonClicked();
-  void goalPoseDoubleClicked(QListWidgetItem *item);
-  void copySelectedGoalPoses();
-  void visibleAxisChanged(int state);
-  void checkGoalsInCollision();
-  void checkGoalsReachable();
-  void loadBenchmarkResults();
-  void updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
-
-  void saveStartStateButtonClicked();
-  void removeSelectedStatesButtonClicked();
-  void removeAllStatesButtonClicked();
-  void startStateItemDoubleClicked(QListWidgetItem * item);
-
-  void loadGoalsFromDBButtonClicked();
-  void saveGoalsOnDBButtonClicked();
-  void deleteGoalsOnDBButtonClicked();
-  void loadStatesFromDBButtonClicked();
-  void saveStatesOnDBButtonClicked();
-  void deleteStatesOnDBButtonClicked();
-
   //General
   void tabChanged(int index);
   
@@ -242,26 +194,13 @@ private:
   //Stored scenes tab
   void populatePlanningSceneTreeView();
 
-  //Stored queries tab
-  void populateGoalPosesList();
-  void populateStartStatesList();
-  void computeGoalPoseDoubleClicked(QListWidgetItem * item);
-  void switchGoalPoseMarkerSelection(const std::string &marker_name);
-  typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
-
-  void checkIfGoalInCollision(const std::string & goal_name);
-  void checkIfGoalInCollision(const robot_state::RobotStatePtr &work_state, const std::string & goal_name);
-  void checkIfGoalReachable(const robot_state::RobotStatePtr &work_state, const std::string &goal_name);
-  void computeLoadBenchmarkResults(const std::string &file);
-
   //General
   void changePlanningGroupHelper();
   void importResource(const std::string &path);
 
   /** Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
-  void selectItemJob(QListWidgetItem *item, bool flag);
-
+  //void selectItemJob(QListWidgetItem *item, bool flag);
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
@@ -271,9 +210,6 @@ private:
   
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
   long unsigned int known_collision_objects_version_;
-  
-  EigenSTL::map_string_Affine3d goals_initial_pose_;
-  bool goal_pose_dragging_;
 };
 
 }

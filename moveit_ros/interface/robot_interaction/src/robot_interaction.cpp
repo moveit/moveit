@@ -90,7 +90,11 @@ void RobotInteraction::InteractionHandler::setup()
 
 namespace
 {
-//TODO: move functions like this into an eigen_utils package
+/* This function converts a transformation given as an Eigen::Affine3d object to a
+ * 6-dimensional pose/orientation vector in the convention (t utheta), being t
+ * the translation and utheta the angle-axis representation of the rotation
+ * TODO: move functions like this into an eigen_utils package
+ */
 void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose)
 {
   pose.resize(6);
@@ -324,7 +328,6 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
       Eigen::Affine3d eMt = wMe.inverse() * wMt;
       Eigen::VectorXd twist(6);
       
-      // ioan 2 mario : the name of this function is confusing. what does the function actually do?
       eigenTransformToEigenVector(eMt, twist);
       
       geometry_msgs::Twist twist_msg;
@@ -332,15 +335,6 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
       
       update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, twist_msg, velocity_gain_, state_validity_callback_fn_);
       setStateToAccess(state);
-
-
-      // ioan 2 mario: please replace the use of 0.3 and 0.5 with parameters (not clear what they do, what robot they are for, etc)
-      // also please use the moved function call.
-      // do we strictly need to have these secondary tasks always enabled by default? 
-      
-      //      update_state_result = robot_interaction::RobotInteraction::updateState(state, eef, twist_msg,
-      //                                                                             boost::bind(&RobotInteraction::InteractionHandler::avoidJointLimitsSecTask, this, _1, _2, 0.3, 0.5));
-      
     }
   
   bool error_state_changed = false;
