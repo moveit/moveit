@@ -77,17 +77,6 @@ kinematic_model::KinematicModel::~KinematicModel()
     delete link_model_vector_[i];
 }
 
-namespace kinematic_model
-{
-namespace
-{
-bool orderJointsByIndex(const JointModel *a, const JointModel *b)
-{
-  return a->getTreeIndex() < b->getTreeIndex();
-}
-}
-}
-
 void kinematic_model::KinematicModel::computeTreeStructure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model, const std::string &root_link,
                                                            std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
                                                            std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map)
@@ -645,9 +634,7 @@ bool kinematic_model::KinematicModel::addJointModelGroup(const srdf::Model::Grou
   std::vector<const JointModel*> joints;
   for (std::set<const JointModel*>::iterator it = jset.begin() ; it != jset.end() ; ++it)
     joints.push_back(*it);
-
-  std::sort(joints.begin(), joints.end(), &orderJointsByIndex);
-
+  
   JointModelGroup *jmg = new JointModelGroup(gc.name_, joints, this);
   joint_model_group_map_[gc.name_] = jmg;
   joint_model_group_config_map_[gc.name_] = gc;
