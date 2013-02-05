@@ -48,6 +48,11 @@ bool orderLinksByIndex(const LinkModel *a, const LinkModel *b)
   return a->getTreeIndex() < b->getTreeIndex();
 }
 
+bool orderJointsByIndex(const JointModel *a, const JointModel *b)
+{
+  return a->getTreeIndex() < b->getTreeIndex();
+}
+
 bool includesParent(const JointModel *joint, const JointModelGroup *group)
 {
   bool found = false;
@@ -80,12 +85,16 @@ bool includesParent(const JointModel *joint, const JointModelGroup *group)
 }
 
 kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
-                                                  const std::vector<const JointModel*> &group_joints,
+                                                  const std::vector<const JointModel*> &unsorted_group_joints,
                                                   const KinematicModel* parent_model) :
   parent_model_(parent_model), name_(group_name),
   variable_count_(0), is_end_effector_(false), is_chain_(false),
   default_ik_timeout_(0.5), default_ik_attempts_(2)
 {
+  // sort joints in Depth-First order
+  std::vector<const JointModel*> group_joints = unsorted_group_joints;
+  std::sort(group_joints.begin(), group_joints.end(), &orderJointsByIndex);
+  
   for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
   {
     joint_model_map_[group_joints[i]->getName()] = group_joints[i];
@@ -95,7 +104,6 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
       if (group_joints[i]->getMimic() == NULL)
       {
         joint_model_vector_.push_back(group_joints[i]);
-        joint_model_name_vector_.push_back(group_joints[i]->getName());
         variable_count_ += vc;
       }
       else
@@ -112,6 +120,7 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
   //that root distinct subtrees
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
   {
+    joint_model_name_vector_.push_back(joint_model_vector_[i]->getName());
     bool found = false;
     const JointModel *joint = joint_model_vector_[i];
     // if we find that an ancestor is also in the group, then the joint is not a root
@@ -182,15 +191,20 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
   for (std::size_t i = 0; i < updated_link_model_with_geometry_vector_.size(); ++i)
     updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry_vector_[i]->getName());
 
-  
-  // if the group happens to be a sequence of joints that follow each other in a depth-first fashion,
-  // then we consider the group to be a chain; this is just a heuristic and does not cover the case where there are branches 
-  bool chain = link_model_vector_.size() > 1;
-  for (std::size_t k = 1 ; chain && k < link_model_vector_.size() ; ++k)
-    if (link_model_vector_[k]->getTreeIndex() != link_model_vector_[k - 1]->getTreeIndex() + 1)
-      chain = false;
-  if (chain)
-    is_chain_ = true;  
+  // check if this group should actually be a chain
+  if (joint_roots_.size() == 1 && !is_chain_)
+  {
+    bool chain = true;
+    // this would be the leaf of the chain, due to our sorting
+    for (std::size_t k = group_joints.size() - 1 ; k > 0 ; --k)
+      if (!group_joints[k]->getParentLinkModel() || group_joints[k]->getParentLinkModel()->getParentJointModel() != group_joints[k-1])
+      {
+        chain = false;
+        break;
+      }    
+    if (chain)
+      is_chain_ = true;  
+  }
 }
 
 kinematic_model::JointModelGroup::~JointModelGroup()
