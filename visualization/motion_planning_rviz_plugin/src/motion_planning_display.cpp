@@ -906,7 +906,8 @@ void MotionPlanningDisplay::changedPlanningGroup()
       planning_group_property_->setStdString("");
       return;
     }
-
+  modified_groups_.insert(planning_group_property_->getStdString());
+  
   if (robot_interaction_)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
   
@@ -988,7 +989,11 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   if (!groups.empty() && planning_group_property_->getStdString().empty())
     planning_group_property_->setStdString(groups[0]);
 
-  robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
+  const std::string &group = planning_group_property_->getStdString();
+  modified_groups_.clear();
+  if (!group.empty())
+    modified_groups_.insert(group);
+  robot_interaction_->decideActiveComponents(group);
   kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(getKinematicModel()));
   
   geometry_msgs::Vector3 gravity_vector;
@@ -1006,76 +1011,44 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   updateQueryGoalState();
 }
 
-namespace
+void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &dest, const robot_state::RobotState &src)
 {
-struct AttachedBodyInfo
-{
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  std::string link;
-  std::string id;
-  std::vector<shapes::ShapeConstPtr> shapes;
-  EigenSTL::vector_Affine3d attach_trans;
-  std::vector<std::string> touch_links;
-};
-}
-
-void MotionPlanningDisplay::updateStateExceptGroup(robot_state::RobotState &dest, const robot_state::RobotState &src, const std::string &group)
-{
-  const robot_state::JointStateGroup *jsg = dest.getJointStateGroup(group);
-  if (jsg)
+  robot_state::RobotState src_copy = src;
+  for (std::set<std::string>::const_iterator it = modified_groups_.begin() ; it != modified_groups_.end() ; ++it)
   {
-    // remember the joint values for the group that should not be updated
-    std::map<std::string, double> values_to_keep;
-    jsg->getVariableValues(values_to_keep);
-
-    const std::vector<std::string> &links = jsg->getJointModelGroup()->getUpdatedLinkModelNames();
-
-    // remember the attached bodies to keep
-    std::vector<AttachedBodyInfo*> ab_to_keep;
-    for (std::size_t i = 0 ; i < links.size() ; ++i)
+    const robot_state::JointStateGroup *jsg = dest.getJointStateGroup(*it);
+    if (jsg)
     {
-      robot_state::LinkState *ls = dest.getLinkState(links[i]);
-      if (ls)
+      std::map<std::string, double> values_to_keep;
+      jsg->getVariableValues(values_to_keep);
+      src_copy.setStateValues(values_to_keep);
+      
+      const std::vector<std::string> &links = jsg->getJointModelGroup()->getLinkModelNames();
+      for (std::size_t i = 0 ; i < links.size() ; ++i)
       {
-        std::vector<const robot_state::AttachedBody*> attached_bodies;
-        ls->getAttachedBodies(attached_bodies);
-        for (std::size_t j = 0 ; j < attached_bodies.size() ; ++j)
+        robot_state::LinkState *ls_src = src_copy.getLinkState(links[i]); 
+        robot_state::LinkState *ls = dest.getLinkState(links[i]);
+        if (ls_src && ls)
         {
-          AttachedBodyInfo *ab = new AttachedBodyInfo();
-          ab->link = links[i];
-          ab->id = attached_bodies[j]->getName();
-          ab->shapes = attached_bodies[j]->getShapes();
-          ab->touch_links.insert(ab->touch_links.end(), attached_bodies[j]->getTouchLinks().begin(), attached_bodies[j]->getTouchLinks().end());
-          ab-> attach_trans = attached_bodies[j]->getFixedTransforms();
-          ab_to_keep.push_back(ab);
+          ls_src->clearAttachedBodies();
+          std::vector<const robot_state::AttachedBody*> attached_bodies;
+          ls->getAttachedBodies(attached_bodies);
+          for (std::size_t j = 0 ; j < attached_bodies.size() ; ++j)
+          {
+            std::vector<std::string> touch_links(attached_bodies[j]->getTouchLinks().begin(), attached_bodies[j]->getTouchLinks().end());
+            ls_src->attachBody(attached_bodies[j]->getName(),
+                               attached_bodies[j]->getShapes(),
+                               attached_bodies[j]->getFixedTransforms(),
+                               touch_links);
+          }
         }
+        
       }
     }
-
-    // overwrite the destination state
-    dest = src;
-
-    // restore the joint values we want to keep
-    dest.setStateValues(values_to_keep);
-
-    // clear the attached bodies that may have been copied over, for the group we know
-    for (std::size_t i = 0 ; i < links.size() ; ++i)
-    {
-      robot_state::LinkState *ls = dest.getLinkState(links[i]);
-      if (ls)
-        ls->clearAttachedBodies();
-    }
-
-    // set the attached bodies we wanted to keep
-    for (std::size_t i = 0 ; i < ab_to_keep.size() ; ++i)
-    {
-      robot_state::LinkState *ls = dest.getLinkState(ab_to_keep[i]->link);
-      if (ls)
-        ls->attachBody(ab_to_keep[i]->id, ab_to_keep[i]->shapes, ab_to_keep[i]->attach_trans, ab_to_keep[i]->touch_links);
-      delete ab_to_keep[i];
-    }
   }
+  
+  // overwrite the destination state
+  dest = src_copy;
 }
 
 void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
@@ -1087,14 +1060,14 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor:
   if (query_start_state_property_->getBool() && !group.empty())
   {
     robot_state::RobotState start = *getQueryStartState();
-    updateStateExceptGroup(start, current_state, group);
+    updateStateExceptModified(start, current_state);
     setQueryStartState(start);
   }
 
   if (query_goal_state_property_->getBool() && !group.empty())
   {
     robot_state::RobotState goal = *getQueryGoalState();
-    updateStateExceptGroup(goal, current_state, group);
+    updateStateExceptModified(goal, current_state);
     setQueryGoalState(goal);
   }
 
