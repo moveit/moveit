@@ -194,7 +194,7 @@ void robot_state::JointStateGroup::setToRandomValues()
 }
 
 void robot_state::JointStateGroup::setToRandomValuesNearBy(const std::vector<double> &near, 
-                                                               const std::map<kinematic_model::JointModel::JointType, double> &distance_map)
+                                                           const std::map<kinematic_model::JointModel::JointType, double> &distance_map)
 {
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
   std::vector<double> variable_values;
@@ -203,7 +203,7 @@ void robot_state::JointStateGroup::setToRandomValuesNearBy(const std::vector<dou
 }
 
 void robot_state::JointStateGroup::setToRandomValuesNearBy(const std::vector<double> &near, 
-                                                               const std::vector<double> &distances)
+                                                           const std::vector<double> &distances)
 {
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
   std::vector<double> variable_values;
