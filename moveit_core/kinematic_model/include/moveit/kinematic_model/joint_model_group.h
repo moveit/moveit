@@ -213,6 +213,9 @@ public:
     return joint_variables_index_map_;
   }
   
+  /** \brief get the names of the known default states (as specified in the SRDF) */
+  void getKnownDefaultStates(std::vector<std::string> &default_states) const;
+  
   /** \brief Get the values that correspond to a named state as read from the URDF. Return false on failure. */
   bool getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const;
   
