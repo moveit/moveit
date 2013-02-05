@@ -125,7 +125,7 @@ void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shar
   octree_binary_pub_ = root_nh_.advertise<octomap_msgs::Octomap>("octomap_binary", 1);
 }
 
-void OccupancyMapMonitor::treeUpdateThread(void)
+void OccupancyMapMonitor::treeUpdateThread()
 {
   std::set<OccupancyMapUpdater*> ready;
   while (tree_update_thread_running_)
@@ -161,27 +161,27 @@ void OccupancyMapMonitor::updateReady(OccupancyMapUpdater *updater)
   update_cond_.notify_all();
 }
 
-void OccupancyMapMonitor::lockOcTreeRead(void)
+void OccupancyMapMonitor::lockOcTreeRead()
 {
   tree_mutex_.lock_shared();
 }
 
-void OccupancyMapMonitor::unlockOcTreeRead(void)
+void OccupancyMapMonitor::unlockOcTreeRead()
 {
   tree_mutex_.unlock_shared();
 }
 
-void OccupancyMapMonitor::lockOcTreeWrite(void)
+void OccupancyMapMonitor::lockOcTreeWrite()
 {
   tree_mutex_.lock();
 }
 
-void OccupancyMapMonitor::unlockOcTreeWrite(void)
+void OccupancyMapMonitor::unlockOcTreeWrite()
 {
   tree_mutex_.unlock();
 }
 
-void OccupancyMapMonitor::publish_octomap_binary(void)
+void OccupancyMapMonitor::publish_octomap_binary()
 {
   octomap_msgs::Octomap map;
 
@@ -198,7 +198,7 @@ void OccupancyMapMonitor::publish_octomap_binary(void)
   }
 }
 
-void OccupancyMapMonitor::startMonitor(void)
+void OccupancyMapMonitor::startMonitor()
 {
   if (!tree_update_thread_running_)
   {
@@ -213,7 +213,7 @@ void OccupancyMapMonitor::startMonitor(void)
   }
 }
 
-void OccupancyMapMonitor::stopMonitor(void)
+void OccupancyMapMonitor::stopMonitor()
 { 
   if (tree_update_thread_running_)
   {
@@ -223,7 +223,7 @@ void OccupancyMapMonitor::stopMonitor(void)
   }
 }
 
-OccupancyMapMonitor::~OccupancyMapMonitor(void)
+OccupancyMapMonitor::~OccupancyMapMonitor()
 {
   stopMonitor();
 }

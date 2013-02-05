@@ -174,8 +174,8 @@ bool KinematicsReachability::computeWorkspaceFK(moveit_ros_planning::WorkspacePo
   }
   
   ros::WallTime start_time = ros::WallTime::now();  
-  kinematic_state::KinematicState kinematic_state = planning_scene_monitor_->getPlanningScene()->getCurrentState();
-  kinematic_state::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(workspace.group_name);  
+  robot_state::RobotState kinematic_state = planning_scene_monitor_->getPlanningScene()->getCurrentState();
+  robot_state::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(workspace.group_name);  
 
   moveit_msgs::MoveItErrorCodes error_code;  
   int points = 0;
@@ -241,7 +241,7 @@ bool KinematicsReachability::getOnlyReachableWorkspace(moveit_ros_planning::Work
   return true;
 }
 
-bool KinematicsReachability::getManipulabilityIndex(const kinematic_state::KinematicState &kinematic_state,
+bool KinematicsReachability::getManipulabilityIndex(const robot_state::RobotState &kinematic_state,
                                                     const std::string &group_name,
                                                     double &manipulability_index) const
 {
@@ -254,7 +254,7 @@ bool KinematicsReachability::getManipulabilityIndex(const kinematic_state::Kinem
   return true;
 }
 
-bool KinematicsReachability::checkState(const kinematic_state::KinematicState &kinematic_state,
+bool KinematicsReachability::checkState(const robot_state::RobotState &kinematic_state,
                                         const std::string &group_name) const
 {
   if(!kinematic_state.hasJointStateGroup(group_name))
@@ -262,7 +262,7 @@ bool KinematicsReachability::checkState(const kinematic_state::KinematicState &k
   return true;
 }
 
-Eigen::MatrixXd KinematicsReachability::getJacobian(const kinematic_state::KinematicState &kinematic_state,
+Eigen::MatrixXd KinematicsReachability::getJacobian(const robot_state::RobotState &kinematic_state,
                                                     const std::string &group_name) const
 {
   Eigen::MatrixXd jcbian;
@@ -360,7 +360,7 @@ void KinematicsReachability::findIKSolutions(moveit_ros_planning::WorkspacePoint
     {
       visualize(workspace,"solutions");
       //visualization_msgs::Marker marker;
-      kinematic_state::KinematicState kinematic_state = planning_scene_monitor_->getPlanningScene()->getCurrentState();
+      robot_state::RobotState kinematic_state = planning_scene_monitor_->getPlanningScene()->getCurrentState();
       double manipulability_index;
       std::string group_name = "arm";
       bool manipulability_success = getManipulabilityIndex(kinematic_state, group_name, manipulability_index); 
@@ -449,9 +449,9 @@ void KinematicsReachability::getDefaultIKRequest(const std::string &group_name,
   moveit_msgs::GetKinematicSolverInfo::Response response;
 
   kinematic_model::KinematicModelConstPtr kinematic_model = kinematics_solver_->getKinematicModel();
-  kinematic_state::KinematicState kinematic_state(kinematic_model);
+  robot_state::RobotState kinematic_state(kinematic_model);
   const kinematic_model::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name);
-  kinematic_state::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(group_name);
+  robot_state::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(group_name);
   joint_state_group->setToRandomValues();
   
   req.timeout = ros::Duration(kinematics_solver_timeout_);

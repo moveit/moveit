@@ -1,8 +1,8 @@
 
-set(MOVEIT_LIB_NAME moveit_render_tools)
+set(MOVEIT_LIB_NAME moveit_rviz_plugin_render_tools)
 add_library(${MOVEIT_LIB_NAME} 
   src/render_shapes.cpp
-  src/kinematic_state_visualization.cpp
+  src/robot_state_visualization.cpp
   src/planning_scene_render.cpp
   src/planning_link_updater.cpp
   src/octomap_render.cpp

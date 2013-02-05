@@ -32,7 +32,7 @@
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
@@ -55,7 +55,7 @@
 namespace moveit_rviz_plugin
 {
 
-void MotionPlanningFrame::saveSceneButtonClicked(void)
+void MotionPlanningFrame::saveSceneButtonClicked()
 {
   if (planning_scene_storage_)
   {
@@ -104,12 +104,12 @@ void MotionPlanningFrame::saveSceneButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::planningSceneItemClicked(void)
+void MotionPlanningFrame::planningSceneItemClicked()
 {
   checkPlanningSceneTreeEnabledButtons();
 }
 
-void MotionPlanningFrame::saveQueryButtonClicked(void)
+void MotionPlanningFrame::saveQueryButtonClicked()
 {
   if (planning_scene_storage_)
   {
@@ -169,22 +169,22 @@ void MotionPlanningFrame::saveQueryButtonClicked(void)
   }
 }
 
-void MotionPlanningFrame::deleteSceneButtonClicked(void)
+void MotionPlanningFrame::deleteSceneButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDeleteSceneButtonClicked, this));
 }
 
-void MotionPlanningFrame::deleteQueryButtonClicked(void)
+void MotionPlanningFrame::deleteQueryButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDeleteQueryButtonClicked, this));
 }
 
-void MotionPlanningFrame::loadSceneButtonClicked(void)
+void MotionPlanningFrame::loadSceneButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadSceneButtonClicked, this));
 }
 
-void MotionPlanningFrame::loadQueryButtonClicked(void)
+void MotionPlanningFrame::loadQueryButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadQueryButtonClicked, this));
 }
@@ -234,7 +234,7 @@ void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int co
   }
 }
 
-void MotionPlanningFrame::populatePlanningSceneTreeView(void)
+void MotionPlanningFrame::populatePlanningSceneTreeView()
 {
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
   if (!planning_scene_storage)

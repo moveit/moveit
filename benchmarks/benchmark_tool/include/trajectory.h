@@ -32,7 +32,9 @@
 #ifndef BT_TRAJECTORY
 #define BT_TRAJECTORY
 
+#ifndef Q_MOC_RUN
 #include <frame_marker.h>
+#endif
 
 namespace benchmark_tool
 {
@@ -68,7 +70,7 @@ public:
   Eigen::Affine3d control_marker_start_pose; // The control marker pose corresponding to the start marker
   Eigen::Affine3d control_marker_end_pose;   // The control marker pose corresponding to the end marker
 
-  Trajectory(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+  Trajectory(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
              const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
              const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints, bool is_selected = true,
              bool visible_x = true, bool visible_y = true, bool visible_z = true);
@@ -129,7 +131,7 @@ public:
   ~Trajectory() {}
 
 protected:
-  void createControlMarker(const kinematic_state::KinematicState& kinematic_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
+  void createControlMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                          const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                          const GripperMarker::GripperMarkerState &state, bool is_selected = true,
                          bool visible_x = true, bool visible_y = true, bool visible_z = true);

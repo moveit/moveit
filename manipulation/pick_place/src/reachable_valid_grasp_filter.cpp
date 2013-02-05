@@ -54,24 +54,24 @@ ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const planning_scene:
 }
 
 bool ReachableAndValidGraspFilter::isStateCollisionFree(const ManipulationPlan *manipulation_plan,
-                                                        kinematic_state::JointStateGroup *joint_state_group,
+                                                        robot_state::JointStateGroup *joint_state_group,
                                                         const std::vector<double> &joint_group_variable_values) const
 {
   joint_state_group->setVariableValues(joint_group_variable_values);  
   // apply pre-grasp pose for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-  joint_state_group->getKinematicState()->setStateValues(manipulation_plan->grasp_.pre_grasp_posture);
+  joint_state_group->getRobotState()->setStateValues(manipulation_plan->grasp_.pre_grasp_posture);
   
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = manipulation_plan->planning_group_;
-  planning_scene_->checkCollision(req, res, *joint_state_group->getKinematicState(), *collision_matrix_);
+  planning_scene_->checkCollision(req, res, *joint_state_group->getRobotState(), *collision_matrix_);
   if (res.collision == false)
-    return planning_scene_->isStateFeasible(*joint_state_group->getKinematicState());
+    return planning_scene_->isStateFeasible(*joint_state_group->getRobotState());
   else
     return false;  
 }
 
-bool ReachableAndValidGraspFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, kinematic_state::KinematicState &token_state) const
+bool ReachableAndValidGraspFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const
 {
   Eigen::Affine3d eigen_pose;
   tf::poseMsgToEigen(plan->grasp_.grasp_pose, eigen_pose);
@@ -86,7 +86,7 @@ bool ReachableAndValidGraspFilter::isEndEffectorFree(const ManipulationPlanPtr &
 bool ReachableAndValidGraspFilter::evaluate(const ManipulationPlanPtr &plan) const
 {   
   // initialize with scene state 
-  kinematic_state::KinematicStatePtr token_state(new kinematic_state::KinematicState(planning_scene_->getCurrentState()));
+  robot_state::RobotStatePtr token_state(new robot_state::RobotState(planning_scene_->getCurrentState()));
   if (isEndEffectorFree(plan, *token_state))
   {
     geometry_msgs::PoseStamped pose;

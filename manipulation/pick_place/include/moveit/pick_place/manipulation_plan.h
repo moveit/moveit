@@ -38,7 +38,7 @@
 #define MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
 
 #include <boost/shared_ptr.hpp>
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
 #include <manipulation_msgs/Grasp.h>
 #include <moveit_msgs/RobotState.h>
@@ -68,16 +68,12 @@ struct ManipulationPlan
   moveit_msgs::Constraints goal_constraints_;
   constraint_samplers::ConstraintSamplerPtr goal_sampler_;
   unsigned int sampling_attempts_;
-  std::vector<kinematic_state::KinematicStatePtr> possible_goal_states_;
+  std::vector<robot_state::RobotStatePtr> possible_goal_states_;
 
-  kinematic_state::KinematicStatePtr approach_state_;
-  kinematic_state::KinematicStatePtr translation_state_;
-  
-  // The full starting state of the robot at the start of the trajectory
-  moveit_msgs::RobotState trajectory_start_;
+  robot_state::RobotStatePtr approach_state_;
   
   // The sequence of trajectories produced for execution
-  std::vector<moveit_msgs::RobotTrajectory> trajectories_;
+  std::vector<robot_trajectory::RobotTrajectoryPtr> trajectories_;
   
   // String descriptors of the trajectories
   std::vector<std::string> trajectory_descriptions_;

@@ -53,7 +53,7 @@ public:
     return true;
   }
   
-  virtual bool cancelExecution(void)
+  virtual bool cancelExecution()
   {
     return true;
   }
@@ -63,7 +63,7 @@ public:
     return false;
   }
     
-  virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus(void)
+  virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus()
   {
     return moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   }
@@ -77,7 +77,7 @@ public:
   static const int ACTIVE = 2;
   static const int DEFAULT = 4;
   
-  TestMoveItControllerManager(void)
+  TestMoveItControllerManager()
   {
     controllers_["right_arm"] = DEFAULT;
     controllers_["left_arm"] = LOADED + ACTIVE + DEFAULT;

@@ -264,7 +264,7 @@ void MainWindow::saveTrajectoriesOnDBButtonClicked(void)
       for (std::size_t w = 0; w < it->second->waypoint_markers.size(); ++w)
       {
         moveit_msgs::Constraints c;
-        c.name = it->first;
+        c.name = it->second->waypoint_markers[w]->getName();
 
         shape_msgs::SolidPrimitive sp;
         sp.type = sp.BOX;

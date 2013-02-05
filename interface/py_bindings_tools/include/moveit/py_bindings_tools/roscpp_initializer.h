@@ -48,7 +48,7 @@ namespace moveit_py_bindings_tools
 class ROScppInitializer
 {
 public:
-  ROScppInitializer(void);
+  ROScppInitializer();
 };
 
 }

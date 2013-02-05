@@ -32,20 +32,23 @@
 #ifndef BT_MAIN_WINDOW_
 #define BT_MAIN_WINDOW_
 
-#include <frame_marker.h>
-#include <trajectory.h>
-#include <job_processing.h>
-
 #include <QtGui/QMainWindow>
 #include <QTimer>
 #include <QSettings>
+
 #include "ui_main_window.h"
+
+#ifndef Q_MOC_RUN
+
+#include <frame_marker.h>
+#include <trajectory.h>
+#include <job_processing.h>
 
 #include <rviz/render_panel.h>
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 
-#include <moveit/render_tools/kinematic_state_visualization.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/warehouse/planning_scene_storage.h>
@@ -53,6 +56,8 @@
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 #include <moveit/robot_interaction/robot_interaction.h>
+
+#endif
 
 namespace benchmark_tool
 {
@@ -90,7 +95,8 @@ public Q_SLOTS:
   void checkGoalsInCollision(void);
   void checkGoalsReachable(void);
   void loadBenchmarkResults(void);
-  void updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
+  void updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state);
+  void updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
 
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
@@ -131,7 +137,7 @@ private:
 
   void scheduleStateUpdate();
   void scheduleStateUpdateBackgroundJob();
-  bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution);
+  bool isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution);
   bool configure();
   void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);

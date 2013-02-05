@@ -50,8 +50,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   QWidget(parent),
   planning_display_(pdisplay),
   context_(context),
-  ui_(new Ui::MotionPlanningUI()),
-  goal_pose_dragging_(false)
+  ui_(new Ui::MotionPlanningUI())
 {
   // set up the GUI
   ui_->setupUi(this);
@@ -102,46 +101,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   QShortcut *copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
   connect(copy_object_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedCollisionObject() ) );
 
-  //Goal poses
-  connect( ui_->goal_poses_add_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
-  connect( ui_->goal_poses_remove_button, SIGNAL( clicked() ), this, SLOT( deleteGoalsOnDBButtonClicked() ));
-  connect( ui_->load_poses_filter_text, SIGNAL( returnPressed() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
-  connect( ui_->goal_poses_open_button, SIGNAL( clicked() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
-  connect( ui_->goal_poses_save_button, SIGNAL( clicked() ), this, SLOT( saveGoalsOnDBButtonClicked() ));
-  connect( ui_->goal_switch_visibility_button, SIGNAL( clicked() ), this, SLOT( switchGoalVisibilityButtonClicked() ));
-  connect( ui_->goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
-  connect( ui_->goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
-  connect( ui_->show_x_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
-  connect( ui_->show_y_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
-  connect( ui_->show_z_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
-  connect( ui_->check_goal_collisions_button, SIGNAL( clicked( ) ), this, SLOT( checkGoalsInCollision( ) ));
-  connect( ui_->check_goal_reachability_button, SIGNAL( clicked( ) ), this, SLOT( checkGoalsReachable( ) ));
-  connect( ui_->load_results_button, SIGNAL( clicked( ) ), this, SLOT( loadBenchmarkResults( ) ));
-
-  QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->goal_poses_list);
-  connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
-
-  //Goal poses icons
-  ui_->goal_poses_open_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
-  ui_->goal_poses_add_button->setIcon(QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
-  ui_->goal_poses_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
-  ui_->goal_poses_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
-  ui_->goal_switch_visibility_button->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton));
-
-  //Start states
-  connect( ui_->start_states_add_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
-  connect( ui_->start_states_remove_button, SIGNAL( clicked() ), this, SLOT( deleteStatesOnDBButtonClicked() ));
-  connect( ui_->load_states_filter_text, SIGNAL( returnPressed() ), this, SLOT( loadStatesFromDBButtonClicked() ));
-  connect( ui_->start_states_open_button, SIGNAL( clicked() ), this, SLOT( loadStatesFromDBButtonClicked() ));
-  connect( ui_->start_states_save_button, SIGNAL( clicked() ), this, SLOT( saveStatesOnDBButtonClicked() ));
-  connect( ui_->start_states_list, SIGNAL( itemDoubleClicked(QListWidgetItem*) ), this, SLOT( startStateItemDoubleClicked(QListWidgetItem*) ));
-
-  //Start states icons
-  ui_->start_states_open_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
-  ui_->start_states_add_button->setIcon(QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
-  ui_->start_states_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
-  ui_->start_states_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
-
   ui_->reset_db_button->hide();
   ui_->background_job_progress->hide(); 
   ui_->background_job_progress->setMaximum(0);
@@ -154,14 +113,16 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
 
-MotionPlanningFrame::~MotionPlanningFrame(void)
+MotionPlanningFrame::~MotionPlanningFrame()
 {
 }
 
+/*
 void MotionPlanningFrame::selectItemJob(QListWidgetItem *item, bool flag)
 {
   item->setSelected(flag);
 }
+*/
 
 void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list) 
 {
@@ -170,7 +131,7 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
     found_items[i]->setSelected(selection);
 }
 
-void MotionPlanningFrame::changePlanningGroupHelper(void)
+void MotionPlanningFrame::changePlanningGroupHelper()
 { 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
@@ -206,7 +167,7 @@ void MotionPlanningFrame::changePlanningGroupHelper(void)
   } 
 }
 
-void MotionPlanningFrame::changePlanningGroup(void)
+void MotionPlanningFrame::changePlanningGroup()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::changePlanningGroupHelper, this));
 }
@@ -308,7 +269,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
   }
 }
 
-void MotionPlanningFrame::enable(void)
+void MotionPlanningFrame::enable()
 {
   ui_->planning_algorithm_combo_box->clear();  
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
@@ -317,15 +278,11 @@ void MotionPlanningFrame::enable(void)
 
   changePlanningGroup();
 
-  for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
-    if (it->second.isVisible())
-      it->second.imarker->setShowAxes(false);
-
   // activate the frame
   show();
 }
 
-void MotionPlanningFrame::disable(void)
+void MotionPlanningFrame::disable()
 {
   move_group_.reset();
   hide();
@@ -338,35 +295,12 @@ void MotionPlanningFrame::tabChanged(int index)
   else
     if (ui_->tabWidget->tabText(index) == "Scene Objects")
       selectedCollisionObjectChanged();
-
-  //Create goals when entering the goals tab. Destroy them when exiting that tab
-  if (ui_->tabWidget->tabText(index) != "Stored Queries")
-  {
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it !=  goal_poses_.end(); it++)
-      it->second.hide();
-  }
-  else
-    if (ui_->tabWidget->tabText(index) == "Stored Queries")
-      for (unsigned int i = 0; i < ui_->goal_poses_list->count() ; ++i)
-      {
-        QListWidgetItem *item = ui_->goal_poses_list->item(i);
-        item->setBackground(QBrush(Qt::NoBrush));
-        goal_poses_[item->text().toStdString()].show(planning_display_, context_);
-      }
 }
 
 void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
 {
   if (scene_marker_)
     scene_marker_->update(wall_dt);
-}
-
-void MotionPlanningFrame::updateGoalPoseMarkers(float wall_dt, float ros_dt)
-{
-  if (goal_pose_dragging_)
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
-      if (it->second.isVisible())
-        it->second.imarker->update(wall_dt);
 }
 
 } // namespace

@@ -47,7 +47,7 @@ WarehouseConnector::WarehouseConnector(const std::string &mongoexec) : mongoexec
 {
 }
 
-WarehouseConnector::~WarehouseConnector(void)
+WarehouseConnector::~WarehouseConnector()
 {
   if (child_pid_ != 0)
     kill(child_pid_, SIGTERM);

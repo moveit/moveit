@@ -57,11 +57,8 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
   ui_.setupUi(this);
   settings_.reset(new QSettings("WillowGarage", "Benchmark Tool"));
-  QVariant previous_database_name = settings_->value("database_name", "");
-  if ( ! previous_database_name.toString().isEmpty() )
-  {
-    ui_.db_combo->addItem(previous_database_name.toString());
-  }
+  QVariant previous_database_names = settings_->value("database_name", QStringList());
+  ui_.db_combo->addItems(previous_database_names.toStringList());
 
   //Rviz render panel
   render_panel_ = new rviz::RenderPanel();
@@ -352,7 +349,7 @@ void MainWindow::planningGroupChanged(const QString &text)
       //Update the kinematic state associated to the goals
       for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
       {
-        it->second->setKinematicState(scene_display_->getPlanningSceneRO()->getCurrentState());
+        it->second->setRobotState(scene_display_->getPlanningSceneRO()->getCurrentState());
         it->second->setEndEffector(robot_interaction_->getActiveEndEffectors()[0]);
       }
     }
@@ -380,12 +377,12 @@ void MainWindow::robotInteractionButtonClicked()
   robot_interaction_->publishInteractiveMarkers();
 }
 
-bool MainWindow::isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution)
+bool MainWindow::isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution)
 {
   if (scene_display_)
   {
     group->setVariableValues(ik_solution);
-    return !scene_display_->getPlanningSceneRO()->isStateColliding(*group->getKinematicState(), group->getName());
+    return !scene_display_->getPlanningSceneRO()->isStateColliding(*group->getRobotState(), group->getName());
   }
   else
     return true;
@@ -404,7 +401,6 @@ void MainWindow::scheduleStateUpdateBackgroundJob()
 
 void MainWindow::dbConnectButtonClicked()
 {
-  settings_->setValue("database_name", ui_.db_combo->currentText());
   JobProcessing::addBackgroundJob(boost::bind(&MainWindow::dbConnectButtonClickedBackgroundJob, this));
 }
 
@@ -441,6 +437,19 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
 
     if (port > 0 && ! host_port[0].isEmpty())
     {
+      //Store into settings
+      QVariant previous_database_names = settings_->value("database_name", QStringList());
+      QStringList name_list = previous_database_names.toStringList();
+      name_list.removeAll(ui_.db_combo->currentText());
+      name_list.push_front(ui_.db_combo->currentText());
+      static const short db_names_history_size = 5;
+      if (name_list.size() > db_names_history_size)
+        name_list.pop_back();
+      settings_->setValue("database_name", name_list);
+      ui_.db_combo->clear();
+      ui_.db_combo->addItems(name_list);
+
+      //Connect
       JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : yellow }"));
       try
       {
@@ -496,12 +505,19 @@ void MainWindow::populatePlanningSceneList(void)
 
 void MainWindow::loadSceneButtonClicked(QListWidgetItem *item)
 {
-  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+  loadSceneButtonClicked();
 }
 
 void MainWindow::loadSceneButtonClicked(void)
 {
-  JobProcessing::addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+  if (ui_.planning_scene_list->currentItem() && ui_.planning_scene_list->currentItem()->text().toStdString() != scene_display_->getPlanningSceneRO()->getName())
+  {
+    ui_.goal_poses_list->clear();
+    ui_.trajectory_list->clear();
+    goal_poses_.clear();
+    trajectories_.clear();
+    JobProcessing::addBackgroundJob(boost::bind(&MainWindow::loadSceneButtonClickedBackgroundJob, this));
+  }
 }
 
 void MainWindow::loadSceneButtonClickedBackgroundJob(void)
@@ -542,6 +558,7 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
 
         //Configure ui elements
         ui_.load_poses_filter_text->setText(QString::fromStdString(scene + ".*"));
+        ui_.trajectories_filter_text->setText(QString::fromStdString(scene + ".*"));
         setStatusFromBackground(STATUS_INFO, QString::fromStdString(""));
       }
       else

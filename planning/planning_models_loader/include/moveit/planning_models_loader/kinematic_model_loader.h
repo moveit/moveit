@@ -72,50 +72,50 @@ public:
 
   KinematicModelLoader(const std::string &robot_description);
   
-  ~KinematicModelLoader(void);
+  ~KinematicModelLoader();
   
   /** @brief Get the constructed planning_models::KinematicModel */
-  const kinematic_model::KinematicModelPtr& getModel(void) const
+  const kinematic_model::KinematicModelPtr& getModel() const
   {
     return model_;
   }
   
   /** @brief Get the resolved parameter name for the robot description */
-  const std::string& getRobotDescription(void) const
+  const std::string& getRobotDescription() const
   {
     return robot_model_loader_->getRobotDescription();
   }
   
   /** @brief Get the parsed URDF model*/
-  const boost::shared_ptr<urdf::ModelInterface>& getURDF(void) const
+  const boost::shared_ptr<urdf::ModelInterface>& getURDF() const
   {
     return robot_model_loader_->getURDF();
   }
 
   /** @brief Get the parsed SRDF model*/
-  const boost::shared_ptr<srdf::Model>& getSRDF(void) const
+  const boost::shared_ptr<srdf::Model>& getSRDF() const
   {
     return robot_model_loader_->getSRDF();
   }
 
   /** @brief Get the instance of robot_model_loader::RobotModelLoader that was used to load the robot description */
-  const robot_model_loader::RobotModelLoaderPtr& getRobotModelLoader(void) const
+  const robot_model_loader::RobotModelLoaderPtr& getRobotModelLoader() const
   {
     return robot_model_loader_;
   }
 
   /** \brief Get the kinematics solvers plugin loader. 
       \note This instance needs to be kept in scope, otherwise kinematics solver plugins may get unloaded. */
-  const kinematics_plugin_loader::KinematicsPluginLoaderPtr& getKinematicsPluginLoader(void) const
+  const kinematics_plugin_loader::KinematicsPluginLoaderPtr& getKinematicsPluginLoader() const
   {
     return kinematics_loader_;
   }
 
   /** @brief Get a map from group name to a configured instance of a kinematic solver */
-  std::map<std::string, kinematics::KinematicsBasePtr> generateKinematicsSolversMap(void) const;
+  std::map<std::string, kinematics::KinematicsBasePtr> generateKinematicsSolversMap() const;
   
   /** @brief Load the kinematics solvers into the kinematic model. This is done by default, unless disabled explicitly by the options passed to the constructor */
-  void loadKinematicsSolvers(void);
+  void loadKinematicsSolvers();
   
 private:
 
