@@ -273,6 +273,14 @@ void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numb
     joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distances[i]);
 }
 
+void kinematic_model::JointModelGroup::getKnownDefaultStates(std::vector<std::string> &default_states) const
+{  
+  default_states.clear();
+  default_states.reserve(default_states_.size());
+  for (std::map<std::string, std::map<std::string, double> >::const_iterator it = default_states_.begin() ; it != default_states_.end() ; ++it)
+    default_states.push_back(it->first);
+}
+
 bool kinematic_model::JointModelGroup::getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const
 {
   std::map<std::string, std::map<std::string, double> >::const_iterator it = default_states_.find(name);
