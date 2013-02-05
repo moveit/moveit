@@ -93,17 +93,16 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
                                      std::min(joint_bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
     
 
-    logDebug("Bounds for %s JointConstraint are %g %g", jc[i].getJointVariableName().c_str(),ji.min_bound_,ji.max_bound_);
+    logDebug("Bounds for %s JointConstraint are %g %g", jc[i].getJointVariableName().c_str(), ji.min_bound_, ji.max_bound_);
 
-    if (ji.min_bound_ > ji.max_bound_+std::numeric_limits<double>::epsilon())
+    if (ji.min_bound_ > ji.max_bound_ + std::numeric_limits<double>::epsilon())
     {
       std::stringstream cs; jc[i].print(cs);
       logError("The constraints for joint '%s' are such that there are no possible values for the joint - min_bound: %g, max_bound: %g. Failing.\n", jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
       clear();
       return false;
     }
-    if (jm->getVariableCount() == 1)
-      bound_data[jc[i].getJointVariableName()] = ji;      
+    bound_data[jc[i].getJointVariableName()] = ji;      
   }
 
   if (!some_valid_constraint)
@@ -120,6 +119,20 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
     if (bound_data.find(joints[i]->getName()) == bound_data.end())
     {
+      // check if all the vars of the joint are found in bound_data instead
+      const std::vector<std::string> &vars = joints[i]->getVariableNames();
+      if (vars.size() > 1)
+      {
+        bool all_found = true;
+        for (std::size_t j = 0 ; j < vars.size() ; ++j)
+          if (bound_data.find(vars[j]) == bound_data.end())
+          {
+            all_found = false;
+            break;
+          }
+        if (all_found)
+          continue;
+      }
       unbounded_.push_back(joints[i]);
       uindex_.push_back(vim.find(joints[i]->getName())->second);
     } 
@@ -157,7 +170,7 @@ bool constraint_samplers::JointConstraintSampler::sample(robot_state::JointState
   // enforce the constraints for the constrained components (could be all of them)
   for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
     values_[bounds_[i].index_] = random_number_generator_.uniformReal(bounds_[i].min_bound_, bounds_[i].max_bound_);
-
+  
   jsg->setVariableValues(values_);
 
   // we are always successful
