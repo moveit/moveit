@@ -125,7 +125,8 @@ void MotionPlanningFrame::useGoalStateButtonClicked()
 void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state, const std::string &v)
 {
   if (v == "<random>")
-  { 
+  {
+    configureWorkspace();
     if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(planning_display_->getCurrentPlanningGroup()))
       jsg->setToRandomValues();
   }
@@ -226,17 +227,47 @@ void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanReques
   }
 }
 
+void MotionPlanningFrame::configureWorkspace()
+{
+  kinematic_model::JointModel::Bounds b(3);
+  b[0].first = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
+  b[0].second = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
+  b[1].first = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
+  b[1].second = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
+  b[2].first = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;
+  b[2].second = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
+  
+  if (move_group_)
+    move_group_->setWorkspace(b[0].first, b[1].first, b[2].first,
+                              b[0].second, b[1].second, b[2].second);
+  // get non-const access to the kmodel and update planar & floating joints as indicated by the workspace settings
+  if (planning_display_->getPlanningSceneMonitor() && planning_display_->getPlanningSceneMonitor()->getKinematicModelLoader() && 
+      planning_display_->getPlanningSceneMonitor()->getKinematicModelLoader()->getModel())
+  {
+    const kinematic_model::KinematicModelPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModelLoader()->getModel(); 
+    const std::vector<kinematic_model::JointModel*> &jm = kmodel->getJointModels();
+    for (std::size_t i = 0 ; i < jm.size() ; ++i)
+      if (jm[i]->getType() == kinematic_model::JointModel::PLANAR)
+      {
+        jm[i]->setVariableBounds(jm[i]->getName() + "/x", b[0]);
+        jm[i]->setVariableBounds(jm[i]->getName() + "/y", b[1]);
+      }
+      else
+        if (jm[i]->getType() == kinematic_model::JointModel::FLOATING)
+        {
+          jm[i]->setVariableBounds(jm[i]->getName() + "/x", b[0]);
+          jm[i]->setVariableBounds(jm[i]->getName() + "/y", b[1]);
+          jm[i]->setVariableBounds(jm[i]->getName() + "/z", b[2]);
+        }    
+  }
+}
+
 void MotionPlanningFrame::configureForPlanning()
 {
   move_group_->setStartState(*planning_display_->getQueryStartState());
   move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
   move_group_->setPlanningTime(ui_->planning_time->value());
-  move_group_->setWorkspace(ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0,
-                            ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0,
-                            ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0,
-                            ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0,
-                            ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0,
-                            ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0);
+  configureWorkspace();
 }
 
 }
