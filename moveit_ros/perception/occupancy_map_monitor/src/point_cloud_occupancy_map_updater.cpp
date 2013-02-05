@@ -233,7 +233,7 @@ void PointCloudOccupancyMapUpdater::processCloud(const OccMapTreePtr &tree, cons
   ROS_DEBUG("Marking occupied cells in octomap");
   
   /* now mark all occupied cells */
-  for (octomap::KeySet::iterator it = occupied_cells.begin(), end = free_cells.end(); it != end; it++)
+  for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; it++)
     tree->updateNode(*it, true);
 }
 
