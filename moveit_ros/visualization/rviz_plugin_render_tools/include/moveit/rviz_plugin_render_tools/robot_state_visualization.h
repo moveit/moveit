@@ -29,10 +29,10 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_KINEMATIC_STATE_VISUALIZATION_
-#define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_KINEMATIC_STATE_VISUALIZATION_
+#ifndef MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_ROBOT_STATE_VISUALIZATION_
+#define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_ROBOT_STATE_VISUALIZATION_
 
-#include <moveit/kinematic_state/kinematic_state.h>
+#include <moveit/robot_state/robot_state.h>
 #include <rviz/robot/robot.h>
 
 namespace moveit_rviz_plugin
@@ -41,15 +41,15 @@ namespace moveit_rviz_plugin
 class RenderShapes;
 typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
 
-/** \brief Update the links of an rviz::Robot using a kinematic_state::KinematicState */
-class KinematicStateVisualization
+/** \brief Update the links of an rviz::Robot using a robot_state::RobotState */
+class RobotStateVisualization
 {
 public:
   
-  KinematicStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
+  RobotStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
                               const std::string& name, rviz::Property* parent_property);
 
-  rviz::Robot& getRobot(void)
+  rviz::Robot& getRobot()
   {
     return robot_;
   }
@@ -57,9 +57,9 @@ public:
   void load(const urdf::ModelInterface &descr, bool visual = true, bool collision = true);
   void clear();
 
-  void update(const kinematic_state::KinematicStateConstPtr &kinematic_state);
-  void update(const kinematic_state::KinematicStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color);
-  void update(const kinematic_state::KinematicStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color, 
+  void update(const robot_state::RobotStateConstPtr &kinematic_state);
+  void update(const robot_state::RobotStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color);
+  void update(const robot_state::RobotStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color, 
               const std::map<std::string, std_msgs::ColorRGBA> &color_map);
   void setDefaultAttachedObjectColor(const std_msgs::ColorRGBA &default_attached_object_color);
 
@@ -85,7 +85,7 @@ public:
 
 private:
   
-  void updateHelper(const kinematic_state::KinematicStateConstPtr &kinematic_state,
+  void updateHelper(const robot_state::RobotStateConstPtr &kinematic_state,
                     const std_msgs::ColorRGBA &default_attached_object_color,
                     const std::map<std::string, std_msgs::ColorRGBA> *color_map);
   rviz::Robot robot_;
@@ -97,8 +97,8 @@ private:
   
 };
 
-typedef boost::shared_ptr<KinematicStateVisualization> KinematicStateVisualizationPtr;
-typedef boost::shared_ptr<const KinematicStateVisualization> KinematicStateVisualizationConstPtr;
+typedef boost::shared_ptr<RobotStateVisualization> RobotStateVisualizationPtr;
+typedef boost::shared_ptr<const RobotStateVisualization> RobotStateVisualizationConstPtr;
 
 }
 

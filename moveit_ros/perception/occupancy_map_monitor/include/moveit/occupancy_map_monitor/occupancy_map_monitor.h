@@ -56,7 +56,7 @@ public:
   
   struct Options
   {
-    Options(void) : map_resolution(0.0)
+    Options() : map_resolution(0.0)
     {
     }
     
@@ -67,43 +67,43 @@ public:
   OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf); 
   OccupancyMapMonitor(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf);
 
-  ~OccupancyMapMonitor(void);
+  ~OccupancyMapMonitor();
   
   /** @brief start the monitor (will begin updating the octomap */
-  void startMonitor(void);
+  void startMonitor();
   
-  void stopMonitor(void);
+  void stopMonitor();
   
   /** @brief Get a pointer to the underlying octree for this monitor. Lock the tree before reading or writing using this
    *  pointer. The value od this pointer stays the same throughout the existance of the monitor instance. */
-  OccMapTreePtr getOcTreePtr(void)
+  OccMapTreePtr getOcTreePtr()
   {
     return tree_;
   }
 
   /** @brief Get a const pointer to the underlying octree for this monitor. Lock the
    *  tree before reading this pointer */
-  OccMapTreeConstPtr getOcTreePtr(void) const
+  OccMapTreeConstPtr getOcTreePtr() const
   {
     return tree_const_;
   }
     
   /** @brief lock the underlying octree. it will not be read or written by the
    *  monitor until unlockTree() is called */
-  void lockOcTreeRead(void);
+  void lockOcTreeRead();
   
   /** @brief unlock the underlying octree. */
-  void unlockOcTreeRead(void);
+  void unlockOcTreeRead();
     
   /** @brief lock the underlying octree. it will not be read or written by the
    *  monitor until unlockTree() is called */
-  void lockOcTreeWrite(void);
+  void lockOcTreeWrite();
   
   /** @brief unlock the underlying octree. */
-  void unlockOcTreeWrite(void);
+  void unlockOcTreeWrite();
   
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
-  void setUpdateCallback(const boost::function<void(void)> &update_callback)
+  void setUpdateCallback(const boost::function<void()> &update_callback)
   {
     update_callback_ = update_callback;
   }
@@ -115,9 +115,9 @@ private:
   /** @brief tells the server an update is ready */
   void updateReady(OccupancyMapUpdater *updater);
   
-  void treeUpdateThread(void);
-  void publish_markers(void);
-  void publish_octomap_binary(void);
+  void treeUpdateThread();
+  void publish_markers();
+  void publish_octomap_binary();
 
   Options opt_;
   
@@ -132,7 +132,7 @@ private:
   
   boost::condition_variable update_cond_;
   boost::mutex update_mut_;
-  boost::function<void(void)> update_callback_;
+  boost::function<void()> update_callback_;
   
   ros::NodeHandle root_nh_;
   ros::NodeHandle nh_;

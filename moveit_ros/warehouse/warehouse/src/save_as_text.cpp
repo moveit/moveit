@@ -40,7 +40,7 @@
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <ros/ros.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
@@ -145,8 +145,8 @@ int main(int argc, char **argv)
             qfout << robotStateNames[k] << std::endl;
             moveit_warehouse::RobotStateWithMetadata robotState;
             rss.getRobotState(robotState, robotStateNames[k]);
-            kinematic_state::KinematicState ks(km);
-            kinematic_state::robotStateToKinematicState(*robotState, ks, false);
+            robot_state::RobotState ks(km);
+            robot_state::robotStateMsgToRobotState(*robotState, ks, false);
             ks.printStateInfo(qfout);
             qfout << "." << std::endl;
           }

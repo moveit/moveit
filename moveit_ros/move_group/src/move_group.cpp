@@ -46,6 +46,7 @@
 #include <moveit/plan_execution/plan_with_sensing.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/pick_place/pick_place.h>
 
 namespace move_group
@@ -122,7 +123,7 @@ public:
     place_action_server_->start();
   }
   
-  ~MoveGroupServer(void)
+  ~MoveGroupServer()
   {
     move_action_server_.reset();
     pickup_action_server_.reset();
@@ -133,7 +134,7 @@ public:
     planning_scene_monitor_.reset();
   }
   
-  void status(void)
+  void status()
   {
     const planning_interface::PlannerPtr &planner_interface = planning_pipeline_->getPlannerInterface();
     if (planner_interface)
@@ -143,14 +144,55 @@ public:
   }
   
 private:
+
+  void convertToMsg(const std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory,
+                    moveit_msgs::RobotState &first_state_msg, std::vector<moveit_msgs::RobotTrajectory> &trajectory_msg)
+  {
+    if (!trajectory.empty())
+    {
+      bool first = true;
+      trajectory_msg.resize(trajectory.size());
+      for (std::size_t i = 0 ; i < trajectory.size() ; ++i)
+      {
+        if (trajectory[i])
+        {          
+          if (first && !trajectory[i]->empty())
+          {
+            robot_state::robotStateToRobotStateMsg(trajectory[i]->getFirstWayPoint(), first_state_msg);
+            first = false;
+          }
+          trajectory[i]->getRobotTrajectoryMsg(trajectory_msg[i]);
+        }        
+      }
+    }
+  }
   
-  bool planUsingPlanningPipeline(const moveit_msgs::MotionPlanRequest &req, plan_execution::ExecutableMotionPlan &plan)
+  void convertToMsg(const robot_trajectory::RobotTrajectoryPtr &trajectory,
+                    moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg)
+  {     
+    if (trajectory && !trajectory->empty())
+    {
+      robot_state::robotStateToRobotStateMsg(trajectory->getFirstWayPoint(), first_state_msg);
+      trajectory->getRobotTrajectoryMsg(trajectory_msg);
+    }
+  }
+  
+  void convertToMsg(const std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory,
+                    moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg)
+  {
+    if (trajectory.size() > 1)
+      ROS_ERROR_STREAM(NODE_NAME << " internal logic error: trajectory component ignored. !!! THIS IS A SERIOUS ERROR !!!");
+    if (trajectory.size() > 0)
+      convertToMsg(trajectory[0], first_state_msg,trajectory_msg);
+  }
+  
+  bool planUsingPlanningPipeline(const planning_interface::MotionPlanRequest &req, plan_execution::ExecutableMotionPlan &plan)
   {    
     setMoveState(PLANNING);
 
     planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);
     bool solved = false;
-    moveit_msgs::MotionPlanResponse res;
+    planning_interface::MotionPlanResponse res;
     try
     {
       solved = planning_pipeline_->generatePlan(plan.planning_scene_, req, res);
@@ -158,31 +200,29 @@ private:
     catch(std::runtime_error &ex)
     {
       ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+      res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     }
     catch(...)
     {
       ROS_ERROR("Planning pipeline threw an exception");
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+      res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    } 
+    if (res.trajectory_)
+    {
+      plan.planned_trajectory_.resize(1);
+      plan.planned_trajectory_[0] = res.trajectory_;
+      plan.planned_trajectory_descriptions_.resize(1);
+      plan.planned_trajectory_descriptions_[0] = "plan";
     }
-    plan.trajectory_start_ = res.trajectory_start;
-    plan.planned_trajectory_.resize(1);
-    plan.planned_trajectory_[0] = res.trajectory;
-    plan.planned_trajectory_descriptions_.resize(1);
-    plan.planned_trajectory_descriptions_[0] = "plan";
-    plan.planned_trajectory_states_.resize(1);
-    plan.error_code_ = res.error_code;
-    plan.planning_group_ = res.group_name;
-    trajectory_processing::convertToKinematicStates(plan.planned_trajectory_states_[0], plan.trajectory_start_, plan.planned_trajectory_[0],
-                                                    plan.planning_scene_->getCurrentState(), plan.planning_scene_->getTransforms());
+    plan.error_code_ = res.error_code_;
     return solved;
   }
   
-  void startMoveExecutionCallback(void) { setMoveState(MONITOR); }
-  void startMoveLookCallback(void) { setMoveState(LOOK); }
+  void startMoveExecutionCallback() { setMoveState(MONITOR); }
+  void startMoveLookCallback() { setMoveState(LOOK); }
 
-  void startPickupExecutionCallback(void) { setPickupState(MONITOR); }
-  void startPickupLookCallback(void) { setPickupState(LOOK); }
+  void startPickupExecutionCallback() { setPickupState(MONITOR); }
+  void startPickupLookCallback() { setPickupState(LOOK); }
 
   void executeMoveCallback_PlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal, moveit_msgs::MoveGroupResult &action_res)
   {
@@ -191,7 +231,7 @@ private:
     planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
     const planning_scene::PlanningSceneConstPtr &the_scene = (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff)) ?
       static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) : lscene->diff(goal->planning_options.planning_scene_diff);
-    moveit_msgs::MotionPlanResponse res;
+    planning_interface::MotionPlanResponse res;
     try
     {
       planning_pipeline_->generatePlan(the_scene, goal->request, res);
@@ -199,21 +239,21 @@ private:
     catch(std::runtime_error &ex)
     {
       ROS_ERROR("Planning pipeline threw an exception: %s", ex.what()); 
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+      res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     }
     catch(...)
     {
       ROS_ERROR("Planning pipeline threw an exception"); 
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+      res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     }
-    action_res.trajectory_start = res.trajectory_start;
-    action_res.planned_trajectory = res.trajectory;
-    action_res.error_code = res.error_code;
+    
+    convertToMsg(res.trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
+    action_res.error_code = res.error_code_;
   }
 
-  moveit_msgs::MotionPlanRequest clearRequestStartState(const moveit_msgs::MotionPlanRequest &request) const
+  planning_interface::MotionPlanRequest clearRequestStartState(const planning_interface::MotionPlanRequest &request) const
   {
-    moveit_msgs::MotionPlanRequest r = request;
+    planning_interface::MotionPlanRequest r = request;
     r.start_state = moveit_msgs::RobotState();
     ROS_WARN("Execution of motions should always start at the robot's current state. Ignoring the state supplied as start state in the motion planning request");
     return r;
@@ -234,7 +274,7 @@ private:
     if (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff))
     {
       planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
-      const kinematic_state::KinematicState &current_state = lscene->getCurrentState();
+      const robot_state::RobotState &current_state = lscene->getCurrentState();
       
       // check to see if the desired constraints are already met
       for (std::size_t i = 0 ; i < goal->request.goal_constraints.size() ; ++i)
@@ -268,13 +308,10 @@ private:
     
     plan_execution::ExecutableMotionPlan plan;
     plan_execution_->planAndExecute(plan, planning_scene_diff, opt);  
-    
-    action_res.trajectory_start = plan.trajectory_start_;
-    if (plan.planned_trajectory_.empty())
-      action_res.planned_trajectory = moveit_msgs::RobotTrajectory();
-    else
-      action_res.planned_trajectory = plan.planned_trajectory_[0];
-    action_res.executed_trajectory = plan.executed_trajectory_;
+
+    convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
+    if (plan.executed_trajectory_)
+      plan.executed_trajectory_->getRobotTrajectoryMsg(action_res.executed_trajectory);
     action_res.error_code = plan.error_code_;
   }
   
@@ -308,7 +345,7 @@ private:
     setMoveState(IDLE);
   }
 
-  void preemptMoveCallback(void)
+  void preemptMoveCallback()
   {
     plan_execution_->stop();
   }
@@ -331,7 +368,7 @@ private:
       if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
         return "Must specify group in motion plan request";
       else
-        if (error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
+        if (error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED || error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN)
         {
           if (planned_trajectory_empty)
             return "No motion plan found. No execution attempted.";
@@ -416,9 +453,8 @@ private:
       else
       {
         const pick_place::ManipulationPlanPtr &result = success.back();
-        action_res.trajectory_start = result->trajectory_start_;
-        action_res.trajectory_stages = result->trajectories_;
-        action_res.trajectory_descriptions = result->trajectory_descriptions_; 
+        convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
+        action_res.trajectory_descriptions = result->trajectory_descriptions_;
         action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       }
     }
@@ -458,11 +494,9 @@ private:
       else
       {
         const pick_place::ManipulationPlanPtr &result = success.back();
-        plan.trajectory_start_ = result->trajectory_start_;
         plan.planned_trajectory_ = result->trajectories_;
         plan.planned_trajectory_descriptions_ = result->trajectory_descriptions_; 
-        plan.planning_group_ = result->planning_group_;
-        plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS; 
+        plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       }
     }
     else
@@ -470,22 +504,6 @@ private:
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     }
     
-    plan.planned_trajectory_states_.resize(plan.planned_trajectory_.size());
-    kinematic_state::KinematicState *last_state = NULL;
-    for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
-      if (last_state == NULL)
-      {
-        trajectory_processing::convertToKinematicStates(plan.planned_trajectory_states_[i], plan.trajectory_start_, plan.planned_trajectory_[i],
-                                                        plan.planning_scene_->getCurrentState(), plan.planning_scene_->getTransforms());
-        if (!plan.planned_trajectory_states_[i].empty())
-          last_state = plan.planned_trajectory_states_[i].back().get();
-      }
-      else
-      {
-        static const moveit_msgs::RobotState empty_diff_state;
-        trajectory_processing::convertToKinematicStates(plan.planned_trajectory_states_[i], empty_diff_state, plan.planned_trajectory_[i],
-                                                        *last_state, plan.planning_scene_->getTransforms());
-      }
     return plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
   }
   
@@ -508,10 +526,9 @@ private:
     plan_execution::ExecutableMotionPlan plan;
     plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
 
-    action_res.trajectory_start = plan.trajectory_start_;
-    action_res.trajectory_stages = plan.planned_trajectory_;
-    action_res.trajectory_descriptions = plan.planned_trajectory_descriptions_;
-    action_res.error_code = plan.error_code_; 
+    convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.trajectory_stages);
+    action_res.trajectory_descriptions = plan.planned_trajectory_descriptions_; 
+    action_res.error_code = plan.error_code_;
   }
 
   void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal)
@@ -551,11 +568,11 @@ private:
     
   }
   
-  void preemptPickupCallback(void)
+  void preemptPickupCallback()
   {
   }
 
-  void preemptPlaceCallback(void)
+  void preemptPlaceCallback()
   {
   }
 
@@ -573,10 +590,11 @@ private:
     
     bool solved = false;   
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
-
     try
     {
-      solved = planning_pipeline_->generatePlan(ps, req.motion_plan_request, res.motion_plan_response);
+      planning_interface::MotionPlanResponse mp_res;
+      solved = planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
+      mp_res.getMessage(res.motion_plan_response);
     }
     catch(std::runtime_error &ex)
     {
@@ -588,7 +606,7 @@ private:
       ROS_ERROR("Planning pipeline threw an exception"); 
       res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     }
-
+    
     return solved;
   }
 
@@ -601,6 +619,9 @@ private:
       res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
       return true;
     }
+
+    // \todo unwind trajectory before execution
+    //    robot_trajectory::RobotTrajectory to_exec(planning_scene_monitor_->getKinematicModel(), ;
     
     trajectory_execution_manager_->clear();
     if (trajectory_execution_manager_->push(req.trajectory))

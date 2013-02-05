@@ -121,7 +121,7 @@ plan_execution::PlanWithSensing::PlanWithSensing(const trajectory_execution_mana
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 }
 
-plan_execution::PlanWithSensing::~PlanWithSensing(void)
+plan_execution::PlanWithSensing::~PlanWithSensing()
 {
   delete reconfigure_impl_;
 }
@@ -169,10 +169,12 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan, co
     std::set<collision_detection::CostSource> cost_sources;
     {
       planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_); // it is ok if planning_scene_monitor_ is null; there just will be no locking done
-      for (std::size_t i = 0 ; i < plan.planned_trajectory_states_.size() ; ++i)
+      for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
       {
         std::set<collision_detection::CostSource> cost_sources_i;
-        plan.planning_scene_->getCostSources(plan.planned_trajectory_states_[i], max_cost_sources_, plan.planning_group_, cost_sources_i, discard_overlapping_cost_sources_);
+        plan.planning_scene_->getCostSources(*plan.planned_trajectory_[i], max_cost_sources_, 
+                                             plan.planned_trajectory_[i]->getGroupName(),
+                                             cost_sources_i, discard_overlapping_cost_sources_);
         cost_sources.insert(cost_sources_i.begin(), cost_sources_i.end());
         if (cost_sources.size() > max_cost_sources_)
         {

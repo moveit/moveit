@@ -49,8 +49,8 @@ class DisplayContext;
 namespace moveit_rviz_plugin
 {
 
-class KinematicStateVisualization;
-typedef boost::shared_ptr<KinematicStateVisualization> KinematicStateVisualizationPtr;
+class RobotStateVisualization;
+typedef boost::shared_ptr<RobotStateVisualization> RobotStateVisualizationPtr;
 
 class RenderShapes;
 typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
@@ -59,15 +59,15 @@ class PlanningSceneRender
 {
 public:
   PlanningSceneRender(Ogre::SceneNode *root_node, rviz::DisplayContext *context,
-                      const KinematicStateVisualizationPtr &robot);
-  ~PlanningSceneRender(void);
+                      const RobotStateVisualizationPtr &robot);
+  ~PlanningSceneRender();
 
-  Ogre::SceneNode* getGeometryNode(void)
+  Ogre::SceneNode* getGeometryNode()
   {
     return planning_scene_geometry_node_;
   }
   
-  const KinematicStateVisualizationPtr& getRobotVisualization(void)
+  const RobotStateVisualizationPtr& getRobotVisualization()
   {
     return scene_robot_;
   }
@@ -76,14 +76,14 @@ public:
                            const rviz::Color &default_scene_color,
                            const rviz::Color &default_attached_color,
                            float default_scene_alpha);
-  void clear(void);
+  void clear();
   
 private:
   
   Ogre::SceneNode *planning_scene_geometry_node_;
   rviz::DisplayContext *context_;
   RenderShapesPtr render_shapes_;
-  KinematicStateVisualizationPtr scene_robot_;
+  RobotStateVisualizationPtr scene_robot_;
   
 };
 

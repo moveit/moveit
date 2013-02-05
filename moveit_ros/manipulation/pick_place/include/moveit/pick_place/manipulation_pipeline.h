@@ -52,36 +52,36 @@ class ManipulationPipeline
 public:
   
   ManipulationPipeline(const std::string &name, unsigned int nthreads);
-  virtual ~ManipulationPipeline(void);
+  virtual ~ManipulationPipeline();
   
-  const std::string& getName(void) const
+  const std::string& getName() const
   {
     return name_;
   }
 
-  void setSolutionCallback(const boost::function<void(void)> &callback)
+  void setSolutionCallback(const boost::function<void()> &callback)
   {
     solution_callback_ = callback;
   }
   
   ManipulationPipeline& addStage(const ManipulationStagePtr &next);
-  const ManipulationStagePtr& getFirstStage(void) const;
-  const ManipulationStagePtr& getLastStage(void) const;
-  void reset(void);
+  const ManipulationStagePtr& getFirstStage() const;
+  const ManipulationStagePtr& getLastStage() const;
+  void reset();
   
-  void signalStop(void);
-  void start(void);  
-  void stop(void);  
+  void signalStop();
+  void start();  
+  void stop();  
   
   void push(const ManipulationPlanPtr &grasp);
-  void clear(void);
+  void clear();
   
-  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans(void) const
+  const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans() const
   {
     return success_;
   }
 
-  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans(void) const
+  const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans() const
   {
     return failed_;
   }
@@ -103,7 +103,7 @@ protected:
   boost::mutex queue_access_lock_;
   boost::mutex result_lock_;
   
-  boost::function<void(void)> solution_callback_;
+  boost::function<void()> solution_callback_;
   
   bool stop_processing_;
 

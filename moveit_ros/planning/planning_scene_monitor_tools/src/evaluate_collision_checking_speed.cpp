@@ -40,7 +40,7 @@
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
-void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene *scene, const kinematic_state::KinematicState *state)
+void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene *scene, const robot_state::RobotState *state)
 {
   ROS_INFO("Starting thread %u", id);
   collision_detection::CollisionRequest req;
@@ -93,12 +93,12 @@ int main(int argc, char **argv)
     else
       ros::Duration(0.5).sleep();
     
-    std::vector<kinematic_state::KinematicStatePtr> states;
+    std::vector<robot_state::RobotStatePtr> states;
     ROS_INFO("Sampling %u valid states...", nthreads);
     for (unsigned int i = 0 ; i < nthreads ; ++i)
     {
       // sample a valid state
-      kinematic_state::KinematicState *state = new kinematic_state::KinematicState(psm.getPlanningScene()->getKinematicModel());
+      robot_state::RobotState *state = new robot_state::RobotState(psm.getPlanningScene()->getKinematicModel());
       collision_detection::CollisionRequest req;
       do
       {
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
         if (!res.collision)
           break;
       } while (true);
-      states.push_back(kinematic_state::KinematicStatePtr(state));
+      states.push_back(robot_state::RobotStatePtr(state));
     }
     
     std::vector<boost::thread*> threads;

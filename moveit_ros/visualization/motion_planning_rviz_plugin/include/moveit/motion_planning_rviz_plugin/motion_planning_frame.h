@@ -44,7 +44,6 @@
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 #endif
 
-#include <moveit/motion_planning_rviz_plugin/frame_marker.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <map>
 #include <string>
@@ -77,11 +76,11 @@ class MotionPlanningFrame : public QWidget
   
 public:
   MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
-  ~MotionPlanningFrame(void);
+  ~MotionPlanningFrame();
 
-  void changePlanningGroup(void);
-  void enable(void);
-  void disable(void);
+  void changePlanningGroup();
+  void enable();
+  void disable();
   void sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
 
 protected:
@@ -91,7 +90,6 @@ protected:
   void constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq);
   
   void updateSceneMarkers(float wall_dt, float ros_dt);
-  void updateGoalPoseMarkers(float wall_dt, float ros_dt);
 
   MotionPlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
@@ -107,96 +105,50 @@ protected:
 
   boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
  
-  typedef std::map<std::string, GripperMarker> GoalPoseMap;
-  typedef std::pair<std::string, GripperMarker> GoalPosePair;
-  GoalPoseMap goal_poses_;
-          
-  class StartState
-  {
-  public:
-    moveit_msgs::RobotState state_msg;
-    bool selected;
-    
-    StartState(): selected(false) {}
-    StartState(const moveit_msgs::RobotState &state): state_msg(state), selected(false) {}
-    StartState(const moveit_msgs::RobotState &state, bool is_selected): state_msg(state), selected(is_selected) {}
-  };
-  
-  typedef std::map<std::string, StartState> StartStateMap;
-  typedef std::pair<std::string, StartState> StartStatePair;
-  StartStateMap start_states_;
-
 private Q_SLOTS:
 
   //Context tab
-  void databaseConnectButtonClicked(void);
-  void publishSceneButtonClicked(void);
+  void databaseConnectButtonClicked();
+  void publishSceneButtonClicked();
   void planningAlgorithmIndexChanged(int index);
-  void resetDbButtonClicked(void);
+  void resetDbButtonClicked();
 
   //Planning tab
-  void planButtonClicked(void);  
-  void executeButtonClicked(void);
-  void planAndExecuteButtonClicked(void);
-  void randomStatesButtonClicked(void);
-  void setStartToCurrentButtonClicked(void);
-  void setGoalToCurrentButtonClicked(void);
+  void planButtonClicked();  
+  void executeButtonClicked();
+  void planAndExecuteButtonClicked();
+  void randomStatesButtonClicked();
+  void setStartToCurrentButtonClicked();
+  void setGoalToCurrentButtonClicked();
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
   void pathConstraintsIndexChanged(int index);
 
   //Scene Objects tab
-  void importFileButtonClicked(void);
-  void importUrlButtonClicked(void);
-  void clearSceneButtonClicked(void);
+  void importFileButtonClicked();
+  void importUrlButtonClicked();
+  void clearSceneButtonClicked();
   void sceneScaleChanged(int value);
-  void sceneScaleStartChange(void);
-  void sceneScaleEndChange(void);
-  void removeObjectButtonClicked(void);
-  void selectedCollisionObjectChanged(void);
+  void sceneScaleStartChange();
+  void sceneScaleEndChange();
+  void removeObjectButtonClicked();
+  void selectedCollisionObjectChanged();
   void objectPoseValueChanged(double value);
   void collisionObjectChanged(QListWidgetItem *item);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void copySelectedCollisionObject(void);
-  void exportAsTextButtonClicked(void);
-  void importFromTextButtonClicked(void);
+  void copySelectedCollisionObject();
+  void exportAsTextButtonClicked();
+  void importFromTextButtonClicked();
   
   //Stored scenes tab
-  void saveSceneButtonClicked(void);
-  void planningSceneItemClicked(void);
-  void saveQueryButtonClicked(void);
-  void deleteSceneButtonClicked(void);
-  void deleteQueryButtonClicked(void);
-  void loadSceneButtonClicked(void);
-  void loadQueryButtonClicked(void);
+  void saveSceneButtonClicked();
+  void planningSceneItemClicked();
+  void saveQueryButtonClicked();
+  void deleteSceneButtonClicked();
+  void deleteQueryButtonClicked();
+  void loadSceneButtonClicked();
+  void loadQueryButtonClicked();
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
-
-  //Stored queries tab
-  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void createGoalPoseButtonClicked(void);
-  void removeSelectedGoalsButtonClicked(void);
-  void removeAllGoalsButtonClicked(void);
-  void goalPoseSelectionChanged(void);
-  void switchGoalVisibilityButtonClicked(void);
-  void goalPoseDoubleClicked(QListWidgetItem *item);
-  void copySelectedGoalPoses(void);
-  void visibleAxisChanged(int state);
-  void checkGoalsInCollision(void);
-  void checkGoalsReachable(void);
-  void loadBenchmarkResults(void);
-  void updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
-
-  void saveStartStateButtonClicked(void);
-  void removeSelectedStatesButtonClicked(void);
-  void removeAllStatesButtonClicked(void);
-  void startStateItemDoubleClicked(QListWidgetItem * item);
-
-  void loadGoalsFromDBButtonClicked(void);
-  void saveGoalsOnDBButtonClicked(void);
-  void deleteGoalsOnDBButtonClicked(void);
-  void loadStatesFromDBButtonClicked(void);
-  void saveStatesOnDBButtonClicked(void);
-  void deleteStatesOnDBButtonClicked(void);
 
   //General
   void tabChanged(int index);
@@ -204,64 +156,51 @@ private Q_SLOTS:
 private:
 
   //Context tab
-  void computeDatabaseConnectButtonClicked(void);
+  void computeDatabaseConnectButtonClicked();
   void computeDatabaseConnectButtonClickedHelper(int mode);
   void computeResetDbButtonClicked(const std::string &db);
   void populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc);
 
   //Planning tab
-  void computePlanButtonClicked(void);  
-  void computeExecuteButtonClicked(void);
-  void computePlanAndExecuteButtonClicked(void); 
-  void computePlanAndExecuteButtonClickedDisplayHelper(void);
-  void computeSetStartToCurrentButtonClicked(void);
-  void computeSetGoalToCurrentButtonClicked(void);
-  void computeRandomStatesButtonClicked(void);
-  void populateConstraintsList(void);
+  void computePlanButtonClicked();  
+  void computeExecuteButtonClicked();
+  void computePlanAndExecuteButtonClicked(); 
+  void computePlanAndExecuteButtonClickedDisplayHelper();
+  void computeSetStartToCurrentButtonClicked();
+  void computeSetGoalToCurrentButtonClicked();
+  void computeRandomStatesButtonClicked();
+  void populateConstraintsList();
   void populateConstraintsList(const std::vector<std::string> &constr);
-  void configureForPlanning(void);
+  void configureForPlanning();
 
   //Scene objects tab
-  void computeSaveSceneButtonClicked(void);
+  void computeSaveSceneButtonClicked();
   void computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name);
-  void computeDeleteSceneButtonClicked(void);
-  void computeDeleteQueryButtonClicked(void);
+  void computeDeleteSceneButtonClicked();
+  void computeDeleteQueryButtonClicked();
   void computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s);
-  void checkPlanningSceneTreeEnabledButtons(void);
-  void computeLoadSceneButtonClicked(void);
-  void computeLoadQueryButtonClicked(void);
+  void checkPlanningSceneTreeEnabledButtons();
+  void computeLoadSceneButtonClicked();
+  void computeLoadQueryButtonClicked();
   void addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
                  const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-  void createSceneInteractiveMarker(void);
+  void createSceneInteractiveMarker();
   void renameCollisionObject(QListWidgetItem *item);
   void attachDetachCollisionObject(QListWidgetItem *item);
-  void populateCollisionObjectsList(void);
+  void populateCollisionObjectsList();
   void computeImportFromText(const std::string &path);
   void computeExportAsText(const std::string &path);
     
   //Stored scenes tab
-  void populatePlanningSceneTreeView(void);
-
-  //Stored queries tab
-  void populateGoalPosesList();
-  void populateStartStatesList();
-  void computeGoalPoseDoubleClicked(QListWidgetItem * item);
-  void switchGoalPoseMarkerSelection(const std::string &marker_name);
-  typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
-
-  void checkIfGoalInCollision(const std::string & goal_name);
-  void checkIfGoalInCollision(const kinematic_state::KinematicStatePtr &work_state, const std::string & goal_name);
-  void checkIfGoalReachable(const kinematic_state::KinematicStatePtr &work_state, const std::string &goal_name);
-  void computeLoadBenchmarkResults(const std::string &file);
+  void populatePlanningSceneTreeView();
 
   //General
-  void changePlanningGroupHelper(void);
+  void changePlanningGroupHelper();
   void importResource(const std::string &path);
 
   /** Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
-  void selectItemJob(QListWidgetItem *item, bool flag);
-
+  //void selectItemJob(QListWidgetItem *item, bool flag);
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
@@ -271,9 +210,6 @@ private:
   
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
   long unsigned int known_collision_objects_version_;
-  
-  EigenSTL::map_string_Affine3d goals_initial_pose_;
-  bool goal_pose_dragging_;
 };
 
 }

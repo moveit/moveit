@@ -33,7 +33,7 @@
 #include <job_processing.h>
 
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 
@@ -502,7 +502,7 @@ void MainWindow::computeGoalPoseDoubleClicked(QListWidgetItem * item)
   std::string item_text = item->text().toStdString();
 
   //Switch the marker color to processing color while processing
-  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, item_text, GripperMarker::PROCESSING));
+  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, item_text, GripperMarker::PROCESSING));
 
   checkIfGoalReachable(item_text, true);
 }
@@ -621,7 +621,7 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
 
   // Call to IK
   setStatusFromBackground(STATUS_INFO, "Computing inverse kinematics...");
-  kinematic_state::KinematicState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
+  robot_state::RobotState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
   static const int ik_attempts = 5;
   static const float ik_timeout = 0.2;
   bool feasible = robot_interaction_->updateState(ks,
@@ -638,13 +638,13 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
 
     setStatusFromBackground(STATUS_INFO, "Updating marker...");
     //Switch the marker color to reachable
-    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
                                                   GripperMarker::REACHABLE));
   }
   else
   {
     //Switch the marker color to not-reachable
-    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
                                                   GripperMarker::NOT_REACHABLE));
   }
   setStatusFromBackground(STATUS_INFO, "");
@@ -662,13 +662,13 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
   Eigen::Affine3d marker_pose_eigen = Eigen::Translation3d(im->getPosition().x, im->getPosition().y, im->getPosition().z) *
     Eigen::Quaterniond(im->getOrientation().w, im->getOrientation().x, im->getOrientation().y, im->getOrientation().z);
 
-  kinematic_state::KinematicState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
+  robot_state::RobotState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
   ks.updateStateWithLinkAt(eef.parent_link, marker_pose_eigen);
   bool in_collision = scene_display_->getPlanningSceneRO()->isStateColliding(ks, eef.eef_group);
 
   if ( in_collision )
   {
-    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
+    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
                                                   GripperMarker::IN_COLLISION));
   }
 }
@@ -769,7 +769,7 @@ void MainWindow::saveStartStateButtonClicked(void)
       {
         //Store the current start state
         moveit_msgs::RobotState msg;
-        kinematic_state::kinematicStateToRobotState(scene_display_->getPlanningSceneRO()->getCurrentState(), msg);
+        robot_state::robotStateToRobotStateMsg(scene_display_->getPlanningSceneRO()->getCurrentState(), msg);
         start_states_.insert(StartStatePair(name, StartStatePtr(new StartState(msg))));
 
         //Save to the database if connected
@@ -894,45 +894,98 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
 
       if (valid_file)
       {
-        ifile.getline(text_line, text_line_length);
-        if (ifile.good() && strlen(text_line) > 6)
+        if (basename.find(".trajectory") != std::string::npos)
         {
-          //This should be the reachability results line composed of reachable, collision-free and time fields (bool; bool; float)
-          try
+          //Trajectory results may contain multiple goals
+          int nwaypoint = 0;
+          while (ifile.getline(text_line, text_line_length) && ifile.good() && strlen(text_line) > 6)
           {
-            bool reachable = boost::lexical_cast<bool>(text_line[0]);
-            bool collision_free = boost::lexical_cast<bool>(text_line[3]);
-
-            //Update colors accordingly
-            if (count <= goal_poses_.size())
+            //This should be a reachability results line composed of reachable, collision-free and time fields (bool; bool; float)
+            try
             {
-              std::string goal_name = ui_.goal_poses_list->item(count-1)->text().toStdString();
-              if (reachable)
+              bool reachable = boost::lexical_cast<bool>(text_line[0]);
+              bool collision_free = boost::lexical_cast<bool>(text_line[3]);
+
+
+              //Update colors accordingly
+              if (count <= trajectories_.size())
               {
-                if (collision_free)
+                std::string trajectory_name = ui_.trajectory_list->item(count-1)->text().toStdString();
+                if ( nwaypoint < trajectories_[trajectory_name]->waypoint_markers.size() )
                 {
-                  //Reachable and collision-free
-                  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
-                                                                              GripperMarker::REACHABLE));
+                  if (reachable)
+                  {
+                    if (collision_free)
+                    {
+                      //Reachable and collision-free
+                      JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerState, this, trajectories_[trajectory_name]->waypoint_markers[nwaypoint],
+                                                                GripperMarker::REACHABLE));
+                    }
+                    else
+                    {
+                      //Reachable, but in collision
+                      JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerState, this, trajectories_[trajectory_name]->waypoint_markers[nwaypoint],
+                                                                GripperMarker::IN_COLLISION));
+                    }
+                  }
+                  else
+                  {
+                    //Not reachable
+                    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerState, this, trajectories_[trajectory_name]->waypoint_markers[nwaypoint],
+                                                              GripperMarker::NOT_REACHABLE));
+                  }
+                }
+              }
+              nwaypoint++;
+            }
+            catch (...)
+            {
+              ROS_ERROR("Error parsing the log file");
+            }
+          }
+        }
+        else
+        {
+          ifile.getline(text_line, text_line_length);
+          if (ifile.good() && strlen(text_line) > 6)
+          {
+            //This should be the reachability results line composed of reachable, collision-free and time fields (bool; bool; float)
+            try
+            {
+              bool reachable = boost::lexical_cast<bool>(text_line[0]);
+              bool collision_free = boost::lexical_cast<bool>(text_line[3]);
+
+              //Update colors accordingly
+              if (count <= goal_poses_.size())
+              {
+                std::string goal_name = ui_.goal_poses_list->item(count-1)->text().toStdString();
+                if (reachable)
+                {
+                  if (collision_free)
+                  {
+                    //Reachable and collision-free
+                    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
+                                                              GripperMarker::REACHABLE));
+                  }
+                  else
+                  {
+                    //Reachable, but in collision
+                    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
+                                                              GripperMarker::IN_COLLISION));
+                  }
                 }
                 else
                 {
-                  //Reachable, but in collision
-                  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
-                                             GripperMarker::IN_COLLISION));
+                  //Not reachable
+                  JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
+                                                            GripperMarker::NOT_REACHABLE));
                 }
               }
-              else
-              {
-                //Not reachable
-                JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerStateFromName, this, goal_name,
-                                           GripperMarker::NOT_REACHABLE));
-              }
             }
-          }
-          catch (...)
-          {
-            ROS_ERROR("Error parsing the log file");
+            catch (...)
+            {
+              ROS_ERROR("Error parsing the log file");
+            }
           }
         }
       }
@@ -951,9 +1004,14 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
   }
 }
 
-void MainWindow::updateMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state)
+void MainWindow::updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state)
 {
   goal_poses_[name]->setState(state);
+}
+
+void MainWindow::updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state)
+{
+  marker->setState(state);
 }
 
 }

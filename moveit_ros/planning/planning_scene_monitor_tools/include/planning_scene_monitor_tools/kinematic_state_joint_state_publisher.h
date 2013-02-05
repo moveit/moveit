@@ -29,8 +29,8 @@
 
 // Author: E. Gil Jones
 
-#ifndef _KINEMATIC_STATE_JOINT_STATE_PUBLISHER_H_
-#define _KINEMATIC_STATE_JOINT_STATE_PUBLISHER_H_
+#ifndef MOVEIT_ROBOT_STATE_JOINT_STATE_PUBLISHER_H_
+#define MOVEIT_ROBOT_STATE_JOINT_STATE_PUBLISHER_H_
 
 #include <ros/ros.h>
 #include <planning_models/kinematic_state.h>
@@ -39,18 +39,18 @@
 
 #include <sensor_msgs/JointState.h>
 
-class KinematicStateJointStatePublisher 
+class RobotStateJointStatePublisher 
 {
 
 public:
 
-  KinematicStateJointStatePublisher(const std::string& joint_state_topic = "/joint_states")
+  RobotState *JointStatePublisher(const std::string& joint_state_topic = "/joint_states")
   {
     
     joint_state_publisher_ = nh_.advertise<sensor_msgs::JointState>(joint_state_topic, 10);
   };
 
-  void publishKinematicState(const planning_models::KinematicState& state)
+  void publishRobotState(const planning_models::RobotState& state)
   {  
     sensor_msgs::JointState js;
     state.getStateValues(js);
@@ -58,7 +58,7 @@ public:
     joint_state_publisher_.publish(js);
   }
 
-  void broadcastRootTransform(const planning_models::KinematicState& state)
+  void broadcastRootTransform(const planning_models::RobotState& state)
   {
     geometry_msgs::TransformStamped root_transform;
     root_transform.header.frame_id = state.getKinematicModel()->getModelFrame();

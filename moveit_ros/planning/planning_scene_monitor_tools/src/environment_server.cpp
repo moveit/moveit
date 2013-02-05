@@ -40,7 +40,7 @@
 class EnvironmentServer
 {
 public:
-  EnvironmentServer(void) : 
+  EnvironmentServer() : 
     tf_(new tf::TransformListener()),
     planning_scene_monitor_("robot_description", tf_)
   {
@@ -60,7 +60,7 @@ private:
   planning_scene::PlanningScenePtr parent_scene_;
   ros::Publisher pub_diff_;
   
-  void onSceneUpdate(void)
+  void onSceneUpdate()
   {
     moveit_msgs::PlanningScene diff;
     

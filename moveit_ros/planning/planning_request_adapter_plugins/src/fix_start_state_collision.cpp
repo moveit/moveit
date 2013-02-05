@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <class_loader/class_loader.h>
 #include <ros/ros.h>
@@ -51,7 +51,7 @@ public:
   static const std::string JIGGLE_PARAM_NAME;
   static const std::string ATTEMPTS_PARAM_NAME;
 
-  FixStartStateCollision(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateCollision() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(DT_PARAM_NAME, max_dt_offset_))
     {
@@ -86,19 +86,19 @@ public:
 
   }
 
-  virtual std::string getDescription(void) const { return "Fix Start State In Collision"; }
+  virtual std::string getDescription() const { return "Fix Start State In Collision"; }
 
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::MotionPlanRequest &req,
-                            moveit_msgs::MotionPlanResponse &res,
+                            const planning_interface::MotionPlanRequest &req,
+                            planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
     // get the specified start state
-    kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::RobotState start_state = planning_scene->getCurrentState();
+    robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
 
     collision_detection::CollisionRequest creq;
     creq.group_name = req.group_name;
@@ -117,10 +117,10 @@ public:
       else
         ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
       
-      kinematic_state::KinematicState prefix_state = start_state;
+      robot_state::RobotStatePtr prefix_state(new robot_state::RobotState(start_state));
       random_numbers::RandomNumberGenerator rng;
 
-      const std::vector<kinematic_state::JointState*> &jstates =
+      const std::vector<robot_state::JointState*> &jstates =
         planning_scene->getKinematicModel()->hasJointModelGroup(req.group_name) ?
         start_state.getJointStateGroup(req.group_name)->getJointStateVector() :
         start_state.getJointStateVector();
@@ -130,7 +130,7 @@ public:
         for (std::size_t i = 0 ; !found && i < jstates.size() ; ++i)
         {
           std::vector<double> sampled_variable_values;
-          const std::vector<double> &original_values = prefix_state.getJointState(jstates[i]->getName())->getVariableValues();
+          const std::vector<double> &original_values = prefix_state->getJointState(jstates[i]->getName())->getVariableValues();
           jstates[i]->getJointModel()->getVariableRandomValuesNearBy(rng, sampled_variable_values, jstates[i]->getVariableBounds(), original_values,
                                                                      jstates[i]->getJointModel()->getMaximumExtent() * jiggle_fraction_);
           jstates[i]->setVariableValues(sampled_variable_values);
@@ -140,22 +140,22 @@ public:
           if (!cres.collision)
           {
             found = true;
-            ROS_INFO("Found a valid state near the start state at distance %lf after %d attempts", prefix_state.distance(start_state), c);
+            ROS_INFO("Found a valid state near the start state at distance %lf after %d attempts", prefix_state->distance(start_state), c);
           }
         }
       }
 
       if (found)
       {
-        moveit_msgs::MotionPlanRequest req2 = req;
-        kinematic_state::kinematicStateToRobotState(start_state, req2.start_state);
+        planning_interface::MotionPlanRequest req2 = req;
+        robot_state::robotStateToRobotStateMsg(start_state, req2.start_state);
         bool solved = planner(planning_scene, req2, res);
-        kinematic_state::kinematicStateToRobotState(prefix_state, res.trajectory_start);
         if (solved)
         {
-          // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-          double d = std::min(max_dt_offset_, trajectory_processing::averageSegmentDuration(res.trajectory));
-          trajectory_processing::addPrefixState(prefix_state, res.trajectory, d, planning_scene->getTransforms());
+          if (!res.trajectory_->empty())
+            // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
+            res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
+          res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
           added_path_index.push_back(0);
         }
         return solved;

@@ -48,7 +48,7 @@ planning_models_loader::KinematicModelLoader::KinematicModelLoader(const Options
   configure(opt);
 }
 
-planning_models_loader::KinematicModelLoader::~KinematicModelLoader(void)
+planning_models_loader::KinematicModelLoader::~KinematicModelLoader()
 {
   model_.reset();
   robot_model_loader_.reset();
@@ -178,7 +178,7 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
   ROS_DEBUG_STREAM("Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
-void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
+void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers()
 {
   if (robot_model_loader_ && model_)
   {
@@ -209,7 +209,7 @@ void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
   }
 }
 
-std::map<std::string, kinematics::KinematicsBasePtr> planning_models_loader::KinematicModelLoader::generateKinematicsSolversMap(void) const
+std::map<std::string, kinematics::KinematicsBasePtr> planning_models_loader::KinematicModelLoader::generateKinematicsSolversMap() const
 {
   std::map<std::string, kinematics::KinematicsBasePtr> result;
   if (kinematics_loader_ && model_)

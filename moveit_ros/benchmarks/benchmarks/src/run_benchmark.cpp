@@ -40,7 +40,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/benchmarks/benchmarks_utils.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 
 #include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
@@ -58,7 +58,7 @@ class BenchmarkService
 {
 public:
   
-  BenchmarkService(void) : scene_monitor_(ROBOT_DESCRIPTION)
+  BenchmarkService() : scene_monitor_(ROBOT_DESCRIPTION)
   {
     // initialize a planning scene
     
@@ -81,7 +81,7 @@ public:
         try
         {
           boost::shared_ptr<planning_interface::Planner> p = planner_plugin_loader_->createInstance(classes[i]);
-          p->init(scene_monitor_.getKinematicModel());
+          p->initialize(scene_monitor_.getKinematicModel());
           planner_interfaces_[classes[i]] = p;
         }
         catch (pluginlib::PluginlibException& ex)
@@ -120,8 +120,10 @@ public:
     return true;
   }
   
-  void collectMetrics(std::map<std::string, std::string> &rundata, const moveit_msgs::MotionPlanDetailedResponse &mp_res, bool solved, double total_time)
+  void collectMetrics(std::map<std::string, std::string> &rundata, const planning_interface::MotionPlanDetailedResponse &mp_res, bool solved, double total_time)
   {
+    const planning_scene::PlanningScene &ps = *scene_monitor_.getPlanningScene();
+    
     rundata["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
     rundata["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
     double L = 0.0;
@@ -131,42 +133,39 @@ public:
     if (solved)
     {
       double process_time = total_time;
-      for (std::size_t j = 0 ; j < mp_res.trajectory.size() ; ++j)
+      for (std::size_t j = 0 ; j < mp_res.trajectory_.size() ; ++j)
       {
         correct = true;
         L = 0.0;
         clearance = 0.0;
         smoothness = 0.0;
-        std::vector<kinematic_state::KinematicStatePtr> p;
-        trajectory_processing::convertToKinematicStates(p, mp_res.trajectory_start, mp_res.trajectory[j],
-                                                        scene_monitor_.getPlanningScene()->getCurrentState(),
-                                                        scene_monitor_.getPlanningScene()->getTransforms());
+        const robot_trajectory::RobotTrajectory &p = *mp_res.trajectory_[j];
         
         // compute path length
-        for (std::size_t k = 1 ; k < p.size() ; ++k)
-          L += p[k-1]->distance(*p[k]);
+        for (std::size_t k = 1 ; k < p.getWayPointCount() ; ++k)
+          L += p.getWayPoint(k-1).distance(p.getWayPoint(k));
 
         // compute correctness and clearance
         collision_detection::CollisionRequest req;
-        for (std::size_t k = 0 ; k < p.size() ; ++k)
+        for (std::size_t k = 0 ; k < p.getWayPointCount() ; ++k)
         {
           collision_detection::CollisionResult res;
-          scene_monitor_.getPlanningScene()->checkCollisionUnpadded(req, res, *p[k]);
+          ps.checkCollisionUnpadded(req, res, p.getWayPoint(k));
           if (res.collision)
             correct = false;
-          if (!p[k]->satisfiesBounds())
+          if (!p.getWayPoint(k).satisfiesBounds())
             correct = false;
-          double d = scene_monitor_.getPlanningScene()->distanceToCollisionUnpadded(*p[k]);
+          double d = ps.distanceToCollisionUnpadded(p.getWayPoint(k));
           if (d > 0.0) // in case of collision, distance is negative
             clearance += d;
         }
-        clearance /= (double)p.size();
+        clearance /= (double)p.getWayPointCount();
         
         // compute smoothness
-        if (p.size() > 2)
+        if (p.getWayPointCount() > 2)
         {
-          double a = p[0]->distance(*p[1]);
-          for (std::size_t k = 2 ; k < p.size() ; ++k)
+          double a = p.getWayPoint(0).distance(p.getWayPoint(1));
+          for (std::size_t k = 2 ; k < p.getWayPointCount() ; ++k)
           {
             // view the path as a sequence of segments, and look at the triangles it forms:
             //          s1
@@ -177,8 +176,8 @@ public:
             //     s0    c   s2     s3
             //
             // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
-            double b = p[k-1]->distance(*p[k]);
-            double cdist = p[k-2]->distance(*p[k]);
+            double b = p.getWayPoint(k-1).distance(p.getWayPoint(k));
+            double cdist = p.getWayPoint(k-2).distance(p.getWayPoint(k));
             double acosValue = (a*a + b*b - cdist*cdist) / (2.0*a*b);
             if (acosValue > -1.0 && acosValue < 1.0)
             {
@@ -191,14 +190,14 @@ public:
             }
             a = b;
           }
-          smoothness /= (double)p.size();
+          smoothness /= (double)p.getWayPointCount();
         }
-        rundata["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-        rundata["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
-        rundata["path_" + mp_res.description[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
-        rundata["path_" + mp_res.description[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
-        rundata["path_" + mp_res.description[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time[j]);     
-        process_time -= mp_res.processing_time[j].toSec();
+        rundata["path_" + mp_res.description_[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
+        rundata["path_" + mp_res.description_[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
+        rundata["path_" + mp_res.description_[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
+        rundata["path_" + mp_res.description_[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
+        rundata["path_" + mp_res.description_[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time_[j]);     
+        process_time -= mp_res.processing_time_[j];
       }
       if (process_time <= 0.0)
         process_time = 0.0;
@@ -227,7 +226,7 @@ public:
     std::vector<planning_interface::Planner*> planner_interfaces_to_benchmark;
     std::vector<std::vector<std::string> > planner_ids_to_benchmark_per_planner_interface;
     std::vector<std::size_t> average_count_per_planner_interface;
-    moveit_msgs::MotionPlanRequest mp_req = req.motion_plan_request;
+    planning_interface::MotionPlanRequest mp_req = req.motion_plan_request;
     
     for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
          it != planner_interfaces_.end(); ++it)
@@ -346,7 +345,7 @@ public:
         {
           ++progress; 
           ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
-          moveit_msgs::MotionPlanDetailedResponse mp_res;
+          planning_interface::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
           bool solved = planner_interfaces_to_benchmark[i]->solve(scene_monitor_.getPlanningScene(), mp_req, mp_res);
           double total_time = (ros::WallTime::now() - start).toSec();
@@ -361,7 +360,7 @@ public:
           if (solved && first[i])
           {
             first[i] = false;
-            res.responses[i] = mp_res;
+            mp_res.getMessage(res.responses[i]);
           }
         }
         data.push_back(runs);
@@ -376,7 +375,7 @@ public:
     out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
     out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
-    out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
+    out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
     out << duration << " seconds spent to collect the data" << std::endl;
     out << total_n_planners << " planners" << std::endl;
     std::size_t ri = 0;
@@ -438,82 +437,147 @@ public:
 
     // \todo the code below needs to be replaced with using constraint samplers;
 
-    if (req.motion_plan_request.goal_constraints.size() == 0 ||
+    if ((req.motion_plan_request.goal_constraints.size() == 0 ||
         req.motion_plan_request.goal_constraints[0].position_constraints.size() == 0 ||
         req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses.size() == 0 ||
-        req.motion_plan_request.goal_constraints[0].orientation_constraints.size() == 0)
+        req.motion_plan_request.goal_constraints[0].orientation_constraints.size() == 0) &&
+        req.motion_plan_request.trajectory_constraints.constraints.size() == 0)
     {
       ROS_ERROR("Invalid constraints");
       res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
       return false;
     }
     
-    geometry_msgs::Pose ik_pose;
-    ik_pose.position.x = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.x;
-    ik_pose.position.y = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.y;
-    ik_pose.position.z = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.z;
-    ik_pose.orientation.x = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.x;
-    ik_pose.orientation.y = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.y;
-    ik_pose.orientation.z = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z;
-    ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
-    
-    kinematic_state::KinematicState kinematic_state(scene_monitor_.getPlanningScene()->getCurrentState());
-    kinematic_state::robotStateToKinematicState(req.motion_plan_request.start_state, kinematic_state);
-    
-    // Compute IK
-    ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
-    ros::WallTime startTime = ros::WallTime::now();
+    bool success = false;
     bool reachable = false;
-    bool success = kinematic_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts,
-                                                                                                     req.motion_plan_request.allowed_planning_time.toSec(),
-                                                                                                     boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
+    if (req.motion_plan_request.goal_constraints.size() > 0 &&
+        req.motion_plan_request.goal_constraints[0].position_constraints.size() > 0 &&
+        req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses.size() > 0 &&
+        req.motion_plan_request.goal_constraints[0].orientation_constraints.size() > 0)
+    {
+      //Compute IK on goal constraints
+      geometry_msgs::Pose ik_pose;
+      ik_pose.position.x = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.x;
+      ik_pose.position.y = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.y;
+      ik_pose.position.z = req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position.z;
+      ik_pose.orientation.x = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.x;
+      ik_pose.orientation.y = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.y;
+      ik_pose.orientation.z = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z;
+      ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
 
-    if (success)
-    {
-      ROS_INFO("  Success!");
-    }
-    else if (reachable)
-    {
-      ROS_INFO("  Reachable, but in collision");
-    }
-    else
-    {
-      ROS_INFO("  Not reachable");
+      robot_state::RobotState robot_state(scene_monitor_.getPlanningScene()->getCurrentState());
+      robot_state::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
+
+      // Compute IK
+      ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
+      ros::WallTime startTime = ros::WallTime::now();
+      success = robot_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts,
+                                                                                              req.motion_plan_request.allowed_planning_time,
+                                                                                              boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
+      if (success)
+      {
+        ROS_INFO("  Success!");
+      }
+      else if (reachable)
+      {
+        ROS_INFO("  Reachable, but in collision");
+      }
+      else
+      {
+        ROS_INFO("  Not reachable");
+      }
+      // Log
+      double duration = (ros::WallTime::now() - startTime).toSec();
+      std::string host = moveit_benchmarks::getHostname();
+      res.filename = req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log") : req.filename;
+      std::ofstream out(res.filename.c_str());
+      out << "Experiment " << (scene_monitor_.getPlanningScene()->getName().empty() ? "NO_NAME" : scene_monitor_.getPlanningScene()->getName()) << std::endl;
+      out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
+      out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
+      out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
+      out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
+      out << duration << " seconds spent to collect the data" << std::endl;
+      out << "reachable BOOLEAN" << std::endl;
+      out << "collision_free BOOLEAN" << std::endl;
+      out << "total_time REAL" << std::endl;
+      out << reachable << "; " << success << "; " << duration << std::endl;
+      out.close();
+      ROS_INFO("Results saved to '%s'", res.filename.c_str());
     }
 
-    // Log
-    double duration = (ros::WallTime::now() - startTime).toSec();
-    std::string host = moveit_benchmarks::getHostname();
-    res.filename = req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log") : req.filename;
-    std::ofstream out(res.filename.c_str());
-    out << "Experiment " << (scene_monitor_.getPlanningScene()->getName().empty() ? "NO_NAME" : scene_monitor_.getPlanningScene()->getName()) << std::endl;
-    out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
-    out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
-    out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
-    out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
-    out << duration << " seconds spent to collect the data" << std::endl;
-    out << "reachable BOOLEAN" << std::endl;
-    out << "collision_free BOOLEAN" << std::endl;
-    out << "total_time REAL" << std::endl;
-    out << reachable << "; " << success << "; " << duration << std::endl;
-    out.close();
-    ROS_INFO("Results saved to '%s'", res.filename.c_str());
+    if (req.motion_plan_request.trajectory_constraints.constraints.size() > 0) {
+      //Compute IK on trajectory constraints
+      // Start Log
+      ros::WallTime startTime = ros::WallTime::now();
+      std::string host = moveit_benchmarks::getHostname();
+      res.filename = req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log") : req.filename;
+      std::ofstream out(res.filename.c_str());
+      out << "Experiment " << (scene_monitor_.getPlanningScene()->getName().empty() ? "NO_NAME" : scene_monitor_.getPlanningScene()->getName()) << std::endl;
+      out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
+      out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
+      out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
+      out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
+      out << "reachable BOOLEAN" << std::endl;
+      out << "collision_free BOOLEAN" << std::endl;
+      out << "total_time REAL" << std::endl;
+
+      for (std::size_t tc = 0; tc < req.motion_plan_request.trajectory_constraints.constraints.size(); ++tc)
+      {
+        geometry_msgs::Pose ik_pose;
+        ik_pose.position.x = req.motion_plan_request.trajectory_constraints.constraints[tc].position_constraints[0].constraint_region.primitive_poses[0].position.x;
+        ik_pose.position.y = req.motion_plan_request.trajectory_constraints.constraints[tc].position_constraints[0].constraint_region.primitive_poses[0].position.y;
+        ik_pose.position.z = req.motion_plan_request.trajectory_constraints.constraints[tc].position_constraints[0].constraint_region.primitive_poses[0].position.z;
+        ik_pose.orientation.x = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.x;
+        ik_pose.orientation.y = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.y;
+        ik_pose.orientation.z = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.z;
+        ik_pose.orientation.w = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.w;
+
+        robot_state::RobotState robot_state(scene_monitor_.getPlanningScene()->getCurrentState());
+        robot_state::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
+
+        // Compute IK
+        ROS_INFO_STREAM("Processing trajectory waypoint " << req.motion_plan_request.trajectory_constraints.constraints[tc].name << " ...");
+        startTime = ros::WallTime::now();
+        success = robot_state.getJointStateGroup(req.motion_plan_request.group_name)->setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts,
+                                                                                                req.motion_plan_request.allowed_planning_time,
+                                                                                                boost::bind(&BenchmarkService::isIKSolutionCollisionFree, this, &reachable, _1, _2));
+        double duration = (ros::WallTime::now() - startTime).toSec();
+
+        if (success)
+        {
+          ROS_INFO("  Success!");
+        }
+        else if (reachable)
+        {
+          ROS_INFO("  Reachable, but in collision");
+        }
+        else
+        {
+          ROS_INFO("  Not reachable");
+        }
+
+        out << reachable << "; " << success << "; " << duration << std::endl;
+      }
+      out.close();
+      ROS_INFO("Results saved to '%s'", res.filename.c_str());
+    }
+
 
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return true;
   }
   
-  void status(void) const
+  void status() const
   {
   }
   
 private:
   
-  bool isIKSolutionCollisionFree(bool *reachable, kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
+  bool isIKSolutionCollisionFree(bool *reachable, robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
   {
     group->setVariableValues(ik_solution);
     *reachable = true;
-    if (scene_monitor_.getPlanningScene()->isStateColliding(*group->getKinematicState(), group->getName(), false))
+    if (scene_monitor_.getPlanningScene()->isStateColliding(*group->getRobotState(), group->getName(), false))
       return false;
     else
       return true;

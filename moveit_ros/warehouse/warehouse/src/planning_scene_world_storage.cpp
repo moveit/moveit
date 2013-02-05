@@ -46,12 +46,12 @@ moveit_warehouse::PlanningSceneWorldStorage::PlanningSceneWorldStorage(const std
   ROS_DEBUG("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::createCollections(void)
+void moveit_warehouse::PlanningSceneWorldStorage::createCollections()
 {
   planning_scene_world_collection_.reset(new PlanningSceneWorldCollection::element_type(DATABASE_NAME, "planning_scene_worlds", db_host_, db_port_, timeout_));
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::reset(void)
+void moveit_warehouse::PlanningSceneWorldStorage::reset()
 {
   planning_scene_world_collection_.reset();
   MoveItMessageStorage::drop(DATABASE_NAME);

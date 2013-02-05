@@ -35,9 +35,9 @@
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
-#include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 
 #ifndef Q_MOC_RUN
+#include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/background_processing.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 
@@ -78,16 +78,6 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   
   public:
   
-  struct TrajectoryMessageToDisplay
-  {
-    TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningSceneConstPtr &scene);
-    TrajectoryMessageToDisplay(const kinematic_state::KinematicStatePtr &start_state, const kinematic_state::KinematicTrajectory &trajectory);
-    
-    kinematic_state::KinematicStatePtr start_state_;
-    kinematic_state::KinematicTrajectory trajectory_;
-    std::vector<double> display_duration_;
-  };
-  
   MotionPlanningDisplay();
   
   virtual ~MotionPlanningDisplay();
@@ -99,49 +89,46 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   virtual void reset();
   
   // pass the execution of this function call to a separate thread that runs in the background
-  void addBackgroundJob(const boost::function<void(void)> &job);
+  void addBackgroundJob(const boost::function<void()> &job);
   
   // queue the execution of this function for the next time the main update() loop gets called
-  void addMainLoopJob(const boost::function<void(void)> &job);
+  void addMainLoopJob(const boost::function<void()> &job);
   
-  kinematic_state::KinematicStateConstPtr getQueryStartState(void) const
+  robot_state::RobotStateConstPtr getQueryStartState() const
   {
     return query_start_state_->getState();
   }
   
-  kinematic_state::KinematicStateConstPtr getQueryGoalState(void) const
+  robot_state::RobotStateConstPtr getQueryGoalState() const
   {
     return query_goal_state_->getState();
   }
   
-  const robot_interaction::RobotInteractionPtr& getRobotInteraction(void) const
+  const robot_interaction::RobotInteractionPtr& getRobotInteraction() const
   {
     return robot_interaction_;
   }
 
-  const robot_interaction::RobotInteraction::InteractionHandlerPtr& getQueryStartStateHandler(void) const
+  const robot_interaction::RobotInteraction::InteractionHandlerPtr& getQueryStartStateHandler() const
   {
     return query_start_state_;
   }
   
-  const robot_interaction::RobotInteraction::InteractionHandlerPtr& getQueryGoalStateHandler(void) const
+  const robot_interaction::RobotInteraction::InteractionHandlerPtr& getQueryGoalStateHandler() const
   {
     return query_goal_state_;
   }
   
-  void setQueryStartState(const kinematic_state::KinematicState &start);
-  void setQueryGoalState(const kinematic_state::KinematicState &goal);  
+  void setQueryStartState(const robot_state::RobotState &start);
+  void setQueryGoalState(const robot_state::RobotState &goal);  
   
-  void updateQueryStartState(void);
-  void updateQueryGoalState(void);
+  void updateQueryStartState();
+  void updateQueryGoalState();
   
-  std::string getCurrentPlanningGroup(void) const;
+  std::string getCurrentPlanningGroup() const;
   
-  void queueRenderSceneGeometry(void);
+  void queueRenderSceneGeometry();
   
-  void displayRobotTrajectory(const kinematic_state::KinematicStatePtr &start_state,
-                              const kinematic_state::KinematicTrajectory &trajectory);
-                                                                                                
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -170,7 +157,6 @@ private Q_SLOTS:
   void changedShowManipulability();
   void changedShowJointTorques();
   void changedMetricsSetPayload();
-  void changedCartesianTeleopState();
   void changedWorkspace();
   
 protected:
@@ -183,36 +169,36 @@ protected:
    */
   void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
 
-  void renderWorkspaceBox(void);
-  void updateLinkColors(void);
+  void renderWorkspaceBox();
+  void updateLinkColors();
   
   void displayTable(const std::map<std::string, double> &values,
                     const Ogre::ColourValue &color,
                     const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
   void displayMetrics(bool start);
 
-  void executeMainLoopJobs(void);
+  void executeMainLoopJobs();
   void clearTrajectoryTrail();  
-  void publishInteractiveMarkers(void);
+  void publishInteractiveMarkers();
 
-  void recomputeQueryStartStateMetrics(void);
-  void recomputeQueryGoalStateMetrics(void);
-  void drawQueryStartState(void);
-  void drawQueryGoalState(void);
+  void recomputeQueryStartStateMetrics();
+  void recomputeQueryGoalStateMetrics();
+  void drawQueryStartState();
+  void drawQueryGoalState();
   void scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
   void scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
 
 
-  bool isIKSolutionCollisionFree(kinematic_state::JointStateGroup *group, const std::vector<double> &ik_solution) const;
+  bool isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const;
   
   void computeMetrics(bool start, const std::string &group, double payload);
   void computeMetricsInternal(std::map<std::string, double> &metrics,
                               const robot_interaction::RobotInteraction::EndEffector &eef,
-                              const kinematic_state::KinematicState &state, double payload);
-  void updateStateExceptGroup(kinematic_state::KinematicState &dest, const kinematic_state::KinematicState &src, const std::string &group);
-  float getStateDisplayTime(void);
-  void updateBackgroundJobProgressBar(void);
-  void backgroundJobCompleted(void);
+                              const robot_state::RobotState &state, double payload);
+  void updateStateExceptGroup(robot_state::RobotState &dest, const robot_state::RobotState &src, const std::string &group);
+  float getStateDisplayTime();
+  void updateBackgroundJobProgressBar();
+  void backgroundJobCompleted();
   
   // overrides from Display  
   virtual void onInitialize();
@@ -221,19 +207,19 @@ protected:
   virtual void fixedFrameChanged();
 
   BackgroundProcessing background_process_;
-  std::deque<boost::function<void(void)> > main_loop_jobs_;
+  std::deque<boost::function<void()> > main_loop_jobs_;
   boost::mutex main_loop_jobs_lock_;
   
-  KinematicStateVisualizationPtr query_robot_start_;                  ///< Handles drawing the robot at the start configuration
-  KinematicStateVisualizationPtr query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
-  KinematicStateVisualizationPtr display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
+  RobotStateVisualizationPtr query_robot_start_;                  ///< Handles drawing the robot at the start configuration
+  RobotStateVisualizationPtr query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
+  RobotStateVisualizationPtr display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
 
   Ogre::SceneNode* text_display_scene_node_;        ///< displays texts
   bool text_display_for_start_;                     ///< indicates whether the text display is for the start state or not
   rviz::MovableText *text_to_display_;
     
-  boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
-  boost::shared_ptr<TrajectoryMessageToDisplay> trajectory_message_to_display_;
+  robot_trajectory::RobotTrajectoryPtr displaying_trajectory_message_;
+  robot_trajectory::RobotTrajectoryPtr trajectory_message_to_display_;
   std::vector<rviz::Robot*> trajectory_trail_;
   ros::Subscriber trajectory_topic_sub_;
   bool animating_path_;
@@ -264,14 +250,14 @@ protected:
   //Metric calculations
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  
   std::map<std::string, dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
-     
+  boost::mutex update_metrics_lock_;
+  
   // properties to show on side panel
   rviz::Property* path_category_;
   rviz::Property* plan_category_;
   rviz::Property* metrics_category_;
   
   rviz::EditableEnumProperty* planning_group_property_;
-  rviz::BoolProperty* cartesian_teleop_property_;
   rviz::BoolProperty* query_start_state_property_;
   rviz::BoolProperty* query_goal_state_property_;
   rviz::FloatProperty* query_marker_scale_property_;

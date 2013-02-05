@@ -74,11 +74,11 @@ public:
 
   void removeRobotState(const std::string &name, const std::string &robot = "");
 
-  void reset(void);
+  void reset();
   
 private:
 
-  void createCollections(void);
+  void createCollections();
   
   RobotStateCollection state_collection_;
   

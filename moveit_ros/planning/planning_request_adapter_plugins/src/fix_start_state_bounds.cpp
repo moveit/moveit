@@ -37,7 +37,7 @@
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <boost/math/constants/constants.hpp>
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <class_loader/class_loader.h>
 #include <ros/ros.h>
 
@@ -51,7 +51,7 @@ public:
   static const std::string BOUNDS_PARAM_NAME;
   static const std::string DT_PARAM_NAME;
   
-  FixStartStateBounds(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateBounds() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(BOUNDS_PARAM_NAME, bounds_dist_))
     {
@@ -70,28 +70,27 @@ public:
       ROS_INFO_STREAM("Param '" << DT_PARAM_NAME << "' was set to " << max_dt_offset_);
   }
   
-  virtual std::string getDescription(void) const { return "Fix Start State Bounds"; }
+  virtual std::string getDescription() const { return "Fix Start State Bounds"; }
   
   
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const moveit_msgs::MotionPlanRequest &req, 
-                            moveit_msgs::MotionPlanResponse &res,
+                            const planning_interface::MotionPlanRequest &req, 
+                            planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
     // get the specified start state
-    kinematic_state::KinematicState start_state = planning_scene->getCurrentState();
-    kinematic_state::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::RobotState start_state = planning_scene->getCurrentState();
+    robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
 
-    const std::vector<kinematic_state::JointState*> &jstates = 
+    const std::vector<robot_state::JointState*> &jstates = 
       planning_scene->getKinematicModel()->hasJointModelGroup(req.group_name) ? 
       start_state.getJointStateGroup(req.group_name)->getJointStateVector() : 
       start_state.getJointStateVector(); 
     
     bool change_req = false;
-    std::map<std::string, double> continuous_joints;
     for (std::size_t i = 0 ; i < jstates.size() ; ++i)
     { 
       // Check if we have a revolute, continuous joint. If we do, then we only need to make sure
@@ -108,7 +107,6 @@ public:
           double initial = jstates[i]->getVariableValues()[0];
           jstates[i]->enforceBounds();
           double after = jstates[i]->getVariableValues()[0];
-          continuous_joints[jstates[i]->getName()] = initial - after;
           if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
             change_req = true;
         } 
@@ -131,7 +129,7 @@ public:
     }
     
     // pointer to a prefix state we could possibly add, if we detect we have to make changes
-    kinematic_state::KinematicStatePtr prefix_state;
+    robot_state::RobotStatePtr prefix_state;
     for (std::size_t i = 0 ; i < jstates.size() ; ++i)
     {   
       if (!jstates[i]->satisfiesBounds())
@@ -139,7 +137,7 @@ public:
         if (jstates[i]->satisfiesBounds(bounds_dist_))
         {
           if (!prefix_state)
-            prefix_state.reset(new kinematic_state::KinematicState(start_state));
+            prefix_state.reset(new robot_state::RobotState(start_state));
           jstates[i]->enforceBounds();
           change_req = true;
           ROS_INFO("Starting state is just outside bounds (joint '%s'). Assuming within bounds.", jstates[i]->getName().c_str());
@@ -166,8 +164,8 @@ public:
     // if we made any changes, use them
     if (change_req)
     {
-      moveit_msgs::MotionPlanRequest req2 = req;
-      kinematic_state::kinematicStateToRobotState(start_state, req2.start_state);
+      planning_interface::MotionPlanRequest req2 = req;
+      robot_state::robotStateToRobotStateMsg(start_state, req2.start_state);
       solved = planner(planning_scene, req2, res);
     }
     else
@@ -175,43 +173,14 @@ public:
 
     // re-add the prefix state, if it was constructed
     if (prefix_state)
-    {      
-      kinematic_state::kinematicStateToRobotState(*prefix_state, res.trajectory_start);
-      if (solved)
-      {
+    {    
+      if (!res.trajectory_->empty())
         // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-        double d = std::min(max_dt_offset_, trajectory_processing::averageSegmentDuration(res.trajectory));
-        trajectory_processing::addPrefixState(*prefix_state, res.trajectory, d, planning_scene->getTransforms());
-        added_path_index.push_back(0);
-      }
+        res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
+      res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
+      added_path_index.push_back(0);
     }
 
-    if (!continuous_joints.empty())
-    {
-      ROS_DEBUG("'%s' is now unwiding joints", getDescription().c_str());
-      trajectory_processing::unwindJointTrajectory(planning_scene->getKinematicModel(), res.trajectory.joint_trajectory);
-      
-      // re-add continuous joint offsets
-      for (std::map<std::string, double>::const_iterator it = continuous_joints.begin() ; it != continuous_joints.end() ; ++it)
-      {
-        // update the start state with the original request value
-        for (std::size_t i = 0 ; i < res.trajectory_start.joint_state.name.size() ; ++i)
-          if (res.trajectory_start.joint_state.name[i] == it->first)
-          {
-            res.trajectory_start.joint_state.position[i] += it->second;
-            break;
-          }
-        
-        for (std::size_t i = 0 ; i < res.trajectory.joint_trajectory.joint_names.size() ; ++i)
-          if (res.trajectory.joint_trajectory.joint_names[i] == it->first)
-          {
-            // undo wrapping due to start state
-            for (std::size_t j = 0 ; j < res.trajectory.joint_trajectory.points.size() ; ++j)
-              res.trajectory.joint_trajectory.points[j].positions[i] += it->second;
-            break;
-          }
-      }
-    }
     return solved;
   }
   

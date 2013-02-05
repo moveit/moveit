@@ -41,7 +41,7 @@
 
 struct InitProxy
 {
-  InitProxy(void)
+  InitProxy()
   {
     char **fake_argv = new char*[1];
     fake_argv[0] = strdup("moveit_python_wrappers");
@@ -51,14 +51,14 @@ struct InitProxy
     delete[] fake_argv;
   }
   
-  ~InitProxy(void)
+  ~InitProxy()
   { 
     if (ros::isInitialized() && !ros::isShuttingDown())
       ros::shutdown();
   }
 };
 
-moveit_py_bindings_tools::ROScppInitializer::ROScppInitializer(void)
+moveit_py_bindings_tools::ROScppInitializer::ROScppInitializer()
 {
   // ensure we do not accidentally initialize ROS multiple times per process
   static boost::mutex lock;

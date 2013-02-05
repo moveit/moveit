@@ -76,7 +76,7 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
     scene->setColor(co.id, cl);    */
 }
 
-void sendScene(void)
+void sendScene()
 {  
     ros::NodeHandle nh;
     boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
@@ -92,7 +92,7 @@ void sendScene(void)
     ROS_INFO("Scene published.");
 }
 
-void sendCollisionObject(void)
+void sendCollisionObject()
 {
     ros::NodeHandle nh;
     tf::TransformListener tf;

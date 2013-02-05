@@ -63,7 +63,7 @@ class SelfMask
 protected:
   struct SeeLink
   {
-    SeeLink(void)
+    SeeLink()
     {
       body = unscaledBody = NULL;
     }
@@ -92,7 +92,7 @@ public:
   }
 
   /** \brief Destructor to clean up */
-  ~SelfMask(void)
+  ~SelfMask()
   {
     freeMemory ();
   }
@@ -158,13 +158,13 @@ public:
 
 private:
   /** \brief Free memory. */
-  void freeMemory (void);
+  void freeMemory ();
 
   /** \brief Configure the filter. */
   bool configure (const std::vector<LinkInfo> &links);
 
   /** \brief Compute bounding spheres for the checked robot links. */
-  void computeBoundingSpheres (void);
+  void computeBoundingSpheres ();
 
   /** \brief Perform the actual mask computation. */
   void maskAuxContainment (const pcl::PointCloud<pcl::PointXYZ>& data_in, std::vector<int> &mask);

@@ -6,15 +6,14 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Eigen REQUIRED)
-find_package(Boost REQUIRED thread date_time system filesystem)
+find_package(Boost REQUIRED thread program_options date_time system filesystem)
 
 pkg_check_modules(OGRE OGRE)
-link_directories( ${OGRE_LIBRARY_DIRS} )
+link_directories(${OGRE_LIBRARY_DIRS})
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(-DQT_NO_KEYWORDS)
-
 
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
@@ -49,6 +48,7 @@ catkin_package(
 
 include_directories(benchmarks/include)
 include_directories(benchmark_tool/include)
+
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 

@@ -54,19 +54,19 @@ public:
   RobotModelLoader(const std::string &robot_description = "robot_description");
   
   /** @brief Get the resolved parameter name for the robot description */
-  const std::string& getRobotDescription(void) const
+  const std::string& getRobotDescription() const
   {
     return robot_description_;
   }
   
   /** @brief Get the parsed URDF model*/
-  const boost::shared_ptr<urdf::ModelInterface>& getURDF(void) const
+  const boost::shared_ptr<urdf::ModelInterface>& getURDF() const
   {
     return urdf_;
   }
 
   /** @brief Get the parsed SRDF model*/
-  const boost::shared_ptr<srdf::Model>& getSRDF(void) const
+  const boost::shared_ptr<srdf::Model>& getSRDF() const
   {
     return srdf_;
   }

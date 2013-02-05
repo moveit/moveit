@@ -30,7 +30,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_state_rviz_plugin/robot_state_display.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
@@ -54,7 +54,7 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 // Base class contructor
 // ******************************************************************************************
-RobotStateDisplay::RobotStateDisplay(void) :
+RobotStateDisplay::RobotStateDisplay() :
   Display(),
   update_state_(false)
 {
@@ -95,18 +95,18 @@ RobotStateDisplay::RobotStateDisplay(void) :
 // ******************************************************************************************
 // Deconstructor
 // ******************************************************************************************
-RobotStateDisplay::~RobotStateDisplay(void)
+RobotStateDisplay::~RobotStateDisplay()
 { 
 }
 
-void RobotStateDisplay::onInitialize(void)
+void RobotStateDisplay::onInitialize()
 {  
   Display::onInitialize();
-  robot_.reset(new KinematicStateVisualization(scene_node_, context_, "Robot State", this));
+  robot_.reset(new RobotStateVisualization(scene_node_, context_, "Robot State", this));
   robot_->setVisible(true);
 }
 
-void RobotStateDisplay::reset(void)
+void RobotStateDisplay::reset()
 { 
   robot_->clear();
   robot_model_loader_.reset();
@@ -117,12 +117,12 @@ void RobotStateDisplay::reset(void)
   robot_->setVisible(true);
 }
 
-void RobotStateDisplay::changedEnableLinkHighlight(void)
+void RobotStateDisplay::changedEnableLinkHighlight()
 {
   // todo
 }
 
-void RobotStateDisplay::changedAttachedBodyColor(void)
+void RobotStateDisplay::changedAttachedBodyColor()
 {
   if (robot_)
   {
@@ -137,17 +137,17 @@ void RobotStateDisplay::changedAttachedBodyColor(void)
   }
 }
 
-void RobotStateDisplay::changedRobotDescription(void)
+void RobotStateDisplay::changedRobotDescription()
 {
   if (isEnabled())
     reset();
 }
 
-void RobotStateDisplay::changedRootLinkName(void)
+void RobotStateDisplay::changedRootLinkName()
 {
 }
 
-void RobotStateDisplay::changedRobotSceneAlpha(void)
+void RobotStateDisplay::changedRobotSceneAlpha()
 {
   if (robot_)
   {
@@ -163,7 +163,7 @@ void RobotStateDisplay::changedRobotSceneAlpha(void)
   }
 }
 
-void RobotStateDisplay::changedRobotStateTopic(void)
+void RobotStateDisplay::changedRobotStateTopic()
 {
   robot_state_subscriber_.shutdown();
   robot_state_subscriber_ = root_nh_.subscribe(robot_state_topic_property_->getStdString(), 10, &RobotStateDisplay::newRobotStateCallback, this);
@@ -176,9 +176,9 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   if (!kmodel_)
     return;
   if (!kstate_)
-    kstate_.reset(new kinematic_state::KinematicState(kmodel_)); 
-  // possibly use TF to construct a kinematic_state::Transforms object to pass in to the conversion functio?
-  kinematic_state::robotStateToKinematicState(state->state, *kstate_);
+    kstate_.reset(new robot_state::RobotState(kmodel_)); 
+  // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion functio?
+  robot_state::robotStateMsgToRobotState(state->state, *kstate_);
   update_state_ = true;
 }
 
@@ -226,7 +226,7 @@ void RobotStateDisplay::loadRobotModel(const std::string &root_link)
     else
       kmodel_.reset(new kinematic_model::KinematicModel(robot_model_loader_->getURDF(), srdf, root_link));
     robot_->load(*kmodel_->getURDF());
-    kstate_.reset(new kinematic_state::KinematicState(kmodel_));
+    kstate_.reset(new robot_state::RobotState(kmodel_));
     kstate_->setToDefaultValues();
     bool oldState = root_link_name_property_->blockSignals(true);
     root_link_name_property_->setStdString(getKinematicModel()->getRootLinkName());
@@ -238,7 +238,7 @@ void RobotStateDisplay::loadRobotModel(const std::string &root_link)
     setStatus( rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded" );
 }
 
-void RobotStateDisplay::onEnable(void)
+void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
   loadRobotModel("");
@@ -250,7 +250,7 @@ void RobotStateDisplay::onEnable(void)
 // ******************************************************************************************
 // Disable
 // ******************************************************************************************
-void RobotStateDisplay::onDisable(void)
+void RobotStateDisplay::onDisable()
 {
   if (robot_)
     robot_->setVisible(false);
@@ -270,7 +270,7 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
 // ******************************************************************************************
 // Calculate Offset Position
 // ******************************************************************************************
-void RobotStateDisplay::calculateOffsetPosition(void)
+void RobotStateDisplay::calculateOffsetPosition()
 {  
   if (!getKinematicModel())
     return;
@@ -301,7 +301,7 @@ void RobotStateDisplay::calculateOffsetPosition(void)
   scene_node_->setOrientation(orientation);
 }
 
-void RobotStateDisplay::fixedFrameChanged(void)
+void RobotStateDisplay::fixedFrameChanged()
 {
   Display::fixedFrameChanged(); 
   calculateOffsetPosition();  

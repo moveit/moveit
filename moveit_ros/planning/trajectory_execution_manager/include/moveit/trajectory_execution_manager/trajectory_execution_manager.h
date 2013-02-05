@@ -77,13 +77,13 @@ public:
   TrajectoryExecutionManager(const kinematic_model::KinematicModelConstPtr &kmodel, bool manage_controllers);
 
   /// Destructor. Cancels all running trajectories (if any)
-  ~TrajectoryExecutionManager(void);
+  ~TrajectoryExecutionManager();
   
   /// If this function returns true, then this instance of the manager is allowed to load/unload/switch controllers
-  bool isManagingControllers(void) const;
+  bool isManagingControllers() const;
   
   /// Get the instance of the controller manager used (this is the plugin instance loaded)
-  const moveit_controller_manager::MoveItControllerManagerPtr& getControllerManager(void) const;
+  const moveit_controller_manager::MoveItControllerManagerPtr& getControllerManager() const;
   
   /** \brief Execute a named event (e.g., 'stop') */
   void processEvent(const std::string &event);
@@ -127,7 +127,7 @@ public:
   bool push(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
   
   /// Get the trajectories to be executed
-  const std::vector<TrajectoryExecutionContext*>& getTrajectories(void) const;
+  const std::vector<TrajectoryExecutionContext*>& getTrajectories() const;
   
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback &callback = ExecutionCompleteCallback(), bool auto_clear = true);
@@ -161,21 +161,21 @@ public:
   bool pushAndExecute(const sensor_msgs::JointState &state, const std::vector<std::string> &controllers);
 
   /// Wait until the execution is complete. This applies for executions started by either execute() or pushAndExecute()
-  moveit_controller_manager::ExecutionStatus waitForExecution(void);
+  moveit_controller_manager::ExecutionStatus waitForExecution();
   
   /// Get the state that the robot is expected to be at, given current time, after execute() has been called. The return value is a pair of two index values:
   /// first = the index of the trajectory to be executed (in the order push() was called), second = the index of the point within that trajectory.
   /// Values of -1 are returned when there is no trajectory being executed, or if the trajectory was passed using pushAndExecute().
-  std::pair<int, int> getCurrentExpectedTrajectoryIndex(void) const;
+  std::pair<int, int> getCurrentExpectedTrajectoryIndex() const;
   
   /// Return the controller status for the last attempted execution 
-  moveit_controller_manager::ExecutionStatus getLastExecutionStatus(void) const;
+  moveit_controller_manager::ExecutionStatus getLastExecutionStatus() const;
     
   /// Stop whatever executions are active, if any
   void stopExecution(bool auto_clear = true);
   
   /// Clear the trajectories to execute
-  void clear(void);
+  void clear();
   
 private:
 
@@ -195,9 +195,9 @@ private:
     }
   };
 
-  void initialize(void);
+  void initialize();
 
-  void reloadControllerInformation(void);
+  void reloadControllerInformation();
 
   bool configure(TrajectoryExecutionContext &context, const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
   
@@ -216,10 +216,10 @@ private:
   
   void executeThread(const ExecutionCompleteCallback &callback, bool auto_clear);
   bool executePart(std::size_t part_index);
-  void continuousExecutionThread(void);
+  void continuousExecutionThread();
   
 
-  void stopExecutionInternal(void);
+  void stopExecutionInternal();
   
   void receiveEvent(const std_msgs::StringConstPtr &event);
 

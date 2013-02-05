@@ -55,7 +55,7 @@ public:
   
   struct Options
   {
-    Options(void) : replan_(false),
+    Options() : replan_(false),
                     replan_attempts_(0)
     {
     }
@@ -77,26 +77,26 @@ public:
     boost::function<bool(ExecutableMotionPlan &plan_to_update,
                          const std::pair<int, int> &trajectory_index)> repair_plan_callback_;
 
-    boost::function<void(void)> before_plan_callback_;
-    boost::function<void(void)> before_execution_callback_;
-    boost::function<void(void)> done_callback_;
+    boost::function<void()> before_plan_callback_;
+    boost::function<void()> before_execution_callback_;
+    boost::function<void()> done_callback_;
   };
   
   PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, 
                 const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution);
-  ~PlanExecution(void);
+  ~PlanExecution();
 
-  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void) const
+  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor() const
   {
     return planning_scene_monitor_;
   }
   
-  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager(void) const
+  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager() const
   {
     return trajectory_execution_manager_;
   }
 
-  double getTrajectoryStateRecordingFrequency(void) const
+  double getTrajectoryStateRecordingFrequency() const
   {
     if (trajectory_monitor_)
       return trajectory_monitor_->getSamplingFrequency();
@@ -115,7 +115,7 @@ public:
     default_max_replan_attempts_ = attempts;
   }
   
-  unsigned int getMaxReplanAttempts(void) const
+  unsigned int getMaxReplanAttempts() const
   {
     return default_max_replan_attempts_;
   }
@@ -123,7 +123,7 @@ public:
   void planAndExecute(ExecutableMotionPlan &plan, const Options &opt);
   void planAndExecute(ExecutableMotionPlan &plan, const moveit_msgs::PlanningScene &scene_diff, const Options &opt);
 
-  void stop(void);
+  void stop();
 
 private:
 

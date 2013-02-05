@@ -39,7 +39,7 @@
 #include <sstream>
 #include <climits>
 
-void robot_self_filter::SelfMask::freeMemory (void)
+void robot_self_filter::SelfMask::freeMemory ()
 {
   for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
   {
@@ -261,7 +261,7 @@ void robot_self_filter::SelfMask::maskIntersection(const pcl::PointCloud<pcl::Po
   }
 }
 
-void robot_self_filter::SelfMask::computeBoundingSpheres(void)
+void robot_self_filter::SelfMask::computeBoundingSpheres()
 {
   const unsigned int bs = bodies_.size();
   for (unsigned int i = 0 ; i < bs ; ++i)

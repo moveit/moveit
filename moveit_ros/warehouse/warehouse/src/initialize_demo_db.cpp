@@ -38,7 +38,7 @@
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/kinematic_state/conversions.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/program_options/cmdline.hpp>
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
   pss.addPlanningScene(psmsg);
 
   moveit_msgs::RobotState rsmsg;
-  kinematic_state::kinematicStateToRobotState(psm.getPlanningScene()->getCurrentState(), rsmsg);
+  robot_state::robotStateToRobotStateMsg(psm.getPlanningScene()->getCurrentState(), rsmsg);
   rs.addRobotState(rsmsg, "S1");
   rs.addRobotState(rsmsg, "S2");
 

@@ -69,7 +69,7 @@ moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &
   ROS_DEBUG("Connecting to MongoDB on host '%s' port '%u'...", db_host_.c_str(), db_port_);
 }
 
-moveit_warehouse::MoveItMessageStorage::~MoveItMessageStorage(void)
+moveit_warehouse::MoveItMessageStorage::~MoveItMessageStorage()
 {
 }
 
