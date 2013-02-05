@@ -58,21 +58,6 @@ void MotionPlanningFrame::planAndExecuteButtonClicked()
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this));
 }
 
-void MotionPlanningFrame::randomStatesButtonClicked()
-{
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeRandomStatesButtonClicked, this));
-}
-
-void MotionPlanningFrame::setStartToCurrentButtonClicked()
-{
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSetStartToCurrentButtonClicked, this));
-}
-
-void MotionPlanningFrame::setGoalToCurrentButtonClicked()
-{
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSetGoalToCurrentButtonClicked, this));
-}
-
 void MotionPlanningFrame::allowReplanningToggled(bool checked)
 {
   if (move_group_)
@@ -123,41 +108,50 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   ui_->plan_and_execute_button->setEnabled(true);
 }
 
-void MotionPlanningFrame::computeSetStartToCurrentButtonClicked()
+void MotionPlanningFrame::useStartStateButtonClicked()
 {
-  const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-  if (ps)
-    planning_display_->setQueryStartState(ps->getCurrentState());
+  robot_state::RobotState start = *planning_display_->getQueryStartState();
+  updateQueryStateHelper(start, ui_->start_state_selection->currentText().toStdString());
+  planning_display_->setQueryStartState(start);
 }
 
-void MotionPlanningFrame::computeSetGoalToCurrentButtonClicked()
+void MotionPlanningFrame::useGoalStateButtonClicked()
 {
-  const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-  if (ps)
-    planning_display_->setQueryGoalState(ps->getCurrentState());
+  robot_state::RobotState goal = *planning_display_->getQueryGoalState();
+  updateQueryStateHelper(goal, ui_->goal_state_selection->currentText().toStdString());
+  planning_display_->setQueryGoalState(goal);
 }
 
-void MotionPlanningFrame::computeRandomStatesButtonClicked()
+void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state, const std::string &v)
 {
-  std::string group_name = planning_display_->getCurrentPlanningGroup();
-
-  if (planning_display_->getQueryStartState())
-  {
-    robot_state::RobotState start = *planning_display_->getQueryStartState();
-    robot_state::JointStateGroup *jsg = start.getJointStateGroup(group_name);
-    if (jsg)
+  if (v == "<random>")
+  { 
+    if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(planning_display_->getCurrentPlanningGroup()))
       jsg->setToRandomValues();
-    planning_display_->setQueryStartState(start);
   }
-
-  if (planning_display_->getQueryGoalState())
-  {
-    robot_state::RobotState goal = *planning_display_->getQueryGoalState();
-    robot_state::JointStateGroup *jsg = goal.getJointStateGroup(group_name);
-    if (jsg)
-      jsg->setToRandomValues();
-    planning_display_->setQueryGoalState(goal);
-  }
+  else
+    if (v == "<current>")
+    {
+      const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+      if (ps)
+        state = ps->getCurrentState();
+    }
+    else
+      if (v == "<same as goal>")
+      {
+        state = *planning_display_->getQueryGoalState();
+      }
+      else
+        if (v == "<same as start>")
+        {
+          state = *planning_display_->getQueryStartState();
+        }
+        else
+        {
+          // maybe it is a named state
+          if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(planning_display_->getCurrentPlanningGroup()))
+            jsg->setToDefaultState(v);
+        }
 }
 
 void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
