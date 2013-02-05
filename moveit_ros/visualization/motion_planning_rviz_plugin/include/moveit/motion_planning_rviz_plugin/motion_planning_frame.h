@@ -117,12 +117,11 @@ private Q_SLOTS:
   void planButtonClicked();  
   void executeButtonClicked();
   void planAndExecuteButtonClicked();
-  void randomStatesButtonClicked();
-  void setStartToCurrentButtonClicked();
-  void setGoalToCurrentButtonClicked();
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
   void pathConstraintsIndexChanged(int index);
+  void useStartStateButtonClicked();
+  void useGoalStateButtonClicked();  
 
   //Scene Objects tab
   void importFileButtonClicked();
@@ -166,13 +165,11 @@ private:
   void computeExecuteButtonClicked();
   void computePlanAndExecuteButtonClicked(); 
   void computePlanAndExecuteButtonClickedDisplayHelper();
-  void computeSetStartToCurrentButtonClicked();
-  void computeSetGoalToCurrentButtonClicked();
-  void computeRandomStatesButtonClicked();
   void populateConstraintsList();
   void populateConstraintsList(const std::vector<std::string> &constr);
   void configureForPlanning();
-
+  void updateQueryStateHelper(robot_state::RobotState &state, const std::string &v);
+  
   //Scene objects tab
   void computeSaveSceneButtonClicked();
   void computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name);
@@ -198,9 +195,8 @@ private:
   void changePlanningGroupHelper();
   void importResource(const std::string &path);
 
-  /** Selects or unselects a item in a list by the item name */
+  /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
-  //void selectItemJob(QListWidgetItem *item, bool flag);
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
