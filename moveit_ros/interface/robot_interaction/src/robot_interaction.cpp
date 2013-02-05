@@ -253,22 +253,18 @@ robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState()
 
 void RobotInteraction::InteractionHandler::setState(const robot_state::RobotState& kstate)
 {
-  robot_state::RobotStatePtr store_location;
   boost::unique_lock<boost::mutex> ulock(state_lock_);
-  if (kstate_)
-    store_location = kstate_;
-  else
+  if (!kstate_)
   {   
     do
     {
       state_available_condition_.wait(ulock);
     } while (!kstate_);
-    store_location = kstate_;
   }
-  if (store_location.unique())
-    *store_location = kstate;
+  if (kstate_.unique())
+    *kstate_ = kstate;
   else
-    store_location.reset(new robot_state::RobotState(kstate));
+    kstate_.reset(new robot_state::RobotState(kstate));
 }
 
 robot_state::RobotStatePtr RobotInteraction::InteractionHandler::getUniqueStateAccess()
@@ -276,16 +272,14 @@ robot_state::RobotStatePtr RobotInteraction::InteractionHandler::getUniqueStateA
   robot_state::RobotStatePtr result;
   {
     boost::unique_lock<boost::mutex> ulock(state_lock_);
-    if (kstate_)
-      result.swap(kstate_);
-    else
+    if (!kstate_)
     {  
       do
       {
         state_available_condition_.wait(ulock);
       } while (!kstate_);
-      result.swap(kstate_);
     }  
+    result.swap(kstate_);
   }
   if (!result.unique())
     result.reset(new robot_state::RobotState(*result));
