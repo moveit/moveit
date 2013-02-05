@@ -195,7 +195,7 @@ protected:
   void computeMetricsInternal(std::map<std::string, double> &metrics,
                               const robot_interaction::RobotInteraction::EndEffector &eef,
                               const robot_state::RobotState &state, double payload);
-  void updateStateExceptGroup(robot_state::RobotState &dest, const robot_state::RobotState &src, const std::string &group);
+  void updateStateExceptModified(robot_state::RobotState &dest, const robot_state::RobotState &src);
   float getStateDisplayTime();
   void updateBackgroundJobProgressBar();
   void backgroundJobCompleted();
@@ -239,13 +239,12 @@ protected:
   robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
   std::map<std::string, int> collision_links_start_;
   std::map<std::string, int> collision_links_goal_;
-
+  /// Hold the names of the groups for which the query states have been updated (and should not be altered when new info is received from the planning scene)
+  std::set<std::string> modified_groups_; 
+  
   /// The metrics are pairs of name-value for each of the active end effectors, for both start & goal states.
   /// computed_metrics_[std::make_pair(IS_START_STATE, GROUP_NAME)] = a map of key-value pairs
   std::map<std::pair<bool, std::string>, std::map<std::string, double> > computed_metrics_;
-  
-  std::set<std::string> invalid_start_state_;
-  std::set<std::string> invalid_goal_state_;
   
   //Metric calculations
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  
