@@ -168,6 +168,7 @@ private:
   void populateConstraintsList();
   void populateConstraintsList(const std::vector<std::string> &constr);
   void configureForPlanning();
+  void configureWorkspace();  
   void updateQueryStateHelper(robot_state::RobotState &state, const std::string &v);
   
   //Scene objects tab

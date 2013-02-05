@@ -159,8 +159,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
           ui_->goal_state_selection->addItem(QString::fromStdString(known_states[i]));
         }
       }
-      ui_->start_state_selection->setCurrentIndex(0);
-      ui_->goal_state_selection->setCurrentIndex(1);
+      ui_->start_state_selection->setCurrentIndex(1);
+      ui_->goal_state_selection->setCurrentIndex(0);
       
       if (move_group_ && move_group_->getName() == group)
         return;

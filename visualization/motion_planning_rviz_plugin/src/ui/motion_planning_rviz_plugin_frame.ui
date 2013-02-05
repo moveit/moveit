@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>362</height>
+    <height>369</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -274,12 +274,20 @@
                  </sizepolicy>
                 </property>
                 <property name="frameShape">
-                 <enum>QFrame::NoFrame</enum>
+                 <enum>QFrame::StyledPanel</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Raised</enum>
                 </property>
-                <widget class="QWidget" name="query_stackedwidgetPage2" native="true">
+                <widget class="QWidget" name="query_stackedwidgetPage2">
+                 <property name="geometry">
+                  <rect>
+                   <x>0</x>
+                   <y>0</y>
+                   <width>193</width>
+                   <height>80</height>
+                  </rect>
+                 </property>
                  <attribute name="label">
                   <string>Select Start State:</string>
                  </attribute>
@@ -296,7 +304,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>&amp;Use</string>
+                     <string>&amp;Update</string>
                     </property>
                     <property name="autoDefault">
                      <bool>false</bool>
@@ -321,7 +329,15 @@
                   </item>
                  </layout>
                 </widget>
-                <widget class="QWidget" name="query_stackedwidgetPage1" native="true">
+                <widget class="QWidget" name="query_stackedwidgetPage1">
+                 <property name="geometry">
+                  <rect>
+                   <x>0</x>
+                   <y>0</y>
+                   <width>193</width>
+                   <height>80</height>
+                  </rect>
+                 </property>
                  <attribute name="label">
                   <string>Select Goal State:</string>
                  </attribute>
@@ -351,7 +367,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>&amp;Use</string>
+                     <string>&amp;Update</string>
                     </property>
                     <property name="autoDefault">
                      <bool>false</bool>
