@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>369</height>
+    <height>371</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -284,7 +284,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>193</width>
+                   <width>206</width>
                    <height>80</height>
                   </rect>
                  </property>
@@ -334,7 +334,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>193</width>
+                   <width>109</width>
                    <height>80</height>
                   </rect>
                  </property>
@@ -1051,6 +1051,68 @@
             </item>
            </layout>
           </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="stored_states">
+      <attribute name="title">
+       <string>Stored States</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QListWidget" name="list_states"/>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QPushButton" name="load_state_button">
+           <property name="text">
+            <string>Load State</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="save_start_state_button">
+           <property name="text">
+            <string>Save Start State</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="save_goal_state_button">
+           <property name="text">
+            <string>Save Goal State</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="remove_state_button">
+           <property name="text">
+            <string>Remove State</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clear_states_button">
+           <property name="text">
+            <string>Clear States</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_8">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
