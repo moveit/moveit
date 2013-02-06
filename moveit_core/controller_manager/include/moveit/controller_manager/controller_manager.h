@@ -130,6 +130,12 @@ public:
   
   struct ControllerState
   {
+    ControllerState() : active_(false),
+                        loaded_(false),
+                        default_(false)
+    {
+    }
+    
     bool active_;
     bool loaded_;
     bool default_;
