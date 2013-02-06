@@ -173,11 +173,14 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
       else
         if (desc.planner_ids[i].substr(0, group.length()) == group)
         {
-          std::string id = desc.planner_ids[i].substr(group.length());
-          if (id.size() > 2)
+          if (desc.planner_ids[i].size() > group.length() && desc.planner_ids[i][group.length()] == '[')
           {
-            id.resize(id.length() - 1);
-            ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
+            std::string id = desc.planner_ids[i].substr(group.length());
+            if (id.size() > 2)
+            {
+              id.resize(id.length() - 1);
+              ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
+            }
           }
         }
   if (ui_->planning_algorithm_combo_box->count() == 0 && !found_group)
