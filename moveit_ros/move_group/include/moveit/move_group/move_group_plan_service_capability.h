@@ -32,22 +32,33 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_MOVE_GROUP_NAMES
-#define MOVEIT_MOVE_GROUP_NAMES
+/* Author: Ioan Sucan */
 
-#include <string>
+#ifndef MOVEIT_MOVE_GROUP_PLAN_SERVICE_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_PLAN_SERVICE_CAPABILITY_
+
+#include <moveit/move_group/move_group_capability.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit_msgs/GetMotionPlan.h>
 
 namespace move_group
 {
 
-static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
-static const std::string NODE_NAME = "move_group";                   // name of node
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_SERVICE_NAME = "query_planner_interface"; // name of the advertised query service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string PICKUP_ACTION = "pickup"; // name of 'pickup' action
-static const std::string PLACE_ACTION = "place"; // name of 'place' action
+class MoveGroupPlanService : public MoveGroupCapability
+{
+public:
+  
+  MoveGroupPlanService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
+                       const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                       bool debug);
+
+private:
+  
+  bool computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
+  
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
+  ros::ServiceServer plan_service_;
+};
 
 }
 

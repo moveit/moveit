@@ -32,23 +32,43 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_MOVE_GROUP_NAMES
-#define MOVEIT_MOVE_GROUP_NAMES
+/* Author: Ioan Sucan */
 
-#include <string>
+#include <moveit/move_group/names.h>
+#include <moveit/move_group/move_group_plan_service_capability.h>
 
-namespace move_group
+move_group::MoveGroupPlanService::MoveGroupPlanService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
+                                                       const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                                                       bool debug):
+  MoveGroupCapability(psm, debug),
+  planning_pipeline_(planning_pipeline)
 {
-
-static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
-static const std::string NODE_NAME = "move_group";                   // name of node
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_SERVICE_NAME = "query_planner_interface"; // name of the advertised query service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string PICKUP_ACTION = "pickup"; // name of 'pickup' action
-static const std::string PLACE_ACTION = "place"; // name of 'place' action
-
+  plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupPlanService::computePlanService, this);
 }
 
-#endif
+bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+{
+  ROS_INFO("Received new planning service request...");
+  planning_scene_monitor_->updateFrameTransforms();
+  
+  bool solved = false;   
+  planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+  try
+  {
+    planning_interface::MotionPlanResponse mp_res;
+    solved = planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
+    mp_res.getMessage(res.motion_plan_response);
+  }
+  catch(std::runtime_error &ex)
+  {
+    ROS_ERROR("Planning pipeline threw an exception: %s", ex.what()); 
+    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+  catch(...)
+  {
+    ROS_ERROR("Planning pipeline threw an exception"); 
+    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+  
+  return solved;
+}

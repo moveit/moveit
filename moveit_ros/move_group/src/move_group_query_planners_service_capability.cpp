@@ -32,23 +32,31 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_MOVE_GROUP_NAMES
-#define MOVEIT_MOVE_GROUP_NAMES
+/* Author: Ioan Sucan */
 
-#include <string>
+#include <moveit/move_group/names.h>
+#include <moveit/move_group/move_group_query_planners_service_capability.h>
 
-namespace move_group
+move_group::MoveGroupQueryPlannersService::MoveGroupQueryPlannersService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
+                                                                         const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
+                                                                         bool debug):
+  MoveGroupCapability(psm, debug),
+  planning_pipeline_(planning_pipeline)
 {
-
-static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
-static const std::string NODE_NAME = "move_group";                   // name of node
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_SERVICE_NAME = "query_planner_interface"; // name of the advertised query service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string PICKUP_ACTION = "pickup"; // name of 'pickup' action
-static const std::string PLACE_ACTION = "place"; // name of 'place' action
-
+  query_service_ = root_node_handle_.advertiseService(QUERY_SERVICE_NAME, &MoveGroupQueryPlannersService::queryInterface, this);
 }
 
-#endif
+bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
+{    
+  const planning_interface::PlannerPtr &planner_interface = planning_pipeline_->getPlannerInterface();
+  if (planner_interface)
+  {
+    std::vector<std::string> algs;
+    planner_interface->getPlanningAlgorithms(algs);
+    moveit_msgs::PlannerInterfaceDescription pi_desc;
+    pi_desc.name = planner_interface->getDescription();
+    planner_interface->getPlanningAlgorithms(pi_desc.planner_ids);
+    res.planner_interfaces.push_back(pi_desc);
+  }
+  return true;
+}
