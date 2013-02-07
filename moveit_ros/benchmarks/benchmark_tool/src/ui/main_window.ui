@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Benchmark tool</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -521,6 +521,13 @@ reachability</string>
                   </widget>
                  </item>
                 </layout>
+               </item>
+               <item>
+                <widget class="QPushButton" name="plan_trajectory_button">
+                 <property name="text">
+                  <string>Plan trajectory</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>

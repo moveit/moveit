@@ -117,6 +117,7 @@ public Q_SLOTS:
   void loadTrajectoriesFromDBButtonClicked(void);
   void saveTrajectoriesOnDBButtonClicked(void);
   void trajectoryNWaypointsChanged(int);
+  void planTrajectoryButtonClicked(void);
 
   //main loop processing
   void MainLoop();
@@ -196,6 +197,7 @@ private:
 
   //Trajectories
   void switchTrajectorySelection(const std::string &marker_name);
+  void animateTrajectory(const std::vector<boost::shared_ptr<robot_state::RobotState> > &traj);
 
   typedef std::map<std::string, TrajectoryPtr> TrajectoryMap;
   typedef std::pair<std::string, TrajectoryPtr> TrajectoryPair;

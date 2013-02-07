@@ -316,4 +316,40 @@ void MainWindow::trajectoryNWaypointsChanged(int n)
   }
 }
 
+void MainWindow::planTrajectoryButtonClicked()
+{
+  if (ui_.trajectory_list->currentItem())
+  {
+    TrajectoryMap::iterator it = trajectories_.find(ui_.trajectory_list->currentItem()->text().toStdString());
+    std::vector<Eigen::Affine3d> waypoint_poses;
+    for (std::size_t w = 1; w < it->second->waypoint_markers.size(); ++w )
+    {
+      Eigen::Affine3d pose;
+      it->second->getGripperMarkerPose(it->second->waypoint_markers[w], pose);
+      waypoint_poses.push_back(pose);
+    }
+
+    if (waypoint_poses.size() > 0)
+    {
+      robot_state::JointStateGroup *jsg = scene_display_->getPlanningSceneRW()->getCurrentState().getJointStateGroup(ui_.planning_group_combo->currentText().toStdString());
+
+      std::vector<boost::shared_ptr<robot_state::RobotState> > traj;
+      double completed = jsg->computeCartesianPath(traj, robot_interaction_->getActiveEndEffectors()[0].parent_link, waypoint_poses, true, 0.04, 0.0);
+
+      ROS_INFO_STREAM("Trajectory completion percentage " << completed);
+      JobProcessing::addBackgroundJob(boost::bind(&MainWindow::animateTrajectory, this, traj));
+    }
+  }
+}
+
+void MainWindow::animateTrajectory(const std::vector<boost::shared_ptr<robot_state::RobotState> > &traj)
+{
+  for (std::size_t i = 0; i < traj.size(); ++i)
+  {
+    scene_display_->getPlanningSceneRW()->setCurrentState(*traj[i]);
+    scene_display_->queueRenderSceneGeometry();
+    usleep(100000);
+  }
+}
+
 } // namespace
