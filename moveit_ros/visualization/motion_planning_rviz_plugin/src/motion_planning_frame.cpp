@@ -94,6 +94,13 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->reset_db_button, SIGNAL( clicked() ), this, SLOT( resetDbButtonClicked() ));
   connect( ui_->export_scene_text_button, SIGNAL( clicked() ), this, SLOT( exportAsTextButtonClicked() ));
   connect( ui_->import_scene_text_button, SIGNAL( clicked() ), this, SLOT( importFromTextButtonClicked() ));
+  connect( ui_->load_state_button, SIGNAL( clicked() ), this, SLOT( loadStateButtonClicked() ));
+  connect( ui_->save_start_state_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
+  connect( ui_->save_goal_state_button, SIGNAL( clicked() ), this, SLOT( saveGoalStateButtonClicked() ));
+  connect( ui_->set_as_start_state_button, SIGNAL( clicked() ), this, SLOT( setAsStartStateButtonClicked() ));
+  connect( ui_->set_as_goal_state_button, SIGNAL( clicked() ), this, SLOT( setAsGoalStateButtonClicked() ));
+  connect( ui_->remove_state_button, SIGNAL( clicked() ), this, SLOT( removeStateButtonClicked() ));
+  connect( ui_->clear_states_button, SIGNAL( clicked() ), this, SLOT( clearStatesButtonClicked() ));
 
   connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
 
