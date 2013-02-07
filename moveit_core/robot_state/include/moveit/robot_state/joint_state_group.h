@@ -361,9 +361,9 @@ public:
       straight line towards the target. The resulting joint values are stored in
       the vector \e traj, one by one. The maximum distance in Cartesian space between consecutive points on the resulting path
       is specified by \e max_step.  If a \e validCallback is specified, this is passed to the internal call to
-      setFromIK(). In case of IK failure, the computation of the path stops and the value returned corresponds to the distance that
-      was computed and for which corresponding states were added to the path.  At the end of the function call, the state of the
-      group corresponds to the last attempted Cartesian pose.  During the computation of the trajectory, it is sometimes preferred if
+      setFromIK(). In case of IK failure, the computation of the path stops and the value returned corresponds to the percentage of the
+      path (between 0 and 1) that was computed and for which corresponding states were added to the path.  At the end of the function call,
+      the state of the group corresponds to the last attempted Cartesian pose.  During the computation of the trajectory, it is sometimes preferred if
       consecutive joint values do not 'jump' by a large amount in joint space, even if the Cartesian distance between the
       corresponding points is as expected. To account for this, the \e jump_threshold parameter is provided.  As the joint values
       corresponding to the Cartesian path are computed, distances in joint space between consecutive points are also computed. Once
