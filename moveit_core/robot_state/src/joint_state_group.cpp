@@ -873,13 +873,14 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
       previous_values[k] = joint_state_vector_[k]->getVariableValues();
 
   double last_valid_percentage = 0.0;
+  Eigen::Quaterniond start_quaternion(start_pose.rotation());
+  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
   for (unsigned int i = 1; i <= steps ; ++i)
-  {
+ {
     double percentage = (double)i / (double)steps;
-    Eigen::Quaterniond start_quaternion(start_pose.rotation());
-    Eigen::Quaterniond target_quaternion(rotated_target.rotation());
-    Eigen::Affine3d pose(start_quaternion.slerp((double)i / (double)steps, target_quaternion));
-    pose.translation() = (i * rotated_target.translation() + (steps - i) * start_pose.translation()) / steps;
+
+    Eigen::Affine3d pose(start_quaternion.slerp(percentage, target_quaternion));
+    pose.translation() = percentace * rotated_target.translation() + (1 - percentage) * start_pose.translation();
 
     if (setFromIK(pose, link_name, 1, 0.0, validCallback))
     {
