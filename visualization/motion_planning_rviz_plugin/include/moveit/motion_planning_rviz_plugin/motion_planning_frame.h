@@ -104,6 +104,10 @@ protected:
   boost::shared_ptr<moveit_warehouse::RobotStateStorage> robot_state_storage_;
 
   boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
+
+  typedef std::map<std::string, moveit_msgs::RobotState> RobotStateMap;
+  typedef std::pair<std::string, moveit_msgs::RobotState> RobotStatePair;
+  RobotStateMap robot_states_;
  
 private Q_SLOTS:
 
@@ -149,6 +153,15 @@ private Q_SLOTS:
   void loadQueryButtonClicked();
   void warehouseItemNameChanged(QTreeWidgetItem *item, int column);
 
+  //States tab
+  void loadStateButtonClicked();
+  void saveStartStateButtonClicked();
+  void saveGoalStateButtonClicked();
+  void removeStateButtonClicked();
+  void clearStatesButtonClicked();
+  void setAsStartStateButtonClicked();
+  void setAsGoalStateButtonClicked();
+
   //General
   void tabChanged(int index);
   
@@ -191,6 +204,10 @@ private:
     
   //Stored scenes tab
   void populatePlanningSceneTreeView();
+
+  //States tab
+  void saveRobotStateButtonClicked(const robot_state::RobotState &state);
+  void populateRobotStatesList();
 
   //General
   void changePlanningGroupHelper();

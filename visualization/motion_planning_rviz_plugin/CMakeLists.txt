@@ -22,6 +22,7 @@ set(SOURCE_FILES
   src/motion_planning_frame_planning.cpp
   src/motion_planning_frame_objects.cpp
   src/motion_planning_frame_scenes.cpp
+  src/motion_planning_frame_states.cpp
   src/motion_planning_display.cpp
 )
 

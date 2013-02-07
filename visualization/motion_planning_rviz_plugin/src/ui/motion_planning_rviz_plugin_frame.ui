@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>371</height>
+    <height>377</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -284,8 +284,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>206</width>
-                   <height>80</height>
+                   <width>109</width>
+                   <height>78</height>
                   </rect>
                  </property>
                  <attribute name="label">
@@ -335,7 +335,7 @@
                    <x>0</x>
                    <y>0</y>
                    <width>109</width>
-                   <height>80</height>
+                   <height>78</height>
                   </rect>
                  </property>
                  <attribute name="label">
@@ -1069,7 +1069,7 @@
          <item>
           <widget class="QPushButton" name="load_state_button">
            <property name="text">
-            <string>Load State</string>
+            <string>Load States</string>
            </property>
           </widget>
          </item>
@@ -1084,6 +1084,20 @@
           <widget class="QPushButton" name="save_goal_state_button">
            <property name="text">
             <string>Save Goal State</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="set_as_start_state_button">
+           <property name="text">
+            <string>Set as Start</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="set_as_goal_state_button">
+           <property name="text">
+            <string>Set as Goal</string>
            </property>
           </widget>
          </item>
