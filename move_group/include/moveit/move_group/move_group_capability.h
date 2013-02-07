@@ -32,22 +32,60 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_MOVE_GROUP_NAMES
-#define MOVEIT_MOVE_GROUP_NAMES
+/* Author: Ioan Sucan */
 
-#include <string>
+#ifndef MOVEIT_MOVE_GROUP_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_CAPABILITY_
+
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_interface/planning_interface.h>
 
 namespace move_group
 {
 
-static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
-static const std::string NODE_NAME = "move_group";                   // name of node
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_SERVICE_NAME = "query_planner_interface"; // name of the advertised query service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string PICKUP_ACTION = "pickup"; // name of 'pickup' action
-static const std::string PLACE_ACTION = "place"; // name of 'place' action
+enum MoveGroupState
+  {
+    IDLE,
+    PLANNING,
+    MONITOR,
+    LOOK
+  };
+
+class MoveGroupCapability
+{
+public:
+  
+  MoveGroupCapability(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : 
+    node_handle_("~"),
+    planning_scene_monitor_(psm),
+    debug_(debug)
+  {
+  }
+  
+  virtual ~MoveGroupCapability()
+  {
+  }
+  
+protected:
+  
+  std::string getActionResultString(const moveit_msgs::MoveItErrorCodes &error_code, bool planned_trajectory_empty, bool plan_only);  
+  std::string stateToStr(MoveGroupState state) const;
+
+  void convertToMsg(const std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory,
+                    moveit_msgs::RobotState &first_state_msg, std::vector<moveit_msgs::RobotTrajectory> &trajectory_msg) const;
+  void convertToMsg(const robot_trajectory::RobotTrajectoryPtr &trajectory,
+                    moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg) const;
+  void convertToMsg(const std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory,
+                    moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg) const;
+
+  planning_interface::MotionPlanRequest clearRequestStartState(const planning_interface::MotionPlanRequest &request) const;
+  moveit_msgs::PlanningScene clearSceneRobotState(const moveit_msgs::PlanningScene &scene) const;  
+  
+  ros::NodeHandle root_node_handle_;
+  ros::NodeHandle node_handle_;
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  bool debug_;
+};
 
 }
 
