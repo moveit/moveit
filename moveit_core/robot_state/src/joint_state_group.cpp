@@ -932,9 +932,9 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
     std::vector<RobotStatePtr> waypoint_traj;
 
     double wp_percentage_solved = computeCartesianPath(waypoint_traj, link_name, waypoints[i], global_reference_frame, max_step, jump_threshold, validCallback);
-    if (wp_percentage_solved == 1)
+    if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
-      percentage_solved = ((double)i + 1) / (double)waypoints.size();
+      percentage_solved = (double)(i + 1) / (double)waypoints.size();
       traj.insert( traj.end(), waypoint_traj.begin(), waypoint_traj.end() );
     }
     else
