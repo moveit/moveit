@@ -822,7 +822,7 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
   target_pose.translation() += rotated_direction * distance;
   
   //call computeCartesianPath for the computed target pose in the global reference frame
-  computeCartesianPath(traj, link_name, target_pose, true, max_step, jump_threshold, validCallback);
+  return (distance * computeCartesianPath(traj, link_name, target_pose, true, max_step, jump_threshold, validCallback));
 }
 
 double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotStatePtr> &traj, const std::string &link_name, const Eigen::Affine3d &target, bool global_reference_frame,
@@ -872,10 +872,10 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
     for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
       previous_values[k] = joint_state_vector_[k]->getVariableValues();
 
-  double last_valid_distance = 0.0;
+  double last_valid_percentage = 0.0;
   for (unsigned int i = 1; i <= steps ; ++i)
   {
-    double d = distance * (double)i / (double)steps;
+    double percentage = (double)i / (double)steps;
     Eigen::Quaterniond start_quaternion(start_pose.rotation());
     Eigen::Quaterniond target_quaternion(rotated_target.rotation());
     Eigen::Affine3d pose(start_quaternion.slerp((double)i / (double)steps, target_quaternion));
@@ -902,7 +902,7 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
     }
     else
       break;
-    last_valid_distance = d;
+    last_valid_percentage = percentage;
   }
 
   if (test_joint_space_jump)
@@ -913,13 +913,13 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
       if (dist_vector[i] > thres)
       {
         logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
-        last_valid_distance = distance * (double)i / (double)steps;
+        last_valid_percentage = (double)i / (double)steps;
         traj.resize(i);
         break;
       }
   }
 
-  return last_valid_distance;
+  return last_valid_percentage;
 }
 
 void robot_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
