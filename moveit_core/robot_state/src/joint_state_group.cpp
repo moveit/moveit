@@ -810,7 +810,28 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
   const LinkState *link_state = kinematic_state_->getLinkState(link_name);
   if (!link_state)
     return 0.0;
+
+  //this is the Cartesian pose we start from, and have to move in the direction indicated
+  const Eigen::Affine3d &start_pose = link_state->getGlobalLinkTransform();
   
+  //the direction can be in the local reference frame (in which case we rotate it)
+  const Eigen::Vector3d &rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
+  
+  //The target pose is built by applying a translation to the start pose for the desired direction and distance
+  Eigen::Affine3d target_pose = start_pose;
+  target_pose.translation() += rotated_direction * distance;
+  
+  //call computeCartesianPath for the computed target pose in the global reference frame
+  return (distance * computeCartesianPath(traj, link_name, target_pose, true, max_step, jump_threshold, validCallback));
+}
+
+double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotStatePtr> &traj, const std::string &link_name, const Eigen::Affine3d &target, bool global_reference_frame,
+                                                          double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback)
+{
+  const LinkState *link_state = kinematic_state_->getLinkState(link_name);
+  if (!link_state)
+    return 0.0;
+
   const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
 
   // make sure that continuous joints wrap, but remember how much we wrapped them
@@ -825,60 +846,66 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
         double after = joint_state_vector_[i]->getVariableValues()[0];
         if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
           upd_continuous_joints[joint_state_vector_[i]->getName()] = initial - after;
-      } 
+      }
     }
-  
-  // this is the Cartesian pose we start from, and we move in the direction indicated 
-  Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
-  // the direction can be in the local reference frame (in which case we rotate it)
-  const Eigen::Vector3d &rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
 
-  bool test_joint_space_jump = jump_threshold > 0.0;  
-  
+  // this is the Cartesian pose we start from, and we move in the direction indicated
+  Eigen::Affine3d start_pose = link_state->getGlobalLinkTransform();
+
+  // the target can be in the local reference frame (in which case we rotate it)
+  Eigen::Affine3d rotated_target = global_reference_frame ? target : start_pose * target;
+
+  bool test_joint_space_jump = jump_threshold > 0.0;
+
   // decide how many steps we will need for this trajectory
+  double distance = (rotated_target.translation() - start_pose.translation()).norm();
   unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
-  
+
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*kinematic_state_)));
-  
+
   std::vector<std::vector<double> > previous_values(joint_state_vector_.size());
   std::vector<double> dist_vector;
   double total_dist = 0.0;
-  
+
   if (test_joint_space_jump) // the joint values we start with
     for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
       previous_values[k] = joint_state_vector_[k]->getVariableValues();
-  
-  double last_valid_distance = 0.0;
+
+  double last_valid_percentage = 0.0;
+  Eigen::Quaterniond start_quaternion(start_pose.rotation());
+  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
   for (unsigned int i = 1; i <= steps ; ++i)
-  {
-    double d = distance * (double)i / (double)steps;
-    Eigen::Affine3d pose = start_pose;
-    pose.translation() = pose.translation() + rotated_direction * d;
+ {
+    double percentage = (double)i / (double)steps;
+
+    Eigen::Affine3d pose(start_quaternion.slerp(percentage, target_quaternion));
+    pose.translation() = percentace * rotated_target.translation() + (1 - percentage) * start_pose.translation();
+
     if (setFromIK(pose, link_name, 1, 0.0, validCallback))
     {
       traj.push_back(RobotStatePtr(new RobotState(*kinematic_state_)));
-      
+
       // compute the distance to the previous point (infinity norm)
       if (test_joint_space_jump)
       {
-	double dist_prev_point = 0.0;
-	for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
-	{
+        double dist_prev_point = 0.0;
+        for (std::size_t k = 0 ; k < joint_state_vector_.size() ; ++k)
+        {
           double d_k = jnt[k]->distance(joint_state_vector_[k]->getVariableValues(), previous_values[k]);
           if (dist_prev_point < 0.0 || dist_prev_point < d_k)
             dist_prev_point = d_k;
           previous_values[k] = joint_state_vector_[k]->getVariableValues();
-	}
-	dist_vector.push_back(dist_prev_point);
-	total_dist += dist_prev_point;
+        }
+        dist_vector.push_back(dist_prev_point);
+        total_dist += dist_prev_point;
       }
     }
     else
       break;
-    last_valid_distance = d;
+    last_valid_percentage = percentage;
   }
-  
+
   if (test_joint_space_jump)
   {
     // compute the average distance between the states we looked at
@@ -886,14 +913,14 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
     for (std::size_t i = 0 ; i < dist_vector.size() ; ++i)
       if (dist_vector[i] > thres)
       {
-	logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
-	last_valid_distance = distance * (double)i / (double)steps;
+        logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
+        last_valid_percentage = (double)i / (double)steps;
         traj.resize(i);
-	break;
+        break;
       }
   }
 
-  return last_valid_distance;
+  return last_valid_percentage;
 }
 
 void robot_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
