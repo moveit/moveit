@@ -74,7 +74,7 @@ void MotionPlanningFrame::loadStateButtonClicked()
         return;
       }
 
-      for ( unsigned int i = 0 ; i < names.size() ; i++ )
+      for ( std::size_t i = 0 ; i < names.size() ; ++i )
       {
         moveit_warehouse::RobotStateWithMetadata rs;
         bool got_state = false;
@@ -172,7 +172,7 @@ void MotionPlanningFrame::setAsStartStateButtonClicked()
 
   if (item)
   {
-    robot_state::RobotState robot_state(planning_display_->getKinematicModel());
+    robot_state::RobotState robot_state(*planning_display_->getQueryStartState());
     robot_state::robotStateMsgToRobotState(robot_states_[item->text().toStdString()], robot_state);
     planning_display_->setQueryStartState(robot_state);
   }
@@ -184,7 +184,7 @@ void MotionPlanningFrame::setAsGoalStateButtonClicked()
 
   if (item)
   {
-    robot_state::RobotState robot_state(planning_display_->getKinematicModel());
+    robot_state::RobotState robot_state(*planning_display_->getQueryGoalState());
     robot_state::robotStateMsgToRobotState(robot_states_[item->text().toStdString()], robot_state);
     planning_display_->setQueryGoalState(robot_state);
   }
@@ -207,7 +207,7 @@ void MotionPlanningFrame::removeStateButtonClicked()
       case QMessageBox::Yes:
       {
         QList<QListWidgetItem*> found_items =  ui_->list_states->selectedItems();
-        for (unsigned int i = 0; i < found_items.size() ; ++i)
+        for (std::size_t i = 0; i < found_items.size() ; ++i)
         {
           const std::string &name = found_items[i]->text().toStdString();
           try
