@@ -880,7 +880,7 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
     double percentage = (double)i / (double)steps;
 
     Eigen::Affine3d pose(start_quaternion.slerp(percentage, target_quaternion));
-    pose.translation() = percentace * rotated_target.translation() + (1 - percentage) * start_pose.translation();
+    pose.translation() = percentage * rotated_target.translation() + (1 - percentage) * start_pose.translation();
 
     if (setFromIK(pose, link_name, 1, 0.0, validCallback))
     {
@@ -921,6 +921,30 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
   }
 
   return last_valid_percentage;
+}
+
+double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotStatePtr> &traj, const std::string &link_name, const std::vector<Eigen::Affine3d> &waypoints,
+                                                          bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback)
+{
+  double percentage_solved = 0.0;
+  for (std::size_t i = 0; i < waypoints.size(); ++i)
+  {
+    std::vector<RobotStatePtr> waypoint_traj;
+
+    double wp_percentage_solved = computeCartesianPath(waypoint_traj, link_name, waypoints[i], global_reference_frame, max_step, jump_threshold, validCallback);
+    if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
+    {
+      percentage_solved = (double)(i + 1) / (double)waypoints.size();
+      traj.insert( traj.end(), waypoint_traj.begin(), waypoint_traj.end() );
+    }
+    else
+    {
+      percentage_solved += wp_percentage_solved / (double)waypoints.size();
+      break;
+    }
+  }
+
+  return percentage_solved;
 }
 
 void robot_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
