@@ -159,6 +159,8 @@ private Q_SLOTS:
   void saveGoalStateButtonClicked();
   void removeStateButtonClicked();
   void clearStatesButtonClicked();
+  void setAsStartStateButtonClicked();
+  void setAsGoalStateButtonClicked();
 
   //General
   void tabChanged(int index);

@@ -114,9 +114,7 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
   std::stringstream ss;
   ss << planning_display_->getKinematicModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << robot_states_.size();
 
-  QString text = QInputDialog::getText(this, tr("Choose a name"),
-                                       tr("State name:"), QLineEdit::Normal,
-                                       QString(ss.str().c_str()), &ok);
+  QString text = QInputDialog::getText(this, tr("Choose a name"), tr("State name:"), QLineEdit::Normal, QString(ss.str().c_str()), &ok);
 
   std::string name;
   if (ok)
@@ -148,7 +146,7 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
         }
         else
         {
-          QMessageBox::warning(this, "Warning", "Not connected to a database, state not stored");
+          QMessageBox::warning(this, "Warning", "Not connected to a database. The state will be created but not stored");
         }
       }
     }
@@ -166,6 +164,30 @@ void MotionPlanningFrame::saveStartStateButtonClicked()
 void MotionPlanningFrame::saveGoalStateButtonClicked()
 {
   saveRobotStateButtonClicked(*planning_display_->getQueryGoalState());
+}
+
+void MotionPlanningFrame::setAsStartStateButtonClicked()
+{
+  QListWidgetItem *item = ui_->list_states->currentItem();
+
+  if (item)
+  {
+    robot_state::RobotState robot_state(planning_display_->getKinematicModel());
+    robot_state::robotStateMsgToRobotState(robot_states_[item->text().toStdString()], robot_state);
+    planning_display_->setQueryStartState(robot_state);
+  }
+}
+
+void MotionPlanningFrame::setAsGoalStateButtonClicked()
+{
+  QListWidgetItem *item = ui_->list_states->currentItem();
+
+  if (item)
+  {
+    robot_state::RobotState robot_state(planning_display_->getKinematicModel());
+    robot_state::robotStateMsgToRobotState(robot_states_[item->text().toStdString()], robot_state);
+    planning_display_->setQueryGoalState(robot_state);
+  }
 }
 
 void MotionPlanningFrame::removeStateButtonClicked()
