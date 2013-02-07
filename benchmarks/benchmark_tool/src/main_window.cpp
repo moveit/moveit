@@ -164,6 +164,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect( ui_.trajectory_save_button, SIGNAL( clicked() ), this, SLOT( saveTrajectoriesOnDBButtonClicked() ));
     connect( ui_.trajectory_list, SIGNAL( itemSelectionChanged() ), this, SLOT( trajectorySelectionChanged() ));
     connect( ui_.trajectory_nwaypoints_spin, SIGNAL( valueChanged ( int )), this, SLOT( trajectoryNWaypointsChanged( int ) ));
+    connect( ui_.plan_trajectory_button, SIGNAL( clicked() ), this, SLOT( planTrajectoryButtonClicked() ));
 
     //Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));
