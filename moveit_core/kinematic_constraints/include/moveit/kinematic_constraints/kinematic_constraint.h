@@ -44,7 +44,6 @@
 
 #include <geometric_shapes/bodies.h>
 #include <moveit_msgs/Constraints.h>
-#include <moveit_msgs/ConstraintEvalResults.h>
 
 #include <iostream>
 #include <vector>

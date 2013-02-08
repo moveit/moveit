@@ -375,7 +375,7 @@ public:
       that is considered a failure and the returned path is truncated up to just before the jump. The jump detection can be disabled
       by setting \e jump_threshold to 0.0*/
   double computeCartesianPath(std::vector<boost::shared_ptr<RobotState> > &traj, const std::string &link_name, const Eigen::Affine3d &target, bool global_reference_frame,
-                               double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
+                              double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
 
   /** \brief Compute the sequence of joint values that perform a general Cartesian path.
 
