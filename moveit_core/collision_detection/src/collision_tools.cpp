@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/collision_detection/collision_tools.h>
+#include <eigen_conversions/eigen_msg.h>
 
 void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id, std::set<CostSource> &cost_sources)
 {
@@ -255,3 +256,38 @@ void collision_detection::removeCostSources(std::set<CostSource> &cost_sources, 
     cost_sources.insert(add.begin(), add.end());
   }
 }
+
+void collision_detection::costSourceToMsg(const CostSource &cost_source, moveit_msgs::CostSource &msg)
+{  
+  msg.cost_density = cost_source.cost;
+  msg.aabb_min.x = cost_source.aabb_min[0];
+  msg.aabb_min.y = cost_source.aabb_min[1];
+  msg.aabb_min.z = cost_source.aabb_min[2];
+  msg.aabb_max.x = cost_source.aabb_max[0];
+  msg.aabb_max.y = cost_source.aabb_max[1];
+  msg.aabb_max.z = cost_source.aabb_max[2];
+}
+
+void collision_detection::contactToMsg(const Contact& contact, moveit_msgs::ContactInformation &msg)
+{
+  tf::pointEigenToMsg(contact.pos, msg.position);
+  tf::vectorEigenToMsg(contact.normal, msg.normal);
+  msg.depth = contact.depth;
+  msg.contact_body_1 = contact.body_name_1;
+  msg.contact_body_2 = contact.body_name_2;
+  if (contact.body_type_1 == BodyTypes::ROBOT_LINK)
+    msg.body_type_1 = moveit_msgs::ContactInformation::ROBOT_LINK;
+  else
+    if (contact.body_type_1 == BodyTypes::ROBOT_ATTACHED)
+      msg.body_type_1 = moveit_msgs::ContactInformation::ROBOT_ATTACHED;
+    else	   
+      msg.body_type_1 = moveit_msgs::ContactInformation::WORLD_OBJECT;
+  if (contact.body_type_2 == BodyTypes::ROBOT_LINK)
+    msg.body_type_2 = moveit_msgs::ContactInformation::ROBOT_LINK;
+  else
+    if (contact.body_type_2 == BodyTypes::ROBOT_ATTACHED)
+      msg.body_type_2 = moveit_msgs::ContactInformation::ROBOT_ATTACHED;
+    else	   
+      msg.body_type_2 = moveit_msgs::ContactInformation::WORLD_OBJECT;  
+}
+
