@@ -177,6 +177,30 @@ public:
     return joint_model_->getVariableIndexMap();
   }
   
+  /// this will go away; don't use it
+  std::vector<double>& getVelocities()
+  {
+    return horrible_velocity_placeholder_;
+  }
+
+  /// this will go away; don't use it
+  std::vector<double>& getAccelerations()
+  {
+    return horrible_acceleration_placeholder_;
+  }
+
+  /// this will go away; don't use it
+  const std::vector<double>& getVelocities() const
+  {
+    return horrible_velocity_placeholder_;
+  }
+
+  /// this will go away; don't use it
+  const std::vector<double>& getAccelerations() const
+  {
+    return horrible_acceleration_placeholder_;
+  }
+  
 private:
   
   /** \brief The joint model this state corresponds to */
@@ -187,6 +211,12 @@ private:
   
   /** \brief The joint values given in the order indicated by joint_variables_index_map_ */
   std::vector<double>                 joint_state_values_;
+  
+  /// ignore this
+  std::vector<double>                 horrible_velocity_placeholder_;
+
+  /// ignore this
+  std::vector<double>                 horrible_acceleration_placeholder_;
   
   /** \brief The set of joints that need to be updated when this one is */
   std::vector<JointState*>            mimic_requests_;

@@ -43,6 +43,9 @@ robot_state::JointState::JointState(const kinematic_model::JointModel *jm) : joi
   std::vector<double> values;
   joint_model_->getVariableDefaultValues(values);
   setVariableValues(values);
+
+  horrible_velocity_placeholder_.resize(getVariableCount()); // not actually true; topology can be different
+  horrible_acceleration_placeholder_.resize(getVariableCount()); // not actually true; topology can be different
 }
 
 robot_state::JointState::JointState(const JointState &other) :
