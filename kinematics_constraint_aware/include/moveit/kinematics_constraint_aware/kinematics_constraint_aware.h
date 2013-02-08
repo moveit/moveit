@@ -114,10 +114,10 @@ class KinematicsConstraintAware
   
 private:
 
-  std::vector<Eigen::Affine3d> transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                              const robot_state::RobotState &kinematic_state,
-                                              const std::vector<geometry_msgs::PoseStamped> &poses,
-                                              const std::string &target_frame) const;
+  EigenSTL::vector_Affine3d transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
+                                           const robot_state::RobotState &kinematic_state,
+                                           const std::vector<geometry_msgs::PoseStamped> &poses,
+                                           const std::string &target_frame) const;
 
   bool convertServiceRequest(const planning_scene::PlanningSceneConstPtr &planning_scene,
                              const moveit_msgs::GetConstraintAwarePositionIK::Request &request,

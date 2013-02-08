@@ -62,6 +62,11 @@ namespace kinematic_constraints
  */
 moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second);
 
+
+/** \brief Check if any constraints were specified */
+bool isEmpty(const moveit_msgs::Constraints &constr);
+
+
 /** 
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a joint group.  The full constraint will contain a

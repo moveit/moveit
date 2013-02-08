@@ -461,22 +461,22 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
   return false;
 }
 
-bool robot_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine3d> &poses_in, 
-                                                 const std::vector<std::string> &tips_in, 
-                                                 unsigned int attempts, 
-                                                 double timeout, 
-                                                 const StateValidityCallbackFn &constraint)
+bool robot_state::JointStateGroup::setFromIK(const EigenSTL::vector_Affine3d &poses_in, 
+                                             const std::vector<std::string> &tips_in, 
+                                             unsigned int attempts, 
+                                             double timeout, 
+                                             const StateValidityCallbackFn &constraint)
 {
   static const std::vector<std::vector<double> > consistency_limits;
   return setFromIK(poses_in, tips_in, consistency_limits, attempts, timeout, constraint);  
 }
 
-bool robot_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine3d> &poses_in, 
-                                                 const std::vector<std::string> &tips_in, 
-                                                 const std::vector<std::vector<double> > &consistency_limits,
-                                                 unsigned int attempts, 
-                                                 double timeout, 
-                                                 const StateValidityCallbackFn &constraint)
+bool robot_state::JointStateGroup::setFromIK(const EigenSTL::vector_Affine3d &poses_in, 
+                                             const std::vector<std::string> &tips_in, 
+                                             const std::vector<std::vector<double> > &consistency_limits,
+                                             unsigned int attempts, 
+                                             double timeout, 
+                                             const StateValidityCallbackFn &constraint)
 {
   if (poses_in.size() == 1 && tips_in.size() == 1 && consistency_limits.size() <= 1)
   {
@@ -531,7 +531,7 @@ bool robot_state::JointStateGroup::setFromIK(const std::vector<Eigen::Affine3d> 
     solvers.push_back(solver);
   }
   
-  std::vector<Eigen::Affine3d> transformed_poses = poses_in;
+  EigenSTL::vector_Affine3d transformed_poses = poses_in;
   std::vector<std::string> tip_names = tips_in;  
 
   for(std::size_t i = 0 ; i < poses_in.size() ; ++i)
@@ -754,7 +754,7 @@ bool robot_state::JointStateGroup::integrateJointVelocity(const Eigen::VectorXd 
 }
 
 bool robot_state::JointStateGroup::avoidJointLimitsSecondaryTask(const robot_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
-                                                                     double activation_threshold, double gain) const
+                                                                 double activation_threshold, double gain) const
 {
   //Get current joint values (q)
   Eigen::VectorXd q;
@@ -923,14 +923,14 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
   return last_valid_percentage;
 }
 
-double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotStatePtr> &traj, const std::string &link_name, const std::vector<Eigen::Affine3d> &waypoints,
+double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotStatePtr> &traj, const std::string &link_name, const EigenSTL::vector_Affine3d &waypoints,
                                                           bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback)
 {
   double percentage_solved = 0.0;
   for (std::size_t i = 0; i < waypoints.size(); ++i)
   {
     std::vector<RobotStatePtr> waypoint_traj;
-
+    
     double wp_percentage_solved = computeCartesianPath(waypoint_traj, link_name, waypoints[i], global_reference_frame, max_step, jump_threshold, validCallback);
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
@@ -948,7 +948,7 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
 }
 
 void robot_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallbackFn &constraint,
-                                                           const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
+                                                       const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
 {  
   const std::vector<unsigned int> &bij = joint_model_group_->getKinematicsSolverJointBijection();
   std::vector<double> solution(bij.size());
@@ -961,8 +961,8 @@ void robot_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallba
 }
 
 bool robot_state::JointStateGroup::getJacobian(const std::string &link_name,
-                                                   const Eigen::Vector3d &reference_point_position, 
-                                                   Eigen::MatrixXd& jacobian) const
+                                               const Eigen::Vector3d &reference_point_position, 
+                                               Eigen::MatrixXd& jacobian) const
 {
   if (!joint_model_group_->isChain())
   {
