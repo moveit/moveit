@@ -49,6 +49,7 @@
 #include <moveit/move_group/move_group_plan_service_capability.h>
 #include <moveit/move_group/move_group_query_planners_service_capability.h>
 #include <moveit/move_group/move_group_kinematics_service_capability.h>
+#include <moveit/move_group/move_group_state_validation_service_capability.h>
 
 namespace move_group
 {
@@ -121,6 +122,7 @@ private:
     capabilities_.push_back(boost::make_shared<MoveGroupExecuteService>(planning_scene_monitor_, trajectory_execution_manager_, debug_));
     capabilities_.push_back(boost::make_shared<MoveGroupQueryPlannersService>(planning_scene_monitor_, planning_pipeline_, debug_)); 
     capabilities_.push_back(boost::make_shared<MoveGroupKinematicsService>(planning_scene_monitor_, debug_));
+    capabilities_.push_back(boost::make_shared<MoveGroupStateValidationService>(planning_scene_monitor_, debug_));
   }
   
   ros::NodeHandle node_handle_;

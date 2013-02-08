@@ -32,25 +32,30 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_MOVE_GROUP_NAMES
-#define MOVEIT_MOVE_GROUP_NAMES
+/* Author: Ioan Sucan */
 
-#include <string>
+#ifndef MOVEIT_MOVE_GROUP_STATE_VALIDATION_SERVICE_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_STATE_VALIDATION_SERVICE_CAPABILITY_
+
+#include <moveit/move_group/move_group_capability.h>
+#include <moveit_msgs/GetStateValidity.h>
 
 namespace move_group
 {
 
-static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
-static const std::string NODE_NAME = "move_group";                   // name of node
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_PLANNERS_SERVICE_NAME = "query_planner_interface"; // name of the advertised query planners service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string PICKUP_ACTION = "pickup"; // name of 'pickup' action
-static const std::string PLACE_ACTION = "place"; // name of 'place' action
-static const std::string IK_SERVICE_NAME = "compute_ik"; // name of ik service
-static const std::string FK_SERVICE_NAME = "compute_fk"; // name of fk service
-static const std::string STATE_VALIDITY_SERVICE_NAME = "check_state_validity"; // name of the service that validates states
+class MoveGroupStateValidationService : public MoveGroupCapability
+{
+public:
+  
+  MoveGroupStateValidationService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug);
+  
+private:
+
+  bool computeService(moveit_msgs::GetStateValidity::Request &req, moveit_msgs::GetStateValidity::Response &res);
+  
+  ros::ServiceServer validity_service_;
+  
+};
 
 }
 
