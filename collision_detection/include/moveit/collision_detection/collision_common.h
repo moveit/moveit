@@ -134,9 +134,9 @@ namespace collision_detection
   struct CollisionResult
   {
     CollisionResult() : collision(false),
-			    distance(std::numeric_limits<double>::max()),
-			    direction(0.0, 0.0, 0.0),
-			    contact_count(0)
+                        distance(std::numeric_limits<double>::max()),
+                        direction(0.0, 0.0, 0.0),
+                        contact_count(0)
     {
     }
     typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
@@ -177,13 +177,13 @@ namespace collision_detection
   struct CollisionRequest
   {
     CollisionRequest() : distance(false),
-                             cost(false),
-			     contacts(false),
-			     max_contacts(1),
-			     max_contacts_per_pair(1),
-                             max_cost_sources(1),
-                             min_cost_density(0.2),
-			     verbose(false)
+                         cost(false),
+                         contacts(false),
+                         max_contacts(1),
+                         max_contacts_per_pair(1),
+                         max_cost_sources(1),
+                         min_cost_density(0.2),
+                         verbose(false)
     {
     }
     
