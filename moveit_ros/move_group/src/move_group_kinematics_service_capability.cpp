@@ -48,40 +48,6 @@ move_group::MoveGroupKinematicsService::MoveGroupKinematicsService(const plannin
   ik_service_ = root_node_handle_.advertiseService(IK_SERVICE_NAME, &MoveGroupKinematicsService::computeIKService, this);
 }
 
-bool move_group::MoveGroupKinematicsService::performTransform(geometry_msgs::PoseStamped &pose_msg, const std::string &target_frame) const
-{
-  if (!planning_scene_monitor_->getTFClient())
-    return false;
-  if (pose_msg.header.frame_id == target_frame)
-    return true;
-  if (pose_msg.header.frame_id.empty())
-  {
-    pose_msg.header.frame_id = target_frame;
-    return true;
-  }
-  
-  try
-  {
-    std::string error;
-    ros::Time common_time;
-    planning_scene_monitor_->getTFClient()->getLatestCommonTime(pose_msg.header.frame_id, target_frame, common_time, &error);
-    if (!error.empty())
-      ROS_ERROR("TF Problem: %s", error.c_str());
-    
-    tf::Stamped<tf::Pose> pose_tf, pose_tf_out;
-    tf::poseStampedMsgToTF(pose_msg, pose_tf);
-    pose_tf.stamp_ = common_time;    
-    planning_scene_monitor_->getTFClient()->transformPose(target_frame, pose_tf, pose_tf_out);
-    tf::poseStampedTFToMsg(pose_tf_out, pose_msg);
-  }
-  catch (tf::TransformException &ex)
-  {
-    ROS_ERROR("TF Problem: %s", ex.what());
-    return false;
-  }
-  return true;
-}
-
 namespace 
 {
 bool isIKSolutionValid(const planning_scene::PlanningScene *planning_scene,

@@ -55,7 +55,6 @@ private:
   bool computeIKService(moveit_msgs::GetPositionIK::Request &req, moveit_msgs::GetPositionIK::Response &res);
   bool computeFKService(moveit_msgs::GetPositionFK::Request &req, moveit_msgs::GetPositionFK::Response &res);
 
-  bool performTransform(geometry_msgs::PoseStamped &pose_msg, const std::string &target_frame) const;
   void computeIK(moveit_msgs::PositionIKRequest &req, moveit_msgs::RobotState &solution, moveit_msgs::MoveItErrorCodes &error_code,
                  const robot_state::StateValidityCallbackFn &constraint = robot_state::StateValidityCallbackFn()) const;
   

@@ -80,6 +80,7 @@ protected:
 
   planning_interface::MotionPlanRequest clearRequestStartState(const planning_interface::MotionPlanRequest &request) const;
   moveit_msgs::PlanningScene clearSceneRobotState(const moveit_msgs::PlanningScene &scene) const;  
+  bool performTransform(geometry_msgs::PoseStamped &pose_msg, const std::string &target_frame) const;
   
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
