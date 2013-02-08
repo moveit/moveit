@@ -172,7 +172,7 @@ public:
       solved = planner(planning_scene, req, res);
 
     // re-add the prefix state, if it was constructed
-    if (prefix_state)
+    if (prefix_state && res.trajectory_)
     {    
       if (!res.trajectory_->empty())
         // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
