@@ -156,10 +156,10 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
   }  
     
   // Transform the requests to the base frame of the kinematic model
-  std::vector<Eigen::Affine3d> goals = transformPoses(planning_scene,
-                                                      kinematic_state,
-                                                      request.pose_stamped_vector_,
-                                                      kinematic_model_->getModelFrame());
+  EigenSTL::vector_Affine3d goals = transformPoses(planning_scene,
+                                                   kinematic_state,
+                                                   request.pose_stamped_vector_,
+                                                   kinematic_model_->getModelFrame());
 
   robot_state::StateValidityCallbackFn constraint_callback_fn = boost::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response, _1, _2);
   
@@ -322,7 +322,7 @@ bool KinematicsConstraintAware::convertServiceRequest(const planning_scene::Plan
   kinematics_request.robot_state_->setStateValues(request.ik_request.robot_state.joint_state);    
   kinematics_request.constraints_.reset(new kinematic_constraints::KinematicConstraintSet(kinematic_model_, planning_scene->getTransforms()));
   kinematics_request.constraints_->add(request.constraints);
-  kinematics_request.timeout_ = request.timeout;
+  kinematics_request.timeout_ = request.ik_request.timeout;
   kinematics_request.group_name_ = request.ik_request.group_name;
   kinematics_request.check_for_collisions_ = true;
   
@@ -331,13 +331,13 @@ bool KinematicsConstraintAware::convertServiceRequest(const planning_scene::Plan
   return true;  
 }
 
-std::vector<Eigen::Affine3d> KinematicsConstraintAware::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                                       const robot_state::RobotState &kinematic_state,
-                                                                       const std::vector<geometry_msgs::PoseStamped> &poses,
-                                                                       const std::string &target_frame) const
+EigenSTL::vector_Affine3d KinematicsConstraintAware::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
+                                                                    const robot_state::RobotState &kinematic_state,
+                                                                    const std::vector<geometry_msgs::PoseStamped> &poses,
+                                                                    const std::string &target_frame) const
 {
   Eigen::Affine3d eigen_pose, eigen_pose_2;
-  std::vector<Eigen::Affine3d> result(poses.size());  
+  EigenSTL::vector_Affine3d result(poses.size());  
   bool target_frame_is_root_frame = (target_frame == kinematic_state.getKinematicModel()->getModelFrame());  
   for(std::size_t i = 0; i < poses.size(); ++i)
   {    

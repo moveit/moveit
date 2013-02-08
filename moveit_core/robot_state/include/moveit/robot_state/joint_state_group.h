@@ -276,7 +276,8 @@ public:
                  const std::vector<double> &consistency_limits, unsigned int attempts = 0, double timeout = 0.0,
                  const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
-  /** \brief If the group consists of a set of sub-groups that are each a chain and a solver 
+  /** \brief  Warning: This function inefficiently copies all transforms around. 
+      If the group consists of a set of sub-groups that are each a chain and a solver 
       is available for each sub-group, then the joint values can be set by computing inverse kinematics.
       The poses are assumed to be in the reference frame of the kinematic model. The poses are assumed 
       to be in the same order as the order of the sub-groups in this group. Returns true on success.
@@ -285,9 +286,10 @@ public:
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
+  bool setFromIK(const EigenSTL::vector_Affine3d &poses, const std::vector<std::string> &tips, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
-  /** \brief If the group consists of a set of sub-groups that are each a chain and a solver 
+  /** \brief Warning: This function inefficiently copies all transforms around.
+      If the group consists of a set of sub-groups that are each a chain and a solver 
       is available for each sub-group, then the joint values can be set by computing inverse kinematics.
       The poses are assumed to be in the reference frame of the kinematic model. The poses are assumed 
       to be in the same order as the order of the sub-groups in this group. Returns true on success.
@@ -297,7 +299,7 @@ public:
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const std::vector<Eigen::Affine3d> &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
+  bool setFromIK(const EigenSTL::vector_Affine3d &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn());
 
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
    * @param twist a cartesian velocity on the 'tip' frame
@@ -393,7 +395,7 @@ public:
       factor larger than \e jump_threshold. If a point in joint is found such that it is further away than the previous one by more
       than average_consecutive_distance * \e jump_threshold, that is considered a failure and the returned path is truncated up to
       just before the jump. The jump detection can be disabled by setting \e jump_threshold to 0.0*/
-  double computeCartesianPath(std::vector<boost::shared_ptr<RobotState> > &traj, const std::string &link_name, const std::vector<Eigen::Affine3d> &waypoints,
+  double computeCartesianPath(std::vector<boost::shared_ptr<RobotState> > &traj, const std::string &link_name, const EigenSTL::vector_Affine3d &waypoints,
                               bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn());
 
   JointStateGroup& operator=(const JointStateGroup &other);

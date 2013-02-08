@@ -103,6 +103,12 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
   return r;
 }
 
+bool kinematic_constraints::isEmpty(const moveit_msgs::Constraints &constr)
+{
+  return constr.position_constraints.empty() && constr.orientation_constraints.empty() && 
+    constr.visibility_constraints.empty() && constr.joint_constraints.empty();
+}
+
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::JointStateGroup *jsg,
                                                                          double tolerance)
 {
