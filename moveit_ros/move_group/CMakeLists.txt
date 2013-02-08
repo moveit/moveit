@@ -39,7 +39,8 @@ add_executable(move_group_action_server
   src/move_group_pick_place_action_capability.cpp
   src/move_group_plan_service_capability.cpp
   src/move_group_execute_service_capability.cpp
-  src/move_group_query_planners_service_capability.cpp
+  src/move_group_query_planners_service_capability.cpp  
+  src/move_group_kinematics_service_capability.cpp
   src/move_group.cpp
   )
 

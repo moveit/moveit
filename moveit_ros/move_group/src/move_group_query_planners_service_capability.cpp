@@ -43,7 +43,7 @@ move_group::MoveGroupQueryPlannersService::MoveGroupQueryPlannersService(const p
   MoveGroupCapability(psm, debug),
   planning_pipeline_(planning_pipeline)
 {
-  query_service_ = root_node_handle_.advertiseService(QUERY_SERVICE_NAME, &MoveGroupQueryPlannersService::queryInterface, this);
+  query_service_ = root_node_handle_.advertiseService(QUERY_PLANNERS_SERVICE_NAME, &MoveGroupQueryPlannersService::queryInterface, this);
 }
 
 bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
