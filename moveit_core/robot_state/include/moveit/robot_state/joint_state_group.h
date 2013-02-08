@@ -381,7 +381,7 @@ public:
 
       The Cartesian path to be followed is specified as a set of \e waypoints to be sequentially reached for the origin of a robot
       link (\e link_name). The waypoints are transforms given either in a global reference frame or in the local reference frame of the
-      link at the inmediately preceeding waypoint. The link needs to move in a straight line between two consecutive waypoints.
+      link at the immediately preceeding waypoint. The link needs to move in a straight line between two consecutive waypoints.
       The resulting joint values are stored in the vector \e traj, one by one. The maximum distance in Cartesian space between
       consecutive points on the resulting path is specified by \e max_step.  If a \e validCallback is specified, this is passed to the
       internal call to setFromIK(). In case of IK failure, the computation of the path stops and the value returned corresponds to the
