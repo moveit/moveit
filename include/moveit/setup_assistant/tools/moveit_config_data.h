@@ -141,10 +141,10 @@ public:
   // ******************************************************************************************
 
   /// Provide a shared kinematic model loader
-  kinematic_model::KinematicModelConstPtr getKinematicModel();
+  robot_model::RobotModelConstPtr getRobotModel();
 
   /// Update the Kinematic Model with latest SRDF modifications
-  void updateKinematicModel();
+  void updateRobotModel();
 
   /// Provide a shared planning scene
   planning_scene::PlanningScenePtr getPlanningScene();
@@ -200,8 +200,8 @@ private:
   // ******************************************************************************************
 
   // Shared kinematic model
-  kinematic_model::KinematicModelPtr kin_model_;
-  kinematic_model::KinematicModelConstPtr kin_model_const_;
+  robot_model::RobotModelPtr kin_model_;
+  robot_model::RobotModelConstPtr kin_model_const_;
 
   // Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;

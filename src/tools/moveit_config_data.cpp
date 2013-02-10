@@ -92,12 +92,12 @@ MoveItConfigData::~MoveItConfigData()
 // ******************************************************************************************
 // Provide a kinematic model. Load a new one if necessary
 // ******************************************************************************************
-kinematic_model::KinematicModelConstPtr MoveItConfigData::getKinematicModel()
+robot_model::RobotModelConstPtr MoveItConfigData::getRobotModel()
 {
   if( !kin_model_ )
   {
     // Initialize with a URDF Model Interface and a SRDF Model
-    kin_model_.reset( new kinematic_model::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );
+    kin_model_.reset( new robot_model::RobotModel( urdf_model_, srdf_->srdf_model_ ) );
     kin_model_const_ = kin_model_;
   }
   
@@ -107,7 +107,7 @@ kinematic_model::KinematicModelConstPtr MoveItConfigData::getKinematicModel()
 // ******************************************************************************************
 // Update the Kinematic Model with latest SRDF modifications
 // ******************************************************************************************
-void MoveItConfigData::updateKinematicModel()
+void MoveItConfigData::updateRobotModel()
 {
   ROS_INFO( "Updating kinematic model");
 
@@ -115,7 +115,7 @@ void MoveItConfigData::updateKinematicModel()
   srdf_->updateSRDFModel( *urdf_model_ );
 
   // Create new kin model
-  kin_model_.reset( new kinematic_model::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
+  kin_model_.reset( new robot_model::RobotModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
   kin_model_const_ = kin_model_;
   
   // Reset the planning scene
@@ -130,7 +130,7 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
   if( !planning_scene_ )
   {
     // make sure kinematic model exists
-    getKinematicModel(); 
+    getRobotModel(); 
 
     // Allocate an empty planning scene
     planning_scene_.reset(new planning_scene::PlanningScene( ));
@@ -367,13 +367,13 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
        group_it != srdf_->groups_.end();  ++group_it )
   {  
     // Get list of associated joints  
-    const kinematic_model::JointModelGroup *joint_model_group = 
-      getKinematicModel()->getJointModelGroup( group_it->name_ );
+    const robot_model::JointModelGroup *joint_model_group = 
+      getRobotModel()->getJointModelGroup( group_it->name_ );
 
-    std::vector<const kinematic_model::JointModel*> joint_models = joint_model_group->getJointModels();
+    std::vector<const robot_model::JointModel*> joint_models = joint_model_group->getJointModels();
   
     // Iterate through the joints
-    for( std::vector<const kinematic_model::JointModel*>::const_iterator joint_it = joint_models.begin();
+    for( std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
          joint_it < joint_models.end(); ++joint_it )
     {
       // Check that this joint only represents 1 variable.

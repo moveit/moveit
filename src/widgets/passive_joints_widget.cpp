@@ -79,7 +79,7 @@ void PassiveJointsWidget::focusGiven()
   joints_widget_->clearContents();
   
   // Retrieve pointer to the shared kinematic model
-  const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
+  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
   
   // Get the names of the all joints
   const std::vector<std::string> &joints = model->getJointModelNames();
