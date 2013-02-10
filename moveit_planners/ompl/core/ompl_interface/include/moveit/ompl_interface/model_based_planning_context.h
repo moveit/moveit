@@ -97,12 +97,12 @@ public:
     return spec_;
   }
 
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return spec_.state_space_->getKinematicModel();
+    return spec_.state_space_->getRobotModel();
   }
   
-  const kinematic_model::JointModelGroup* getJointModelGroup() const
+  const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return spec_.state_space_->getJointModelGroup();
   }  

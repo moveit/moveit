@@ -36,7 +36,7 @@
 
 #include <moveit/ompl_interface_ros/ompl_interface_ros.h>
 
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const kinematic_model::KinematicModelConstPtr &kmodel) :
+ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel) :
   ompl_interface::OMPLInterface(kmodel),
   nh_("~")
 {

@@ -52,7 +52,7 @@
 #include <ompl/datastructures/PDF.h>
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec) :
-  spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getKinematicModel()),
+  spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getRobotModel()),
   ompl_simple_setup_(spec.state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
   last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_state_sampling_attempts_(0), max_goal_sampling_attempts_(0), 
   max_planning_threads_(0), max_solution_segment_length_(0.0)
@@ -78,7 +78,7 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
   if (peval.find_first_of("link(") == 0 && peval[peval.length() - 1] == ')')
   {
     std::string link_name = peval.substr(5, peval.length() - 6);
-    if (getKinematicModel()->hasLinkModel(link_name))
+    if (getRobotModel()->hasLinkModel(link_name))
       return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorLinkPose(this, link_name));
     else
       logError("Attempted to set projection evaluator with respect to position of link '%s', but that link is not known to the kinematic model.", link_name.c_str());
@@ -318,7 +318,7 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
 								   moveit_msgs::MoveItErrorCodes *error)
 {
   // ******************* set the path constraints to use
-  path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
+  path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getRobotModel(), getPlanningScene()->getTransforms()));
   path_constraints_->add(path_constraints);
   path_constraints_msg_ = path_constraints;
   
@@ -335,7 +335,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
   {
     moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
-    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
+    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getRobotModel(), getPlanningScene()->getTransforms()));
     kset->add(constr);
     if (!kset->empty())
       goal_constraints_.push_back(kset);
@@ -362,7 +362,7 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
   ompl_benchmark_.clearPlanners();
   ompl_simple_setup_.setup();  
   ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
-  ompl_benchmark_.setExperimentName(getKinematicModel()->getName() + "_" + getJointModelGroupName() + "_" +
+  ompl_benchmark_.setExperimentName(getRobotModel()->getName() + "_" + getJointModelGroupName() + "_" +
 				    getPlanningScene()->getName() + "_" + name_);
   
   ot::Benchmark::Request req;

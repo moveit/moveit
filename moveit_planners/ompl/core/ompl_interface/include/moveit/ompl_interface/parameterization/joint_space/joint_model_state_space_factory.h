@@ -49,7 +49,7 @@ public:
   
   virtual int canRepresentProblem(const std::string &group,
                                   const moveit_msgs::MotionPlanRequest &req,
-				  const kinematic_model::KinematicModelConstPtr &kmodel) const;
+				  const robot_model::RobotModelConstPtr &kmodel) const;
 
 protected:
   

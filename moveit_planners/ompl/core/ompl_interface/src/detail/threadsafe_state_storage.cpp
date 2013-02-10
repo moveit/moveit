@@ -36,7 +36,7 @@
 
 #include <moveit/ompl_interface/detail/threadsafe_state_storage.h>
 
-ompl_interface::TSStateStorage::TSStateStorage(const kinematic_model::KinematicModelPtr &kmodel) : start_state_(kmodel)
+ompl_interface::TSStateStorage::TSStateStorage(const robot_model::RobotModelPtr &kmodel) : start_state_(kmodel)
 {
   start_state_.setToDefaultValues();
 }

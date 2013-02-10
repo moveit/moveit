@@ -36,8 +36,8 @@
 
 #include <moveit/ompl_interface/parameterization/model_based_joint_state_space.h>
 
-ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model,
-                                                                     const kinematic_model::JointModel::Bounds &joint_bounds) :
+ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const robot_model::JointModel *joint_model,
+                                                                     const robot_model::JointModel::Bounds &joint_bounds) :
   ompl::base::StateSpace(), joint_model_(joint_model), joint_bounds_(joint_bounds)
 {
   // set the state space name
@@ -50,7 +50,7 @@ ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const kinem
   }
 }
 
-ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model) :
+ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const robot_model::JointModel *joint_model) :
   ompl::base::StateSpace(), joint_model_(joint_model)
 {
   // set the state space name
@@ -133,7 +133,7 @@ void ompl_interface::ModelBasedJointStateSpace::deserialize(ompl::base::State *s
 
 void ompl_interface::ModelBasedJointStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
-  if (joint_model_->getType() == kinematic_model::JointModel::PLANAR)
+  if (joint_model_->getType() == robot_model::JointModel::PLANAR)
   {
     joint_bounds_[0].first = minX;
     joint_bounds_[0].second = maxX;
@@ -141,7 +141,7 @@ void ompl_interface::ModelBasedJointStateSpace::setPlanningVolume(double minX, d
     joint_bounds_[1].second = maxY;
   }
   else
-    if (joint_model_->getType() == kinematic_model::JointModel::FLOATING)
+    if (joint_model_->getType() == robot_model::JointModel::FLOATING)
     {
       joint_bounds_[0].first = minX;
       joint_bounds_[0].second = maxX;

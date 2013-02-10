@@ -98,7 +98,7 @@ struct PlanningContextManager::CachedContexts
 
 }
 
-ompl_interface::PlanningContextManager::PlanningContextManager(const kinematic_model::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
+ompl_interface::PlanningContextManager::PlanningContextManager(const robot_model::RobotModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
   kmodel_(kmodel), constraint_sampler_manager_(csm),
   max_goal_samples_(10), max_state_sampling_attempts_(4), max_goal_sampling_attempts_(1000),
   max_planning_threads_(4), max_solution_segment_length_(0.0)
@@ -189,8 +189,8 @@ void ompl_interface::PlanningContextManager::setPlanningConfigurations(const std
     planner_configs_[pconfig[i].name] = pconfig[i];
 
   // construct default configurations
-  const std::map<std::string, kinematic_model::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
-  for (std::map<std::string, kinematic_model::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
+  const std::map<std::string, robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
+  for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
     if (planner_configs_.find(it->first) == planner_configs_.end())
     {
       PlanningConfigurationSettings empty;

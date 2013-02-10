@@ -55,7 +55,7 @@ class OMPLPlannerService
 public:
   
   OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor &psm, bool debug = false) :
-    nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getKinematicModel()), debug_(debug)
+    nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getRobotModel()), debug_(debug)
   {
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
     benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);
@@ -90,7 +90,7 @@ public:
   void displaySolution(const moveit_msgs::MotionPlanResponse &mplan_res)
   {
     moveit_msgs::DisplayTrajectory d;
-    d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
+    d.model_id = psm_.getPlanningScene()->getRobotModel()->getName();
     d.trajectory_start = mplan_res.trajectory_start;
     d.trajectory.resize(1, mplan_res.trajectory);
     pub_plan_.publish(d);

@@ -38,7 +38,7 @@
 
 namespace sbpl_interface {
 
-SBPLMetaInterface::SBPLMetaInterface(const planning_models::KinematicModelConstPtr& kmodel) 
+SBPLMetaInterface::SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel) 
 {
   sbpl_interface_first_.reset(new sbpl_interface::SBPLInterface(kmodel));
   sbpl_interface_second_.reset(new sbpl_interface::SBPLInterface(kmodel));

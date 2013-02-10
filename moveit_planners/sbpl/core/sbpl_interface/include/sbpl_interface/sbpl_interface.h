@@ -46,7 +46,7 @@ class SBPLInterface
 {
 public:
 
-  SBPLInterface(const planning_models::KinematicModelConstPtr& kmodel){}
+  SBPLInterface(const planning_models::RobotModelConstPtr& kmodel){}
   virtual ~SBPLInterface(){}
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,

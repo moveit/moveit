@@ -34,7 +34,7 @@
 
 #include <planning_interface/planning_interface.h>
 #include <planning_scene/planning_scene.h>
-#include <planning_models/kinematic_model.h>
+#include <planning_models/robot_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <chomp_interface_ros/chomp_interface_ros.h>
 
@@ -48,7 +48,7 @@ namespace chomp_interface_ros
 class CHOMPPlanner : public planning_interface::Planner
 {
 public:
-  void init(const planning_models::KinematicModelConstPtr& model)
+  void init(const planning_models::RobotModelConstPtr& model)
   {
     chomp_interface_.reset(new CHOMPInterfaceROS(model));
   }

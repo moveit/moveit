@@ -62,7 +62,7 @@ class ConstraintApproximation
 {
 public:
   
-  ConstraintApproximation(const kinematic_model::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &state_space_parameterization,
+  ConstraintApproximation(const robot_model::RobotModelConstPtr &kinematic_model, const std::string &group, const std::string &state_space_parameterization,
                           const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage, 
                           const ConstraintApproximationFactory *parent_factory = NULL);
   
@@ -111,7 +111,7 @@ public:
   
 protected:
   
-  kinematic_model::KinematicModelConstPtr          kmodel_;
+  robot_model::RobotModelConstPtr          kmodel_;
   std::string                                      group_;
   std::string                                      state_space_parameterization_;
 
@@ -152,7 +152,7 @@ public:
     return ConstraintStateStorageDelimiterFn();
   }  
   
-  virtual ConstraintApproximationPtr allocApproximation(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+  virtual ConstraintApproximationPtr allocApproximation(const robot_model::RobotModelConstPtr &kinematic_model,
                                                         const std::string &group, const std::string &state_space_parameterization,
                                                         const moveit_msgs::Constraints &msg, const std::string &filename,
                                                         const ompl::base::StateStoragePtr &storage) const = 0;
@@ -163,7 +163,7 @@ class SpecialConstraintApproximationFactory : public ConstraintApproximationFact
 {
 public:
   
-  virtual ConstraintApproximationPtr allocApproximation(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+  virtual ConstraintApproximationPtr allocApproximation(const robot_model::RobotModelConstPtr &kinematic_model,
                                                         const std::string &group, const std::string &state_space_parameterization,
                                                         const moveit_msgs::Constraints &msg, std::string &filename,
                                                         const ompl::base::StateStoragePtr &storage) const

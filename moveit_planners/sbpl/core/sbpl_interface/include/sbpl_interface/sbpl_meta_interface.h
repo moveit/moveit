@@ -47,7 +47,7 @@ class SBPLMetaInterface
 {
 public:
 
-  SBPLMetaInterface(const planning_models::KinematicModelConstPtr& kmodel);
+  SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel);
   virtual ~SBPLMetaInterface(){}
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,

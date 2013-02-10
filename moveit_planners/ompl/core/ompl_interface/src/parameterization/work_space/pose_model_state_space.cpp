@@ -42,13 +42,13 @@ const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "
 
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec) : ModelBasedStateSpace(spec)
 {
-  const std::pair<kinematic_model::SolverAllocatorFn, kinematic_model::SolverAllocatorMapFn>& slv = spec.joint_model_group_->getSolverAllocators();
+  const std::pair<robot_model::SolverAllocatorFn, robot_model::SolverAllocatorMapFn>& slv = spec.joint_model_group_->getSolverAllocators();
   if (slv.first)
     poses_.push_back(PoseComponent(spec.joint_model_group_));
   else
     if (!slv.second.empty())
     {
-      for (std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn>::const_iterator it = slv.second.begin() ; it != slv.second.end() ; ++it)
+      for (std::map<const robot_model::JointModelGroup*, robot_model::SolverAllocatorFn>::const_iterator it = slv.second.begin() ; it != slv.second.end() ; ++it)
         poses_.push_back(PoseComponent(it->first));
     }
   if (poses_.empty())
@@ -141,7 +141,7 @@ void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double 
     components_[i]->as<ompl::base::SE3StateSpace>()->setBounds(b);
 }
 
-ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const kinematic_model::JointModelGroup *subgroup) :
+ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const robot_model::JointModelGroup *subgroup) :
   subgroup_(subgroup), kinematics_solver_(subgroup->getSolverAllocators().first(subgroup))
 {
   state_space_.reset(new ompl::base::SE3StateSpace());
