@@ -42,7 +42,7 @@
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <moveit/planning_models_loader/kinematic_model_loader.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <boost/noncopyable.hpp>
@@ -91,7 +91,7 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml,
+  PlanningSceneMonitor(const robot_model_loader::RDFLoaderPtr &kml,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string &name = "");
 
@@ -112,7 +112,7 @@ public:
    *  @param name A name identifying this planning scene monitor
    */
   PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, 
-                       const planning_models_loader::KinematicModelLoaderPtr &kml, 
+                       const robot_model_loader::RDFLoaderPtr &kml, 
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string &name = "");
 
@@ -125,12 +125,12 @@ public:
   }
   
   /** \brief Get the user kinematic model loader */
-  const planning_models_loader::KinematicModelLoaderPtr& getKinematicModelLoader() const
+  const robot_model_loader::RDFLoaderPtr& getRDFLoader() const
   {
     return kinematics_loader_;
   }
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const;
+  const robot_model::RobotModelConstPtr& getRobotModel() const;
   
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
@@ -337,7 +337,7 @@ protected:
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
   
-  void getUpdatedFrameTransforms(const kinematic_model::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
+  void getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
   
   /// The name of this scene monitor
   std::string                           monitor_name_;
@@ -398,7 +398,7 @@ protected:
   /// the error accepted when the state is reported as outside of bounds;
   double                                bounds_error_;
 
-  planning_models_loader::KinematicModelLoaderPtr kinematics_loader_;
+  robot_model_loader::RDFLoaderPtr kinematics_loader_;
 
 private:
 

@@ -33,7 +33,7 @@
 *********************************************************************/
 
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
-#include <moveit/planning_models_loader/kinematic_model_loader.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 int main(int argc, char **argv)
 {  
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
   
-  planning_models_loader::KinematicModelLoader kml;
+  robot_model_loader::RDFLoader kml;
   trajectory_execution_manager::TrajectoryExecutionManager tem(kml.getModel(), true);
 
   std::cout << "1:\n";  

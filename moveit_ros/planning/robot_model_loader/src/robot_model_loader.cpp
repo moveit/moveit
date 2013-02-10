@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,45 +32,198 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, E. Gil Jones */
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <ros/ros.h>
 
-robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description)
+robot_model_loader::RDFLoader::RDFLoader(const std::string &robot_description)
+{
+  Options opt(robot_description);
+  configure(opt);
+}
+
+robot_model_loader::RDFLoader::RDFLoader(const Options &opt)
+{
+  configure(opt);
+}
+
+robot_model_loader::RDFLoader::~RDFLoader()
+{
+  model_.reset();
+  rdf_loader_.reset();
+  kinematics_loader_.reset();
+}
+
+namespace
+{
+
+bool canSpecifyPosition(const robot_model::JointModel *jmodel, const unsigned int index)
+{  
+  bool ok = false;
+  if (jmodel->getType() == robot_model::JointModel::PLANAR && index == 2)
+    ROS_ERROR("Cannot specify position limits for orientation of planar joint '%s'", jmodel->getName().c_str());
+  else
+  if (jmodel->getType() == robot_model::JointModel::FLOATING && index > 2)
+    ROS_ERROR("Cannot specify position limits for orientation of floating joint '%s'", jmodel->getName().c_str());
+  else
+  if (jmodel->getType() == robot_model::JointModel::REVOLUTE &&
+      static_cast<const robot_model::RevoluteJointModel*>(jmodel)->isContinuous())
+    ROS_ERROR("Cannot specify position limits for continuous joint '%s'", jmodel->getName().c_str());
+  else
+    ok = true;
+  return ok;
+}
+}
+
+void robot_model_loader::RDFLoader::configure(const Options &opt)
 {
   ros::WallTime start = ros::WallTime::now();
-  ros::NodeHandle nh("~");
-  if (nh.searchParam(robot_description, robot_description_))
+  rdf_loader_.reset(new rdf_loader::RDFLoader(opt.robot_description_));
+  if (rdf_loader_->getURDF())
   {
-    std::string content;
-    if (nh.getParam(robot_description_, content))
+    const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
+    if (opt.root_link_.empty())
+      model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
+    else
+      model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf, opt.root_link_));
+  }
+
+  if (model_)
+  {
+    // if there are additional joint limits specified in some .yaml file, read those in
+    ros::NodeHandle nh("~");
+    std::map<std::string, std::vector<moveit_msgs::JointLimits> > individual_joint_limits_map;
+    
+    for (unsigned int i = 0; i < model_->getJointModels().size() ; ++i)
     {
-      urdf::Model *umodel = new urdf::Model();
-      urdf_.reset(umodel);
-      if (umodel->initString(content))
+      robot_model::JointModel *jmodel = model_->getJointModels()[i];
+      std::vector<moveit_msgs::JointLimits> jlim = jmodel->getVariableLimits();
+      for(unsigned int j = 0; j < jlim.size(); ++j)
       {
-        std::string scontent;
-        if (nh.getParam(robot_description_ + "_semantic", scontent))
+        std::string prefix = rdf_loader_->getRobotDescription() + "_planning/joint_limits/" + jlim[j].joint_name + "/";
+        
+        double max_position;
+        if (nh.getParam(prefix + "max_position", max_position))
         {
-          srdf_.reset(new srdf::Model());
-          if (!srdf_->initString(*urdf_, scontent))
+          if (canSpecifyPosition(jmodel, j))
           {
-            ROS_ERROR("Unable to parse SRDF");
-            srdf_.reset();
+            jlim[j].has_position_limits = true;
+            jlim[j].max_position = max_position;
+
+            // also update the model
+            std::pair<double, double> bounds;
+            if (jmodel->getVariableBounds(jlim[j].joint_name, bounds))
+            {
+              bounds.second = max_position;
+              jmodel->setVariableBounds(jlim[j].joint_name, bounds);
+            }
           }
         }
-        else
-          ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
+        double min_position;
+        if (nh.getParam(prefix + "min_position", min_position))
+        {
+          if (canSpecifyPosition(jmodel, j))
+          {
+            jlim[j].has_position_limits = true;
+            jlim[j].min_position = min_position;
+
+            // also update the model
+            std::pair<double, double> bounds;
+            if (jmodel->getVariableBounds(jlim[j].joint_name, bounds))
+            {
+              bounds.first = min_position;
+              jmodel->setVariableBounds(jlim[j].joint_name, bounds);
+            }
+          }
+        }
+        double max_velocity;
+        if (nh.getParam(prefix + "max_velocity", max_velocity))
+        {
+          jlim[j].has_velocity_limits = true;
+          jlim[j].max_velocity = max_velocity;
+        }
+        bool has_vel_limits;
+        if (nh.getParam(prefix + "has_velocity_limits", has_vel_limits))
+          jlim[j].has_velocity_limits = has_vel_limits;
+        
+        double max_acc;
+        if (nh.getParam(prefix + "max_acceleration", max_acc))
+        {
+          jlim[j].has_acceleration_limits = true;
+          jlim[j].max_acceleration = max_acc;
+        }
+        bool has_acc_limits;
+        if (nh.getParam(prefix + "has_acceleration_limits", has_acc_limits))
+          jlim[j].has_acceleration_limits = has_acc_limits;
       }
-      else
-      {
-        ROS_ERROR("Unable to parse URDF");
-        urdf_.reset();
-      }
+      jmodel->setVariableLimits(jlim);
+      individual_joint_limits_map[jmodel->getName()] = jlim;
     }
-    else
-      ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+    const std::map<std::string, robot_model::JointModelGroup*> &jmgm = model_->getJointModelGroupMap();
+    for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = jmgm.begin() ; it != jmgm.end() ; ++it) 
+    {
+      std::vector<moveit_msgs::JointLimits> group_joint_limits;
+      for(unsigned int i = 0; i < it->second->getJointModelNames().size(); i++)
+      {
+        group_joint_limits.insert(group_joint_limits.end(),
+                                  individual_joint_limits_map[it->second->getJointModelNames()[i]].begin(),
+                                  individual_joint_limits_map[it->second->getJointModelNames()[i]].end());
+      }
+      it->second->setVariableLimits(group_joint_limits);
+    }  
+    if (opt.load_kinematics_solvers_)
+      loadKinematicsSolvers();
   }
-  ROS_DEBUG_STREAM("Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
+  ROS_DEBUG_STREAM("Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
+}
+
+void robot_model_loader::RDFLoader::loadKinematicsSolvers()
+{
+  if (rdf_loader_ && model_)
+  {
+    // load the kinematics solvers
+    kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader(rdf_loader_->getRobotDescription()));
+    kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
+    const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
+    std::map<std::string, robot_model::SolverAllocatorFn> imap;
+    for (std::size_t i = 0 ; i < groups.size() ; ++i)
+      imap[groups[i]] = kinematics_allocator;
+    model_->setKinematicsAllocators(imap);
+
+    // set the default IK timeouts
+    const std::map<std::string, double> &timeout = kinematics_loader_->getIKTimeout();
+    for (std::map<std::string, double>::const_iterator it = timeout.begin() ; it != timeout.end() ; ++it)
+    {
+      robot_model::JointModelGroup *jmg = model_->getJointModelGroup(it->first);
+      jmg->setDefaultIKTimeout(it->second);
+    } 
+
+    // set the default IK attempts
+    const std::map<std::string, unsigned int> &attempts = kinematics_loader_->getIKAttempts();
+    for (std::map<std::string, unsigned int>::const_iterator it = attempts.begin() ; it != attempts.end() ; ++it)
+    {
+      robot_model::JointModelGroup *jmg = model_->getJointModelGroup(it->first);
+      jmg->setDefaultIKAttempts(it->second);
+    }
+  }
+}
+
+std::map<std::string, kinematics::KinematicsBasePtr> robot_model_loader::RDFLoader::generateKinematicsSolversMap() const
+{
+  std::map<std::string, kinematics::KinematicsBasePtr> result;
+  if (kinematics_loader_ && model_)
+  {
+    const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
+    for (std::size_t i = 0 ; i < groups.size() ; ++i)
+    {
+      const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
+      robot_model::SolverAllocatorFn a = jmg->getSolverAllocators().first;
+      if (a)
+        result[jmg->getName()] = a(jmg);
+    }
+  }
+  else
+    ROS_WARN("Kinematic solvers not yet loaded. Call loadKinematicSolvers() first.");
+  return result;
 }

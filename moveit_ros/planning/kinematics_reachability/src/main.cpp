@@ -51,8 +51,8 @@ int main(int argc, char** argv)
   node_handle.param<std::string>("frame_id", frame_id, std::string());
   ros::NodeHandle root_handle;
 
-  planning_models_loader::KinematicModelLoader kinematic_model_loader("robot_description"); /** Used to load the robot model */  
-  kinematic_model::KinematicModelPtr kinematic_model = kinematic_model_loader.getModel();
+  robot_model_loader::RDFLoader robot_model_loader("robot_description"); /** Used to load the robot model */  
+  robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
 
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
   planning_scene_monitor.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));

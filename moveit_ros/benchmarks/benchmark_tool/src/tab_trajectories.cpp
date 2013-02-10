@@ -83,7 +83,7 @@ void MainWindow::createTrajectoryButtonClicked(void)
         static const float marker_scale = 0.15;
 
         TrajectoryPtr trajectory_marker( new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
-                                                              name, scene_display_->getKinematicModel()->getModelFrame(),
+                                                              name, scene_display_->getRobotModel()->getModelFrame(),
                                                               robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED,
                                                               ui_.trajectory_nwaypoints_spin->value()));
 
@@ -206,7 +206,7 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
         shape_pose.orientation = tc->constraints[0].orientation_constraints[0].orientation;
         static const float marker_scale = 0.15;
         TrajectoryPtr trajectory_marker( new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
-                                                        names[i], scene_display_->getKinematicModel()->getModelFrame(),
+                                                        names[i], scene_display_->getRobotModel()->getModelFrame(),
                                                         robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED,
                                                         ui_.trajectory_nwaypoints_spin->value()));
 
@@ -225,7 +225,7 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
 
             static const float marker_scale = 0.15;
             GripperMarkerPtr waypoint_marker( new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
-                                                                names[i], scene_display_->getKinematicModel()->getModelFrame(),
+                                                                names[i], scene_display_->getRobotModel()->getModelFrame(),
                                                                 robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED));
             waypoint_marker->unselect(true);
             waypoint_marker->setColor(0.0, 0.9, 0.0, 1 - (double)c / (double)tc->constraints.size());

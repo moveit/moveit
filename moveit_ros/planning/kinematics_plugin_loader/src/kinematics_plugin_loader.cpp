@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/kinematics_plugin_loader/kinematics_plugin_loader.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/rdf_loader/rdf_loader.h>
 #include <pluginlib/class_loader.h>
 #include <boost/thread/mutex.hpp>
 #include <sstream>
@@ -70,7 +70,7 @@ public:
     }
   }
   
-  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolver(const kinematic_model::JointModelGroup *jmg)
+  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolver(const robot_model::JointModelGroup *jmg)
   {
     boost::shared_ptr<kinematics::KinematicsBase> result;
     if (!jmg)
@@ -96,7 +96,7 @@ public:
             result.reset(kinematics_loader_->createUnmanagedInstance(it->second[i]));
             if (result)
             {
-              const std::vector<const kinematic_model::LinkModel*> &links = jmg->getLinkModels();
+              const std::vector<const robot_model::LinkModel*> &links = jmg->getLinkModels();
               if (!links.empty())
               {
                 const std::string &base = links.front()->getParentJointModel()->getParentLinkModel() ?
@@ -132,7 +132,7 @@ public:
     return result;
   }
 
-  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolverWithCache(const kinematic_model::JointModelGroup *jmg)
+  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolverWithCache(const robot_model::JointModelGroup *jmg)
   {
     {
       boost::mutex::scoped_lock slock(lock_);
@@ -168,7 +168,7 @@ private:
   std::map<std::string, std::vector<double> >                            search_res_;
   std::map<std::string, std::string>                                     ik_links_;
   boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
-  std::map<const kinematic_model::JointModelGroup*,
+  std::map<const robot_model::JointModelGroup*,
            std::vector<boost::shared_ptr<kinematics::KinematicsBase> > > instances_;
   boost::mutex                                                           lock_;
 };
@@ -185,7 +185,7 @@ void kinematics_plugin_loader::KinematicsPluginLoader::status() const
 
 kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction()
 {  
-  robot_model_loader::RobotModelLoader rml(robot_description_);
+  rdf_loader::RDFLoader rml(robot_description_);
   robot_description_ = rml.getRobotDescription();
   return getLoaderFunction(rml.getSRDF());
 }

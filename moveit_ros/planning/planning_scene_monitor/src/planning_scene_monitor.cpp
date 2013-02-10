@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/planning_models_loader/kinematic_model_loader.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <moveit_ros_planning/PlanningSceneMonitorDynamicReconfigureConfig.h>
@@ -100,7 +100,7 @@ private:
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), monitor_name_(name)
 {  
-  kinematics_loader_.reset(new planning_models_loader::KinematicModelLoader(robot_description));
+  kinematics_loader_.reset(new robot_model_loader::RDFLoader(robot_description));
   initialize(planning_scene::PlanningScenePtr());
 }
 
@@ -108,18 +108,18 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const plannin
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), monitor_name_(name)
 {
-  kinematics_loader_.reset(new planning_models_loader::KinematicModelLoader(robot_description));
+  kinematics_loader_.reset(new robot_model_loader::RDFLoader(robot_description));
   initialize(scene);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml,
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const robot_model_loader::RDFLoaderPtr &kml,
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), kinematics_loader_(kml), monitor_name_(name)
 {
   initialize(planning_scene::PlanningScenePtr());
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const planning_models_loader::KinematicModelLoaderPtr &kml,
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const robot_model_loader::RDFLoaderPtr &kml,
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), kinematics_loader_(kml), monitor_name_(name)
 {
@@ -305,11 +305,11 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
   while (publish_planning_scene_);
 }
 
-const kinematic_model::KinematicModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getKinematicModel() const
+const robot_model::RobotModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getRobotModel() const
 {
   if (scene_)
-    return scene_->getKinematicModel();
-  static const kinematic_model::KinematicModelConstPtr empty;
+    return scene_->getRobotModel();
+  static const robot_model::RobotModelConstPtr empty;
   return empty;
 }
 
@@ -597,7 +597,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
   if (scene_)
   {
     if (!current_state_monitor_)
-      current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
+      current_state_monitor_.reset(new CurrentStateMonitor(scene_->getRobotModel(), tf_));
     current_state_monitor_->setBoundsError(bounds_error_);
     current_state_monitor_->addUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
     current_state_monitor_->startStateMonitor(joint_states_topic);
@@ -709,7 +709,7 @@ void planning_scene_monitor::PlanningSceneMonitor::setPlanningScenePublishingFre
   ROS_DEBUG("Maximum frquency for publishing a planning scene is now %lf Hz", publish_planning_scene_frequency_);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(const kinematic_model::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms)
+void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms)
 {
   if (!tf_)
     return;
@@ -768,7 +768,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
   if (scene_)
   {
     std::vector<geometry_msgs::TransformStamped> transforms;
-    getUpdatedFrameTransforms(scene_->getKinematicModel(), transforms);
+    getUpdatedFrameTransforms(scene_->getRobotModel(), transforms);
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       scene_->getTransforms()->setTransforms(transforms);

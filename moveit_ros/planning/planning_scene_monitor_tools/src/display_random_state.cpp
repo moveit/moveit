@@ -60,9 +60,9 @@ int main(int argc, char **argv)
   spinner.start();
   
   ros::NodeHandle nh;
-  planning_models_loader::KinematicModelLoader::Options opt;
+  robot_model_loader::RDFLoader::Options opt;
   opt.robot_description_ = "robot_description";
-  planning_models_loader::KinematicModelLoaderPtr kml(new planning_models_loader::KinematicModelLoader(opt));
+  robot_model_loader::RDFLoaderPtr kml(new robot_model_loader::RDFLoader(opt));
   planning_scene_monitor::PlanningSceneMonitor psm(kml);
   psm.startWorldGeometryMonitor();
   psm.startSceneMonitor();

@@ -61,7 +61,7 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
   creq.cost = true;
   creq.contacts = true;
   creq.max_contacts = ls->getCollisionWorld()->getObjectsCount();
-  creq.max_cost_sources = creq.max_contacts + ls->getKinematicModel()->getLinkModelsWithCollisionGeometry().size();
+  creq.max_cost_sources = creq.max_contacts + ls->getRobotModel()->getLinkModelsWithCollisionGeometry().size();
   creq.max_contacts *= creq.max_contacts;
   collision_detection::CollisionResult cres;
 
@@ -95,7 +95,7 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
   // evaluate constraints
   if (!kinematic_constraints::isEmpty(req.constraints))
   {
-    kinematic_constraints::KinematicConstraintSet kset(ls->getKinematicModel(), ls->getTransforms());
+    kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel(), ls->getTransforms());
     kset.add(req.constraints); 
     std::vector<kinematic_constraints::ConstraintEvaluationResult> kres;
     kinematic_constraints::ConstraintEvaluationResult total_result = kset.decide(rs, kres);

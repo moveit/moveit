@@ -45,7 +45,7 @@ const std::string planning_pipeline::PlanningPipeline::DISPLAY_PATH_TOPIC = "dis
 const std::string planning_pipeline::PlanningPipeline::MOTION_PLAN_REQUEST_TOPIC = "motion_plan_request";
 const std::string planning_pipeline::PlanningPipeline::MOTION_CONTACTS_TOPIC = "display_contacts";
 
-planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
+planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotModelConstPtr& model, 
                                                       const std::string &planner_plugin_param_name,
                                                       const std::string &adapter_plugins_param_name) :
   nh_("~"),
@@ -67,7 +67,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::Kin
   configure();
 }
 
-planning_pipeline::PlanningPipeline::PlanningPipeline(const kinematic_model::KinematicModelConstPtr& model, 
+planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotModelConstPtr& model, 
                                                       const std::string &planner_plugin_name,
                                                       const std::vector<std::string> &adapter_plugin_names) :
   nh_("~"),

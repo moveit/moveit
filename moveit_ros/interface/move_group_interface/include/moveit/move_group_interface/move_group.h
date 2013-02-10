@@ -80,8 +80,8 @@ public:
     /// The robot description parameter name (if different from default)
     std::string robot_description_;
 
-    /// Optionally, an instance of the KinematicModel to use can be also specified
-    kinematic_model::KinematicModelConstPtr kinematic_model_;
+    /// Optionally, an instance of the RobotModel to use can be also specified
+    robot_model::RobotModelConstPtr kinematic_model_;
   };
 
   /// The representation of a motion plan (as ROS messasges)

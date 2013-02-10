@@ -65,14 +65,14 @@ public:
     allow_trajectory_execution_(true),
     debug_(debug)
   { 
-    planning_pipeline_.reset(new planning_pipeline::PlanningPipeline(planning_scene_monitor_->getKinematicModel()));
+    planning_pipeline_.reset(new planning_pipeline::PlanningPipeline(planning_scene_monitor_->getRobotModel()));
     
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution_, true);
     
     if (allow_trajectory_execution_)
     {  
-      trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getKinematicModel()));
+      trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel()));
       plan_execution_.reset(new plan_execution::PlanExecution(planning_scene_monitor_, trajectory_execution_manager_));
       plan_with_sensing_.reset(new plan_execution::PlanWithSensing(trajectory_execution_manager_));
       if (debug)

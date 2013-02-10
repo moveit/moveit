@@ -43,7 +43,7 @@ static const ros::Duration DEFAULT_CONTROLLER_INFORMATION_VALIDITY_AGE(1.0);
 static const double DEFAULT_CONTROLLER_GOAL_DURATION_SCALING = 1.1; // allow the execution of a trajectory to take more time than expected (scaled by a value > 1)
 static const ros::Duration DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN(0.5); // allow 0.5s more than the expected execution time before triggering a trajectory cancel (applied after scaling)
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const kinematic_model::KinematicModelConstPtr &kmodel) : 
+TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel) : 
   kinematic_model_(kmodel), node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
@@ -51,7 +51,7 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const kinematic_model::Ki
   initialize();
 }
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const kinematic_model::KinematicModelConstPtr &kmodel, bool manage_controllers) :
+TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, bool manage_controllers) :
   kinematic_model_(kmodel), node_handle_("~"), manage_controllers_(manage_controllers)
 {
   initialize();
@@ -1195,7 +1195,7 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::getLastEx
 
 bool TrajectoryExecutionManager::ensureActiveControllersForGroup(const std::string &group)
 {
-  const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group);
+  const robot_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group);
   if (joint_model_group)
     return ensureActiveControllersForJoints(joint_model_group->getJointModelNames());
   else

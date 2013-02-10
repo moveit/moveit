@@ -105,7 +105,7 @@ void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Join
   {
     robot_state::RobotStatePtr state(new robot_state::RobotState(plan->trajectories_.back()->getLastWayPoint()));
     state->setStateValues(grasp_posture);
-    robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getKinematicModel(), plan->end_effector_group_));
+    robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->end_effector_group_));
     traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan->trajectories_.push_back(traj);
     plan->trajectory_descriptions_.push_back(name);
@@ -118,8 +118,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
 {
   // compute what the maximum distance reported between any two states in the planning group could be
   double min_distance = 0.0;
-  const kinematic_model::JointModelGroup *jmg = pre_grasp_planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_);
-  const std::vector<const kinematic_model::JointModel*> &jmodels = jmg->getJointModels();
+  const robot_model::JointModelGroup *jmg = pre_grasp_planning_scene_->getRobotModel()->getJointModelGroup(plan->planning_group_);
+  const std::vector<const robot_model::JointModel*> &jmodels = jmg->getJointModels();
   for (std::size_t j = 0 ; j < jmodels.size() ; ++j)
     min_distance += jmodels[j]->getMaximumExtent() * jmodels[j]->getDistanceFactor();
   // now remember the value that is 5% of that maximum distance; this is the minimum we would like goal states to vary,
@@ -166,11 +166,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           if (d_translation > plan->grasp_.min_translation_distance && !signal_stop_)
           {
             std::reverse(approach_states.begin(), approach_states.end());
-            robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
+            robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(pre_grasp_planning_scene_->getRobotModel(), plan->planning_group_));
             for (std::size_t k = 0 ; k < approach_states.size() ; ++k)
               approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
             
-            robot_trajectory::RobotTrajectoryPtr translation_traj(new robot_trajectory::RobotTrajectory(post_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
+            robot_trajectory::RobotTrajectoryPtr translation_traj(new robot_trajectory::RobotTrajectory(post_grasp_planning_scene_->getRobotModel(), plan->planning_group_));
             for (std::size_t k = 0 ; k < translation_states.size() ; ++k)
               translation_traj->addSuffixWayPoint(translation_states[k], 0.0);
             
@@ -193,7 +193,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
         {          
           plan->approach_state_.swap(first_approach_state);
           std::reverse(approach_states.begin(), approach_states.end());
-          robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(pre_grasp_planning_scene_->getKinematicModel(), plan->planning_group_));
+          robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(pre_grasp_planning_scene_->getRobotModel(), plan->planning_group_));
           for (std::size_t k = 0 ; k < approach_states.size() ; ++k)
             approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
 

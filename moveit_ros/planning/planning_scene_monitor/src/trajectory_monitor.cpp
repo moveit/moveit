@@ -41,7 +41,7 @@
 
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency) :
   current_state_monitor_(state_monitor), 
-  trajectory_(current_state_monitor_->getKinematicModel(), ""),
+  trajectory_(current_state_monitor_->getRobotModel(), ""),
   sampling_frequency_(5.0)
 {
   setSamplingFrequency(sampling_frequency);

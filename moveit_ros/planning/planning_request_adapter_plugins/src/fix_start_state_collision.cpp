@@ -121,7 +121,7 @@ public:
       random_numbers::RandomNumberGenerator rng;
 
       const std::vector<robot_state::JointState*> &jstates =
-        planning_scene->getKinematicModel()->hasJointModelGroup(req.group_name) ?
+        planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
         start_state.getJointStateGroup(req.group_name)->getJointStateVector() :
         start_state.getJointStateVector();
       bool found = false;

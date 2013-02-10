@@ -61,9 +61,9 @@ public:
   void broadcastRootTransform(const planning_models::RobotState& state)
   {
     geometry_msgs::TransformStamped root_transform;
-    root_transform.header.frame_id = state.getKinematicModel()->getModelFrame();
+    root_transform.header.frame_id = state.getRobotModel()->getModelFrame();
     root_transform.header.stamp = ros::Time(ros::WallTime::now().toSec());
-    root_transform.child_frame_id = state.getKinematicModel()->getRootLinkName(); 
+    root_transform.child_frame_id = state.getRobotModel()->getRootLinkName(); 
     if(root_transform.header.frame_id == root_transform.child_frame_id) return;
     planning_models::msgFromPose(state.getRootTransform(), root_transform.transform);
     transform_broadcaster_.sendTransform(root_transform);

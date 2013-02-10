@@ -67,7 +67,7 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
 }
 
 RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name,
-                                                         const kinematic_model::KinematicModelConstPtr &kmodel,
+                                                         const robot_model::RobotModelConstPtr &kmodel,
                                                          const boost::shared_ptr<tf::Transformer> &tf) :
   name_(name),
   kstate_(new robot_state::RobotState(kmodel)),
@@ -85,7 +85,7 @@ void RobotInteraction::InteractionHandler::setup()
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
   ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
   velocity_gain_ = 0.1;
-  planning_frame_ = kstate_->getKinematicModel()->getModelFrame();
+  planning_frame_ = kstate_->getRobotModel()->getModelFrame();
 }
 
 namespace
@@ -428,7 +428,7 @@ bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualiza
   return true;
 }
 
-RobotInteraction::RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel, const std::string &ns) :
+RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &kmodel, const std::string &ns) :
   kmodel_(kmodel)
 {  
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC);
@@ -457,7 +457,7 @@ void RobotInteraction::decideActiveComponents(const std::string &group)
 double RobotInteraction::computeGroupScale(const std::string &group)
 {
   static const double DEFAULT_SCALE = 0.2;
-  const kinematic_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   if (!jmg)
     return 0.0;
   
@@ -514,7 +514,7 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
     return;
   
   const boost::shared_ptr<const srdf::Model> &srdf = kmodel_->getSRDF();
-  const kinematic_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   
   if (!jmg || !srdf)
     return;
@@ -559,13 +559,13 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
     return;
   
   const boost::shared_ptr<const srdf::Model> &srdf = kmodel_->getSRDF();
-  const kinematic_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   
   if (!jmg || !srdf)
     return;
   
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
-  const std::pair<kinematic_model::SolverAllocatorFn, kinematic_model::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
+  const std::pair<robot_model::SolverAllocatorFn, robot_model::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
   
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)
@@ -585,7 +585,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   else
     if (!smap.second.empty())
     {
-      for (std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn>::const_iterator it = smap.second.begin() ; 
+      for (std::map<const robot_model::JointModelGroup*, robot_model::SolverAllocatorFn>::const_iterator it = smap.second.begin() ; 
            it != smap.second.end() ; ++it)
       {
         for (std::size_t i = 0 ; i < eef.size() ; ++i)

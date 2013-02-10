@@ -1,7 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_trajectory_execution_manager)
 
 add_library(${MOVEIT_LIB_NAME} src/trajectory_execution_manager.cpp)
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_models_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)

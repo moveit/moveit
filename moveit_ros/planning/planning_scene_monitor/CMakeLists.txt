@@ -4,7 +4,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/planning_scene_monitor.cpp
   src/current_state_monitor.cpp
   src/trajectory_monitor.cpp)
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_models_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(demo_scene demos/demo_scene.cpp)
 target_link_libraries(demo_scene ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})

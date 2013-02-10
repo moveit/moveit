@@ -70,7 +70,7 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
   if (jsg)
   {  
     robot_state::robotStateMsgToRobotState(req.robot_state, rs);  
-    const std::string &default_frame = planning_scene_monitor_->getKinematicModel()->getModelFrame();
+    const std::string &default_frame = planning_scene_monitor_->getRobotModel()->getModelFrame();
     
     if (req.pose_stamped_vector.empty() || req.pose_stamped_vector.size() == 1)
     {
@@ -135,7 +135,7 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
   if (req.ik_request.avoid_collisions || !kinematic_constraints::isEmpty(req.ik_request.constraints))
   {
     planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor_);
-    kinematic_constraints::KinematicConstraintSet kset(ls->getKinematicModel(), ls->getTransforms());
+    kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel(), ls->getTransforms());
     kset.add(req.ik_request.constraints);
     computeIK(req.ik_request, res.solution, res.error_code, boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
                                                                         static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() : NULL, kset.empty() ? NULL : &kset, _1, _2));
@@ -155,7 +155,7 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
     return true;
   }
   
-  const std::string &default_frame = planning_scene_monitor_->getKinematicModel()->getModelFrame();
+  const std::string &default_frame = planning_scene_monitor_->getRobotModel()->getModelFrame();
   bool do_transform = !req.header.frame_id.empty() && req.header.frame_id != default_frame && planning_scene_monitor_->getTFClient();
   bool tf_problem = false;
   
