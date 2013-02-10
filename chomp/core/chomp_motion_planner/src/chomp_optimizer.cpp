@@ -38,7 +38,7 @@
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <chomp_motion_planner/chomp_utils.h>
-#include <planning_models/kinematic_model.h>
+#include <planning_models/robot_model.h>
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/Core>
 
@@ -55,7 +55,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
                                const ChompParameters *parameters,
                                const planning_models::RobotState& start_state) :
   full_trajectory_(trajectory), 
-  kmodel_(planning_scene->getKinematicModel()), 
+  kmodel_(planning_scene->getRobotModel()), 
   planning_group_(planning_group), 
   parameters_(parameters),
   group_trajectory_(*full_trajectory_, 
@@ -112,12 +112,12 @@ void ChompOptimizer::initialize()
   
   double max_cost_scale = 0.0;
   
-  joint_model_group_ = planning_scene_->getKinematicModel()->getJointModelGroup(planning_group_); 
+  joint_model_group_ = planning_scene_->getRobotModel()->getJointModelGroup(planning_group_); 
 
-  const std::vector<const planning_models::KinematicModel::JointModel*> joint_models = joint_model_group_->getJointModels();
+  const std::vector<const planning_models::RobotModel::JointModel*> joint_models = joint_model_group_->getJointModels();
   for(size_t i = 0; i < joint_models.size(); i++)
   {
-    const planning_models::KinematicModel::JointModel* model = joint_models[i];
+    const planning_models::RobotModel::JointModel* model = joint_models[i];
     double joint_cost = 1.0;
     std::string joint_name = model->getName();
     //nh.param("joint_costs/" + joint_name, joint_cost, 1.0);
@@ -193,7 +193,7 @@ void ChompOptimizer::initialize()
   
   for(size_t i = 0; i < joint_model_group_->getFixedJointModels().size(); i ++)
   {
-    const planning_models::KinematicModel::JointModel* model = joint_model_group_->getFixedJointModels()[i];
+    const planning_models::RobotModel::JointModel* model = joint_model_group_->getFixedJointModels()[i];
     fixed_link_resolution_map[model->getName()] = model->getParentLinkModel()->getParentJointModel()->getName();
   }
 
@@ -202,7 +202,7 @@ void ChompOptimizer::initialize()
   {
     if(fixed_link_resolution_map.find(joint_model_group_->getUpdatedLinkModels()[i]->getParentJointModel()->getName()) == fixed_link_resolution_map.end())
     {
-      const planning_models::KinematicModel::JointModel* parent_model = NULL;
+      const planning_models::RobotModel::JointModel* parent_model = NULL;
       bool found_root = false;
 
       while(!found_root)
@@ -271,9 +271,9 @@ ChompOptimizer::~ChompOptimizer()
   destroy();
 }
 
-void ChompOptimizer::registerParents(const planning_models::KinematicModel::JointModel* model)
+void ChompOptimizer::registerParents(const planning_models::RobotModel::JointModel* model)
 {
-  const planning_models::KinematicModel::JointModel* parent_model = NULL;
+  const planning_models::RobotModel::JointModel* parent_model = NULL;
   bool found_root = false;
 
   if(model == kmodel_->getRoot()) return;
@@ -683,7 +683,7 @@ void ChompOptimizer::calculateTotalIncrements()
 
 void ChompOptimizer::addIncrementsToTrajectory()
 {
-  const std::vector<const planning_models::KinematicModel::JointModel*>& joint_models = joint_model_group_->getJointModels();
+  const std::vector<const planning_models::RobotModel::JointModel*>& joint_models = joint_model_group_->getJointModels();
   for(size_t i = 0; i < joint_models.size(); i++)
   {
     double scale = 1.0;
@@ -761,11 +761,11 @@ void ChompOptimizer::computeJointProperties(int trajectory_point)
   for(int j = 0; j < num_joints_; j++)
   {
     const planning_models::RobotState *::JointState* joint_state = state_.getJointState(joint_names_[j]);
-    const planning_models::KinematicModel::JointModel* joint_model = joint_state->getJointModel();
-    const planning_models::KinematicModel::RevoluteJointModel* revolute_joint 
-      = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model);
-    const planning_models::KinematicModel::PrismaticJointModel* prismatic_joint 
-      = dynamic_cast<const planning_models::KinematicModel::PrismaticJointModel*>(joint_model);
+    const planning_models::RobotModel::JointModel* joint_model = joint_state->getJointModel();
+    const planning_models::RobotModel::RevoluteJointModel* revolute_joint 
+      = dynamic_cast<const planning_models::RobotModel::RevoluteJointModel*>(joint_model);
+    const planning_models::RobotModel::PrismaticJointModel* prismatic_joint 
+      = dynamic_cast<const planning_models::RobotModel::PrismaticJointModel*>(joint_model);
 
     std::string parent_link_name = joint_model->getParentLinkModel()->getName();
     std::string child_link_name = joint_model->getChildLinkModel()->getName();
@@ -826,23 +826,23 @@ void ChompOptimizer::getJacobian(int trajectory_point,
 
 void ChompOptimizer::handleJointLimits()
 {
-  const std::vector<const planning_models::KinematicModel::JointModel*> joint_models = joint_model_group_->getJointModels();
+  const std::vector<const planning_models::RobotModel::JointModel*> joint_models = joint_model_group_->getJointModels();
   for(size_t joint_i = 0; joint_i < joint_models.size(); joint_i++) {
-    const planning_models::KinematicModel::JointModel* joint_model = joint_models[joint_i];
-    const planning_models::KinematicModel::RevoluteJointModel* revolute_joint 
-      = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model);
+    const planning_models::RobotModel::JointModel* joint_model = joint_models[joint_i];
+    const planning_models::RobotModel::RevoluteJointModel* revolute_joint 
+      = dynamic_cast<const planning_models::RobotModel::RevoluteJointModel*>(joint_model);
     
     if(revolute_joint->isContinuous())
     {
       continue;
     }
     
-    const planning_models::KinematicModel::JointModel::Bounds& bounds = joint_model->getVariableBounds();
+    const planning_models::RobotModel::JointModel::Bounds& bounds = joint_model->getVariableBounds();
 
     double joint_max = -DBL_MAX;
     double joint_min = DBL_MAX;
 
-    for(planning_models::KinematicModel::JointModel::Bounds::const_iterator it = bounds.begin(); it != bounds.end(); it ++)
+    for(planning_models::RobotModel::JointModel::Bounds::const_iterator it = bounds.begin(); it != bounds.end(); it ++)
     {
       if((*it).first < joint_min)
       {
@@ -1058,8 +1058,8 @@ void ChompOptimizer::perturbTrajectory()
 //     bool continuous = false;
       
 //     RobotState *::JointState* jointState = jointStates[i];
-//     const KinematicModel::RevoluteJointModel* revolute_joint 
-//       = dynamic_cast<const KinematicModel::RevoluteJointModel*>(jointState->getJointModel());
+//     const RobotModel::RevoluteJointModel* revolute_joint 
+//       = dynamic_cast<const RobotModel::RevoluteJointModel*>(jointState->getJointModel());
 //     if(revolute_joint && revolute_joint->continuous_) {
 //       continuous = true;
 //     }

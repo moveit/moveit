@@ -41,7 +41,7 @@
 #include <ompl/tools/debug/Profiler.h>
 #include <fstream>
 
-ompl_interface::OMPLInterface::OMPLInterface(const kinematic_model::KinematicModelConstPtr &kmodel) :
+ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel) :
   kmodel_(kmodel),
   constraint_sampler_manager_(new  constraint_samplers::ConstraintSamplerManager()),
   context_manager_(kmodel, constraint_sampler_manager_),
@@ -163,7 +163,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
         cs = constraint_sampler_manager_->selectSampler(context->getPlanningScene(), context->getJointModelGroupName(), combined_constraints);
       }
       
-      kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(planning_scene->getKinematicModel(), planning_scene->getTransforms()));
+      kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(planning_scene->getRobotModel(), planning_scene->getTransforms()));
       ks->add(req.trajectory_constraints.constraints[i]);
       samplers[i] = ValidConstrainedSamplerPtr(new ValidConstrainedSampler(context.get(), ks, cs));
     }

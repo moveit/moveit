@@ -43,7 +43,7 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
   setName(spec_.joint_model_group_->getName());
   
   // make sure we have bounds for every joint stored within the spec (use default bounds if not specified)
-  const std::vector<const kinematic_model::JointModel*> &joint_model_vector = spec_.joint_model_group_->getJointModels();
+  const std::vector<const robot_model::JointModel*> &joint_model_vector = spec_.joint_model_group_->getJointModels();
   for (std::size_t i = 0 ; i < joint_model_vector.size() ; ++i)
     if (spec_.joints_bounds_.size() <= i)
       spec_.joints_bounds_.push_back(joint_model_vector[i]->getVariableBounds());

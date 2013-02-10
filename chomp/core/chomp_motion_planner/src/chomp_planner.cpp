@@ -42,7 +42,7 @@
 
 namespace chomp {
 
-ChompPlanner::ChompPlanner(const planning_models::KinematicModelConstPtr& kmodel)
+ChompPlanner::ChompPlanner(const planning_models::RobotModelConstPtr& kmodel)
 {
 }
 
@@ -52,11 +52,11 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                          moveit_msgs::GetMotionPlan::Response &res) const
 {
   ros::WallTime start_time = ros::WallTime::now();
-  ChompTrajectory trajectory(planning_scene->getKinematicModel(),
+  ChompTrajectory trajectory(planning_scene->getRobotModel(),
                              3.0,
                              .03,
                              req.motion_plan_request.group_name);
-  jointStateToArray(planning_scene->getKinematicModel(),
+  jointStateToArray(planning_scene->getRobotModel(),
                     req.motion_plan_request.start_state.joint_state, 
                     req.motion_plan_request.group_name,
                     trajectory.getTrajectoryPoint(0));
@@ -70,17 +70,17 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     ROS_INFO_STREAM("Setting joint " << req.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name
                     << " to position " << req.motion_plan_request.goal_constraints[0].joint_constraints[i].position);
   }
-  jointStateToArray(planning_scene->getKinematicModel(),
+  jointStateToArray(planning_scene->getRobotModel(),
                     js, 
                     req.motion_plan_request.group_name, 
                     trajectory.getTrajectoryPoint(goal_index));
-  const planning_models::KinematicModel::JointModelGroup* model_group = 
-    planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name);
+  const planning_models::RobotModel::JointModelGroup* model_group = 
+    planning_scene->getRobotModel()->getJointModelGroup(req.motion_plan_request.group_name);
   // fix the goal to move the shortest angular distance for wrap-around joints:
   for (size_t i = 0; i < model_group->getJointModels().size(); i++)
   {
-    const planning_models::KinematicModel::JointModel* model = model_group->getJointModels()[i];
-    const planning_models::KinematicModel::RevoluteJointModel* revolute_joint = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(model);
+    const planning_models::RobotModel::JointModel* model = model_group->getJointModels()[i];
+    const planning_models::RobotModel::RevoluteJointModel* revolute_joint = dynamic_cast<const planning_models::RobotModel::RevoluteJointModel*>(model);
 
     if (revolute_joint != NULL)
     {

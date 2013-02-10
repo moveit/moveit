@@ -36,7 +36,7 @@
 
 #include <planning_interface/planning_interface.h>
 #include <planning_scene/planning_scene.h>
-#include <planning_models/kinematic_model.h>
+#include <planning_models/robot_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <sbpl_interface/sbpl_interface.h>
 
@@ -48,7 +48,7 @@ namespace sbpl_interface_ros
 class SBPLPlanner : public planning_interface::Planner
 {
 public:
-  void init(const planning_models::KinematicModelConstPtr& model)
+  void init(const planning_models::RobotModelConstPtr& model)
   {
     ros::NodeHandle nh;
     display_bfs_publisher_ = nh.advertise<visualization_msgs::Marker>("planning_components_visualization", 10, true);

@@ -113,7 +113,7 @@ private:
 
   struct PoseComponent
   {
-    PoseComponent(const kinematic_model::JointModelGroup *subgroup);
+    PoseComponent(const robot_model::JointModelGroup *subgroup);
     
     bool computeStateFK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state) const;
     bool computeStateIK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state) const;
@@ -123,7 +123,7 @@ private:
       return subgroup_->getName() < o.subgroup_->getName();
     }
     
-    const kinematic_model::JointModelGroup *subgroup_;    
+    const robot_model::JointModelGroup *subgroup_;    
     boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
     ompl::base::StateSpacePtr state_space_;
     std::vector<std::string> fk_link_;

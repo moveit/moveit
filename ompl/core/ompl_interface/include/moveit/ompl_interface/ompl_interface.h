@@ -58,7 +58,7 @@ class OMPLInterface
 {
 public: 
   
-  OMPLInterface(const kinematic_model::KinematicModelConstPtr &kmodel);
+  OMPLInterface(const robot_model::RobotModelConstPtr &kmodel);
   virtual ~OMPLInterface();
   
   /** @brief Specify configurations for the planners.
@@ -171,7 +171,7 @@ protected:
                                                unsigned int *attempts, double *timeout) const;
   
   /** \brief The kinematic model for which motion plans are computed */
-  kinematic_model::KinematicModelConstPtr kmodel_;
+  robot_model::RobotModelConstPtr kmodel_;
   
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
   

@@ -56,7 +56,7 @@ public:
     dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
   }
   
-  virtual bool initialize(const kinematic_model::KinematicModelConstPtr& model) 
+  virtual bool initialize(const robot_model::RobotModelConstPtr& model) 
   {
     ompl_interface_.reset(new OMPLInterfaceROS(model));
     pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);

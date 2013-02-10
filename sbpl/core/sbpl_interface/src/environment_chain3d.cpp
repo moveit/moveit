@@ -47,9 +47,9 @@ EnvironmentChain3D::EnvironmentChain3D(const planning_scene::PlanningSceneConstP
   bfs_(NULL),
   state_(planning_scene->getCurrentState()),
   planning_data_(StateID2IndexMapping), 
-  goal_constraint_set_(planning_scene->getKinematicModel(),
+  goal_constraint_set_(planning_scene->getRobotModel(),
                        planning_scene->getTransforms()),
-  path_constraint_set_(planning_scene->getKinematicModel(),
+  path_constraint_set_(planning_scene->getRobotModel(),
                        planning_scene->getTransforms()),
   interpolation_state_1_(planning_scene->getCurrentState()),
   interpolation_state_2_(planning_scene->getCurrentState()),
@@ -593,9 +593,9 @@ void EnvironmentChain3D::setMotionPrimitives(const std::string& group_name) {
   if(!joint_state_group_) {
     ROS_ERROR_STREAM("Can't set motion primitives as joint state group not set");
   }
-  const planning_models::KinematicModel::JointModelGroup* jmg = joint_state_group_->getJointModelGroup();
+  const planning_models::RobotModel::JointModelGroup* jmg = joint_state_group_->getJointModelGroup();
   for(unsigned int i = 0; i < jmg->getActiveDOFNames().size(); i++) {
-    const planning_models::KinematicModel::JointModel* joint = jmg->getJointModel(jmg->getActiveDOFNames()[i]);
+    const planning_models::RobotModel::JointModel* joint = jmg->getJointModel(jmg->getActiveDOFNames()[i]);
     boost::shared_ptr<JointMotionWrapper> jmw(new JointMotionWrapper(joint));
     joint_motion_wrappers_.push_back(jmw);
     //TODO - figure out which DOFs have something to do with end effector position

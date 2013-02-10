@@ -46,7 +46,7 @@ namespace chomp {
 class ChompPlanner
 {
 public:
-  ChompPlanner(const planning_models::KinematicModelConstPtr& kmodel);
+  ChompPlanner(const planning_models::RobotModelConstPtr& kmodel);
   virtual ~ChompPlanner(){};
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,

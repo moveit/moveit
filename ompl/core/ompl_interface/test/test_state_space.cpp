@@ -71,7 +71,7 @@ protected:
     srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../kinematic_state/test/srdf/robot.xml");
     
     if (urdf_ok_ && srdf_ok_)
-      kmodel_.reset(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
+      kmodel_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
   };
 
   virtual void TearDown()
@@ -79,7 +79,7 @@ protected:
   }
   
 protected:
-  kinematic_model::KinematicModelPtr kmodel_;
+  robot_model::RobotModelPtr kmodel_;
   boost::shared_ptr<urdf::ModelInterface> urdf_model_;
   boost::shared_ptr<srdf::Model>     srdf_model_;
   bool                               urdf_ok_;

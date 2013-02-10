@@ -33,7 +33,7 @@
 #define _ENVIRONMENT_CHAIN3D_TYPES_H_
 
 #include <vector>
-#include <planning_models/kinematic_model.h>
+#include <planning_models/robot_model.h>
 #include <planning_models/angle_utils.h>
 
 namespace sbpl_interface {
@@ -175,7 +175,7 @@ struct EnvChain3DPlanningData
 class JointMotionWrapper {
 public:
 
-  JointMotionWrapper(const planning_models::KinematicModel::JointModel* joint_model) :
+  JointMotionWrapper(const planning_models::RobotModel::JointModel* joint_model) :
     joint_model_(joint_model)
   {
     std::vector<moveit_msgs::JointLimits> limits = joint_model->getLimits();
@@ -256,7 +256,7 @@ public:
     }
   }
 protected:
-  const planning_models::KinematicModel::JointModel* joint_model_;
+  const planning_models::RobotModel::JointModel* joint_model_;
   moveit_msgs::JointLimits joint_limit_;
 };
 

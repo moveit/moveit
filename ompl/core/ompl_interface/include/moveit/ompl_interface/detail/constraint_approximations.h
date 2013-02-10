@@ -51,9 +51,9 @@ typedef boost::function<bool(const ompl::base::State*, const ompl::base::State*)
 
 struct ConstraintApproximation
 {
-  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
+  ConstraintApproximation(const planning_models::RobotModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
                           const std::string &serialization, const std::string &filename, const ompl::base::StateStoragePtr &storage);
-  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
+  ConstraintApproximation(const planning_models::RobotModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
                           const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
 
   void visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const;
@@ -62,7 +62,7 @@ struct ConstraintApproximation
   std::string                                      factory_;
   std::string                                      serialization_;
   moveit_msgs::Constraints                         constraint_msg_;
-  planning_models::KinematicModelConstPtr          kmodel_;
+  planning_models::RobotModelConstPtr          kmodel_;
   kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
   std::vector<int>                                 space_signature_;
     

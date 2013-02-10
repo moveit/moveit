@@ -60,7 +60,7 @@ class PlanningContextManager
 {
 public: 
   
-  PlanningContextManager(const kinematic_model::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm);
+  PlanningContextManager(const robot_model::RobotModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm);
   ~PlanningContextManager();
   
   /** @brief Specify configurations for the planners.
@@ -127,7 +127,7 @@ public:
     max_solution_segment_length_ = mssl;
   }
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
   }
@@ -179,7 +179,7 @@ protected:
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string &group_name, const moveit_msgs::MotionPlanRequest &req) const;
   
   /** \brief The kinematic model for which motion plans are computed */
-  kinematic_model::KinematicModelConstPtr               kmodel_;
+  robot_model::RobotModelConstPtr               kmodel_;
   
   constraint_samplers::ConstraintSamplerManagerPtr      constraint_sampler_manager_;
   

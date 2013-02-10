@@ -159,7 +159,7 @@ ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::S
 
 }
 
-ompl_interface::ConstraintApproximation::ConstraintApproximation(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+ompl_interface::ConstraintApproximation::ConstraintApproximation(const robot_model::RobotModelConstPtr &kinematic_model,
                                                                  const std::string &group, const std::string &state_space_parameterization,
                                                                  const moveit_msgs::Constraints &msg, const std::string &filename,
                                                                  const ompl::base::StateStoragePtr &storage,
@@ -314,10 +314,10 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
       cass->load((path + "/" + filename).c_str());
       ConstraintApproximationPtr cap;
       if (constraint_factories_.find(msg.name) != constraint_factories_.end())
-        cap = constraint_factories_[msg.name]->allocApproximation(context_manager_.getKinematicModel(),
+        cap = constraint_factories_[msg.name]->allocApproximation(context_manager_.getRobotModel(),
                                                                   group, state_space_parameterization, msg, filename, ompl::base::StateStoragePtr(cass));
       else
-        cap.reset(new ConstraintApproximation(context_manager_.getKinematicModel(),
+        cap.reset(new ConstraintApproximation(context_manager_.getRobotModel(),
                                               group, state_space_parameterization, msg, filename, ompl::base::StateStoragePtr(cass)));
       if (cap)
       {
@@ -425,10 +425,10 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
     {
       ConstraintApproximationPtr ca;
       if (fct)
-        ca = fct->allocApproximation(context_manager_.getKinematicModel(), group, state_space_parameterization, constr_hard, group + "_" + 
+        ca = fct->allocApproximation(context_manager_.getRobotModel(), group, state_space_parameterization, constr_hard, group + "_" + 
                                      boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss);
       else
-        ca.reset(new ConstraintApproximation(context_manager_.getKinematicModel(), group, state_space_parameterization, constr_hard, group + "_" + 
+        ca.reset(new ConstraintApproximation(context_manager_.getRobotModel(), group, state_space_parameterization, constr_hard, group + "_" + 
                                              boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
       if (ca)
       {
@@ -456,7 +456,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   ob::StateStoragePtr sstor(cass);
   
   // construct a sampler for the sampling constraints
-  kinematic_constraints::KinematicConstraintSet kset(pcontext->getKinematicModel(), robot_state::TransformsConstPtr(new robot_state::Transforms(pcontext->getKinematicModel()->getModelFrame())));
+  kinematic_constraints::KinematicConstraintSet kset(pcontext->getRobotModel(), robot_state::TransformsConstPtr(new robot_state::Transforms(pcontext->getRobotModel()->getModelFrame())));
   kset.add(constr_hard);
 
   const robot_state::RobotState &default_state = pcontext->getCompleteInitialRobotState();

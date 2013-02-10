@@ -47,7 +47,7 @@ class TSStateStorage
 {
 public:
   
-  TSStateStorage(const kinematic_model::KinematicModelPtr &kmodel);
+  TSStateStorage(const robot_model::RobotModelPtr &kmodel);
   TSStateStorage(const robot_state::RobotState &start_state);
   ~TSStateStorage();
   

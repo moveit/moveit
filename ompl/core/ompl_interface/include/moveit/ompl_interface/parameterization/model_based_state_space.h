@@ -46,13 +46,13 @@ namespace ompl_interface
 
 struct ModelBasedStateSpaceSpecification
 {
-  ModelBasedStateSpaceSpecification(const kinematic_model::KinematicModelConstPtr &kmodel,
-                                    const kinematic_model::JointModelGroup *jmg) :
+  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr &kmodel,
+                                    const robot_model::JointModelGroup *jmg) :
     kmodel_(kmodel), joint_model_group_(jmg)
   {
   }
   
-  ModelBasedStateSpaceSpecification(const kinematic_model::KinematicModelConstPtr &kmodel,
+  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr &kmodel,
                                     const std::string &group_name) :
     kmodel_(kmodel), joint_model_group_(kmodel_->getJointModelGroup(group_name))
   {
@@ -60,9 +60,9 @@ struct ModelBasedStateSpaceSpecification
       throw std::runtime_error("Group '" + group_name + "'  was not found");
   }
   
-  kinematic_model::KinematicModelConstPtr kmodel_;
-  const kinematic_model::JointModelGroup *joint_model_group_;
-  std::vector<kinematic_model::JointModel::Bounds> joints_bounds_;
+  robot_model::RobotModelConstPtr kmodel_;
+  const robot_model::JointModelGroup *joint_model_group_;
+  std::vector<robot_model::JointModel::Bounds> joints_bounds_;
 };
 
 class ModelBasedStateSpace : public ompl::base::CompoundStateSpace
@@ -174,12 +174,12 @@ public:
   virtual ompl::base::StateSamplerPtr allocStateSampler() const;  
   virtual ompl::base::StateSamplerPtr allocSubspaceStateSampler(const ompl::base::StateSpace *subspace) const;
 
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return spec_.kmodel_;
   }
   
-  const kinematic_model::JointModelGroup* getJointModelGroup() const
+  const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return spec_.joint_model_group_;
   }  
@@ -199,7 +199,7 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
-  const std::vector<kinematic_model::JointModel::Bounds>& getJointsBounds() const
+  const std::vector<robot_model::JointModel::Bounds>& getJointsBounds() const
   {
     return spec_.joints_bounds_;
   }

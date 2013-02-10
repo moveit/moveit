@@ -38,7 +38,7 @@
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_JOINT_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 
 namespace ompl_interface
@@ -54,9 +54,9 @@ public:
     robot_state::JointState *joint_state;
   };
   
-  ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model);
-  ModelBasedJointStateSpace(const kinematic_model::JointModel *joint_model,
-                            const kinematic_model::JointModel::Bounds &joint_bounds);
+  ModelBasedJointStateSpace(const robot_model::JointModel *joint_model);
+  ModelBasedJointStateSpace(const robot_model::JointModel *joint_model,
+                            const robot_model::JointModel::Bounds &joint_bounds);
   
   virtual ~ModelBasedJointStateSpace();
   
@@ -82,7 +82,7 @@ public:
   
   virtual ompl::base::StateSamplerPtr allocDefaultStateSampler() const;  
   
-  const kinematic_model::JointModel* getJointModel() const
+  const robot_model::JointModel* getJointModel() const
   {
     return joint_model_;
   }  
@@ -95,7 +95,7 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
-  const kinematic_model::JointModel::Bounds& getJointBounds() const
+  const robot_model::JointModel::Bounds& getJointBounds() const
   {
     return joint_bounds_;
   }
@@ -104,8 +104,8 @@ protected:
 
   void propagateJointStateUpdate(ompl::base::State *state) const;
 
-  const kinematic_model::JointModel *joint_model_;
-  kinematic_model::JointModel::Bounds joint_bounds_;
+  const robot_model::JointModel *joint_model_;
+  robot_model::JointModel::Bounds joint_bounds_;
   
 };
 
