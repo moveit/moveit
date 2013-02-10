@@ -60,7 +60,7 @@
 
 // MoveIt!
 #include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 
 namespace kdl_kinematics_plugin                        
@@ -209,7 +209,7 @@ namespace kdl_kinematics_plugin
 
     mutable random_numbers::RandomNumberGenerator random_number_generator_;
 
-    kinematic_model::KinematicModelPtr kinematic_model_;
+    robot_model::RobotModelPtr kinematic_model_;
 
     robot_state::RobotStatePtr kinematic_state_, kinematic_state_2_;
 

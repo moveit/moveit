@@ -112,7 +112,7 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
   bool ok = false;
 
   std::stringstream ss;
-  ss << planning_display_->getKinematicModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << robot_states_.size();
+  ss << planning_display_->getRobotModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << robot_states_.size();
 
   QString text = QInputDialog::getText(this, tr("Choose a name"), tr("State name:"), QLineEdit::Normal, QString(ss.str().c_str()), &ok);
 

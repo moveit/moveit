@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,62 +34,53 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_KINEMATICS_PLUGIN_LOADER_
-#define MOVEIT_KINEMATICS_PLUGIN_LOADER_
+#ifndef MOVEIT_PLANNING_RDF_LOADER_
+#define MOVEIT_PLANNING_RDF_LOADER_
 
-#include <boost/function.hpp>
+#include <urdf/model.h>
+#include <srdfdom/model.h>
 #include <boost/shared_ptr.hpp>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/kinematics_base/kinematics_base.h>
 
-namespace kinematics_plugin_loader
+namespace rdf_loader
 {
-
-/// function type that allocates an Kinematics solver for a particular group
-typedef robot_model::SolverAllocatorFn KinematicsLoaderFn;
-
-class KinematicsPluginLoader
-{
+/** @class RDFLoader
+ *  @brief Default constructor
+ *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded*/
+class RDFLoader
+{ 
 public:
-
-  /// Take as optional argument the name of the parameter under which the robot description can be found
-  KinematicsPluginLoader(const std::string &robot_description = "robot_description") : robot_description_(robot_description)
+  /** @brief Default constructor
+   *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded; the SRDF is assumed to be at the same param name + the "_semantic" suffix */
+  RDFLoader(const std::string &robot_description = "robot_description");
+  
+  /** @brief Get the resolved parameter name for the robot description */
+  const std::string& getRobotDescription() const
   {
+    return robot_description_;
   }
   
-  KinematicsLoaderFn getLoaderFunction();
-  KinematicsLoaderFn getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model);
-
-  const std::vector<std::string>& getKnownGroups() const
+  /** @brief Get the parsed URDF model*/
+  const boost::shared_ptr<urdf::ModelInterface>& getURDF() const
   {
-    return groups_;
-  }
-  
-  const std::map<std::string, double>& getIKTimeout() const
-  {
-    return ik_timeout_;
+    return urdf_;
   }
 
-  const std::map<std::string, unsigned int>& getIKAttempts() const
+  /** @brief Get the parsed SRDF model*/
+  const boost::shared_ptr<srdf::Model>& getSRDF() const
   {
-    return ik_attempts_;
+    return srdf_;
   }
-
-  void status() const;
   
 private:
-
-  std::string robot_description_;  
-  class KinematicsLoaderImpl;
-  boost::shared_ptr<KinematicsLoaderImpl> loader_;
-  std::vector<std::string> groups_;
-  std::map<std::string, double> ik_timeout_;
-  std::map<std::string, unsigned int> ik_attempts_;
+  
+  std::string                             robot_description_;
+  boost::shared_ptr<srdf::Model>          srdf_;
+  boost::shared_ptr<urdf::ModelInterface> urdf_;
+  
 };
 
-typedef boost::shared_ptr<KinematicsPluginLoader> KinematicsPluginLoaderPtr;
-typedef boost::shared_ptr<const KinematicsPluginLoader> KinematicsPluginLoaderConstPtr;
+typedef boost::shared_ptr<RDFLoader> RDFLoaderPtr;
+typedef boost::shared_ptr<const RDFLoader> RDFLoaderConstPtr;
 
 }
-
 #endif

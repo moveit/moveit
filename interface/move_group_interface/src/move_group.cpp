@@ -37,7 +37,7 @@
 #include <stdexcept>
 #include <moveit/move_group/names.h>
 #include <moveit/move_group_interface/move_group.h>
-#include <moveit/planning_models_loader/kinematic_model_loader.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
@@ -80,7 +80,7 @@ struct SharedStorage
   
   boost::mutex lock_;
   boost::shared_ptr<tf::Transformer> tf_;
-  std::map<std::string, planning_models_loader::KinematicModelLoaderPtr> model_loaders_;
+  std::map<std::string, robot_model_loader::RDFLoaderPtr> model_loaders_;
   std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors_;
 };
 
@@ -99,7 +99,7 @@ boost::shared_ptr<tf::Transformer> getSharedTF()
   return s.tf_;
 }
 
-kinematic_model::KinematicModelConstPtr getSharedKinematicModel(const std::string &robot_description)
+robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_description)
 { 
   SharedStorage &s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
@@ -107,15 +107,15 @@ kinematic_model::KinematicModelConstPtr getSharedKinematicModel(const std::strin
     return s.model_loaders_[robot_description]->getModel();
   else
   {
-    planning_models_loader::KinematicModelLoader::Options opt(robot_description);
+    robot_model_loader::RDFLoader::Options opt(robot_description);
     opt.load_kinematics_solvers_ = false;
-    planning_models_loader::KinematicModelLoaderPtr loader(new planning_models_loader::KinematicModelLoader(opt));
+    robot_model_loader::RDFLoaderPtr loader(new robot_model_loader::RDFLoader(opt));
     s.model_loaders_[robot_description] = loader;
     return loader->getModel();
   }
 } 
 
-static planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
+static planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
 {  
   SharedStorage &s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
@@ -137,22 +137,22 @@ public:
   
   MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server) : opt_(opt), tf_(tf)
   {
-    kinematic_model_ = opt.kinematic_model_ ? opt.kinematic_model_ : getSharedKinematicModel(opt.robot_description_);
-    if (!getKinematicModel())
+    kinematic_model_ = opt.kinematic_model_ ? opt.kinematic_model_ : getSharedRobotModel(opt.robot_description_);
+    if (!getRobotModel())
     {
       std::string error = "Unable to construct robot model. Please make sure all needed information is on the parameter server.";
       ROS_FATAL_STREAM(error);
       throw std::runtime_error(error);
     }
 
-    if (!getKinematicModel()->hasJointModelGroup(opt.group_name_))
+    if (!getRobotModel()->hasJointModelGroup(opt.group_name_))
     {
       std::string error = "Group '" + opt.group_name_ + "' was not found.";
       ROS_FATAL_STREAM(error);
       throw std::runtime_error(error);
     }
 
-    joint_state_target_.reset(new robot_state::RobotState(getKinematicModel()));
+    joint_state_target_.reset(new robot_state::RobotState(getRobotModel()));
     joint_state_target_->setToDefaultValues();
     active_target_ = JOINT;
     can_look_ = false;
@@ -160,12 +160,12 @@ public:
     goal_tolerance_ = 1e-4;
     planning_time_ = 5.0;
     
-    const kinematic_model::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
+    const robot_model::JointModelGroup *joint_model_group = getRobotModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
     {
       if (joint_model_group->isChain())
         end_effector_link_ = joint_model_group->getLinkModelNames().back();
-      pose_reference_frame_ = getKinematicModel()->getModelFrame();
+      pose_reference_frame_ = getRobotModel()->getModelFrame();
       
       trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
       
@@ -241,7 +241,7 @@ public:
     return opt_;
   }
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kinematic_model_;
   }
@@ -303,9 +303,9 @@ public:
   {
     if (!end_effector_link_.empty())
     {   
-      const std::vector<std::string> &possible_eefs = getKinematicModel()->getJointModelGroup(opt_.group_name_)->getAttachedEndEffectorNames();
+      const std::vector<std::string> &possible_eefs = getRobotModel()->getJointModelGroup(opt_.group_name_)->getAttachedEndEffectorNames();
       for (std::size_t i = 0 ; i < possible_eefs.size() ; ++i)
-        if (getKinematicModel()->getEndEffector(possible_eefs[i])->hasLinkModel(end_effector_link_))
+        if (getRobotModel()->getEndEffector(possible_eefs[i])->hasLinkModel(end_effector_link_))
           return possible_eefs[i];
     }  
     static std::string empty;
@@ -679,7 +679,7 @@ public:
   
   void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz)
   {
-    workspace_parameters_.header.frame_id = getKinematicModel()->getModelFrame();
+    workspace_parameters_.header.frame_id = getRobotModel()->getModelFrame();
     workspace_parameters_.header.stamp = ros::Time::now();
     workspace_parameters_.min_corner.x = minx;
     workspace_parameters_.min_corner.y = miny;
@@ -720,7 +720,7 @@ private:
   Options opt_;
   ros::NodeHandle node_handle_;
   boost::shared_ptr<tf::Transformer> tf_;
-  kinematic_model::KinematicModelConstPtr kinematic_model_;
+  robot_model::RobotModelConstPtr kinematic_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
@@ -938,7 +938,7 @@ void MoveGroup::setEndEffectorLink(const std::string &link_name)
 
 void MoveGroup::setEndEffector(const std::string &eef_name)
 {
-  const kinematic_model::JointModelGroup *jmg = impl_->getKinematicModel()->getEndEffector(eef_name);
+  const robot_model::JointModelGroup *jmg = impl_->getRobotModel()->getEndEffector(eef_name);
   if (jmg)
     setEndEffectorLink(jmg->getEndEffectorParentGroup().second);
 }
@@ -1225,7 +1225,7 @@ geometry_msgs::PoseStamped MoveGroup::getRandomPose(const std::string &end_effec
   }
   geometry_msgs::PoseStamped pose_msg;
   pose_msg.header.stamp = ros::Time::now();
-  pose_msg.header.frame_id = impl_->getKinematicModel()->getModelFrame();
+  pose_msg.header.frame_id = impl_->getRobotModel()->getModelFrame();
   tf::poseEigenToMsg(pose, pose_msg.pose);
   return pose_msg;
 }
@@ -1249,7 +1249,7 @@ geometry_msgs::PoseStamped MoveGroup::getCurrentPose(const std::string &end_effe
   }
   geometry_msgs::PoseStamped pose_msg;
   pose_msg.header.stamp = ros::Time::now();
-  pose_msg.header.frame_id = impl_->getKinematicModel()->getModelFrame();
+  pose_msg.header.frame_id = impl_->getRobotModel()->getModelFrame();
   tf::poseEigenToMsg(pose, pose_msg.pose);
   return pose_msg;
 }

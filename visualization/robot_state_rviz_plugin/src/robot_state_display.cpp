@@ -109,7 +109,7 @@ void RobotStateDisplay::onInitialize()
 void RobotStateDisplay::reset()
 { 
   robot_->clear();
-  robot_model_loader_.reset();
+  rdf_loader_.reset();
 
   loadRobotModel("");
   Display::reset();
@@ -215,21 +215,21 @@ void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& li
 // ******************************************************************************************
 void RobotStateDisplay::loadRobotModel(const std::string &root_link)
 {
-  if (!robot_model_loader_)
-    robot_model_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description_property_->getStdString()));
+  if (!rdf_loader_)
+    rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
   
-  if (robot_model_loader_->getURDF())
+  if (rdf_loader_->getURDF())
   {
-    const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_->getSRDF() ? robot_model_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
+    const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
     if (root_link.empty())
-      kmodel_.reset(new kinematic_model::KinematicModel(robot_model_loader_->getURDF(), srdf));
+      kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
     else
-      kmodel_.reset(new kinematic_model::KinematicModel(robot_model_loader_->getURDF(), srdf, root_link));
+      kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf, root_link));
     robot_->load(*kmodel_->getURDF());
     kstate_.reset(new robot_state::RobotState(kmodel_));
     kstate_->setToDefaultValues();
     bool oldState = root_link_name_property_->blockSignals(true);
-    root_link_name_property_->setStdString(getKinematicModel()->getRootLinkName());
+    root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
     root_link_name_property_->blockSignals(oldState);
     update_state_ = true;
     setStatus( rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully" );
@@ -272,17 +272,17 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
 // ******************************************************************************************
 void RobotStateDisplay::calculateOffsetPosition()
 {  
-  if (!getKinematicModel())
+  if (!getRobotModel())
     return;
 
   ros::Time stamp;
   std::string err_string;
-  if (context_->getTFClient()->getLatestCommonTime(fixed_frame_.toStdString(), getKinematicModel()->getModelFrame(), stamp, &err_string) != tf::NO_ERROR)
+  if (context_->getTFClient()->getLatestCommonTime(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), stamp, &err_string) != tf::NO_ERROR)
     return;
 
-  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, getKinematicModel()->getModelFrame());
+  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, getRobotModel()->getModelFrame());
 
-  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getKinematicModel()->getModelFrame(), stamp))
+  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), stamp))
   {
     try
     {

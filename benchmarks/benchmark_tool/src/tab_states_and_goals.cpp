@@ -89,7 +89,7 @@ void MainWindow::createGoalPoseButtonClicked(void)
         tf::poseEigenToMsg(tip_pose, marker_pose);
         static const float marker_scale = 0.15;
 
-        GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getKinematicModel()->getModelFrame(),
+        GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getRobotModel()->getModelFrame(),
                                 robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED));
         goal_poses_.insert(GoalPosePair(name,  goal_pose));
 
@@ -211,7 +211,7 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
         shape_pose.orientation = c->orientation_constraints[0].orientation;
 
         static const float marker_scale = 0.15;
-        GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, c->name, scene_display_->getKinematicModel()->getModelFrame(),
+        GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, c->name, scene_display_->getRobotModel()->getModelFrame(),
                                 robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED, false,
                                 ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked()));
         // Connect signals
@@ -730,7 +730,7 @@ void MainWindow::copySelectedGoalPoses(void)
     marker_pose.orientation.w = goal_poses_[name]->imarker->getOrientation().w;
 
     static const float marker_scale = 0.15;
-    GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, ss.str(), scene_display_->getKinematicModel()->getModelFrame(),
+    GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, ss.str(), scene_display_->getRobotModel()->getModelFrame(),
                             robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED, true));
 
     goal_poses_.insert(GoalPosePair(ss.str(), goal_pose));
@@ -750,7 +750,7 @@ void MainWindow::saveStartStateButtonClicked(void)
   bool ok = false;
 
   std::stringstream ss;
-  ss << scene_display_->getKinematicModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << start_states_.size();
+  ss << scene_display_->getRobotModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << start_states_.size();
 
   QString text = QInputDialog::getText(this, tr("Choose a name"),
                                        tr("Start state name:"), QLineEdit::Normal,

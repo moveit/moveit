@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,62 +34,43 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_KINEMATICS_PLUGIN_LOADER_
-#define MOVEIT_KINEMATICS_PLUGIN_LOADER_
+#include <moveit/rdf_loader/rdf_loader.h>
+#include <ros/ros.h>
 
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/kinematics_base/kinematics_base.h>
-
-namespace kinematics_plugin_loader
+rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
 {
-
-/// function type that allocates an Kinematics solver for a particular group
-typedef robot_model::SolverAllocatorFn KinematicsLoaderFn;
-
-class KinematicsPluginLoader
-{
-public:
-
-  /// Take as optional argument the name of the parameter under which the robot description can be found
-  KinematicsPluginLoader(const std::string &robot_description = "robot_description") : robot_description_(robot_description)
+  ros::WallTime start = ros::WallTime::now();
+  ros::NodeHandle nh("~");
+  if (nh.searchParam(robot_description, robot_description_))
   {
+    std::string content;
+    if (nh.getParam(robot_description_, content))
+    {
+      urdf::Model *umodel = new urdf::Model();
+      urdf_.reset(umodel);
+      if (umodel->initString(content))
+      {
+        std::string scontent;
+        if (nh.getParam(robot_description_ + "_semantic", scontent))
+        {
+          srdf_.reset(new srdf::Model());
+          if (!srdf_->initString(*urdf_, scontent))
+          {
+            ROS_ERROR("Unable to parse SRDF");
+            srdf_.reset();
+          }
+        }
+        else
+          ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
+      }
+      else
+      {
+        ROS_ERROR("Unable to parse URDF");
+        urdf_.reset();
+      }
+    }
+    else
+      ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
   }
-  
-  KinematicsLoaderFn getLoaderFunction();
-  KinematicsLoaderFn getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model);
-
-  const std::vector<std::string>& getKnownGroups() const
-  {
-    return groups_;
-  }
-  
-  const std::map<std::string, double>& getIKTimeout() const
-  {
-    return ik_timeout_;
-  }
-
-  const std::map<std::string, unsigned int>& getIKAttempts() const
-  {
-    return ik_attempts_;
-  }
-
-  void status() const;
-  
-private:
-
-  std::string robot_description_;  
-  class KinematicsLoaderImpl;
-  boost::shared_ptr<KinematicsLoaderImpl> loader_;
-  std::vector<std::string> groups_;
-  std::map<std::string, double> ik_timeout_;
-  std::map<std::string, unsigned int> ik_attempts_;
-};
-
-typedef boost::shared_ptr<KinematicsPluginLoader> KinematicsPluginLoaderPtr;
-typedef boost::shared_ptr<const KinematicsPluginLoader> KinematicsPluginLoaderConstPtr;
-
+  ROS_DEBUG_STREAM("Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
-
-#endif

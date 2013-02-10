@@ -98,7 +98,7 @@ int main(int argc, char **argv)
   rs.addRobotState(rsmsg, "S1");
   rs.addRobotState(rsmsg, "S2");
 
-  const std::vector<std::string> &gnames = psm.getKinematicModel()->getJointModelGroupNames();
+  const std::vector<std::string> &gnames = psm.getRobotModel()->getJointModelGroupNames();
   if (gnames.empty())
   {
     moveit_msgs::Constraints cmsg = kinematic_constraints::constructGoalConstraints(psm.getPlanningScene()->getCurrentState().getJointStateGroup(gnames.front()));

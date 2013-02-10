@@ -57,7 +57,7 @@ bool move_group::MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::
   }
   
   // \todo unwind trajectory before execution
-  //    robot_trajectory::RobotTrajectory to_exec(planning_scene_monitor_->getKinematicModel(), ;
+  //    robot_trajectory::RobotTrajectory to_exec(planning_scene_monitor_->getRobotModel(), ;
   
   trajectory_execution_manager_->clear();
   if (trajectory_execution_manager_->push(req.trajectory))

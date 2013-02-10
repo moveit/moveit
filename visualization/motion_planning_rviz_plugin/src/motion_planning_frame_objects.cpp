@@ -571,11 +571,11 @@ void MotionPlanningFrame::computeLoadSceneButtonClicked()
           ROS_INFO("Loaded scene '%s'", scene.c_str());
           if (planning_display_->getPlanningSceneMonitor())
           {
-            if (scene_m->robot_model_name != planning_display_->getKinematicModel()->getName())
+            if (scene_m->robot_model_name != planning_display_->getRobotModel()->getName())
             {
               ROS_INFO("Scene '%s' was saved for robot '%s' but we are using robot '%s'. Using scene geometry only",
                        scene.c_str(), scene_m->robot_model_name.c_str(),
-                       planning_display_->getKinematicModel()->getName().c_str());
+                       planning_display_->getRobotModel()->getName().c_str());
               planning_scene_world_publisher_.publish(scene_m->world);
               // publish the parts that are not in the world
               moveit_msgs::PlanningScene diff;
@@ -769,7 +769,7 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem *item)
   if (checked) // we need to attach a known collision object
   {
     QStringList links;
-    const std::vector<std::string> &links_std = planning_display_->getKinematicModel()->getLinkModelNames();
+    const std::vector<std::string> &links_std = planning_display_->getRobotModel()->getLinkModelNames();
     for (std::size_t i = 0 ; i < links_std.size() ; ++i)
       links.append(QString::fromStdString(links_std[i]));
     bool ok = false;

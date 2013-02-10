@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   ros::Publisher vis_marker_publisher_ = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   ros::Publisher vis_marker_array_publisher_ = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
-  boost::shared_ptr<planning_models_loader::KinematicModelLoader> kinematics_model_loader_(new planning_models_loader::KinematicModelLoader("robot_description"));
+  boost::shared_ptr<robot_model_loader::RDFLoader> kinematics_model_loader_(new robot_model_loader::RDFLoader("robot_description"));
   
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(kinematics_model_loader_));
 
@@ -85,13 +85,13 @@ int main(int argc, char **argv) {
                         "sample",
                         ros::Duration(0.0),
                         mark,
-                        planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name)->getLinkModelNames());
+                        planning_scene_monitor_->getPlanningScene()->getRobotModel()->getJointModelGroup(group_name)->getLinkModelNames());
   jsg->setStateValues(wrong_solutions[0].second);
   state.getRobotMarkers(colb,
                         "solution",
                         ros::Duration(0.0),
                         mark,
-                        planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name)->getLinkModelNames());
+                        planning_scene_monitor_->getPlanningScene()->getRobotModel()->getJointModelGroup(group_name)->getLinkModelNames());
 
   while(ros::ok()) {
     vis_marker_array_publisher_.publish(mark);

@@ -151,9 +151,9 @@ public:
     return planning_pipeline_;
   }
 
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return planning_pipeline_->getKinematicModel();
+    return planning_pipeline_->getRobotModel();
   }
 
   /** \brief Plan the sequence of motions that perform a pickup action */

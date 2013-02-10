@@ -162,13 +162,13 @@ const planning_scene_monitor::PlanningSceneMonitorPtr& PlanningSceneDisplay::get
   return planning_scene_monitor_;
 }
 
-const kinematic_model::KinematicModelConstPtr& PlanningSceneDisplay::getKinematicModel()
+const robot_model::RobotModelConstPtr& PlanningSceneDisplay::getRobotModel()
 {
   if (planning_scene_monitor_)
-    return planning_scene_monitor_->getKinematicModel();
+    return planning_scene_monitor_->getRobotModel();
   else
   {
-    static kinematic_model::KinematicModelConstPtr empty;
+    static robot_model::RobotModelConstPtr empty;
     return empty;
   }
 }
@@ -208,8 +208,8 @@ void PlanningSceneDisplay::changedSceneName()
 
 void PlanningSceneDisplay::changedRootLinkName()
 {
-  if (getKinematicModel())
-    root_link_name_property_->setStdString(getKinematicModel()->getRootLinkName());
+  if (getRobotModel())
+    root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
 }
 
 void PlanningSceneDisplay::renderPlanningScene()
@@ -271,9 +271,9 @@ void PlanningSceneDisplay::changedSceneEnabled()
 
 void PlanningSceneDisplay::setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color)
 {
-  if (getKinematicModel())
+  if (getRobotModel())
   {
-    const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(group_name);
+    const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(group_name);
     if (jmg)
     {
       const std::vector<std::string> &links = jmg->getLinkModelNames();
@@ -285,9 +285,9 @@ void PlanningSceneDisplay::setGroupColor(rviz::Robot* robot, const std::string& 
 
 void PlanningSceneDisplay::unsetAllColors(rviz::Robot* robot)
 { 
-  if (getKinematicModel())
+  if (getRobotModel())
   {
-    const std::vector<std::string> &links = getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
+    const std::vector<std::string> &links = getRobotModel()->getLinkModelNamesWithCollisionGeometry();
     for (std::size_t i = 0 ; i < links.size() ; ++i)
       unsetLinkColor(robot, links[i]);
   }
@@ -295,9 +295,9 @@ void PlanningSceneDisplay::unsetAllColors(rviz::Robot* robot)
 
 void PlanningSceneDisplay::unsetGroupColor(rviz::Robot* robot, const std::string& group_name )
 {
-  if (getKinematicModel())
+  if (getRobotModel())
   {
-    const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(group_name);
+    const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(group_name);
     if (jmg)
     {
       const std::vector<std::string> &links = jmg->getLinkModelNames();
@@ -363,7 +363,7 @@ void PlanningSceneDisplay::loadRobotModel()
 
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
-  planning_scene_robot_->load(*getKinematicModel()->getURDF());
+  planning_scene_robot_->load(*getRobotModel()->getURDF());
   const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
   planning_scene_robot_->update(robot_state::RobotStatePtr(new robot_state::RobotState(ps->getCurrentState())));
 
@@ -372,7 +372,7 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   scene_name_property_->blockSignals(oldState);
 
   oldState = root_link_name_property_->blockSignals(true);
-  root_link_name_property_->setStdString(getKinematicModel()->getRootLinkName());
+  root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
   root_link_name_property_->blockSignals(oldState);  
 }
 
@@ -388,7 +388,7 @@ void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::
   scene_name_property_->blockSignals(oldState);
 
   oldState = root_link_name_property_->blockSignals(true);
-  root_link_name_property_->setStdString(getKinematicModel()->getRootLinkName());
+  root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
   root_link_name_property_->blockSignals(oldState);
   
   planning_scene_needs_render_ = true;
@@ -457,17 +457,17 @@ void PlanningSceneDisplay::save( rviz::Config config ) const
 // ******************************************************************************************
 void PlanningSceneDisplay::calculateOffsetPosition()
 {  
-  if (!getKinematicModel())
+  if (!getRobotModel())
     return;
 
   ros::Time stamp;
   std::string err_string;
-  if (context_->getTFClient()->getLatestCommonTime(fixed_frame_.toStdString(), getKinematicModel()->getModelFrame(), stamp, &err_string) != tf::NO_ERROR)
+  if (context_->getTFClient()->getLatestCommonTime(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), stamp, &err_string) != tf::NO_ERROR)
     return;
 
-  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, getKinematicModel()->getModelFrame());
+  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, getRobotModel()->getModelFrame());
 
-  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getKinematicModel()->getModelFrame(), stamp))
+  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), stamp))
   {
     try
     {

@@ -227,7 +227,7 @@ bool KinematicsReachability::computeWorkspaceFK(moveit_ros_planning::WorkspacePo
     points++;    
     ROS_DEBUG("Points: %d", points);    
   }
-  workspace.header.frame_id = planning_scene_monitor_->getKinematicModel()->getModelFrame();  
+  workspace.header.frame_id = planning_scene_monitor_->getRobotModel()->getModelFrame();  
   planning_scene_monitor_->unlockSceneRead();
   return true;  
 }
@@ -267,7 +267,7 @@ Eigen::MatrixXd KinematicsReachability::getJacobian(const robot_state::RobotStat
 {
   Eigen::MatrixXd jcbian;
   Eigen::Vector3d reference_point_position(0.0,0.0,0.0);
-  std::string link_name = kinematic_state.getKinematicModel()->getJointModelGroup(group_name)->getLinkModelNames().back();
+  std::string link_name = kinematic_state.getRobotModel()->getJointModelGroup(group_name)->getLinkModelNames().back();
   kinematic_state.getJointStateGroup(group_name)->getJacobian(link_name,reference_point_position,jcbian);
   return jcbian;
 }
@@ -448,9 +448,9 @@ void KinematicsReachability::getDefaultIKRequest(const std::string &group_name,
   moveit_msgs::GetKinematicSolverInfo::Request request;
   moveit_msgs::GetKinematicSolverInfo::Response response;
 
-  kinematic_model::KinematicModelConstPtr kinematic_model = kinematics_solver_->getKinematicModel();
+  robot_model::RobotModelConstPtr kinematic_model = kinematics_solver_->getRobotModel();
   robot_state::RobotState kinematic_state(kinematic_model);
-  const kinematic_model::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name);
   robot_state::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(group_name);
   joint_state_group->setToRandomValues();
   
@@ -486,7 +486,7 @@ bool KinematicsReachability::generateCache(const std::string &group_name,
 {
   if(!kinematics_cache_ || kinematics_cache_->getGroupName()!= group_name)
   {    
-    std::map<std::string,kinematics::KinematicsBasePtr> kinematics_solver_map = planning_scene_monitor_->getKinematicModelLoader()->generateKinematicsSolversMap();
+    std::map<std::string,kinematics::KinematicsBasePtr> kinematics_solver_map = planning_scene_monitor_->getRDFLoader()->generateKinematicsSolversMap();
     if(kinematics_solver_map.find(group_name) == kinematics_solver_map.end())
     {
       ROS_ERROR("Group name: %s incorrect",group_name.c_str());      
@@ -495,7 +495,7 @@ bool KinematicsReachability::generateCache(const std::string &group_name,
     kinematics::KinematicsBaseConstPtr kinematics_solver_local = kinematics_solver_map.find(group_name)->second;    
     kinematics_cache_.reset(new kinematics_cache::KinematicsCache());
     kinematics_cache_->initialize(kinematics_solver_local,
-                                  kinematics_solver_->getKinematicModel(),
+                                  kinematics_solver_->getRobotModel(),
                                   options);    
   }  
   if(!kinematics_cache_->readFromFile(cache_filename))
