@@ -66,7 +66,7 @@ inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform,
 }
 }
 
-DynamicsSolver::DynamicsSolver(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_model,
                                const std::string &group_name,
                                const geometry_msgs::Vector3 &gravity_vector)
 {
@@ -83,7 +83,7 @@ DynamicsSolver::DynamicsSolver(const kinematic_model::KinematicModelConstPtr &ki
     return;
   }
   
-  const kinematic_model::JointModel* joint = joint_model_group_->getJointRoots()[0];  
+  const robot_model::JointModel* joint = joint_model_group_->getJointRoots()[0];  
   if(!joint->getParentLinkModel())
   {
     logError("Group %s does not have a parent link",group_name_.c_str());    

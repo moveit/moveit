@@ -55,7 +55,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
                                                                                                               const std::string &group_name,
                                                                                                               const moveit_msgs::Constraints &constr)
 {
-  const kinematic_model::JointModelGroup *jmg = scene->getKinematicModel()->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup *jmg = scene->getRobotModel()->getJointModelGroup(group_name);
   if (!jmg)
     return constraint_samplers::ConstraintSamplerPtr();
   std::stringstream ss; ss << constr;
@@ -75,7 +75,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     std::vector<kinematic_constraints::JointConstraint> jc;
     for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
     {
-      kinematic_constraints::JointConstraint j(scene->getKinematicModel(), scene->getTransforms());
+      kinematic_constraints::JointConstraint j(scene->getRobotModel(), scene->getTransforms());
       if (j.configure(constr.joint_constraints[i]))
       {
         if (joint_coverage.find(j.getJointVariableName()) != joint_coverage.end())
@@ -122,8 +122,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     samplers.push_back(joint_sampler);
   
   // read the ik allocators, if any
-  kinematic_model::SolverAllocatorFn ik_alloc = jmg->getSolverAllocators().first;
-  std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn> ik_subgroup_alloc = jmg->getSolverAllocators().second;
+  robot_model::SolverAllocatorFn ik_alloc = jmg->getSolverAllocators().first;
+  std::map<const robot_model::JointModelGroup*, robot_model::SolverAllocatorFn> ik_subgroup_alloc = jmg->getSolverAllocators().second;
   
   // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints should be used
   if (ik_alloc)
@@ -141,8 +141,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
         if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
         {
-          boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getKinematicModel(), scene->getTransforms()));
-          boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getKinematicModel(), scene->getTransforms()));
+          boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel(), scene->getTransforms()));
+          boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel(), scene->getTransforms()));
           if (pc->configure(constr.position_constraints[p]) && oc->configure(constr.orientation_constraints[o]))
           {        
             boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
@@ -170,7 +170,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       if (usedL_fullPose.find(constr.position_constraints[p].link_name) != usedL_fullPose.end())
         continue;
       
-      boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getKinematicModel(), scene->getTransforms()));
+      boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel(), scene->getTransforms()));
       if (pc->configure(constr.position_constraints[p]))
       {
         boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
@@ -196,7 +196,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       if (usedL_fullPose.find(constr.orientation_constraints[o].link_name) != usedL_fullPose.end())
         continue;
       
-      boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getKinematicModel(), scene->getTransforms()));
+      boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel(), scene->getTransforms()));
       if (oc->configure(constr.orientation_constraints[o]))
       {
         boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
@@ -263,7 +263,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     bool some_sampler_valid = false;
     
     std::set<std::size_t> usedP, usedO;
-    for (std::map<const kinematic_model::JointModelGroup*, kinematic_model::SolverAllocatorFn>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
+    for (std::map<const robot_model::JointModelGroup*, robot_model::SolverAllocatorFn>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
     {
       // construct a sub-set of constraints that operate on the sub-group for which we have an IK allocator
       moveit_msgs::Constraints sub_constr;

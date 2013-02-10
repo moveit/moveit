@@ -34,20 +34,20 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#ifndef MOVEIT_KINEMATIC_MODEL_KINEMATIC_MODEL_
-#define MOVEIT_KINEMATIC_MODEL_KINEMATIC_MODEL_
+#ifndef MOVEIT_ROBOT_MODEL_ROBOT_MODEL_
+#define MOVEIT_ROBOT_MODEL_ROBOT_MODEL_
 
 #include <urdf_model/model.h>
 #include <srdfdom/model.h>
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_messages.h>
 #include <random_numbers/random_numbers.h>
-#include <moveit/kinematic_model/joint_model_group.h>
-#include <moveit/kinematic_model/fixed_joint_model.h>
-#include <moveit/kinematic_model/floating_joint_model.h>
-#include <moveit/kinematic_model/planar_joint_model.h>
-#include <moveit/kinematic_model/revolute_joint_model.h>
-#include <moveit/kinematic_model/prismatic_joint_model.h>
+#include <moveit/robot_model/joint_model_group.h>
+#include <moveit/robot_model/fixed_joint_model.h>
+#include <moveit/robot_model/floating_joint_model.h>
+#include <moveit/robot_model/planar_joint_model.h>
+#include <moveit/robot_model/revolute_joint_model.h>
+#include <moveit/robot_model/prismatic_joint_model.h>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <set>
@@ -57,26 +57,26 @@
 #include <console_bridge/console.h>
 
 /** \brief Main namespace for representing robot planning models */
-namespace kinematic_model
+namespace robot_model
 {
 
 /** \brief Definition of a kinematic model. This class is not thread
     safe, however multiple instances can be created */
-class KinematicModel
+class RobotModel
 {
 public:
   
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
-  KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+  RobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model);
   
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
-  KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+  RobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                  const std::string &root_link);
   
   /** \brief Destructor. Clear all memory. */
-  virtual ~KinematicModel();
+  virtual ~RobotModel();
   
   /** \brief Get the model name **/
   const std::string& getName() const
@@ -439,8 +439,8 @@ protected:
   shapes::ShapePtr constructShape(const urdf::Geometry *geom, std::string& filename);
 };
 
-typedef boost::shared_ptr<KinematicModel> KinematicModelPtr;
-typedef boost::shared_ptr<const KinematicModel> KinematicModelConstPtr;
+typedef boost::shared_ptr<RobotModel> RobotModelPtr;
+typedef boost::shared_ptr<const RobotModel> RobotModelConstPtr;
 
 }
 

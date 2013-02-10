@@ -34,7 +34,7 @@
 
 /** \author Ioan Sucan, E. Gil Jones */
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <urdf_parser/urdf_parser.h>
 #include <gtest/gtest.h>
@@ -90,7 +90,7 @@ TEST(Loading, SimpleRobot)
 
     EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
 
-    kinematic_model::KinematicModelPtr model(new kinematic_model::KinematicModel(urdfModel, srdfModel));
+    robot_model::RobotModelPtr model(new robot_model::RobotModel(urdfModel, srdfModel));
     robot_state::RobotState state(model);
 
     state.setToDefaultValues();
@@ -107,10 +107,10 @@ TEST(Loading, SimpleRobot)
     EXPECT_EQ(std::string("myrobot"), model->getName());
     EXPECT_EQ((unsigned int)7, new_state.getVariableCount());
 
-    const std::vector<kinematic_model::LinkModel*>& links = model->getLinkModels();
+    const std::vector<robot_model::LinkModel*>& links = model->getLinkModels();
     EXPECT_EQ((unsigned int)1, links.size());
 
-    const std::vector<kinematic_model::JointModel*>& joints = model->getJointModels();
+    const std::vector<robot_model::JointModel*>& joints = model->getJointModels();
     EXPECT_EQ((unsigned int)1, joints.size());
 
     const std::vector<std::string>& pgroups = model->getJointModelGroupNames();
@@ -172,7 +172,7 @@ TEST(LoadingAndFK, SimpleRobot)
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL1);
 
-    kinematic_model::KinematicModelPtr model(new kinematic_model::KinematicModel(urdfModel, srdfModel));
+    robot_model::RobotModelPtr model(new robot_model::RobotModel(urdfModel, srdfModel));
     robot_state::RobotState state(model);
 
     EXPECT_EQ((unsigned int)3, state.getVariableCount());
@@ -399,13 +399,13 @@ TEST(FK, OneRobot)
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL2);
 
-    kinematic_model::KinematicModelPtr model(new kinematic_model::KinematicModel(urdfModel, srdfModel));
+    robot_model::RobotModelPtr model(new robot_model::RobotModel(urdfModel, srdfModel));
 
     //testing that the two planning groups are the same
-    const kinematic_model::JointModelGroup* g_one = model->getJointModelGroup("base_from_joints");
-    const kinematic_model::JointModelGroup* g_two = model->getJointModelGroup("base_from_base_to_tip");
-    const kinematic_model::JointModelGroup* g_three = model->getJointModelGroup("base_with_subgroups");
-    const kinematic_model::JointModelGroup* g_four = model->getJointModelGroup("base_with_bad_subgroups");
+    const robot_model::JointModelGroup* g_one = model->getJointModelGroup("base_from_joints");
+    const robot_model::JointModelGroup* g_two = model->getJointModelGroup("base_from_base_to_tip");
+    const robot_model::JointModelGroup* g_three = model->getJointModelGroup("base_with_subgroups");
+    const robot_model::JointModelGroup* g_four = model->getJointModelGroup("base_with_bad_subgroups");
 
     ASSERT_TRUE(g_one != NULL);
     ASSERT_TRUE(g_two != NULL);

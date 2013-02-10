@@ -47,7 +47,7 @@ KinematicsCache::KinematicsCache():min_squared_distance_(1e6),max_squared_distan
 }
 
 bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_solver,
-                                 const kinematic_model::KinematicModelConstPtr &kinematic_model,
+                                 const robot_model::RobotModelConstPtr &kinematic_model,
                                  const KinematicsCache::Options &opt)
 {
   options_ = opt;  

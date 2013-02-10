@@ -34,11 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/kinematic_model/joint_model_group.h>
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/joint_model_group.h>
+#include <moveit/robot_model/robot_model.h>
 #include <algorithm>
 
-namespace kinematic_model
+namespace robot_model
 {
 namespace
 {
@@ -84,9 +84,9 @@ bool includesParent(const JointModel *joint, const JointModelGroup *group)
 }
 }
 
-kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
+robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
                                                   const std::vector<const JointModel*> &unsorted_group_joints,
-                                                  const KinematicModel* parent_model) :
+                                                  const RobotModel* parent_model) :
   parent_model_(parent_model), name_(group_name),
   variable_count_(0), is_end_effector_(false), is_chain_(false),
   default_ik_timeout_(0.5), default_ik_attempts_(2)
@@ -207,11 +207,11 @@ kinematic_model::JointModelGroup::JointModelGroup(const std::string& group_name,
   }
 }
 
-kinematic_model::JointModelGroup::~JointModelGroup()
+robot_model::JointModelGroup::~JointModelGroup()
 {
 }
 
-bool kinematic_model::JointModelGroup::isSubgroup(const std::string& group) const
+bool robot_model::JointModelGroup::isSubgroup(const std::string& group) const
 {
   for (std::size_t i = 0; i < subgroup_names_.size(); ++i)
     if (group == subgroup_names_[i])
@@ -219,17 +219,17 @@ bool kinematic_model::JointModelGroup::isSubgroup(const std::string& group) cons
   return false;
 }
 
-bool kinematic_model::JointModelGroup::hasJointModel(const std::string &joint) const
+bool robot_model::JointModelGroup::hasJointModel(const std::string &joint) const
 {
   return joint_model_map_.find(joint) != joint_model_map_.end();
 }
 
-bool kinematic_model::JointModelGroup::hasLinkModel(const std::string &link) const
+bool robot_model::JointModelGroup::hasLinkModel(const std::string &link) const
 {
   return std::find(link_model_name_vector_.begin(), link_model_name_vector_.end(), link) != link_model_name_vector_.end();
 }
 
-const kinematic_model::JointModel* kinematic_model::JointModelGroup::getJointModel(const std::string &name) const
+const robot_model::JointModel* robot_model::JointModelGroup::getJointModel(const std::string &name) const
 {
   std::map<std::string, const JointModel*>::const_iterator it = joint_model_map_.find(name);
   if (it == joint_model_map_.end())
@@ -241,13 +241,13 @@ const kinematic_model::JointModel* kinematic_model::JointModelGroup::getJointMod
     return it->second;
 }
 
-void kinematic_model::JointModelGroup::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
+void robot_model::JointModelGroup::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
     joint_model_vector_[i]->getVariableRandomValues(rng, values);
 }
 
-void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::map<kinematic_model::JointModel::JointType, double> &distance_map) const
+void robot_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::map<robot_model::JointModel::JointType, double> &distance_map) const
 {
   if (near.size() != variable_count_)
   {
@@ -259,7 +259,7 @@ void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numb
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
   {
     double distance = 0.0;    
-    std::map<kinematic_model::JointModel::JointType, double>::const_iterator iter = distance_map.find(joint_model_vector_[i]->getType());
+    std::map<robot_model::JointModel::JointType, double>::const_iterator iter = distance_map.find(joint_model_vector_[i]->getType());
     if (iter != distance_map.end())
       distance = iter->second;    
     else
@@ -268,7 +268,7 @@ void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numb
   }  
 }
 
-void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const
+void robot_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const
 {
   if (distances.size() != joint_model_vector_.size())
   {
@@ -287,7 +287,7 @@ void kinematic_model::JointModelGroup::getVariableRandomValuesNearBy(random_numb
     joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distances[i]);
 }
 
-void kinematic_model::JointModelGroup::getKnownDefaultStates(std::vector<std::string> &default_states) const
+void robot_model::JointModelGroup::getKnownDefaultStates(std::vector<std::string> &default_states) const
 {  
   default_states.clear();
   default_states.reserve(default_states_.size());
@@ -295,7 +295,7 @@ void kinematic_model::JointModelGroup::getKnownDefaultStates(std::vector<std::st
     default_states.push_back(it->first);
 }
 
-bool kinematic_model::JointModelGroup::getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const
+bool robot_model::JointModelGroup::getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const
 {
   std::map<std::string, std::map<std::string, double> >::const_iterator it = default_states_.find(name);
   if (it == default_states_.end())
@@ -304,20 +304,20 @@ bool kinematic_model::JointModelGroup::getVariableDefaultValues(const std::strin
   return true;
 }
 
-void kinematic_model::JointModelGroup::getVariableDefaultValues(std::vector<double> &values) const
+void robot_model::JointModelGroup::getVariableDefaultValues(std::vector<double> &values) const
 {
   values.reserve(values.size() + joint_model_vector_.size());
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
     joint_model_vector_[i]->getVariableDefaultValues(values);
 }
 
-void kinematic_model::JointModelGroup::getVariableDefaultValues(std::map<std::string, double> &values) const
+void robot_model::JointModelGroup::getVariableDefaultValues(std::map<std::string, double> &values) const
 {
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
     joint_model_vector_[i]->getVariableDefaultValues(values);
 }
 
-std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVariableDefaultLimits() const
+std::vector<moveit_msgs::JointLimits> robot_model::JointModelGroup::getVariableDefaultLimits() const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec;
   for(unsigned int i = 0; i < joint_model_vector_.size(); i++)
@@ -328,7 +328,7 @@ std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVaria
   return ret_vec;
 }
 
-std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVariableLimits() const
+std::vector<moveit_msgs::JointLimits> robot_model::JointModelGroup::getVariableLimits() const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec;
   for(unsigned int i = 0; i < joint_model_vector_.size(); i++)
@@ -339,7 +339,7 @@ std::vector<moveit_msgs::JointLimits> kinematic_model::JointModelGroup::getVaria
   return ret_vec;
 }
 
-void kinematic_model::JointModelGroup::setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
+void robot_model::JointModelGroup::setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
 {
   // the following const_cast is safe because we are in a non-const function that operates on the same model
   // the joint is part of
@@ -347,7 +347,7 @@ void kinematic_model::JointModelGroup::setVariableLimits(const std::vector<movei
     const_cast<JointModel*>(joint_model_vector_[i])->setVariableLimits(jlim);
 }
 
-void kinematic_model::JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers)
+void robot_model::JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers)
 {
   solver_allocators_ = solvers;
   if (solver_allocators_.first)
@@ -366,7 +366,7 @@ void kinematic_model::JointModelGroup::setSolverAllocators(const std::pair<Solve
           solver_instance_.reset();
           return;
         }
-        const kinematic_model::JointModel *jm = getJointModel(ik_jnames[i]);
+        const robot_model::JointModel *jm = getJointModel(ik_jnames[i]);
         for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
           ik_joint_bijection_.push_back(it->second + k);
       }
@@ -374,7 +374,7 @@ void kinematic_model::JointModelGroup::setSolverAllocators(const std::pair<Solve
   }
 }
 
-bool kinematic_model::JointModelGroup::canSetStateFromIK(const std::string &tip) const
+bool robot_model::JointModelGroup::canSetStateFromIK(const std::string &tip) const
 {
   const kinematics::KinematicsBaseConstPtr& solver = getSolverInstance();
   if (!solver)
@@ -395,7 +395,7 @@ bool kinematic_model::JointModelGroup::canSetStateFromIK(const std::string &tip)
     return true;
 }
 
-void kinematic_model::JointModelGroup::printGroupInfo(std::ostream &out) const
+void robot_model::JointModelGroup::printGroupInfo(std::ostream &out) const
 {
   out << "Group '" << name_ << "':" << std::endl;
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)

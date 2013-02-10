@@ -32,19 +32,19 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_GROUP_
-#define MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_GROUP_
+#ifndef MOVEIT_ROBOT_MODEL_JOINT_MODEL_GROUP_
+#define MOVEIT_ROBOT_MODEL_JOINT_MODEL_GROUP_
 
-#include <moveit/kinematic_model/joint_model.h>
-#include <moveit/kinematic_model/link_model.h>
+#include <moveit/robot_model/joint_model.h>
+#include <moveit/robot_model/link_model.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <boost/function.hpp>
 #include <set>
 
-namespace kinematic_model
+namespace robot_model
 {
 
-class KinematicModel;
+class RobotModel;
 class JointModelGroup;
 
 /// function type that allocates a kinematics solver for a particular group
@@ -55,16 +55,16 @@ typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn
 
 class JointModelGroup
 {
-  friend class KinematicModel;
+  friend class RobotModel;
 
 public:
   
-  JointModelGroup(const std::string& name, const std::vector<const JointModel*>& joint_vector, const KinematicModel *parent_model);
+  JointModelGroup(const std::string& name, const std::vector<const JointModel*>& joint_vector, const RobotModel *parent_model);
   
   ~JointModelGroup();
   
   /** \brief Get the kinematic model this group is part of */
-  const KinematicModel* getParentModel() const
+  const RobotModel* getParentModel() const
   {
     return parent_model_;
   }
@@ -229,7 +229,7 @@ public:
   void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::map<kinematic_model::JointModel::JointType, double> &distance_map) const;
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::map<robot_model::JointModel::JointType, double> &distance_map) const;
 
   /** \brief Compute random values for the state of the joint group */
   void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const;
@@ -343,7 +343,7 @@ public:
 protected:
   
   /** \brief Owner model */
-  const KinematicModel                                 *parent_model_;
+  const RobotModel                                 *parent_model_;
   
   /** \brief Name of group */
   std::string                                           name_;

@@ -32,8 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_
-#define MOVEIT_KINEMATIC_MODEL_JOINT_MODEL_
+#ifndef MOVEIT_ROBOT_MODEL_JOINT_MODEL_
+#define MOVEIT_ROBOT_MODEL_JOINT_MODEL_
 
 #include <map>
 #include <string>
@@ -44,7 +44,7 @@
 #include <console_bridge/console.h>
 #include <Eigen/Geometry>
 
-namespace kinematic_model
+namespace robot_model
 {
 
 class LinkModel;
@@ -63,7 +63,7 @@ class LinkModel;
     variables directly. */
 class JointModel
 {  
-  friend class KinematicModel;
+  friend class RobotModel;
 public:
   
   /** \brief The different types of joints we support */

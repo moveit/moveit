@@ -32,58 +32,37 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_KINEMATIC_MODEL_FLOATING_JOINT_MODEL_
-#define MOVEIT_KINEMATIC_MODEL_FLOATING_JOINT_MODEL_
+#ifndef MOVEIT_ROBOT_MODEL_FIXED_JOINT_MODEL_
+#define MOVEIT_ROBOT_MODEL_FIXED_JOINT_MODEL_
 
-#include <moveit/kinematic_model/joint_model.h>
+#include <moveit/robot_model/joint_model.h>
 
-namespace kinematic_model
+namespace robot_model
 {
 
-/** \brief A floating joint */
-class FloatingJointModel : public JointModel
+/** \brief A fixed joint */
+class FixedJointModel : public JointModel
 {
-  friend class KinematicModel;
+  friend class RobotModel;
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
-  FloatingJointModel(const std::string& name);
-  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const; 
+  FixedJointModel(const std::string &name);
+  
+  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;    
   virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
   virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
                                              const std::vector<double> &near, const double distance) const;
   virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
   virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const;
   
+  virtual unsigned int getStateSpaceDimension() const;   
   virtual double getMaximumExtent(const Bounds &other_bounds) const;
-  virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
+  virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;    
   virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
-  virtual unsigned int getStateSpaceDimension() const;
   virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
-  virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
+  virtual void computeJointStateValues(const Eigen::Affine3d& trans, std::vector<double>& joint_values) const;
   virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
-  
-  double getAngularDistanceWeight() const
-  {
-    return angular_distance_weight_;
-  }
-  
-  void setAngularDistanceWeight(double weight)
-  {
-    angular_distance_weight_ = weight;
-  }
-  
-  /// Normalize the quaternion (warn if norm is 0, and set to identity);
-  /// Return true if any change was made
-  bool normalizeRotation(std::vector<double> &values) const;
-
-  double distanceRotation(const std::vector<double> &values1, const std::vector<double> &values2) const;
-  
-  double distanceTranslation(const std::vector<double> &values1, const std::vector<double> &values2) const;
-  
-private:
-  
-  double angular_distance_weight_;
 };
 }
 

@@ -38,7 +38,7 @@
 
 constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name)
 {
-  jmg_ = scene->getKinematicModel()->getJointModelGroup(group_name);
+  jmg_ = scene->getRobotModel()->getJointModelGroup(group_name);
   scene_ = scene;
   if (!jmg_)
   {

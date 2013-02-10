@@ -39,13 +39,13 @@
 namespace collision_detection 
 {
 
-CollisionRobotHybrid::CollisionRobotHybrid(const kinematic_model::KinematicModelConstPtr& kmodel) :
+CollisionRobotHybrid::CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel) :
 CollisionRobotFCL(kmodel)
 {
   crobot_distance_.reset(new collision_detection::CollisionRobotDistanceField(kmodel));
 }
     
-CollisionRobotHybrid::CollisionRobotHybrid(const kinematic_model::KinematicModelConstPtr& kmodel, 
+CollisionRobotHybrid::CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel, 
                                            const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                                            double size_x, 
                                            double size_y,

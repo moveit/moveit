@@ -61,7 +61,7 @@ protected:
       urdf_model = urdf::parseURDF(xml_string);
     }
     srdf_model->initFile(*urdf_model, "../kinematic_state/test/srdf/robot.xml");
-    kmodel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
+    kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
   };
   
   virtual void TearDown()
@@ -72,7 +72,7 @@ protected:
   
   boost::shared_ptr<urdf::ModelInterface>     urdf_model;
   boost::shared_ptr<srdf::Model>     srdf_model;
-  kinematic_model::KinematicModelPtr kmodel;
+  robot_model::RobotModelPtr kmodel;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)

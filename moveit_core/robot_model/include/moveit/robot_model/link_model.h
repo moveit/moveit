@@ -32,8 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_KINEMATIC_MODEL_LINK_MODEL_
-#define MOVEIT_KINEMATIC_MODEL_LINK_MODEL_
+#ifndef MOVEIT_ROBOT_MODEL_LINK_MODEL_
+#define MOVEIT_ROBOT_MODEL_LINK_MODEL_
 
 #include <map>
 #include <string>
@@ -43,7 +43,7 @@
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_messages.h>
 
-namespace kinematic_model
+namespace robot_model
 {
 
 class JointModel;
@@ -51,7 +51,7 @@ class JointModel;
 /** \brief A link from the robot. Contains the constant transform applied to the link and its geometry */
 class LinkModel
 {
-  friend class KinematicModel;
+  friend class RobotModel;
 public:
   
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

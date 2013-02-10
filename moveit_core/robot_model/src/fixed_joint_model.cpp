@@ -34,64 +34,64 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/kinematic_model/fixed_joint_model.h>
+#include <moveit/robot_model/fixed_joint_model.h>
 
-kinematic_model::FixedJointModel::FixedJointModel(const std::string& name) : JointModel(name)
+robot_model::FixedJointModel::FixedJointModel(const std::string& name) : JointModel(name)
 {
   type_ = FIXED;
 }
 
-unsigned int kinematic_model::FixedJointModel::getStateSpaceDimension() const
+unsigned int robot_model::FixedJointModel::getStateSpaceDimension() const
 {
   return 0;
 }
 
-void kinematic_model::FixedJointModel::getVariableDefaultValues(std::vector<double>& values, const Bounds &bounds) const
+void robot_model::FixedJointModel::getVariableDefaultValues(std::vector<double>& values, const Bounds &bounds) const
 {
 }
 
-void kinematic_model::FixedJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
+void robot_model::FixedJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
 {
 }
 
-void kinematic_model::FixedJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+void robot_model::FixedJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
                                                                      const std::vector<double> &near, const double distance) const
 {
 }
 
-void kinematic_model::FixedJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
+void robot_model::FixedJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
 {
 }
 
-bool kinematic_model::FixedJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
+bool robot_model::FixedJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   return true;
 }
 
-double kinematic_model::FixedJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+double robot_model::FixedJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   return 0.0;  
 }
 
-double kinematic_model::FixedJointModel::getMaximumExtent(const Bounds &other_bounds) const
+double robot_model::FixedJointModel::getMaximumExtent(const Bounds &other_bounds) const
 {
   return 0.0;
 }
 
-void kinematic_model::FixedJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+void robot_model::FixedJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
 }
 
-void kinematic_model::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3d &transf) const
+void robot_model::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3d &transf) const
 {
   transf.setIdentity();
 }
 
-void kinematic_model::FixedJointModel::updateTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3d &transf) const
+void robot_model::FixedJointModel::updateTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3d &transf) const
 {
 }
 
-void kinematic_model::FixedJointModel::computeJointStateValues(const Eigen::Affine3d& /* transform */, std::vector<double>& joint_values) const
+void robot_model::FixedJointModel::computeJointStateValues(const Eigen::Affine3d& /* transform */, std::vector<double>& joint_values) const
 {
   joint_values.clear();
 }

@@ -99,7 +99,7 @@ public:
    * 
    * @return The joint model group
    */
-  const kinematic_model::JointModelGroup* getJointModelGroup() const
+  const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return jmg_;
   }
@@ -230,7 +230,7 @@ protected:
   bool                                     is_valid_;  /**< \brief  Holds the value for validity */
 
   planning_scene::PlanningSceneConstPtr    scene_; /**< \brief Holds the planning scene */
-  const kinematic_model::JointModelGroup  *jmg_; /**< \brief Holds the joint model group associated with this constraint */
+  const robot_model::JointModelGroup  *jmg_; /**< \brief Holds the joint model group associated with this constraint */
   std::vector<std::string>                 frame_depends_; /**< \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
   robot_state::StateValidityCallbackFn state_validity_callback_; /**< \brief Holds the callback for state validity */
 };

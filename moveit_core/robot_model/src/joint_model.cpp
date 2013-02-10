@@ -34,20 +34,20 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <moveit/kinematic_model/joint_model.h>
-#include <moveit/kinematic_model/link_model.h>
+#include <moveit/robot_model/joint_model.h>
+#include <moveit/robot_model/link_model.h>
 
-kinematic_model::JointModel::JointModel(const std::string& name) :
+robot_model::JointModel::JointModel(const std::string& name) :
   name_(name), type_(UNKNOWN), max_velocity_(0.0), parent_link_model_(NULL), child_link_model_(NULL),
   mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), passive_(false), distance_factor_(1.0), tree_index_(-1)
 {
 }
 
-kinematic_model::JointModel::~JointModel()
+robot_model::JointModel::~JointModel()
 {
 }
 
-bool kinematic_model::JointModel::getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const
+bool robot_model::JointModel::getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const
 {
   std::map<std::string, unsigned int>::const_iterator it = variable_index_.find(variable);
   if (it == variable_index_.end())
@@ -59,7 +59,7 @@ bool kinematic_model::JointModel::getVariableBounds(const std::string& variable,
   return true;
 }
 
-bool kinematic_model::JointModel::setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds)
+bool robot_model::JointModel::setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds)
 { 
   std::map<std::string, unsigned int>::const_iterator it = variable_index_.find(variable);
   if (it == variable_index_.end())
@@ -71,7 +71,7 @@ bool kinematic_model::JointModel::setVariableBounds(const std::string& variable,
   return true;
 }
 
-void kinematic_model::JointModel::getVariableDefaultValues(std::map<std::string, double> &values, const Bounds &bounds) const
+void robot_model::JointModel::getVariableDefaultValues(std::map<std::string, double> &values, const Bounds &bounds) const
 {
   std::vector<double> defv;
   defv.reserve(variable_names_.size());
@@ -80,7 +80,7 @@ void kinematic_model::JointModel::getVariableDefaultValues(std::map<std::string,
     values[variable_names_[i]] = defv[i];
 }
 
-void kinematic_model::JointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values, const Bounds &bounds) const
+void robot_model::JointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values, const Bounds &bounds) const
 {
   std::vector<double> rv;
   rv.reserve(variable_names_.size());
@@ -89,7 +89,7 @@ void kinematic_model::JointModel::getVariableRandomValues(random_numbers::Random
     values[variable_names_[i]] = rv[i];
 }
 
-void kinematic_model::JointModel::computeDefaultVariableLimits()
+void robot_model::JointModel::computeDefaultVariableLimits()
 {
   default_limits_.clear();
   for (std::size_t i = 0; i < variable_names_.size(); ++i)
@@ -110,7 +110,7 @@ void kinematic_model::JointModel::computeDefaultVariableLimits()
   }
 }
 
-void kinematic_model::JointModel::setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
+void robot_model::JointModel::setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
 {
   user_specified_limits_.clear();
   for (std::size_t j = 0; j < variable_names_.size(); ++j)

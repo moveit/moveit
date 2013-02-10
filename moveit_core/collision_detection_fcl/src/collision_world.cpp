@@ -90,7 +90,7 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
   robot_fcl.constructFCLObject(state, fcl_obj);
   
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(robot.getKinematicModel());
+  cd.enableGroup(robot.getRobotModel());
   for (std::size_t i = 0 ; !cd.done_ && i < fcl_obj.collision_objects_.size() ; ++i)
     manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
   
@@ -233,7 +233,7 @@ double collision_detection::CollisionWorldFCL::distanceRobotHelper(const Collisi
   CollisionRequest req;
   CollisionResult res;
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(robot.getKinematicModel());
+  cd.enableGroup(robot.getRobotModel());
   
   for(std::size_t i = 0; !cd.done_ && i < fcl_obj.collision_objects_.size(); ++i)
     manager_->distance(fcl_obj.collision_objects_[i].get(), &cd, &distanceCallback);

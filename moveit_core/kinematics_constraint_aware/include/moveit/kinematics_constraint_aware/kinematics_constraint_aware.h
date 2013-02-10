@@ -53,7 +53,7 @@
 #include <moveit/kinematics_base/kinematics_base.h>
 
 // MoveIt!
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
@@ -78,7 +78,7 @@ class KinematicsConstraintAware
    * @param group_name The name of the group to configure this solver for
    * @return False if any error occurs
    */
-  KinematicsConstraintAware(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+  KinematicsConstraintAware(const robot_model::RobotModelConstPtr &kinematic_model,
                             const std::string &group_name);
   
   /** @brief Solve the planning problem
@@ -106,7 +106,7 @@ class KinematicsConstraintAware
     return group_name_;
   }  
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kinematic_model_;
   }
@@ -138,9 +138,9 @@ private:
   
   std::vector<std::string> sub_groups_names_;
 
-  kinematic_model::KinematicModelConstPtr kinematic_model_;
+  robot_model::RobotModelConstPtr kinematic_model_;
   
-  const kinematic_model::JointModelGroup *joint_model_group_;
+  const robot_model::JointModelGroup *joint_model_group_;
   
   std::string group_name_;
 

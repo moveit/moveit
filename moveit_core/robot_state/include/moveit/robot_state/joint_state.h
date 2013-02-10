@@ -37,7 +37,7 @@
 #ifndef MOVEIT_ROBOT_STATE_JOINT_STATE_
 #define MOVEIT_ROBOT_STATE_JOINT_STATE_
 
-#include <moveit/kinematic_model/joint_model.h>
+#include <moveit/robot_model/joint_model.h>
 
 namespace robot_state
 {
@@ -52,7 +52,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   /** \brief Constructs the joint state from the model */
-  JointState(const kinematic_model::JointModel* jm);
+  JointState(const robot_model::JointModel* jm);
   
   /** \brief Copy constructor */
   JointState(const JointState &other);
@@ -117,7 +117,7 @@ public:
   }
   
   /** \brief Get the type of joint associated with this state */
-  kinematic_model::JointModel::JointType getType() const
+  robot_model::JointModel::JointType getType() const
   {
     return joint_model_->getType();
   }
@@ -165,7 +165,7 @@ public:
   }
   
   /** \brief Get the joint model corresponding to this state*/
-  const kinematic_model::JointModel* getJointModel() const
+  const robot_model::JointModel* getJointModel() const
   {
     return joint_model_;
   }
@@ -204,7 +204,7 @@ public:
 private:
   
   /** \brief The joint model this state corresponds to */
-  const kinematic_model::JointModel  *joint_model_;
+  const robot_model::JointModel  *joint_model_;
   
   /** \brief Tthe local transform (computed by forward kinematics) */
   Eigen::Affine3d                     variable_transform_;

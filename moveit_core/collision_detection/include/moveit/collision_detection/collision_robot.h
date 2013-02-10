@@ -57,7 +57,7 @@ namespace collision_detection
      *  @param padding The padding to use for all objects/links on the robot
      *  @scale scale A common scaling to use for all objects/links on the robot
      */
-    CollisionRobot(const kinematic_model::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
+    CollisionRobot(const robot_model::RobotModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
     
     /**  @brief A copy constructor*/
     CollisionRobot(const CollisionRobot &other);
@@ -185,7 +185,7 @@ namespace collision_detection
                                  const AllowedCollisionMatrix &acm) const = 0;
     
     /** @brief The kinematic model corresponding to this collision model*/
-    const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+    const robot_model::RobotModelConstPtr& getRobotModel() const
     {
       return kmodel_;
     }
@@ -244,7 +244,7 @@ namespace collision_detection
     virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
 
     /** @brief The kinematic model corresponding to this collision model*/
-    kinematic_model::KinematicModelConstPtr kmodel_;
+    robot_model::RobotModelConstPtr kmodel_;
     
     /** @brief The internally maintained map (from link names to padding)*/
     std::map<std::string, double>           link_padding_;

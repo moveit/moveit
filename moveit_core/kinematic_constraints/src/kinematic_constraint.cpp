@@ -60,7 +60,7 @@ static double normalizeAngle(double angle)
 }
 }
 
-kinematic_constraints::KinematicConstraint::KinematicConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
+kinematic_constraints::KinematicConstraint::KinematicConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
   type_(UNKNOWN_CONSTRAINT), kmodel_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
@@ -143,14 +143,14 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
     
     // check if we have to wrap angles when computing distances
     joint_is_continuous_ = false;
-    if (joint_model_->getType() == kinematic_model::JointModel::REVOLUTE)
+    if (joint_model_->getType() == robot_model::JointModel::REVOLUTE)
     {
-      const kinematic_model::RevoluteJointModel *rjoint = static_cast<const kinematic_model::RevoluteJointModel*>(joint_model_);
+      const robot_model::RevoluteJointModel *rjoint = static_cast<const robot_model::RevoluteJointModel*>(joint_model_);
       if (rjoint->isContinuous())
         joint_is_continuous_ = true;
     }
     else
-      if (joint_model_->getType() == kinematic_model::JointModel::PLANAR)
+      if (joint_model_->getType() == robot_model::JointModel::PLANAR)
       {
         if (local_variable_name_ == "theta") 
           joint_is_continuous_ = true;
@@ -667,7 +667,7 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
     out << "No constraint" << std::endl;
 }
 
-kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
+kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
   KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotFCL(model))
 {
   type_ = VISIBILITY_CONSTRAINT;

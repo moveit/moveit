@@ -61,9 +61,9 @@ class CollisionRobotDistanceField : public CollisionRobot
 
 public:
 
-  CollisionRobotDistanceField(const kinematic_model::KinematicModelConstPtr& kmodel);
+  CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel);
 
-  CollisionRobotDistanceField(const kinematic_model::KinematicModelConstPtr& kmodel, 
+  CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel, 
                               const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                               double size_x = DEFAULT_SIZE_X, 
                               double size_y = DEFAULT_SIZE_Y,

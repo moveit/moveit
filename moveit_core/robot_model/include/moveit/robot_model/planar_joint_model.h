@@ -32,47 +32,60 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_KINEMATIC_MODEL_PRISMATIC_JOINT_MODEL_
-#define MOVEIT_KINEMATIC_MODEL_PRISMATIC_JOINT_MODEL_
+#ifndef MOVEIT_ROBOT_MODEL_PLANAR_JOINT_MODEL_
+#define MOVEIT_ROBOT_MODEL_PLANAR_JOINT_MODEL_
 
-#include <moveit/kinematic_model/joint_model.h>
+#include <moveit/robot_model/joint_model.h>
 
-namespace kinematic_model
+namespace robot_model
 {
 
-/** \brief A prismatic joint */
-class PrismaticJointModel : public JointModel
+/** \brief A planar joint */
+class PlanarJointModel : public JointModel
 {
-  friend class KinematicModel;
+  friend class RobotModel;
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
-  PrismaticJointModel(const std::string& name);  
-  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;   
+  PlanarJointModel(const std::string& name);
+  
+  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;
   virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
   virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
-                                     const std::vector<double> &near, const double distance) const;
+                                             const std::vector<double> &near, const double distance) const;
   virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
   virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const;
   
-  virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
   virtual unsigned int getStateSpaceDimension() const;
   virtual double getMaximumExtent(const Bounds &other_bounds) const;
   virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
+  virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
+  virtual std::vector<moveit_msgs::JointLimits> getVariableLimits() const;
+
   virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
-  virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const;
+  virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
   virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
   
-  /** \brief Get the axis of translation */
-  const Eigen::Vector3d& getAxis() const
+  double getAngularDistanceWeight() const
   {
-    return axis_;
+    return angular_distance_weight_;
   }
   
-protected:
-  /** \brief The axis of the joint */
-  Eigen::Vector3d axis_;
+  void setAngularDistanceWeight(double weight)
+  {
+    angular_distance_weight_ = weight;
+  }
+  
+  /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function;
+  /// Return true if a change is actually made
+  bool normalizeRotation(std::vector<double> &values) const;  
+  
+private:
+  
+  double angular_distance_weight_;
 };
-}
 
+}
 #endif
+
+  

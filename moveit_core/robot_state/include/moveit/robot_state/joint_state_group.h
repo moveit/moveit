@@ -37,7 +37,7 @@
 #ifndef MOVEIT_ROBOT_STATE_JOINT_STATE_GROUP_
 #define MOVEIT_ROBOT_STATE_JOINT_STATE_GROUP_
 
-#include <moveit/kinematic_model/joint_model_group.h>
+#include <moveit/robot_model/joint_model_group.h>
 #include <moveit/robot_state/link_state.h>
 #include <moveit/robot_state/joint_state.h>
 #include <sensor_msgs/JointState.h>
@@ -70,7 +70,7 @@ public:
    *  @param state A pointer to the kinematic state
    *  @param jmg The joint model group corresponding to this joint state
    */
-  JointStateGroup(RobotState *state, const kinematic_model::JointModelGroup *jmg);
+  JointStateGroup(RobotState *state, const robot_model::JointModelGroup *jmg);
   ~JointStateGroup();
   
   /** \brief Get the kinematic state this link is part of */
@@ -86,7 +86,7 @@ public:
   }
   
   /** \brief Get the joint model corresponding to this joint state group */
-  const kinematic_model::JointModelGroup* getJointModelGroup() const
+  const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return joint_model_group_;
   }
@@ -163,7 +163,7 @@ public:
   /** \brief Sample a random state in accordance with 
       the type of joints employed, near the specified joint state. 
       The distance map specifies distances according to joint type. */
-  void setToRandomValuesNearBy(const std::vector<double> &near, const std::map<kinematic_model::JointModel::JointType, double> &distance_map);
+  void setToRandomValuesNearBy(const std::vector<double> &near, const std::map<robot_model::JointModel::JointType, double> &distance_map);
 
   /** \brief Sample a random state in accordance with 
       the type of joints employed, near the specified joint state. 
@@ -413,7 +413,7 @@ private:
   RobotState *kinematic_state_;
   
   /** \brief The model of the group that corresponds to this state */
-  const kinematic_model::JointModelGroup *joint_model_group_;
+  const robot_model::JointModelGroup *joint_model_group_;
   
   /** \brief Joint instances in the order they appear in the group state */
   std::vector<JointState*>                joint_state_vector_;

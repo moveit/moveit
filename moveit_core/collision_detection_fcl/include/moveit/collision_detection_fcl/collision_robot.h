@@ -48,7 +48,7 @@ namespace collision_detection
     
   public:
     
-    CollisionRobotFCL(const kinematic_model::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
+    CollisionRobotFCL(const robot_model::RobotModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
     
     CollisionRobotFCL(const CollisionRobotFCL &other);
     
@@ -91,7 +91,7 @@ namespace collision_detection
     double distanceOtherHelper(const robot_state::RobotState &state, const CollisionRobot &other_robot,
                                const robot_state::RobotState &other_state, const AllowedCollisionMatrix *acm) const;
     
-    std::vector<const kinematic_model::LinkModel*> links_;
+    std::vector<const robot_model::LinkModel*> links_;
     std::vector<FCLGeometryConstPtr>               geoms_;
     std::map<std::string, std::size_t>             index_map_;
   };

@@ -34,12 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/kinematic_model/floating_joint_model.h>
+#include <moveit/robot_model/floating_joint_model.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>
 
-kinematic_model::FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
+robot_model::FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
 {
   type_ = FLOATING;
   local_variable_names_.push_back("trans_x");
@@ -61,7 +61,7 @@ kinematic_model::FloatingJointModel::FloatingJointModel(const std::string& name)
   variable_bounds_[6] = std::make_pair(-1.0, 1.0);
 }
 
-double kinematic_model::FloatingJointModel::getMaximumExtent(const Bounds &other_bounds) const
+double robot_model::FloatingJointModel::getMaximumExtent(const Bounds &other_bounds) const
 {
   double dx = other_bounds[0].first - other_bounds[0].second;
   double dy = other_bounds[1].first - other_bounds[1].second;
@@ -69,7 +69,7 @@ double kinematic_model::FloatingJointModel::getMaximumExtent(const Bounds &other
   return sqrt(dx*dx + dy*dy + dz*dz) + boost::math::constants::pi<double>() * 0.5 * angular_distance_weight_;
 }
 
-double kinematic_model::FloatingJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+double robot_model::FloatingJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   assert(values1.size() == 7);
   assert(values2.size() == 7);
@@ -83,7 +83,7 @@ double kinematic_model::FloatingJointModel::distance(const std::vector<double> &
     return angular_distance_weight_ * acos(dq) + sqrt(dx*dx + dy*dy + dz * dz);
 }
 
-double kinematic_model::FloatingJointModel::distanceTranslation(const std::vector<double> &values1, const std::vector<double> &values2) const
+double robot_model::FloatingJointModel::distanceTranslation(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   assert(values1.size() == 7);
   assert(values2.size() == 7);
@@ -93,7 +93,7 @@ double kinematic_model::FloatingJointModel::distanceTranslation(const std::vecto
   return sqrt(dx*dx + dy*dy + dz * dz);
 }
 
-double kinematic_model::FloatingJointModel::distanceRotation(const std::vector<double> &values1, const std::vector<double> &values2) const
+double robot_model::FloatingJointModel::distanceRotation(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   double dq = fabs(values1[3] * values2[3] + values1[4] * values2[4] + values1[5] * values2[5] + values1[6] * values2[6]);
   if (dq + std::numeric_limits<double>::epsilon() >= 1.0)
@@ -103,7 +103,7 @@ double kinematic_model::FloatingJointModel::distanceRotation(const std::vector<d
 }
 
 
-void kinematic_model::FloatingJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+void robot_model::FloatingJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
   // interpolate position
   state[0] = from[0] + (to[0] - from[0]) * t;
@@ -133,7 +133,7 @@ void kinematic_model::FloatingJointModel::interpolate(const std::vector<double> 
   }
 }
 
-bool kinematic_model::FloatingJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
+bool robot_model::FloatingJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   assert(bounds.size() > 2);
   if (values[0] < bounds[0].first - margin || values[0] > bounds[0].second + margin)
@@ -148,7 +148,7 @@ bool kinematic_model::FloatingJointModel::satisfiesBounds(const std::vector<doub
   return true;
 }
 
-bool kinematic_model::FloatingJointModel::normalizeRotation(std::vector<double> &values) const
+bool robot_model::FloatingJointModel::normalizeRotation(std::vector<double> &values) const
 { 
   // normalize the quaternion if we need to
   double normSqr = values[3] * values[3] + values[4] * values[4] + values[5] * values[5] + values[6] * values[6];
@@ -176,12 +176,12 @@ bool kinematic_model::FloatingJointModel::normalizeRotation(std::vector<double> 
     return false;
 }
 
-unsigned int kinematic_model::FloatingJointModel::getStateSpaceDimension() const
+unsigned int robot_model::FloatingJointModel::getStateSpaceDimension() const
 {
   return 6;
 }
 
-void kinematic_model::FloatingJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
+void robot_model::FloatingJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
 {
   normalizeRotation(values);
   for (unsigned int i = 0 ; i < 3 ; ++i)
@@ -195,18 +195,18 @@ void kinematic_model::FloatingJointModel::enforceBounds(std::vector<double> &val
   }
 }
 
-void kinematic_model::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void robot_model::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   updateTransform(joint_values, transf);
 }
 
-void kinematic_model::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void robot_model::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], joint_values[2])
                            *Eigen::Quaterniond(joint_values[6],joint_values[3], joint_values[4], joint_values[5]).toRotationMatrix());
 }
 
-void kinematic_model::FloatingJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
+void robot_model::FloatingJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(7);
   joint_values[0] = transf.translation().x();
@@ -219,7 +219,7 @@ void kinematic_model::FloatingJointModel::computeJointStateValues(const Eigen::A
   joint_values[6] = q.w();
 }
 
-void kinematic_model::FloatingJointModel::getVariableDefaultValues(std::vector<double>& values, const Bounds &bounds) const
+void robot_model::FloatingJointModel::getVariableDefaultValues(std::vector<double>& values, const Bounds &bounds) const
 {
   assert(bounds.size() > 2);
   for (unsigned int i = 0 ; i < 3 ; ++i)
@@ -237,7 +237,7 @@ void kinematic_model::FloatingJointModel::getVariableDefaultValues(std::vector<d
   values.push_back(1.0);
 }
 
-void kinematic_model::FloatingJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
+void robot_model::FloatingJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
 {
   std::size_t s = values.size();
   values.resize(s + 7);
@@ -262,7 +262,7 @@ void kinematic_model::FloatingJointModel::getVariableRandomValues(random_numbers
   values[s + 6] = q[3];
 }
 
-void kinematic_model::FloatingJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+void robot_model::FloatingJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
                                                                         const std::vector<double> &near, const double distance) const
 {   
   std::size_t s = values.size();

@@ -38,7 +38,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <eigen_conversions/eigen_msg.h>
 
-robot_state::RobotState::RobotState(const kinematic_model::KinematicModelConstPtr &kinematic_model) :
+robot_state::RobotState::RobotState(const robot_model::RobotModelConstPtr &kinematic_model) :
   kinematic_model_(kinematic_model)
 {
   root_transform_.setIdentity();
@@ -54,7 +54,7 @@ random_numbers::RandomNumberGenerator& robot_state::RobotState::getRandomNumberG
 
 void robot_state::RobotState::buildState()
 {
-  const std::vector<const kinematic_model::JointModel*>& joint_model_vector = kinematic_model_->getJointModels();
+  const std::vector<const robot_model::JointModel*>& joint_model_vector = kinematic_model_->getJointModels();
   joint_state_vector_.resize(joint_model_vector.size());
   
   // create joint states
@@ -65,7 +65,7 @@ void robot_state::RobotState::buildState()
   }
   
   // create link states
-  const std::vector<const kinematic_model::LinkModel*>& link_model_vector = kinematic_model_->getLinkModels();
+  const std::vector<const robot_model::LinkModel*>& link_model_vector = kinematic_model_->getLinkModels();
   link_state_vector_.resize(link_model_vector.size());
   for (std::size_t i = 0 ; i < link_model_vector.size() ; ++i)
   {
@@ -76,7 +76,7 @@ void robot_state::RobotState::buildState()
   // now we need to figure out who the link parents are
   for (std::size_t i = 0; i < link_state_vector_.size(); ++i)
   {
-    const kinematic_model::JointModel* parent_joint_model = link_state_vector_[i]->getLinkModel()->getParentJointModel();
+    const robot_model::JointModel* parent_joint_model = link_state_vector_[i]->getLinkModel()->getParentJointModel();
     link_state_vector_[i]->parent_joint_state_ = joint_state_map_[parent_joint_model->getName()];
     if (parent_joint_model->getParentLinkModel() != NULL)
       link_state_vector_[i]->parent_link_state_ = link_state_map_[parent_joint_model->getParentLinkModel()->getName()];
@@ -85,14 +85,14 @@ void robot_state::RobotState::buildState()
   // compute mimic joint state pointers
   for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
   {
-    const std::vector<const kinematic_model::JointModel*> &mr = joint_state_vector_[i]->joint_model_->getMimicRequests();
+    const std::vector<const robot_model::JointModel*> &mr = joint_state_vector_[i]->joint_model_->getMimicRequests();
     for (std::size_t j = 0 ; j < mr.size() ; ++j)
       joint_state_vector_[i]->mimic_requests_.push_back(joint_state_map_[mr[j]->getName()]);
   }
   
   // now make joint_state_groups
-  const std::map<std::string, kinematic_model::JointModelGroup*>& joint_model_group_map = kinematic_model_->getJointModelGroupMap();
-  for (std::map<std::string, kinematic_model::JointModelGroup*>::const_iterator it = joint_model_group_map.begin() ;
+  const std::map<std::string, robot_model::JointModelGroup*>& joint_model_group_map = kinematic_model_->getJointModelGroupMap();
+  for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = joint_model_group_map.begin() ;
        it != joint_model_group_map.end() ; ++it)
     joint_state_group_map_[it->first] = new JointStateGroup(this, it->second);
 }
@@ -119,7 +119,7 @@ void robot_state::RobotState::copyFrom(const RobotState &ks)
        it != joint_state_group_map_.end(); ++it)
     delete it->second;
 
-  kinematic_model_ = ks.getKinematicModel();
+  kinematic_model_ = ks.getRobotModel();
   root_transform_ = ks.root_transform_;
   
   // construct state
@@ -264,14 +264,14 @@ bool robot_state::RobotState::updateStateWithLinkAt(const std::string& link_name
     return false;
   
   link_state_map_[link_name]->updateGivenGlobalLinkTransform(transform);
-  std::vector<const kinematic_model::LinkModel*> child_link_models;
+  std::vector<const robot_model::LinkModel*> child_link_models;
   kinematic_model_->getChildLinkModels(kinematic_model_->getLinkModel(link_name), child_link_models);
   // the zeroith link will be the link itself, which shouldn't be updated, so we start at 1
   for(unsigned int i = 1 ; i < child_link_models.size() ; ++i)
     link_state_map_[child_link_models[i]->getName()]->computeTransform();
   
-  const kinematic_model::LinkModel::AssociatedFixedTransformMap& assoc = kinematic_model_->getLinkModel(link_name)->getAssociatedFixedTransforms();
-  for (kinematic_model::LinkModel::AssociatedFixedTransformMap::const_iterator it = assoc.begin() ; it != assoc.end() ; ++it)
+  const robot_model::LinkModel::AssociatedFixedTransformMap& assoc = kinematic_model_->getLinkModel(link_name)->getAssociatedFixedTransforms();
+  for (robot_model::LinkModel::AssociatedFixedTransformMap::const_iterator it = assoc.begin() ; it != assoc.end() ; ++it)
     link_state_map_[it->first->getName()]->updateGivenGlobalLinkTransform(transform * it->second);
   
   return true;

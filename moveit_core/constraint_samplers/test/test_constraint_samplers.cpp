@@ -57,14 +57,14 @@ class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
 
-  boost::shared_ptr<kinematics::KinematicsBase> getKinematicsSolverRightArm(const kinematic_model::JointModelGroup *jmg)
+  boost::shared_ptr<kinematics::KinematicsBase> getKinematicsSolverRightArm(const robot_model::JointModelGroup *jmg)
   {
     {
       return pr2_kinematics_plugin_right_arm_;
     }
   }
 
-  boost::shared_ptr<kinematics::KinematicsBase> getKinematicsSolverLeftArm(const kinematic_model::JointModelGroup *jmg)
+  boost::shared_ptr<kinematics::KinematicsBase> getKinematicsSolverLeftArm(const robot_model::JointModelGroup *jmg)
   {
     {
       return pr2_kinematics_plugin_left_arm_;
@@ -88,7 +88,7 @@ protected:
       urdf_model = urdf::parseURDF(xml_string);
     }
     srdf_model->initFile(*urdf_model, "../kinematic_state/test/srdf/robot.xml");
-    kmodel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
+    kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 
@@ -108,10 +108,10 @@ protected:
                                                 "l_wrist_roll_link",
                                                 .01);
     
-    func_right_arm.reset(new kinematic_model::SolverAllocatorFn(boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1)));
-    func_left_arm.reset(new kinematic_model::SolverAllocatorFn(boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1)));
+    func_right_arm.reset(new robot_model::SolverAllocatorFn(boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1)));
+    func_left_arm.reset(new robot_model::SolverAllocatorFn(boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1)));
     
-    std::map<std::string, kinematic_model::SolverAllocatorFn> allocators;
+    std::map<std::string, robot_model::SolverAllocatorFn> allocators;
     allocators["right_arm"] = *func_right_arm;
     allocators["left_arm"] = *func_left_arm;
     allocators["whole_body"] = *func_right_arm;
@@ -132,12 +132,12 @@ protected:
   
   boost::shared_ptr<urdf::ModelInterface>     urdf_model;
   boost::shared_ptr<srdf::Model>     srdf_model;
-  kinematic_model::KinematicModelPtr kmodel;
+  robot_model::RobotModelPtr kmodel;
   planning_scene::PlanningScenePtr ps;
   boost::shared_ptr<pr2_arm_kinematics::PR2ArmKinematicsPlugin> pr2_kinematics_plugin_right_arm_;
   boost::shared_ptr<pr2_arm_kinematics::PR2ArmKinematicsPlugin> pr2_kinematics_plugin_left_arm_;
-  boost::shared_ptr<kinematic_model::SolverAllocatorFn> func_right_arm;
-  boost::shared_ptr<kinematic_model::SolverAllocatorFn> func_left_arm;
+  boost::shared_ptr<robot_model::SolverAllocatorFn> func_right_arm;
+  boost::shared_ptr<robot_model::SolverAllocatorFn> func_left_arm;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)

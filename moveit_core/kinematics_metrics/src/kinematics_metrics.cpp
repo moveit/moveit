@@ -42,7 +42,7 @@ namespace kinematics_metrics
 {
 
 Eigen::MatrixXd KinematicsMetrics::getJacobian(const robot_state::RobotState &kinematic_state,
-                                               const kinematic_model::JointModelGroup *joint_model_group) const
+                                               const robot_model::JointModelGroup *joint_model_group) const
 {
   Eigen::MatrixXd jacobian;
   Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
@@ -55,12 +55,12 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &ki
                                                const std::string &group_name,
                                                double &manipulability_index) const
 {
-  const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
   return getManipulabilityIndex(kinematic_state, joint_model_group, manipulability_index);  
 }
 
 bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
-                                               const kinematic_model::JointModelGroup *joint_model_group,
+                                               const robot_model::JointModelGroup *joint_model_group,
                                                double &manipulability_index) const
 {
   if (!joint_model_group)
@@ -80,12 +80,12 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState
                                                    Eigen::MatrixXcd &eigen_values,
                                                    Eigen::MatrixXcd &eigen_vectors) const
 {
-  const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
   return getManipulabilityEllipsoid(kinematic_state, joint_model_group, eigen_values, eigen_vectors);  
 }
 
 bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState &kinematic_state,
-                                                   const kinematic_model::JointModelGroup *joint_model_group,
+                                                   const robot_model::JointModelGroup *joint_model_group,
                                                    Eigen::MatrixXcd &eigen_values,
                                                    Eigen::MatrixXcd &eigen_vectors) const
 {
@@ -106,12 +106,12 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState &kinemat
                                           const std::string &group_name,
                                           double &manipulability) const
 {
-  const kinematic_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
   return getManipulability(kinematic_state, joint_model_group, manipulability);
 }
 
 bool KinematicsMetrics::getManipulability(const robot_state::RobotState &kinematic_state,
-                                          const kinematic_model::JointModelGroup *joint_model_group,
+                                          const robot_model::JointModelGroup *joint_model_group,
                                           double &manipulability) const
 {
   if (!joint_model_group)

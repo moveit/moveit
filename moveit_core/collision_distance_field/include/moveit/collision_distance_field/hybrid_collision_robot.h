@@ -52,9 +52,9 @@ class CollisionRobotHybrid : public collision_detection::CollisionRobotFCL
   
 public:
   
-  CollisionRobotHybrid(const kinematic_model::KinematicModelConstPtr& kmodel);
+  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel);
 
-  CollisionRobotHybrid(const kinematic_model::KinematicModelConstPtr& kmodel, 
+  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel, 
                        const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                        double size_x = 3.0, 
                        double size_y = 3.0,

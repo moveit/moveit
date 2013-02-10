@@ -57,7 +57,7 @@ public:
   };
   
   /// Subclass may implement methods below
-  virtual bool initialize(const kinematic_model::KinematicModelConstPtr& model) { return true; }
+  virtual bool initialize(const robot_model::RobotModelConstPtr& model) { return true; }
   
   /// Get a short string that identifies the planning interface
   virtual std::string getDescription() const { return ""; }

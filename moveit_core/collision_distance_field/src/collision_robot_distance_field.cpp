@@ -41,12 +41,12 @@
 namespace collision_detection
 {
 
-CollisionRobotDistanceField::CollisionRobotDistanceField(const kinematic_model::KinematicModelConstPtr& kmodel)
+CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel)
   : CollisionRobot(kmodel)
 {  
 }
 
-CollisionRobotDistanceField::CollisionRobotDistanceField(const kinematic_model::KinematicModelConstPtr& kmodel, 
+CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel, 
                                                          const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                                                          double size_x, 
                                                          double size_y,
@@ -96,8 +96,8 @@ void CollisionRobotDistanceField::initialize(const std::map<std::string, std::ve
   max_propogation_distance_ = max_propogation_distance;
   addLinkBodyDecompositions(resolution_, link_body_decompositions);  
   robot_state::RobotState state(kmodel_);
-  const std::map<std::string, kinematic_model::JointModelGroup*>& jmgm = kmodel_->getJointModelGroupMap();
-  for(std::map<std::string, kinematic_model::JointModelGroup*>::const_iterator it = jmgm.begin();
+  const std::map<std::string, robot_model::JointModelGroup*>& jmgm = kmodel_->getJointModelGroupMap();
+  for(std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = jmgm.begin();
       it != jmgm.end();
       it++) {
     std::map<std::string, bool> updated_group_entry;
@@ -645,8 +645,8 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
     dfce->pregenerated_group_state_representation_ = it->second;
   }
   std::map<std::string, bool> updated_map;
-  const kinematic_model::JointModel* joint_model = dfce->state_->getLinkState(dfce->link_names_[0])->getLinkModel()->getParentJointModel();  
-  std::vector<const kinematic_model::JointModel*> child_joint_models;
+  const robot_model::JointModel* joint_model = dfce->state_->getLinkState(dfce->link_names_[0])->getLinkModel()->getParentJointModel();  
+  std::vector<const robot_model::JointModel*> child_joint_models;
   kmodel_->getChildJointModels(joint_model, child_joint_models);
   for(unsigned int i = 0; i < child_joint_models.size(); i++) {
     updated_map[child_joint_models[i]->getName()] = true;
@@ -735,7 +735,7 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
 
 void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution) 
 {
-  const std::vector<kinematic_model::LinkModel*>& link_models = kmodel_->getLinkModelsWithCollisionGeometry();
+  const std::vector<robot_model::LinkModel*>& link_models = kmodel_->getLinkModelsWithCollisionGeometry();
   for(unsigned int i = 0; i < link_models.size(); i++) {
     if(!link_models[i]->getShape()) {
       logWarn("No collision geometry for link model %s though there should be", link_models[i]->getName().c_str());
@@ -751,7 +751,7 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution)
 void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution,
                                                             const std::map<std::string, std::vector<CollisionSphere> >& link_spheres) 
 {
-  const std::vector<kinematic_model::LinkModel*>& link_models = kmodel_->getLinkModelsWithCollisionGeometry();
+  const std::vector<robot_model::LinkModel*>& link_models = kmodel_->getLinkModelsWithCollisionGeometry();
   for(unsigned int i = 0; i < link_models.size(); i++) {
     if(!link_models[i]->getShape()) {
       logWarn("No collision geometry for link model %s though there should be", link_models[i]->getName().c_str());

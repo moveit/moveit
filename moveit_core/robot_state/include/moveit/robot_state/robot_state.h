@@ -37,7 +37,7 @@
 #ifndef MOVEIT_ROBOT_STATE_ROBOT_STATE_
 #define MOVEIT_ROBOT_STATE_ROBOT_STATE_
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/joint_state_group.h>
 #include <moveit/robot_state/attached_body.h>
 #include <std_msgs/ColorRGBA.h>
@@ -60,7 +60,7 @@ public:
   /// \endcond 
 
   /** \brief Create a state corresponding to a given kinematic model */
-  RobotState(const kinematic_model::KinematicModelConstPtr &kinematic_model);
+  RobotState(const robot_model::RobotModelConstPtr &kinematic_model);
   
   /** \brief Copy constructor */
   RobotState(const RobotState& state);
@@ -88,7 +88,7 @@ public:
                       const std::vector<double>& joint_values);
   
   /** @brief Get the joint state values. The order in which the values are specified matches the order
-   *  of the joints in the KinematicModel corresponding to this state.*/
+   *  of the joints in the RobotModel corresponding to this state.*/
   void getStateValues(std::vector<double>& joint_state_values) const;
   
   /** @brief Get the joint state values as a map between joint state names and values*/
@@ -104,7 +104,7 @@ public:
   bool updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform);
   
   /** \brief Get the kinematic model corresponding to this state.*/
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kinematic_model_;
   }
@@ -151,7 +151,7 @@ public:
   /** \brief Get a joint state by its name */
   JointState* getJointState(const std::string &joint) const;
   
-  JointState* getJointState(const kinematic_model::JointModel *jmodel) const
+  JointState* getJointState(const robot_model::JointModel *jmodel) const
   {
     // \todo make this more efficient (store index of JointState in the model)
     return getJointState(jmodel->getName());
@@ -262,7 +262,7 @@ private:
   void copyFrom(const RobotState &ks);
   void printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out = std::cout) const;
 
-  kinematic_model::KinematicModelConstPtr kinematic_model_;
+  robot_model::RobotModelConstPtr kinematic_model_;
   
   std::vector<JointState*>                joint_state_vector_;
   std::map<std::string, JointState*>      joint_state_map_;
