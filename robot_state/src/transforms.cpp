@@ -82,9 +82,9 @@ const Eigen::Affine3d& robot_state::Transforms::getTransform(const RobotState& k
   FixedTransformsMap::const_iterator it = transforms_.find(from_frame);
   if (it != transforms_.end())
     return it->second;
-  if (kstate.getKinematicModel()->getModelFrame() != target_frame_)
+  if (kstate.getRobotModel()->getModelFrame() != target_frame_)
     logError("Target frame is assumed to be '%s' but the model of the kinematic state places the robot in frame '%s'",
-             target_frame_.c_str(), kstate.getKinematicModel()->getModelFrame().c_str());
+             target_frame_.c_str(), kstate.getRobotModel()->getModelFrame().c_str());
   const Eigen::Affine3d *t = kstate.getFrameTransform(from_frame);
   if (t)
     return *t;

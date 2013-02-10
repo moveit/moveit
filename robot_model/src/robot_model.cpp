@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <geometric_shapes/shape_operations.h>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
@@ -42,9 +42,9 @@
 #include <queue>
 #include <cmath>
 
-/* ------------------------ KinematicModel ------------------------ */
+/* ------------------------ RobotModel ------------------------ */
 
-kinematic_model::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+robot_model::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                                 const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   urdf_ = urdf_model;
@@ -58,7 +58,7 @@ kinematic_model::KinematicModel::KinematicModel(const boost::shared_ptr<const ur
     logWarn("No root link found");
 }
 
-kinematic_model::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+robot_model::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                                 const boost::shared_ptr<const srdf::Model> &srdf_model,
                                                 const std::string &root_link)
 {
@@ -67,7 +67,7 @@ kinematic_model::KinematicModel::KinematicModel(const boost::shared_ptr<const ur
   buildModel(urdf_model, srdf_model, root_link);
 }
 
-kinematic_model::KinematicModel::~KinematicModel()
+robot_model::RobotModel::~RobotModel()
 {
   for (std::map<std::string, JointModelGroup*>::iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
     delete it->second;
@@ -77,7 +77,7 @@ kinematic_model::KinematicModel::~KinematicModel()
     delete link_model_vector_[i];
 }
 
-void kinematic_model::KinematicModel::computeTreeStructure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model, const std::string &root_link,
+void robot_model::RobotModel::computeTreeStructure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model, const std::string &root_link,
                                                            std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
                                                            std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map)
 {
@@ -149,7 +149,7 @@ void kinematic_model::KinematicModel::computeTreeStructure(const boost::shared_p
   }  
 }
 
-void kinematic_model::KinematicModel::buildModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+void robot_model::RobotModel::buildModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                                                  const std::string &root_link)
 { 
@@ -189,7 +189,7 @@ void kinematic_model::KinematicModel::buildModel(const boost::shared_ptr<const u
     logWarn("No root link found");
 }
 
-void kinematic_model::KinematicModel::buildJointInfo()
+void robot_model::RobotModel::buildJointInfo()
 {    
   // construct additional maps for easy access by name
   variable_count_ = 0;
@@ -243,7 +243,7 @@ void kinematic_model::KinematicModel::buildJointInfo()
   }
 }
 
-void kinematic_model::KinematicModel::buildGroupStates(const boost::shared_ptr<const srdf::Model> &srdf_model)
+void robot_model::RobotModel::buildGroupStates(const boost::shared_ptr<const srdf::Model> &srdf_model)
 {    
   // copy the default states to the groups
   const std::vector<srdf::Model::GroupState> &ds = srdf_model->getGroupStates();
@@ -273,7 +273,7 @@ void kinematic_model::KinematicModel::buildGroupStates(const boost::shared_ptr<c
   }
 }
 
-void kinematic_model::KinematicModel::buildMimic(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model)
+void robot_model::RobotModel::buildMimic(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model)
 {
   // compute mimic joints
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
@@ -324,12 +324,12 @@ void kinematic_model::KinematicModel::buildMimic(const boost::shared_ptr<const u
         joint_model_vector_[i]->mimic_->mimic_requests_.push_back(joint_model_vector_[i]);
 }
 
-bool kinematic_model::KinematicModel::hasEndEffector(const std::string& eef) const
+bool robot_model::RobotModel::hasEndEffector(const std::string& eef) const
 {
   return end_effectors_.find(eef) != end_effectors_.end();
 }
 
-const kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getEndEffector(const std::string& name) const
+const robot_model::JointModelGroup* robot_model::RobotModel::getEndEffector(const std::string& name) const
 { 
   std::map<std::string, JointModelGroup*>::const_iterator it = end_effectors_.find(name);
   if (it == end_effectors_.end())
@@ -343,7 +343,7 @@ const kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getEndE
   return it->second;
 }
 
-kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getEndEffector(const std::string& name)
+robot_model::JointModelGroup* robot_model::RobotModel::getEndEffector(const std::string& name)
 { 
   std::map<std::string, JointModelGroup*>::const_iterator it = end_effectors_.find(name);
   if (it == end_effectors_.end())
@@ -357,12 +357,12 @@ kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getEndEffecto
   return it->second;
 }
 
-bool kinematic_model::KinematicModel::hasJointModelGroup(const std::string &name) const
+bool robot_model::RobotModel::hasJointModelGroup(const std::string &name) const
 {
   return joint_model_group_map_.find(name) != joint_model_group_map_.end();
 }
 
-const kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getJointModelGroup(const std::string& name) const
+const robot_model::JointModelGroup* robot_model::RobotModel::getJointModelGroup(const std::string& name) const
 {
   std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
@@ -373,7 +373,7 @@ const kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getJoin
   return it->second;
 }
 
-kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getJointModelGroup(const std::string& name)
+robot_model::JointModelGroup* robot_model::RobotModel::getJointModelGroup(const std::string& name)
 {
   std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
@@ -384,7 +384,7 @@ kinematic_model::JointModelGroup* kinematic_model::KinematicModel::getJointModel
   return it->second;
 }
 
-void kinematic_model::KinematicModel::buildGroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
+void robot_model::RobotModel::buildGroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   const std::vector<srdf::Model::Group>& group_configs = srdf_model->getGroups();
   
@@ -426,7 +426,7 @@ void kinematic_model::KinematicModel::buildGroups(const boost::shared_ptr<const 
   buildGroupsInfo_EndEffectors(srdf_model);
 }
 
-void kinematic_model::KinematicModel::buildGroupsInfo_Subgroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
+void robot_model::RobotModel::buildGroupsInfo_Subgroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   // compute subgroups  
   for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
@@ -452,7 +452,7 @@ void kinematic_model::KinematicModel::buildGroupsInfo_Subgroups(const boost::sha
   }
 }
 
-void kinematic_model::KinematicModel::buildGroupsInfo_EndEffectors(const boost::shared_ptr<const srdf::Model> &srdf_model)
+void robot_model::RobotModel::buildGroupsInfo_EndEffectors(const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   // set the end-effector flags
   const std::vector<srdf::Model::EndEffector> &eefs = srdf_model->getEndEffectors();
@@ -526,7 +526,7 @@ void kinematic_model::KinematicModel::buildGroupsInfo_EndEffectors(const boost::
   }
 }
 
-bool kinematic_model::KinematicModel::addJointModelGroup(const srdf::Model::Group& gc)
+bool robot_model::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 {
   if (joint_model_group_map_.find(gc.name_) != joint_model_group_map_.end())
   {
@@ -648,7 +648,7 @@ bool kinematic_model::KinematicModel::addJointModelGroup(const srdf::Model::Grou
   return true;
 }
 
-kinematic_model::JointModel* kinematic_model::KinematicModel::buildRecursive(LinkModel *parent, const urdf::Link *link,
+robot_model::JointModel* robot_model::RobotModel::buildRecursive(LinkModel *parent, const urdf::Link *link,
                                                                              const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
                                                                              const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
                                                                              const srdf::Model &srdf_model)
@@ -688,7 +688,7 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::buildRecursive(Lin
   return joint;
 }
 
-kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointModel(const urdf::Joint *urdf_joint, const urdf::Link *child_link,
+robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf::Joint *urdf_joint, const urdf::Link *child_link,
                                                                                   const srdf::Model &srdf_model)
 {
   JointModel* result = NULL;
@@ -825,7 +825,7 @@ kinematic_model::JointModel* kinematic_model::KinematicModel::constructJointMode
   return result;
 }
 
-namespace kinematic_model
+namespace robot_model
 {
 static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
 {
@@ -836,7 +836,7 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
 
 }
 
-kinematic_model::LinkModel* kinematic_model::KinematicModel::constructLinkModel(const urdf::Link *urdf_link,
+robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::Link *urdf_link,
                                                                                                 const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map)
 {
   LinkModel *result = new LinkModel();
@@ -907,7 +907,7 @@ kinematic_model::LinkModel* kinematic_model::KinematicModel::constructLinkModel(
   return result;
 }
 
-shapes::ShapePtr kinematic_model::KinematicModel::constructShape(const urdf::Geometry *geom, std::string& filename)
+shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *geom, std::string& filename)
 {
   shapes::Shape *result = NULL;
   switch (geom->type)
@@ -944,29 +944,29 @@ shapes::ShapePtr kinematic_model::KinematicModel::constructShape(const urdf::Geo
   return shapes::ShapePtr(result);
 }
 
-const std::string& kinematic_model::KinematicModel::getRootJointName() const
+const std::string& robot_model::RobotModel::getRootJointName() const
 {
   static const std::string empty;
   return getRoot() ? getRoot()->getName() : empty;
 }
 
-const std::string& kinematic_model::KinematicModel::getRootLinkName() const
+const std::string& robot_model::RobotModel::getRootLinkName() const
 {
   static const std::string empty;
   return getRootLink() ? getRootLink()->getName() : empty;
 }
   
-bool kinematic_model::KinematicModel::hasJointModel(const std::string &name) const
+bool robot_model::RobotModel::hasJointModel(const std::string &name) const
 {
   return joint_model_map_.find(name) != joint_model_map_.end();
 }
 
-bool kinematic_model::KinematicModel::hasLinkModel(const std::string &name) const
+bool robot_model::RobotModel::hasLinkModel(const std::string &name) const
 {
   return link_model_map_.find(name) != link_model_map_.end();
 }
 
-const kinematic_model::JointModel* kinematic_model::KinematicModel::getJointModel(const std::string &name) const
+const robot_model::JointModel* robot_model::RobotModel::getJointModel(const std::string &name) const
 {
   std::map<std::string, JointModel*>::const_iterator it = joint_model_map_.find(name);
   if (it == joint_model_map_.end())
@@ -978,7 +978,7 @@ const kinematic_model::JointModel* kinematic_model::KinematicModel::getJointMode
     return it->second;
 }
 
-const kinematic_model::LinkModel* kinematic_model::KinematicModel::getLinkModel(const std::string &name) const
+const robot_model::LinkModel* robot_model::RobotModel::getLinkModel(const std::string &name) const
 {
   std::map<std::string, LinkModel*>::const_iterator it = link_model_map_.find(name);
   if (it == link_model_map_.end())
@@ -990,7 +990,7 @@ const kinematic_model::LinkModel* kinematic_model::KinematicModel::getLinkModel(
     return it->second;
 }
 
-void kinematic_model::KinematicModel::getChildLinkModels(const LinkModel *parent, std::vector<const LinkModel*> &links) const
+void robot_model::RobotModel::getChildLinkModels(const LinkModel *parent, std::vector<const LinkModel*> &links) const
 {
   links.clear();
   links.push_back(parent);
@@ -1015,12 +1015,12 @@ void kinematic_model::KinematicModel::getChildLinkModels(const LinkModel *parent
   }
 }
 
-void kinematic_model::KinematicModel::getChildLinkModels(const JointModel *parent, std::vector<const LinkModel*> &links) const
+void robot_model::RobotModel::getChildLinkModels(const JointModel *parent, std::vector<const LinkModel*> &links) const
 {
   getChildLinkModels(parent->child_link_model_, links);
 }
 
-void kinematic_model::KinematicModel::getChildJointModels(const LinkModel *parent, std::vector<const JointModel*> &joints) const
+void robot_model::RobotModel::getChildJointModels(const LinkModel *parent, std::vector<const JointModel*> &joints) const
 {
   joints.clear();
   std::queue<const LinkModel*> q;
@@ -1045,13 +1045,13 @@ void kinematic_model::KinematicModel::getChildJointModels(const LinkModel *paren
   }
 }
 
-void kinematic_model::KinematicModel::getChildJointModels(const JointModel *parent, std::vector<const JointModel*> &joints) const
+void robot_model::RobotModel::getChildJointModels(const JointModel *parent, std::vector<const JointModel*> &joints) const
 {
   getChildJointModels(parent->child_link_model_, joints);
   joints.insert(joints.begin(), parent);
 }
 
-std::vector<std::string> kinematic_model::KinematicModel::getChildLinkModelNames(const LinkModel *parent) const
+std::vector<std::string> robot_model::RobotModel::getChildLinkModelNames(const LinkModel *parent) const
 {
   std::vector<const LinkModel*> links;
   getChildLinkModels(parent, links);
@@ -1061,7 +1061,7 @@ std::vector<std::string> kinematic_model::KinematicModel::getChildLinkModelNames
   return ret_vec;
 }
 
-std::vector<std::string> kinematic_model::KinematicModel::getChildLinkModelNames(const JointModel *parent) const
+std::vector<std::string> robot_model::RobotModel::getChildLinkModelNames(const JointModel *parent) const
 {
   std::vector<const LinkModel*> links;
   getChildLinkModels(parent, links);
@@ -1071,7 +1071,7 @@ std::vector<std::string> kinematic_model::KinematicModel::getChildLinkModelNames
   return ret_vec;
 }
 
-std::vector<std::string> kinematic_model::KinematicModel::getChildJointModelNames(const LinkModel *parent) const
+std::vector<std::string> robot_model::RobotModel::getChildJointModelNames(const LinkModel *parent) const
 {
   std::vector<const JointModel*> joints;
   getChildJointModels(parent, joints);
@@ -1081,7 +1081,7 @@ std::vector<std::string> kinematic_model::KinematicModel::getChildJointModelName
   return ret_vec;
 }
 
-std::vector<std::string> kinematic_model::KinematicModel::getChildJointModelNames(const JointModel *parent) const
+std::vector<std::string> robot_model::RobotModel::getChildJointModelNames(const JointModel *parent) const
 {
   std::vector<const JointModel*> joints;
   getChildJointModels(parent, joints);
@@ -1092,35 +1092,35 @@ std::vector<std::string> kinematic_model::KinematicModel::getChildJointModelName
 }
 
 
-void kinematic_model::KinematicModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
+void robot_model::RobotModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
     if (joint_model_vector_[i]->mimic_ == NULL)
       joint_model_vector_[i]->getVariableRandomValues(rng, values);
 }
 
-void kinematic_model::KinematicModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
+void robot_model::RobotModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
 {
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
     if (joint_model_vector_[i]->mimic_ == NULL)
       joint_model_vector_[i]->getVariableRandomValues(rng, values);
 }
 
-void kinematic_model::KinematicModel::getVariableDefaultValues(std::vector<double> &values) const
+void robot_model::RobotModel::getVariableDefaultValues(std::vector<double> &values) const
 {
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
     if (joint_model_vector_[i]->mimic_ == NULL)
       joint_model_vector_[i]->getVariableDefaultValues(values);
 }
 
-void kinematic_model::KinematicModel::getVariableDefaultValues(std::map<std::string, double> &values) const
+void robot_model::RobotModel::getVariableDefaultValues(std::map<std::string, double> &values) const
 {
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
     if (joint_model_vector_[i]->mimic_ == NULL)
       joint_model_vector_[i]->getVariableDefaultValues(values);
 }
 
-void kinematic_model::KinematicModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn> &allocators)
+void robot_model::RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn> &allocators)
 {
   for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
   {
@@ -1176,7 +1176,7 @@ void kinematic_model::KinematicModel::setKinematicsAllocators(const std::map<std
   }
 }
 
-void kinematic_model::KinematicModel::printModelInfo(std::ostream &out) const
+void robot_model::RobotModel::printModelInfo(std::ostream &out) const
 {
   out << "Model " << model_name_ << " in frame " << model_frame_ << ", of dimension " << getVariableCount() << std::endl;
 
@@ -1234,7 +1234,7 @@ void kinematic_model::KinematicModel::printModelInfo(std::ostream &out) const
   }
 }
 
-void kinematic_model::KinematicModel::computeFixedTransforms(LinkModel *link, const Eigen::Affine3d &transform, LinkModelToAffine3dMap &associated_transforms)
+void robot_model::RobotModel::computeFixedTransforms(LinkModel *link, const Eigen::Affine3d &transform, LinkModelToAffine3dMap &associated_transforms)
 {
   associated_transforms[link] = transform;
   for (std::size_t i = 0 ; i < link->getChildJointModels().size() ; ++i)

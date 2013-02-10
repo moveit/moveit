@@ -36,7 +36,7 @@
 
 #include <moveit/collision_detection/allvalid/collision_robot.h>
 
-collision_detection::CollisionRobotAllValid::CollisionRobotAllValid(const kinematic_model::KinematicModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
+collision_detection::CollisionRobotAllValid::CollisionRobotAllValid(const robot_model::RobotModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
 {
 }
 

@@ -35,7 +35,7 @@
 #ifndef MOVEIT_ROBOT_STATE_LINK_STATE_
 #define MOVEIT_ROBOT_STATE_LINK_STATE_
 
-#include <moveit/kinematic_model/link_model.h>
+#include <moveit/robot_model/link_model.h>
 #include <eigen_stl_containers/eigen_stl_containers.h>
 
 namespace robot_state
@@ -54,7 +54,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   /** @brief Constructor */
-  LinkState(RobotState *state, const kinematic_model::LinkModel *lm);
+  LinkState(RobotState *state, const robot_model::LinkModel *lm);
 
   ~LinkState();
   
@@ -86,7 +86,7 @@ public:
   void updateAttachedBodies();
   
   /** @brief Get the link model corresponding to this state */
-  const kinematic_model::LinkModel* getLinkModel() const
+  const robot_model::LinkModel* getLinkModel() const
   {
     return link_model_;
   }
@@ -150,7 +150,7 @@ private:
   /** \brief The kinematic state this link is part of */
   RobotState *kinematic_state_;
   
-  const kinematic_model::LinkModel    *link_model_;
+  const robot_model::LinkModel    *link_model_;
   
   const JointState                    *parent_joint_state_;
   

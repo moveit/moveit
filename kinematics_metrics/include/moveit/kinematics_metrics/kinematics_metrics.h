@@ -53,8 +53,8 @@ class KinematicsMetrics
 {
 public:  
     
-  /** \brief Construct a KinematicsMetricss from a KinematicModel */
-  KinematicsMetrics(const kinematic_model::KinematicModelConstPtr &kinematic_model) : 
+  /** \brief Construct a KinematicsMetricss from a RobotModel */
+  KinematicsMetrics(const robot_model::RobotModelConstPtr &kinematic_model) : 
     kinematic_model_(kinematic_model)
   {
   }
@@ -78,7 +78,7 @@ public:
    * @return False if the group was not found
    */
   bool getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
-                              const kinematic_model::JointModelGroup *joint_model_group,
+                              const robot_model::JointModelGroup *joint_model_group,
                               double &manipulability_index) const;
     
   /**
@@ -103,7 +103,7 @@ public:
    * @return False if the group was not found
    */
   bool getManipulabilityEllipsoid(const robot_state::RobotState &kinematic_state,
-                                  const kinematic_model::JointModelGroup *joint_model_group,
+                                  const robot_model::JointModelGroup *joint_model_group,
                                   Eigen::MatrixXcd &eigen_values,
                                   Eigen::MatrixXcd &eigen_vectors) const;
   
@@ -130,15 +130,15 @@ public:
    * @return False if the group was not found
    */
   bool getManipulability(const robot_state::RobotState &kinematic_state,
-                         const kinematic_model::JointModelGroup *joint_model_group,
+                         const robot_model::JointModelGroup *joint_model_group,
                          double &condition_number) const;
 
 protected:
   
-  kinematic_model::KinematicModelConstPtr kinematic_model_;
+  robot_model::RobotModelConstPtr kinematic_model_;
     
   Eigen::MatrixXd getJacobian(const robot_state::RobotState &kinematic_state,
-                              const kinematic_model::JointModelGroup *joint_model_group) const;  
+                              const robot_model::JointModelGroup *joint_model_group) const;  
   
 };
 

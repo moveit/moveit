@@ -37,7 +37,7 @@
 #ifndef MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
 #define MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
 #include <moveit/collision_detection/collision_world.h>
@@ -89,7 +89,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  KinematicConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf);
+  KinematicConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf);
   virtual ~KinematicConstraint();
   
   /** \brief Clear the stored constraint */
@@ -162,7 +162,7 @@ public:
    * 
    * @return The kinematic model associated with this constraint
    */
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
   }
@@ -180,7 +180,7 @@ public:
 protected:
   
   ConstraintType                          type_; /**< \brief The type of the constraint */
-  kinematic_model::KinematicModelConstPtr kmodel_; /**< \brief The kinematic model associated with this constraint */
+  robot_model::RobotModelConstPtr kmodel_; /**< \brief The kinematic model associated with this constraint */
   robot_state::TransformsConstPtr     tf_; /**< \brief The transforms associated with the constraint */
   double                                  constraint_weight_; /**< \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function  */
 };
@@ -216,7 +216,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  JointConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
+  JointConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), joint_model_(NULL)
   {
     type_ = JOINT_CONSTRAINT;
@@ -263,7 +263,7 @@ public:
    * 
    * @return The relevant joint model if enabled, and otherwise NULL
    */
-  const kinematic_model::JointModel* getJointModel() const
+  const robot_model::JointModel* getJointModel() const
   {
     return joint_model_;
   }
@@ -281,7 +281,7 @@ public:
   }
 
   /** 
-   *  \brief Gets the joint variable name, as known to the kinematic_model::KinematicModel
+   *  \brief Gets the joint variable name, as known to the robot_model::RobotModel
    *
    * This will include the local variable name if a variable of a multi-DOF joint is constrained.
    * 
@@ -327,7 +327,7 @@ public:
   
 protected:
   
-  const kinematic_model::JointModel *joint_model_; /**< \brief The joint from the kinematic model for this constraint */
+  const robot_model::JointModel *joint_model_; /**< \brief The joint from the kinematic model for this constraint */
   bool                                               joint_is_continuous_; /**< \brief Whether or not the joint is continuous */
   std::string                                        local_variable_name_; /**< \brief The local variable name for a multi DOF joint, if any */
   std::string                                        joint_variable_name_; /**< \brief The joint variable name */
@@ -357,7 +357,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  OrientationConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
+  OrientationConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
     type_ = ORIENTATION_CONSTRAINT;
@@ -406,7 +406,7 @@ public:
    * 
    * @return Returns the current link model
    */
-  const kinematic_model::LinkModel* getLinkModel() const
+  const robot_model::LinkModel* getLinkModel() const
   {
     return link_model_;
   }
@@ -478,7 +478,7 @@ public:
   
 protected:
   
-  const kinematic_model::LinkModel *link_model_; /**< \brief The target link model */
+  const robot_model::LinkModel *link_model_; /**< \brief The target link model */
   Eigen::Matrix3d                                   desired_rotation_matrix_; /**< \brief The desired rotation matrix in the tf frame */
   Eigen::Matrix3d                                   desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for efficiency */
   std::string                                       desired_rotation_frame_id_; /**< \brief The target frame of the transform tree */
@@ -513,7 +513,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  PositionConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
+  PositionConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
     type_ = POSITION_CONSTRAINT;
@@ -572,7 +572,7 @@ public:
    * 
    * @return The link model
    */  
-  const kinematic_model::LinkModel* getLinkModel() const
+  const robot_model::LinkModel* getLinkModel() const
   {
     return link_model_;
   }
@@ -645,7 +645,7 @@ protected:
   EigenSTL::vector_Affine3d                         constraint_region_pose_; /**< \brief The constraint region pose vector */
   bool                                              mobile_frame_; /**< \brief Whether or not a mobile frame is employed*/
   std::string                                       constraint_frame_id_; /**< \brief The constraint frame id */
-  const kinematic_model::LinkModel *link_model_; /**< \brief The link model constraint subject */
+  const robot_model::LinkModel *link_model_; /**< \brief The link model constraint subject */
 };
 
 /**
@@ -756,7 +756,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  VisibilityConstraint(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf);
+  VisibilityConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf);
 
   /** 
    * \brief Configure the constraint based on a
@@ -867,7 +867,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    * @param [in] tf The transform set used for constraint evaluation
    */
-  KinematicConstraintSet(const kinematic_model::KinematicModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
+  KinematicConstraintSet(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
     kmodel_(model), tf_(tf)
   {
   }
@@ -1053,7 +1053,7 @@ public:
   
 protected:
   
-  kinematic_model::KinematicModelConstPtr         kmodel_; /**< \brief The kinematic model used for by the Set */
+  robot_model::RobotModelConstPtr         kmodel_; /**< \brief The kinematic model used for by the Set */
   robot_state::TransformsConstPtr             tf_; /**< \brief The transforms used by the Set */
   
   std::vector<KinematicConstraintPtr>             kinematic_constraints_; /**<  \brief Shared pointers to all the member constraints */

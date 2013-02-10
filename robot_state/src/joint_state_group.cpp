@@ -41,10 +41,10 @@
 #include <Eigen/SVD>
 
 robot_state::JointStateGroup::JointStateGroup(RobotState *state,
-                                                  const kinematic_model::JointModelGroup *jmg) :
+                                                  const robot_model::JointModelGroup *jmg) :
   kinematic_state_(state), joint_model_group_(jmg)
 {
-  const std::vector<const kinematic_model::JointModel*>& joint_model_vector = jmg->getJointModels();
+  const std::vector<const robot_model::JointModel*>& joint_model_vector = jmg->getJointModels();
   for (std::size_t i = 0; i < joint_model_vector.size() ; ++i)
   {
     if (!kinematic_state_->hasJointState(joint_model_vector[i]->getName()))
@@ -56,7 +56,7 @@ robot_state::JointStateGroup::JointStateGroup(RobotState *state,
     joint_state_vector_.push_back(js);
     joint_state_map_[joint_model_vector[i]->getName()] = js;
   }
-  const std::vector<const kinematic_model::LinkModel*>& link_model_vector = jmg->getUpdatedLinkModels();
+  const std::vector<const robot_model::LinkModel*>& link_model_vector = jmg->getUpdatedLinkModels();
   for (unsigned int i = 0; i < link_model_vector.size(); i++)
   {
     if (!kinematic_state_->hasLinkState(link_model_vector[i]->getName()))
@@ -68,7 +68,7 @@ robot_state::JointStateGroup::JointStateGroup(RobotState *state,
     updated_links_.push_back(ls);
   }
   
-  const std::vector<const kinematic_model::JointModel*>& joint_root_vector = jmg->getJointRoots();
+  const std::vector<const robot_model::JointModel*>& joint_root_vector = jmg->getJointRoots();
   for (std::size_t i = 0; i < joint_root_vector.size(); ++i)
   {
     JointState* js = kinematic_state_->getJointState(joint_root_vector[i]->getName());
@@ -194,7 +194,7 @@ void robot_state::JointStateGroup::setToRandomValues()
 }
 
 void robot_state::JointStateGroup::setToRandomValuesNearBy(const std::vector<double> &near, 
-                                                           const std::map<kinematic_model::JointModel::JointType, double> &distance_map)
+                                                           const std::map<robot_model::JointModel::JointType, double> &distance_map)
 {
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
   std::vector<double> variable_values;
@@ -377,11 +377,11 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
     }
     if (tip != tip_frame)
     {
-      const kinematic_model::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
+      const robot_model::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
       if (!lm)
         return false;
-      const kinematic_model::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-      for (std::map<const kinematic_model::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+      const robot_model::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+      for (std::map<const robot_model::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
         if (it->first->getName() == tip_frame)
         {
           tip = tip_frame;
@@ -567,11 +567,11 @@ bool robot_state::JointStateGroup::setFromIK(const EigenSTL::vector_Affine3d &po
       }
       if (tip != tip_frame)
       {
-        const kinematic_model::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
+        const robot_model::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
         if (!lm)
           return false;
-        const kinematic_model::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-        for (std::map<const kinematic_model::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+        const robot_model::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+        for (std::map<const robot_model::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
           if (it->first->getName() == tip_frame)
           {
             tip = tip_frame;
@@ -775,16 +775,16 @@ bool robot_state::JointStateGroup::avoidJointLimitsSecondaryTask(const robot_sta
     qrange(i) = qmax(i) - qmin(i);
 
     //Fill in stvector with the gradient of a joint limit avoidance cost function
-    const std::vector<const kinematic_model::JointModel*> joint_models = joint_state_group->getJointModelGroup()->getJointModels();
+    const std::vector<const robot_model::JointModel*> joint_models = joint_state_group->getJointModelGroup()->getJointModels();
     if (qrange(i) == 0)
     {
       //If the joint range is zero do not compute the cost
       stvector(i) = 0;
     }
-    else if (joint_models[i]->getType() == kinematic_model::JointModel::REVOLUTE)
+    else if (joint_models[i]->getType() == robot_model::JointModel::REVOLUTE)
     {
       //If the joint is continuous do not compute the cost
-      const kinematic_model::RevoluteJointModel *rjoint = static_cast<const kinematic_model::RevoluteJointModel*>(joint_models[i]);
+      const robot_model::RevoluteJointModel *rjoint = static_cast<const robot_model::RevoluteJointModel*>(joint_models[i]);
       if (rjoint->isContinuous())
         stvector(i) = 0;
     }
@@ -832,14 +832,14 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
   if (!link_state)
     return 0.0;
 
-  const std::vector<const kinematic_model::JointModel*> &jnt = joint_model_group_->getJointModels();
+  const std::vector<const robot_model::JointModel*> &jnt = joint_model_group_->getJointModels();
 
   // make sure that continuous joints wrap, but remember how much we wrapped them
   std::map<std::string, double> upd_continuous_joints;
   for (std::size_t i = 0 ; i < jnt.size() ; ++i)
-    if (jnt[i]->getType() == kinematic_model::JointModel::REVOLUTE)
+    if (jnt[i]->getType() == robot_model::JointModel::REVOLUTE)
     {
-      if (static_cast<const kinematic_model::RevoluteJointModel*>(jnt[i])->isContinuous())
+      if (static_cast<const robot_model::RevoluteJointModel*>(jnt[i])->isContinuous())
       {
         double initial = joint_state_vector_[i]->getVariableValues()[0];
         joint_state_vector_[i]->enforceBounds();
@@ -975,7 +975,7 @@ bool robot_state::JointStateGroup::getJacobian(const std::string &link_name,
     return false;
   }
   
-  const kinematic_model::JointModel* root_joint_model = (joint_model_group_->getJointRoots())[0];
+  const robot_model::JointModel* root_joint_model = (joint_model_group_->getJointRoots())[0];
   const robot_state::LinkState *root_link_state = kinematic_state_->getLinkState(root_joint_model->getParentLinkModel()->getName());
   Eigen::Affine3d reference_transform = root_link_state ? root_link_state->getGlobalLinkTransform() : kinematic_state_->getRootTransform();
   reference_transform = reference_transform.inverse();
@@ -1005,22 +1005,22 @@ bool robot_state::JointStateGroup::getJacobian(const std::string &link_name,
     
     if (joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
     {
-      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::REVOLUTE)
+      if (link_state->getParentJointState()->getJointModel()->getType() == robot_model::JointModel::REVOLUTE)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
-        joint_axis = joint_transform.rotation()*(static_cast<const kinematic_model::RevoluteJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
+        joint_axis = joint_transform.rotation()*(static_cast<const robot_model::RevoluteJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
         jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
         jacobian.block<3,1>(3,joint_index) = joint_axis;
       }
-      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PRISMATIC)
+      if (link_state->getParentJointState()->getJointModel()->getType() == robot_model::JointModel::PRISMATIC)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
-        joint_axis = joint_transform*(static_cast<const kinematic_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
+        joint_axis = joint_transform*(static_cast<const robot_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
         jacobian.block<3,1>(0,joint_index) = joint_axis;
       }
-      if (link_state->getParentJointState()->getJointModel()->getType() == kinematic_model::JointModel::PLANAR)
+      if (link_state->getParentJointState()->getJointModel()->getType() == robot_model::JointModel::PLANAR)
       {
         unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();

@@ -32,18 +32,18 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_KINEMATIC_MODEL_REVOLUTE_JOINT_MODEL_
-#define MOVEIT_KINEMATIC_MODEL_REVOLUTE_JOINT_MODEL_
+#ifndef MOVEIT_ROBOT_MODEL_REVOLUTE_JOINT_MODEL_
+#define MOVEIT_ROBOT_MODEL_REVOLUTE_JOINT_MODEL_
 
-#include <moveit/kinematic_model/joint_model.h>
+#include <moveit/robot_model/joint_model.h>
 
-namespace kinematic_model
+namespace robot_model
 {
 
 /** \brief A revolute joint */
 class RevoluteJointModel : public JointModel
 {
-  friend class KinematicModel;
+  friend class RobotModel;
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   

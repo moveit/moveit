@@ -46,7 +46,7 @@ class CollisionRobotAllValid : public CollisionRobot
 {
 public:
   
-  CollisionRobotAllValid(const kinematic_model::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
+  CollisionRobotAllValid(const robot_model::RobotModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
   CollisionRobotAllValid(const CollisionRobot &other);
   
   virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state) const;

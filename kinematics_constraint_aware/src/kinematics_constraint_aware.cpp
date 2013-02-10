@@ -37,7 +37,7 @@
 
 // // ROS msgs
 #include <moveit/kinematics_constraint_aware/kinematics_constraint_aware.h>
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
@@ -45,7 +45,7 @@
 namespace kinematics_constraint_aware
 {
 
-KinematicsConstraintAware::KinematicsConstraintAware(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+KinematicsConstraintAware::KinematicsConstraintAware(const robot_model::RobotModelConstPtr &kinematic_model,
                                                      const std::string &group_name)
 {
   if(!kinematic_model->hasJointModelGroup(group_name))
@@ -338,7 +338,7 @@ EigenSTL::vector_Affine3d KinematicsConstraintAware::transformPoses(const planni
 {
   Eigen::Affine3d eigen_pose, eigen_pose_2;
   EigenSTL::vector_Affine3d result(poses.size());  
-  bool target_frame_is_root_frame = (target_frame == kinematic_state.getKinematicModel()->getModelFrame());  
+  bool target_frame_is_root_frame = (target_frame == kinematic_state.getRobotModel()->getModelFrame());  
   for(std::size_t i = 0; i < poses.size(); ++i)
   {    
     geometry_msgs::Pose pose = poses[i].pose;    

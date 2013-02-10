@@ -36,7 +36,7 @@
 
 #include <moveit/robot_state/joint_state.h>
 
-robot_state::JointState::JointState(const kinematic_model::JointModel *jm) : joint_model_(jm)
+robot_state::JointState::JointState(const robot_model::JointModel *jm) : joint_model_(jm)
 {
   joint_state_values_.resize(getVariableCount());
   variable_transform_.setIdentity();

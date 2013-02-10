@@ -76,7 +76,7 @@ public:
   } 
 
   /** \brief Get the link this body is attached to */
-  const kinematic_model::LinkModel* getAttachedLink() const
+  const robot_model::LinkModel* getAttachedLink() const
   {
     return parent_link_state_->getLinkModel();
   }

@@ -36,7 +36,7 @@
 
 #include <moveit/collision_detection_fcl/collision_robot.h>
 
-collision_detection::CollisionRobotFCL::CollisionRobotFCL(const kinematic_model::KinematicModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
+collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
 {
   links_ = kmodel_->getLinkModels();
   
@@ -147,7 +147,7 @@ void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const Coll
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(getKinematicModel());
+  cd.enableGroup(getRobotModel());
   manager.manager_->collide(&cd, &collisionCallback);
   if (req.distance)
     res.distance = distanceSelfHelper(state, acm);
@@ -191,7 +191,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
   fcl_rob.constructFCLObject(other_state, other_fcl_obj);
   
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(getKinematicModel());
+  cd.enableGroup(getRobotModel());
   for (std::size_t i = 0 ; !cd.done_ && i < other_fcl_obj.collision_objects_.size() ; ++i)
     manager.manager_->collide(other_fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
   if (req.distance)
@@ -203,7 +203,7 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
     std::map<std::string, std::size_t>::const_iterator it = index_map_.find(links[i]);
-    const kinematic_model::LinkModel *lmodel = kmodel_->getLinkModel(links[i]);
+    const robot_model::LinkModel *lmodel = kmodel_->getLinkModel(links[i]);
     if (it != index_map_.end() && lmodel)
     {
       FCLGeometryConstPtr g = createCollisionGeometry(lmodel->getShape(), getLinkScale(links[i]), getLinkPadding(links[i]), lmodel);
@@ -234,7 +234,7 @@ double collision_detection::CollisionRobotFCL::distanceSelfHelper(const robot_st
   CollisionRequest req;
   CollisionResult res;
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(getKinematicModel());
+  cd.enableGroup(getRobotModel());
 
   manager.manager_->distance(&cd, &distanceCallback);
 
@@ -271,7 +271,7 @@ double collision_detection::CollisionRobotFCL::distanceOtherHelper(const robot_s
   CollisionRequest req;
   CollisionResult res;
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(getKinematicModel());
+  cd.enableGroup(getRobotModel());
   for(std::size_t i = 0; !cd.done_ && i < other_fcl_obj.collision_objects_.size(); ++i)
     manager.manager_->distance(other_fcl_obj.collision_objects_[i].get(), &cd, &distanceCallback);
   

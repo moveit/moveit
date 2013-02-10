@@ -189,7 +189,7 @@ protected:
   random_numbers::RandomNumberGenerator           random_number_generator_; /**< \brief Random number generator used to sample */
   std::vector<JointInfo>                          bounds_; /**< \brief The bounds for any joint with bounds that are more restrictive than the joint limits */
 
-  std::vector<const kinematic_model::JointModel*> unbounded_; /**< \brief The joints that are not bounded except by joint limits */
+  std::vector<const robot_model::JointModel*> unbounded_; /**< \brief The joints that are not bounded except by joint limits */
   std::vector<unsigned int>                       uindex_; /**< \brief The index of the unbounded joints in the joint state vector */
   std::vector<double>                             values_; /**< \brief Values associated with this group to avoid continuously reallocating */
 };

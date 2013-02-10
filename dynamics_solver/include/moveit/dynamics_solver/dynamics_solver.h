@@ -65,13 +65,13 @@ public:
    * @param group_name The name of the group to compute stuff for
    * @return False if initialization failed
    */
-  DynamicsSolver(const kinematic_model::KinematicModelConstPtr &kinematic_model,
+  DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_model,
                  const std::string &group_name,
                  const geometry_msgs::Vector3 &gravity_vector);
   
   /**
    * @brief Get the torques (the order of all input and output is the same 
-   * as the order of joints for this group in the KinematicModel)
+   * as the order of joints for this group in the RobotModel)
    * @param joint_angles The joint angles (desired joint configuration)
    * this must have size = number of joints in the group
    * @param joint_velocities The desired joint velocities
@@ -94,7 +94,7 @@ public:
    * @brief Get the maximum payload for this group (in kg). Payload is 
    * the weight that this group can hold when the weight is attached to the origin
    * of the last link of this group. (The order of joint_angles vector is the same 
-   * as the order of joints for this group in the KinematicModel)
+   * as the order of joints for this group in the RobotModel)
    * @param joint_angles The joint angles (desired joint configuration)
    * this must have size = number of joints in the group
    * @param payload The computed maximum payload
@@ -129,7 +129,7 @@ public:
    * @brief Get the kinematic model
    * @return kinematic model
    */
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kinematic_model_;
   }  
@@ -152,8 +152,8 @@ private:
   unsigned int num_joints_, num_segments_; // number of joints in group, number of segments in group
   std::vector<double> max_torques_; // vector of max torques
 
-  kinematic_model::KinematicModelConstPtr kinematic_model_; // kinematic model
-  const kinematic_model::JointModelGroup* joint_model_group_; //joint model group
+  robot_model::RobotModelConstPtr kinematic_model_; // kinematic model
+  const robot_model::JointModelGroup* joint_model_group_; //joint model group
 
   robot_state::RobotStatePtr kinematic_state_; //kinematic state
   robot_state::JointStateGroup* joint_state_group_; //joint state for the group

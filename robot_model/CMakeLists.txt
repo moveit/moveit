@@ -1,4 +1,4 @@
-set(MOVEIT_LIB_NAME moveit_kinematic_model)
+set(MOVEIT_LIB_NAME moveit_robot_model)
 
 add_library(${MOVEIT_LIB_NAME}
   src/link_model.cpp
@@ -9,7 +9,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/planar_joint_model.cpp
   src/floating_joint_model.cpp
   src/joint_model_group.cpp
-  src/kinematic_model.cpp
+  src/robot_model.cpp
   )
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})

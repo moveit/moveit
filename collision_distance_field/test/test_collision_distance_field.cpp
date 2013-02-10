@@ -34,7 +34,7 @@
 
 /** \author E. Gil Jones */
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
@@ -79,7 +79,7 @@ protected:
       urdf_ok_ = false;
     srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../kinematic_state/test/srdf/robot.xml");
 
-    kmodel_.reset(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
+    kmodel_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true));
 
@@ -102,7 +102,7 @@ protected:
   boost::shared_ptr<urdf::ModelInterface>           urdf_model_;
   boost::shared_ptr<srdf::Model>           srdf_model_;
   
-  kinematic_model::KinematicModelPtr             kmodel_;
+  robot_model::RobotModelPtr             kmodel_;
   
   robot_state::TransformsPtr                 ftf_;
   robot_state::TransformsConstPtr            ftf_const_;

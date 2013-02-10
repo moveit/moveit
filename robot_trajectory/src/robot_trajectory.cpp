@@ -40,7 +40,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <numeric>
 
-robot_trajectory::RobotTrajectory::RobotTrajectory(const kinematic_model::KinematicModelConstPtr &kmodel, const std::string &group) : 
+robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &kmodel, const std::string &group) : 
   kmodel_(kmodel),
   group_(group.empty() ? NULL : kmodel->getJointModelGroup(group))
 {
@@ -100,7 +100,7 @@ void robot_trajectory::RobotTrajectory::unwind()
   if (waypoints_.empty())
     return;
   
-  const std::vector<const kinematic_model::JointModel*> &cont_joints = group_ ? 
+  const std::vector<const robot_model::JointModel*> &cont_joints = group_ ? 
     group_->getContinuousJointModels() : kmodel_->getContinuousJointModels();
   
   for (std::size_t i = 0 ; i < cont_joints.size() ; ++i)
@@ -134,7 +134,7 @@ void robot_trajectory::RobotTrajectory::unwind(const robot_state::RobotState &st
   if (waypoints_.empty())
     return;
 
-  const std::vector<const kinematic_model::JointModel*> &cont_joints = group_ ? 
+  const std::vector<const robot_model::JointModel*> &cont_joints = group_ ? 
     group_->getContinuousJointModels() : kmodel_->getContinuousJointModels();
   
   for (std::size_t i = 0 ; i < cont_joints.size() ; ++i)
@@ -186,10 +186,10 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
   trajectory = moveit_msgs::RobotTrajectory();
   if (waypoints_.empty())
     return;
-  const std::vector<const kinematic_model::JointModel*> &jnt = group_ ? group_->getJointModels() : kmodel_->getJointModels();
+  const std::vector<const robot_model::JointModel*> &jnt = group_ ? group_->getJointModels() : kmodel_->getJointModels();
   
-  std::vector<const kinematic_model::JointModel*> onedof;
-  std::vector<const kinematic_model::JointModel*> mdof;
+  std::vector<const robot_model::JointModel*> onedof;
+  std::vector<const robot_model::JointModel*> mdof;
   trajectory.joint_trajectory.joint_names.clear();
   trajectory.multi_dof_joint_trajectory.joint_names.clear();
   

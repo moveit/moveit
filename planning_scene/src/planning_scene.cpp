@@ -100,7 +100,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   {
     collision_detection_allocator_.reset(parent_->collision_detection_allocator_->clone());
     if (parent_->isConfigured())
-      configure(parent_->getKinematicModel()->getURDF(), parent_->getKinematicModel()->getSRDF());
+      configure(parent_->getRobotModel()->getURDF(), parent_->getRobotModel()->getSRDF());
     if (!parent_->getName().empty())
       name_ = parent_->getName() + "+";
   }
@@ -127,30 +127,30 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
     bool same = configured_ && kmodel_->getURDF() == urdf_model && kmodel_->getSRDF() == srdf_model;
     if (!same || !kmodel_ || kmodel_->getRootLinkName() != root_link)
     {
-      kinematic_model::KinematicModelPtr newModel;
+      robot_model::RobotModelPtr newModel;
       if (root_link.empty())
-        newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
+        newModel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
       else
       {   
         const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
         if (root_link_ptr)
-          newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model, root_link));
+          newModel.reset(new robot_model::RobotModel(urdf_model, srdf_model, root_link));
         else
         {
           logError("Link '%s' (to be used as root) was not found in model '%s'. Attempting to construct model with default root link instead.",
                    root_link.c_str(), urdf_model->getName().c_str());
-          newModel.reset(new kinematic_model::KinematicModel(urdf_model, srdf_model));
+          newModel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
         }
       }
       return configure(newModel);
     }
   }
   else
-    return configure(kinematic_model::KinematicModelPtr());
+    return configure(robot_model::RobotModelPtr());
   return isConfigured();
 }
 
-bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicModelPtr &kmodel)
+bool planning_scene::PlanningScene::configure(const robot_model::RobotModelPtr &kmodel)
 {
   if (!kmodel && !parent_)
   {
@@ -188,11 +188,11 @@ bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicMo
       {
         acm_.reset(new collision_detection::AllowedCollisionMatrix());
         // Use default collision operations in the SRDF to setup the acm
-        acm_->setEntry(getKinematicModel()->getLinkModelNamesWithCollisionGeometry(),
-                      getKinematicModel()->getLinkModelNamesWithCollisionGeometry(), false);
+        acm_->setEntry(getRobotModel()->getLinkModelNamesWithCollisionGeometry(),
+                      getRobotModel()->getLinkModelNamesWithCollisionGeometry(), false);
   
         // allow collisions for pairs that have been disabled
-        const std::vector<srdf::Model::DisabledCollision> &dc = getKinematicModel()->getSRDF()->getDisabledCollisionPairs();
+        const std::vector<srdf::Model::DisabledCollision> &dc = getRobotModel()->getSRDF()->getDisabledCollisionPairs();
         for (std::size_t i = 0 ; i < dc.size() ; ++i)
         {
           acm_->setEntry(dc[i].link1_, dc[i].link2_, true);
@@ -237,12 +237,12 @@ bool planning_scene::PlanningScene::configure(const kinematic_model::KinematicMo
   return isConfigured();
 }
 
-const kinematic_model::KinematicModelPtr& planning_scene::PlanningScene::getKinematicModelNonConst()
+const robot_model::RobotModelPtr& planning_scene::PlanningScene::getRobotModelNonConst()
 {
   if (kmodel_ || !parent_)
     return kmodel_;
   const PlanningScene *p = parent_.get();
-  const kinematic_model::KinematicModelPtr *r = NULL;
+  const robot_model::RobotModelPtr *r = NULL;
   while (p && (!r || !*r))
   {
     r = &p->kmodel_;
@@ -445,7 +445,7 @@ void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &
 { 
   collision_detection::CollisionRequest req;
   req.contacts = true;
-  req.max_contacts = getKinematicModel()->getLinkModelsWithCollisionGeometry().size() + 1;
+  req.max_contacts = getRobotModel()->getLinkModelsWithCollisionGeometry().size() + 1;
   req.max_contacts_per_pair = 1;
   collision_detection::CollisionResult res;
   checkCollision(req, res, kstate, acm);
@@ -497,8 +497,8 @@ const robot_state::TransformsPtr& planning_scene::PlanningScene::getTransforms()
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const
 {
   scene.name = name_;
-  scene.robot_model_root = getKinematicModel()->getRootLinkName();
-  scene.robot_model_name = getKinematicModel()->getName();
+  scene.robot_model_root = getRobotModel()->getRootLinkName();
+  scene.robot_model_name = getRobotModel()->getName();
   scene.is_diff = true;
   
   if (ftf_)
@@ -703,8 +703,8 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 {
   scene.name = name_;
   scene.is_diff = false;
-  scene.robot_model_root = getKinematicModel()->getRootLinkName();
-  scene.robot_model_name = getKinematicModel()->getName();
+  scene.robot_model_root = getRobotModel()->getRootLinkName();
+  scene.robot_model_name = getRobotModel()->getName();
   getTransforms()->getTransforms(scene.fixed_frame_transforms);
 
   robot_state::robotStateToRobotStateMsg(getCurrentState(), scene.robot_state);
@@ -831,7 +831,7 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
 void planning_scene::PlanningScene::setCurrentState(const robot_state::RobotState &state)
 {
   if (!kstate_)
-    kstate_.reset(new robot_state::RobotState(getKinematicModel()));
+    kstate_.reset(new robot_state::RobotState(getRobotModel()));
   *kstate_ = state;
 }
 
@@ -841,7 +841,7 @@ void planning_scene::PlanningScene::decoupleParent()
     return;
   if (parent_->isConfigured())
   {
-    kmodel_ = getKinematicModelNonConst();
+    kmodel_ = getRobotModelNonConst();
     kmodel_const_ = kmodel_;
 
     if (!ftf_)
@@ -907,11 +907,11 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   if (!scene.name.empty())
     name_ = scene.name;
   
-  if (!scene.robot_model_name.empty() && scene.robot_model_name != getKinematicModel()->getName())
-    logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getKinematicModel()->getName().c_str());
+  if (!scene.robot_model_name.empty() && scene.robot_model_name != getRobotModel()->getName())
+    logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getRobotModel()->getName().c_str());
   
-  if (!scene.robot_model_root.empty() && scene.robot_model_root != getKinematicModel()->getRootLinkName())
-    logWarn("Setting scene with robot model root '%s' but the current planning scene uses link '%s' as root.", scene.robot_model_root.c_str(), getKinematicModel()->getRootLinkName().c_str());
+  if (!scene.robot_model_root.empty() && scene.robot_model_root != getRobotModel()->getRootLinkName())
+    logWarn("Setting scene with robot model root '%s' but the current planning scene uses link '%s' as root.", scene.robot_model_root.c_str(), getRobotModel()->getRootLinkName().c_str());
   
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
@@ -919,7 +919,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   {
     if (!ftf_)
     {
-      ftf_.reset(new robot_state::Transforms(getKinematicModel()->getModelFrame()));
+      ftf_.reset(new robot_state::Transforms(getRobotModel()->getModelFrame()));
       ftf_const_ = ftf_;
     }
     ftf_->setTransforms(scene.fixed_frame_transforms);
@@ -972,14 +972,14 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   logDebug("Setting new planning scene: '%s'", scene.name.c_str());
   name_ = scene.name;
   
-  if (!scene.robot_model_name.empty() && scene.robot_model_name != getKinematicModel()->getName())
-    logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getKinematicModel()->getName().c_str());
+  if (!scene.robot_model_name.empty() && scene.robot_model_name != getRobotModel()->getName())
+    logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getRobotModel()->getName().c_str());
 
   if (parent_)
   {
     // if we have a parent, but we set a new planning scene, then we do not care about the parent any more
     // and we no longer represent the scene as a diff
-    kmodel_ = getKinematicModelNonConst();
+    kmodel_ = getRobotModelNonConst();
     kmodel_const_ = kmodel_;
 
     if (!ftf_)
@@ -1006,8 +1006,8 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     parent_.reset();
   }
   // re-parent the robot model if needed
-  if (!scene.robot_model_root.empty() && scene.robot_model_root != getKinematicModel()->getRootLinkName())
-    configure(getKinematicModel()->getURDF(), getKinematicModel()->getSRDF(), scene.robot_model_root);
+  if (!scene.robot_model_root.empty() && scene.robot_model_root != getRobotModel()->getRootLinkName())
+    configure(getRobotModel()->getURDF(), getRobotModel()->getSRDF(), scene.robot_model_root);
   
   ftf_->setTransforms(scene.fixed_frame_transforms);
   kstate_->clearAttachedBodies();
@@ -1137,7 +1137,7 @@ void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<co
 
 bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object)
 {
-  if (!getKinematicModel()->hasLinkModel(object.link_name))
+  if (!getRobotModel()->hasLinkModel(object.link_name))
   {
     if (object.object.operation == moveit_msgs::CollisionObject::ADD)
       logError("Unable to attach a body to link '%s' (link not found)", object.link_name.c_str());
@@ -1496,7 +1496,7 @@ bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotS
 
 bool planning_scene::PlanningScene::isStateConstrained(const robot_state::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
 {
-  kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(getKinematicModel(), getTransforms()));
+  kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(getRobotModel(), getTransforms()));
   ks->add(constr);
   if (ks->empty())
     return true;
@@ -1591,7 +1591,7 @@ bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &s
                                                 const std::string &group, bool verbose,
                                                 std::vector<std::size_t> *invalid_index) const
 {  
-  robot_trajectory::RobotTrajectory t(getKinematicModel(), group);
+  robot_trajectory::RobotTrajectory t(getRobotModel(), group);
   robot_state::RobotState start(getCurrentState());
   robot_state::robotStateMsgToRobotState(*getTransforms(), start_state, start);
   t.setRobotTrajectoryMsg(start, trajectory);
@@ -1606,7 +1606,7 @@ bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTra
   bool result = true;
   if (invalid_index)
     invalid_index->clear();
-  kinematic_constraints::KinematicConstraintSet ks_p(getKinematicModel(), getTransforms());
+  kinematic_constraints::KinematicConstraintSet ks_p(getRobotModel(), getTransforms());
   ks_p.add(path_constraints);
   std::size_t n_wp = trajectory.getWayPointCount();
   for (std::size_t i = 0 ; i < n_wp ; ++i)

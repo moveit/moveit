@@ -34,7 +34,7 @@
 
 /** Author E. Gil Jones, Ioan Sucan */
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/conversions.h>
 #include <urdf_parser/urdf_parser.h>
@@ -94,7 +94,7 @@ TEST_F(LoadPlanningModelsPr2, MultidofInit)
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
 
     // with no world multidof we should get a fixed joint
-    kinematic_model::KinematicModel kin_model0(urdf_model_, srdfModel);
+    robot_model::RobotModel kin_model0(urdf_model_, srdfModel);
     EXPECT_TRUE(kin_model0.getRoot()->getVariableCount() == 0);
 
     static const std::string SMODEL1 =
@@ -104,7 +104,7 @@ TEST_F(LoadPlanningModelsPr2, MultidofInit)
         "</robot>";
     srdfModel->initString(*urdf_model_, SMODEL1);
 
-    kinematic_model::KinematicModel kin_model1(urdf_model_, srdfModel);
+    robot_model::RobotModel kin_model1(urdf_model_, srdfModel);
     ASSERT_TRUE(kin_model1.getRoot() != NULL);
     EXPECT_EQ(kin_model1.getModelFrame(), "base_footprint");
 
@@ -115,7 +115,7 @@ TEST_F(LoadPlanningModelsPr2, MultidofInit)
         "</robot>";
     srdfModel->initString(*urdf_model_, SMODEL2);
 
-    kinematic_model::KinematicModel kin_model2(urdf_model_, srdfModel);
+    robot_model::RobotModel kin_model2(urdf_model_, srdfModel);
     ASSERT_TRUE(kin_model2.getRoot() != NULL);
     EXPECT_EQ(kin_model2.getModelFrame(), "odom_combined");
 }
@@ -137,12 +137,12 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdf_model_, SMODEL1);
-    kinematic_model::KinematicModel kin_model1(urdf_model_, srdfModel);
+    robot_model::RobotModel kin_model1(urdf_model_, srdfModel);
 
-    const kinematic_model::JointModelGroup* left_arm_base_tip_group = kin_model1.getJointModelGroup("left_arm_base_tip");
+    const robot_model::JointModelGroup* left_arm_base_tip_group = kin_model1.getJointModelGroup("left_arm_base_tip");
     ASSERT_TRUE(left_arm_base_tip_group == NULL);
 
-    const kinematic_model::JointModelGroup* left_arm_joints_group = kin_model1.getJointModelGroup("left_arm_joints");
+    const robot_model::JointModelGroup* left_arm_joints_group = kin_model1.getJointModelGroup("left_arm_joints");
     ASSERT_TRUE(left_arm_joints_group == NULL);
 
     static const std::string SMODEL2 =
@@ -164,7 +164,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
         "</robot>";
     srdfModel->initString(*urdf_model_, SMODEL2);
 
-    kinematic_model::KinematicModelPtr kin_model2(new kinematic_model::KinematicModel(urdf_model_, srdfModel));
+    robot_model::RobotModelPtr kin_model2(new robot_model::RobotModel(urdf_model_, srdfModel));
 
     left_arm_base_tip_group = kin_model2->getJointModelGroup("left_arm_base_tip");
     ASSERT_TRUE(left_arm_base_tip_group != NULL);
@@ -226,13 +226,13 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
 TEST_F(LoadPlanningModelsPr2, SubgroupInit)
 {
-  kinematic_model::KinematicModel kmodel(urdf_model_, srdf_model_);  
-  const kinematic_model::JointModelGroup* jmg = kmodel.getJointModelGroup("arms");
+  robot_model::RobotModel kmodel(urdf_model_, srdf_model_);  
+  const robot_model::JointModelGroup* jmg = kmodel.getJointModelGroup("arms");
   ASSERT_TRUE(jmg);
   EXPECT_EQ(jmg->getSubgroupNames().size(), 2);
   EXPECT_TRUE(jmg->isSubgroup("right_arm"));
 
-  const kinematic_model::JointModelGroup* jmg2 = kmodel.getJointModelGroup("whole_body");
+  const robot_model::JointModelGroup* jmg2 = kmodel.getJointModelGroup("whole_body");
   EXPECT_EQ(jmg2->getSubgroupNames().size(), 4);
   EXPECT_TRUE(jmg2->isSubgroup("arms"));
   EXPECT_TRUE(jmg2->isSubgroup("right_arm"));
@@ -240,13 +240,13 @@ TEST_F(LoadPlanningModelsPr2, SubgroupInit)
 
 TEST_F(LoadPlanningModelsPr2, AssociatedFixedLinks)
 {
-  boost::shared_ptr<kinematic_model::KinematicModel> kmodel(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
+  boost::shared_ptr<robot_model::RobotModel> kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));
   
   EXPECT_TRUE(kmodel->getLinkModel("r_gripper_palm_link")->getAssociatedFixedTransforms().size() > 1);
 }
 
 TEST_F(LoadPlanningModelsPr2, RobotState *Copy) {
-  kinematic_model::KinematicModelPtr kmodel(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));    
+  robot_model::RobotModelPtr kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));    
 
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();

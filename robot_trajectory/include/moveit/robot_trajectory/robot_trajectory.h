@@ -48,14 +48,14 @@ namespace robot_trajectory
 class RobotTrajectory
 {
 public:
-  RobotTrajectory(const kinematic_model::KinematicModelConstPtr &kmodel, const std::string &group);
+  RobotTrajectory(const robot_model::RobotModelConstPtr &kmodel, const std::string &group);
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
   }
   
-  const kinematic_model::JointModelGroup* getGroup() const
+  const robot_model::JointModelGroup* getGroup() const
   {
     return group_;
   }
@@ -180,8 +180,8 @@ public:
   
 private:
 
-  kinematic_model::KinematicModelConstPtr kmodel_;
-  const kinematic_model::JointModelGroup *group_;
+  robot_model::RobotModelConstPtr kmodel_;
+  const robot_model::JointModelGroup *group_;
   std::deque<robot_state::RobotStatePtr> waypoints_;
   std::deque<double> duration_from_previous_;
 };

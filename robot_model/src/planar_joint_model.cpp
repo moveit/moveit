@@ -34,12 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/kinematic_model/planar_joint_model.h>
+#include <moveit/robot_model/planar_joint_model.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>
 
-kinematic_model::PlanarJointModel::PlanarJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
+robot_model::PlanarJointModel::PlanarJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
 {
   type_ = PLANAR;
   
@@ -54,19 +54,19 @@ kinematic_model::PlanarJointModel::PlanarJointModel(const std::string& name) : J
   variable_bounds_[2] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
 }
 
-unsigned int kinematic_model::PlanarJointModel::getStateSpaceDimension() const
+unsigned int robot_model::PlanarJointModel::getStateSpaceDimension() const
 {
   return 3;
 }
 
-double kinematic_model::PlanarJointModel::getMaximumExtent(const Bounds &other_bounds) const
+double robot_model::PlanarJointModel::getMaximumExtent(const Bounds &other_bounds) const
 {
   double dx = other_bounds[0].first - other_bounds[0].second;
   double dy = other_bounds[1].first - other_bounds[1].second;
   return sqrt(dx*dx + dy*dy) + boost::math::constants::pi<double>() * angular_distance_weight_;
 }
 
-void kinematic_model::PlanarJointModel::getVariableDefaultValues(std::vector<double>& values, const Bounds &bounds) const
+void robot_model::PlanarJointModel::getVariableDefaultValues(std::vector<double>& values, const Bounds &bounds) const
 {
   assert(bounds.size() > 1);
   for (unsigned int i = 0 ; i < 2 ; ++i)
@@ -80,7 +80,7 @@ void kinematic_model::PlanarJointModel::getVariableDefaultValues(std::vector<dou
   values.push_back(0.0);
 }
 
-void kinematic_model::PlanarJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
+void robot_model::PlanarJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
 {
   std::size_t s = values.size();
   values.resize(s + 3);
@@ -95,7 +95,7 @@ void kinematic_model::PlanarJointModel::getVariableRandomValues(random_numbers::
   values[s + 2] = rng.uniformReal(bounds[2].first, bounds[2].second);
 }
 
-void kinematic_model::PlanarJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+void robot_model::PlanarJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
                                                                       const std::vector<double> &near, const double distance) const
 {
   std::size_t s = values.size();
@@ -116,7 +116,7 @@ void kinematic_model::PlanarJointModel::getVariableRandomValuesNearBy(random_num
   normalizeRotation(values);
 }
 
-void kinematic_model::PlanarJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+void robot_model::PlanarJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
   // interpolate position
   state[0] = from[0] + (to[0] - from[0]) * t;
@@ -142,7 +142,7 @@ void kinematic_model::PlanarJointModel::interpolate(const std::vector<double> &f
   }
 }
 
-double kinematic_model::PlanarJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+double robot_model::PlanarJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
   assert(values1.size() == 3);
   assert(values2.size() == 3);
@@ -154,7 +154,7 @@ double kinematic_model::PlanarJointModel::distance(const std::vector<double> &va
   return sqrt(dx*dx + dy*dy) + angular_distance_weight_ * d;
 }
 
-bool kinematic_model::PlanarJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
+bool robot_model::PlanarJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   assert(bounds.size() > 1);
   for (unsigned int i = 0 ; i < 3 ; ++i)
@@ -163,7 +163,7 @@ bool kinematic_model::PlanarJointModel::satisfiesBounds(const std::vector<double
   return true;
 }
 
-bool kinematic_model::PlanarJointModel::normalizeRotation(std::vector<double> &values) const
+bool robot_model::PlanarJointModel::normalizeRotation(std::vector<double> &values) const
 {  
   double &v = values[2];
   if (v >= -boost::math::constants::pi<double>() && v <= boost::math::constants::pi<double>())
@@ -177,7 +177,7 @@ bool kinematic_model::PlanarJointModel::normalizeRotation(std::vector<double> &v
   return true;
 }
 
-void kinematic_model::PlanarJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
+void robot_model::PlanarJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
 {
   normalizeRotation(values);
   for (unsigned int i = 0 ; i < 2 ; ++i)
@@ -191,17 +191,17 @@ void kinematic_model::PlanarJointModel::enforceBounds(std::vector<double> &value
   }
 }
 
-void kinematic_model::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void robot_model::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   updateTransform(joint_values, transf);
 }
 
-void kinematic_model::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void robot_model::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], 0.0) * Eigen::AngleAxisd(joint_values[2], Eigen::Vector3d::UnitZ()));
 }
 
-void kinematic_model::PlanarJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
+void robot_model::PlanarJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(3);
   joint_values[0] = transf.translation().x();
@@ -219,7 +219,7 @@ void kinematic_model::PlanarJointModel::computeJointStateValues(const Eigen::Aff
   }
 }
 
-std::vector<moveit_msgs::JointLimits> kinematic_model::PlanarJointModel::getVariableLimits() const
+std::vector<moveit_msgs::JointLimits> robot_model::PlanarJointModel::getVariableLimits() const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getVariableLimits();
   ret_vec[2].has_position_limits = false;

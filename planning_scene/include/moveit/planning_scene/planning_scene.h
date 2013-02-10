@@ -37,7 +37,7 @@
 #ifndef MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
 #define MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
 #include <moveit/collision_detection/collision_world.h>
@@ -134,7 +134,7 @@ public:
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The kinematic model constructed from the parsed descriptions is also passed in. */
-  bool configure(const kinematic_model::KinematicModelPtr &kmodel);
+  bool configure(const robot_model::RobotModelPtr &kmodel);
 
   /** \brief Return a new planning scene that uses this one as parent. */
   PlanningScenePtr diff() const;
@@ -156,10 +156,10 @@ public:
   }
 
   /** \brief Get the kinematic model for which the planning scene is maintained */
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     // the kinematic model does not change
-    return parent_ ? parent_->getKinematicModel() : kmodel_const_;
+    return parent_ ? parent_->getRobotModel() : kmodel_const_;
   }
 
   /** \brief Get the state at which the robot is assumed to be */
@@ -506,7 +506,7 @@ public:
 protected:
 
   /** \brief Get the non-const kinematic model for which the planning scene is maintained */
-  const kinematic_model::KinematicModelPtr& getKinematicModelNonConst();
+  const robot_model::RobotModelPtr& getRobotModelNonConst();
 
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
@@ -515,7 +515,7 @@ protected:
   
   struct CollisionDetectionAllocBase
   {         
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const kinematic_model::KinematicModelConstPtr &kmodel) = 0;
+    virtual collision_detection::CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &kmodel) = 0;
     virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy) = 0;
     virtual collision_detection::CollisionWorldPtr allocateWorld() = 0;
     virtual collision_detection::CollisionWorldPtr allocateWorld(const collision_detection::CollisionWorldConstPtr &copy) = 0;
@@ -528,7 +528,7 @@ protected:
     BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionWorldType*, collision_detection::CollisionWorld*>));
     BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionRobotType*, collision_detection::CollisionRobot*>));
     
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const kinematic_model::KinematicModelConstPtr &kmodel)
+    virtual collision_detection::CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &kmodel)
     {
       return collision_detection::CollisionRobotPtr(new CollisionRobotType(kmodel));
     }
@@ -554,8 +554,8 @@ protected:
 	
   PlanningSceneConstPtr                          parent_;
 
-  kinematic_model::KinematicModelPtr             kmodel_;
-  kinematic_model::KinematicModelConstPtr        kmodel_const_;
+  robot_model::RobotModelPtr             kmodel_;
+  robot_model::RobotModelConstPtr        kmodel_const_;
 
   robot_state::RobotStatePtr             kstate_;
 

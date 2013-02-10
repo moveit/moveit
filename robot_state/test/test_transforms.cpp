@@ -34,7 +34,7 @@
 
 /** \author Ioan Sucan */
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
 #include <urdf_parser/urdf_parser.h>
@@ -86,7 +86,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   ASSERT_TRUE(urdf_ok_);
   ASSERT_EQ(urdf_model_->getName(), "pr2_test");
 
-  kinematic_model::KinematicModelPtr kmodel(new kinematic_model::KinematicModel(urdf_model_, srdf_model_));
+  robot_model::RobotModelPtr kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));
   robot_state::RobotState ks(kmodel);
   ks.setToRandomValues();
   ks.setToDefaultValues();

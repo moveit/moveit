@@ -37,7 +37,7 @@
 #include <moveit/robot_state/link_state.h>
 #include <moveit/robot_state/robot_state.h>
 
-robot_state::LinkState::LinkState(RobotState *state, const kinematic_model::LinkModel* lm) :
+robot_state::LinkState::LinkState(RobotState *state, const robot_model::LinkModel* lm) :
   kinematic_state_(state), link_model_(lm), parent_joint_state_(NULL), parent_link_state_(NULL)
 {
   global_link_transform_.setIdentity();

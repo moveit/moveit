@@ -54,8 +54,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   // If active components are specified
   if (cdata->active_components_only_)
   {
-    const kinematic_model::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
-    const kinematic_model::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+    const robot_model::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+    const robot_model::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
     
     // If neither of the involved components is active
     if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
@@ -357,8 +357,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   // If active components are specified
   if (cdata->active_components_only_)
   {
-    const kinematic_model::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
-    const kinematic_model::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+    const robot_model::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+    const robot_model::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
     
     // If neither of the involved components is active
     if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
@@ -654,9 +654,9 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 
 /////////////////////////////////////////////////////
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const kinematic_model::LinkModel *link)
+                                            const robot_model::LinkModel *link)
 {
-  return createCollisionGeometry<fcl::OBBRSS, kinematic_model::LinkModel>(shape, link);
+  return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, link);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
@@ -685,9 +685,9 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const kinematic_model::LinkModel *link)
+                                            const robot_model::LinkModel *link)
 {
-  return createCollisionGeometry<fcl::OBBRSS, kinematic_model::LinkModel>(shape, scale, padding, link);
+  return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, scale, padding, link);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
@@ -718,7 +718,7 @@ void cleanCollisionGeometryCache()
 
 }
 
-void collision_detection::CollisionData::enableGroup(const kinematic_model::KinematicModelConstPtr &kmodel)
+void collision_detection::CollisionData::enableGroup(const robot_model::RobotModelConstPtr &kmodel)
 {
   if (kmodel->hasJointModelGroup(req_->group_name))
     active_components_only_ = &kmodel->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsWithGeometrySet();

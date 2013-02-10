@@ -32,37 +32,46 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_KINEMATIC_MODEL_FIXED_JOINT_MODEL_
-#define MOVEIT_KINEMATIC_MODEL_FIXED_JOINT_MODEL_
+#ifndef MOVEIT_ROBOT_MODEL_PRISMATIC_JOINT_MODEL_
+#define MOVEIT_ROBOT_MODEL_PRISMATIC_JOINT_MODEL_
 
-#include <moveit/kinematic_model/joint_model.h>
+#include <moveit/robot_model/joint_model.h>
 
-namespace kinematic_model
+namespace robot_model
 {
 
-/** \brief A fixed joint */
-class FixedJointModel : public JointModel
+/** \brief A prismatic joint */
+class PrismaticJointModel : public JointModel
 {
-  friend class KinematicModel;
+  friend class RobotModel;
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
-  FixedJointModel(const std::string &name);
-  
-  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;    
+  PrismaticJointModel(const std::string& name);  
+  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;   
   virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
   virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
-                                             const std::vector<double> &near, const double distance) const;
+                                     const std::vector<double> &near, const double distance) const;
   virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
   virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const;
   
-  virtual unsigned int getStateSpaceDimension() const;   
-  virtual double getMaximumExtent(const Bounds &other_bounds) const;
-  virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;    
   virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
+  virtual unsigned int getStateSpaceDimension() const;
+  virtual double getMaximumExtent(const Bounds &other_bounds) const;
+  virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
   virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
-  virtual void computeJointStateValues(const Eigen::Affine3d& trans, std::vector<double>& joint_values) const;
+  virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const;
   virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
+  
+  /** \brief Get the axis of translation */
+  const Eigen::Vector3d& getAxis() const
+  {
+    return axis_;
+  }
+  
+protected:
+  /** \brief The axis of the joint */
+  Eigen::Vector3d axis_;
 };
 }
 

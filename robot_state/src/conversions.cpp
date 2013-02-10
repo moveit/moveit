@@ -83,7 +83,7 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
   Eigen::Affine3d inv_t;
   bool use_inv_t = false;
   
-  if (nj > 0 && mjs.header.frame_id != state.getKinematicModel()->getModelFrame())
+  if (nj > 0 && mjs.header.frame_id != state.getRobotModel()->getModelFrame())
   {
     if (tf)
       try
@@ -102,7 +102,7 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
       error = true;
     if (error)
       logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible to update that transform to frame '%s'",
-              mjs.header.frame_id.c_str(), state.getKinematicModel()->getModelFrame().c_str());
+              mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
   }
   
   for (std::size_t i = 0 ; i < nj ; ++i)
@@ -142,7 +142,7 @@ static inline void kinematicStateToMultiDOFJointState(const RobotState& state, m
       mjs.joint_names.push_back(js[i]->getName());
       mjs.joint_transforms.push_back(p);
     } 
-  mjs.header.frame_id = state.getKinematicModel()->getModelFrame();
+  mjs.header.frame_id = state.getRobotModel()->getModelFrame();
 }
 
 class ShapeVisitorAddToCollisionObject : public boost::static_visitor<void>
@@ -340,7 +340,7 @@ static bool robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_m
     if (!missing.empty())
       for (unsigned int i = 0 ; i < robot_state.multi_dof_joint_state.joint_names.size(); ++i)
       {
-        const kinematic_model::JointModel *jm = state.getKinematicModel()->getJointModel(robot_state.multi_dof_joint_state.joint_names[i]);
+        const robot_model::JointModel *jm = state.getRobotModel()->getJointModel(robot_state.multi_dof_joint_state.joint_names[i]);
         if (jm)
         {
           const std::vector<std::string> &vnames = jm->getVariableNames();
@@ -401,6 +401,6 @@ void robot_state::robotStateToJointStateMsg(const RobotState& state, sensor_msgs
       joint_state.position.push_back(js[i]->getVariableValues()[0]);
     }
   
-  joint_state.header.frame_id = state.getKinematicModel()->getModelFrame();
+  joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
 }
 
