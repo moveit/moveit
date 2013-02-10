@@ -369,10 +369,10 @@ void RobotPosesWidget::showPose( srdf::Model::GroupState *pose )
 void RobotPosesWidget::showDefaultPose()
 {
   // Get list of all joints for the robot
-  std::vector<const kinematic_model::JointModel*> joint_models = config_data_->getKinematicModel()->getJointModels();
+  std::vector<const robot_model::JointModel*> joint_models = config_data_->getRobotModel()->getJointModels();
 
   // Iterate through the joints
-  for( std::vector<const kinematic_model::JointModel*>::const_iterator joint_it = joint_models.begin();
+  for( std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
        joint_it < joint_models.end(); ++joint_it )
   {
 
@@ -509,7 +509,7 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
   const std::string group_name = selected.toStdString();
 
   // Check that joint model exist
-  if( !config_data_->getKinematicModel()->hasJointModelGroup( group_name ) )
+  if( !config_data_->getRobotModel()->hasJointModelGroup( group_name ) )
   {
     QMessageBox::critical( this, "Error Loading",
                            QString("Unable to find joint model group for group: ").append( group_name.c_str()).append(" Are you sure this group has associated joints/links?" ));
@@ -531,13 +531,13 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
   joint_list_widget_->setMinimumSize( 50, 50 ); // w, h
 
   // Get list of associated joints
-  const kinematic_model::JointModelGroup *joint_model_group =
-    config_data_->getKinematicModel()->getJointModelGroup( group_name );
+  const robot_model::JointModelGroup *joint_model_group =
+    config_data_->getRobotModel()->getJointModelGroup( group_name );
   joint_models_ = joint_model_group->getJointModels();
 
   // Iterate through the joints
   int num_joints = 0;
-  for( std::vector<const kinematic_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
+  for( std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
        joint_it < joint_models_.end(); ++joint_it )
   {
 
@@ -568,7 +568,7 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
 
       // Connect value change event
       connect( sw, SIGNAL( jointValueChanged( const std::string &, double ) ),
-               this, SLOT( updateKinematicModel( const std::string &, double ) ) );
+               this, SLOT( updateRobotModel( const std::string &, double ) ) );
 
       ++num_joints;
     }
@@ -723,7 +723,7 @@ void RobotPosesWidget::doneEditing()
   searched_data->joint_values_.clear();
 
   // Iterate through the current group's joints and add to SRDF
-  for( std::vector<const kinematic_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
+  for( std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
        joint_it < joint_models_.end(); ++joint_it )
   {
     // Check that this joint only represents 1 variable.
@@ -832,7 +832,7 @@ void RobotPosesWidget::focusGiven()
 // ******************************************************************************************
 // Call when one of the sliders has its value changed
 // ******************************************************************************************
-void RobotPosesWidget::updateKinematicModel( const std::string &name, double value )
+void RobotPosesWidget::updateRobotModel( const std::string &name, double value )
 {
   // Save the new value
   joint_state_map_[ name ] = value;
@@ -886,7 +886,7 @@ void RobotPosesWidget::publishJoints()
 // ******************************************************************************************
 // Simple widget for adjusting joints of a robot
 // ******************************************************************************************
-SliderWidget::SliderWidget( QWidget *parent, const kinematic_model::JointModel *joint_model,
+SliderWidget::SliderWidget( QWidget *parent, const robot_model::JointModel *joint_model,
                             double init_value )
   : QWidget( parent ), joint_model_( joint_model )
 {

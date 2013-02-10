@@ -96,8 +96,8 @@ struct ThreadComputation
 };
 
 // LinkGraph defines a Link's model and a set of unique links it connects
-typedef std::map<const kinematic_model::LinkModel*, 
-                 std::set<const kinematic_model::LinkModel*> > LinkGraph;
+typedef std::map<const robot_model::LinkModel*, 
+                 std::set<const robot_model::LinkModel*> > LinkGraph;
 
 // ******************************************************************************************
 // Static Prototypes
@@ -126,14 +126,14 @@ static void computeLinkPairs( planning_scene::PlanningScene &scene, LinkPairMap 
  * \param link The root link to begin a breadth first search on
  * \param link_graph A representation of all bi-direcitonal joint connections between links in robot_description
  */
-static void computeConnectionGraph(const kinematic_model::LinkModel *link, LinkGraph &link_graph);
+static void computeConnectionGraph(const robot_model::LinkModel *link, LinkGraph &link_graph);
 
 /**
  * \brief Recursively build the adj list of link connections
  * \param link The root link to begin a breadth first search on
  * \param link_graph A representation of all bi-direcitonal joint connections between links in robot_description
  */
-static void computeConnectionGraphRec(const kinematic_model::LinkModel *link, LinkGraph &link_graph);
+static void computeConnectionGraphRec(const robot_model::LinkModel *link, LinkGraph &link_graph);
 
 /**
  * \brief Disable collision checking for adjacent links, or adjacent with no geometry links between them
@@ -218,7 +218,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // or via a chain of joints with intermediate links with no geometry (like a socket joint)
 
   // Create Connection Graph
-  computeConnectionGraph(scene->getKinematicModel()->getRootLink(), link_graph);
+  computeConnectionGraph(scene->getRobotModel()->getRootLink(), link_graph);
   *progress = 2; // Progress bar feedback
 
   // 2. DISABLE ALL ADJACENT LINK COLLISIONS ---------------------------------------------------------
@@ -335,7 +335,7 @@ bool setLinkPair(const std::string &linkA, const std::string &linkB,
 void computeLinkPairs( planning_scene::PlanningScene &scene, LinkPairMap &link_pairs )
 {
   // Get the names of the link models that have some collision geometry associated to themselves
-  const std::vector<std::string> &names = scene.getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
+  const std::vector<std::string> &names = scene.getRobotModel()->getLinkModelNamesWithCollisionGeometry();
 
   std::pair<std::string,std::string> temp_pair;
 
@@ -352,7 +352,7 @@ void computeLinkPairs( planning_scene::PlanningScene &scene, LinkPairMap &link_p
 // ******************************************************************************************
 // Build the robot links connection graph and then check for links with no geomotry
 // ******************************************************************************************
-void computeConnectionGraph(const kinematic_model::LinkModel *start_link, LinkGraph &link_graph)
+void computeConnectionGraph(const robot_model::LinkModel *start_link, LinkGraph &link_graph)
 {
   link_graph.clear(); // make sure the edges structure is clear
 
@@ -371,10 +371,10 @@ void computeConnectionGraph(const kinematic_model::LinkModel *start_link, LinkGr
       if (!edge_it->first->getShape()) // link in adjList "link_graph" does not have shape, remove!
       {        
         // Temporary list for connected links
-        std::vector<const kinematic_model::LinkModel*> temp_list;
+        std::vector<const robot_model::LinkModel*> temp_list;
 
         // Copy link's parent and child links to temp_list
-        for (std::set<const kinematic_model::LinkModel*>::const_iterator adj_it = edge_it->second.begin(); 
+        for (std::set<const robot_model::LinkModel*>::const_iterator adj_it = edge_it->second.begin(); 
              adj_it != edge_it->second.end(); 
              ++adj_it)
         {
@@ -406,14 +406,14 @@ void computeConnectionGraph(const kinematic_model::LinkModel *start_link, LinkGr
 // ******************************************************************************************
 // Recursively build the adj list of link connections
 // ******************************************************************************************
-void computeConnectionGraphRec(const kinematic_model::LinkModel *start_link, LinkGraph &link_graph)
+void computeConnectionGraphRec(const robot_model::LinkModel *start_link, LinkGraph &link_graph)
 {
   if (start_link) // check that the link is a valid pointer
   {
     // Loop through every link attached to start_link
     for (std::size_t i = 0 ; i < start_link->getChildJointModels().size() ; ++i)
     {
-      const kinematic_model::LinkModel *next = start_link->getChildJointModels()[i]->getChildLinkModel();
+      const robot_model::LinkModel *next = start_link->getChildJointModels()[i]->getChildLinkModel();
       
       // Bi-directional connection
       link_graph[next].insert(start_link);
@@ -438,7 +438,7 @@ unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGrap
   for (LinkGraph::const_iterator link_graph_it = link_graph.begin() ; link_graph_it != link_graph.end() ; ++link_graph_it)
   {
     // disable all connected links to current link by looping through them
-    for (std::set<const kinematic_model::LinkModel*>::const_iterator adj_it = link_graph_it->second.begin(); 
+    for (std::set<const robot_model::LinkModel*>::const_iterator adj_it = link_graph_it->second.begin(); 
          adj_it != link_graph_it->second.end(); 
          ++adj_it)
     {
@@ -620,7 +620,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
   const unsigned int progress_interval = tc.num_trials_ / 20; // show progress update every 5%
   
   // Create a new kinematic state for this thread to work on
-  robot_state::RobotState kstate(tc.scene_.getKinematicModel());
+  robot_state::RobotState kstate(tc.scene_.getRobotModel());
 
   // Do a large number of tests
   for (unsigned int i = 0 ; i < tc.num_trials_ ; ++i)

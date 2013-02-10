@@ -134,7 +134,7 @@ private Q_SLOTS:
    * @param name - name of joint being changed
    * @param value - value of joint
    */
-  void updateKinematicModel( const std::string &name, double value );
+  void updateRobotModel( const std::string &name, double value );
 
   /// Publishes a joint state message based on all the slider locations in a planning group, to rviz
   void publishJoints();
@@ -155,7 +155,7 @@ private:
   std::map<std::string, double> joint_state_map_;
   
   /// The joints currently in the selected planning group
-  std::vector<const kinematic_model::JointModel*> joint_models_;
+  std::vector<const robot_model::JointModel*> joint_models_;
 
   /// Remember the publisher for quick publishing later
   ros::Publisher pub_robot_state_;
@@ -237,7 +237,7 @@ class SliderWidget : public QWidget
    * @param parent - parent QWidget
    * @param joint_model_ - a ptr reference to the joint this widget represents
    */
-  SliderWidget( QWidget *parent, const kinematic_model::JointModel *joint_model, 
+  SliderWidget( QWidget *parent, const robot_model::JointModel *joint_model, 
                 double init_value );
 
   /** 
@@ -281,7 +281,7 @@ private:
   // ******************************************************************************************
   
   // Ptr to the joint's data
-  const kinematic_model::JointModel *joint_model_;
+  const robot_model::JointModel *joint_model_;
 
   // Max & min position
   double max_position_;

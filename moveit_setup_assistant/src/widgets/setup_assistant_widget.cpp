@@ -170,7 +170,7 @@ void SetupAssistantWidget::virtualJointReferenceFrameChanged()
 {
   if (rviz_manager_ && robot_state_display_)
   {
-    rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getKinematicModel()->getModelFrame() ) );
+    rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getRobotModel()->getModelFrame() ) );
     robot_state_display_->reset();
   }
 }
@@ -308,7 +308,7 @@ void SetupAssistantWidget::loadRviz()
   rviz_manager_->startUpdate();
 
   // Set the fixed and target frame
-  rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getKinematicModel()->getModelFrame() ) );
+  rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getRobotModel()->getModelFrame() ) );
 
   // Create the MoveIt Rviz Plugin and attach to display
   robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
@@ -339,7 +339,7 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 void SetupAssistantWidget::highlightLink( const std::string& link_name )
 {  
-  const kinematic_model::LinkModel *lm = config_data_->getKinematicModel()->getLinkModel(link_name);
+  const robot_model::LinkModel *lm = config_data_->getRobotModel()->getLinkModel(link_name);
   if (lm->getShape()) // skip links with no geometry
     robot_state_display_->setLinkColor( link_name, QColor(255, 0, 0) );
 }
@@ -350,16 +350,16 @@ void SetupAssistantWidget::highlightLink( const std::string& link_name )
 void SetupAssistantWidget::highlightGroup( const std::string& group_name )
 {
   // Highlight the selected planning group by looping through the links
-  if (!config_data_->getKinematicModel()->hasJointModelGroup( group_name ))
+  if (!config_data_->getRobotModel()->hasJointModelGroup( group_name ))
     return;
   
-  const kinematic_model::JointModelGroup *joint_model_group =
-    config_data_->getKinematicModel()->getJointModelGroup( group_name );
+  const robot_model::JointModelGroup *joint_model_group =
+    config_data_->getRobotModel()->getJointModelGroup( group_name );
   if (joint_model_group)
   {
-    const std::vector<const kinematic_model::LinkModel*> &link_models = joint_model_group->getLinkModels();
+    const std::vector<const robot_model::LinkModel*> &link_models = joint_model_group->getLinkModels();
     // Iterate through the links
-    for( std::vector<const kinematic_model::LinkModel*>::const_iterator link_it = link_models.begin();
+    for( std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
          link_it < link_models.end(); ++link_it )
       highlightLink( (*link_it)->getName() );
   }
@@ -371,7 +371,7 @@ void SetupAssistantWidget::highlightGroup( const std::string& group_name )
 void SetupAssistantWidget::unhighlightAll()
 {
   // Get the names of the all links robot
-  const std::vector<std::string> &links = config_data_->getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
+  const std::vector<std::string> &links = config_data_->getRobotModel()->getLinkModelNamesWithCollisionGeometry();
 
   // Quit if no links found
   if( links.empty() )

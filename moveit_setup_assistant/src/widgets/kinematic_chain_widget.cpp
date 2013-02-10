@@ -147,10 +147,10 @@ void KinematicChainWidget::setAvailable()
     return;
 
   // Retrieve pointer to the shared kinematic model
-  const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
+  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
 
   // Get the root joint
-  const kinematic_model::JointModel *root_joint = model->getRoot();
+  const robot_model::JointModel *root_joint = model->getRoot();
 
   addLinktoTreeRecursive( root_joint->getChildLinkModel(), NULL);
 
@@ -161,8 +161,8 @@ void KinematicChainWidget::setAvailable()
 // ******************************************************************************************
 //
 // ******************************************************************************************
-void KinematicChainWidget::addLinktoTreeRecursive(const kinematic_model::LinkModel* link,
-                                                  const kinematic_model::LinkModel* parent)
+void KinematicChainWidget::addLinktoTreeRecursive(const robot_model::LinkModel* link,
+                                                  const robot_model::LinkModel* parent)
 {
   // Create new tree item
   QTreeWidgetItem* new_item = new QTreeWidgetItem(link_tree_);
@@ -193,7 +193,7 @@ void KinematicChainWidget::addLinktoTreeRecursive(const kinematic_model::LinkMod
 //
 // ******************************************************************************************
 bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem* parent,
-                                                 const kinematic_model::LinkModel* link,
+                                                 const robot_model::LinkModel* link,
                                                  const std::string& parent_name)
 {
   if(parent->text(0).toStdString() == parent_name)

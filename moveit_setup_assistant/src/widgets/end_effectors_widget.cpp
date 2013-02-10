@@ -368,10 +368,10 @@ void EndEffectorsWidget::loadParentComboBox()
   parent_name_field_->clear();
   
   // Get all links in robot model
-  std::vector<const kinematic_model::LinkModel*> link_models = config_data_->getKinematicModel()->getLinkModels();
+  std::vector<const robot_model::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
 
   // Add all links to combo box
-  for( std::vector<const kinematic_model::LinkModel*>::const_iterator link_it = link_models.begin();
+  for( std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
        link_it < link_models.end(); ++link_it )
   {
     parent_name_field_->addItem( (*link_it)->getName().c_str() );
@@ -504,8 +504,8 @@ void EndEffectorsWidget::doneEditing()
     return;    
   }
 
-  const kinematic_model::JointModelGroup *jmg =
-    config_data_->getKinematicModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
+  const robot_model::JointModelGroup *jmg =
+    config_data_->getRobotModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
   if (jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
   {  
     QMessageBox::warning( this, "Error Saving", QString::fromStdString("Group " + group_name_field_->currentText().toStdString() + " contains the link " + parent_name_field_->currentText().toStdString() + ". However, the parent link of the end-effector should not belong to the group for the end-effector itself."));
@@ -514,7 +514,7 @@ void EndEffectorsWidget::doneEditing()
   
   if (!parent_group_name_field_->currentText().isEmpty())
   {
-    jmg = config_data_->getKinematicModel()->getJointModelGroup(parent_group_name_field_->currentText().toStdString());
+    jmg = config_data_->getRobotModel()->getJointModelGroup(parent_group_name_field_->currentText().toStdString());
     if (!jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
     {  
       QMessageBox::warning( this, "Error Saving", QString::fromStdString("The specified parent group '" + parent_group_name_field_->currentText().toStdString() + "' must contain the specified parent link '" + parent_name_field_->currentText().toStdString() + "'."));

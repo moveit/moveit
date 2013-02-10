@@ -364,10 +364,10 @@ void VirtualJointsWidget::loadChildLinksComboBox()
   child_link_field_->clear();
   
   // Get all links in robot model
-  std::vector<const kinematic_model::LinkModel*> link_models = config_data_->getKinematicModel()->getLinkModels();
+  std::vector<const robot_model::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
   
   // Add all links to combo box
-  for( std::vector<const kinematic_model::LinkModel*>::const_iterator link_it = link_models.begin();
+  for( std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
        link_it < link_models.end(); ++link_it )
   {
     child_link_field_->addItem( (*link_it)->getName().c_str() );
@@ -529,10 +529,10 @@ void VirtualJointsWidget::doneEditing()
   // Insert new vjoints into group state vector --------------------------
   if( isNew )
   {
-    if (searched_data->child_link_ == config_data_->getKinematicModel()->getRootLinkName())
+    if (searched_data->child_link_ == config_data_->getRobotModel()->getRootLinkName())
       emit_frame_notice = true;
     config_data_->srdf_->virtual_joints_.push_back( *searched_data ); 
-    config_data_->updateKinematicModel();
+    config_data_->updateRobotModel();
   }
 
   // Finish up ------------------------------------------------------

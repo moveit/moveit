@@ -501,7 +501,7 @@ void PlanningGroupsWidget::editSelected()
 void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
 {
   // Retrieve pointer to the shared kinematic model
-  const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
+  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
   
   // Get the names of the all joints
   const std::vector<std::string> &joints = model->getJointModelNames();
@@ -533,7 +533,7 @@ void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
 void PlanningGroupsWidget::loadLinksScreen( srdf::Model::Group *this_group )
 {
   // Retrieve pointer to the shared kinematic model
-  const kinematic_model::KinematicModelConstPtr &model = config_data_->getKinematicModel();
+  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
   
   // Get the names of the all links
   const std::vector<std::string> &links = model->getLinkModelNames();
@@ -804,7 +804,7 @@ void PlanningGroupsWidget::deleteGroup()
   loadGroupsTree();
 
   // Update the kinematic model with changes
-  config_data_->updateKinematicModel();
+  config_data_->updateRobotModel();
 }
 
 // ******************************************************************************************
@@ -846,7 +846,7 @@ void PlanningGroupsWidget::saveJointsScreen()
   loadGroupsTree();
 
   // Update the kinematic model with changes
-  config_data_->updateKinematicModel();
+  config_data_->updateRobotModel();
 }
 
 // ******************************************************************************************
@@ -874,7 +874,7 @@ void PlanningGroupsWidget::saveLinksScreen()
   loadGroupsTree();
 
   // Update the kinematic model with changes
-  config_data_->updateKinematicModel();
+  config_data_->updateRobotModel();
 }
 
 // ******************************************************************************************
@@ -909,7 +909,7 @@ void PlanningGroupsWidget::saveChainScreen()
 
     bool found_tip = false;
     bool found_base = false;
-    const std::vector<std::string> &links = config_data_->getKinematicModel()->getLinkModelNames();
+    const std::vector<std::string> &links = config_data_->getRobotModel()->getLinkModelNames();
 
     for( std::vector<std::string>::const_iterator link_it = links.begin(); link_it != links.end(); ++link_it )
     {
@@ -949,7 +949,7 @@ void PlanningGroupsWidget::saveChainScreen()
   loadGroupsTree();
 
   // Update the kinematic model with changes
-  config_data_->updateKinematicModel();
+  config_data_->updateRobotModel();
 }
 
 // ******************************************************************************************
@@ -1051,7 +1051,7 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
   loadGroupsTree();
 
   // Update the kinematic model with changes
-  config_data_->updateKinematicModel();
+  config_data_->updateRobotModel();
 }
 
 // ******************************************************************************************
@@ -1344,8 +1344,8 @@ void PlanningGroupsWidget::previewClickedJoint( std::string name )
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  const kinematic_model::JointModel *joint_model =
-    config_data_->getKinematicModel()->getJointModel( name );
+  const robot_model::JointModel *joint_model =
+    config_data_->getRobotModel()->getJointModel( name );
 
   // Check that a joint model was found
   if( !joint_model )

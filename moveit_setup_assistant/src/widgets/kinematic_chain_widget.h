@@ -67,12 +67,12 @@ class KinematicChainWidget : public QWidget
   void setSelected( const std::string &base_link, const std::string &tip_link );
 
 
-  void addLinktoTreeRecursive(const kinematic_model::LinkModel* link,
-                              const kinematic_model::LinkModel* parent);
+  void addLinktoTreeRecursive(const robot_model::LinkModel* link,
+                              const robot_model::LinkModel* parent);
 
 
   bool addLinkChildRecursive(QTreeWidgetItem* parent,
-                             const kinematic_model::LinkModel* link,
+                             const robot_model::LinkModel* link,
                              const std::string& parent_name);
 
   // ******************************************************************************************
