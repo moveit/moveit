@@ -381,10 +381,27 @@ void collision_detection::AllowedCollisionMatrix::print(std::ostream& out) const
       L = l;
   }
   ++L;
+
+  std::size_t D = 2;
+  while (names.size() > pow(10,D)-1) D++;
   
+  // print indices along the top of the matrix
+  for (std::size_t j = 0 ; j < D ; ++j)
+  {
+    out << std::setw(L+D+4) << "";
+    for (std::size_t i = 0 ; i < names.size() ; ++i)
+    {
+      std::stringstream ss;
+      ss << std::setw(D) << i;
+      out << std::setw(3) << ss.str().c_str()[j];
+    }
+    out << std::endl;
+  }
+
   for (std::size_t i = 0 ; i < names.size() ; ++i)
   {
     out << std::setw(L) << names[i];
+    out << std::setw(D+1) << i;
     out << " | ";
     for (std::size_t j = 0 ; j < names.size() ; ++j)
     {
