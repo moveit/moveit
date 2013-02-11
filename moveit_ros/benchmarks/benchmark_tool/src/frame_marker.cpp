@@ -153,6 +153,15 @@ void FrameMarker::getOrientation(geometry_msgs::Quaternion &orientation)
   }
 }
 
+void FrameMarker::getPose(Eigen::Affine3d &pose)
+{
+  pose = Eigen::Affine3d(Eigen::Quaterniond(imarker->getOrientation().w, imarker->getOrientation().x,
+                                            imarker->getOrientation().y, imarker->getOrientation().z));
+  pose.translation() = Eigen::Vector3d(imarker->getPosition().x,
+                                       imarker->getPosition().y,
+                                       imarker->getPosition().z);
+}
+
 void FrameMarker::setColor(float r, float g, float b, float a)
 {
   //Update marker color

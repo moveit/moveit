@@ -237,8 +237,8 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
         {
           trajectory_marker->start_marker = GripperMarkerPtr(new GripperMarker(*trajectory_marker->waypoint_markers.front()));
           trajectory_marker->end_marker = GripperMarkerPtr(new GripperMarker(*trajectory_marker->waypoint_markers.back()));
-          trajectory_marker->getGripperMarkerPose(trajectory_marker->waypoint_markers.front(), trajectory_marker->control_marker_start_pose);
-          trajectory_marker->getGripperMarkerPose(trajectory_marker->waypoint_markers.back(), trajectory_marker->control_marker_end_pose);
+          trajectory_marker->waypoint_markers.front()->getPose(trajectory_marker->control_marker_start_pose);
+          trajectory_marker->waypoint_markers.back()->getPose(trajectory_marker->control_marker_end_pose);
         }
         populateTrajectoriesList();
         selectFirstItemInList(ui_.trajectory_list);
@@ -316,16 +316,16 @@ void MainWindow::trajectoryNWaypointsChanged(int n)
   }
 }
 
-void MainWindow::planTrajectoryButtonClicked()
+void MainWindow::trajectoryExecuteButtonClicked()
 {
   if (ui_.trajectory_list->currentItem())
   {
     TrajectoryMap::iterator it = trajectories_.find(ui_.trajectory_list->currentItem()->text().toStdString());
-    std::vector<Eigen::Affine3d> waypoint_poses;
+    EigenSTL::vector_Affine3d waypoint_poses;
     for (std::size_t w = 1; w < it->second->waypoint_markers.size(); ++w )
     {
       Eigen::Affine3d pose;
-      it->second->getGripperMarkerPose(it->second->waypoint_markers[w], pose);
+      it->second->waypoint_markers[w]->getPose(pose);
       waypoint_poses.push_back(pose);
     }
 

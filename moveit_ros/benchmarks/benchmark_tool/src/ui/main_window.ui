@@ -523,9 +523,9 @@ reachability</string>
                 </layout>
                </item>
                <item>
-                <widget class="QPushButton" name="plan_trajectory_button">
+                <widget class="QPushButton" name="trajectory_execute_button">
                  <property name="text">
-                  <string>Plan trajectory</string>
+                  <string>Execute Interpolated IK</string>
                  </property>
                 </widget>
                </item>
