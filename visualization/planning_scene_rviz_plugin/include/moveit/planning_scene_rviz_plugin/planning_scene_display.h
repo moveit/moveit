@@ -79,7 +79,7 @@ public:
   
   void queueRenderSceneGeometry();
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel();
+  const robot_model::RobotModelConstPtr& getRobotModel();
   planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO() const;
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();

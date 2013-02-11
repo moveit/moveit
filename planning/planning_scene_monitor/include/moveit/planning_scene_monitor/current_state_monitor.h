@@ -60,7 +60,7 @@ public:
    *  @param kmodel The current kinematic model to build on
    *  @param tf A pointer to the tf transformer to use
    */
-  CurrentStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
   
   ~CurrentStateMonitor();
   
@@ -76,8 +76,8 @@ public:
   /** @brief Check if the state monitor is started */
   bool isActive() const;
 
-  /** @brief Get the KinematicModel for which we are monitoring state */
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  /** @brief Get the RobotModel for which we are monitoring state */
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
   }
@@ -158,7 +158,7 @@ private:
 
   ros::NodeHandle                              nh_;
   boost::shared_ptr<tf::Transformer>           tf_;
-  kinematic_model::KinematicModelConstPtr      kmodel_;
+  robot_model::RobotModelConstPtr      kmodel_;
   robot_state::RobotState              kstate_;
   robot_state::JointState                 *root_;
   std::map<std::string, ros::Time>             joint_time_;

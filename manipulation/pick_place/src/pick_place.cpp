@@ -83,7 +83,7 @@ void PickPlace::displayComputedMotionPlans(bool flag)
 void PickPlace::visualizePlan(const ManipulationPlanPtr &plan) const
 { 
   moveit_msgs::DisplayTrajectory dtraj;
-  dtraj.model_id = getKinematicModel()->getName();
+  dtraj.model_id = getRobotModel()->getName();
   if (!plan->trajectories_.empty())
   {
     robot_state::robotStateToRobotStateMsg(plan->trajectories_.front()->getFirstWayPoint(), dtraj.trajectory_start);
@@ -122,14 +122,14 @@ void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) c
   if (plans.empty())
     return;
   
-  robot_state::RobotState state(getKinematicModel());
+  robot_state::RobotState state(getRobotModel());
   state.setToDefaultValues();
   
   static std::vector<std_msgs::ColorRGBA> colors(setupDefaultGraspColors());
   visualization_msgs::MarkerArray ma;
   for (std::size_t i = 0 ; i < plans.size() ; ++i)
     {
-    const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(plans[i]->end_effector_group_);
+    const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(plans[i]->end_effector_group_);
     if (jmg)
     {
       unsigned int type = std::min(plans[i]->processing_stage_, colors.size() - 1);

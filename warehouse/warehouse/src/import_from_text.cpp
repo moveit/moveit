@@ -138,7 +138,7 @@ void parseLinkConstraint(std::istream &in, planning_scene_monitor::PlanningScene
   {
     geometry_msgs::PoseStamped pose;
     tf::poseEigenToMsg(pos * rot, pose.pose);
-    pose.header.frame_id = psm->getKinematicModel()->getModelFrame();
+    pose.header.frame_id = psm->getRobotModel()->getModelFrame();
     moveit_msgs::Constraints constr = kinematic_constraints::constructGoalConstraints(link_name, pose); 
     constr.name = name;
     ROS_INFO("Parsed link constraint '%s'", name.c_str());

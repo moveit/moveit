@@ -118,7 +118,7 @@ int main(int argc, char **argv)
       fout.close();
             
       std::vector<std::string> robotStateNames;
-      kinematic_model::KinematicModelConstPtr km = psm.getKinematicModel();
+      robot_model::RobotModelConstPtr km = psm.getRobotModel();
       // Get start states for scene
       std::stringstream rsregex;
       rsregex << ".*" << scene_names[i] << ".*";

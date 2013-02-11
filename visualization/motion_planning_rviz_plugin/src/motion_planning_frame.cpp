@@ -138,12 +138,12 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   if (!planning_display_->getPlanningSceneMonitor())
     return;
   
-  const kinematic_model::KinematicModelConstPtr &kmodel = planning_display_->getKinematicModel();
+  const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup(); 
 
   if (!group.empty() && kmodel)
   {
-    const kinematic_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
+    const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
     if (jmg)
     {      
       ui_->start_state_selection->addItem(QString("<random>"));

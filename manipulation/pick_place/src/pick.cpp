@@ -83,7 +83,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   std::string end_effector = goal.end_effector;
   if (end_effector.empty() && !planning_group.empty())
   {
-    const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getJointModelGroup(planning_group);
+    const robot_model::JointModelGroup *jmg = planning_scene->getRobotModel()->getJointModelGroup(planning_group);
     if (!jmg)
     {
       error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
@@ -100,7 +100,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   else
     if (!end_effector.empty() && planning_group.empty())
     {
-      const kinematic_model::JointModelGroup *jmg = planning_scene->getKinematicModel()->getEndEffector(end_effector);
+      const robot_model::JointModelGroup *jmg = planning_scene->getRobotModel()->getEndEffector(end_effector);
       if (!jmg)
       {
         error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;  
@@ -109,7 +109,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       planning_group = jmg->getEndEffectorParentGroup().first;
       ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
     }      
-  const kinematic_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getKinematicModel()->getEndEffector(end_effector);
+  const robot_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getRobotModel()->getEndEffector(end_effector);
   if (!eef)
   {
     ROS_ERROR("No end-effector specified for pick action");

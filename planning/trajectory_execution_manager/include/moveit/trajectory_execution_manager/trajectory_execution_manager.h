@@ -37,7 +37,7 @@
 #ifndef MOVEIT_TRAJECTORY_EXECUTION_MANAGER_TRAJECTORY_EXECUTION_MANAGER_
 #define MOVEIT_TRAJECTORY_EXECUTION_MANAGER_TRAJECTORY_EXECUTION_MANAGER_
 
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
@@ -71,10 +71,10 @@ public:
   };
   
   /// Load the controller manager plugin, start listening for events on a topic.
-  TrajectoryExecutionManager(const kinematic_model::KinematicModelConstPtr &kmodel);
+  TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel);
   
   /// Load the controller manager plugin, start listening for events on a topic.
-  TrajectoryExecutionManager(const kinematic_model::KinematicModelConstPtr &kmodel, bool manage_controllers);
+  TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, bool manage_controllers);
 
   /// Destructor. Cancels all running trajectories (if any)
   ~TrajectoryExecutionManager();
@@ -223,7 +223,7 @@ private:
   
   void receiveEvent(const std_msgs::StringConstPtr &event);
 
-  kinematic_model::KinematicModelConstPtr kinematic_model_;
+  robot_model::RobotModelConstPtr kinematic_model_;
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;
   ros::Subscriber event_topic_subscriber_;

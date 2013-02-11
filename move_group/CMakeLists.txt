@@ -33,7 +33,19 @@ include_directories(SYSTEM
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-add_executable(move_group_action_server src/move_group.cpp)
+add_executable(move_group_action_server
+  src/move_group_capability.cpp
+  src/move_group_move_action_capability.cpp
+  src/move_group_pick_place_action_capability.cpp
+  src/move_group_plan_service_capability.cpp
+  src/move_group_execute_service_capability.cpp
+  src/move_group_query_planners_service_capability.cpp  
+  src/move_group_kinematics_service_capability.cpp
+  src/move_group_state_validation_service_capability.cpp
+  src/move_group_cartesian_path_service_capability.cpp
+  src/move_group.cpp
+  )
+
 target_link_libraries(move_group_action_server ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS move_group_action_server RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

@@ -35,7 +35,7 @@
 #include <rviz/display.h>
 
 #ifndef Q_MOC_RUN
-#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit_msgs/DisplayRobotState.h>
 #include <ros/ros.h>
@@ -73,7 +73,7 @@ public:
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
   
-  const kinematic_model::KinematicModelConstPtr& getKinematicModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
   }
@@ -118,8 +118,8 @@ protected:
   ros::Subscriber robot_state_subscriber_;
   
   RobotStateVisualizationPtr robot_;  
-  robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
-  kinematic_model::KinematicModelConstPtr kmodel_;
+  rdf_loader::RDFLoaderPtr rdf_loader_;
+  robot_model::RobotModelConstPtr kmodel_;
   robot_state::RobotStatePtr kstate_;
   bool update_state_;
   

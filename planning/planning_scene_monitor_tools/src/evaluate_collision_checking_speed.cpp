@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     for (unsigned int i = 0 ; i < nthreads ; ++i)
     {
       // sample a valid state
-      robot_state::RobotState *state = new robot_state::RobotState(psm.getPlanningScene()->getKinematicModel());
+      robot_state::RobotState *state = new robot_state::RobotState(psm.getPlanningScene()->getRobotModel());
       collision_detection::CollisionRequest req;
       do
       {

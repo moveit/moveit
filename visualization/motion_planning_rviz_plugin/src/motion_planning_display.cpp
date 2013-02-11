@@ -465,7 +465,7 @@ void MotionPlanningDisplay::changedShowTrail()
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
   {
     rviz::Robot *r = new rviz::Robot(planning_scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL);
-    r->load(*getKinematicModel()->getURDF());
+    r->load(*getRobotModel()->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
     r->update(PlanningLinkUpdater(t->getWayPointPtr(i)));
@@ -611,7 +611,7 @@ void MotionPlanningDisplay::displayMetrics(bool start)
       copyItemIfExists(metrics_table, text_table, "manipulability");
     if (show_joint_torques_property_->getBool())
     {
-      std::size_t nj = getKinematicModel()->getJointModelGroup(eef[i].parent_group)->getJointModelNames().size();
+      std::size_t nj = getRobotModel()->getJointModelGroup(eef[i].parent_group)->getJointModelNames().size();
       for(size_t j = 0 ; j < nj ; ++j)
       {
         std::stringstream stream;
@@ -621,7 +621,7 @@ void MotionPlanningDisplay::displayMetrics(bool start)
     }
     
     const robot_state::LinkState *ls = NULL;
-    const kinematic_model::JointModelGroup *jmg = getKinematicModel()->getJointModelGroup(eef[i].parent_group);
+    const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(eef[i].parent_group);
     if (jmg)
       if (!jmg->getLinkModelNames().empty())
         ls = state->getLinkState(jmg->getLinkModelNames().back());
@@ -901,7 +901,7 @@ void MotionPlanningDisplay::updateLinkColors()
 void MotionPlanningDisplay::changedPlanningGroup()
 {
   if (!planning_group_property_->getStdString().empty())
-    if (!getKinematicModel()->hasJointModelGroup(planning_group_property_->getStdString()))
+    if (!getRobotModel()->hasJointModelGroup(planning_group_property_->getStdString()))
     {
       planning_group_property_->setStdString("");
       return;
@@ -964,10 +964,10 @@ void MotionPlanningDisplay::onRobotModelLoaded()
 {
   PlanningSceneDisplay::onRobotModelLoaded();
 
-  robot_interaction_.reset(new robot_interaction::RobotInteraction(getKinematicModel()));
-  display_path_robot_->load(*getKinematicModel()->getURDF());
-  query_robot_start_->load(*getKinematicModel()->getURDF());
-  query_robot_goal_->load(*getKinematicModel()->getURDF());
+  robot_interaction_.reset(new robot_interaction::RobotInteraction(getRobotModel()));
+  display_path_robot_->load(*getRobotModel()->getURDF());
+  query_robot_start_->load(*getRobotModel()->getURDF());
+  query_robot_goal_->load(*getRobotModel()->getURDF());
 
   robot_state::RobotStatePtr ks(new robot_state::RobotState(getPlanningSceneRO()->getCurrentState()));
   query_start_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("start", *ks, planning_scene_monitor_->getTFClient()));
@@ -978,10 +978,10 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   query_goal_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
 
   if (!planning_group_property_->getStdString().empty())
-    if (!getKinematicModel()->hasJointModelGroup(planning_group_property_->getStdString()))
+    if (!getRobotModel()->hasJointModelGroup(planning_group_property_->getStdString()))
       planning_group_property_->setStdString("");
 
-  const std::vector<std::string> &groups = getKinematicModel()->getJointModelGroupNames();
+  const std::vector<std::string> &groups = getRobotModel()->getJointModelGroupNames();
   planning_group_property_->clearOptions();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     planning_group_property_->addOptionStd(groups[i]);
@@ -994,7 +994,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   if (!group.empty())
     modified_groups_.insert(group);
   robot_interaction_->decideActiveComponents(group);
-  kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(getKinematicModel()));
+  kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(getRobotModel()));
   
   geometry_msgs::Vector3 gravity_vector;
   gravity_vector.x = 0.0;
@@ -1003,8 +1003,8 @@ void MotionPlanningDisplay::onRobotModelLoaded()
 
   dynamics_solver_.clear();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
-    if (getKinematicModel()->getJointModelGroup(groups[i])->isChain())
-      dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getKinematicModel(),
+    if (getRobotModel()->getJointModelGroup(groups[i])->isChain())
+      dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getRobotModel(),
                                                                             groups[i],
                                                                             gravity_vector));
   updateQueryStartState();
@@ -1287,13 +1287,13 @@ void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::Display
   if (!planning_scene_monitor_)
     return;
   
-  if (!msg->model_id.empty() && msg->model_id != getKinematicModel()->getName())
+  if (!msg->model_id.empty() && msg->model_id != getRobotModel()->getName())
     ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
-             msg->model_id.c_str(), getKinematicModel()->getName().c_str());
+             msg->model_id.c_str(), getRobotModel()->getName().c_str());
   
   trajectory_message_to_display_.reset();
   
-  robot_trajectory::RobotTrajectoryPtr t(new robot_trajectory::RobotTrajectory(planning_scene_monitor_->getKinematicModel(), "")); 
+  robot_trajectory::RobotTrajectoryPtr t(new robot_trajectory::RobotTrajectory(planning_scene_monitor_->getRobotModel(), "")); 
   for (std::size_t i = 0 ; i < msg->trajectory.size() ; ++i)
     if (t->empty())
     {
@@ -1302,7 +1302,7 @@ void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::Display
     }
     else
     {
-      robot_trajectory::RobotTrajectory tmp(planning_scene_monitor_->getKinematicModel(), ""); 
+      robot_trajectory::RobotTrajectory tmp(planning_scene_monitor_->getRobotModel(), ""); 
       tmp.setRobotTrajectoryMsg(t->getLastWayPoint(), msg->trajectory[i]);
       t->append(tmp, 0.0);
     }

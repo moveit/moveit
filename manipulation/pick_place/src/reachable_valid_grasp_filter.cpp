@@ -102,7 +102,7 @@ bool ReachableAndValidGraspFilter::evaluate(const ManipulationPlanPtr &plan) con
     if (plan->goal_sampler_)
     {
       plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, plan.get(), _1, _2));
-      plan->sampling_attempts_ = std::max(1u, planning_scene_->getKinematicModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts());
+      plan->sampling_attempts_ = std::max(1u, planning_scene_->getRobotModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts());
       
       if (plan->goal_sampler_->sample(token_state->getJointStateGroup(plan->planning_group_), *token_state, plan->sampling_attempts_))
       {

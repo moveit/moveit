@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     
     planning_scene_monitor::PlanningSceneMonitor psm("robot_description");
     ros::Duration(0.5).sleep();
-    psm.getPlanningScene()->getKinematicModel()->printModelInfo(std::cout);
+    psm.getPlanningScene()->getRobotModel()->printModelInfo(std::cout);
     
     ros::shutdown();
     return 0;
