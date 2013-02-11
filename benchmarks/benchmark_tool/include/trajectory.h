@@ -118,16 +118,6 @@ public:
     }
   }
 
-  /** Gets the pose of a GripperMarker and sets it into an Eigen::Affine3d object */
-  void getGripperMarkerPose(GripperMarkerPtr source, Eigen::Affine3d &pose)
-  {
-    pose = Eigen::Affine3d(Eigen::Quaterniond(source->imarker->getOrientation().w, source->imarker->getOrientation().x,
-                                              source->imarker->getOrientation().y, source->imarker->getOrientation().z));
-    pose.translation() = Eigen::Vector3d(source->imarker->getPosition().x,
-                                         source->imarker->getPosition().y,
-                                         source->imarker->getPosition().z);
-  }
-
   ~Trajectory() {}
 
 protected:

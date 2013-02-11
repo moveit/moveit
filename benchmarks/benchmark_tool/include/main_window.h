@@ -117,7 +117,7 @@ public Q_SLOTS:
   void loadTrajectoriesFromDBButtonClicked(void);
   void saveTrajectoriesOnDBButtonClicked(void);
   void trajectoryNWaypointsChanged(int);
-  void planTrajectoryButtonClicked(void);
+  void trajectoryExecuteButtonClicked(void);
 
   //main loop processing
   void MainLoop();

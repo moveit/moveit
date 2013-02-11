@@ -162,10 +162,10 @@ void Trajectory::rebuildWayPointMarkers()
     Eigen::Quaterniond end_r(control_marker_end_pose.rotation());
 
     Eigen::Affine3d wMh;
-    getGripperMarkerPose(hand_marker, wMh);
+    hand_marker->getPose(wMh);
 
     Eigen::Affine3d wMt;
-    getGripperMarkerPose(control_marker, wMt);
+    control_marker->getPose(wMt);
 
     Eigen::Affine3d tMh = wMt.inverse() * wMh;
 
@@ -205,7 +205,7 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
         fixControlFrame();
       }
 
-      getGripperMarkerPose(control_marker, control_marker_start_pose);
+      control_marker->getPose(control_marker_start_pose);
 
       //Create start marker
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::createStartMarker, this));
@@ -219,7 +219,7 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
         fixControlFrame();
       }
 
-      getGripperMarkerPose(control_marker, control_marker_end_pose);
+      control_marker->getPose(control_marker_end_pose);
 
       //Create end marker
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::createEndMarker, this));
@@ -237,8 +237,8 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
   else if (feedback.event_type == feedback.MOUSE_DOWN && control_marker_mode_ == CONTROL_MARKER_FIXED)
   {
     //Store current hand pose
-    getGripperMarkerPose(hand_marker, hand_marker_start_pose);
-    getGripperMarkerPose(control_marker, control_marker_drag_start_pose);
+    hand_marker->getPose(hand_marker_start_pose);
+    control_marker->getPose(control_marker_drag_start_pose);
 
     dragging_=true;
   }
