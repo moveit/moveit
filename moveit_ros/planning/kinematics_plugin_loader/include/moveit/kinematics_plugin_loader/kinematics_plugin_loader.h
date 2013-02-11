@@ -39,14 +39,14 @@
 
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
-#include <moveit/kinematic_model/kinematic_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 
 namespace kinematics_plugin_loader
 {
 
 /// function type that allocates an Kinematics solver for a particular group
-typedef kinematic_model::SolverAllocatorFn KinematicsLoaderFn;
+typedef robot_model::SolverAllocatorFn KinematicsLoaderFn;
 
 class KinematicsPluginLoader
 {

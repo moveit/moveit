@@ -81,7 +81,7 @@ public:
         try
         {
           boost::shared_ptr<planning_interface::Planner> p = planner_plugin_loader_->createInstance(classes[i]);
-          p->initialize(scene_monitor_.getKinematicModel());
+          p->initialize(scene_monitor_.getRobotModel());
           planner_interfaces_[classes[i]] = p;
         }
         catch (pluginlib::PluginlibException& ex)
@@ -305,7 +305,7 @@ public:
     
     // configure planning context
     
-    if (req.scene.robot_model_name != scene_monitor_.getKinematicModel()->getName())
+    if (req.scene.robot_model_name != scene_monitor_.getRobotModel()->getName())
     {
       // if we have a different robot, use the world geometry only
       
@@ -421,7 +421,7 @@ public:
   bool runGoalExistenceBenchmark(moveit_msgs::BenchmarkPluginRequest &req, moveit_msgs::BenchmarkPluginResponse &res)
   {
     // configure planning context
-    if (req.scene.robot_model_name != scene_monitor_.getKinematicModel()->getName())
+    if (req.scene.robot_model_name != scene_monitor_.getRobotModel()->getName())
     {
       // if we have a different robot, use the world geometry only
       // clear all geometry from the scene

@@ -97,7 +97,7 @@ public:
                        const robot_state::RobotState &kstate,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
     InteractionHandler(const std::string &name,
-                       const kinematic_model::KinematicModelConstPtr &kmodel,
+                       const robot_model::RobotModelConstPtr &kmodel,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
     
     virtual ~InteractionHandler()
@@ -262,7 +262,7 @@ public:
   typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
   typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
   
-  RobotInteraction(const kinematic_model::KinematicModelConstPtr &kmodel, const std::string &ns = "");
+  RobotInteraction(const robot_model::RobotModelConstPtr &kmodel, const std::string &ns = "");
   ~RobotInteraction();
   
   void decideActiveComponents(const std::string &group);
@@ -311,7 +311,7 @@ private:
   boost::condition_variable new_feedback_condition_;
   std::map<std::string, visualization_msgs::InteractiveMarkerFeedbackConstPtr> feedback_map_;
 
-  kinematic_model::KinematicModelConstPtr kmodel_;
+  robot_model::RobotModelConstPtr kmodel_;
   
   std::vector<EndEffector> active_eef_;
   std::vector<VirtualJoint> active_vj_;

@@ -356,7 +356,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
     const robot_state::JointStateGroup *joint_state_group = robot_state_->getJointStateGroup(eef_.eef_group);
     const robot_state::RobotState *robot_state = joint_state_group->getRobotState();
 
-    const kinematic_model::JointModelGroup *joint_model_group = joint_state_group->getJointModelGroup();
+    const robot_model::JointModelGroup *joint_model_group = joint_state_group->getJointModelGroup();
     const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();
 
     std_msgs::ColorRGBA marker_color;

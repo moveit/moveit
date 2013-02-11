@@ -46,7 +46,7 @@
 #include <urdf_model/model.h>
 #include <srdfdom/model.h>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/rdf_loader/rdf_loader.h>
 
 static const double MAX_TIMEOUT_KDL_PLUGIN = 5.0;
  
@@ -123,18 +123,18 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
   ros::NodeHandle private_handle("~");  
-  robot_model_loader::RobotModelLoader robot_model_loader(robot_description_);
-  const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader.getURDF();
+  rdf_loader::RDFLoader rdf_loader(robot_description_);
+  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
 
-  kinematic_model_.reset(new kinematic_model::KinematicModel(urdf_model, srdf));
+  kinematic_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
 
   if(!kinematic_model_->hasJointModelGroup(group_name))
   {
     ROS_ERROR("Kinematic model does not contain group %s",group_name.c_str());
     return false;
   }  
-  kinematic_model::JointModelGroup* joint_model_group = kinematic_model_->getJointModelGroup(group_name);
+  robot_model::JointModelGroup* joint_model_group = kinematic_model_->getJointModelGroup(group_name);
   if(!joint_model_group->isChain())
   {
     ROS_ERROR("Group is not a chain");
@@ -193,8 +193,8 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
 
   // Setup the joint state groups that we need
-  kinematic_state_.reset(new robot_state::RobotState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));
-  kinematic_state_2_.reset(new robot_state::RobotState((const kinematic_model::KinematicModelConstPtr) kinematic_model_));  
+  kinematic_state_.reset(new robot_state::RobotState((const robot_model::RobotModelConstPtr) kinematic_model_));
+  kinematic_state_2_.reset(new robot_state::RobotState((const robot_model::RobotModelConstPtr) kinematic_model_));  
 
   active_ = true;  
   ROS_DEBUG("KDL solver initialized");  

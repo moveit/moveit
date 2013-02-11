@@ -86,7 +86,7 @@ public:
     robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
 
     const std::vector<robot_state::JointState*> &jstates = 
-      planning_scene->getKinematicModel()->hasJointModelGroup(req.group_name) ? 
+      planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ? 
       start_state.getJointStateGroup(req.group_name)->getJointStateVector() : 
       start_state.getJointStateVector(); 
     
@@ -99,10 +99,10 @@ public:
       // how many times the joint was wrapped. Because of this, we remember the offsets for continuous
       // joints, and we un-do them when the plan comes from the planner
       
-      const kinematic_model::JointModel* jm = jstates[i]->getJointModel();
-      if (jm->getType() == kinematic_model::JointModel::REVOLUTE)
+      const robot_model::JointModel* jm = jstates[i]->getJointModel();
+      if (jm->getType() == robot_model::JointModel::REVOLUTE)
       {
-        if (static_cast<const kinematic_model::RevoluteJointModel*>(jm)->isContinuous())
+        if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
         {
           double initial = jstates[i]->getVariableValues()[0];
           jstates[i]->enforceBounds();
@@ -113,17 +113,17 @@ public:
       }
       else
         // Normalize yaw; no offset needs to be remembered
-        if (jm->getType() == kinematic_model::JointModel::PLANAR)
+        if (jm->getType() == robot_model::JointModel::PLANAR)
         {   
           double initial = jstates[i]->getVariableValues()[2];
-          if (static_cast<const kinematic_model::PlanarJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()))
+          if (static_cast<const robot_model::PlanarJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()))
             change_req = true;
         }
         else
           // Normalize quaternions
-          if (jm->getType() == kinematic_model::JointModel::FLOATING)
+          if (jm->getType() == robot_model::JointModel::FLOATING)
           {
-            if (static_cast<const kinematic_model::FloatingJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()))
+            if (static_cast<const robot_model::FloatingJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()))
               change_req = true;
           }
     }
@@ -172,7 +172,7 @@ public:
       solved = planner(planning_scene, req, res);
 
     // re-add the prefix state, if it was constructed
-    if (prefix_state)
+    if (prefix_state && res.trajectory_)
     {    
       if (!res.trajectory_->empty())
         // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)

@@ -275,7 +275,7 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
 
 bool MainWindow::configure()
 {
-  if ( ! scene_display_->getPlanningSceneMonitor() || ! scene_display_->getPlanningSceneMonitor()->getKinematicModel() )
+  if ( ! scene_display_->getPlanningSceneMonitor() || ! scene_display_->getPlanningSceneMonitor()->getRobotModel() )
   {
     ROS_ERROR("Cannot load robot");
     ui_.robot_interaction_button->setEnabled(false);
@@ -314,19 +314,19 @@ bool MainWindow::configure()
 
   //Set the fixed frame to the model frame
   setStatus(STATUS_WARN, QString("Setting fixed frame... "));
-  visualization_manager_->setFixedFrame(QString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getModelFrame().c_str()));
-  int_marker_display_->setFixedFrame(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getModelFrame()));
+  visualization_manager_->setFixedFrame(QString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame().c_str()));
+  int_marker_display_->setFixedFrame(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame()));
 
   //robot interaction
   setStatus(STATUS_WARN, QString("Resetting robot interaction... "));
-  robot_interaction_.reset(new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getKinematicModel()));
+  robot_interaction_.reset(new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getRobotModel()));
 
   //Configure robot-dependent ui elements
-  ui_.load_states_filter_text->setText(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getName() + ".*"));
+  ui_.load_states_filter_text->setText(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() + ".*"));
 
   //Get the list of planning groups and fill in the combo box
   setStatus(STATUS_WARN, QString("Updating planning groups... "));
-  std::vector<std::string> group_names = scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getJointModelGroupNames();
+  std::vector<std::string> group_names = scene_display_->getPlanningSceneMonitor()->getRobotModel()->getJointModelGroupNames();
   ui_.planning_group_combo->clear();
   for (std::size_t i = 0; i < group_names.size(); i++)
   {
@@ -344,7 +344,7 @@ void MainWindow::planningGroupChanged(const QString &text)
   {
     robot_interaction_->decideActiveComponents(text.toStdString());
     if (robot_interaction_->getActiveEndEffectors().size() == 0)
-      ROS_WARN_STREAM("No end-effectors defined for robot " << scene_display_->getPlanningSceneMonitor()->getKinematicModel()->getName() << " and group " << text.toStdString());
+      ROS_WARN_STREAM("No end-effectors defined for robot " << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << " and group " << text.toStdString());
     else
     {
       //Update the kinematic state associated to the goals

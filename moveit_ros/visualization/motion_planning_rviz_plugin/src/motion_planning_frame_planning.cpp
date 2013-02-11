@@ -232,7 +232,7 @@ void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanReques
 
 void MotionPlanningFrame::configureWorkspace()
 {
-  kinematic_model::JointModel::Bounds b(3);
+  robot_model::JointModel::Bounds b(3);
   b[0].first = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
   b[0].second = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
   b[1].first = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
@@ -244,19 +244,19 @@ void MotionPlanningFrame::configureWorkspace()
     move_group_->setWorkspace(b[0].first, b[1].first, b[2].first,
                               b[0].second, b[1].second, b[2].second);
   // get non-const access to the kmodel and update planar & floating joints as indicated by the workspace settings
-  if (planning_display_->getPlanningSceneMonitor() && planning_display_->getPlanningSceneMonitor()->getKinematicModelLoader() && 
-      planning_display_->getPlanningSceneMonitor()->getKinematicModelLoader()->getModel())
+  if (planning_display_->getPlanningSceneMonitor() && planning_display_->getPlanningSceneMonitor()->getRDFLoader() && 
+      planning_display_->getPlanningSceneMonitor()->getRDFLoader()->getModel())
   {
-    const kinematic_model::KinematicModelPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModelLoader()->getModel(); 
-    const std::vector<kinematic_model::JointModel*> &jm = kmodel->getJointModels();
+    const robot_model::RobotModelPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getRDFLoader()->getModel(); 
+    const std::vector<robot_model::JointModel*> &jm = kmodel->getJointModels();
     for (std::size_t i = 0 ; i < jm.size() ; ++i)
-      if (jm[i]->getType() == kinematic_model::JointModel::PLANAR)
+      if (jm[i]->getType() == robot_model::JointModel::PLANAR)
       {
         jm[i]->setVariableBounds(jm[i]->getName() + "/x", b[0]);
         jm[i]->setVariableBounds(jm[i]->getName() + "/y", b[1]);
       }
       else
-        if (jm[i]->getType() == kinematic_model::JointModel::FLOATING)
+        if (jm[i]->getType() == robot_model::JointModel::FLOATING)
         {
           jm[i]->setVariableBounds(jm[i]->getName() + "/x", b[0]);
           jm[i]->setVariableBounds(jm[i]->getName() + "/y", b[1]);

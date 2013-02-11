@@ -38,7 +38,7 @@
 #include <tf_conversions/tf_eigen.h>
 #include <limits>
 
-planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const kinematic_model::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf) :
+planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf) :
   tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(std::numeric_limits<float>::epsilon())
 {
   kstate_.setToDefaultValues();
@@ -262,9 +262,9 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
     joint_time_[joint_state->name[i]] = joint_state->header.stamp;
     
     // continuous joints wrap, so we don't modify them (even if they are outside bounds!)
-    const kinematic_model::JointModel* jm = kmodel_->getJointModel(joint_state->name[i]);
-    if (jm && jm->getType() == kinematic_model::JointModel::REVOLUTE)
-      if (static_cast<const kinematic_model::RevoluteJointModel*>(jm)->isContinuous())
+    const robot_model::JointModel* jm = kmodel_->getJointModel(joint_state->name[i]);
+    if (jm && jm->getType() == robot_model::JointModel::REVOLUTE)
+      if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
         continue;
     
     std::map<std::string, std::pair<double, double> >::const_iterator bi = bounds.find(joint_state->name[i]);
@@ -281,8 +281,8 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
   bool set_map_values = true;
   
   // read root transform, if needed
-  if (tf_ && (root_->getType() == kinematic_model::JointModel::PLANAR ||
-              root_->getType() == kinematic_model::JointModel::FLOATING))
+  if (tf_ && (root_->getType() == robot_model::JointModel::PLANAR ||
+              root_->getType() == robot_model::JointModel::FLOATING))
   {
     const std::string &child_frame = root_->getJointModel()->getChildLinkModel()->getName();
     const std::string &parent_frame = kmodel_->getModelFrame();

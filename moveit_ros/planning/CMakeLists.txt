@@ -51,9 +51,9 @@ generate_dynamic_reconfigure_options(
   "plan_execution/cfg/SenseForPlanDynamicReconfigure.cfg")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
-    robot_model_loader/include
+    rdf_loader/include
     kinematics_plugin_loader/include
-    planning_models_loader/include
+    robot_model_loader/include
     constraint_sampler_manager_loader/include
     planning_pipeline/include
     planning_scene_monitor/include
@@ -65,9 +65,9 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 
 catkin_package(
   LIBRARIES
-    moveit_robot_model_loader
+    moveit_rdf_loader
     moveit_kinematics_plugin_loader
-    moveit_planning_models_loader
+    moveit_robot_model_loader
     moveit_constraint_sampler_manager_loader
     moveit_planning_pipeline
     moveit_trajectory_execution_manager
@@ -92,10 +92,10 @@ include_directories(SYSTEM
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-add_subdirectory(robot_model_loader)
+add_subdirectory(rdf_loader)
 add_subdirectory(kdl_kinematics_plugin)
 add_subdirectory(kinematics_plugin_loader)
-add_subdirectory(planning_models_loader)
+add_subdirectory(robot_model_loader)
 add_subdirectory(constraint_sampler_manager_loader)
 add_subdirectory(planning_pipeline)
 add_subdirectory(planning_request_adapter_plugins)

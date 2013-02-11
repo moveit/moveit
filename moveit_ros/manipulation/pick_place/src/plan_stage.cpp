@@ -74,7 +74,7 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
     {
       robot_state::RobotStatePtr state(new robot_state::RobotState(res.trajectory_->getLastWayPoint()));
       state->setStateValues(plan->grasp_.pre_grasp_posture);
-      robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getKinematicModel(), plan->end_effector_group_));
+      robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->end_effector_group_));
       traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
       plan->trajectories_.insert(plan->trajectories_.begin(), traj);
       plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), "pre_grasp");
