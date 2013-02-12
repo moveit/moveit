@@ -837,14 +837,14 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
 }
 
 robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::Link *urdf_link,
-                                                                                                const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map)
+                                                                    const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map)
 {
   LinkModel *result = new LinkModel();
   result->name_ = urdf_link->name;
   if (urdf_link->collision && urdf_link->collision->geometry)
   {
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->collision->origin);
-    result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->filename_);
+    result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->collision_mesh_filename_);
     if (result->shape_)
     {
       if (shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_))
@@ -856,7 +856,7 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
   else if (urdf_link->visual && urdf_link->visual->geometry)
   {
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->visual->origin);
-    result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->filename_);
+    result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->collision_mesh_filename_);
     if (result->shape_)   
     {
       if (shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_))
@@ -878,7 +878,7 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
     {
       const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(urdf_link->visual->geometry.get());
       if (!mesh->filename.empty())
-        result->visual_filename_ = mesh->filename;
+        result->visual_mesh_filename_ = mesh->filename;
     }
   }
 

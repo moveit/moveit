@@ -136,16 +136,17 @@ public:
     return associated_fixed_transforms_;
   }
     
-  /** \brief Get the filename of the mesh resource for this link */
-  const std::string& getMeshFilename() const
+  /** \brief Get the filename of the mesh resource for collision checking this link. This can be empty if a primitive shape is used instead of a mesh
+      or if collision checking defaults to using the visual mesh. */
+  const std::string& getCollisionMeshFilename() const
   {
-    return filename_;
+    return collision_mesh_filename_;
   }
   
-  /** \brief Get the filename of the mesh resource for this link */
+  /** \brief Get the filename of the mesh resource used for visual display of this link */
   const std::string& getVisualMeshFilename() const
   {
-    return visual_filename_;
+    return visual_mesh_filename_;
   }
   
 private:
@@ -181,10 +182,10 @@ private:
   Eigen::Vector3d           shape_extents_;
   
   /** \brief Filename associated with the collision geometry mesh of this link (loaded in shape_). If empty, no mesh was used. */
-  std::string               filename_;
+  std::string               collision_mesh_filename_;
   
   /** \brief Filename associated with the visual geometry mesh of this link (loaded in shape_). If empty, no mesh was used. */
-  std::string               visual_filename_;
+  std::string               visual_mesh_filename_;
   
   /** \brief The index assigned to this link when traversing the kinematic tree in depth first fashion */
   int                       tree_index_;

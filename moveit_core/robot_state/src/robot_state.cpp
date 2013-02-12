@@ -624,18 +624,18 @@ void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& a
     mark.header.frame_id = kinematic_model_->getModelFrame();
     mark.header.stamp = tm;
     tf::poseEigenToMsg(ls->getGlobalCollisionBodyTransform(), mark.pose);
-    if (ls->getLinkModel()->getMeshFilename().empty())
+
+    // we prefer using the visual mesh, if a mesh is available
+    const std::string& mesh_resource = ls->getLinkModel()->getVisualMeshFilename().empty() ? 
+      ls->getLinkModel()->getCollisionMeshFilename() : ls->getLinkModel()->getVisualMeshFilename();
+    
+    if (mesh_resource.empty())
       shapes::constructMarkerFromShape(ls->getLinkModel()->getShape().get(), mark);
     else
     {
       mark.type = mark.MESH_RESOURCE;
-      if (!ls->getLinkModel()->getVisualMeshFilename().empty())
-      {
-        mark.mesh_use_embedded_materials = false;
-        mark.mesh_resource = ls->getLinkModel()->getVisualMeshFilename();
-      } 
-      else
-        mark.mesh_resource = ls->getLinkModel()->getMeshFilename();
+      mark.mesh_use_embedded_materials = false;
+      mark.mesh_resource = mesh_resource;
       mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
     }
     arr.markers.push_back(mark);
