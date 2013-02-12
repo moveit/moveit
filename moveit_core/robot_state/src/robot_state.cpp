@@ -635,8 +635,12 @@ void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& a
         mark.mesh_resource = ls->getLinkModel()->getVisualMeshFilename();
       } 
       else
-        mark.mesh_resource = ls->getLinkModel()->getMeshFilename();
-      mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
+        mark.mesh_resource = ls->getLinkModel()->getVisualMeshFilename();
+
+      const Eigen::Vector3d mesh_scale = ls->getLinkModel()->getVisualMeshScale();
+      mark.scale.x = mesh_scale[0];
+      mark.scale.y = mesh_scale[1];
+      mark.scale.z = mesh_scale[2];
     }
     arr.markers.push_back(mark);
   }

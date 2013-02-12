@@ -148,6 +148,12 @@ public:
     return visual_filename_;
   }
   
+  /** \brief Get the scale of the mesh resource for this link */
+  const Eigen::Vector3d& getVisualMeshScale() const
+  {
+    return visual_scale_;
+  }
+  
 private:
   
   /** \brief Name of the link */
@@ -185,6 +191,9 @@ private:
   
   /** \brief Filename associated with the visual geometry mesh of this link (loaded in shape_). If empty, no mesh was used. */
   std::string               visual_filename_;
+
+  /** \brief Scale factor associated with the visual geometry mesh of this link (loaded in shape_). If empty, no mesh was used. */
+  Eigen::Vector3d           visual_scale_;
   
   /** \brief The index assigned to this link when traversing the kinematic tree in depth first fashion */
   int                       tree_index_;
