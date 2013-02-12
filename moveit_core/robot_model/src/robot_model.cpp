@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2008, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2008, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
@@ -45,7 +45,7 @@
 /* ------------------------ RobotModel ------------------------ */
 
 robot_model::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                                const boost::shared_ptr<const srdf::Model> &srdf_model)
+                                    const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   urdf_ = urdf_model;
   srdf_ = srdf_model;
@@ -59,8 +59,8 @@ robot_model::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInt
 }
 
 robot_model::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                                const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                                const std::string &root_link)
+                                    const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                    const std::string &root_link)
 {
   urdf_ = urdf_model;
   srdf_ = srdf_model;
@@ -78,8 +78,8 @@ robot_model::RobotModel::~RobotModel()
 }
 
 void robot_model::RobotModel::computeTreeStructure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model, const std::string &root_link,
-                                                           std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
-                                                           std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map)
+                                                   std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
+                                                   std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map)
 {
   // construct a bidirectional graph that represents the URDF tree
   std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > graph;
@@ -95,7 +95,7 @@ void robot_model::RobotModel::computeTreeStructure(const boost::shared_ptr<const
       q.push(l->child_links[i].get());
     }
   }
-  
+
   // construct a tree from the graph such that the root is root_link
   class NewParentTree
   {
@@ -103,7 +103,7 @@ void robot_model::RobotModel::computeTreeStructure(const boost::shared_ptr<const
     NewParentTree(const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph) : graph_(graph)
     {
     }
-    
+
     void constructTree(const urdf::Link *current, const urdf::Link *parent)
     {
       if (graph_->find(current) == graph_->end())
@@ -117,23 +117,23 @@ void robot_model::RobotModel::computeTreeStructure(const boost::shared_ptr<const
           child_map_[current].push_back(it->first);
         }
     }
-    
+
     const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& getParentMap() const
     {
       return parent_map_;
     }
-    
+
     const std::map<const urdf::Link*, std::vector<const urdf::Link*> >& getChildMap() const
     {
       return child_map_;
     }
-    
+
   private:
     const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph_;
     std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map_;
     std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map_;
   };
-  
+
   NewParentTree npt(&graph);
   const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
   if (root_link_ptr)
@@ -146,38 +146,38 @@ void robot_model::RobotModel::computeTreeStructure(const boost::shared_ptr<const
   {
     parent_map.clear();
     child_map.clear();
-  }  
+  }
 }
 
 void robot_model::RobotModel::buildModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                                 const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                                 const std::string &root_link)
-{ 
+                                         const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                         const std::string &root_link)
+{
   root_joint_ = NULL;
-  model_name_ = urdf_model->getName(); 
+  model_name_ = urdf_model->getName();
   if (urdf_model->getRoot())
-  { 
+  {
     const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
     if (root_link_ptr)
     {
       model_frame_ = root_link;
-      
+
       std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map;
       std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map;
       computeTreeStructure(urdf_model, root_link, parent_map, child_map);
-      
-      root_joint_ = buildRecursive(NULL, root_link_ptr, parent_map, child_map, *srdf_model);    
+
+      root_joint_ = buildRecursive(NULL, root_link_ptr, parent_map, child_map, *srdf_model);
       root_link_ = link_model_map_[root_link];
-      buildMimic(urdf_model);      
+      buildMimic(urdf_model);
       buildJointInfo();
-      
+
       if (link_models_with_collision_geometry_vector_.empty())
         logWarn("No geometry is associated to any robot links");
-      
+
       // build groups
       buildGroups(srdf_model);
       buildGroupStates(srdf_model);
-      
+
       std::stringstream ss;
       printModelInfo(ss);
       logDebug("%s", ss.str().c_str());
@@ -190,7 +190,7 @@ void robot_model::RobotModel::buildModel(const boost::shared_ptr<const urdf::Mod
 }
 
 void robot_model::RobotModel::buildJointInfo()
-{    
+{
   // construct additional maps for easy access by name
   variable_count_ = 0;
   std::vector<JointModel*> later;
@@ -210,7 +210,7 @@ void robot_model::RobotModel::buildJointInfo()
           active_variable_names_.push_back(name_order[j]);
         }
         joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
-        
+
         // compute variable count
         variable_count_ += joint_model_vector_[i]->getVariableCount();
       }
@@ -218,7 +218,7 @@ void robot_model::RobotModel::buildJointInfo()
     else
       later.push_back(joint_model_vector_[i]);
   }
-  
+
   for (std::size_t i = 0 ; i < later.size() ; ++i)
   {
     const std::vector<std::string>& name_order = later[i]->getVariableNames();
@@ -244,7 +244,7 @@ void robot_model::RobotModel::buildJointInfo()
 }
 
 void robot_model::RobotModel::buildGroupStates(const boost::shared_ptr<const srdf::Model> &srdf_model)
-{    
+{
   // copy the default states to the groups
   const std::vector<srdf::Model::GroupState> &ds = srdf_model->getGroupStates();
   for (std::size_t i = 0 ; i < ds.size() ; ++i)
@@ -330,10 +330,10 @@ bool robot_model::RobotModel::hasEndEffector(const std::string& eef) const
 }
 
 const robot_model::JointModelGroup* robot_model::RobotModel::getEndEffector(const std::string& name) const
-{ 
+{
   std::map<std::string, JointModelGroup*>::const_iterator it = end_effectors_.find(name);
   if (it == end_effectors_.end())
-  {   
+  {
     it = joint_model_group_map_.find(name);
     if (it != joint_model_group_map_.end() && it->second->isEndEffector())
       return it->second;
@@ -344,7 +344,7 @@ const robot_model::JointModelGroup* robot_model::RobotModel::getEndEffector(cons
 }
 
 robot_model::JointModelGroup* robot_model::RobotModel::getEndEffector(const std::string& name)
-{ 
+{
   std::map<std::string, JointModelGroup*>::const_iterator it = end_effectors_.find(name);
   if (it == end_effectors_.end())
   {
@@ -387,7 +387,7 @@ robot_model::JointModelGroup* robot_model::RobotModel::getJointModelGroup(const 
 void robot_model::RobotModel::buildGroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   const std::vector<srdf::Model::Group>& group_configs = srdf_model->getGroups();
-  
+
   //the only thing tricky is dealing with subgroups
   std::vector<bool> processed(group_configs.size(), false);
 
@@ -418,21 +418,21 @@ void robot_model::RobotModel::buildGroups(const boost::shared_ptr<const srdf::Mo
       }
   }
 
-  for (unsigned int i = 0 ; i < processed.size() ; ++i)      
+  for (unsigned int i = 0 ; i < processed.size() ; ++i)
     if (!processed[i])
       logWarn("Could not process group '%s' due to unmet subgroup dependencies", group_configs[i].name_.c_str());
-  
+
   buildGroupsInfo_Subgroups(srdf_model);
   buildGroupsInfo_EndEffectors(srdf_model);
 }
 
 void robot_model::RobotModel::buildGroupsInfo_Subgroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
-  // compute subgroups  
+  // compute subgroups
   for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
   {
     JointModelGroup *jmg = it->second;
-    jmg->subgroup_names_.clear();   
+    jmg->subgroup_names_.clear();
     std::set<const JointModel*> joints(jmg->getJointModels().begin(), jmg->getJointModels().end());
     for (std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
       if (jt->first != it->first)
@@ -466,9 +466,9 @@ void robot_model::RobotModel::buildGroupsInfo_EndEffectors(const boost::shared_p
         it->second->is_end_effector_ = true;
         it->second->end_effector_name_ = eefs[k].name_;
         end_effectors_[eefs[k].name_] = it->second;
-        
+
         JointModelGroup *eef_parent_group = NULL;
-        
+
         // if a parent group is specified in SRDF, try to use it
         if (!eefs[k].parent_group_.empty())
         {
@@ -504,7 +504,7 @@ void robot_model::RobotModel::buildGroupsInfo_EndEffectors(const boost::shared_p
             }
           if (!possible_parent_groups.empty())
           {
-            // if there are multiple options for the group that contains this end-effector, 
+            // if there are multiple options for the group that contains this end-effector,
             // we pick the group with fewest joints.
             std::size_t best = 0;
             for (std::size_t g = 1 ; g < possible_parent_groups.size() ; ++g)
@@ -572,7 +572,7 @@ bool robot_model::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
           if (index > 0)
             break;
           cj2.push_back(lm->getParentJointModel());
-          lm = lm->getParentJointModel()->getParentLinkModel();  
+          lm = lm->getParentJointModel()->getParentLinkModel();
         }
         if (index > 0)
         {
@@ -612,7 +612,7 @@ bool robot_model::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
       const std::vector<const JointModel*> &js = sg->getJointModels();
       for (std::size_t j = 0 ; j < js.size() ; ++j)
         jset.insert(js[j]);
-      
+
       //fixed joints
       const std::vector<const JointModel*> &fs = sg->getFixedJointModels();
       for (std::size_t j = 0 ; j < fs.size() ; ++j)
@@ -634,25 +634,25 @@ bool robot_model::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   std::vector<const JointModel*> joints;
   for (std::set<const JointModel*>::iterator it = jset.begin() ; it != jset.end() ; ++it)
     joints.push_back(*it);
-  
+
   JointModelGroup *jmg = new JointModelGroup(gc.name_, joints, this);
   joint_model_group_map_[gc.name_] = jmg;
   joint_model_group_config_map_[gc.name_] = gc;
   joint_model_group_names_.push_back(gc.name_);
-  
+
   // if the group is defined as a single chain, then we mark is as a chain aleady
   // (this is for the case where the chain does not consist of consecutive joints and would not be detected as a chain later)
   if (gc.chains_.size() == 1 && gc.joints_.empty() && gc.links_.empty() && gc.subgroups_.empty())
     jmg->is_chain_ = true;
-  
+
   return true;
 }
 
 robot_model::JointModel* robot_model::RobotModel::buildRecursive(LinkModel *parent, const urdf::Link *link,
-                                                                             const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
-                                                                             const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
-                                                                             const srdf::Model &srdf_model)
-{      
+                                                                 const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
+                                                                 const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
+                                                                 const srdf::Model &srdf_model)
+{
   std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >::const_iterator pmi = parent_map.find(link);
   JointModel *joint = (pmi != parent_map.end()) ? constructJointModel(pmi->second.second, link, srdf_model) : constructJointModel(NULL, link, srdf_model);
   if (joint == NULL)
@@ -689,7 +689,7 @@ robot_model::JointModel* robot_model::RobotModel::buildRecursive(LinkModel *pare
 }
 
 robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf::Joint *urdf_joint, const urdf::Link *child_link,
-                                                                                  const srdf::Model &srdf_model)
+                                                                      const srdf::Model &srdf_model)
 {
   JointModel* result = NULL;
 
@@ -754,7 +754,7 @@ robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf
         else
         {
           if (urdf_joint->limits)
-            j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);  
+            j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);
           else
             j->variable_bounds_[0] = std::make_pair(0.0, 0.0);
         }
@@ -791,7 +791,7 @@ robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf
         else if (vjoints[i].type_ == "floating")
           result = new FloatingJointModel(vjoints[i].name_);
         if (result)
-        {   
+        {
           // for fixed frames we still use the robot root link
           if (vjoints[i].type_ != "fixed")
             model_frame_ = vjoints[i].parent_frame_;
@@ -836,15 +836,16 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
 
 }
 
-robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::Link *urdf_link,
-                                                                                                const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map)
+robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::Link *urdf_link, const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map)
+                                                                   
 {
   LinkModel *result = new LinkModel();
   result->name_ = urdf_link->name;
   if (urdf_link->collision && urdf_link->collision->geometry)
   {
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->collision->origin);
-    result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->filename_);
+    result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->filename_,
+                                    result->visual_scale_ );
     if (result->shape_)
     {
       if (shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_))
@@ -856,8 +857,9 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
   else if (urdf_link->visual && urdf_link->visual->geometry)
   {
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->visual->origin);
-    result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->filename_);
-    if (result->shape_)   
+    result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->filename_,
+                                    result->visual_scale_ );
+    if (result->shape_)
     {
       if (shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_))
         result->shape_extents_ = shapes::computeShapeExtents(result->shape_msg_);
@@ -868,7 +870,7 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
   else
   {
     result->collision_origin_transform_.setIdentity();
-    result->shape_.reset();   
+    result->shape_.reset();
     result->shape_extents_ = Eigen::Vector3d(0.0, 0.0, 0.0);
   }
 
@@ -900,14 +902,15 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
   }
   else
   {
-    result->joint_origin_transform_.setIdentity();  
+    result->joint_origin_transform_.setIdentity();
     result->reverse_joint_ = false;
   }
-  
+
   return result;
 }
 
-shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *geom, std::string& filename)
+shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *geom, std::string& filename,
+                                                         Eigen::Vector3d& scale)
 {
   shapes::Shape *result = NULL;
   switch (geom->type)
@@ -930,7 +933,7 @@ shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *g
       const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(geom);
       if (!mesh->filename.empty())
       {
-        Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
+        scale = Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z);
         result = shapes::createMeshFromResource(mesh->filename, scale);
         filename = mesh->filename;
       }
@@ -955,7 +958,7 @@ const std::string& robot_model::RobotModel::getRootLinkName() const
   static const std::string empty;
   return getRootLink() ? getRootLink()->getName() : empty;
 }
-  
+
 bool robot_model::RobotModel::hasJointModel(const std::string &name) const
 {
   return joint_model_map_.find(name) != joint_model_map_.end();
@@ -1132,9 +1135,9 @@ void robot_model::RobotModel::setKinematicsAllocators(const std::map<std::string
       // if an kinematics allocator is NOT available for this group, we try to see if we can use subgroups for IK
       std::set<const JointModel*> joints;
       joints.insert(jmg->getJointModels().begin(), jmg->getJointModels().end());
-      
+
       std::vector<const JointModelGroup*> subs;
-      
+
       // go through the groups that we know have IK allocators and see if they are included in the group that does not; if so, put that group in sub
       for (std::map<std::string, SolverAllocatorFn>::const_iterator kt = allocators.begin() ; kt != allocators.end() ; ++kt)
       {
@@ -1146,7 +1149,7 @@ void robot_model::RobotModel::setKinematicsAllocators(const std::map<std::string
         }
         std::set<const JointModel*> sub_joints;
         sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
-        
+
         if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
         {
           std::set<const JointModel*> resultj;
@@ -1156,7 +1159,7 @@ void robot_model::RobotModel::setKinematicsAllocators(const std::map<std::string
           joints = resultj;
         }
       }
-      
+
       // if we found subgroups, pass that information to the planning group
       if (!subs.empty())
       {
