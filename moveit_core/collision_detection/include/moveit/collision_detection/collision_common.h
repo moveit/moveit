@@ -160,7 +160,7 @@ namespace collision_detection
     /** \brief Closest distance between two bodies */
     double               distance;
     
-    /** \brief Gradient vector associated with collision */
+    /** \brief Gradient vector associated with collision (ONLY when there is contact!) */
     Eigen::Vector3d      direction;
     
     /** \brief Number of contacts returned */
