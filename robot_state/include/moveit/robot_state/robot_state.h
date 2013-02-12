@@ -225,11 +225,11 @@ public:
   random_numbers::RandomNumberGenerator& getRandomNumberGenerator();
   
   /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
+   *  @param arr The returned marker array
+   *  @param link_names The list of link names for which the markers should be created.
    *  @param color The color for the marker
    *  @param ns The namespace for the markers
    *  @param dur The ros::Duration for which the markers should stay visible
-   *  @param arr The returned marker array
-   *  @param link_names The list of link names for which the markers should be created.
    */
   void getRobotMarkers(visualization_msgs::MarkerArray& arr,
                        const std::vector<std::string> &link_names,
