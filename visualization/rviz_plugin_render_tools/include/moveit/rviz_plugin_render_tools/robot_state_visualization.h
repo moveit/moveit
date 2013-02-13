@@ -33,6 +33,7 @@
 #define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_ROBOT_STATE_VISUALIZATION_
 
 #include <moveit/robot_state/robot_state.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 #include <rviz/robot/robot.h>
 
 namespace moveit_rviz_plugin
@@ -91,6 +92,9 @@ private:
   rviz::Robot robot_;
   RenderShapesPtr render_shapes_; 
   std_msgs::ColorRGBA default_attached_object_color_;
+  OctreeVoxelRenderMode octree_voxel_render_mode_;
+  OctreeVoxelColorMode octree_voxel_color_mode_;
+
   bool visible_;
   bool visual_visible_;
   bool collision_visible_;

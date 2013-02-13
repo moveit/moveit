@@ -39,6 +39,8 @@ namespace moveit_rviz_plugin
 RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
                                                          const std::string& name, rviz::Property* parent_property) :
   robot_(root_node, context, name, parent_property),
+  octree_voxel_render_mode_(OCTOMAP_OCCUPIED_VOXELS),
+  octree_voxel_color_mode_(OCTOMAP_Z_AXIS_COLOR),
   visible_(true),
   visual_visible_(true),
   collision_visible_(false)
@@ -114,8 +116,8 @@ void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr
     const std::vector<shapes::ShapeConstPtr> &ab_shapes = attached_bodies[i]->getShapes();
     for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
     {
-      render_shapes_->renderShape(robot_.getVisualNode(), ab_shapes[j].get(), ab_t[j], rcolor, alpha);
-      render_shapes_->renderShape(robot_.getCollisionNode(), ab_shapes[j].get(), ab_t[j], rcolor, alpha);
+      render_shapes_->renderShape(robot_.getVisualNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_, octree_voxel_color_mode_, rcolor, alpha);
+      render_shapes_->renderShape(robot_.getCollisionNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_, octree_voxel_color_mode_, rcolor, alpha);
     }
   }
   robot_.setVisualVisible(visual_visible_);

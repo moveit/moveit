@@ -38,6 +38,7 @@
 #include <Eigen/Geometry>
 #include <string>
 #include <boost/shared_ptr.hpp>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 namespace Ogre
 {
@@ -64,8 +65,14 @@ public:
 
   RenderShapes(rviz::DisplayContext *context);
   ~RenderShapes();
-  
-  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
+
+  void renderShape(Ogre::SceneNode *node,
+                   const shapes::Shape *s,
+                   const Eigen::Affine3d &p,
+                   OctreeVoxelRenderMode octree_voxel_rendering,
+                   OctreeVoxelColorMode octree_color_mode,
+                   const rviz::Color &color,
+                   float alpha);
   void clear();
   
 private:
@@ -77,6 +84,8 @@ private:
   std::vector< boost::shared_ptr<OcTreeRender> > octree_voxel_grids_;
 
   std::vector<Ogre::MaterialPtr> materials_;
+
+
 };
 
 typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
