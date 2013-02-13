@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2013, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,20 +45,29 @@ namespace moveit_rviz_plugin
 typedef std::vector<rviz::PointCloud::Point> VPoint;
 typedef std::vector<VPoint> VVPoint;
 
-OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, std::size_t max_octree_depth) :
-  octree_(octree), colorFactor_(0.8), octree_depth_(max_octree_depth)
+OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree,
+                           OctreeVoxelRenderMode octree_voxel_rendering,
+                           OctreeVoxelColorMode octree_color_mode,
+                           std::size_t max_octree_depth,
+                           Ogre::SceneManager* scene_manager,
+                           Ogre::SceneNode* parent_node = NULL) :
+  octree_(octree),
+  colorFactor_(0.8)
 {
+
   if (!parent_node)
   {
     parent_node = scene_manager_->getRootSceneNode();
   }
 
-  if (!octree_depth_)
+  if (!max_octree_depth)
   {
     octree_depth_ = octree->getTreeDepth();
+  } else
+  {
+    octree_depth_ = std::min(max_octree_depth, (std::size_t)octree->getTreeDepth());
   }
 
-  octree_depth_ = std::min(octree_depth_, (std::size_t)octree->getTreeDepth());
 
   scene_node_ = parent_node->createChildSceneNode();
 
@@ -74,7 +83,10 @@ OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octre
     scene_node_->attachObject(cloud_[i]);
   }
   
-  octreeDecoding(octree);
+  octreeDecoding(octree,
+                 octree_voxel_rendering,
+                 octree_color_mode);
+
 }
 
 OcTreeRender::~OcTreeRender()
@@ -135,25 +147,30 @@ void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double co
 }
 
 
-void OcTreeRender::octreeDecoding (const boost::shared_ptr<const octomap::OcTree> &octree )
+void OcTreeRender::octreeDecoding (const boost::shared_ptr<const octomap::OcTree> &octree,
+                                   OctreeVoxelRenderMode octree_voxel_rendering,
+                                   OctreeVoxelColorMode octree_color_mode)
 {
   VVPoint pointBuf_;
-  pointBuf_.resize(16);
+  pointBuf_.resize(octree_depth_);
 
   // get dimensions of octree
   double minX, minY, minZ, maxX, maxY, maxZ;
   octree->getMetricMin(minX, minY, minZ);
   octree->getMetricMax(maxX, maxY, maxZ);
 
+  unsigned int render_mode_mask = static_cast<unsigned int>(octree_voxel_rendering);
+
   size_t pointCount = 0;
   {
     // traverse all leafs in the tree:
     for (octomap::OcTree::iterator it = octree->begin(octree_depth_), end = octree->end(); it != end; ++it)
     {
+      bool display_voxel = false;
 
-      if (octree->isNodeOccupied(*it))
+      // the left part evaluates to 1 for free voxels and 2 for occupied voxels
+      if (((int)octree->isNodeOccupied(*it) + 1) & render_mode_mask)
       {
-
         // check if current voxel has neighbors on all sides -> no need to be displayed
         bool allNeighborsFound = true;
 
@@ -169,7 +186,9 @@ void OcTreeRender::octreeDecoding (const boost::shared_ptr<const octomap::OcTree
               if (key != nKey)
               {
                 octomap::OcTreeNode* node = octree->search(key);
-                if (!(node && octree->isNodeOccupied(node)))
+
+                // the left part evaluates to 1 for free voxels and 2 for occupied voxels
+                if (!(node && (((int)octree->isNodeOccupied(node)) + 1) & render_mode_mask))
                 {
                   // we do not have a neighbor => break!
                   allNeighborsFound = false;
@@ -177,35 +196,48 @@ void OcTreeRender::octreeDecoding (const boost::shared_ptr<const octomap::OcTree
               }
             }
           }
-
         }
 
-        if (!allNeighborsFound)
-        {
-          rviz::PointCloud::Point newPoint;
-
-          newPoint.position.x = it.getX();
-          newPoint.position.y = it.getY();
-          newPoint.position.z = it.getZ();
-
-          // apply color
-          setColor(newPoint.position.z, minZ, maxZ, colorFactor_, &newPoint);
-
-          // push to point vectors
-          unsigned int depth = it.getDepth();
-          pointBuf_[depth-1].push_back(newPoint);
-
-          ++pointCount;
-        }
+        display_voxel |= !allNeighborsFound;
       }
+
+
+      if (display_voxel)
+      {
+        rviz::PointCloud::Point newPoint;
+
+        newPoint.position.x = it.getX();
+        newPoint.position.y = it.getY();
+        newPoint.position.z = it.getZ();
+
+        float cell_probability;
+
+        switch (octree_color_mode)
+        {
+          case OCTOMAP_Z_AXIS_COLOR:
+            setColor(newPoint.position.z, minZ, maxZ, colorFactor_, &newPoint);
+            break;
+          case OCTOMAP_PROBABLILTY_COLOR:
+            cell_probability = it->getOccupancy();
+            newPoint.setColor((1.0f-cell_probability), cell_probability, 0.0);
+            break;
+          default:
+            break;
+        }
+
+        // push to point vectors
+        unsigned int depth = it.getDepth();
+        pointBuf_[depth-1].push_back(newPoint);
+
+        ++pointCount;
+      }
+
     }
   }
 
   for (size_t i = 0; i < octree_depth_ ; ++i)
   {
     double size = octree->getNodeSize(i+1);
-
-    //    std::cout<< "Level:" << i << " PS: " << pointBuf_[i].size() << std::endl;
 
     cloud_[i]->clear();
     cloud_[i]->setDimensions( size, size, size );

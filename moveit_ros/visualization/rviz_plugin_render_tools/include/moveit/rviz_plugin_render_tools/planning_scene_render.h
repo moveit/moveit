@@ -33,6 +33,7 @@
 #define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
 
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/rviz_plugin_render_tools/render_shapes.h>
 #include <rviz/helpers/color.h>
 #include <OGRE/OgreMaterial.h>
 
@@ -75,6 +76,8 @@ public:
   void renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
                            const rviz::Color &default_scene_color,
                            const rviz::Color &default_attached_color,
+                           OctreeVoxelRenderMode voxel_render_mode,
+                           OctreeVoxelColorMode voxel_color_mode,
                            float default_scene_alpha);
   void clear();
   
