@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2013, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,71 +27,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan */
+/* Author: Julius Kammerl */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
-
-#include <geometric_shapes/shapes.h>
-#include <rviz/helpers/color.h>
-#include <OGRE/OgreMaterial.h>
-#include <Eigen/Geometry>
-#include <string>
-#include <boost/shared_ptr.hpp>
-#include <moveit/rviz_plugin_render_tools/octomap_render_modes.h>
-
-namespace Ogre
-{
-class Entity;
-class SceneNode;
-class ManualObject;
-}
-
-namespace rviz
-{
-class DisplayContext;
-class Shape;
-}
+#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_OCTOMAP_RENDER_MODES_
+#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_OCTOMAP_RENDER_MODES_
 
 namespace moveit_rviz_plugin
 {
 
-// forward delcaration
-class OcTreeRender;
-
-class RenderShapes
+}
+enum OctreeVoxelRenderMode
 {
-public:
-
-  RenderShapes(rviz::DisplayContext *context);
-  ~RenderShapes();
-
-  void renderShape(Ogre::SceneNode *node,
-                   const shapes::Shape *s,
-                   const Eigen::Affine3d &p,
-                   OctreeVoxelRenderMode octree_voxel_rendering,
-                   OctreeVoxelColorMode octree_color_mode,
-                   const rviz::Color &color,
-                   float alpha);
-  void clear();
-  
-private:
-
-  rviz::DisplayContext *context_;
-  
-  std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
-  std::vector< Ogre::MovableObject* > movable_objects_;
-  std::vector< boost::shared_ptr<OcTreeRender> > octree_voxel_grids_;
-
-  std::vector<Ogre::MaterialPtr> materials_;
-
-
+  OCTOMAP_FREE_VOXELS = 1,
+  OCTOMAP_OCCUPIED_VOXELS = 2
 };
 
-typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
-typedef boost::shared_ptr<const RenderShapes> RenderShapesConstPtr;
-
-}
+enum OctreeVoxelColorMode
+{
+  OCTOMAP_Z_AXIS_COLOR,
+  OCTOMAP_PROBABLILTY_COLOR,
+};
 
 #endif
 
