@@ -31,6 +31,8 @@
 
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
+
 
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
@@ -42,6 +44,7 @@
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/ros_topic_property.h>
 #include <rviz/properties/color_property.h>
+#include <rviz/properties/enum_property.h>
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
 #include <tf/transform_listener.h>
@@ -97,6 +100,21 @@ PlanningSceneDisplay::PlanningSceneDisplay() :
                                                    scene_category_,
                                                    SLOT( changedSceneColor() ), this );
 
+  octree_render_property_ = new rviz::EnumProperty( "Voxel Rendering", "Occupied Voxels",
+                                              "Select voxel type.",
+                                              scene_category_, SLOT( changedOctreeRenderMode() ), this );
+
+  octree_render_property_->addOption( "Occupied Voxels",  OCTOMAP_OCCUPIED_VOXELS );
+  octree_render_property_->addOption( "Free Voxels",  OCTOMAP_FREE_VOXELS );
+  octree_render_property_->addOption( "All Voxels",  OCTOMAP_FREE_VOXELS | OCTOMAP_OCCUPIED_VOXELS);
+
+  octree_coloring_property_ = new rviz::EnumProperty( "Voxel Coloring", "Z-Axis",
+                                                "Select voxel coloring mode",
+                                                scene_category_, SLOT( changedOctreeColorMode() ), this );
+
+  octree_coloring_property_->addOption( "Z-Axis",  OCTOMAP_Z_AXIS_COLOR );
+  octree_coloring_property_->addOption( "Cell Probability",  OCTOMAP_PROBABLILTY_COLOR );
+
   root_link_name_property_ =
     new rviz::StringProperty( "Robot Root Link", "", "Shows the name of the root link for the robot model",
                               robot_category_,
@@ -124,6 +142,7 @@ PlanningSceneDisplay::PlanningSceneDisplay() :
                              scene_category_,
                              SLOT( changedSceneDisplayTime() ), this );
   scene_display_time_property_->setMin(0.0001);
+
 }
 
 // ******************************************************************************************
@@ -224,7 +243,10 @@ void PlanningSceneDisplay::renderPlanningScene()
     try
     {
       const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
-      planning_scene_render_->renderPlanningScene(ps, env_color, attached_color,
+      planning_scene_render_->renderPlanningScene(ps, env_color,
+                                                  attached_color,
+                                                  static_cast<OctreeVoxelRenderMode>(octree_render_property_->getOptionInt()),
+                                                  static_cast<OctreeVoxelColorMode>(octree_coloring_property_->getOptionInt()),
                                                   scene_alpha_property_->getFloat());
     }
     catch(...)
@@ -254,6 +276,14 @@ void PlanningSceneDisplay::changedPlanningSceneTopic()
 }
 
 void PlanningSceneDisplay::changedSceneDisplayTime()
+{
+}
+
+void PlanningSceneDisplay::changedOctreeRenderMode()
+{
+}
+
+void PlanningSceneDisplay::changedOctreeColorMode()
 {
 }
 

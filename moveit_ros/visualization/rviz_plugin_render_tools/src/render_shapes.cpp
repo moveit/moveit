@@ -32,6 +32,7 @@
 #include <moveit/rviz_plugin_render_tools/render_shapes.h>
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
+
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreManualObject.h>
@@ -56,6 +57,7 @@ RenderShapes::~RenderShapes()
   clear();
 }
 
+
 void RenderShapes::clear()
 {
   scene_shapes_.clear();
@@ -74,7 +76,13 @@ void RenderShapes::clear()
   octree_voxel_grids_.clear();
 }
 
-void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha)
+void RenderShapes::renderShape(Ogre::SceneNode *node,
+                               const shapes::Shape *s,
+                               const Eigen::Affine3d &p,
+                               OctreeVoxelRenderMode octree_voxel_rendering,
+                               OctreeVoxelColorMode octree_color_mode,
+                               const rviz::Color &color,
+                               float alpha)
 {
   rviz::Shape* ogre_shape = NULL;
   
@@ -159,7 +167,14 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
 
   case shapes::OCTREE:
     {
-      boost::shared_ptr<OcTreeRender> octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree, context_->getSceneManager(), node));
+      boost::shared_ptr<OcTreeRender> octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree,
+                                                              octree_voxel_rendering,
+                                                              octree_color_mode,
+                                                              0u,
+                                                              context_->getSceneManager(),
+                                                              node));
+
+
       octree_voxel_grids_.push_back(octree);
     }
     break;

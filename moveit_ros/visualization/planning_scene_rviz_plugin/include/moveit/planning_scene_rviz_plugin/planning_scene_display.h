@@ -54,6 +54,7 @@ class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
 class ColorProperty;
+class EnumProperty;
 }
 
 namespace moveit_rviz_plugin
@@ -100,6 +101,8 @@ private Q_SLOTS:
   void changedAttachedBodyColor();
   void changedPlanningSceneTopic();
   void changedSceneDisplayTime();
+  void changedOctreeRenderMode();
+  void changedOctreeColorMode();
   
 protected:
 
@@ -153,7 +156,8 @@ protected:
   rviz::ColorProperty* scene_color_property_;
   rviz::ColorProperty* attached_body_color_property_;
   rviz::FloatProperty* scene_display_time_property_;
-
+  rviz::EnumProperty* octree_render_property_;
+  rviz::EnumProperty* octree_coloring_property_;
 };
 
 } // namespace moveit_rviz_plugin

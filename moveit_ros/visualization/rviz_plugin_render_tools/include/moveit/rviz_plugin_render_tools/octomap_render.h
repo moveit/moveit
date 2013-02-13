@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2013, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@
 #include <vector>
 #include <rviz/ogre_helpers/point_cloud.h>
 
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
+
 namespace octomap
 {
 class OcTree;
@@ -50,16 +52,37 @@ class AxisAlignedBox;
 namespace moveit_rviz_plugin
 {
 
+enum OctreeVoxelRenderMode
+{
+  OCTOMAP_FREE_VOXELS = 1,
+  OCTOMAP_OCCUPIED_VOXELS = 2
+};
+
+enum OctreeVoxelColorMode
+{
+  OCTOMAP_Z_AXIS_COLOR,
+  OCTOMAP_PROBABLILTY_COLOR,
+};
+
 class OcTreeRender
 {
 
 public:
-  OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node = NULL, std::size_t max_octree_depth = 0);
+  OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree,
+               OctreeVoxelRenderMode octree_voxel_rendering,
+               OctreeVoxelColorMode octree_color_mode,
+               std::size_t max_octree_depth,
+               Ogre::SceneManager* scene_manager,
+               Ogre::SceneNode* parent_node);
   virtual ~OcTreeRender();
 
 private:
   void setColor( double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
-  void octreeDecoding (const boost::shared_ptr<const octomap::OcTree> &octree);
+  void setProbColor( double prob, rviz::PointCloud::Point* point);
+
+  void octreeDecoding (const boost::shared_ptr<const octomap::OcTree> &octree,
+                       OctreeVoxelRenderMode octree_voxel_rendering,
+                       OctreeVoxelColorMode octree_color_mode);
 
   // Ogre-rviz point clouds
   std::vector<rviz::PointCloud*> cloud_;
@@ -69,7 +92,6 @@ private:
   Ogre::SceneManager* scene_manager_;
 
   double colorFactor_;
-
   std::size_t octree_depth_;
 
 };
