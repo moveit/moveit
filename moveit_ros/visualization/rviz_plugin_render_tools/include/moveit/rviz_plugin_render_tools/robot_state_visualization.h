@@ -33,7 +33,7 @@
 #define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_ROBOT_STATE_VISUALIZATION_
 
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/rviz_plugin_render_tools/octomap_render_modes.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 #include <rviz/robot/robot.h>
 
 namespace moveit_rviz_plugin
