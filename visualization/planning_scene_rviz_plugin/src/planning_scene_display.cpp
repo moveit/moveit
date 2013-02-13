@@ -31,7 +31,7 @@
 
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
-#include <moveit/rviz_plugin_render_tools/octomap_render_modes.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 
 #include <rviz/visualization_manager.h>

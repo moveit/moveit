@@ -38,7 +38,7 @@
 #include <Eigen/Geometry>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <moveit/rviz_plugin_render_tools/octomap_render_modes.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 namespace Ogre
 {

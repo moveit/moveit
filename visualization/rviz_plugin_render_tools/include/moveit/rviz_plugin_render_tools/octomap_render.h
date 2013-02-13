@@ -35,7 +35,7 @@
 #include <vector>
 #include <rviz/ogre_helpers/point_cloud.h>
 
-#include <moveit/rviz_plugin_render_tools/octomap_render_modes.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 namespace octomap
 {
@@ -51,6 +51,18 @@ class AxisAlignedBox;
 
 namespace moveit_rviz_plugin
 {
+
+enum OctreeVoxelRenderMode
+{
+  OCTOMAP_FREE_VOXELS = 1,
+  OCTOMAP_OCCUPIED_VOXELS = 2
+};
+
+enum OctreeVoxelColorMode
+{
+  OCTOMAP_Z_AXIS_COLOR,
+  OCTOMAP_PROBABLILTY_COLOR,
+};
 
 class OcTreeRender
 {
