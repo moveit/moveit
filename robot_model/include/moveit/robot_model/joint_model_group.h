@@ -278,6 +278,9 @@ public:
   {
     return attached_end_effector_names_;
   }
+  
+  /** \brief Get the extent of the state space (the maximum value distance() can ever report for this group) */
+  double getMaximumExtent(void) const;
 
   /** \brief Get the joint limits as read from the URDF */
   std::vector<moveit_msgs::JointLimits> getVariableDefaultLimits() const;

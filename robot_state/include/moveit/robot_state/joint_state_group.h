@@ -413,7 +413,7 @@ private:
   RobotState *kinematic_state_;
   
   /** \brief The model of the group that corresponds to this state */
-  const robot_model::JointModelGroup *joint_model_group_;
+  const robot_model::JointModelGroup     *joint_model_group_;
   
   /** \brief Joint instances in the order they appear in the group state */
   std::vector<JointState*>                joint_state_vector_;
