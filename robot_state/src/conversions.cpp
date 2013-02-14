@@ -67,6 +67,19 @@ static bool jointStateToRobotState(const sensor_msgs::JointState &joint_state, R
     for (unsigned int i = 0; i < missing_variables.size(); ++i)
       missing->insert(missing_variables[i]);
   }
+
+  // the following loop is a horrible hack to keep velocities in; will be fixed soon.
+  if (!joint_state.velocity.empty())
+    for (unsigned int i = 0 ; i < joint_state.name.size(); ++i)
+    {
+      JointState *js = state.getJointState(joint_state.name[i]);
+      if (js)
+      {
+        js->getVelocities().resize(1);
+        js->getVelocities()[0] = joint_state.velocity[i];
+      }
+    }
+  
   return true;
 }
 
@@ -128,9 +141,9 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
   return !error;
 }
 
-static inline void kinematicStateToMultiDOFJointState(const RobotState& state, moveit_msgs::MultiDOFJointState &mjs)
+static inline void robotStateToMultiDOFJointState(const RobotState& state, moveit_msgs::MultiDOFJointState &mjs)
 {  
-  // \todo it would be nice if the kinematic model had a list of index values for the multi-dof joints (same for single-dof joints)
+  // \todo it would be nice if the robot model had a list of index values for the multi-dof joints (same for single-dof joints)
   const std::vector<JointState*> &js = state.getJointStateVector();
   mjs.joint_names.clear();
   mjs.joint_transforms.clear();
@@ -300,7 +313,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
         else
         {  
           if (ls->clearAttachedBody(aco.object.id))
-            logInform("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
+            logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                       aco.object.id.c_str(), aco.link_name.c_str());
           ls->attachBody(aco.object.id, shapes, poses, aco.touch_links);
           logInform("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
@@ -378,7 +391,7 @@ bool robot_state::robotStateMsgToRobotState(const Transforms &tf, const moveit_m
 void robot_state::robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies)
 {
   robotStateToJointStateMsg(state, robot_state.joint_state);
-  kinematicStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
+  robotStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
   if (copy_attached_bodies)
   {
     std::vector<const AttachedBody*> attached_bodies;
@@ -399,7 +412,13 @@ void robot_state::robotStateToJointStateMsg(const RobotState& state, sensor_msgs
     {
       joint_state.name.push_back(js[i]->getName());
       joint_state.position.push_back(js[i]->getVariableValues()[0]);
+      if (!js[i]->getVelocities().empty())
+        joint_state.velocity.push_back(js[i]->getVelocities()[0]);
     }
+  
+  // if inconsistent number of velocities are specified, discard them
+  if (joint_state.velocity.size() != joint_state.position.size())
+    joint_state.velocity.clear();
   
   joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
 }
