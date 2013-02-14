@@ -128,14 +128,12 @@ void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) c
   static std::vector<std_msgs::ColorRGBA> colors(setupDefaultGraspColors());
   visualization_msgs::MarkerArray ma;
   for (std::size_t i = 0 ; i < plans.size() ; ++i)
-    {
-    const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(plans[i]->end_effector_group_);
+  {
+    const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(plans[i]->shared_data_->end_effector_group_);
     if (jmg)
     {
       unsigned int type = std::min(plans[i]->processing_stage_, colors.size() - 1);
-      Eigen::Affine3d eigen_pose;
-      tf::poseMsgToEigen(plans[i]->grasp_.grasp_pose, eigen_pose);
-      state.updateStateWithLinkAt(plans[i]->ik_link_name_, eigen_pose);
+      state.updateStateWithLinkAt(plans[i]->shared_data_->ik_link_name_, plans[i]->transformed_goal_pose_);
       state.getRobotMarkers(ma, jmg->getLinkModelNames(), colors[type], "moveit_grasps:stage_" + boost::lexical_cast<std::string>(plans[i]->processing_stage_), ros::Duration(60));
     }
   }

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/pick_place/reachable_valid_grasp_filter.h>
+#include <moveit/pick_place/reachable_valid_pose_filter.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
@@ -43,27 +43,27 @@
 namespace pick_place
 {
 
-ReachableAndValidGraspFilter::ReachableAndValidGraspFilter(const planning_scene::PlanningSceneConstPtr &scene,
-                                                           const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-                                                           const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager) :
-  ManipulationStage("reachable & valid grasp filter"),
+ReachableAndValidPoseFilter::ReachableAndValidPoseFilter(const planning_scene::PlanningSceneConstPtr &scene,
+                                                         const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
+                                                         const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager) :
+  ManipulationStage("reachable & valid pose filter"),
   planning_scene_(scene),
   collision_matrix_(collision_matrix),
   constraints_sampler_manager_(constraints_sampler_manager)
 {
 }
 
-bool ReachableAndValidGraspFilter::isStateCollisionFree(const ManipulationPlan *manipulation_plan,
-                                                        robot_state::JointStateGroup *joint_state_group,
-                                                        const std::vector<double> &joint_group_variable_values) const
+bool ReachableAndValidPoseFilter::isStateCollisionFree(const ManipulationPlan *manipulation_plan,
+                                                       robot_state::JointStateGroup *joint_state_group,
+                                                       const std::vector<double> &joint_group_variable_values) const
 {
   joint_state_group->setVariableValues(joint_group_variable_values);  
-  // apply pre-grasp pose for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-  joint_state_group->getRobotState()->setStateValues(manipulation_plan->grasp_.pre_grasp_posture);
+  // apply approach posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
+  joint_state_group->getRobotState()->setStateValues(manipulation_plan->approach_posture_);
   
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  req.group_name = manipulation_plan->planning_group_;
+  req.group_name = manipulation_plan->shared_data_->planning_group_;
   planning_scene_->checkCollision(req, res, *joint_state_group->getRobotState(), *collision_matrix_);
   if (res.collision == false)
     return planning_scene_->isStateFeasible(*joint_state_group->getRobotState());
@@ -71,40 +71,36 @@ bool ReachableAndValidGraspFilter::isStateCollisionFree(const ManipulationPlan *
     return false;  
 }
 
-bool ReachableAndValidGraspFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const
+bool ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const
 {
-  Eigen::Affine3d eigen_pose;
-  tf::poseMsgToEigen(plan->grasp_.grasp_pose, eigen_pose);
-  token_state.updateStateWithLinkAt(plan->ik_link_name_, eigen_pose);
+  tf::poseMsgToEigen(plan->goal_pose_.pose, plan->transformed_goal_pose_);
+  planning_scene_->getTransforms()->transformPose(plan->goal_pose_.header.frame_id, plan->transformed_goal_pose_, plan->transformed_goal_pose_);
+  token_state.updateStateWithLinkAt(plan->shared_data_->ik_link_name_, plan->transformed_goal_pose_);
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  req.group_name = plan->end_effector_group_;
+  req.group_name = plan->shared_data_->end_effector_group_;
   planning_scene_->checkCollision(req, res, token_state, *collision_matrix_);
   return res.collision == false;
 }
 
-bool ReachableAndValidGraspFilter::evaluate(const ManipulationPlanPtr &plan) const
+bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) const
 {   
   // initialize with scene state 
   robot_state::RobotStatePtr token_state(new robot_state::RobotState(planning_scene_->getCurrentState()));
   if (isEndEffectorFree(plan, *token_state))
   {
-    geometry_msgs::PoseStamped pose;
-    pose.header = plan->grasp_.header;
-    pose.pose = plan->grasp_.grasp_pose;
-    
     // convert the pose we want to reach to a set of constraints
-    plan->goal_constraints_ = kinematic_constraints::constructGoalConstraints(plan->ik_link_name_, pose);
+    plan->goal_constraints_ = kinematic_constraints::constructGoalConstraints(plan->shared_data_->ik_link_name_, plan->goal_pose_);
+    
+    const std::string &planning_group = plan->shared_data_->planning_group_;
     
     // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
     // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
-    plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, plan->planning_group_, plan->goal_constraints_);
+    plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, planning_group, plan->goal_constraints_);
     if (plan->goal_sampler_)
     {
-      plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidGraspFilter::isStateCollisionFree, this, plan.get(), _1, _2));
-      plan->sampling_attempts_ = std::max(1u, planning_scene_->getRobotModel()->getJointModelGroup(plan->planning_group_)->getDefaultIKAttempts());
-      
-      if (plan->goal_sampler_->sample(token_state->getJointStateGroup(plan->planning_group_), *token_state, plan->sampling_attempts_))
+      plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidPoseFilter::isStateCollisionFree, this, plan.get(), _1, _2));
+      if (plan->goal_sampler_->sample(token_state->getJointStateGroup(planning_group), *token_state, plan->shared_data_->max_goal_sampling_attempts_))
       {
         plan->possible_goal_states_.push_back(token_state);
         return true;

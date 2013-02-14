@@ -80,6 +80,7 @@ private:
   
   PickPlaceConstPtr pick_place_;  
   ManipulationPipeline pipeline_;
+  
   double last_plan_time_;
   bool done_;
   boost::condition_variable done_condition_;
