@@ -287,6 +287,14 @@ void robot_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers:
     joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distances[i]);
 }
 
+double robot_model::JointModelGroup::getMaximumExtent(void) const
+{
+  double max_distance = 0.0;
+  for (std::size_t j = 0 ; j < joint_model_vector_.size() ; ++j)
+    max_distance += joint_model_vector_[j]->getMaximumExtent() * joint_model_vector_[j]->getDistanceFactor();
+  return max_distance;
+}
+
 void robot_model::JointModelGroup::getKnownDefaultStates(std::vector<std::string> &default_states) const
 {  
   default_states.clear();
