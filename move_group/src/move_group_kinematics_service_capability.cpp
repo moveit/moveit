@@ -83,7 +83,7 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
         if (ik_link.empty())
           result_ik = jsg->setFromIK(req_pose.pose, req.attempts, req.timeout.toSec(), constraint);      
         else
-          jsg->setFromIK(req_pose.pose, ik_link, req.attempts, req.timeout.toSec(), constraint);
+          result_ik = jsg->setFromIK(req_pose.pose, ik_link, req.attempts, req.timeout.toSec(), constraint);
       
         if(result_ik)
         {
