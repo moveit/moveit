@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/pick_place/pick_place.h>
-#include <moveit/pick_place/reachable_valid_grasp_filter.h>
+#include <moveit/pick_place/reachable_valid_pose_filter.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
 #include <moveit/robot_state/conversions.h>
@@ -147,7 +147,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   
   // configure the manipulation pipeline
   pipeline_.reset();
-  ManipulationStagePtr stage1(new ReachableAndValidGraspFilter(planning_scene, approach_grasp_acm, pick_place_->getConstraintsSamplerManager()));
+  ManipulationStagePtr stage1(new ReachableAndValidPoseFilter(planning_scene, approach_grasp_acm, pick_place_->getConstraintsSamplerManager()));
   ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, planning_scene_after_grasp, approach_grasp_acm));
   ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline())); 
   pipeline_.addStage(stage1).addStage(stage2).addStage(stage3);
@@ -162,20 +162,28 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   std::sort(grasp_order.begin(), grasp_order.end(), oq);
 
   done_ = false;
+
+  ManipulationPlanSharedDataPtr plan_data(new ManipulationPlanSharedData());
+  ManipulationPlanSharedDataConstPtr const_plan_data = plan_data;
+  plan_data->planning_group_ = planning_group;
+  plan_data->end_effector_group_ = eef->getName();
+  plan_data->ik_link_name_ = ik_link;    
+  plan_data->timeout_ = endtime;
+  plan_data->max_goal_sampling_attempts_ = std::max(1u, planning_scene->getRobotModel()->getJointModelGroup(planning_group)->getDefaultIKAttempts());
   
   // feed the available grasps to the stages we set up
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
   {
-    ManipulationPlanPtr p(new ManipulationPlan());
-    p->grasp_ = goal.possible_grasps[grasp_order[i]];
-    p->planning_group_ = planning_group;
-    p->end_effector_group_ = eef->getName();
-    p->ik_link_name_ = ik_link;    
-    p->timeout_ = endtime;
-    p->processing_stage_ = 0;
+    ManipulationPlanPtr p(new ManipulationPlan(const_plan_data));
+    const manipulation_msgs::Grasp &g = goal.possible_grasps[grasp_order[i]];
+    p->approach_ = g.approach;
+    p->retreat_ = g.retreat;
+    p->goal_pose_ = g.grasp_pose;
+    p->approach_posture_ = g.pre_grasp_posture;
+    p->retreat_posture_ = g.grasp_posture;
     pipeline_.push(p);
   }
-    
+  
   // wait till we're done
   {
     boost::unique_lock<boost::mutex> lock(done_mutex_);

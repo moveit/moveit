@@ -2,7 +2,7 @@ set(MOVEIT_LIB_NAME moveit_pick_place_planner)
 
 add_library(${MOVEIT_LIB_NAME}
   src/manipulation_pipeline.cpp
-  src/reachable_valid_grasp_filter.cpp 
+  src/reachable_valid_pose_filter.cpp 
   src/approach_and_translate_stage.cpp
   src/plan_stage.cpp 
   src/pick_place.cpp

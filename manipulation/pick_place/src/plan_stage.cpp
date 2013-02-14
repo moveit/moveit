@@ -60,21 +60,21 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 {
   planning_interface::MotionPlanRequest req;
   planning_interface::MotionPlanResponse res;
-  req.group_name = plan->planning_group_;
+  req.group_name = plan->shared_data_->planning_group_;
   req.num_planning_attempts = 1;
-  req.allowed_planning_time = (plan->timeout_ - ros::WallTime::now()).toSec();
+  req.allowed_planning_time = (plan->shared_data_->timeout_ - ros::WallTime::now()).toSec();
 
-  req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->planning_group_)));
+  req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->shared_data_->planning_group_)));
   
   if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) &&
       res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && 
       res.trajectory_ && !res.trajectory_->empty())
   {
-    if (!plan->grasp_.pre_grasp_posture.name.empty())
+    if (!plan->approach_posture_.name.empty())
     {
       robot_state::RobotStatePtr state(new robot_state::RobotState(res.trajectory_->getLastWayPoint()));
-      state->setStateValues(plan->grasp_.pre_grasp_posture);
-      robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->end_effector_group_));
+      state->setStateValues(plan->approach_posture_);
+      robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_));
       traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
       plan->trajectories_.insert(plan->trajectories_.begin(), traj);
       plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), "pre_grasp");

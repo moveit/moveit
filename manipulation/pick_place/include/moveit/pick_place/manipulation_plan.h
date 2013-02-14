@@ -40,7 +40,7 @@
 #include <boost/shared_ptr.hpp>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
-#include <manipulation_msgs/Grasp.h>
+#include <manipulation_msgs/GripperTranslation.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
@@ -51,23 +51,49 @@
 namespace pick_place
 {
 
-
-struct ManipulationPlan
+struct ManipulationPlanSharedData
 {
-  // The grasp that is attempted
-  manipulation_msgs::Grasp grasp_;
-  
   std::string planning_group_;
   
   std::string end_effector_group_;
   
   std::string ik_link_name_;
   
+  unsigned int max_goal_sampling_attempts_;
+  
   ros::WallTime timeout_;
+};
+
+typedef boost::shared_ptr<ManipulationPlanSharedData> ManipulationPlanSharedDataPtr;
+typedef boost::shared_ptr<const ManipulationPlanSharedData> ManipulationPlanSharedDataConstPtr;
+
+struct ManipulationPlan
+{
+  ManipulationPlan(const ManipulationPlanSharedDataConstPtr &shared_data) : 
+    shared_data_(shared_data),
+    processing_stage_(0)
+  {
+  }
+  
+  // Shared data between manipulation plans (set at initialization)
+  ManipulationPlanSharedDataConstPtr shared_data_;
+  
+  // the approach motion towards the goal
+  manipulation_msgs::GripperTranslation approach_;
+
+  // the retreat motion away from the goal
+  manipulation_msgs::GripperTranslation retreat_;
+  
+  sensor_msgs::JointState approach_posture_;
+  
+  sensor_msgs::JointState retreat_posture_;
+  
+  // -------------- computed data --------------------------
+  geometry_msgs::PoseStamped goal_pose_;
+  Eigen::Affine3d transformed_goal_pose_;
   
   moveit_msgs::Constraints goal_constraints_;
   constraint_samplers::ConstraintSamplerPtr goal_sampler_;
-  unsigned int sampling_attempts_;
   std::vector<robot_state::RobotStatePtr> possible_goal_states_;
 
   robot_state::RobotStatePtr approach_state_;
