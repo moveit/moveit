@@ -76,12 +76,16 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
     {
       geometry_msgs::PoseStamped req_pose = req.pose_stamped_vector.empty() ? req.pose_stamped : req.pose_stamped_vector[0];
       std::string ik_link = req.pose_stamped_vector.empty() ? (req.ik_link_names.empty() ? "" : req.ik_link_names[0]) : req.ik_link_name;
-      
+
       if (performTransform(req_pose, default_frame))
       {
-        if (ik_link.empty() ? 
-            jsg->setFromIK(req_pose.pose, req.attempts, req.timeout.toSec(), constraint) : 
-            jsg->setFromIK(req_pose.pose, ik_link, req.attempts, req.timeout.toSec()), constraint)
+        bool result_ik = false;        
+        if (ik_link.empty())
+          result_ik = jsg->setFromIK(req_pose.pose, req.attempts, req.timeout.toSec(), constraint);      
+        else
+          result_ik = jsg->setFromIK(req_pose.pose, ik_link, req.attempts, req.timeout.toSec(), constraint);
+      
+        if(result_ik)
         {
           robot_state::robotStateToRobotStateMsg(rs, solution, false);
           error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;        
