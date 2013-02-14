@@ -195,7 +195,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
       // in geometric shapes, the z axis of the cylinder is it height;
       // for the rviz shape, the y axis is the height; we add a transform to fix this
       static Ogre::Quaternion fix(Ogre::Radian(boost::math::constants::pi<double>()/2.0), Ogre::Vector3(1.0, 0.0, 0.0));
-      orientation = fix * orientation;
+      orientation = orientation * fix;
     }
 
     ogre_shape->setPosition(position);
