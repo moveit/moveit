@@ -228,8 +228,19 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
     if (!onedof.empty())
     {
       trajectory.joint_trajectory.points[i].positions.resize(onedof.size());
+      trajectory.joint_trajectory.points[i].velocities.reserve(onedof.size());
       for (std::size_t j = 0 ; j < onedof.size() ; ++j)
-	trajectory.joint_trajectory.points[i].positions[j] = waypoints_[i]->getJointState(onedof[j]->getName())->getVariableValues()[0];
+      {
+        const robot_state::JointState *js = waypoints_[i]->getJointState(onedof[j]->getName());
+        trajectory.joint_trajectory.points[i].positions[j] = js->getVariableValues()[0];
+        // if we have velocities, copy those too
+        if (!js->getVelocities().empty())
+          trajectory.joint_trajectory.points[i].velocities.push_back(js->getVelocities()[0]);
+      }
+      // clear velocities if we have an incomplete specification
+      if (trajectory.joint_trajectory.points[i].velocities.size() != onedof.size())
+        trajectory.joint_trajectory.points[i].velocities.clear();
+      
       if (duration_from_previous_.size() > i)
         trajectory.joint_trajectory.points[i].time_from_start = ros::Duration(total_time);
       else
@@ -249,7 +260,7 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
 }
 
 void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
-                                                                      const moveit_msgs::RobotTrajectory &trajectory)
+                                                              const moveit_msgs::RobotTrajectory &trajectory)
 {
   // make a copy just in case the next clear() removes the memory for the reference passed in
   robot_state::RobotState copy = reference_state;
@@ -288,7 +299,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
 }
 
 void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
-                                                                      const moveit_msgs::RobotState &state, const moveit_msgs::RobotTrajectory &trajectory)
+                                                              const moveit_msgs::RobotState &state, const moveit_msgs::RobotTrajectory &trajectory)
 {
   robot_state::RobotState st(reference_state);
   robot_state::robotStateMsgToRobotState(state, st);
