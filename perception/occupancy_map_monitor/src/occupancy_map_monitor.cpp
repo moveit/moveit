@@ -149,6 +149,7 @@ bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request
     octomap::AbstractOcTree* tree = octomap::AbstractOcTree::read(request.filename);
     if(tree == NULL)
     {
+        this->unlockOcTreeWrite();
         ROS_ERROR("Failed to load map from file");
         response.success = false;
         return true;
