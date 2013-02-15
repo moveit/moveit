@@ -43,6 +43,8 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include <moveit_msgs/SaveMap.h>
+#include <moveit_msgs/LoadMap.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <set>
@@ -108,6 +110,12 @@ public:
     update_callback_ = update_callback;
   }
 
+  /** @brief Save the current octree to a binary file */
+  bool saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response);
+
+  /** @brief Load octree from a binary file (gets rid of current octree data) */
+  bool loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response);
+
 private:
 
   void initialize(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf);
@@ -139,6 +147,8 @@ private:
   ros::Publisher occupied_marker_pub_;
   ros::Publisher free_marker_pub_;
   ros::Publisher octree_binary_pub_;
+  ros::ServiceServer save_map_srv_;
+  ros::ServiceServer load_map_srv_;
 };
 
 }
