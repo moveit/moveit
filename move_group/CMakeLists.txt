@@ -50,3 +50,4 @@ target_link_libraries(move_group_action_server ${catkin_LIBRARIES} ${Boost_LIBRA
 
 install(TARGETS move_group_action_server RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION include)
+install(PROGRAMS scripts/load_map scripts/save_map DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

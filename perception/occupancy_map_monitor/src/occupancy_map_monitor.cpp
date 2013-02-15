@@ -35,6 +35,8 @@
 /* Author: Jon Binney */
 
 #include <ros/ros.h>
+#include <moveit_msgs/SaveMap.h>
+#include <moveit_msgs/LoadMap.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
@@ -123,6 +125,41 @@ void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shar
     }
   }
   octree_binary_pub_ = root_nh_.advertise<octomap_msgs::Octomap>("octomap_binary", 1);
+
+  /* advertise a service for loading octomaps from disk */
+  save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
+  load_map_srv_ = nh_.advertiseService("load_map", &OccupancyMapMonitor::loadMapCallback, this);
+}
+
+bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response)
+{
+    ROS_INFO("Writing map to %s", request.filename.c_str());
+    this->lockOcTreeRead();
+    response.success = tree_->write(request.filename);
+    this->unlockOcTreeRead();
+    return true;
+}
+
+bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response)
+{
+    ROS_INFO("Reading map from %s", request.filename.c_str());
+    this->lockOcTreeWrite();
+
+    /* load the octree from disk */
+    octomap::AbstractOcTree* tree = octomap::AbstractOcTree::read(request.filename);
+    if(tree == NULL)
+    {
+        ROS_ERROR("Failed to load map from file");
+        response.success = false;
+        return true;
+    }
+
+    /* cast the abstract octree to the right type and update our shared pointer */
+    tree_.reset(dynamic_cast<OccMapTree*>(tree));
+    response.success = true;
+
+    this->unlockOcTreeWrite();
+    return true;
 }
 
 void OccupancyMapMonitor::treeUpdateThread()
