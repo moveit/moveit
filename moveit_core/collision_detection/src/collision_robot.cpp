@@ -73,7 +73,7 @@ collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotMode
     scale = 1.0;
   if (!validatePadding(padding))
     padding = 0.0;
-  
+
   const std::vector<const robot_model::LinkModel*>& links = kmodel_->getLinkModels();
   for (std::size_t i = 0 ; i < links.size() ; ++i)
     if (links[i] && links[i]->getShape())
@@ -99,7 +99,7 @@ void collision_detection::CollisionRobot::setPadding(double padding)
     if (links[i] && links[i]->getShape())
     {
       if (getLinkPadding(links[i]->getName()) != padding)
-	u.push_back(links[i]->getName());
+        u.push_back(links[i]->getName());
       link_padding_[links[i]->getName()] = padding;
     }
   if (!u.empty())
@@ -116,7 +116,7 @@ void collision_detection::CollisionRobot::setScale(double scale)
     if (links[i] && links[i]->getShape())
     {
       if (getLinkScale(links[i]->getName()) != scale)
-	u.push_back(links[i]->getName());
+        u.push_back(links[i]->getName());
       link_scale_[links[i]->getName()] = scale;
     }
   if (!u.empty())

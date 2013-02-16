@@ -57,27 +57,27 @@ public:
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory) const;
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                          const moveit_msgs::RobotState& start_state) const;
-  
+
   /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
   /// points that exceed the velocity or acceleration bounds.
   bool computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
                          const std::vector<moveit_msgs::JointLimits>& limits) const;
-  
+
   /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
   /// points that exceed the velocity or acceleration bounds. Uses velocities from the start_state.
   bool computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
                          const std::vector<moveit_msgs::JointLimits>& limits,
                          const moveit_msgs::RobotState& start_state) const;
-  
+
 private:
-  
-  unsigned int max_iterations_;		/// @brief maximum number of iterations to find solution
-  double max_time_change_per_it_;	/// @brief maximum allowed time change per iteration in seconds
-  
-  void applyVelocityConstraints(trajectory_msgs::JointTrajectory& traj, 
+
+  unsigned int max_iterations_;         /// @brief maximum number of iterations to find solution
+  double max_time_change_per_it_;       /// @brief maximum allowed time change per iteration in seconds
+
+  void applyVelocityConstraints(trajectory_msgs::JointTrajectory& traj,
                                 const std::vector<moveit_msgs::JointLimits>& limits,
                                 std::vector<double> &time_diff) const;
-  void applyAccelerationConstraints(const trajectory_msgs::JointTrajectory& trajectory, 
+  void applyAccelerationConstraints(const trajectory_msgs::JointTrajectory& trajectory,
                                     const std::vector<moveit_msgs::JointLimits>& limits,
                                     std::vector<double> & time_diff,
                                     const std::map<std::string, double>& velocity_map) const;

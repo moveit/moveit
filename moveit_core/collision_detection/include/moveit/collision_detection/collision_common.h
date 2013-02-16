@@ -54,14 +54,14 @@ namespace collision_detection
     /** \brief The types of bodies that are considered for collision */
     enum Type
       {
-	/** \brief A link on the robot */
-	ROBOT_LINK,
-	
-	/** \brief A body attached to a robot link */
-	ROBOT_ATTACHED,
-	
-	/** \brief A body in the environment */
-	WORLD_OBJECT
+        /** \brief A link on the robot */
+        ROBOT_LINK,
+        
+        /** \brief A body attached to a robot link */
+        ROBOT_ATTACHED,
+        
+        /** \brief A body in the environment */
+        WORLD_OBJECT
       };
   }
   
@@ -119,13 +119,13 @@ namespace collision_detection
       double c1 = cost * getVolume();
       double c2 = other.cost * other.getVolume();
       if (c1 > c2)
-	return true;
+        return true;
       if (c1 < c2)
-	return false;
+        return false;
       if (cost < other.cost)
-	return false;
+        return false;
       if (cost > other.cost)
-	return true;
+        return true;
       return aabb_min < other.aabb_min;
     }
   };
