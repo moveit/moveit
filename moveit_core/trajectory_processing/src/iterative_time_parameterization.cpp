@@ -99,17 +99,17 @@ void IterativeParabolicTimeParameterization::printStats(const trajectory_msgs::J
 }
 
 // Applies velocity
-void IterativeParabolicTimeParameterization::applyVelocityConstraints(trajectory_msgs::JointTrajectory& trajectory, 
+void IterativeParabolicTimeParameterization::applyVelocityConstraints(trajectory_msgs::JointTrajectory& trajectory,
                                                                       const std::vector<moveit_msgs::JointLimits>& limits,
                                                                       std::vector<double> &time_diff) const
 {
-  
+
   // aleeper: This function computes the minimum time needed for each trajectory
   //          point by (forward_difference/ v_max), and recording the minimum time in
   //          the time_diff vector, which will be used later.
   const unsigned int num_points = trajectory.points.size();
   const unsigned int num_joints = trajectory.joint_names.size();
-  
+
   // Initial values
   for (unsigned int i=0; i<num_points; ++i)
   {
@@ -117,26 +117,26 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(trajectory
     point.velocities.resize(num_joints);
     point.accelerations.resize(num_joints);
   }
-  
+
   for (unsigned int i=0; i<num_points-1; ++i)
   {
     trajectory_msgs::JointTrajectoryPoint& point1 = trajectory.points[i];
     trajectory_msgs::JointTrajectoryPoint& point2 = trajectory.points[i+1];
-    
+
     // Get velocity min/max
     for (unsigned int j=0; j<num_joints; ++j)
     {
       double v_max = 1.0;
-      
+
       if( limits[j].has_velocity_limits )
       {
         v_max = limits[j].max_velocity;
       }
-      
+
       const double dq1 = point1.positions[j];
       const double dq2 = point2.positions[j];
       const double t_min = std::abs(dq2-dq1) / v_max;
-      
+
       if( t_min > time_diff[i] )
       {
         time_diff[i] = t_min;
@@ -148,17 +148,17 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(trajectory
 // Iteratively expand dt1 interval by a constant factor until within acceleration constraint
 // In the future we may want to solve to quadratic equation to get the exact timing interval.
 // To do this, use the CubicTrajectory::quadSolve() function in cubic_trajectory.h
-double IterativeParabolicTimeParameterization::findT1( const double dq1, 
-                                                       const double dq2, 
-                                                       double dt1, 
-                                                       const double dt2, 
+double IterativeParabolicTimeParameterization::findT1( const double dq1,
+                                                       const double dq2,
+                                                       double dt1,
+                                                       const double dt2,
                                                        const double a_max) const
 {
   const double mult_factor = 1.01;
   double v1 = (dq1)/dt1;
   double v2 = (dq2)/dt2;
   double a = 2.0*(v2-v1)/(dt1+dt2);
-  
+
   while( std::abs( a ) > a_max )
   {
     v1 = (dq1)/dt1;
@@ -166,21 +166,21 @@ double IterativeParabolicTimeParameterization::findT1( const double dq1,
     a = 2.0*(v2-v1)/(dt1+dt2);
     dt1 *= mult_factor;
   }
-  
+
   return dt1;
 }
 
-double IterativeParabolicTimeParameterization::findT2(const double dq1, 
-                                                      const double dq2, 
-                                                      const double dt1, 
-                                                      double dt2, 
+double IterativeParabolicTimeParameterization::findT2(const double dq1,
+                                                      const double dq2,
+                                                      const double dt1,
+                                                      double dt2,
                                                       const double a_max) const
 {
   const double mult_factor = 1.01;
   double v1 = (dq1)/dt1;
   double v2 = (dq2)/dt2;
   double a = 2.0*(v2-v1)/(dt1+dt2);
-  
+
   while( std::abs( a ) > a_max )
   {
     v1 = (dq1)/dt1;
@@ -188,7 +188,7 @@ double IterativeParabolicTimeParameterization::findT2(const double dq1,
     a = 2.0*(v2-v1)/(dt1+dt2);
     dt2 *= mult_factor;
   }
-  
+
   return dt2;
 }
 
@@ -197,19 +197,19 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
                       const std::vector<double>& time_diff,
                       const std::map<std::string, double>& velocity_map)
 {
-  
+
   // aleeper: Where does this magic number (0.2) come from?
   //          Let's try only building in a delay if we aren't doing stamped execution.
   double time_sum = velocity_map.empty() ? 0.2 : 0.0;
   unsigned int num_joints = trajectory.joint_names.size();
   const unsigned int num_points = trajectory.points.size();
-  
+
   // Error check
   if(time_diff.size() < 1)
     return;
-  
+
   bool has_start_velocity = !velocity_map.empty();
-  
+
   // Times
   trajectory.points[0].time_from_start = ros::Duration(time_sum);
   for (unsigned int i=1; i<num_points; ++i)
@@ -217,10 +217,10 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
     time_sum += time_diff[i-1];
     trajectory.points[i].time_from_start = ros::Duration(time_sum);
   }
-  
+
   // Return if there is only one point in the trajectory!
   if(trajectory.points.size() <= 1) return;
-  
+
   /*
   // Velocities
   for (unsigned int j=0; j<num_joints; ++j)
@@ -241,7 +241,7 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
   }
   }
   */
-  
+
   // Accelerations
   for (unsigned int i=0; i<num_points; ++i)
   {
@@ -252,9 +252,9 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
       double q3;
       double dt1;
       double dt2;
-      
+
       if(i==0)
-      {	// First point
+      { // First point
         q1 = trajectory.points[i+1].positions[j];
         q2 = trajectory.points[i].positions[j];
         q3 = trajectory.points[i+1].positions[j];
@@ -277,9 +277,9 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
         dt1 = time_diff[i-1];
         dt2 = time_diff[i-1];
       }
-      
+
       double v1, v2, a;
-      
+
       if(dt1 == 0.0 || dt2 == 0.0) {
         v1 = 0.0;
         v2 = 0.0;
@@ -307,7 +307,7 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
 
 
 // Applies Acceleration constraints
-void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const trajectory_msgs::JointTrajectory& trajectory, 
+void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const trajectory_msgs::JointTrajectory& trajectory,
                                                                           const std::vector<moveit_msgs::JointLimits>& limits,
                                                                           std::vector<double> & time_diff,
                                                                           const std::map<std::string, double>& velocity_map) const
@@ -325,14 +325,14 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
   double v1;
   double v2;
   double a;
-  
+
   bool has_start_velocity = !velocity_map.empty();
-  
+
   do
   {
     num_updates = 0;
     iteration++;
-    
+
     // In this case we iterate through the joints on the outer loop.
     // This is so that any time interval increases have a chance to get propogated through the trajectory
     for (unsigned int j = 0; j < num_joints ; ++j)
@@ -343,7 +343,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
         //logDebug("applyAcceleration: Iteration %i backwards=%i joint=%i", iteration, backwards, j);
         //updateTrajectory(trajectory, time_diff);
         //printStats(trajectory);
-        
+
         for (unsigned int i=0; i<num_points-1; ++i)
         {
           unsigned int index = i;
@@ -351,16 +351,16 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
           {
             index = (num_points-1)-i;
           }
-          
+
           // Get acceleration limits
           double a_max = 1.0;
           if( limits[j].has_acceleration_limits )
           {
             a_max = limits[j].max_acceleration;
           }
-          
+
           if(index==0)
-          {	// First point
+          {     // First point
             q1 = trajectory.points[index+1].positions[j];
             q2 = trajectory.points[index].positions[j];
             q3 = trajectory.points[index+1].positions[j];
@@ -385,7 +385,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
             dt2 = time_diff[index-1];
             assert(backwards);
           }
-          
+
           if(dt1 == 0.0 || dt2 == 0.0) {
             v1 = 0.0;
             v2 = 0.0;
@@ -405,7 +405,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
             v2 = (q3-q2)/dt2;
             a = 2*(v2-v1)/(dt1+dt2);
           }
-          
+
           if( std::abs( a ) > a_max + ROUNDING_THRESHOLD )
           {
             if(!backwards)
@@ -419,7 +419,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
               time_diff[index-1] = dt1;
             }
             num_updates++;
-            
+
             if(dt1 == 0.0 || dt2 == 0.0) {
               v1 = 0.0;
               v2 = 0.0;
@@ -451,8 +451,8 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
 {
   bool success = true;
   const std::size_t num_points = trajectory.points.size();
-  std::vector<double> time_diff(num_points, 0.0);	// the time difference between adjacent points
-  
+  std::vector<double> time_diff(num_points, 0.0);       // the time difference between adjacent points
+
   std::map<std::string, double> velocity_map;
   if (start_state.joint_state.name.size() == start_state.joint_state.velocity.size())
   {
@@ -460,21 +460,21 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
     for (std::size_t i = 0; i < start_state.joint_state.name.size(); ++i)
       velocity_map[start_state.joint_state.name[i]] = start_state.joint_state.velocity[i];
   }
-  
+
   applyVelocityConstraints(trajectory, limits, time_diff);
   applyAccelerationConstraints(trajectory, limits, time_diff, velocity_map);
-  
+
   updateTrajectory(trajectory, time_diff, velocity_map);
-  //  printStats(trajectory, limits);  
+  //  printStats(trajectory, limits);
   return success;
 }
 
 bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                                const moveit_msgs::RobotState& start_state) const
-{ 
+{
   if (trajectory.empty())
     return true;
-  
+
   if (!trajectory.getGroup())
   {
     logError("It looks like the planner did not set the group the plan was computed for");
@@ -483,7 +483,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
 
   // \todo this lib does not actually work properly when angles wrap around, so we need to unwind the path first
   trajectory.unwind();
-  
+
   // \todo this is inefficient  (we should avoid conversions back & forth)
   moveit_msgs::RobotTrajectory msg;
   trajectory.getRobotTrajectoryMsg(msg);
@@ -493,7 +493,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
     trajectory.setRobotTrajectoryMsg(trajectory.getFirstWayPoint(), msg);
     return true;
   }
-  else 
+  else
     return false;
 }
 

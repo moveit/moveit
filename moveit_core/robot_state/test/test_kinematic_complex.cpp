@@ -217,7 +217,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     ks2.getStateValues(v2);
     EXPECT_TRUE(v1.size() == v2.size());
     for (unsigned int i = 0; i < v1.size(); ++i)
-	EXPECT_NEAR(v1[i], v2[i], 1e-5);
+        EXPECT_NEAR(v1[i], v2[i], 1e-5);
 
     std::vector<double> state_double_vector;
     ks.getStateValues(state_double_vector);
@@ -226,7 +226,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
 TEST_F(LoadPlanningModelsPr2, SubgroupInit)
 {
-  robot_model::RobotModel kmodel(urdf_model_, srdf_model_);  
+  robot_model::RobotModel kmodel(urdf_model_, srdf_model_);
   const robot_model::JointModelGroup* jmg = kmodel.getJointModelGroup("arms");
   ASSERT_TRUE(jmg);
   EXPECT_EQ(jmg->getSubgroupNames().size(), 2);
@@ -241,19 +241,19 @@ TEST_F(LoadPlanningModelsPr2, SubgroupInit)
 TEST_F(LoadPlanningModelsPr2, AssociatedFixedLinks)
 {
   boost::shared_ptr<robot_model::RobotModel> kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));
-  
+
   EXPECT_TRUE(kmodel->getLinkModel("r_gripper_palm_link")->getAssociatedFixedTransforms().size() > 1);
 }
 
 TEST_F(LoadPlanningModelsPr2, RobotState *Copy) {
-  robot_model::RobotModelPtr kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));    
+  robot_model::RobotModelPtr kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));
 
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
 
   robot_state::RobotState ks2(kmodel);
   ks2.setToDefaultValues();
-  
+
   std::vector<shapes::ShapeConstPtr> shapes;
   EigenSTL::vector_Affine3d poses;
   shapes::Shape* shape = new shapes::Box(.1,.1,.1);
@@ -261,11 +261,11 @@ TEST_F(LoadPlanningModelsPr2, RobotState *Copy) {
   poses.push_back(Eigen::Affine3d::Identity());
   std::vector<std::string> touch_links;
   ks.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
-  
+
   std::vector<const robot_state::AttachedBody*> attached_bodies_1;
   ks.getAttachedBodies(attached_bodies_1);
   ASSERT_EQ(attached_bodies_1.size(),1);
-  
+
   std::vector<const robot_state::AttachedBody*> attached_bodies_2;
   ks2 = ks;
   ks2.getAttachedBodies(attached_bodies_2);
@@ -275,7 +275,7 @@ TEST_F(LoadPlanningModelsPr2, RobotState *Copy) {
   attached_bodies_1.clear();
   ks.getAttachedBodies(attached_bodies_1);
   ASSERT_EQ(attached_bodies_1.size(),0);
-  
+
   ks2 = ks;
   attached_bodies_2.clear();
   ks2.getAttachedBodies(attached_bodies_2);
