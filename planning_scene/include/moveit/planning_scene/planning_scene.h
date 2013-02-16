@@ -66,7 +66,7 @@ typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
     The first argument is the state to check the feasibility for, the second one is whether the check should be verbose or not. */
 typedef boost::function<bool(const robot_state::RobotState&, bool)> StateFeasibilityFn;
 
-/** \brief This is the function signature for additional feasibility checks to be imposed on motions segments between states (in addition to respecting constraints and collision avoidance). 
+/** \brief This is the function signature for additional feasibility checks to be imposed on motions segments between states (in addition to respecting constraints and collision avoidance).
     The order of the arguments matters: the notion of feasibility is to be checked for motion segments that start at the first state and end at the second state. The third argument indicates
     whether the check should be verbose or not. */
 typedef boost::function<bool(const robot_state::RobotState&, const robot_state::RobotState&, bool)> MotionFeasibilityFn;
@@ -81,7 +81,7 @@ class PlanningScene : private boost::noncopyable,
                       public boost::enable_shared_from_this<PlanningScene>
 {
 public:
-  
+
   /** \brief Constructor. Allocate an empty planning scene. Before use, this instance needs to be configured
       by calling the configure() function. */
   PlanningScene();
@@ -89,7 +89,7 @@ public:
   static const std::string COLLISION_MAP_NS;
   static const std::string OCTOMAP_NS;
   static const std::string DEFAULT_SCENE_NAME;
-  
+
 protected:
 
   /** \brief Constructor. Allocate a planning scene that is to be maintained as a diff to a \e parent planning scene.
@@ -99,9 +99,9 @@ protected:
       It is recommended that the \e parent planning scene is configured before use. Otherwise,
       the configure() function will have to be called on the diff class as well. */
   PlanningScene(const PlanningSceneConstPtr &parent);
-  
+
 public:
-  
+
   virtual ~PlanningScene()
   {
   }
@@ -111,13 +111,13 @@ public:
   {
     return name_;
   }
-	
+
   /** \brief Set the name of the planning scene */
   void setName(const std::string &name)
   {
     name_ = name;
   }
-  
+
   /** \brief Set the types that satisfy the interfaces for collision_space::CollisionWorld and collision_space::CollisionRobot that should be used for collision checking. */
   template<typename CollisionWorldType, typename CollisionRobotType>
   void setCollisionDetectionTypes()
@@ -138,10 +138,10 @@ public:
 
   /** \brief Return a new planning scene that uses this one as parent. */
   PlanningScenePtr diff() const;
-  
+
   /** \brief Return a new planning scene that uses this one as parent and has the diffs specified by \e msg applied. */
   PlanningScenePtr diff(const moveit_msgs::PlanningScene &msg) const;
-  
+
   /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
   const PlanningSceneConstPtr& getParent() const
   {
@@ -234,13 +234,13 @@ public:
                       collision_detection::CollisionResult &res,
                       const robot_state::RobotState &kstate,
                       const collision_detection::AllowedCollisionMatrix& acm) const;
-    
-  /** \brief Check whether the current state is in collision, 
+
+  /** \brief Check whether the current state is in collision,
       but use a collision_detection::CollisionRobot instance that has no padding.  */
   void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
-			      collision_detection::CollisionResult &res) const;
+                              collision_detection::CollisionResult &res) const;
 
-  /** \brief Check whether a specified state (\e kstate) is in collision, 
+  /** \brief Check whether a specified state (\e kstate) is in collision,
       but use a collision_detection::CollisionRobot instance that has no padding.  */
   void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                               collision_detection::CollisionResult &res,
@@ -268,20 +268,20 @@ public:
                           collision_detection::CollisionResult &res,
                           const robot_state::RobotState &kstate,
                           const collision_detection::AllowedCollisionMatrix& acm) const;
-  
+
   /** \brief Get the names of the links that are involved in collisions for the current state */
   void getCollidingLinks(std::vector<std::string> &links) const;
-  
+
   /** \brief Get the names of the links that are involved in collisions for the state \e kstate */
   void getCollidingLinks(std::vector<std::string> &links,
                          const robot_state::RobotState &kstate) const;
-  
+
   /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
       allowed collision matrix (\e acm) */
   void getCollidingLinks(std::vector<std::string> &links,
                          const robot_state::RobotState &kstate,
                          const collision_detection::AllowedCollisionMatrix& acm) const;
-  
+
   /** \brief The distance between the robot model at state \e kstate to the nearest collision */
   double distanceToCollision(const robot_state::RobotState &kstate) const;
 
@@ -293,19 +293,19 @@ public:
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide, if the robot has no padding. */
   double distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
-  
+
   /** \brief Check if this planning scene has been configured or not */
   bool isConfigured() const
   {
     return parent_ ? configured_ && parent_->isConfigured() : configured_;
   }
-  
+
   /** \brief Save the geometry of the planning scene to a stream, as plain text */
   void saveGeometryToStream(std::ostream &out) const;
 
   /** \brief Load the geometry of the planning scene from a stream */
   void loadGeometryFromStream(std::istream &in);
-  
+
   /** \brief Fill the message \e scene with the differences between this instance of PlanningScene with respect to the parent.
       If there is no parent, everything is considered to be a diff and the function behaves like getPlanningSceneMsg() */
   void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const;
@@ -321,7 +321,7 @@ public:
 
   /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene message, even if the message itself is marked as being a diff (is_diff member) */
   void setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
-  
+
   /** \brief Call setPlanningSceneMsg() or setPlanningSceneDiffMsg() depending on how the is_diff member of the message is set */
   void usePlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
 
@@ -342,14 +342,14 @@ public:
 
   /** \brief Set the current robot state */
   void setCurrentState(const robot_state::RobotState &state);
-    
+
   bool hasColor(const std::string &id) const;
 
   const std_msgs::ColorRGBA& getColor(const std::string &id) const;
   void setColor(const std::string &id, const std_msgs::ColorRGBA &color);
   void removeColor(const std::string &id);
   void getKnownColors(ColorMap &kc) const;
-  
+
   /** \brief Clear the diffs accumulated for this planning scene, with respect to the parent. This function is a no-op if there is no parent specified. */
   void clearDiffs();
 
@@ -361,7 +361,7 @@ public:
       scene is local. All unmodified data is copied from the
       parent and the pointer to the parent is discarded. */
   void decoupleParent();
-  
+
   /** \brief Specify a predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation.
       This is useful for setting up problem specific constraints (e.g., stability) */
   void setStateFeasibilityPredicate(const StateFeasibilityFn &fn)
@@ -374,7 +374,7 @@ public:
   {
     return state_feasibility_;
   }
-  
+
   /** \brief Specify a predicate that decides whether motion segments are considered valid or invalid for reasons beyond ones covered by collision checking and constraint evaluation.  */
   void setMotionFeasibilityPredicate(const MotionFeasibilityFn &fn)
   {
@@ -389,7 +389,7 @@ public:
 
   /** \brief Check if the current state is in collision (with the environment or self collision) */
   bool isStateColliding(const std::string &group = "", bool verbose = false) const;
-  
+
   /** \brief Check if a given state is in collision (with the environment or self collision) */
   bool isStateColliding(const moveit_msgs::RobotState &state, const std::string &group = "", bool verbose = false) const;
 
@@ -474,7 +474,7 @@ public:
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
   bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
                    const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
-  
+
   /** \brief Get the top \e max_costs cost sources for a specified trajectory. The resulting costs are stored in \e costs */
   void getCostSources(const robot_trajectory::RobotTrajectory &trajectory, std::size_t max_costs,
                       std::set<collision_detection::CostSource> &costs, double overlap_fraction = 0.9) const;
@@ -486,11 +486,11 @@ public:
   /** \brief Get the top \e max_costs cost sources for a specified state. The resulting costs are stored in \e costs */
   void getCostSources(const robot_state::RobotState &state, std::size_t max_costs,
                       std::set<collision_detection::CostSource> &costs) const;
-  
+
   /** \brief Get the top \e max_costs cost sources for a specified state, but only for group \e group_name. The resulting costs are stored in \e costs */
   void getCostSources(const robot_state::RobotState &state, std::size_t max_costs,
                       const std::string &group_name, std::set<collision_detection::CostSource> &costs) const;
-  
+
   /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message. */
   static bool isEmpty(const moveit_msgs::PlanningScene &msg);
 
@@ -499,10 +499,10 @@ public:
 
   /** \brief Check if a message includes any information about a robot state, or it is just a default, empty message. */
   static bool isEmpty(const moveit_msgs::RobotState &msg);
-  
+
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
-  
+
 protected:
 
   /** \brief Get the non-const kinematic model for which the planning scene is maintained */
@@ -512,28 +512,28 @@ protected:
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
-  
+
   struct CollisionDetectionAllocBase
-  {         
+  {
     virtual collision_detection::CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &kmodel) = 0;
     virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy) = 0;
     virtual collision_detection::CollisionWorldPtr allocateWorld() = 0;
     virtual collision_detection::CollisionWorldPtr allocateWorld(const collision_detection::CollisionWorldConstPtr &copy) = 0;
     virtual CollisionDetectionAllocBase* clone() = 0;
   };
-  
+
   template<typename CollisionWorldType, typename CollisionRobotType>
   struct CollisionDetectionAlloc : public CollisionDetectionAllocBase
   {
     BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionWorldType*, collision_detection::CollisionWorld*>));
     BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionRobotType*, collision_detection::CollisionRobot*>));
-    
+
     virtual collision_detection::CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &kmodel)
     {
       return collision_detection::CollisionRobotPtr(new CollisionRobotType(kmodel));
     }
     virtual collision_detection::CollisionWorldPtr allocateWorld()
-    {    
+    {
       return collision_detection::CollisionWorldPtr(new CollisionWorldType());
     }
     virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy)
@@ -541,17 +541,17 @@ protected:
       return collision_detection::CollisionRobotPtr(new CollisionRobotType(static_cast<const CollisionRobotType&>(*copy)));
     }
     virtual collision_detection::CollisionWorldPtr allocateWorld(const  collision_detection::CollisionWorldConstPtr &copy)
-    {    
+    {
       return collision_detection::CollisionWorldPtr(new CollisionWorldType(static_cast<const CollisionWorldType&>(*copy)));
     }
     virtual CollisionDetectionAllocBase* clone()
     {
       return new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>();
-    }    
+    }
   };
 
   std::string                                    name_;
-	
+
   PlanningSceneConstPtr                          parent_;
 
   robot_model::RobotModelPtr             kmodel_;
@@ -563,7 +563,7 @@ protected:
   robot_state::TransformsConstPtr            ftf_const_;
 
   boost::scoped_ptr<CollisionDetectionAllocBase> collision_detection_allocator_;
-  
+
   collision_detection::CollisionRobotPtr         crobot_unpadded_;
   collision_detection::CollisionRobotConstPtr    crobot_unpadded_const_;
   collision_detection::CollisionRobotPtr         crobot_;
@@ -578,7 +578,7 @@ protected:
   MotionFeasibilityFn                            motion_feasibility_;
 
   boost::scoped_ptr<ColorMap>                    colors_;
-  
+
   bool                                           configured_;
 
 };

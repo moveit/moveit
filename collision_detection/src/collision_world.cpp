@@ -168,13 +168,13 @@ bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &i
       {
         ensureUnique(it->second);
         it->second->shape_poses_[i] = pose;
-	
-	if (record_changes_)
-	{
-	  changeRemoveObject(id);
-	  changeAddObject(it->second->id_);
-	}
-	return true;
+        
+        if (record_changes_)
+        {
+          changeRemoveObject(id);
+          changeAddObject(it->second->id_);
+        }
+        return true;
       }
   }
   return false;
@@ -189,22 +189,22 @@ bool collision_detection::CollisionWorld::removeShapeFromObject(const std::strin
     for (unsigned int i = 0 ; i < n ; ++i)
       if (it->second->shapes_[i] == shape)
       {
-	ensureUnique(it->second);
-	it->second->shapes_.erase(it->second->shapes_.begin() + i);
-	it->second->shape_poses_.erase(it->second->shape_poses_.begin() + i);
-	if (it->second->shapes_.empty())
-	{
-	  objects_.erase(it);
-	  if (record_changes_)
-	    changeRemoveObject(id);
-	}
-	else
-	  if (record_changes_)
-	  {
-	    changeRemoveObject(id);
-	    changeAddObject(it->second->id_);
-	  }
-	return true;
+        ensureUnique(it->second);
+        it->second->shapes_.erase(it->second->shapes_.begin() + i);
+        it->second->shape_poses_.erase(it->second->shape_poses_.begin() + i);
+        if (it->second->shapes_.empty())
+        {
+          objects_.erase(it);
+          if (record_changes_)
+            changeRemoveObject(id);
+        }
+        else
+          if (record_changes_)
+          {
+            changeRemoveObject(id);
+            changeAddObject(it->second->id_);
+          }
+        return true;
       }
   }
   return false;
