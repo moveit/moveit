@@ -96,11 +96,11 @@ catkin_package(
 
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
                            ${Boost_INCLUDE_DIR}
-			   )
+                           )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
                     ${catkin_INCLUDE_DIRS} 
-		    ${OCTOMAP_INCLUDE_DIRS}
+                    ${OCTOMAP_INCLUDE_DIRS}
                     )
 
 link_directories(${Boost_LIBRARY_DIRS})

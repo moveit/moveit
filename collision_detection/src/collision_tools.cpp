@@ -74,7 +74,7 @@ void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr,
     mk.pose.position.z = (it->aabb_max[2] + it->aabb_min[2]) / 2.0;
     mk.pose.orientation.x = 0.0;
     mk.pose.orientation.y = 0.0;
-    mk.pose.orientation.z = 0.0;    
+    mk.pose.orientation.z = 0.0;
     mk.pose.orientation.w = 1.0;
     mk.scale.x = it->aabb_max[0] - it->aabb_min[0];
     mk.scale.y = it->aabb_max[1] - it->aabb_min[1];
@@ -93,7 +93,7 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
                                                           const std_msgs::ColorRGBA& color,
                                                           const ros::Duration& lifetime,
                                                           double radius)
-  
+
 {
   std::map<std::string, unsigned> ns_counts;
   for(CollisionResult::ContactMap::const_iterator it = con.begin(); it != con.end(); ++it)
@@ -117,7 +117,7 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
       mk.pose.position.z = it->second[i].pos.z();
       mk.pose.orientation.x = 0.0;
       mk.pose.orientation.y = 0.0;
-      mk.pose.orientation.z = 0.0;    
+      mk.pose.orientation.z = 0.0;
       mk.pose.orientation.w = 1.0;
       mk.scale.x = mk.scale.y = mk.scale.z = radius * 2.0;
       mk.color = color;
@@ -139,7 +139,7 @@ bool collision_detection::getSensorPositioning(geometry_msgs::Point &point,
     ++it;
   point.x = (it->aabb_max[0] + it->aabb_min[0]) / 2.0;
   point.y = (it->aabb_max[1] + it->aabb_min[1]) / 2.0;
-  point.z = (it->aabb_max[2] + it->aabb_min[2]) / 2.0;  
+  point.z = (it->aabb_max[2] + it->aabb_min[2]) / 2.0;
   return true;
 }
 
@@ -162,11 +162,11 @@ void collision_detection::intersectCostSources(std::set<CostSource> &cost_source
       tmp.aabb_min[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
       tmp.aabb_min[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
       tmp.aabb_min[2] = std::max(it->aabb_min[2], jt->aabb_min[2]);
-      
+
       tmp.aabb_max[0] = std::min(it->aabb_max[0], jt->aabb_max[0]);
       tmp.aabb_max[1] = std::min(it->aabb_max[1], jt->aabb_max[1]);
       tmp.aabb_max[2] = std::min(it->aabb_max[2], jt->aabb_max[2]);
-      
+
       if (tmp.aabb_min[0] >= tmp.aabb_max[0] || tmp.aabb_min[1] >= tmp.aabb_max[1] || tmp.aabb_min[2] >= tmp.aabb_max[2])
         continue;
       tmp.cost = std::max(it->cost, jt->cost);
@@ -175,7 +175,7 @@ void collision_detection::intersectCostSources(std::set<CostSource> &cost_source
 }
 
 void collision_detection::removeOverlapping(std::set<CostSource> &cost_sources, double overlap_fraction)
-{  
+{
   double p[3], q[3];
   for (std::set<CostSource>::iterator it = cost_sources.begin() ; it != cost_sources.end() ; ++it)
   {
@@ -187,14 +187,14 @@ void collision_detection::removeOverlapping(std::set<CostSource> &cost_sources, 
       p[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
       p[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
       p[2] = std::max(it->aabb_min[2], jt->aabb_min[2]);
-      
+
       q[0] = std::min(it->aabb_max[0], jt->aabb_max[0]);
       q[1] = std::min(it->aabb_max[1], jt->aabb_max[1]);
       q[2] = std::min(it->aabb_max[2], jt->aabb_max[2]);
-      
+
       if (p[0] >= q[0] || p[1] >= q[1] || p[2] >= q[2])
         continue;
-      
+
       double intersect_volume = (q[0] - p[0]) * (q[1] - p[1]) * (q[2] - p[2]);
       if (intersect_volume >= vol)
         remove.push_back(jt);
@@ -218,7 +218,7 @@ void collision_detection::removeCostSources(std::set<CostSource> &cost_sources, 
       p[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
       p[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
       p[2] = std::max(it->aabb_min[2], jt->aabb_min[2]);
-      
+
       q[0] = std::min(it->aabb_max[0], jt->aabb_max[0]);
       q[1] = std::min(it->aabb_max[1], jt->aabb_max[1]);
       q[2] = std::min(it->aabb_max[2], jt->aabb_max[2]);
@@ -258,7 +258,7 @@ void collision_detection::removeCostSources(std::set<CostSource> &cost_sources, 
 }
 
 void collision_detection::costSourceToMsg(const CostSource &cost_source, moveit_msgs::CostSource &msg)
-{  
+{
   msg.cost_density = cost_source.cost;
   msg.aabb_min.x = cost_source.aabb_min[0];
   msg.aabb_min.y = cost_source.aabb_min[1];
@@ -280,14 +280,14 @@ void collision_detection::contactToMsg(const Contact& contact, moveit_msgs::Cont
   else
     if (contact.body_type_1 == BodyTypes::ROBOT_ATTACHED)
       msg.body_type_1 = moveit_msgs::ContactInformation::ROBOT_ATTACHED;
-    else	   
+    else
       msg.body_type_1 = moveit_msgs::ContactInformation::WORLD_OBJECT;
   if (contact.body_type_2 == BodyTypes::ROBOT_LINK)
     msg.body_type_2 = moveit_msgs::ContactInformation::ROBOT_LINK;
   else
     if (contact.body_type_2 == BodyTypes::ROBOT_ATTACHED)
       msg.body_type_2 = moveit_msgs::ContactInformation::ROBOT_ATTACHED;
-    else	   
-      msg.body_type_2 = moveit_msgs::ContactInformation::WORLD_OBJECT;  
+    else
+      msg.body_type_2 = moveit_msgs::ContactInformation::WORLD_OBJECT;
 }
 

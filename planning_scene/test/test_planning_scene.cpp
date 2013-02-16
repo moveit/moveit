@@ -70,22 +70,22 @@ TEST(PlanningScene, LoadRestoreDiff)
 {
   boost::shared_ptr<urdf::ModelInterface> urdf_model = loadRobotModel();
   boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
-  
+
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
-  
+
   collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
-  
+
   moveit_msgs::PlanningScene ps_msg;
   EXPECT_TRUE(planning_scene::PlanningScene::isEmpty(ps_msg));
   ps->getPlanningSceneMsg(ps_msg);
   ps->setPlanningSceneMsg(ps_msg);
   EXPECT_FALSE(planning_scene::PlanningScene::isEmpty(ps_msg));
   EXPECT_TRUE(ps->getCollisionWorld()->hasObject("sphere"));
-  
+
   planning_scene::PlanningScenePtr next = ps->diff();
   EXPECT_TRUE(next->isConfigured());
   EXPECT_TRUE(next->getCollisionWorld()->hasObject("sphere"));
@@ -96,9 +96,9 @@ TEST(PlanningScene, LoadRestoreDiff)
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
   next->decoupleParent();
   moveit_msgs::PlanningScene ps_msg2;
-  next->getPlanningSceneDiffMsg(ps_msg2);	
+  next->getPlanningSceneDiffMsg(ps_msg2);
   EXPECT_EQ(ps_msg2.world.collision_objects.size(), 0);
-  next->getPlanningSceneMsg(ps_msg);	
+  next->getPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
   ps->setPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
@@ -108,25 +108,25 @@ TEST(PlanningScene, MakeAttachedDiff)
 {
   boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
   boost::shared_ptr<urdf::ModelInterface> urdf_model = loadRobotModel();
-  
+
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
-  
+
   collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
-  
+
   planning_scene::PlanningScenePtr attached_object_diff_scene = ps->diff();
-  
+
   moveit_msgs::AttachedCollisionObject att_obj;
   att_obj.link_name = "r_wrist_roll_link";
   att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
   att_obj.object.id = "sphere";
-  
+
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  
+
   attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
   attached_object_diff_scene->checkCollision(req,res);
   ps->checkCollision(req, res);
