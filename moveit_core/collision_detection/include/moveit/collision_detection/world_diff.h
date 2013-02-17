@@ -59,6 +59,10 @@ namespace collision_detection
 
     ~WorldDiff();
 
+    /** \brief Set which world to record.  Records all objects in old world (if
+     * any) as DESTROYED and all objects in new world as CREATED and ADD_SHAPE
+     * */
+    void setWorld(const WorldPtr& world);
 
     /** \brief Set which world to record.  Erases all previously recorded
      * changes.  */

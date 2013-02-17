@@ -78,7 +78,7 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
   //TODO - clean cache
 }
 
-PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::CollisionWorld::Object& obj,
+PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object& obj,
                                                                      double resolution)
 {
   PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());

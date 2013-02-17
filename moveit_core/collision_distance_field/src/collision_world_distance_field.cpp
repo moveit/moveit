@@ -59,6 +59,10 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(double size_x,
     max_propogation_distance_(max_propogation_distance)
 {  
   distance_field_cache_entry_ = generateDistanceFieldCacheEntry();
+
+  // request notifications about changes to new world
+  getWorld()->addObserver(this, notifyObjectChange);
+  getWorld()->notifyObserverAllObjects(this, World::CREATE);
 }
 
 CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDistanceField& other) :
@@ -72,6 +76,10 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDis
   collision_tolerance_ = other.collision_tolerance_;
   max_propogation_distance_ = other.max_propogation_distance_;
   distance_field_cache_entry_ = generateDistanceFieldCacheEntry();
+
+  // request notifications about changes to new world
+  getWorld()->addObserver(this, notifyObjectChange);
+  getWorld()->notifyObserverAllObjects(this, World::CREATE);
 }
 
 void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, 
@@ -397,6 +405,55 @@ bool CollisionWorldDistanceField::getEnvironmentProximityGradients(const boost::
   return in_collision;
 } 
 
+#if ACORN_USE_WORLD
+void CollisionWorldDistanceField::setWorld(WorldPtr world)
+{
+  if (world == getWorld())
+    return;
+
+  // turn off notifications about old world
+  getWorld()->removeObserver(this);
+
+  // clear out objects from old world
+  distance_field_cache_entry_->distance_field_->reset();
+
+  CollisionWorld::setWorld(world);
+
+  // request notifications about changes to new world
+  getWorld()->addObserver(this, notifyObjectChange);
+
+  // get notifications any objects already in the new world
+  getWorld()->notifyObserverAllObjects(this, World::CREATE);
+}
+
+void CollisionWorldDistanceField::notifyObjectChange(CollisionWorldDistanceField *self, const ObjectConstPtr& obj, World::Action action)
+{
+  ros::WallTime n = ros::WallTime::now();
+
+  EigenSTL::vector_Vector3d add_points;
+  EigenSTL::vector_Vector3d subtract_points;
+  self->updateDistanceObject(obj->id_, self->distance_field_cache_entry_, add_points, subtract_points);
+
+  if (action == World::DESTROY)
+  {
+    self->distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
+  }
+  else if (action & (World::MOVE_SHAPE | World::REMOVE_SHAPE))
+  {
+    self->distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
+    self->distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
+  }
+  else
+  {
+    self->distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
+  }
+
+  logDebug("Modifying object %s took %lf s",
+    obj->id_.c_str(),
+    (ros::WallTime::now()-n).toSec());
+}
+
+#else
 void CollisionWorldDistanceField::addToObject(const std::string& id,
                                               const std::vector<shapes::ShapeConstPtr> &shapes, 
                                               const EigenSTL::vector_Affine3d &poses)
@@ -468,6 +525,7 @@ void CollisionWorldDistanceField::clearObjects()
   CollisionWorld::clearObjects();
   distance_field_cache_entry_->distance_field_->reset();
 }
+#endif
 
 void CollisionWorldDistanceField::updateDistanceObject(const std::string& id,
                                                        boost::shared_ptr<CollisionWorldDistanceField::DistanceFieldCacheEntry>& dfce,
@@ -529,8 +587,8 @@ CollisionWorldDistanceField::generateDistanceFieldCacheEntry()
   }
   EigenSTL::vector_Vector3d add_points;
   EigenSTL::vector_Vector3d subtract_points;
-  for(std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin();
-      it != objects_.end();
+  for(std::map<std::string, ObjectPtr>::const_iterator it = getWorld()->getObjects().begin();
+      it != getWorld()->getObjects().end();
       it++) 
   {
     updateDistanceObject(it->first, dfce, add_points, subtract_points);

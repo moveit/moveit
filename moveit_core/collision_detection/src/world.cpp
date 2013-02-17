@@ -179,6 +179,12 @@ bool collision_detection::World::removeShapeFromObject(const std::string &id,
   return false;
 }
 
+void collision_detection::World::notifyAll(Action action)
+{
+  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
+    notify(it->second, action);
+}
+
 void collision_detection::World::removeObject(const std::string &id)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
@@ -191,8 +197,7 @@ void collision_detection::World::removeObject(const std::string &id)
 
 void collision_detection::World::clearObjects()
 {
-  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
-    notify(it->second, DESTROY);
+  notifyAll(DESTROY);
   objects_.clear();
 }
 
@@ -214,3 +219,21 @@ void collision_detection::World::notify(const ObjectConstPtr& obj, Action action
     it->callback_(it->observer_, obj, action);
 }
 
+void collision_detection::World::notifyObserverAllObjectsInternal(const void *observer, Action action)
+{
+  // find the callback for this observer
+  std::vector<Observer>::iterator obs=observers_.begin();
+  for (;; ++obs)
+  {
+    if (obs == observers_.end())
+    {
+      return;
+    }
+    if (obs->observer_ == observer)
+      break;
+  }
+
+  // call the callback for all objects
+  for (std::map<std::string, ObjectPtr>::const_iterator obj = objects_.begin() ; obj != objects_.end() ; ++obj)
+    obs->callback_(obs->observer_, obj->second, action);
+}

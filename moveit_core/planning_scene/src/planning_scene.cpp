@@ -225,7 +225,7 @@ bool planning_scene::PlanningScene::configure(const robot_model::RobotModelPtr &
     {
       // even if we have a parent, we do maintain a separate world representation, one that records changes
       // this is cheap however, because the worlds share the world representation
-      cworld_ = collision_detection_allocator_->allocateWorld(parent_->getCollisionWorld());
+      cworld_ = collision_detection_allocator_->allocateWorld(parent_->cworld_);
       cworld_->recordChanges(true);
       cworld_const_ = cworld_;
       configured_ = true;
@@ -257,7 +257,7 @@ void planning_scene::PlanningScene::clearDiffs()
     return;
 
   // clear everything, reset the world
-  cworld_ = collision_detection_allocator_->allocateWorld(parent_->getCollisionWorld());
+  cworld_ = collision_detection_allocator_->allocateWorld(parent_->cworld_);
   cworld_->recordChanges(true);
   cworld_const_ = cworld_;
 
@@ -299,19 +299,18 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
     const std::vector<collision_detection::CollisionWorld::Change> &changes = cworld_->getChanges();
     if (!changes.empty())
     {
-      collision_detection::CollisionWorldPtr w = scene->getCollisionWorld();
       for (std::size_t i = 0 ; i < changes.size() ; ++i)
         if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
         {
           collision_detection::CollisionWorld::ObjectConstPtr obj = cworld_->getObject(changes[i].id_);
           if (hasColor(changes[i].id_))
             scene->setColor(changes[i].id_, getColor(changes[i].id_));
-          w->addToObject(obj->id_, obj->shapes_, obj->shape_poses_);
+          scene->cworld_->addToObject(obj->id_, obj->shapes_, obj->shape_poses_);
         }
         else
           if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
           {
-            w->removeObject(changes[i].id_);
+            scene->cworld_->removeObject(changes[i].id_);
             scene->removeColor(changes[i].id_);
           }
           else
@@ -322,22 +321,22 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
 
 double planning_scene::PlanningScene::distanceToCollisionUnpadded(const robot_state::RobotState &kstate) const
 {
-  return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate);
+  return cworld_->distanceRobot(*getCollisionRobotUnpadded(), kstate);
 }
 
 double planning_scene::PlanningScene::distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
 {
-  return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, acm);
+  return cworld_->distanceRobot(*getCollisionRobotUnpadded(), kstate, acm);
 }
 
 double planning_scene::PlanningScene::distanceToCollision(const robot_state::RobotState &kstate) const
 {
-  return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate);
+  return cworld_->distanceRobot(*getCollisionRobot(), kstate);
 }
 
 double planning_scene::PlanningScene::distanceToCollision(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
 {
-  return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, acm);
+  return cworld_->distanceRobot(*getCollisionRobot(), kstate, acm);
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res) const
@@ -355,9 +354,9 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
 {
   // check collision with the world using the padded version
   if (parent_)
-    getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, getAllowedCollisionMatrix());
+    cworld_->checkRobotCollision(req, res, *getCollisionRobot(), kstate, getAllowedCollisionMatrix());
   else
-    getCollisionWorld()->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+    cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
 
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
@@ -382,7 +381,7 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
                                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
-  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
+  cworld_->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
 
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
@@ -408,7 +407,7 @@ void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detec
                                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
-  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
+  cworld_->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
 
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
@@ -629,7 +628,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_ms
   co.header.frame_id = getPlanningFrame();
   co.id = ns;
   co.operation = moveit_msgs::CollisionObject::ADD;
-  collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns);
+  collision_detection::CollisionWorld::ObjectConstPtr obj = world_->getObject(ns);
   if (!obj)
     return;
   ShapeVisitorAddToCollisionObject sv(&co);
@@ -651,7 +650,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_ms
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const
 {
   scene.world.collision_objects.clear();
-  const std::vector<std::string> &ns = getCollisionWorld()->getObjectIds();
+  const std::vector<std::string> &ns = world_->getObjectIds();
   for (std::size_t i = 0 ; i < ns.size() ; ++i)
     if (ns[i] != COLLISION_MAP_NS && ns[i] != OCTOMAP_NS)
       getPlanningSceneMsgCollisionObject(scene, ns[i]);
@@ -661,9 +660,9 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
 {
   scene.world.collision_map.header.frame_id = getPlanningFrame();
   scene.world.collision_map.boxes.clear();
-  if (getCollisionWorld()->hasObject(COLLISION_MAP_NS))
+  if (world_->hasObject(COLLISION_MAP_NS))
   {
-    collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(COLLISION_MAP_NS);
+    collision_detection::CollisionWorld::ObjectConstPtr map = world_->getObject(COLLISION_MAP_NS);
     for (std::size_t i = 0 ; i < map->shapes_.size() ; ++i)
     {
       if (map->shapes_[i]->type != shapes::BOX)
@@ -685,9 +684,9 @@ void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::Plan
   scene.world.octomap.header.frame_id = getPlanningFrame();
   scene.world.octomap.octomap = octomap_msgs::Octomap();
 
-  if (getCollisionWorld()->hasObject(OCTOMAP_NS))
+  if (world_->hasObject(OCTOMAP_NS))
   {
-    collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(OCTOMAP_NS);
+    collision_detection::CollisionWorld::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
     if (map->shapes_.size() == 1)
     {
       const shapes::OcTree *o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
@@ -736,11 +735,11 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 void planning_scene::PlanningScene::saveGeometryToStream(std::ostream &out) const
 {
   out << name_ << std::endl;
-  const std::vector<std::string> &ns = getCollisionWorld()->getObjectIds();
+  const std::vector<std::string> &ns = world_->getObjectIds();
   for (std::size_t i = 0 ; i < ns.size() ; ++i)
     if (ns[i] != COLLISION_MAP_NS && ns[i] != OCTOMAP_NS)
     {
-      collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns[i]);
+      collision_detection::CollisionWorld::ObjectConstPtr obj = world_->getObject(ns[i]);
       if (obj)
       {
         out << "* " << ns[i] << std::endl;
@@ -794,7 +793,7 @@ void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
         if (s)
         {
           Eigen::Affine3d pose = Eigen::Translation3d(x, y, z) * Eigen::Quaterniond(rw, rx, ry, rz);
-          getCollisionWorld()->addToObject(ns, shapes::ShapePtr(s), pose);
+          world_->addToObject(ns, shapes::ShapePtr(s), pose);
           if (r > 0.0f || g > 0.0f || b > 0.0f || a > 0.0f)
           {
             std_msgs::ColorRGBA color;
@@ -869,7 +868,7 @@ void planning_scene::PlanningScene::decoupleParent()
 
     if (!cworld_)
     {
-      cworld_ = collision_detection_allocator_->allocateWorld(parent_->getCollisionWorld());
+      cworld_ = collision_detection_allocator_->allocateWorld(parent_->cworld_);
       cworld_const_ = cworld_;
     }
     else
@@ -1105,9 +1104,9 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 
 void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t)
 {
-  if (getCollisionWorld()->hasObject(OCTOMAP_NS))
+  if (world_->hasObject(OCTOMAP_NS))
   {
-    collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(OCTOMAP_NS);
+    collision_detection::CollisionWorld::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
     if (map->shapes_.size() == 1)
     {
       // check to see if we have the same octree pointer & pose.
