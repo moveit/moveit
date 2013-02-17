@@ -127,6 +127,9 @@ public:
   virtual double distanceWorld(const CollisionWorld &world) const {return 0.0;}
   virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const {return 0.0;}
   
+#if ACORN_USE_WORLD
+    virtual void setWorld(WorldPtr world);
+#else
   virtual void addToObject(const std::string &id, 
                            const std::vector<shapes::ShapeConstPtr> &shapes, 
                            const EigenSTL::vector_Affine3d &poses);
@@ -140,6 +143,7 @@ public:
   virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
   virtual void removeObject(const std::string &id);
   virtual void clearObjects();
+#endif
 
   void generateEnvironmentDistanceField(bool redo = true);
 
@@ -184,6 +188,8 @@ protected:
   
   bool getEnvironmentProximityGradients(const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
                                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+  static void notifyObjectChange(CollisionWorldDistanceField *self, const ObjectConstPtr& obj, World::Action action);
                                         
   double size_x_;
   double size_y_;

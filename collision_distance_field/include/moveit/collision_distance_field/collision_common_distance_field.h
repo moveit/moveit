@@ -146,7 +146,7 @@ struct DistanceFieldCacheEntry {
 BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape,
                                                          double resolution);
 
-PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::CollisionWorld::Object& obj,
+PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object& obj,
                                                                           double resolution);
 
 PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody* att,

@@ -45,6 +45,10 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
   manager_.reset(m);
+
+  // request notifications about changes to new world
+  getWorld()->addObserver(this, notifyObjectChange);
+  getWorld()->notifyObserverAllObjects(this, World::CREATE);
 }
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other) : CollisionWorld(other)
@@ -57,6 +61,10 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFC
   for (std::map<std::string, FCLObject>::iterator it = fcl_objs_.begin() ; it != fcl_objs_.end() ; ++it)
     it->second.registerTo(manager_.get());
   // manager_->update();
+
+  // request notifications about changes to new world
+  getWorld()->addObserver(this, notifyObjectChange);
+  getWorld()->notifyObserverAllObjects(this, World::CREATE);
 }
 
 collision_detection::CollisionWorldFCL::~CollisionWorldFCL()
@@ -118,7 +126,7 @@ void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const Col
     res.distance = distanceWorldHelper(other_world, acm);
 }
 
-void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *obj, FCLObject &fcl_obj) const
+void collision_detection::CollisionWorldFCL::constructFCLObject(const World::Object *obj, FCLObject &fcl_obj) const
 {
   for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
   {
@@ -143,8 +151,8 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   }
 
   // check to see if we have this object
-  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
-  if (it != objects_.end())
+  std::map<std::string, ObjectConstPtr>::const_iterator it = getWorld()->getObjects().find(id);
+  if (it != getWorld()->getObjects().end())
   {
     // construct FCL objects that correspond to this object
     if (jt != fcl_objs_.end())
@@ -167,6 +175,52 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   // manager_->update();
 }
 
+#if ACORN_USE_WORLD
+void collision_detection::CollisionWorldFCL::setWorld(WorldPtr world)
+{
+  if (world == getWorld())
+    return;
+
+  // turn off notifications about old world
+  getWorld()->removeObserver(this);
+
+  // clear out objects from old world
+  CollisionWorld::clearObjects();
+  manager_->clear();
+  fcl_objs_.clear();  
+  cleanCollisionGeometryCache();
+
+  CollisionWorld::setWorld(world);
+
+  // request notifications about changes to new world
+  getWorld()->addObserver(this, notifyObjectChange);
+
+  // get notifications any objects already in the new world
+  getWorld()->notifyObserverAllObjects(this, World::CREATE);
+}
+
+void collision_detection::CollisionWorldFCL::notifyObjectChange(CollisionWorldFCL *self, const ObjectConstPtr& obj, World::Action action)
+{
+  if (action == World::DESTROY)
+  {
+    std::map<std::string, FCLObject>::iterator it = self->fcl_objs_.find(obj->id_);
+    if (it != self->fcl_objs_.end())
+    {
+      it->second.unregisterFrom(self->manager_.get());
+      it->second.clear();
+      self->fcl_objs_.erase(it);
+    }
+    cleanCollisionGeometryCache();
+  }
+  else
+  {
+    self->updateFCLObject(obj->id_);
+    if (action & (World::DESTROY|World::REMOVE_SHAPE))
+      cleanCollisionGeometryCache();
+  }
+}
+
+#else
 void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses)
 {
   CollisionWorld::addToObject(id, shapes, poses);
@@ -223,6 +277,7 @@ void collision_detection::CollisionWorldFCL::clearObjects()
   fcl_objs_.clear();  
   cleanCollisionGeometryCache();
 }
+#endif
 
 double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm) const
 {       

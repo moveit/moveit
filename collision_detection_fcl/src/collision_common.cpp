@@ -497,13 +497,13 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     }
   }
 
-  // attached objects could have previously been CollisionWorld::Object; we try to move them
+  // attached objects could have previously been World::Object; we try to move them
   // from their old cache to the new one, if possible. the code is not pretty, but should help
   // when we attach/detach objects that are in the world
   if (IfSameType<T, robot_state::AttachedBody>::value == 1)
   {
     // get the cache that corresponds to objects; maybe this attached object used to be a world object
-    FCLShapeCache &othercache = GetShapeCache<BV, CollisionWorld::Object>();
+    FCLShapeCache &othercache = GetShapeCache<BV, World::Object>();
 
     // attached bodies could be just moved from the environment.
     othercache.lock_.lock(); // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
@@ -535,7 +535,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     // world objects could have previously been attached objects; we try to move them
     // from their old cache to the new one, if possible. the code is not pretty, but should help
     // when we attach/detach objects that are in the world
-    if (IfSameType<T, CollisionWorld::Object>::value == 1)
+    if (IfSameType<T, World::Object>::value == 1)
     {
       // get the cache that corresponds to objects; maybe this attached object used to be a world object
       FCLShapeCache &othercache = GetShapeCache<BV, robot_state::AttachedBody>();
@@ -672,9 +672,9 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const CollisionWorld::Object *obj)
+                                            const World::Object *obj)
 {
-  return createCollisionGeometry<fcl::OBBRSS, CollisionWorld::Object>(shape, obj);
+  return createCollisionGeometry<fcl::OBBRSS, World::Object>(shape, obj);
 }
 
 template<typename BV, typename T>
@@ -703,14 +703,14 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const CollisionWorld::Object *obj)
+                                            const World::Object *obj)
 {
-  return createCollisionGeometry<fcl::OBBRSS, CollisionWorld::Object>(shape, scale, padding, obj);
+  return createCollisionGeometry<fcl::OBBRSS, World::Object>(shape, scale, padding, obj);
 }
 
 void cleanCollisionGeometryCache()
 {
-  FCLShapeCache &cache1 = GetShapeCache<fcl::OBBRSS, CollisionWorld::Object>();
+  FCLShapeCache &cache1 = GetShapeCache<fcl::OBBRSS, World::Object>();
   {
     boost::mutex::scoped_lock slock(cache1.lock_);
     cache1.bumpUseCount(true);

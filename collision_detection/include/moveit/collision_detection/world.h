@@ -88,6 +88,11 @@ namespace collision_detection
     /** \brief Get the list of Object ids */
     std::vector<std::string> getObjectIds() const;
     
+    const std::map<std::string, ObjectConstPtr>& getObjects() const
+    {
+      return  objects_;
+    }
+
     /** \brief Get the number of objects in this collision world */
     std::size_t getObjectsCount() const
     {
@@ -174,10 +179,19 @@ namespace collision_detection
     template<class ClientType>
     void removeObserver(const ClientType* observer);
 
+    /** send notification of change to all objects to a particular observer.
+     * Used which switching from one world to another. */
+    template<class ClientType>
+    void notifyObserverAllObjects(const ClientType* observer, Action action);
+
   private:
     
     /** notify all observers of a change */
     void notify(const ObjectConstPtr&, Action);
+
+    /** send notification of change to all objects. */
+    void notifyAll(Action action);
+
 
     /** \brief Make sure that the object named \e id is known only to this
      * instance of the World. If the object is known outside of it, a
@@ -190,6 +204,7 @@ namespace collision_detection
                                      const Eigen::Affine3d &pose);
 
     void removeObserverInternal(const void* observer);
+    void notifyObserverAllObjectsInternal(const void* observer, Action action);
 
 
     /** The objects maintained in the world */
@@ -226,6 +241,11 @@ namespace collision_detection
     removeObserverInternal(observer);
   }
 
+  template<class ClientType> inline
+  void collision_detection::World::notifyObserverAllObjects(const ClientType* observer, Action action)
+  {
+    notifyObserverAllObjectsInternal(observer, action);
+  }
 }
 
 

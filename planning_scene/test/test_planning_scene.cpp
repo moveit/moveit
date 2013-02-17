@@ -75,23 +75,23 @@ TEST(PlanningScene, LoadRestoreDiff)
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
 
-  collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
+  collision_detection::CollisionWorld &world = *ps->getWorld();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
-  cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
+  world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
   moveit_msgs::PlanningScene ps_msg;
   EXPECT_TRUE(planning_scene::PlanningScene::isEmpty(ps_msg));
   ps->getPlanningSceneMsg(ps_msg);
   ps->setPlanningSceneMsg(ps_msg);
   EXPECT_FALSE(planning_scene::PlanningScene::isEmpty(ps_msg));
-  EXPECT_TRUE(ps->getCollisionWorld()->hasObject("sphere"));
+  EXPECT_TRUE(world.hasObject("sphere"));
 
   planning_scene::PlanningScenePtr next = ps->diff();
   EXPECT_TRUE(next->isConfigured());
-  EXPECT_TRUE(next->getCollisionWorld()->hasObject("sphere"));
-  next->getCollisionWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
-  EXPECT_EQ(next->getCollisionWorld()->getObjectIds().size(), 2);
-  EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 1);
+  EXPECT_TRUE(next->getWorld()->hasObject("sphere"));
+  next->getWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
+  EXPECT_EQ(next->getWorld()->getObjectIds().size(), 2);
+  EXPECT_EQ(ps->getWorld()->getObjectIds().size(), 1);
   next->getPlanningSceneDiffMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
   next->decoupleParent();
@@ -101,7 +101,7 @@ TEST(PlanningScene, LoadRestoreDiff)
   next->getPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
   ps->setPlanningSceneMsg(ps_msg);
-  EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
+  EXPECT_EQ(ps->getWorld()->getObjectIds().size(), 2);
 }
 
 TEST(PlanningScene, MakeAttachedDiff)
@@ -113,9 +113,9 @@ TEST(PlanningScene, MakeAttachedDiff)
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
 
-  collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
+  collision_detection::CollisionWorld &world = *ps->getWorld();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
-  cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
+  world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
   planning_scene::PlanningScenePtr attached_object_diff_scene = ps->diff();
 

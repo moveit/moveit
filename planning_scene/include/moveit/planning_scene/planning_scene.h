@@ -188,28 +188,42 @@ public:
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
   const robot_state::TransformsPtr& getTransforms();
 
-  /** \brief Get the representation of the collision world */
+  /** \brief Get the representation of the world */
+  const collision_detection::WorldConstPtr& getWorld() const
+  {
+    // we always have a world representation
+    return world_const_;
+  }
+
+  //brief Get the representation of the world
+  const collision_detection::WorldPtr& getWorld()
+  {
+    // we always have a world representation
+    return world_;
+  }
+
+  /** \brief Get the default collision detector for the world */
   const collision_detection::CollisionWorldConstPtr& getCollisionWorld() const
   {
     // we always have a world representation
     return cworld_const_;
   }
 
-  //brief Get the representation of the collision world
+  //brief Get the default collision detector for the world
   const collision_detection::CollisionWorldPtr& getCollisionWorld()
   {
     // we always have a world representation
     return cworld_;
   }
 
-  /** \brief Get the representation of the collision robot */
+  /** \brief Get the default collision detector for the robot */
   const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
   {
     // if we have an updated robot, return that one
     return (crobot_const_ || !parent_) ? crobot_const_ : parent_->getCollisionRobot();
   }
 
-  /** \brief Get the representation of the collision robot */
+  /** \brief Get the default collision detector for the robot */
   const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded() const
   {
     // if we have an updated robot, return that one
@@ -571,6 +585,9 @@ protected:
 
   collision_detection::CollisionWorldPtr         cworld_;
   collision_detection::CollisionWorldConstPtr    cworld_const_;
+
+  collision_detection::WorldPtr                  world_;
+  collision_detection::WorldConstPtr             world_const_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 

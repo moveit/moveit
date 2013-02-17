@@ -87,6 +87,21 @@ void collision_detection::WorldDiff::reset(const WorldPtr& world)
   world->addObserver(this, notify);
 }
 
+void collision_detection::WorldDiff::setWorld(const WorldPtr& world)
+{
+  WorldPtr old_world = world_.lock();
+  if (old_world)
+  {
+    old_world->notifyObserverAllObjects(this, World::DESTROY);
+    old_world->removeObserver(this);
+  }
+
+  boost::weak_ptr<World>(world).swap(world_);
+
+  world->addObserver(this, notify);
+  world->notifyObserverAllObjects(this, World::CREATE|World::ADD_SHAPE);
+}
+
 void collision_detection::WorldDiff::clearChanges()
 {
   changes_.clear();

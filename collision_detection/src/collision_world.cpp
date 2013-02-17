@@ -37,13 +37,27 @@
 #include <moveit/collision_detection/collision_world.h>
 #include <geometric_shapes/shape_operations.h>
 
-collision_detection::CollisionWorld::CollisionWorld() : record_changes_(false)
+collision_detection::CollisionWorld::CollisionWorld() :
+#if ACORN_USE_WORLD
+  world_(new World()),
+  world_const_(world_)
+#else
+  record_changes_(false)
+#endif
 {
 }
 
-collision_detection::CollisionWorld::CollisionWorld(const CollisionWorld &other) : record_changes_(false)
+collision_detection::CollisionWorld::CollisionWorld(const CollisionWorld &other) :
+#if ACORN_USE_WORLD
+  world_(other.world_),
+  world_const_(other.world_)
+#else
+  record_changes_(false)
+#endif
 {
+#if !ACORN_USE_WORLD
   objects_ = other.objects_;
+#endif
 }
 
 void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const
@@ -76,6 +90,18 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
     checkRobotCollision(req, res, robot, state1, state2, acm);
 }
 
+#if ACORN_USE_WORLD
+void collision_detection::CollisionWorld::setWorld(WorldPtr world)
+{
+  if (!world)
+    world.reset(new World);
+
+  CollisionWorldDeprecated::setWorld(world);
+  world_ = world;
+  world_const_ = world;
+}
+
+#else
 void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses)
 {
   if (shapes.size() != poses.size())
@@ -273,3 +299,4 @@ void collision_detection::CollisionWorld::clearChanges()
 collision_detection::CollisionWorld::Object::~Object()
 {
 }
+#endif
