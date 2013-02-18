@@ -185,16 +185,9 @@ private:
   void updateQueryStateHelper(robot_state::RobotState &state, const std::string &v);
   
   //Scene objects tab
-  void computeSaveSceneButtonClicked();
-  void computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name);
-  void computeDeleteSceneButtonClicked();
-  void computeDeleteQueryButtonClicked();
-  void computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s);
-  void checkPlanningSceneTreeEnabledButtons();
-  void computeLoadSceneButtonClicked();
-  void computeLoadQueryButtonClicked();
   void addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
                  const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
+  void updateCollisionObjectPose(bool update_marker_position);
   void createSceneInteractiveMarker();
   void renameCollisionObject(QListWidgetItem *item);
   void attachDetachCollisionObject(QListWidgetItem *item);
@@ -203,7 +196,16 @@ private:
   void computeExportAsText(const std::string &path);
     
   //Stored scenes tab
+  void computeSaveSceneButtonClicked();
+  void computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name);
+  void computeLoadSceneButtonClicked();
+  void computeLoadQueryButtonClicked();
   void populatePlanningSceneTreeView();
+  void computeDeleteSceneButtonClicked();
+  void computeDeleteQueryButtonClicked();
+  void computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s);
+  void checkPlanningSceneTreeEnabledButtons();
+
 
   //States tab
   void saveRobotStateButtonClicked(const robot_state::RobotState &state);
