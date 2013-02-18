@@ -43,6 +43,7 @@
 #include <moveit_msgs/PlannerInterfaceDescription.h>
 #include <moveit_msgs/Constraints.h>
 #include <manipulation_msgs/Grasp.h>
+#include <manipulation_msgs/PlaceLocation.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
@@ -140,6 +141,12 @@ public:
 
   /** \brief Pick up an object given possible grasp poses */
   bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps);
+
+  /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
+  bool place(const std::string &object);
+
+  /** \brief Place an object at one of the specified possible locations */
+  bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations);
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop();

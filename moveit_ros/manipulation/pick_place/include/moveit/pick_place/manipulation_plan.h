@@ -60,6 +60,8 @@ struct ManipulationPlanSharedData
   std::string ik_link_name_;
   
   unsigned int max_goal_sampling_attempts_;
+
+  moveit_msgs::AttachedCollisionObject diff_attached_object_;
   
   ros::WallTime timeout_;
 };
