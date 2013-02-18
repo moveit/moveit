@@ -83,6 +83,40 @@ void demoPick(move_group_interface::MoveGroup &group)
   group.pick("bubu", grasps);
 }
 
+void demoPlace(move_group_interface::MoveGroup &group)
+{
+  std::vector<manipulation_msgs::PlaceLocation> loc;
+  for (std::size_t i = 0 ; i < 20 ; ++i)
+  {
+    geometry_msgs::PoseStamped p = group.getRandomPose();
+    p.pose.orientation.x = 0;
+    p.pose.orientation.y = 0;
+    p.pose.orientation.z = 0;
+    p.pose.orientation.w = 1;
+    manipulation_msgs::PlaceLocation g;
+    g.place_pose = p;
+    g.approach.direction.vector.x = 1.0;
+    g.retreat.direction.vector.z = 1.0;
+    g.retreat.direction.header = p.header;
+    g.approach.min_distance = 0.2;
+    g.approach.desired_distance = 0.4;
+    g.retreat.min_distance = 0.1;
+    g.retreat.desired_distance = 0.27;
+    
+    g.post_place_posture.name.resize(1, "r_gripper_joint");
+    g.post_place_posture.position.resize(1);
+    g.post_place_posture.position[0] = 0;
+    
+    loc.push_back(g);
+  }
+  group.place("bubu", loc);
+}
+
+void attachObject(void)
+{
+  
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "move_group_interface_demo", ros::init_options::AnonymousName);
@@ -91,7 +125,7 @@ int main(int argc, char **argv)
   spinner.start();
   
   move_group_interface::MoveGroup group(argc > 1 ? argv[1] : "right_arm");
-  demoPick(group);
+  demoPlace(group);
   
   sleep(2);
   

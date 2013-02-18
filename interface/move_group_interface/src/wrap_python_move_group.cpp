@@ -275,8 +275,11 @@ void wrap_move_group_interface()
 
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
   MoveGroupClass.def("move", &MoveGroupWrapper::move);
-  MoveGroupClass.def("execute", &MoveGroupWrapper::execute);
-  //  MoveGroupClass.def("pick", &MoveGroupWrapper::pick);
+  MoveGroupClass.def("execute", &MoveGroupWrapper::execute); 
+  bool (MoveGroupWrapper::*pick_1)(const std::string&, const std::vector<manipulation_msgs::Grasp> &) = &MoveGroupWrapper::pick;
+  MoveGroupClass.def("pick", pick_1);
+  bool (MoveGroupWrapper::*place_1)(const std::string&, const std::vector<manipulation_msgs::PlaceLocation> &) = &MoveGroupWrapper::place;
+  MoveGroupClass.def("place", place_1);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
   MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);

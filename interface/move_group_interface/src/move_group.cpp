@@ -176,6 +176,9 @@ public:
 
       pick_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PickupAction>(move_group::PICKUP_ACTION, false));
       waitForAction(pick_action_client_, wait_for_server, move_group::PICKUP_ACTION);
+
+      place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>(move_group::PLACE_ACTION, false));
+      waitForAction(place_action_client_, wait_for_server, move_group::PLACE_ACTION);
       
       execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
       query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>("query_planner_interface");
@@ -444,6 +447,32 @@ public:
     return true;
   }
 
+  bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
+  {   
+    if (!place_action_client_)
+      return false;
+    if (!place_action_client_->isServerConnected())
+      return false; 
+    moveit_msgs::PlaceGoal goal;
+    constructGoal(goal, object);
+    goal.place_locations = locations;
+    goal.planning_options.plan_only = false;
+    place_action_client_->sendGoal(goal); 
+    if (!place_action_client_->waitForResult())
+    {
+      ROS_INFO_STREAM("Place action returned early");
+    }
+    if (place_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    {
+      return true;
+    }
+    else
+    {
+      ROS_WARN_STREAM("Fail: " << place_action_client_->getState().toString() << ": " << place_action_client_->getState().getText());
+      return false;
+    }
+  }  
+
   bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
   {
     if (!pick_action_client_)
@@ -480,6 +509,18 @@ public:
     // call grasp planner
 
     return pick(object, grasps);
+  }
+
+  bool place(const std::string &object)
+  {
+    if (!place_action_client_)
+      return false;
+    if (!place_action_client_->isServerConnected())
+      return false;
+    std::vector<manipulation_msgs::PlaceLocation> locations;
+    // find valid locations
+
+    return place(object, locations);
   }
   
   bool plan(Plan &plan)
@@ -635,6 +676,15 @@ public:
     goal.allowed_planning_time = planning_time_;
     goal_out = goal;
   }
+
+  void constructGoal(moveit_msgs::PlaceGoal &goal_out, const std::string &object)
+  {
+    moveit_msgs::PlaceGoal goal;
+    goal.attached_object_name = object;
+    goal.group_name = opt_.group_name_;
+    goal.allowed_planning_time = planning_time_;
+    goal_out = goal;
+  }
   
   bool setPathConstraints(const std::string &constraint)
   {
@@ -724,6 +774,7 @@ private:
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
+  boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction> > place_action_client_;
 
   // general planning params
   robot_state::RobotStatePtr considered_start_state_;
@@ -823,6 +874,16 @@ bool MoveGroup::pick(const std::string &object)
 bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
 {
   return impl_->pick(object, grasps);
+}
+
+bool MoveGroup::place(const std::string &object)
+{
+  return impl_->place(object);
+}
+
+bool MoveGroup::place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
+{
+  return impl_->place(object, locations);
 }
 
 void MoveGroup::stop()

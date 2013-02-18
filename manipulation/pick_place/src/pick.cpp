@@ -119,10 +119,20 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   const std::string &ik_link = eef->getEndEffectorParentGroup().second;
 
   ros::WallTime start_time = ros::WallTime::now();
+
+  // construct common data for possible manipulation plans
+  ManipulationPlanSharedDataPtr plan_data(new ManipulationPlanSharedData());
+  ManipulationPlanSharedDataConstPtr const_plan_data = plan_data;
+  plan_data->planning_group_ = planning_group;
+  plan_data->end_effector_group_ = eef->getName();
+  plan_data->ik_link_name_ = ik_link;    
+  plan_data->timeout_ = endtime;
+  plan_data->max_goal_sampling_attempts_ = std::max(1u, planning_scene->getRobotModel()->getJointModelGroup(planning_group)->getDefaultIKAttempts());
+  moveit_msgs::AttachedCollisionObject &attach_object_msg = plan_data->diff_attached_object_;
   
   // construct the planning scene as it will look after the object to be picked will actually be picked
   planning_scene::PlanningScenePtr planning_scene_after_grasp = planning_scene->diff();
-  moveit_msgs::AttachedCollisionObject attach_object_msg;
+  
   attach_object_msg.link_name = ik_link;
   attach_object_msg.object.id = goal.target_name;
   attach_object_msg.object.operation = moveit_msgs::CollisionObject::ADD;
@@ -143,7 +153,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     if (goal.allow_gripper_support_collision)
       approach_grasp_acm->setEntry(goal.collision_support_surface_name, eef->getLinkModelNames(), true);
   }
-  // for now, the post_grasp_acm can be the same
+  
   
   // configure the manipulation pipeline
   pipeline_.reset();
@@ -162,14 +172,6 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   std::sort(grasp_order.begin(), grasp_order.end(), oq);
 
   done_ = false;
-
-  ManipulationPlanSharedDataPtr plan_data(new ManipulationPlanSharedData());
-  ManipulationPlanSharedDataConstPtr const_plan_data = plan_data;
-  plan_data->planning_group_ = planning_group;
-  plan_data->end_effector_group_ = eef->getName();
-  plan_data->ik_link_name_ = ik_link;    
-  plan_data->timeout_ = endtime;
-  plan_data->max_goal_sampling_attempts_ = std::max(1u, planning_scene->getRobotModel()->getJointModelGroup(planning_group)->getDefaultIKAttempts());
   
   // feed the available grasps to the stages we set up
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)

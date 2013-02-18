@@ -73,6 +73,16 @@ void move_group::MoveGroupPickPlaceAction::startPickupLookCallback()
   setPickupState(LOOK);
 }
 
+void move_group::MoveGroupPickPlaceAction::startPlaceExecutionCallback()
+{
+  setPlaceState(MONITOR);
+}
+
+void move_group::MoveGroupPickPlaceAction::startPlaceLookCallback()
+{
+  setPlaceState(LOOK);
+}
+
 void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const moveit_msgs::PickupGoalConstPtr& goal, moveit_msgs::PickupResult &action_res)
 { 
   pick_place::PickPlanPtr plan; 
@@ -111,7 +121,45 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
   }
 }
 
-bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace(const moveit_msgs::PickupGoal& goal, plan_execution::ExecutableMotionPlan &plan)
+void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult &action_res)
+{ 
+  pick_place::PlacePlanPtr plan; 
+  try
+  {
+    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+    plan = pick_place_->planPlace(ps, *goal);
+  }
+  catch(std::runtime_error &ex)
+  {
+    ROS_ERROR("Pick&place threw an exception: %s", ex.what()); 
+  }
+  catch(...)
+  {
+    ROS_ERROR("Pick&place threw an exception");
+  }
+  
+  if (plan)
+  {
+    const std::vector<pick_place::ManipulationPlanPtr> &success = plan->getSuccessfulManipulationPlans();
+    if (success.empty())
+    {  
+      action_res.error_code = plan->getErrorCode();
+    }
+    else
+    {
+      const pick_place::ManipulationPlanPtr &result = success.back();
+      convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
+      action_res.trajectory_descriptions = result->trajectory_descriptions_;
+      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    }
+  }
+  else
+  {
+    action_res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+}
+
+bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const moveit_msgs::PickupGoal& goal, plan_execution::ExecutableMotionPlan &plan)
 {
   setPickupState(PLANNING);
   
@@ -144,6 +192,51 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace(const moveit_msgs:
       plan.planned_trajectory_ = result->trajectories_;
       plan.planned_trajectory_descriptions_ = result->trajectory_descriptions_; 
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      diff_attached_object_.reset(new moveit_msgs::AttachedCollisionObject(result->shared_data_->diff_attached_object_));
+    }
+  }
+  else
+  {
+    plan.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+  
+  return plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+}
+
+bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit_msgs::PlaceGoal& goal, plan_execution::ExecutableMotionPlan &plan)
+{
+  setPlaceState(PLANNING);
+  
+  planning_scene_monitor::LockedPlanningSceneRO ps(plan.planning_scene_monitor_);
+  
+  pick_place::PlacePlanPtr place_plan;
+  try
+  {
+    place_plan = pick_place_->planPlace(plan.planning_scene_, goal);
+  }
+  catch(std::runtime_error &ex)
+  {
+    ROS_ERROR("Pick&place threw an exception: %s", ex.what()); 
+  }
+  catch(...)
+  {
+    ROS_ERROR("Pick&place threw an exception");
+  }
+  
+  if (place_plan)
+  {
+    const std::vector<pick_place::ManipulationPlanPtr> &success = place_plan->getSuccessfulManipulationPlans();
+    if (success.empty())
+    {
+      plan.error_code_ = place_plan->getErrorCode();
+    }
+    else
+    {
+      const pick_place::ManipulationPlanPtr &result = success.back();
+      plan.planned_trajectory_ = result->trajectories_;
+      plan.planned_trajectory_descriptions_ = result->trajectory_descriptions_; 
+      plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      diff_attached_object_.reset(new moveit_msgs::AttachedCollisionObject(result->shared_data_->diff_attached_object_));
     }
   }
   else
@@ -158,11 +251,12 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
 {
   plan_execution::PlanExecution::Options opt;
   
+  diff_attached_object_.reset();
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPickupExecutionCallback, this);
   
-  opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace, this, boost::cref(*goal), _1);
+  opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Pickup, this, boost::cref(*goal), _1);
   if (goal->planning_options.look_around && plan_with_sensing_)
   {
     opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_,
@@ -172,6 +266,45 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
   
   plan_execution::ExecutableMotionPlan plan;
   plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
+
+  if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && diff_attached_object_)
+  {
+    planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
+    ps->processAttachedCollisionObjectMsg(*diff_attached_object_);
+    diff_attached_object_.reset();
+  }
+  
+  convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.trajectory_stages);
+  action_res.trajectory_descriptions = plan.planned_trajectory_descriptions_; 
+  action_res.error_code = plan.error_code_;
+}
+
+void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult &action_res)
+{
+  plan_execution::PlanExecution::Options opt;
+
+  diff_attached_object_.reset();
+  opt.replan_ = goal->planning_options.replan;
+  opt.replan_attempts_ = goal->planning_options.replan_attempts;
+  opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPlaceExecutionCallback, this);
+  
+  opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Place, this, boost::cref(*goal), _1);
+  if (goal->planning_options.look_around && plan_with_sensing_)
+  {
+    opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_,
+                                     goal->planning_options.look_around_attempts, goal->planning_options.max_safe_execution_cost);
+    plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupPickPlaceAction::startPlaceLookCallback, this));
+  }
+  
+  plan_execution::ExecutableMotionPlan plan;
+  plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
+
+  if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && diff_attached_object_)
+  {
+    planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
+    ps->processAttachedCollisionObjectMsg(*diff_attached_object_);
+    diff_attached_object_.reset();
+  }
   
   convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.trajectory_stages);
   action_res.trajectory_descriptions = plan.planned_trajectory_descriptions_; 
@@ -189,7 +322,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback(const moveit_ms
   if (goal->planning_options.plan_only || !allow_trajectory_execution_)
   {
     if (!goal->planning_options.plan_only)
-      ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the goal request has plan_only set to false. Only a motion plan will be computed anyway.");
+      ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the pick goal request has plan_only set to false. Only a motion plan will be computed anyway.");
     executePickupCallback_PlanOnly(goal, action_res);
   }
   else
@@ -212,7 +345,34 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback(const moveit_ms
 
 void move_group::MoveGroupPickPlaceAction::executePlaceCallback(const moveit_msgs::PlaceGoalConstPtr& goal)
 {
-  ROS_ERROR("Not implemented yet");
+  setPlaceState(PLANNING);
+  
+  planning_scene_monitor_->updateFrameTransforms();
+  
+  moveit_msgs::PlaceResult action_res;
+  
+  if (goal->planning_options.plan_only || !allow_trajectory_execution_)
+  {
+    if (!goal->planning_options.plan_only)
+      ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the place goal request has plan_only set to false. Only a motion plan will be computed anyway.");
+    executePlaceCallback_PlanOnly(goal, action_res);
+  }
+  else
+    executePlaceCallback_PlanAndExecute(goal, action_res);
+  
+  bool planned_trajectory_empty = action_res.trajectory_stages.empty();
+  std::string response = getActionResultString(action_res.error_code, planned_trajectory_empty, goal->planning_options.plan_only);
+  if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+    place_action_server_->setSucceeded(action_res, response);
+  else
+  {
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
+      place_action_server_->setPreempted(action_res, response);
+    else 
+      place_action_server_->setAborted(action_res, response);
+  }
+  
+  setPlaceState(IDLE);
 }
 
 void move_group::MoveGroupPickPlaceAction::preemptPickupCallback()
