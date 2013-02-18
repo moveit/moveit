@@ -234,7 +234,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
             {
               obj_pose = obj->shape_poses_[0];
               Eigen::Vector3d xyz = obj_pose.rotation().eulerAngles(0, 1, 2);
-              update_scene_marker = true; // do the marker update to avoid deadlock
+              update_scene_marker = true; // do the marker update outside locked scope to avoid deadlock
 
               bool oldState = ui_->object_x->blockSignals(true);
               ui_->object_x->setValue(obj_pose.translation()[0]);
@@ -292,7 +292,12 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
     }
 }
 
-void MotionPlanningFrame::objectPoseValueChanged(double value)
+void MotionPlanningFrame::objectPoseValueChanged(double /* value */)
+{
+  updateCollisionObjectPose(true);
+}
+
+void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -308,17 +313,17 @@ void MotionPlanningFrame::objectPoseValueChanged(double value)
       p.translation()[0] = ui_->object_x->value();
       p.translation()[1] = ui_->object_y->value();
       p.translation()[2] = ui_->object_z->value();
-
+      
       p = Eigen::Translation3d(p.translation()) *
-          Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()) *
-          Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
-          Eigen::AngleAxisd(ui_->object_rx->value(), Eigen::Vector3d::UnitX());
-
+        Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()) *
+        Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
+        Eigen::AngleAxisd(ui_->object_rx->value(), Eigen::Vector3d::UnitX());
+      
       world->moveShapeInObject(obj->id_, obj->shapes_[0], p);
       planning_display_->queueRenderSceneGeometry();
-
-      //Update the interactive marker pose to match the manually introduced one
-      if (scene_marker_)
+      
+      // Update the interactive marker pose to match the manually introduced one
+      if (update_marker_position && scene_marker_)
       {
         Eigen::Quaterniond eq(p.rotation());
         scene_marker_->setPose(Ogre::Vector3(ui_->object_x->value(), ui_->object_y->value(), ui_->object_z->value()),
@@ -348,17 +353,35 @@ void MotionPlanningFrame::collisionObjectChanged(QListWidgetItem *item)
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
 void  MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
+  bool oldState = ui_->object_x->blockSignals(true);
   ui_->object_x->setValue(feedback.pose.position.x);
+  ui_->object_x->blockSignals(oldState);
+
+  oldState = ui_->object_y->blockSignals(true);
   ui_->object_y->setValue(feedback.pose.position.y);
+  ui_->object_y->blockSignals(oldState);
+
+  oldState = ui_->object_z->blockSignals(true);
   ui_->object_z->setValue(feedback.pose.position.z);
+  ui_->object_z->blockSignals(oldState);
 
   Eigen::Quaterniond q;
   tf::quaternionMsgToEigen(feedback.pose.orientation, q);
   Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
 
+  oldState = ui_->object_rx->blockSignals(true);
   ui_->object_rx->setValue(xyz[0]);
+  ui_->object_rx->blockSignals(oldState);
+  
+  oldState = ui_->object_ry->blockSignals(true);
   ui_->object_ry->setValue(xyz[1]);
+  ui_->object_ry->blockSignals(oldState);
+
+  oldState = ui_->object_rz->blockSignals(true);
   ui_->object_rz->setValue(xyz[2]);
+  ui_->object_rz->blockSignals(oldState);
+  
+  updateCollisionObjectPose(false);
 }
 
 void MotionPlanningFrame::copySelectedCollisionObject()
