@@ -192,7 +192,7 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
     updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry_vector_[i]->getName());
 
   // check if this group should actually be a chain
-  if (joint_roots_.size() == 1 && !is_chain_)
+  if (joint_roots_.size() == 1 && joint_model_vector_.size() > 1 && !is_chain_)
   {
     bool chain = true;
     // this would be the leaf of the chain, due to our sorting
