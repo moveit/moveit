@@ -217,19 +217,19 @@ bool RobotInteraction::InteractionHandler::getLastVirtualJointMarkerPose(const R
   return false;
 }
 
-void RobotInteraction::InteractionHandler::clearSavedEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef)
+void RobotInteraction::InteractionHandler::clearLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   pose_map_.erase(eef.eef_group);
 }
 
-void RobotInteraction::InteractionHandler::clearSavedVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj)
+void RobotInteraction::InteractionHandler::clearLastVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   pose_map_.erase(vj.joint_name);
 }
 
-void RobotInteraction::InteractionHandler::clearSavedMarkerPoses()
+void RobotInteraction::InteractionHandler::clearLastMarkerPoses()
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   pose_map_.clear();
@@ -391,6 +391,11 @@ bool RobotInteraction::InteractionHandler::inError(const robot_interaction::Robo
 bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::VirtualJoint& vj) const
 {
   return false;
+}
+
+void RobotInteraction::InteractionHandler::clearError(void)
+{
+  error_state_.clear();
 }
 
 bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,

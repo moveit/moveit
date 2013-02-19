@@ -315,9 +315,9 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
       p.translation()[2] = ui_->object_z->value();
       
       p = Eigen::Translation3d(p.translation()) *
-        Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()) *
-        Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
-        Eigen::AngleAxisd(ui_->object_rx->value(), Eigen::Vector3d::UnitX());
+        (Eigen::AngleAxisd(ui_->object_rx->value(), Eigen::Vector3d::UnitX()) *
+         Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
+         Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()));
       
       world->moveShapeInObject(obj->id_, obj->shapes_[0], p);
       planning_display_->queueRenderSceneGeometry();
