@@ -45,6 +45,8 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
+#include "ui_run_benchmark_dialog.h"
+
 
 #include <boost/math/constants/constants.hpp>
 
@@ -827,6 +829,22 @@ void MainWindow::startStateItemDoubleClicked(QListWidgetItem * item)
 {
   scene_display_->getPlanningSceneRW()->setCurrentState(start_states_[item->text().toStdString()]->state_msg);
   scene_display_->queueRenderSceneGeometry();
+}
+
+void MainWindow::runBenchmark(void)
+{
+  QDialog *dialog = new QDialog(0,0);
+
+  Ui_BenchmarkDialog dialog_ui;
+  dialog_ui.setupUi(dialog);
+  dialog_ui.benchmark_select_folder_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
+
+  for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
+  {
+    dialog_ui.benchmark_start_state_combo->addItem(it->first.c_str());
+  }
+
+  dialog->show();
 }
 
 void MainWindow::loadBenchmarkResults(void)
