@@ -580,13 +580,14 @@ bool robot_state::RobotState::knowsFrameTransform(const std::string &id) const
 // ------ marker functions ------
 
 void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr,
-                                                      const std::vector<std::string> &link_names,
-                                                      const std_msgs::ColorRGBA& color,
-                                                      const std::string& ns,
-                                                      const ros::Duration& dur) const
+                                              const std::vector<std::string> &link_names,
+                                              const std_msgs::ColorRGBA& color,
+                                              const std::string& ns,
+                                              const ros::Duration& dur, 
+                                              bool include_attached) const
 {
   std::size_t cur_num = arr.markers.size();
-  getRobotMarkers(arr, link_names);
+  getRobotMarkers(arr, link_names, include_attached);
   unsigned int id = cur_num;
   for (std::size_t i = cur_num ; i < arr.markers.size() ; ++i, ++id)
   {
@@ -597,7 +598,7 @@ void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& a
   }
 }
 
-void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std::vector<std::string> &link_names) const
+void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std::vector<std::string> &link_names, bool include_attached) const
 {
   ros::Time tm = ros::Time::now();
   for (std::size_t i = 0; i < link_names.size(); ++i)
@@ -607,18 +608,21 @@ void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& a
     const LinkState* ls = getLinkState(link_names[i]);
     if (!ls)
       continue;
-    std::vector<const AttachedBody*> attached_bodies;
-    ls->getAttachedBodies(attached_bodies);
-    for(unsigned int j = 0; j < attached_bodies.size(); ++j)
-      if(attached_bodies[j]->getShapes().size() > 0)
-      {
-        visualization_msgs::Marker att_mark;
-        att_mark.header.frame_id = kinematic_model_->getModelFrame();
-        att_mark.header.stamp = tm;
-        shapes::constructMarkerFromShape(attached_bodies[j]->getShapes()[0].get(), att_mark);
-        tf::poseEigenToMsg(attached_bodies[j]->getGlobalCollisionBodyTransforms()[0], att_mark.pose);
-        arr.markers.push_back(att_mark);
-      }
+    if (include_attached)
+    {
+      std::vector<const AttachedBody*> attached_bodies;
+      ls->getAttachedBodies(attached_bodies);
+      for (std::size_t j = 0; j < attached_bodies.size(); ++j)
+        if (attached_bodies[j]->getShapes().size() > 0)
+        {
+          visualization_msgs::Marker att_mark;
+          att_mark.header.frame_id = kinematic_model_->getModelFrame();
+          att_mark.header.stamp = tm;
+          shapes::constructMarkerFromShape(attached_bodies[j]->getShapes()[0].get(), att_mark);
+          tf::poseEigenToMsg(attached_bodies[j]->getGlobalCollisionBodyTransforms()[0], att_mark.pose);
+          arr.markers.push_back(att_mark);
+        }
+    }
     if (!ls->getLinkModel() || !ls->getLinkModel()->getShape())
       continue;
     mark.header.frame_id = kinematic_model_->getModelFrame();

@@ -235,14 +235,16 @@ public:
                        const std::vector<std::string> &link_names,
                        const std_msgs::ColorRGBA& color,
                        const std::string& ns,
-                       const ros::Duration& dur) const;
+                       const ros::Duration& dur,
+                       bool include_attached = false) const;
   
   /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
    *  @param arr The returned marker array
    *  @param link_names The list of link names for which the markers should be created.
    */
   void getRobotMarkers(visualization_msgs::MarkerArray& arr,
-                       const std::vector<std::string> &link_names) const;
+                       const std::vector<std::string> &link_names,
+                       bool include_attached = false) const;
   
   /** \brief Interpolate between two states */
   void interpolate(const RobotState &to, const double t, RobotState &dest) const;
