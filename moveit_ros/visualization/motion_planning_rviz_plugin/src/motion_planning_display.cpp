@@ -262,7 +262,7 @@ void MotionPlanningDisplay::onInitialize()
   if (context_ && context_->getWindowManager() && context_->getWindowManager()->getParentWindow())
   {
     QShortcut *im_reset_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), context_->getWindowManager()->getParentWindow());
-    connect(im_reset_shortcut, SIGNAL( activated() ), this, SLOT( changedQueryStartState() ) );
+    connect(im_reset_shortcut, SIGNAL( activated() ), this, SLOT( resetInteractiveMarkers() ) );
   }
 }
 
@@ -743,6 +743,12 @@ void MotionPlanningDisplay::drawQueryGoalState()
   context_->queueRender();
 }
 
+void MotionPlanningDisplay::resetInteractiveMarkers()
+{
+  query_start_state_->clearError();
+  query_goal_state_->clearError();
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+}
 
 void MotionPlanningDisplay::publishInteractiveMarkers()
 {
@@ -817,21 +823,23 @@ void MotionPlanningDisplay::changedQueryJointViolationColor()
   changedQueryGoalState();
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *)
+void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *, bool error_state_changed)
 { 
   if (!planning_scene_monitor_)
     return; 
-  
+  if (error_state_changed)
+    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));  
   recomputeQueryStartStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryStartState, this));
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *)
+void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *, bool error_state_changed)
 { 
   if (!planning_scene_monitor_)
     return; 
-  
+  if (error_state_changed)
+    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
   recomputeQueryGoalStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryGoalState, this));
   context_->queueRender();
@@ -972,8 +980,8 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   robot_state::RobotStatePtr ks(new robot_state::RobotState(getPlanningSceneRO()->getCurrentState()));
   query_start_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("start", *ks, planning_scene_monitor_->getTFClient()));
   query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
-  query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1));
-  query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1));
+  query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1, _2));
+  query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1, _2));
   query_start_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
   query_goal_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
 

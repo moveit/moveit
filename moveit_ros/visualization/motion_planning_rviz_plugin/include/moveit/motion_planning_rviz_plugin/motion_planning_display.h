@@ -158,6 +158,7 @@ private Q_SLOTS:
   void changedShowJointTorques();
   void changedMetricsSetPayload();
   void changedWorkspace();
+  void resetInteractiveMarkers();
   
 protected:
 
@@ -185,9 +186,8 @@ protected:
   void recomputeQueryGoalStateMetrics();
   void drawQueryStartState();
   void drawQueryGoalState();
-  void scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler);
-  void scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler);
-
+  void scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler, bool error_state_changed);
+  void scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler, bool error_state_changed);
 
   bool isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const;
   
