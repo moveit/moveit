@@ -149,6 +149,12 @@ public:
   {
     return link_model_name_vector_;
   }
+
+  /** \brief Get the names of the links that are part of this joint group and also have geometry associated with them */
+  const std::vector<std::string>& getLinkModelNamesWithCollisionGeometry() const
+  {
+    return link_model_with_geometry_name_vector_;
+  }
   
   /** \brief Get the names of the links that are to be updated when the state of this group changes. This
       includes links that are in the kinematic model but outside this group, if those links are descendants of
@@ -390,6 +396,9 @@ protected:
   
   /** \brief The names of the links in this group */
   std::vector<std::string>                              link_model_name_vector_;
+
+  /** \brief The names of the links in this group that also have geometry */
+  std::vector<std::string>                              link_model_with_geometry_name_vector_;
   
   /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
   std::vector<const LinkModel*>                         updated_link_model_vector_;
