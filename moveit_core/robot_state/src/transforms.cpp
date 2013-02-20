@@ -115,25 +115,25 @@ void robot_state::Transforms::transformPose(const std::string &from_frame, const
 
 // specify the kinematic state
 void robot_state::Transforms::transformVector3(const RobotState& kstate, const std::string &from_frame,
-                                                   const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const
+                                               const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const
 {
   v_out = getTransform(kstate, from_frame).rotation() * v_in;
 }
 
 void robot_state::Transforms::transformQuaternion(const RobotState& kstate, const std::string &from_frame,
-                                                      const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const
+                                                  const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const
 {
   q_out = getTransform(kstate, from_frame).rotation() * q_in;
 }
 
 void robot_state::Transforms::transformRotationMatrix(const RobotState& kstate, const std::string &from_frame,
-                                                          const Eigen::Matrix3d &m_in, Eigen::Matrix3d &m_out) const
+                                                      const Eigen::Matrix3d &m_in, Eigen::Matrix3d &m_out) const
 {
   m_out = getTransform(kstate, from_frame).rotation() * m_in;
 }
 
 void robot_state::Transforms::transformPose(const RobotState& kstate, const std::string &from_frame,
-                                                const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
+                                            const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
 {
   t_out = getTransform(kstate, from_frame) * t_in;
 }
