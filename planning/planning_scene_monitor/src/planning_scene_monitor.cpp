@@ -354,7 +354,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::updatesScene(const planning_s
   return sceneIsParentOf(scene_const_, scene.get());
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::processSceneUpdateEvent(SceneUpdateType update_type)
+void planning_scene_monitor::PlanningSceneMonitor::triggerSceneUpdateEvent(SceneUpdateType update_type)
 {
   for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)
     update_callbacks_[i](update_type);
@@ -401,7 +401,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
           upd = (SceneUpdateType) ((int)upd | (int)UPDATE_STATE);
       }
     }
-    processSceneUpdateEvent(upd);
+    triggerSceneUpdateEvent(upd);
   }
 }
 
@@ -416,7 +416,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
       scene_->getCollisionWorld()->clearObjects();
       scene_->processPlanningSceneWorldMsg(*world);
     }  
-    processSceneUpdateEvent(UPDATE_SCENE);
+    triggerSceneUpdateEvent(UPDATE_SCENE);
   }
 }
 
@@ -429,7 +429,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
       last_update_time_ = ros::Time::now();
       scene_->processCollisionObjectMsg(*obj);
     }
-    processSceneUpdateEvent(UPDATE_GEOMETRY);
+    triggerSceneUpdateEvent(UPDATE_GEOMETRY);
   }
 }
 
@@ -443,7 +443,7 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
       last_update_time_ = ros::Time::now();
       scene_->processAttachedCollisionObjectMsg(*obj);
     }
-    processSceneUpdateEvent(UPDATE_GEOMETRY);
+    triggerSceneUpdateEvent(UPDATE_GEOMETRY);
   }
 }
 
@@ -457,7 +457,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
       last_update_time_ = ros::Time::now();
       scene_->processCollisionMapMsg(*map);
     }
-    processSceneUpdateEvent(UPDATE_GEOMETRY);
+    triggerSceneUpdateEvent(UPDATE_GEOMETRY);
   }
 }
 
@@ -650,7 +650,7 @@ void planning_scene_monitor::PlanningSceneMonitor::octomapUpdateCallback()
       throw;
     }    
   }
-  processSceneUpdateEvent(UPDATE_GEOMETRY);
+  triggerSceneUpdateEvent(UPDATE_GEOMETRY);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateFrequency(double hz)
@@ -686,7 +686,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
       scene_->getCurrentState().setStateValues(v);
       last_update_time_ = ros::Time::now();
     }
-    processSceneUpdateEvent(UPDATE_STATE);
+    triggerSceneUpdateEvent(UPDATE_STATE);
   }
   else
     ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
@@ -774,7 +774,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
       scene_->getTransforms()->setTransforms(transforms);
       last_update_time_ = ros::Time::now();
     }
-    processSceneUpdateEvent(UPDATE_TRANSFORMS);
+    triggerSceneUpdateEvent(UPDATE_TRANSFORMS);
   }
 } 
 

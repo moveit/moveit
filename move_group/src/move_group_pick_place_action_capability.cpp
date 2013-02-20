@@ -113,6 +113,13 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
       convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
       action_res.trajectory_descriptions = result->trajectory_descriptions_;
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+
+      {
+        planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
+        ps->processAttachedCollisionObjectMsg(result->shared_data_->diff_attached_object_);
+      }
+      
+      planning_scene_monitor_->triggerSceneUpdateEvent(planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY);
     }
   }
   else
@@ -269,8 +276,11 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
 
   if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && diff_attached_object_)
   {
-    planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
-    ps->processAttachedCollisionObjectMsg(*diff_attached_object_);
+    {
+      planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
+      ps->processAttachedCollisionObjectMsg(*diff_attached_object_);
+    }
+    planning_scene_monitor_->triggerSceneUpdateEvent(planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY);
     diff_attached_object_.reset();
   }
   
@@ -301,8 +311,11 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(c
 
   if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && diff_attached_object_)
   {
-    planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
-    ps->processAttachedCollisionObjectMsg(*diff_attached_object_);
+    {
+      planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
+      ps->processAttachedCollisionObjectMsg(*diff_attached_object_);
+    }
+    planning_scene_monitor_->triggerSceneUpdateEvent(planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY);
     diff_attached_object_.reset();
   }
   

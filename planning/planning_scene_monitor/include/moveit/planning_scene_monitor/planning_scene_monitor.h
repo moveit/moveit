@@ -295,6 +295,9 @@ public:
     return last_update_time_;
   }
 
+  /** @brief This function is called every time there is a change to the planning scene */
+  void triggerSceneUpdateEvent(SceneUpdateType update_type);
+
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
   void lockSceneRead();
 
@@ -401,9 +404,6 @@ protected:
   robot_model_loader::RDFLoaderPtr kinematics_loader_;
 
 private:
-
-  /** @brief This function is called every time there is a change to the planning scene */
-  void processSceneUpdateEvent(SceneUpdateType update_type);
   
   /** @brief */
   void scenePublishingThread();
