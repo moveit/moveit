@@ -162,8 +162,12 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
   
   std::sort(link_model_vector_.begin(), link_model_vector_.end(), &orderLinksByIndex);
   for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
+  {
     link_model_name_vector_.push_back(link_model_vector_[i]->getName());
-
+    if (link_model_vector_[i]->getShape())
+      link_model_with_geometry_name_vector_.push_back(link_model_vector_[i]->getName());
+  }
+  
   // compute updated links
   std::set<const LinkModel*> u_links;
   for (std::size_t i = 0 ; i < joint_roots_.size() ; ++i)
