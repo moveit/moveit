@@ -103,7 +103,8 @@ void ManipulationPipeline::clear()
 
 void ManipulationPipeline::start()
 {
-  stop_processing_ = false; 
+  stop_processing_ = false;
+  empty_queue_threads_ = 0;
   for (std::size_t i = 0 ; i < stages_.size() ; ++i)
     stages_[i]->resetStopSignal();
   for (std::size_t i = 0; i < processing_threads_.size() ; ++i)
@@ -137,14 +138,28 @@ void ManipulationPipeline::processingThread(unsigned int index)
   
   while (!stop_processing_)
   {
+    bool inc_queue = false;
     boost::unique_lock<boost::mutex> ulock(queue_access_lock_);
+    // if the queue is empty, we trigger the corresponding event
+    if (queue_.empty() && !stop_processing_ && empty_queue_callback_)
+    {
+      empty_queue_threads_++;
+      inc_queue = true;
+      if (empty_queue_threads_ == processing_threads_.size())
+        empty_queue_callback_();
+    }
     while (queue_.empty() && !stop_processing_)
       queue_access_cond_.wait(ulock); 
     while (!stop_processing_ && !queue_.empty())
     {
       ManipulationPlanPtr g = queue_.front();
       queue_.pop_front();
-
+      if (inc_queue)
+      {
+        empty_queue_threads_--;
+        inc_queue = false;
+      }
+      
       queue_access_lock_.unlock();
       try
       {

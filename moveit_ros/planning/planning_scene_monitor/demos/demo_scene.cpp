@@ -83,7 +83,8 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
   std_msgs::ColorRGBA cl;
   cl.r = 1.0f;
   cl.g = 0.0f;
-  cl.b = 0.0f;
+  cl.b = 0.0f; 
+  cl.a = 1.0f;
   scene->setColor(co.id, cl);   
 }
 

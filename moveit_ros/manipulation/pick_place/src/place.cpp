@@ -44,16 +44,7 @@
 namespace pick_place
 {
 
-PlacePlan::PlacePlan(const PickPlaceConstPtr &pick_place) :
-  pick_place_(pick_place),
-  pipeline_("place", 4),
-  last_plan_time_(0.0),
-  done_(false)
-{
-  pipeline_.setSolutionCallback(boost::bind(&PlacePlan::foundSolution, this));
-}
-
-PlacePlan::~PlacePlan()
+PlacePlan::PlacePlan(const PickPlaceConstPtr &pick_place) : PickPlacePlanBase(pick_place, "place")
 {
 }
 
@@ -146,12 +137,10 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   plan_data->max_goal_sampling_attempts_ = std::max(1u, jmg->getDefaultIKAttempts());
   moveit_msgs::AttachedCollisionObject &detach_object_msg = plan_data->diff_attached_object_;
 
-  // construct the planning scene as it will look after the object to be picked will actually be picked
-  planning_scene::PlanningScenePtr planning_scene_after_place = planning_scene->diff();
+  // construct the attached object message that will change the world to what it would become after a placement
   detach_object_msg.link_name = attached_body->getAttachedLinkName();
   detach_object_msg.object.id = attached_object_name;
   detach_object_msg.object.operation = moveit_msgs::CollisionObject::REMOVE;
-  planning_scene_after_place->processAttachedCollisionObjectMsg(detach_object_msg);
   
   collision_detection::AllowedCollisionMatrixPtr approach_place_acm(new collision_detection::AllowedCollisionMatrix(planning_scene->getAllowedCollisionMatrix()));
   
@@ -173,9 +162,11 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   pipeline_.reset();
   
   ManipulationStagePtr stage1(new ReachableAndValidPoseFilter(planning_scene, approach_place_acm, pick_place_->getConstraintsSamplerManager()));
-  ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, planning_scene_after_place, approach_place_acm));
+  ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, approach_place_acm));
   ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline())); 
   pipeline_.addStage(stage1).addStage(stage2).addStage(stage3);
+
+  initialize();
   
   pipeline_.start();
   
@@ -192,11 +183,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   }
   
   // wait till we're done
-  {
-    boost::unique_lock<boost::mutex> lock(done_mutex_);
-    while (!done_ && endtime > ros::WallTime::now())
-      done_condition_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
-  }
+  waitForPipeline(endtime);
   
   pipeline_.stop();
   
@@ -216,13 +203,6 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
-void PlacePlan::foundSolution()
-{
-  boost::mutex::scoped_lock slock(done_mutex_);
-  done_ = true;
-  done_condition_.notify_all();
-}
-
 PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const
 {
   PlacePlanPtr p(new PlacePlan(shared_from_this()));
@@ -230,6 +210,22 @@ PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr &p
     p->plan(planning_scene, goal);
   else
     p->plan(planning_scene->diff(goal.planning_options.planning_scene_diff), goal);
+  
+  if (display_computed_motion_plans_)
+  {
+    const std::vector<pick_place::ManipulationPlanPtr> &success = p->getSuccessfulManipulationPlans();
+    if (!success.empty())
+      visualizePlan(success.back());
+  }
+  
+  if (display_grasps_)
+  {
+    const std::vector<pick_place::ManipulationPlanPtr> &success = p->getSuccessfulManipulationPlans();
+    visualizeGrasps(success);
+    const std::vector<pick_place::ManipulationPlanPtr> &failed = p->getFailedManipulationPlans();
+    visualizeGrasps(failed);
+  }
+  
   return p;
 }
 

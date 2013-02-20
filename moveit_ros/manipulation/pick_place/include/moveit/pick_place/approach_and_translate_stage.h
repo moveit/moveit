@@ -48,16 +48,14 @@ class ApproachAndTranslateStage : public ManipulationStage
 {
 public:  
   
-  ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &pre_grasp_scene,
-                            const planning_scene::PlanningSceneConstPtr &post_grasp_scene,
+  ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &scene,
                             const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix);
   
   virtual bool evaluate(const ManipulationPlanPtr &plan) const;
   
 private:
   
-  planning_scene::PlanningSceneConstPtr pre_grasp_planning_scene_;
-  planning_scene::PlanningSceneConstPtr post_grasp_planning_scene_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
   collision_detection::AllowedCollisionMatrixConstPtr collision_matrix_;
   trajectory_processing::IterativeParabolicTimeParameterization time_param_;
   

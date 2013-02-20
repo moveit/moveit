@@ -51,6 +51,52 @@ const double PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION = 7.0; // seco
 // functionality specific to pick-only is in pick.cpp;
 // functionality specific to place-only is in place.cpp;
 
+PickPlacePlanBase::PickPlacePlanBase(const PickPlaceConstPtr &pick_place, const std::string &name) :
+  pick_place_(pick_place),
+  pipeline_(name, 4),
+  last_plan_time_(0.0),
+  done_(false)
+{
+  pipeline_.setSolutionCallback(boost::bind(&PickPlacePlanBase::foundSolution, this));
+  pipeline_.setEmptyQueueCallback(boost::bind(&PickPlacePlanBase::emptyQueue, this));
+}
+
+PickPlacePlanBase::~PickPlacePlanBase()
+{
+}
+
+void PickPlacePlanBase::foundSolution()
+{
+  boost::mutex::scoped_lock slock(done_mutex_);
+  done_ = true;
+  done_condition_.notify_all();
+}
+
+void PickPlacePlanBase::emptyQueue()
+{
+  boost::mutex::scoped_lock slock(done_mutex_);
+  if (pushed_all_poses_)
+  {
+    done_ = true;
+    done_condition_.notify_all();
+  }
+}
+
+void PickPlacePlanBase::initialize()
+{
+  done_ = false;
+  pushed_all_poses_ = false;
+}
+
+void PickPlacePlanBase::waitForPipeline(const ros::WallTime &endtime)
+{
+  // wait till we're done
+  boost::unique_lock<boost::mutex> lock(done_mutex_); 
+  pushed_all_poses_ = true;
+  while (!done_ && endtime > ros::WallTime::now())
+    done_condition_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
+}
+
 PickPlace::PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline) :
   nh_("~"),
   planning_pipeline_(planning_pipeline),
