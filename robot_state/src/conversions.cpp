@@ -316,7 +316,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
             logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                       aco.object.id.c_str(), aco.link_name.c_str());
           ls->attachBody(aco.object.id, shapes, poses, aco.touch_links);
-          logInform("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
+          logDebug("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
       }
     }

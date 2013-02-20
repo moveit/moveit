@@ -7,7 +7,6 @@ endif()
 
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
-find_package(PkgConfig REQUIRED)
 find_package(catkin REQUIRED 
 COMPONENTS
   moveit_msgs
