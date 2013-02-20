@@ -1273,14 +1273,14 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
 
       // there should not exist an attached object with this name
       if (ls->clearAttachedBody(object.object.id))
-        logInform("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
+        logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                   object.object.id.c_str(), object.link_name.c_str());
       ls->attachBody(object.object.id, shapes, poses, object.touch_links);
       logInform("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       return true;
     }
     else
-      logError("Kinematic state is not compatible with kinematic model. This could be fatal.");
+      logError("Robot state is not compatible with robot model. This could be fatal.");
   }
   else
     if (object.object.operation == moveit_msgs::CollisionObject::REMOVE)
@@ -1309,7 +1309,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           logError("No object named '%s' is attached to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       }
       else
-        logError("Kinematic state is not compatible with kinematic model. This could be fatal.");
+        logError("Robot state is not compatible with robot model. This could be fatal.");
     }
     else
       logError("Unknown collision object operation: %d", object.object.operation);
