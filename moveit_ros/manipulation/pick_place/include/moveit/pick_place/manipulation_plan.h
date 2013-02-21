@@ -40,6 +40,7 @@
 #include <boost/shared_ptr.hpp>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
+#include <moveit/plan_execution/plan_representation.h>
 #include <manipulation_msgs/GripperTranslation.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/RobotTrajectory.h>
@@ -82,7 +83,7 @@ struct ManipulationPlan
   
   // the approach motion towards the goal
   manipulation_msgs::GripperTranslation approach_;
-
+  
   // the retreat motion away from the goal
   manipulation_msgs::GripperTranslation retreat_;
   
@@ -97,14 +98,11 @@ struct ManipulationPlan
   moveit_msgs::Constraints goal_constraints_;
   constraint_samplers::ConstraintSamplerPtr goal_sampler_;
   std::vector<robot_state::RobotStatePtr> possible_goal_states_;
-
+  
   robot_state::RobotStatePtr approach_state_;
   
   // The sequence of trajectories produced for execution
-  std::vector<robot_trajectory::RobotTrajectoryPtr> trajectories_;
-  
-  // String descriptors of the trajectories
-  std::vector<std::string> trajectory_descriptions_;
+  std::vector<plan_execution::ExecutableTrajectory> trajectories_;
   
   // An error code reflecting what went wrong (if anything)
   moveit_msgs::MoveItErrorCodes error_code_;

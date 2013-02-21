@@ -169,11 +169,11 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan, co
     std::set<collision_detection::CostSource> cost_sources;
     {
       planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_); // it is ok if planning_scene_monitor_ is null; there just will be no locking done
-      for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
+      for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
       {
         std::set<collision_detection::CostSource> cost_sources_i;
-        plan.planning_scene_->getCostSources(*plan.planned_trajectory_[i], max_cost_sources_, 
-                                             plan.planned_trajectory_[i]->getGroupName(),
+        plan.planning_scene_->getCostSources(*plan.plan_components_[i].trajectory_, max_cost_sources_, 
+                                             plan.plan_components_[i].trajectory_->getGroupName(),
                                              cost_sources_i, discard_overlapping_cost_sources_);
         cost_sources.insert(cost_sources_i.begin(), cost_sources_i.end());
         if (cost_sources.size() > max_cost_sources_)

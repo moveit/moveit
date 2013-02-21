@@ -56,7 +56,7 @@ public:
   struct Options
   {
     Options() : replan_(false),
-                    replan_attempts_(0)
+                replan_attempts_(0)
     {
     }
     
@@ -130,9 +130,11 @@ private:
   void planAndExecuteHelper(ExecutableMotionPlan &plan, const Options &opt);  
   moveit_msgs::MoveItErrorCodes executeAndMonitor(const ExecutableMotionPlan &plan);
   bool isRemainingPathValid(const ExecutableMotionPlan &plan);
+  bool isRemainingPathValid(const ExecutableMotionPlan &plan, const std::pair<int, int> &path_segment);
   
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus &status);
+  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan *plan, std::size_t index);
   
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -145,6 +147,7 @@ private:
   bool new_scene_update_;
   
   bool execution_complete_;
+  bool path_became_invalid_;
   
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;

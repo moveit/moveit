@@ -76,12 +76,11 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
       state->setStateValues(plan->approach_posture_);
       robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_));
       traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
-      plan->trajectories_.insert(plan->trajectories_.begin(), traj);
-      plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), "pre_grasp");
+      plan_execution::ExecutableTrajectory et(traj, "pre_grasp");
+      plan->trajectories_.insert(plan->trajectories_.begin(), et);
     }
-    
-    plan->trajectories_.insert(plan->trajectories_.begin(), res.trajectory_);
-    plan->trajectory_descriptions_.insert(plan->trajectory_descriptions_.begin(), name_);
+    plan_execution::ExecutableTrajectory et(res.trajectory_, name_);
+    plan->trajectories_.insert(plan->trajectories_.begin(), et);
     plan->error_code_ = res.error_code_;
     
     return true;

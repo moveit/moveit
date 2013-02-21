@@ -111,15 +111,10 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
     {
       const pick_place::ManipulationPlanPtr &result = success.back();
       convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
-      action_res.trajectory_descriptions = result->trajectory_descriptions_;
+      action_res.trajectory_descriptions.resize(result->trajectories_.size());
+      for (std::size_t i = 0 ; i < result->trajectories_.size() ; ++i)
+        action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-
-      {
-        planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
-        ps->processAttachedCollisionObjectMsg(result->shared_data_->diff_attached_object_);
-      }
-      
-      planning_scene_monitor_->triggerSceneUpdateEvent(planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY);
     }
   }
   else
@@ -156,7 +151,9 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
     {
       const pick_place::ManipulationPlanPtr &result = success.back();
       convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
-      action_res.trajectory_descriptions = result->trajectory_descriptions_;
+      action_res.trajectory_descriptions.resize(result->trajectories_.size());
+      for (std::size_t i = 0 ; i < result->trajectories_.size() ; ++i)
+        action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
   }
@@ -196,10 +193,8 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
     else
     {
       const pick_place::ManipulationPlanPtr &result = success.back();
-      plan.planned_trajectory_ = result->trajectories_;
-      plan.planned_trajectory_descriptions_ = result->trajectory_descriptions_; 
+      plan.plan_components_ = result->trajectories_;
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-      diff_attached_object_.reset(new moveit_msgs::AttachedCollisionObject(result->shared_data_->diff_attached_object_));
     }
   }
   else
@@ -240,10 +235,8 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
     else
     {
       const pick_place::ManipulationPlanPtr &result = success.back();
-      plan.planned_trajectory_ = result->trajectories_;
-      plan.planned_trajectory_descriptions_ = result->trajectory_descriptions_; 
+      plan.plan_components_ = result->trajectories_;
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-      diff_attached_object_.reset(new moveit_msgs::AttachedCollisionObject(result->shared_data_->diff_attached_object_));
     }
   }
   else
@@ -258,7 +251,6 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
 {
   plan_execution::PlanExecution::Options opt;
   
-  diff_attached_object_.reset();
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPickupExecutionCallback, this);
@@ -274,18 +266,10 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
   plan_execution::ExecutableMotionPlan plan;
   plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
 
-  if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && diff_attached_object_)
-  {
-    {
-      planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
-      ps->processAttachedCollisionObjectMsg(*diff_attached_object_);
-    }
-    planning_scene_monitor_->triggerSceneUpdateEvent(planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY);
-    diff_attached_object_.reset();
-  }
-  
-  convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.trajectory_stages);
-  action_res.trajectory_descriptions = plan.planned_trajectory_descriptions_; 
+  convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.trajectory_stages);
+  action_res.trajectory_descriptions.resize(plan.plan_components_.size());
+  for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
+    action_res.trajectory_descriptions[i] = plan.plan_components_[i].description_;
   action_res.error_code = plan.error_code_;
 }
 
@@ -293,7 +277,6 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(c
 {
   plan_execution::PlanExecution::Options opt;
 
-  diff_attached_object_.reset();
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPlaceExecutionCallback, this);
@@ -308,19 +291,11 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(c
   
   plan_execution::ExecutableMotionPlan plan;
   plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
-
-  if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && diff_attached_object_)
-  {
-    {
-      planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
-      ps->processAttachedCollisionObjectMsg(*diff_attached_object_);
-    }
-    planning_scene_monitor_->triggerSceneUpdateEvent(planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY);
-    diff_attached_object_.reset();
-  }
-  
-  convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.trajectory_stages);
-  action_res.trajectory_descriptions = plan.planned_trajectory_descriptions_; 
+ 
+  convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.trajectory_stages);
+  action_res.trajectory_descriptions.resize(plan.plan_components_.size());
+  for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
+    action_res.trajectory_descriptions[i] = plan.plan_components_[i].description_;
   action_res.error_code = plan.error_code_;
 }
 
