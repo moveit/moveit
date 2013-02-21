@@ -42,7 +42,7 @@
 
 // MoveIt!
 #include <planning_models/kinematic_state.h>
-#include <robot_model_loader/robot_model_loader.h>
+#include <rdf_loader/rdf_loader.h>
 #include <urdf_interface/model.h>
 #include <urdf/model.h>
 #include <srdf/model.h>
@@ -74,13 +74,13 @@ bool KinematicsCacheROS::init(const kinematics_cache::KinematicsCache::Options &
     return false;    
   }
   
-  robot_model_loader::RobotModelLoader robot_model_loader;
-  const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = robot_model_loader.getURDF();
-  kinematic_model_.reset(new planning_models::KinematicModel(urdf_model, srdf));
+  rdf_loader::RDFLoader rdf_loader;
+  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
+  kinematic_model_.reset(new planning_models::RobotModel(urdf_model, srdf));
 
   if(!initialize((kinematics::KinematicsBaseConstPtr &)kinematics_solver_,
-                 (planning_models::KinematicModelConstPtr &)kinematic_model_, 
+                 (planning_models::RobotModelConstPtr &)kinematic_model_, 
                  opt))
   {    
     return false;

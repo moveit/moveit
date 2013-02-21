@@ -47,7 +47,7 @@ class CollisionRobotDistanceFieldROS : public CollisionRobotDistanceField
 {
 public:
   
-  CollisionRobotDistanceFieldROS(const planning_models::KinematicModelConstPtr& kmodel, 
+  CollisionRobotDistanceFieldROS(const planning_models::RobotModelConstPtr& kmodel, 
                                  double size_x = DEFAULT_SIZE_X, 
                                  double size_y = DEFAULT_SIZE_Y,
                                  double size_z = DEFAULT_SIZE_Z,
@@ -62,7 +62,7 @@ public:
     ros::NodeHandle nh;
     std::map<std::string, std::vector<CollisionSphere> > coll_spheres;
     collision_detection::loadLinkBodySphereDecompositions(nh,
-                                                          getKinematicModel(),
+                                                          getRobotModel(),
                                                           coll_spheres);
     initialize(coll_spheres, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
   }

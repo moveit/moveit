@@ -39,7 +39,7 @@
 #define KINEMATICS_CACHE_H_
 
 #include <kinematics_base/kinematics_base.h>
-#include <planning_models/kinematic_model.h>
+#include <planning_models/robot_model.h>
 #include <planning_models/kinematic_state.h>
 
 #include <boost/shared_ptr.hpp>
@@ -100,23 +100,23 @@ namespace kinematics_cache
      *  @return False if any error occured during initialization
      */
     bool initialize(kinematics::KinematicsBaseConstPtr &solver,
-                    const planning_models::KinematicModelConstPtr &kinematic_model,
+                    const planning_models::RobotModelConstPtr &kinematic_model,
                     const KinematicsCache::Options &opt);    
 
     /** @brief Return the instance of the kinematics solver */
-    const kinematics::KinematicsBaseConstPtr& getSolverInstance(void) const
+    const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
     {
       return kinematics_solver_;
     }
     
     /** @brief Return the instance of the kinematics model */
-    const planning_models::KinematicModelConstPtr& getModelInstance(void) const
+    const planning_models::RobotModelConstPtr& getModelInstance() const
     {
       return kinematic_model_;
     }
     
     /** @brief Return the cache parameters used for cache construction */
-    const Options& getCacheParameters(void) const
+    const Options& getCacheParameters() const
     {
       return options_;
     }
@@ -169,11 +169,11 @@ namespace kinematics_cache
     
     kinematics::KinematicsBaseConstPtr kinematics_solver_;/** An instance of the kinematics solver */
         
-    planning_models::KinematicModelConstPtr kinematic_model_; /** An instance of the kinematic model */
-    planning_models::KinematicStatePtr kinematic_state_; /** An instance of the kinematic state */
+    planning_models::RobotModelConstPtr kinematic_model_; /** An instance of the kinematic model */
+    planning_models::RobotState *Ptr kinematic_state_; /** An instance of the kinematic state */
     
-    const planning_models::KinematicModel::JointModelGroup* joint_model_group_; /** Joint model group associated with this cache */
-    boost::shared_ptr<planning_models::KinematicState::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
+    const planning_models::RobotModel::JointModelGroup* joint_model_group_; /** Joint model group associated with this cache */
+    boost::shared_ptr<planning_models::RobotState *::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
     
     //    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */
 

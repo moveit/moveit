@@ -68,7 +68,7 @@ class KinematicsSolverROS
 
   bool isActive()
   {
-    if(!getKinematicModel())
+    if(!getRobotModel())
     {
       return false;      
     }
@@ -79,9 +79,9 @@ class KinematicsSolverROS
     return true;
   };
     
-  const planning_models::KinematicModelConstPtr& getKinematicModel() const
+  const planning_models::RobotModelConstPtr& getRobotModel() const
   {
-    return planning_scene_monitor_->getKinematicModel();
+    return planning_scene_monitor_->getRobotModel();
   };
 
   const planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor()

@@ -47,15 +47,15 @@ KinematicsCache::KinematicsCache():min_squared_distance_(1e6),max_squared_distan
 }
 
 bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_solver,
-                                 const planning_models::KinematicModelConstPtr &kinematic_model,
+                                 const planning_models::RobotModelConstPtr &kinematic_model,
                                  const KinematicsCache::Options &opt)
 {
   options_ = opt;  
   kinematics_solver_ = kinematics_solver;
   kinematic_model_   = kinematic_model;  
   joint_model_group_ =  kinematic_model_->getJointModelGroup(kinematics_solver_->getGroupName());
-  kinematic_state_.reset(new planning_models::KinematicState(kinematic_model));
-  joint_state_group_.reset(new planning_models::KinematicState::JointStateGroup(kinematic_state_.get(),joint_model_group_));
+  kinematic_state_.reset(new planning_models::RobotState(kinematic_model));
+  joint_state_group_.reset(new planning_models::RobotState *::JointStateGroup(kinematic_state_.get(),joint_model_group_));
 
   setup(opt);  
   return true;  
