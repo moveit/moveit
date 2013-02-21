@@ -61,6 +61,7 @@ struct ExecutableTrajectory
   
   robot_trajectory::RobotTrajectoryPtr trajectory_;
   std::string description_;
+  collision_detection::AllowedCollisionMatrixConstPtr allowed_collision_matrix_;
   boost::function<bool(const ExecutableMotionPlan*)> effect_on_success_;
 };
 

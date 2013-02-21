@@ -118,7 +118,8 @@ bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_d
   return ok;
 }
 
-void addGripperTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::JointState &grasp_posture, const std::string &name) 
+void addGripperTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::JointState &grasp_posture, 
+                          const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix, const std::string &name)
 {
   if (!grasp_posture.name.empty())
   {
@@ -127,7 +128,8 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Jo
     robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_));
     traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan_execution::ExecutableTrajectory et(traj, name);
-    et.effect_on_success_ = boost::bind(&executeAttachObject, plan->shared_data_, _1);
+    et.effect_on_success_ = boost::bind(&executeAttachObject, plan->shared_data_, _1);     
+    et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
   }
 }
@@ -208,11 +210,13 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             time_param_.computeTimeStamps(*retreat_traj);            
             
             plan_execution::ExecutableTrajectory et_approach(approach_traj, "approach");
+            et_approach.allowed_collision_matrix_ = collision_matrix_;
             plan->trajectories_.push_back(et_approach);
             
-            addGripperTrajectory(plan, plan->retreat_posture_, "grasp");
+            addGripperTrajectory(plan, plan->retreat_posture_, collision_matrix_, "grasp");
             
             plan_execution::ExecutableTrajectory et_retreat(retreat_traj, "retreat");
+            et_retreat.allowed_collision_matrix_ = collision_matrix_;
             plan->trajectories_.push_back(et_retreat);
             
             plan->approach_state_ = approach_states.front();
@@ -230,9 +234,10 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           time_param_.computeTimeStamps(*approach_traj);
 
           plan_execution::ExecutableTrajectory et_approach(approach_traj, "approach");
+          et_approach.allowed_collision_matrix_ = collision_matrix_;
           plan->trajectories_.push_back(et_approach);
           
-          addGripperTrajectory(plan, plan->retreat_posture_, "grasp");
+          addGripperTrajectory(plan, plan->retreat_posture_, collision_matrix_, "grasp");
           plan->approach_state_ = approach_states.front();
           
           return true;          

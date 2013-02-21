@@ -213,16 +213,31 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
     const robot_trajectory::RobotTrajectory &t = *plan.plan_components_[path_segment.first].trajectory_;
+    const collision_detection::AllowedCollisionMatrix *acm = plan.plan_components_[path_segment.first].allowed_collision_matrix_.get();
     std::size_t wpc = t.getWayPointCount();
+    collision_detection::CollisionRequest req;
+    req.group_name = t.getGroupName();
     for (std::size_t i = std::max(path_segment.second - 1, 0) ; i < wpc ; ++i)
-      if (!plan.planning_scene_->isStateFeasible(t.getWayPoint(i), false) ||
-          plan.planning_scene_->isStateColliding(t.getWayPoint(i), t.getGroupName(), false))
+    {
+      collision_detection::CollisionResult res;
+      if (acm)
+        plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i), *acm);
+      else
+        plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i));
+      
+      if (res.collision || !plan.planning_scene_->isStateFeasible(t.getWayPoint(i), false))
       {
         // call the same functions again, in verbose mode, to show what issues have been detected
         plan.planning_scene_->isStateFeasible(t.getWayPoint(i), true);
-        plan.planning_scene_->isStateColliding(t.getWayPoint(i), t.getGroupName(), true);
+        req.verbose = true;
+        res.clear();
+        if (acm)
+          plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i), *acm);
+        else
+          plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i));
         return false;
       }
+    }
   }
   return true;
 }
@@ -289,7 +304,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     if (!trajectory_execution_manager_->push(msg))
     {
       trajectory_execution_manager_->clear();
-      ROS_INFO_STREAM("Apparently trajectory initialization failed");
+      ROS_ERROR_STREAM("Apparently trajectory initialization failed");
       execution_complete_ = true;
       result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
       return result;

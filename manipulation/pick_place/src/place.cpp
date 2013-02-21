@@ -146,6 +146,10 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   
   // we are allowed to touch certain other objects with the gripper
   approach_place_acm->setEntry(eef->getLinkModelNames(), goal.allowed_touch_objects, true);
+
+  // we are allowed to touch the target object slightly while retreating the end effector
+  std::vector<std::string> touch_links(attached_body->getTouchLinks().begin(), attached_body->getTouchLinks().end());
+  approach_place_acm->setEntry(attached_object_name, touch_links, true);
   
   if (!goal.collision_support_surface_name.empty())
   {
