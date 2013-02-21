@@ -60,6 +60,8 @@ public:
   /// Definition of the function signature that can be called when the execution of the pushed trajectories completes. The status of the execution is passed as argument
   typedef boost::function<void(const moveit_controller_manager::ExecutionStatus&)> ExecutionCompleteCallback;
 
+  typedef boost::function<void(const std::size_t&)> PathSegmentCompleteCallback;
+
   /// Data structure that represents information necessary to execute a trajectory
   struct TrajectoryExecutionContext
   {
@@ -131,6 +133,9 @@ public:
   
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback &callback = ExecutionCompleteCallback(), bool auto_clear = true);
+
+  /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done. A callback is also called for every trajectory part that completes successfully.
+  void execute(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear = true);
 
   /// This is a blocking call for the execution of the passed in trajectories. This just calls execute() and waitForExecution()
   moveit_controller_manager::ExecutionStatus executeAndWait(bool auto_clear = true);
@@ -214,7 +219,7 @@ private:
                                      const std::set<std::string> &actuated_joints);
   bool selectControllers(const std::set<std::string> &actuated_joints, const std::vector<std::string> &available_controllers, std::vector<std::string> &selected_controllers);
   
-  void executeThread(const ExecutionCompleteCallback &callback, bool auto_clear);
+  void executeThread(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear);
   bool executePart(std::size_t part_index);
   void continuousExecutionThread();
   
