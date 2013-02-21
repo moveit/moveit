@@ -82,7 +82,6 @@ void robot_state::LinkState::attachBody(const std::string &id,
   attached_body_map_[id] = ab;
   kinematic_state_->attached_body_map_[id] = ab;
   ab->computeTransform();
-  logError("attach %s", id.c_str());  
 }
 
 bool robot_state::LinkState::hasAttachedBody(const std::string &id) const
