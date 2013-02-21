@@ -37,6 +37,7 @@
 #include <QSettings>
 
 #include "ui_main_window.h"
+#include "ui_run_benchmark_dialog.h"
 
 #ifndef Q_MOC_RUN
 
@@ -94,6 +95,9 @@ public Q_SLOTS:
   void visibleAxisChanged(int state);
   void checkGoalsInCollision(void);
   void checkGoalsReachable(void);
+  void runBenchmark(void);
+  void runBenchmarkOKButtonClicked(void);
+  void benchmarkFolderButtonClicked(void);
   void loadBenchmarkResults(void);
   void updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state);
   void updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
@@ -129,6 +133,7 @@ private:
   const static unsigned int DEFAULT_WAREHOUSE_PORT;
 
   Ui::MainWindow ui_;
+  Ui_BenchmarkDialog run_benchmark_ui_;
   boost::shared_ptr<QSettings> settings_;
 
   //rviz
