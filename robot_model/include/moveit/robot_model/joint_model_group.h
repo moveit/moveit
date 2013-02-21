@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #ifndef MOVEIT_ROBOT_MODEL_JOINT_MODEL_GROUP_
 #define MOVEIT_ROBOT_MODEL_JOINT_MODEL_GROUP_
 

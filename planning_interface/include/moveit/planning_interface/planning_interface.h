@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan, Brian Gerkey */
+
 #ifndef MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
 
