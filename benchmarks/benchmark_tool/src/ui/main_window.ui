@@ -157,7 +157,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="stored_plans">
            <attribute name="title">
@@ -404,7 +404,7 @@ reachability</string>
                <item>
                 <widget class="QPushButton" name="run_benchmark_button">
                  <property name="text">
-                  <string>Run Benchmark</string>
+                  <string>Generate benchmark config file</string>
                  </property>
                 </widget>
                </item>
