@@ -63,6 +63,11 @@ public:
   {
     solution_callback_ = callback;
   }
+
+  void setEmptyQueueCallback(const boost::function<void()> &callback)
+  {
+    empty_queue_callback_ = callback;
+  }
   
   ManipulationPipeline& addStage(const ManipulationStagePtr &next);
   const ManipulationStagePtr& getFirstStage() const;
@@ -104,6 +109,8 @@ protected:
   boost::mutex result_lock_;
   
   boost::function<void()> solution_callback_;
+  boost::function<void()> empty_queue_callback_;
+  unsigned int empty_queue_threads_;
   
   bool stop_processing_;
 

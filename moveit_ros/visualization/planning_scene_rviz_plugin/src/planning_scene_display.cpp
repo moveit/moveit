@@ -306,7 +306,7 @@ void PlanningSceneDisplay::setGroupColor(rviz::Robot* robot, const std::string& 
     const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(group_name);
     if (jmg)
     {
-      const std::vector<std::string> &links = jmg->getLinkModelNames();
+      const std::vector<std::string> &links = jmg->getLinkModelNamesWithCollisionGeometry();
       for (std::size_t i = 0 ; i < links.size() ; ++i)
         setLinkColor(robot, links[i], color);
     }
@@ -330,7 +330,7 @@ void PlanningSceneDisplay::unsetGroupColor(rviz::Robot* robot, const std::string
     const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(group_name);
     if (jmg)
     {
-      const std::vector<std::string> &links = jmg->getLinkModelNames();
+      const std::vector<std::string> &links = jmg->getLinkModelNamesWithCollisionGeometry();
       for (std::size_t i = 0 ; i < links.size() ; ++i)
         unsetLinkColor(robot, links[i]);
     }
@@ -347,7 +347,7 @@ void PlanningSceneDisplay::unsetLinkColor(const std::string& link_name)
   unsetLinkColor(&planning_scene_robot_->getRobot(), link_name);
 }
 
-void PlanningSceneDisplay::setLinkColor(rviz::Robot* robot,  const std::string& link_name, const QColor &color )
+void PlanningSceneDisplay::setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color )
 {
   rviz::RobotLink *link = robot->getLink(link_name);
   

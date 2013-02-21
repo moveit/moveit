@@ -38,11 +38,14 @@
 #include <moveit/pick_place/reachable_valid_pose_filter.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
-#include <moveit/robot_state/conversions.h>
 #include <ros/console.h>
 
 namespace pick_place
 {
+
+PickPlan::PickPlan(const PickPlaceConstPtr &pick_place) : PickPlacePlanBase(pick_place, "pick")
+{
+}
 
 namespace
 {
@@ -59,19 +62,6 @@ struct OrderGraspQuality
   
   const std::vector<manipulation_msgs::Grasp> &grasps_;
 };
-}
-
-PickPlan::PickPlan(const PickPlaceConstPtr &pick_place) :
-  pick_place_(pick_place),
-  pipeline_("pick", 4),
-  last_plan_time_(0.0),
-  done_(false)
-{
-  pipeline_.setSolutionCallback(boost::bind(&PickPlan::foundSolution, this));
-}
-
-PickPlan::~PickPlan()
-{
 }
 
 bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal)
@@ -130,18 +120,15 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   plan_data->max_goal_sampling_attempts_ = std::max(1u, planning_scene->getRobotModel()->getJointModelGroup(planning_group)->getDefaultIKAttempts());
   moveit_msgs::AttachedCollisionObject &attach_object_msg = plan_data->diff_attached_object_;
   
-  // construct the planning scene as it will look after the object to be picked will actually be picked
-  planning_scene::PlanningScenePtr planning_scene_after_grasp = planning_scene->diff();
-  
-  attach_object_msg.link_name = ik_link;
+  // construct the attached object message that will change the world to what it would become after a pick
+  attach_object_msg.link_name = ik_link; 
   attach_object_msg.object.id = goal.target_name;
   attach_object_msg.object.operation = moveit_msgs::CollisionObject::ADD;
-  planning_scene_after_grasp->processAttachedCollisionObjectMsg(attach_object_msg);
-  
+  attach_object_msg.touch_links = goal.attached_object_touch_links.empty() ? eef->getLinkModelNames() : goal.attached_object_touch_links;
   collision_detection::AllowedCollisionMatrixPtr approach_grasp_acm(new collision_detection::AllowedCollisionMatrix(planning_scene->getAllowedCollisionMatrix()));
   
   // we are allowed to touch the target object
-  approach_grasp_acm->setEntry(goal.target_name, eef->getLinkModelNames(), true);
+  approach_grasp_acm->setEntry(goal.target_name, attach_object_msg.touch_links, true);
   // we are allowed to touch certain other objects with the gripper
   approach_grasp_acm->setEntry(eef->getLinkModelNames(), goal.allowed_touch_objects, true);
   if (!goal.collision_support_surface_name.empty())
@@ -154,13 +141,14 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       approach_grasp_acm->setEntry(goal.collision_support_surface_name, eef->getLinkModelNames(), true);
   }
   
-  
   // configure the manipulation pipeline
   pipeline_.reset();
   ManipulationStagePtr stage1(new ReachableAndValidPoseFilter(planning_scene, approach_grasp_acm, pick_place_->getConstraintsSamplerManager()));
-  ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, planning_scene_after_grasp, approach_grasp_acm));
+  ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, approach_grasp_acm));
   ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline())); 
   pipeline_.addStage(stage1).addStage(stage2).addStage(stage3);
+  
+  initialize();
   
   pipeline_.start();
   
@@ -170,8 +158,6 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     grasp_order[i] = i;
   OrderGraspQuality oq(goal.possible_grasps);
   std::sort(grasp_order.begin(), grasp_order.end(), oq);
-
-  done_ = false;
   
   // feed the available grasps to the stages we set up
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
@@ -187,11 +173,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   }
   
   // wait till we're done
-  {
-    boost::unique_lock<boost::mutex> lock(done_mutex_);
-    while (!done_ && endtime > ros::WallTime::now())
-      done_condition_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
-  }
+  waitForPipeline(endtime);
   pipeline_.stop();
   
   last_plan_time_ = (ros::WallTime::now() - start_time).toSec();
@@ -210,15 +192,8 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
-void PickPlan::foundSolution()
-{
-  boost::mutex::scoped_lock slock(done_mutex_);
-  done_ = true;
-  done_condition_.notify_all();
-}
-
 PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
-{
+{ 
   PickPlanPtr p(new PickPlan(shared_from_this()));
 
   if (planning_scene::PlanningScene::isEmpty(goal.planning_options.planning_scene_diff))
