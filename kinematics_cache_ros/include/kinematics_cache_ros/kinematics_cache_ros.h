@@ -39,7 +39,7 @@
 #define KINEMATICS_CACHE_ROS_H_
 
 #include <kinematics_cache/kinematics_cache.h>
-#include <planning_models/kinematic_model.h>
+#include <planning_models/robot_model.h>
 #include <pluginlib/class_loader.h>
 
 namespace kinematics_cache_ros
@@ -72,7 +72,7 @@ class KinematicsCacheROS : public kinematics_cache::KinematicsCache
 
     boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_; /** A loader needed to load the instance of a kinematics solver */
 
-    planning_models::KinematicModelPtr kinematic_model_; /** A kinematics model */
+    planning_models::RobotModelPtr kinematic_model_; /** A kinematics model */
     
   };
     

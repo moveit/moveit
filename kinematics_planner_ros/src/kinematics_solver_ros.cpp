@@ -49,7 +49,7 @@ bool KinematicsSolverROS::initialize()
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
   planning_scene_monitor_->startStateMonitor();
    
-  std::map<std::string,kinematics::KinematicsBasePtr> kinematics_solver_map = planning_scene_monitor_->getKinematicModelLoader()->generateKinematicsSolversMap();
+  std::map<std::string,kinematics::KinematicsBasePtr> kinematics_solver_map = planning_scene_monitor_->getRDFLoader()->generateKinematicsSolversMap();
   
   for(std::map<std::string,kinematics::KinematicsBasePtr>::iterator it = kinematics_solver_map.begin(); it != kinematics_solver_map.end(); ++it)
   {
@@ -59,7 +59,7 @@ bool KinematicsSolverROS::initialize()
     ROS_INFO("Group: %s, %s",group_name.c_str(),tip_name.c_str());
 
     kinematics_solver_[tip_name].reset(new kinematics_planner::KinematicsSolver());
-    if(!kinematics_solver_[tip_name]->initialize(planning_scene_monitor_->getKinematicModel(),
+    if(!kinematics_solver_[tip_name]->initialize(planning_scene_monitor_->getRobotModel(),
                                                  kinematics_solver_map,
                                                  group_name))
     {
@@ -86,7 +86,7 @@ bool KinematicsSolverROS::getIK(kinematics_msgs::GetConstraintAwarePositionIK::R
   }
 
   planning_scene::PlanningScenePtr planning_scene = planning_scene_monitor_->getPlanningScene();
-  kinematic_constraints::KinematicConstraintSet kinematic_constraint_set(planning_scene_monitor_->getKinematicModel(),planning_scene->getTransforms());
+  kinematic_constraints::KinematicConstraintSet kinematic_constraint_set(planning_scene_monitor_->getRobotModel(),planning_scene->getTransforms());
   planning_scene->setCurrentState(request.ik_request.robot_state);
   
   kinematics_solver_.find(request.ik_request.ik_link_name)->second->solve(request.ik_request.pose_stamped,

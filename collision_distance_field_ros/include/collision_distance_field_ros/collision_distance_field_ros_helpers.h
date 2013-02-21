@@ -38,14 +38,14 @@
 #define COLLISION_DISTANCE_FIELD_HELPERS_H_
 
 #include <ros/ros.h>
-#include <planning_models/kinematic_model.h>
+#include <planning_models/robot_model.h>
 #include <collision_distance_field/collision_distance_field_types.h>
 
 namespace collision_detection 
 {
 
 static inline bool loadLinkBodySphereDecompositions(ros::NodeHandle& nh,
-                                                    const planning_models::KinematicModelConstPtr& kmodel, 
+                                                    const planning_models::RobotModelConstPtr& kmodel, 
                                                     std::map<std::string, std::vector<collision_detection::CollisionSphere> >& link_body_spheres)
 {
   if(!nh.hasParam("link_spheres")) {
