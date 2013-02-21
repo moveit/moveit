@@ -57,10 +57,11 @@ class TrajectoryExecutionManager
 {
 public:
 
-  /// Definition of the function signature that can be called when the execution of the pushed trajectories completes. The status of the execution is passed as argument
+  /// Definition of the function signature that is called when the execution of all the pushed trajectories completes. The status of the overall execution is passed as argument
   typedef boost::function<void(const moveit_controller_manager::ExecutionStatus&)> ExecutionCompleteCallback;
 
-  typedef boost::function<void(const std::size_t&)> PathSegmentCompleteCallback;
+  /// Definition of the function signature that is called when the execution of a pushed trajectory completes successfully.
+  typedef boost::function<void(std::size_t)> PathSegmentCompleteCallback;
 
   /// Data structure that represents information necessary to execute a trajectory
   struct TrajectoryExecutionContext

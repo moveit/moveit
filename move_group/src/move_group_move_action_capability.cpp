@@ -131,7 +131,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   plan_execution::ExecutableMotionPlan plan;
   plan_execution_->planAndExecute(plan, planning_scene_diff, opt);  
   
-  convertToMsg(plan.planned_trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
+  convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.planned_trajectory);
   if (plan.executed_trajectory_)
     plan.executed_trajectory_->getRobotTrajectoryMsg(action_res.executed_trajectory);
   action_res.error_code = plan.error_code_;
@@ -187,10 +187,9 @@ bool move_group::MoveGroupMoveAction::planUsingPlanningPipeline(const planning_i
   } 
   if (res.trajectory_)
   {
-    plan.planned_trajectory_.resize(1);
-    plan.planned_trajectory_[0] = res.trajectory_;
-    plan.planned_trajectory_descriptions_.resize(1);
-    plan.planned_trajectory_descriptions_[0] = "plan";
+    plan.plan_components_.resize(1);
+    plan.plan_components_[0].trajectory_ = res.trajectory_;
+    plan.plan_components_[0].description_ = "plan";
   }
   plan.error_code_ = res.error_code_;
   return solved;

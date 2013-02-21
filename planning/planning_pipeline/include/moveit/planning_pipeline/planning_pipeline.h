@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #ifndef MOVEIT_PLANNING_PIPELINE_PLANNING_PIPELINE_
 #define MOVEIT_PLANNING_PIPELINE_PLANNING_PIPELINE_
 

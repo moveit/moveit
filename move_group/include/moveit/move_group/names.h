@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #ifndef MOVEIT_MOVE_GROUP_NAMES
 #define MOVEIT_MOVE_GROUP_NAMES
 

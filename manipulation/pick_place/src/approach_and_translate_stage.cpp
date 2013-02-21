@@ -70,6 +70,7 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
+  req.verbose = true;
   req.group_name = joint_state_group->getName();
   planning_scene->checkCollision(req, res, *joint_state_group->getRobotState(), *collision_matrix);
   if (res.collision == false)
@@ -104,16 +105,30 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
   return false;
 }
 
-void addGraspTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::JointState &grasp_posture, const std::string &name) 
+bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_data, const plan_execution::ExecutableMotionPlan *motion_plan)
+{
+  ROS_DEBUG("Applying attached object diff to maintained planning scene");
+  bool ok = false;
+  {
+    planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan->planning_scene_monitor_);
+    ok = ps->processAttachedCollisionObjectMsg(shared_plan_data->diff_attached_object_);
+  }
+  motion_plan->planning_scene_monitor_->triggerSceneUpdateEvent((planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType)
+                                                                (planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY + planning_scene_monitor::PlanningSceneMonitor::UPDATE_STATE));
+  return ok;
+}
+
+void addGripperTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::JointState &grasp_posture, const std::string &name) 
 {
   if (!grasp_posture.name.empty())
   {
-    robot_state::RobotStatePtr state(new robot_state::RobotState(plan->trajectories_.back()->getLastWayPoint()));
+    robot_state::RobotStatePtr state(new robot_state::RobotState(plan->trajectories_.back().trajectory_->getLastWayPoint()));
     state->setStateValues(grasp_posture);
     robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_));
     traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
-    plan->trajectories_.push_back(traj);
-    plan->trajectory_descriptions_.push_back(name);
+    plan_execution::ExecutableTrajectory et(traj, name);
+    et.effect_on_success_ = boost::bind(&executeAttachObject, plan->shared_data_, _1);
+    plan->trajectories_.push_back(et);
   }
 }
 
@@ -192,13 +207,13 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             time_param_.computeTimeStamps(*approach_traj); 
             time_param_.computeTimeStamps(*retreat_traj);            
             
-            plan->trajectories_.push_back(approach_traj);
-            plan->trajectory_descriptions_.push_back("approach");
+            plan_execution::ExecutableTrajectory et_approach(approach_traj, "approach");
+            plan->trajectories_.push_back(et_approach);
             
-            addGraspTrajectory(plan, plan->retreat_posture_, "grasp");
+            addGripperTrajectory(plan, plan->retreat_posture_, "grasp");
             
-            plan->trajectories_.push_back(retreat_traj);
-            plan->trajectory_descriptions_.push_back("retreat");
+            plan_execution::ExecutableTrajectory et_retreat(retreat_traj, "retreat");
+            plan->trajectories_.push_back(et_retreat);
             
             plan->approach_state_ = approach_states.front();
             return true;          
@@ -213,11 +228,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
           
           time_param_.computeTimeStamps(*approach_traj);
+
+          plan_execution::ExecutableTrajectory et_approach(approach_traj, "approach");
+          plan->trajectories_.push_back(et_approach);
           
-          plan->trajectories_.push_back(approach_traj);
-          plan->trajectory_descriptions_.push_back("approach");
-          
-          addGraspTrajectory(plan, plan->retreat_posture_, "grasp");
+          addGripperTrajectory(plan, plan->retreat_posture_, "grasp");
           plan->approach_state_ = approach_states.front();
           
           return true;          

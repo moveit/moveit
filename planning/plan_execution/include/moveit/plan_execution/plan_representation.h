@@ -45,15 +45,33 @@
 namespace plan_execution
 {
 
+struct ExecutableMotionPlan;
+struct ExecutableTrajectory
+{
+  ExecutableTrajectory()
+  {
+  }
+  
+  ExecutableTrajectory(const robot_trajectory::RobotTrajectoryPtr &trajectory,
+                       const std::string &description) :
+    trajectory_(trajectory),
+    description_(description)
+  {
+  }
+  
+  robot_trajectory::RobotTrajectoryPtr trajectory_;
+  std::string description_;
+  boost::function<bool(const ExecutableMotionPlan*)> effect_on_success_;
+};
+
 /// A generic representation on what a computed motion plan looks like
 struct ExecutableMotionPlan
 { 
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   
-  std::vector<robot_trajectory::RobotTrajectoryPtr> planned_trajectory_;
-  std::vector<std::string> planned_trajectory_descriptions_;
-
+  std::vector<ExecutableTrajectory> plan_components_;
+  
   // The trace of the trajectory recorded during execution
   robot_trajectory::RobotTrajectoryPtr executed_trajectory_;
   

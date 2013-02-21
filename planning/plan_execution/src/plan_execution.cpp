@@ -202,26 +202,27 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
 
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan &plan)
 {
-  std::pair<int, int> expected = trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex();
-  if (expected.first >= 0 && expected.second >= 0)
+  // check the validity of the currently executed path segment only, since there could be 
+  // changes in the world in between path segments
+  return isRemainingPathValid(plan, trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex());
+}
+
+bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan &plan, const std::pair<int, int> &path_segment)
+{
+  if (path_segment.first >= 0 && path_segment.second >= 0)
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
-    
-    for (std::size_t j = expected.first ; j < plan.planned_trajectory_.size() ; ++j)
-    {
-      std::size_t wpc = plan.planned_trajectory_[j]->getWayPointCount();
-      for (std::size_t i = (j == expected.first ? std::max(expected.second - 1, 0) : 0) ; i < wpc ; ++i)
-        if (!plan.planning_scene_->isStateFeasible(plan.planned_trajectory_[j]->getWayPoint(i), false) ||
-            plan.planning_scene_->isStateColliding(plan.planned_trajectory_[j]->getWayPoint(i), 
-                                                   plan.planned_trajectory_[j]->getGroupName(), false))
-        {
-          // call the same functions again, in verbose mode, to show what issues have been detected
-          plan.planning_scene_->isStateFeasible(plan.planned_trajectory_[j]->getWayPoint(i), true);
-          plan.planning_scene_->isStateColliding(plan.planned_trajectory_[j]->getWayPoint(i),
-                                                 plan.planned_trajectory_[j]->getGroupName(), true);
-          return false;
-        }
-    }
+    const robot_trajectory::RobotTrajectory &t = *plan.plan_components_[path_segment.first].trajectory_;
+    std::size_t wpc = t.getWayPointCount();
+    for (std::size_t i = std::max(path_segment.second - 1, 0) ; i < wpc ; ++i)
+      if (!plan.planning_scene_->isStateFeasible(t.getWayPoint(i), false) ||
+          plan.planning_scene_->isStateColliding(t.getWayPoint(i), t.getGroupName(), false))
+      {
+        // call the same functions again, in verbose mode, to show what issues have been detected
+        plan.planning_scene_->isStateFeasible(t.getWayPoint(i), true);
+        plan.planning_scene_->isStateColliding(t.getWayPoint(i), t.getGroupName(), true);
+        return false;
+      }
   }
   return true;
 }
@@ -240,7 +241,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     return result;
   }
   
-  if (plan.planned_trajectory_.empty())
+  if (plan.plan_components_.empty())
   {
     result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return result;
@@ -250,21 +251,21 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   
   // push the trajectories we have slated for execution to the trajectory execution manager
   int prev = -1;
-  for (std::size_t i = 0 ; i < plan.planned_trajectory_.size() ; ++i)
+  for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
   {    
-    if (!plan.planned_trajectory_[i] || plan.planned_trajectory_[i]->empty())
+    if (!plan.plan_components_[i].trajectory_ || plan.plan_components_[i].trajectory_->empty())
       continue;
     
-    // \todo should this be in thajectory_execution ? Maybe. Then that will have to use kinematic_trajectory too; 
+    // \todo should this be in trajectory_execution ? Maybe. Then that will have to use kinematic_trajectory too; 
     // spliting trajectories for controllers becomes interesting: tied to groups instead of joints. this could cause some problems
     // in the meantime we do a hack:
     
     bool unwound = false;
     for (std::size_t j = 0 ; j < i ; ++j)
       // if we ran unwind on a path for the same group
-      if (plan.planned_trajectory_[j] && plan.planned_trajectory_[j]->getGroup() == plan.planned_trajectory_[i]->getGroup() && !plan.planned_trajectory_[j]->empty())
+      if (plan.plan_components_[j].trajectory_ && plan.plan_components_[j].trajectory_->getGroup() == plan.plan_components_[i].trajectory_->getGroup() && !plan.plan_components_[j].trajectory_->empty())
       {
-        plan.planned_trajectory_[i]->unwind(plan.planned_trajectory_[j]->getLastWayPoint());
+        plan.plan_components_[i].trajectory_->unwind(plan.plan_components_[j].trajectory_->getLastWayPoint());
         unwound = true;
         break;        
       }
@@ -273,18 +274,18 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     {
       // unwind the path to execute based on the current state of the system
       if (prev < 0)
-        plan.planned_trajectory_[i]->unwind(plan.planning_scene_monitor_ && plan.planning_scene_monitor_->getStateMonitor() ? 
-                                            *plan.planning_scene_monitor_->getStateMonitor()->getCurrentState() : 
-                                            plan.planning_scene_->getCurrentState());
+        plan.plan_components_[i].trajectory_->unwind(plan.planning_scene_monitor_ && plan.planning_scene_monitor_->getStateMonitor() ? 
+                                                     *plan.planning_scene_monitor_->getStateMonitor()->getCurrentState() : 
+                                                     plan.planning_scene_->getCurrentState());
       else
-        plan.planned_trajectory_[i]->unwind(plan.planned_trajectory_[prev]->getLastWayPoint());
+        plan.plan_components_[i].trajectory_->unwind(plan.plan_components_[prev].trajectory_->getLastWayPoint());
     }
     
     prev = i;
     
     // convert to message, pass along
     moveit_msgs::RobotTrajectory msg;
-    plan.planned_trajectory_[i]->getRobotTrajectoryMsg(msg);
+    plan.plan_components_[i].trajectory_->getRobotTrajectoryMsg(msg);
     if (!trajectory_execution_manager_->push(msg))
     {
       trajectory_execution_manager_->clear();
@@ -299,12 +300,13 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   trajectory_monitor_->startTrajectoryMonitor();
   
   // start a trajectory execution thread
-  trajectory_execution_manager_->execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1));
+  trajectory_execution_manager_->execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1),
+                                         boost::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan, _1));
   
   // wait for path to be done, while checking that the path does not become invalid
   static const ros::WallDuration d(0.01);
-  bool path_became_invalid = false;
-  while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid)
+  path_became_invalid_ = false;
+  while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid_)
   {
     d.sleep();
     // check the path if there was an environment update in the meantime
@@ -313,7 +315,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
       new_scene_update_ = false;
       if (!isRemainingPathValid(plan))
       {
-        path_became_invalid = true;
+        path_became_invalid_ = true;
         break;
       }
     }
@@ -326,7 +328,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     trajectory_execution_manager_->stopExecution();
   }
   else
-    if (path_became_invalid)
+    if (path_became_invalid_)
     {
       ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
       trajectory_execution_manager_->stopExecution();
@@ -346,7 +348,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
   {
-    if (path_became_invalid)
+    if (path_became_invalid_)
       result.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
     else
     {
@@ -375,4 +377,29 @@ void plan_execution::PlanExecution::planningSceneUpdatedCallback(const planning_
 void plan_execution::PlanExecution::doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus &status)
 {
   execution_complete_ = true;
+}
+
+void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan *plan, std::size_t index)
+{
+  ROS_DEBUG("Completed '%s'", plan->plan_components_[index].description_.c_str());
+  
+  // if any side-effects are associated to the trajectory part that just completed, execute them
+  if (plan->plan_components_[index].effect_on_success_)
+    if (!plan->plan_components_[index].effect_on_success_(plan))
+    {
+      // execution of side-effect failed
+      ROS_ERROR("Execution of path-completion side-effect failed. Preempting.");
+      preempt_requested_ = true;
+      return;
+    }
+  
+  // if there is a next trajectory, check it for validity, before we start execution
+  std::size_t test_index = index;
+  while (++test_index < plan->plan_components_.size())
+    if (plan->plan_components_[test_index].trajectory_ && !plan->plan_components_[test_index].trajectory_->empty())
+    {
+      if (!isRemainingPathValid(*plan, std::make_pair<int>(test_index, 0)))
+        path_became_invalid_ = true;
+      break;
+    }
 }
