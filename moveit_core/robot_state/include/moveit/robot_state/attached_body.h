@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #ifndef MOVEIT_ROBOT_STATE_ATTACHED_BODY_
 #define MOVEIT_ROBOT_STATE_ATTACHED_BODY_
 
