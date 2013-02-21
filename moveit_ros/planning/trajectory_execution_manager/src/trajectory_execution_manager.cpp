@@ -910,10 +910,15 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 
 void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callback, bool auto_clear)
 {
+  execute(callback, PathSegmentCompleteCallback(), auto_clear);
+}
+
+void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear)
+{
   stopExecution(false);
   execution_complete_ = false;
   // start the execution thread
-  execution_thread_.reset(new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, auto_clear));
+  execution_thread_.reset(new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, part_callback, auto_clear));
 }
 
 moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForExecution()
@@ -955,7 +960,7 @@ void TrajectoryExecutionManager::clear()
     ROS_ERROR("Cannot push a new trajectory while another is being executed");
 }
 
-void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &callback, bool auto_clear)
+void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear)
 {
   // if we already got a stop request before we even started anything, we abort
   if (execution_complete_)
@@ -973,9 +978,14 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
   // execute each trajectory, one after the other (executePart() is blocking) or until one fails.
   // on failure, the status is set by executePart(). Otherwise, it will remain as set above (success)
   for (std::size_t i = 0 ; i < trajectories_.size() ; ++i)
-    if (!executePart(i) || execution_complete_)
+  {
+    bool epart = executePart(i);
+    if (epart && part_callback)
+      part_callback(i);
+    if (!epart || execution_complete_)
       break;
-
+  }
+  
   ROS_DEBUG("Completed trajectory execution with status %s ...", last_execution_status_.asString().c_str());
   
   // notify whoever is waiting for the event of trajectory completion
@@ -1139,7 +1149,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           result = false;
           break;
         }
-      // if something made the thajectory stop, we stop this thread too
+      // if something made the trajectory stop, we stop this thread too
       if (execution_complete_)
       {
         result = false;
