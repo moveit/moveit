@@ -157,7 +157,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="stored_plans">
            <attribute name="title">
@@ -401,6 +401,20 @@ reachability</string>
                  </item>
                 </layout>
                </item>
+               <item>
+                <widget class="QPushButton" name="run_benchmark_button">
+                 <property name="text">
+                  <string>Generate benchmark config file</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="load_results_button">
+                 <property name="text">
+                  <string>Load benchmark results</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>
@@ -530,13 +544,6 @@ reachability</string>
                 </widget>
                </item>
               </layout>
-             </widget>
-            </item>
-            <item row="8" column="1">
-             <widget class="QPushButton" name="load_results_button">
-              <property name="text">
-               <string>Load benchmark results</string>
-              </property>
              </widget>
             </item>
             <item row="7" column="1">

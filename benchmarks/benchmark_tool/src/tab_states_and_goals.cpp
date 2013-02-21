@@ -46,6 +46,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 
+
 #include <boost/math/constants/constants.hpp>
 
 namespace benchmark_tool
@@ -827,6 +828,71 @@ void MainWindow::startStateItemDoubleClicked(QListWidgetItem * item)
 {
   scene_display_->getPlanningSceneRW()->setCurrentState(start_states_[item->text().toStdString()]->state_msg);
   scene_display_->queueRenderSceneGeometry();
+}
+
+void MainWindow::runBenchmark(void)
+{
+  QDialog *dialog = new QDialog(0,0);
+
+  run_benchmark_ui_.setupUi(dialog);
+  run_benchmark_ui_.benchmark_select_folder_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
+  connect( run_benchmark_ui_.benchmark_button_box, SIGNAL( accepted( ) ), this, SLOT( runBenchmarkOKButtonClicked( ) ));
+  connect( run_benchmark_ui_.benchmark_select_folder_button, SIGNAL( clicked( ) ), this, SLOT( benchmarkFolderButtonClicked( ) ));
+
+  for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
+  {
+    run_benchmark_ui_.benchmark_start_state_combo->addItem(it->first.c_str());
+  }
+
+  dialog->show();
+}
+
+void MainWindow::benchmarkFolderButtonClicked(void)
+{
+  QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                  "/home", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+  run_benchmark_ui_.benchmark_output_folder_text->setText(dir);
+}
+
+void MainWindow::runBenchmarkOKButtonClicked(void)
+{
+  if (run_benchmark_ui_.benchmark_output_folder_text->text().isEmpty())
+  {
+    QMessageBox::warning(this, "Missing data", "Must specify an output folder");
+    return;
+  }
+
+  QString outfilename =  run_benchmark_ui_.benchmark_output_folder_text->text().append("/config.cfg");
+  std::ofstream outfile(outfilename.toUtf8());
+  if (outfile)
+  {
+    outfile << "[scene]" << std::endl;
+    outfile << "group=" << ui_.planning_group_combo->currentText().toStdString() << std::endl;
+    outfile << "default_constrained_link=" << robot_interaction_->getActiveEndEffectors()[0].parent_link << std::endl;
+    outfile << "planning_frame=" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame() << std::endl;
+    outfile << "name=" << scene_display_->getPlanningSceneRO()->getName() << std::endl;
+
+    //TODO: Let the user select the timeout, runs, and start regex
+    outfile << "timeout=1" << std::endl;
+    outfile << "runs=1" << std::endl;
+    outfile << "output=" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << "_" <<
+                        scene_display_->getPlanningSceneRO()->getName() << "_" <<
+                        ros::Time::now() << std::endl;
+    outfile << "start=" << run_benchmark_ui_.benchmark_output_folder_text->text().toStdString() << std::endl;
+    outfile << "query=" << std::endl;
+    outfile << "goal=" << ui_.load_poses_filter_text->text().toStdString() << std::endl << std::endl;
+
+    //TODO: Let the user select the planners
+    outfile << "[plugin]" << std::endl;
+    outfile << "name=ompl_interface_ros/OMPLPlanner" << std::endl;
+    outfile << "planners=RRTConnectkConfigDefault" << std::endl;
+
+    outfile.close();
+  }
+  else
+  {
+    QMessageBox::warning(this, "Error", QString("Cannot open file ").append(outfilename).append(" for writing"));
+  }
 }
 
 void MainWindow::loadBenchmarkResults(void)
