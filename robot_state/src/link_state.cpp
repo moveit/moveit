@@ -74,14 +74,15 @@ void robot_state::LinkState::updateAttachedBodies()
 }
 
 void robot_state::LinkState::attachBody(const std::string &id,
-                                            const std::vector<shapes::ShapeConstPtr> &shapes,
-                                            const EigenSTL::vector_Affine3d &attach_trans,
-                                            const std::vector<std::string> &touch_links)
+                                        const std::vector<shapes::ShapeConstPtr> &shapes,
+                                        const EigenSTL::vector_Affine3d &attach_trans,
+                                        const std::vector<std::string> &touch_links)
 {
   AttachedBody *ab = new AttachedBody(this, id, shapes, attach_trans, touch_links);
   attached_body_map_[id] = ab;
   kinematic_state_->attached_body_map_[id] = ab;
   ab->computeTransform();
+  logError("attach %s", id.c_str());  
 }
 
 bool robot_state::LinkState::hasAttachedBody(const std::string &id) const

@@ -117,7 +117,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
                    cd2->getID().c_str(), cd1->getID().c_str());
       }
     }
-
+  // bodies attached to the same link should not collide
+  if (cd1->type == BodyTypes::ROBOT_ATTACHED && cd2->type == BodyTypes::ROBOT_ATTACHED)
+  {
+    if (cd1->ptr.ab->getAttachedLink() == cd2->ptr.ab->getAttachedLink())
+      always_allow_collision = true;
+  }
+  
   // if collisions are always allowed, we are done
   if (always_allow_collision)
     return false;
