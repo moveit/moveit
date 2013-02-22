@@ -155,8 +155,9 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
       configureCollisionMatrix(scene_);
       configureDefaultPadding();
       
-      scene_->getCollisionRobot()->setPadding(default_robot_padd_);
-      scene_->getCollisionRobot()->setScale(default_robot_scale_);
+      scene_->getCollisionRobotNonConst()->setPadding(default_robot_padd_);
+      scene_->getCollisionRobotNonConst()->setScale(default_robot_scale_);
+      scene_->propogateRobotPadding();
     }
     else
     {
@@ -681,7 +682,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
-      scene_->getCurrentState().setStateValues(v);
+      scene_->getCurrentStateNonConst().setStateValues(v);
       last_update_time_ = ros::Time::now();
     }
     triggerSceneUpdateEvent(UPDATE_STATE);
@@ -769,7 +770,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
     getUpdatedFrameTransforms(scene_->getRobotModel(), transforms);
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
-      scene_->getTransforms()->setTransforms(transforms);
+      scene_->getTransformsNonConst()->setTransforms(transforms);
       last_update_time_ = ros::Time::now();
     }
     triggerSceneUpdateEvent(UPDATE_TRANSFORMS);

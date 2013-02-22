@@ -76,7 +76,7 @@ void MotionPlanningFrame::clearSceneButtonClicked()
   if (ps)
   {
     ps->getWorld()->clearObjects();
-    ps->getCurrentState().clearAttachedBodies();
+    ps->getCurrentStateNonConst().clearAttachedBodies();
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
   }
@@ -141,7 +141,7 @@ void MotionPlanningFrame::removeObjectButtonClicked()
       if (sel[i]->checkState() == Qt::Unchecked)
         ps->getWorld()->removeObject(sel[i]->text().toStdString());
       else
-        ps->getCurrentState().clearAttachedBody(sel[i]->text().toStdString());
+        ps->getCurrentStateNonConst().clearAttachedBody(sel[i]->text().toStdString());
     scene_marker_.reset();
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
@@ -758,7 +758,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
   {
     // rename attached body
     planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-    robot_state::RobotState &cs = ps->getCurrentState();
+    robot_state::RobotState &cs = ps->getCurrentStateNonConst();
     const robot_state::AttachedBody *ab = cs.getAttachedBody(known_collision_objects_[item->type()].first);
     if (ab)
     {

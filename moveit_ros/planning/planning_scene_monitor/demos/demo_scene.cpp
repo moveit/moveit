@@ -41,11 +41,11 @@ static const std::string ROBOT_DESCRIPTION="robot_description";
 
 void constructScene(const planning_scene::PlanningScenePtr &scene)
 {
-  scene->getWorld()->setName("pole_blocking_right_arm_pan");
+  scene->setName("pole_blocking_right_arm_pan");
   
   Eigen::Affine3d t;
   t = Eigen::Translation3d(0.7, -0.5, 0.7);
-  scene->getCollisionWorld()->addToObject("pole", shapes::ShapeConstPtr(new shapes::Box(0.1, 0.1, 1.4)), t);
+  scene->getWorld()->addToObject("pole", shapes::ShapeConstPtr(new shapes::Box(0.1, 0.1, 1.4)), t);
   
   moveit_msgs::AttachedCollisionObject aco;
   aco.link_name = "r_wrist_roll_link";
