@@ -105,7 +105,7 @@ public:
   bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
   {
     planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
-    robot_state::robotStateMsgToRobotState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentState());
+    robot_state::robotStateMsgToRobotState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentStateNonConst());
     ompl_interface::ConstraintApproximationConstructionResults ca_res = 
       ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
                                                                          diff_scene, req.samples, req.edges_per_sample);
