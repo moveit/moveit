@@ -560,9 +560,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
   
   if (!octomap_monitor_)
   {
-    occupancy_map_monitor::OccupancyMapMonitor::Options opt;
-    opt.map_frame = scene_->getPlanningFrame();
-    octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(opt, tf_));
+    octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(tf_, scene_->getPlanningFrame()));
     octomap_monitor_->setUpdateCallback(boost::bind(&PlanningSceneMonitor::octomapUpdateCallback, this));
   }
   

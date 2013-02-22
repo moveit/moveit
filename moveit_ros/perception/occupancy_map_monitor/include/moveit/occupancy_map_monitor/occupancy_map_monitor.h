@@ -56,18 +56,9 @@ class OccupancyMapMonitor
 {
 public:
   
-  struct Options
-  {
-    Options() : map_resolution(0.0)
-    {
-    }
-    
-    std::string map_frame;
-    double map_resolution;
-  };
-  
-  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf); 
-  OccupancyMapMonitor(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf);
+  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf,
+                      const std::string &map_frame = "", double map_resolution = 0.0); 
+  OccupancyMapMonitor(double map_resolution = 0.0);
 
   ~OccupancyMapMonitor();
   
@@ -92,12 +83,12 @@ public:
     
   const std::string& getMapFrame() const
   {
-    return opt_.map_frame;
+    return map_frame_;
   }
   
   double getMapResolution() const
   {
-    return opt_.map_resolution;    
+    return map_resolution_;    
   }
   
   /** @brief lock the underlying octree. it will not be read or written by the
@@ -128,14 +119,16 @@ public:
 
 private:
 
-  void initialize(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf);
+  void initialize();
 
   /** @brief tells the server an update is ready */
   void updateReady(OccupancyMapUpdater *updater);
   
   void treeUpdateThread();
 
-  Options opt_;
+  boost::shared_ptr<tf::Transformer> tf_;
+  std::string map_frame_;
+  double map_resolution_;
   
   OccMapTreePtr tree_;
   OccMapTreeConstPtr tree_const_;
