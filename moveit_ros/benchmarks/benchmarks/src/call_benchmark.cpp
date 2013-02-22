@@ -100,7 +100,8 @@ int main(int argc, char **argv)
     ("planners-only", "Benchmark only the planners");
 
   boost::program_options::variables_map vm;
-  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+  boost::program_options::parsed_options po = boost::program_options::parse_command_line(argc, argv, desc);
+  boost::program_options::store(po, vm);
   boost::program_options::notify(vm);
 
   if (vm.count("help"))
@@ -138,10 +139,11 @@ int main(int argc, char **argv)
     ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningPluginsBenchmark>(BENCHMARK_SERVICE_NAME, true);
     moveit_benchmarks::BenchmarkCallFn fn = boost::bind(&callBenchmarkService, &benchmark_service_client, !goal_existence_only, !planners_only, _1);
     
-    unsigned int proc = 0;
-    for (int i = 1 ; i < argc ; ++i)
+    unsigned int proc = 0; 
+    std::vector<std::string> files = boost::program_options::collect_unrecognized(po.options, boost::program_options::include_positional);
+    for (std::size_t i = 0 ; i < files.size() ; ++i)
     {
-      if (bc.readOptions(argv[i]))
+      if (bc.readOptions(files[i].c_str()))
       {
         std::stringstream ss;
         bc.printOptions(ss);
@@ -152,7 +154,6 @@ int main(int argc, char **argv)
     }
     ROS_INFO("Processed %u benchmark configuration files", proc);
   }
-
+  
   return 0;
 }
-
