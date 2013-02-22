@@ -90,6 +90,16 @@ public:
     return tree_const_;
   }
     
+  const std::string& getMapFrame() const
+  {
+    return opt_.map_frame;
+  }
+  
+  double getMapResolution() const
+  {
+    return opt_.map_resolution;    
+  }
+  
   /** @brief lock the underlying octree. it will not be read or written by the
    *  monitor until unlockTree() is called */
   void lockOcTreeRead();
@@ -124,8 +134,6 @@ private:
   void updateReady(OccupancyMapUpdater *updater);
   
   void treeUpdateThread();
-  void publish_markers();
-  void publish_octomap_binary();
 
   Options opt_;
   
@@ -144,9 +152,6 @@ private:
   
   ros::NodeHandle root_nh_;
   ros::NodeHandle nh_;
-  ros::Publisher occupied_marker_pub_;
-  ros::Publisher free_marker_pub_;
-  ros::Publisher octree_binary_pub_;
   ros::ServiceServer save_map_srv_;
   ros::ServiceServer load_map_srv_;
 };

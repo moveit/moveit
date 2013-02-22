@@ -27,20 +27,47 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Author: Jon Binney, Ioan Sucan */
+
 #include <boost/shared_ptr.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
+#include <octomap_msgs/conversions.h>
 
+void publishOctomap(ros::Publisher *octree_binary_pub, occupancy_map_monitor::OccupancyMapMonitor *server)
+{
+  octomap_msgs::Octomap map;
+  
+  map.header.frame_id = server->getMapFrame();
+  map.header.stamp = ros::Time::now();
+  
+  server->lockOcTreeRead();
+  try
+  {
+    if (!octomap_msgs::binaryMapToMsgData(*server->getOcTreePtr(), map.data))
+      ROS_ERROR_THROTTLE(1, "Could not generate OctoMap message");
+  }
+  catch(...)
+  {
+    ROS_ERROR_THROTTLE(1, "Exception thrown while generating OctoMap message");
+  }
+  server->unlockOcTreeRead();
+  
+  octree_binary_pub->publish(map);
+}
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "occupancy_map_server");
+  ros::NodeHandle nh;
+  ros::Publisher octree_binary_pub = nh.advertise<octomap_msgs::Octomap>("octomap_binary", 1);
   boost::shared_ptr<tf::Transformer> listener = boost::make_shared<tf::TransformListener>(ros::Duration(5.0));
   occupancy_map_monitor::OccupancyMapMonitor server(listener);
+  server.setUpdateCallback(boost::bind(&publishOctomap, &octree_binary_pub, &server));
   server.startMonitor();
 
-  /* give control to main ros loop */
   ros::spin();
+  return 0;
 }
