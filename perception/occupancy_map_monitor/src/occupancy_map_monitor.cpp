@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney */
+/* Author: Jon Binney, Ioan Sucan */
 
 #include <ros/ros.h>
 #include <moveit_msgs/SaveMap.h>
@@ -40,9 +40,6 @@
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
-
-
-#include <octomap_msgs/conversions.h>
 
 namespace occupancy_map_monitor
 {
@@ -124,7 +121,6 @@ void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shar
       map_updaters_.push_back(up);
     }
   }
-  octree_binary_pub_ = root_nh_.advertise<octomap_msgs::Octomap>("octomap_binary", 1);
 
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
@@ -184,8 +180,6 @@ void OccupancyMapMonitor::treeUpdateThread()
       if (update_callback_)
         update_callback_();
       ready.clear();
-
-      publish_octomap_binary();
     }
   }
 }
@@ -217,23 +211,6 @@ void OccupancyMapMonitor::lockOcTreeWrite()
 void OccupancyMapMonitor::unlockOcTreeWrite()
 {
   tree_mutex_.unlock();
-}
-
-void OccupancyMapMonitor::publish_octomap_binary()
-{
-  octomap_msgs::Octomap map;
-
-  map.header.frame_id = opt_.map_frame;
-  map.header.stamp = ros::Time::now();
-
-  if (octomap_msgs::binaryMapToMsgData(*tree_, map.data))
-  {
-    octree_binary_pub_.publish(map);
-  }
-  else
-  {
-    ROS_ERROR("Could not generate OctoMap message");
-  }
 }
 
 void OccupancyMapMonitor::startMonitor()

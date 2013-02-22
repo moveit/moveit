@@ -46,7 +46,6 @@
 namespace occupancy_map_monitor
 {
 
-
 PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame)
   : tf_(tf), map_frame_(map_frame),
     point_cloud_subscriber_(NULL),
