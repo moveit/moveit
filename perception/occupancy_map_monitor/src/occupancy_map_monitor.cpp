@@ -44,84 +44,90 @@
 namespace occupancy_map_monitor
 {
 
-OccupancyMapMonitor::OccupancyMapMonitor(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf) : nh_("~")
+OccupancyMapMonitor::OccupancyMapMonitor(double map_resolution) :
+  nh_("~"),
+  map_resolution_(map_resolution)
 {
-  initialize(opt, tf);
+  initialize();
 }
 
-OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf) : nh_("~")
+OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame, double map_resolution) :
+  nh_("~"),
+  tf_(tf),
+  map_frame_(map_frame),
+  map_resolution_(map_resolution)
 { 
-  Options opt; // empty set of options; this will lead to having everything read from the param server
-  initialize(opt, tf);
+  initialize();
 }
 
-void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shared_ptr<tf::Transformer> &tf)
+void OccupancyMapMonitor::initialize()
 { 
   tree_update_thread_running_ = false;
-  opt_ = input_opt; // we need to be able to update options
   
   /* load params from param server */
-  if (opt_.map_resolution <= 0.0)
-    if (!nh_.getParam("octomap_resolution", opt_.map_resolution))
+  if (map_resolution_ <= std::numeric_limits<double>::epsilon())
+    if (!nh_.getParam("octomap_resolution", map_resolution_))
     {
-      opt_.map_resolution = 0.1;
-      ROS_WARN("Resolution not specified for Octomap.");
+      map_resolution_ = 0.1;
+      ROS_WARN("Resolution not specified for Octomap. Assuming resolution = %g instead", map_resolution_);
     }
-  ROS_DEBUG("Using resolution = %lf m for building octomap", opt_.map_resolution);
+  ROS_DEBUG("Using resolution = %lf m for building octomap", map_resolution_);
   
-  if (opt_.map_frame.empty())
-    if (!nh_.getParam("octomap_frame", opt_.map_frame))
-      ROS_WARN("No target frame specified for Octomap. No transforms will be applied to received data.");
+  if (map_frame_.empty())
+    if (!nh_.getParam("octomap_frame", map_frame_))
+      if (tf_)
+        ROS_WARN("No target frame specified for Octomap. No transforms will be applied to received data.");
   
-  tree_.reset(new OccMapTree(opt_.map_resolution));
+  if (!tf_ && !map_frame_.empty())
+    ROS_WARN("Target frame specified but no TF instance specified. No transforms will be applied to received data.");
+  
+  tree_.reset(new OccMapTree(map_resolution_));
   tree_const_ = tree_;
   
   XmlRpc::XmlRpcValue sensor_list;
   if (nh_.getParam("sensors", sensor_list))
   {
-    if(!sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
-    {
+    if (sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
+      for (int32_t i = 0; i < sensor_list.size(); ++i)
+      {
+        if (!sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
+        {
+          ROS_ERROR("Params for sensor %d not a struct, ignoring sensor", i);
+          continue;
+        }
+        
+        if (!sensor_list[i].hasMember ("sensor_type"))
+        {
+          ROS_ERROR("No sensor type for sensor %d; ignoring.", i);
+          continue;
+        }
+        
+        std::string sensor_type = std::string (sensor_list[i]["sensor_type"]);
+        boost::shared_ptr<OccupancyMapUpdater> up;
+        if (sensor_type == "point_cloud_sensor")
+        {
+          up.reset(new PointCloudOccupancyMapUpdater(tf_, map_frame_));
+        }
+        else
+        {
+          ROS_ERROR("Sensor %d has unknown type %s; ignoring.", i, sensor_type.c_str());
+          continue;
+        }
+        
+        /* pass the params struct directly in to the updater */
+        if (!up->setParams(sensor_list[i]))
+        {
+          ROS_ERROR("Failed to load sensor %d of type %s", i, sensor_type.c_str());
+          continue;
+        }
+        
+        up->setNotifyFunction(boost::bind(&OccupancyMapMonitor::updateReady, this, _1));
+        map_updaters_.push_back(up);
+      }
+    else
       ROS_ERROR("List of sensors must be an array!");
-      return;
-    }
-    for (int32_t i = 0; i < sensor_list.size(); ++i)
-    {
-      if(!sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
-      {
-        ROS_ERROR("Params for sensor %d not a struct, ignoring sensor", i);
-        continue;
-      }
-
-      if(!sensor_list[i].hasMember ("sensor_type"))
-      {
-        ROS_ERROR("No sensor type for sensor %d, ignoring sensor", i);
-        continue;
-      }
-
-      std::string sensor_type = std::string (sensor_list[i]["sensor_type"]);
-      boost::shared_ptr<OccupancyMapUpdater> up;
-      if(sensor_type == "point_cloud_sensor")
-      {
-        up.reset(new PointCloudOccupancyMapUpdater(tf, opt_.map_frame));
-      }
-      else
-      {
-        ROS_ERROR("Sensor %d has unknown type %s, ignoring sensor", i, sensor_type.c_str());
-        continue;
-      }
-
-      /* pass the params struct directly in to the updater */
-      if(!up->setParams(sensor_list[i]))
-      {
-        ROS_ERROR("Failed to load sensor %d of type %s", i, sensor_type.c_str());
-        continue;
-      }
-
-      up->setNotifyFunction(boost::bind(&OccupancyMapMonitor::updateReady, this, _1));
-      map_updaters_.push_back(up);
-    }
   }
-
+  
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
   load_map_srv_ = nh_.advertiseService("load_map", &OccupancyMapMonitor::loadMapCallback, this);
@@ -129,34 +135,51 @@ void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shar
 
 bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response)
 {
-    ROS_INFO("Writing map to %s", request.filename.c_str());
-    this->lockOcTreeRead();
+  ROS_INFO("Writing map to %s", request.filename.c_str());
+  this->lockOcTreeRead();
+  try
+  {
     response.success = tree_->write(request.filename);
-    this->unlockOcTreeRead();
-    return true;
+  }
+  catch (...)
+  {
+    response.success = false;
+  }
+  this->unlockOcTreeRead();
+  return true;
 }
 
 bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response)
 {
-    ROS_INFO("Reading map from %s", request.filename.c_str());
-    this->lockOcTreeWrite();
-
-    /* load the octree from disk */
-    octomap::AbstractOcTree* tree = octomap::AbstractOcTree::read(request.filename);
-    if(tree == NULL)
-    {
-        this->unlockOcTreeWrite();
-        ROS_ERROR("Failed to load map from file");
-        response.success = false;
-        return true;
-    }
-
+  ROS_INFO("Reading map from %s", request.filename.c_str());
+  this->lockOcTreeWrite();
+  
+  /* load the octree from disk */
+  octomap::AbstractOcTree* tree = NULL;
+  try
+  {
+    tree = octomap::AbstractOcTree::read(request.filename);
+  }
+  catch (...)
+  {
+  }
+  
+  if (tree)
+  {
     /* cast the abstract octree to the right type and update our shared pointer */
     tree_.reset(dynamic_cast<OccMapTree*>(tree));
-    response.success = true;
-
-    this->unlockOcTreeWrite();
-    return true;
+    response.success = tree_ ? true : false;
+    if (!tree_)
+      ROS_ERROR("Failed to load map from file");
+  }
+  else
+  {
+    ROS_ERROR("Failed to load map from file");
+    response.success = false;
+  }
+  
+  this->unlockOcTreeWrite();
+  return true;
 }
 
 void OccupancyMapMonitor::treeUpdateThread()
