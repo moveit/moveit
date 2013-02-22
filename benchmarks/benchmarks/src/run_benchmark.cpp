@@ -436,14 +436,14 @@ public:
       scene_monitor_.getPlanningScene()->usePlanningSceneMsg(req.scene);
 
     // \todo the code below needs to be replaced with using constraint samplers;
-
-    if ((req.motion_plan_request.goal_constraints.size() == 0 ||
-        req.motion_plan_request.goal_constraints[0].position_constraints.size() == 0 ||
-        req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses.size() == 0 ||
-        req.motion_plan_request.goal_constraints[0].orientation_constraints.size() == 0) &&
+    
+    if (req.motion_plan_request.goal_constraints.size() == 0 &&
+        req.motion_plan_request.goal_constraints[0].position_constraints.size() == 0 &&
+        req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses.size() == 0 &&
+        req.motion_plan_request.goal_constraints[0].orientation_constraints.size() == 0 &&
         req.motion_plan_request.trajectory_constraints.constraints.size() == 0)
     {
-      ROS_ERROR("Invalid constraints");
+      ROS_ERROR("Invalid goal constraints");
       res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
       return false;
     }
@@ -505,8 +505,9 @@ public:
       ROS_INFO("Results saved to '%s'", res.filename.c_str());
     }
 
-    if (req.motion_plan_request.trajectory_constraints.constraints.size() > 0) {
-      //Compute IK on trajectory constraints
+    if (req.motion_plan_request.trajectory_constraints.constraints.size() > 0)
+    {
+      // Compute IK on trajectory constraints
       // Start Log
       ros::WallTime startTime = ros::WallTime::now();
       std::string host = moveit_benchmarks::getHostname();

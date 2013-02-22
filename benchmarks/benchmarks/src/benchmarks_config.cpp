@@ -92,7 +92,6 @@ moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std
   rs_(host, port)
 {  
 }
-
 void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &call)
 {
   if (!call)
@@ -124,7 +123,12 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
     }
     else
     {  
-      ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
+      std::stringstream ss;
+      std::vector<std::string> names;
+      pss_.getPlanningSceneNames(names);
+      for (std::size_t i = 0 ; i < names.size() ; ++i)
+        ss << names[i] << " ";
+      ROS_ERROR("Scene '%s' not found in warehouse. Available names: ", opt_.scene.c_str(), ss.str().c_str());
       return;
     }
   }
