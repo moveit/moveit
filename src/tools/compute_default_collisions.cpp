@@ -468,7 +468,7 @@ unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, Link
 {
   // Setup environment
   collision_detection::CollisionResult res;
-  scene.getCurrentState().setToDefaultValues(); // set to default values of 0 OR half between low and high joint values
+  scene.getCurrentStateNonConst().setToDefaultValues(); // set to default values of 0 OR half between low and high joint values
   scene.checkSelfCollision(req, res);
 
   // For each collision in default state, always add to disabled links set
@@ -511,7 +511,7 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Link
     {
       // Check for collisions
       collision_detection::CollisionResult res;
-      scene.getCurrentState().setToRandomValues();
+      scene.getCurrentStateNonConst().setToRandomValues();
       scene.checkSelfCollision(req, res);
 
       // Sum the number of collisions
