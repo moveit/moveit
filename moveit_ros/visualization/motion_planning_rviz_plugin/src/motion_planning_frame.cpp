@@ -228,7 +228,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
       }
       
       //If the object already exists, ask the user whether to overwrite or rename
-      if (planning_display_->getPlanningSceneRO()->getCollisionWorld()->hasObject(name))
+      if (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(name))
       {
         QMessageBox msgBox;
         msgBox.setText("There exists another object with the same name.");
@@ -245,8 +245,8 @@ void MotionPlanningFrame::importResource(const std::string &path)
               planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
               if (ps)
               {
-                ps->getCollisionWorld()->removeObject(name);
-                addObject(ps->getCollisionWorld(), name, shape, pose);
+                ps->getWorld()->removeObject(name);
+                addObject(ps->getWorld(), name, shape, pose);
               }
             }
             break;
@@ -257,7 +257,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
             QString text = QInputDialog::getText(this, tr("Choose a new name"),
                                                  tr("Import the new object under the name:"), QLineEdit::Normal,
                                                  QString::fromStdString(name + "-" + boost::lexical_cast<std::string>
-                                                                        (planning_display_->getPlanningSceneRO()->getCollisionWorld()->getObjectsCount())), &ok);
+                                                                        (planning_display_->getPlanningSceneRO()->getWorld()->getObjectsCount())), &ok);
             if (ok)
             {
               if (!text.isEmpty())
@@ -266,11 +266,11 @@ void MotionPlanningFrame::importResource(const std::string &path)
                 planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
                 if (ps)
                 {
-                  if (ps->getCollisionWorld()->hasObject(name))
+                  if (ps->getWorld()->hasObject(name))
                     QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
                                          append("' already exists. Not importing object."));
                   else
-                    addObject(ps->getCollisionWorld(), name, shape, pose);
+                    addObject(ps->getWorld(), name, shape, pose);
                 }
               }
               else
@@ -287,7 +287,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
       {
         planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
         if (ps)
-          addObject(ps->getCollisionWorld(), name, shape, pose);  
+          addObject(ps->getWorld(), name, shape, pose);  
       }
     }
     else

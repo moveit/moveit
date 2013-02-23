@@ -83,11 +83,10 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     scene_robot_->update(ks, color, color_map);
   }
   
-  collision_detection::CollisionWorldConstPtr cworld = scene->getCollisionWorld();
-  const std::vector<std::string> &ids = cworld->getObjectIds();
+  const std::vector<std::string> &ids = scene->getWorld()->getObjectIds();
   for (std::size_t i = 0 ; i < ids.size() ; ++i)
   {
-    collision_detection::CollisionWorld::ObjectConstPtr o = cworld->getObject(ids[i]);
+    collision_detection::CollisionWorld::ObjectConstPtr o = scene->getWorld()->getObject(ids[i]);
     rviz::Color color = default_env_color;
     float alpha = default_scene_alpha;
     if (scene->hasColor(ids[i]))

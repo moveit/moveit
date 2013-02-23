@@ -185,7 +185,7 @@ private:
   void updateQueryStateHelper(robot_state::RobotState &state, const std::string &v);
   
   //Scene objects tab
-  void addObject(const collision_detection::CollisionWorldPtr &world, const std::string &id,
+  void addObject(const collision_detection::WorldPtr &world, const std::string &id,
                  const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
   void updateCollisionObjectPose(bool update_marker_position);
   void createSceneInteractiveMarker();

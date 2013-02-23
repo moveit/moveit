@@ -413,7 +413,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();  
-      scene_->getCollisionWorld()->clearObjects();
+      scene_->getWorld()->clearObjects();
       scene_->processPlanningSceneWorldMsg(*world);
     }  
     triggerSceneUpdateEvent(UPDATE_SCENE);
