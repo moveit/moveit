@@ -84,12 +84,6 @@ public:
     tree_mutex_.unlock();
   }
   
-  void upgradeToWriteLock()
-  {    
-    tree_mutex_.unlock_and_lock_upgrade();
-    tree_mutex_.lock_upgrade();
-  }
-  
 private:
   boost::shared_mutex tree_mutex_;  
 };
