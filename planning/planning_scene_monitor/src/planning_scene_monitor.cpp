@@ -465,28 +465,28 @@ void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
 {
   scene_update_mutex_.lock_shared();
   if (octomap_monitor_)
-    octomap_monitor_->lockOcTreeRead();
+    octomap_monitor_->getOcTreePtr()->lockRead();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::unlockSceneRead()
 {
   scene_update_mutex_.unlock_shared();  
   if (octomap_monitor_)
-    octomap_monitor_->unlockOcTreeRead();
+    octomap_monitor_->getOcTreePtr()->unlockRead();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::lockSceneWrite()
 {
   scene_update_mutex_.lock();
   if (octomap_monitor_)
-    octomap_monitor_->lockOcTreeWrite();
+    octomap_monitor_->getOcTreePtr()->lockWrite();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::unlockSceneWrite()
 {
   scene_update_mutex_.unlock();
   if (octomap_monitor_)
-    octomap_monitor_->unlockOcTreeWrite();
+    octomap_monitor_->getOcTreePtr()->unlockWrite();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic)
@@ -636,15 +636,15 @@ void planning_scene_monitor::PlanningSceneMonitor::octomapUpdateCallback()
   {
     boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
     last_update_time_ = ros::Time::now();
-    octomap_monitor_->lockOcTreeWrite();
+    octomap_monitor_->getOcTreePtr()->lockRead();
     try
     {
       scene_->processOctomapPtr(octomap_monitor_->getOcTreePtr(), Eigen::Affine3d::Identity());
-      octomap_monitor_->unlockOcTreeWrite();
+      octomap_monitor_->getOcTreePtr()->unlockRead();
     }
     catch(...)
     {
-      octomap_monitor_->unlockOcTreeWrite(); // unlock and rethrow
+      octomap_monitor_->getOcTreePtr()->unlockRead(); // unlock and rethrow
       throw;
     }    
   }

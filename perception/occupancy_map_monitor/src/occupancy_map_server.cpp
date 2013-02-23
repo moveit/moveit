@@ -36,14 +36,14 @@
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <octomap_msgs/conversions.h>
 
-void publishOctomap(ros::Publisher *octree_binary_pub, occupancy_map_monitor::OccupancyMapMonitor *server)
+static void publishOctomap(ros::Publisher *octree_binary_pub, occupancy_map_monitor::OccupancyMapMonitor *server)
 {
   octomap_msgs::Octomap map;
   
   map.header.frame_id = server->getMapFrame();
   map.header.stamp = ros::Time::now();
   
-  server->lockOcTreeRead();
+  server->getOcTreePtr()->lockRead();
   try
   {
     if (!octomap_msgs::binaryMapToMsgData(*server->getOcTreePtr(), map.data))
@@ -53,7 +53,7 @@ void publishOctomap(ros::Publisher *octree_binary_pub, occupancy_map_monitor::Oc
   {
     ROS_ERROR_THROTTLE(1, "Exception thrown while generating OctoMap message");
   }
-  server->unlockOcTreeRead();
+  server->getOcTreePtr()->unlockRead();
   
   octree_binary_pub->publish(map);
 }

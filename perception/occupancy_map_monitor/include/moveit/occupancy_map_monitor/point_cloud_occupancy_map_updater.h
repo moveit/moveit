@@ -34,17 +34,17 @@
 
 /* Author: Jon Binney */
 
-#ifndef MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_
-#define MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_
+#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_POINTCLOUD_OCCUPANCY_MAP_UPDATER_
+#define MOVEIT_OCCUPANCY_MAP_MONITOR_POINTCLOUD_OCCUPANCY_MAP_UPDATER_
 
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <moveit/robot_self_filter/self_mask.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
+#include <moveit/robot_self_filter/self_mask.h>
 #include <boost/thread.hpp>
 
 namespace occupancy_map_monitor
@@ -52,20 +52,21 @@ namespace occupancy_map_monitor
   class PointCloudOccupancyMapUpdater : public OccupancyMapUpdater
   {
   public:
-    PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame);
+
+    PointCloudOccupancyMapUpdater(OccupancyMapMonitor *monitor);
     virtual ~PointCloudOccupancyMapUpdater();
       
     virtual bool setParams(XmlRpc::XmlRpcValue &params);
     virtual bool setParams(const std::string &point_cloud_topic, double max_range,  size_t frame_subsample,
                            size_t point_subsample, const std::vector<robot_self_filter::LinkInfo> see_links);
-    virtual void initialize();
-    virtual void process(const OccMapTreePtr &tree);
+    virtual bool initialize();
+    virtual void start();
+    virtual void stop();
       
   private:
 
-    virtual void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
-    virtual void processCloud(const OccMapTreePtr &tree, const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
-    
+    void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
+
     ros::NodeHandle root_nh_;
       
     boost::shared_ptr<tf::Transformer> tf_;
@@ -79,15 +80,14 @@ namespace occupancy_map_monitor
       
     message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
     tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
-    sensor_msgs::PointCloud2::ConstPtr last_point_cloud_;
-    boost::mutex last_point_cloud_mutex_;
       
     /* used to store all cells in the map which a given ray passes through during raycasting.
        we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */
     octomap::KeyRay key_ray_;
 
     boost::shared_ptr<robot_self_filter::SelfMask> self_mask_;
+
   };
 }
 
-#endif /* MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_ */
+#endif

@@ -39,15 +39,12 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread/shared_mutex.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <moveit_msgs/SaveMap.h>
 #include <moveit_msgs/LoadMap.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
-#include <set>
 
 namespace occupancy_map_monitor
 {
@@ -68,15 +65,15 @@ public:
   void stopMonitor();
   
   /** @brief Get a pointer to the underlying octree for this monitor. Lock the tree before reading or writing using this
-   *  pointer. The value od this pointer stays the same throughout the existance of the monitor instance. */
-  OccMapTreePtr getOcTreePtr()
+   *  pointer. The value of this pointer stays the same throughout the existance of the monitor instance. */
+  const OccMapTreePtr& getOcTreePtr()
   {
     return tree_;
   }
 
   /** @brief Get a const pointer to the underlying octree for this monitor. Lock the
    *  tree before reading this pointer */
-  OccMapTreeConstPtr getOcTreePtr() const
+  const OccMapTreeConstPtr& getOcTreePtr() const
   {
     return tree_const_;
   }
@@ -86,24 +83,22 @@ public:
     return map_frame_;
   }
   
+  void setMapFrame(const std::string &frame)
+  {
+    map_frame_ = frame;
+  }
+  
   double getMapResolution() const
   {
     return map_resolution_;    
   }
   
-  /** @brief lock the underlying octree. it will not be read or written by the
-   *  monitor until unlockTree() is called */
-  void lockOcTreeRead();
+  const boost::shared_ptr<tf::Transformer>& getTFClient() const
+  {
+    return tf_;
+  }
   
-  /** @brief unlock the underlying octree. */
-  void unlockOcTreeRead();
-    
-  /** @brief lock the underlying octree. it will not be read or written by the
-   *  monitor until unlockTree() is called */
-  void lockOcTreeWrite();
-  
-  /** @brief unlock the underlying octree. */
-  void unlockOcTreeWrite();
+  //  void excludeShape(const shapes::ShapeConstPtr &shape);
   
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
   void setUpdateCallback(const boost::function<void()> &update_callback)
@@ -111,20 +106,15 @@ public:
     update_callback_ = update_callback;
   }
 
+private:
+
+  void initialize();
+
   /** @brief Save the current octree to a binary file */
   bool saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response);
 
   /** @brief Load octree from a binary file (gets rid of current octree data) */
   bool loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response);
-
-private:
-
-  void initialize();
-
-  /** @brief tells the server an update is ready */
-  void updateReady(OccupancyMapUpdater *updater);
-  
-  void treeUpdateThread();
 
   boost::shared_ptr<tf::Transformer> tf_;
   std::string map_frame_;
@@ -132,15 +122,8 @@ private:
   
   OccMapTreePtr tree_;
   OccMapTreeConstPtr tree_const_;
-  boost::shared_mutex tree_mutex_;
-  boost::scoped_ptr<boost::thread> tree_update_thread_;
-  bool tree_update_thread_running_;
-
-  std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
-  std::set<OccupancyMapUpdater*> updates_available_;
   
-  boost::condition_variable update_cond_;
-  boost::mutex update_mut_;
+  std::vector<OccupancyMapUpdaterPtr> map_updaters_;
   boost::function<void()> update_callback_;
   
   ros::NodeHandle root_nh_;
