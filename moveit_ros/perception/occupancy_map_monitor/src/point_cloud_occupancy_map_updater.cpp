@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney */
+/* Author: Jon Binney, Ioan Sucan */
 
 #include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
@@ -46,7 +46,7 @@ namespace occupancy_map_monitor
 {
 
 PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(OccupancyMapMonitor *monitor)
-  : OccupancyMapUpdater(monitor),
+  : OccupancyMapUpdater(monitor, "PointCloudUpdater"),
     tf_(monitor->getTFClient()),
     point_cloud_subscriber_(NULL),
     point_cloud_filter_(NULL)
@@ -55,12 +55,12 @@ PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(OccupancyMapMonitor
 
 PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater()
 {
-  stop();
+  stopHelper();
 }
 
 bool PointCloudOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
 {
-  if(!params.hasMember("point_cloud_topic"))
+  if (!params.hasMember("point_cloud_topic"))
     return false;
   std::string point_cloud_topic = std::string (params["point_cloud_topic"]);
 
@@ -91,7 +91,7 @@ bool PointCloudOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
 }
 
 bool PointCloudOccupancyMapUpdater::setParams(const std::string &point_cloud_topic, double max_range, size_t frame_subsample,
-                                              size_t point_subsample, const std::vector<robot_self_filter::LinkInfo> links)
+                                              size_t point_subsample, const std::vector<robot_self_filter::LinkInfo> &links)
 {
   point_cloud_topic_ = point_cloud_topic;
   max_range_ = max_range;
@@ -113,9 +113,9 @@ void PointCloudOccupancyMapUpdater::start()
     return;
   /* subscribe to point cloud topic using tf filter*/
   point_cloud_subscriber_ = new message_filters::Subscriber<sensor_msgs::PointCloud2>(root_nh_, point_cloud_topic_, 3);
-  if (tf_)
+  if (tf_ && !monitor_->getMapFrame().empty() && 0)
   {
-    point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, map_frame_, 3);
+    point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, monitor_->getMapFrame(), 3);
     point_cloud_filter_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
     ROS_INFO("Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(), point_cloud_filter_->getTargetFramesString().c_str());
   }
@@ -125,12 +125,16 @@ void PointCloudOccupancyMapUpdater::start()
     ROS_INFO("Listening to '%s'", point_cloud_topic_.c_str());
   }
 }
-void PointCloudOccupancyMapUpdater::stop()
+
+void PointCloudOccupancyMapUpdater::stopHelper()
 { 
-  if (!point_cloud_subscriber_)
-    return; 
   delete point_cloud_filter_;
   delete point_cloud_subscriber_;
+}
+
+void PointCloudOccupancyMapUpdater::stop()
+{ 
+  stopHelper();
   point_cloud_filter_ = NULL;
   point_cloud_subscriber_ = NULL;
 }
@@ -138,7 +142,7 @@ void PointCloudOccupancyMapUpdater::stop()
 void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
 {
   ROS_DEBUG("Received a new point cloud message");
-
+  
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(cloud_msg->header.frame_id);
   
@@ -181,7 +185,7 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
   octomap::KeySet free_cells, occupied_cells;
 
   tree->lockRead();
-  
+
   try
   {
     /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
@@ -229,10 +233,12 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
     tree->unlockRead();
     return;
   }
-  
+
   ROS_DEBUG("Marking free cells in octomap");
   
-  tree->upgradeToWriteLock();
+  tree->unlockRead();
+  tree->lockWrite();
+
   try
   {
     

@@ -40,6 +40,7 @@
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
+#include <moveit/occupancy_map_monitor/depth_image_occupancy_map_updater.h>
 
 namespace occupancy_map_monitor
 {
@@ -103,24 +104,27 @@ void OccupancyMapMonitor::initialize()
         std::string sensor_type = std::string(sensor_list[i]["sensor_type"]);
         OccupancyMapUpdaterPtr up;
         if (sensor_type == "point_cloud_sensor")
-        {
           up.reset(new PointCloudOccupancyMapUpdater(this));
-        }
         else
-        {
-          ROS_ERROR("Sensor %d has unknown type %s; ignoring.", i, sensor_type.c_str());
-          continue;
-        }
+          if (sensor_type == "depth_image_sensor")
+            up.reset(new DepthImageOccupancyMapUpdater(this));
+          else
+          {
+            ROS_ERROR("Sensor %d has unknown type %s; ignoring.", i, sensor_type.c_str());
+            continue;
+          }
         
         /* pass the params struct directly in to the updater */
         if (!up->setParams(sensor_list[i]))
         {
-          ROS_ERROR("Failed to load sensor %d of type %s", i, sensor_type.c_str());
+          ROS_ERROR("Failed to configure updater of type %s", up->getType().c_str());
           continue;
         }
         
         if (up->initialize())
           map_updaters_.push_back(up);
+        else
+          ROS_ERROR("Unable to initialize map updater of type %s", up->getType().c_str());
       }
     else
       ROS_ERROR("List of sensors must be an array!");

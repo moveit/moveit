@@ -51,12 +51,14 @@ class OccupancyMapUpdater
 {
 public:
 
-  OccupancyMapUpdater(OccupancyMapMonitor *monitor) :
+  OccupancyMapUpdater(OccupancyMapMonitor *monitor, const std::string &type) :
     monitor_(monitor)
   {
   }
   
-  virtual ~OccupancyMapUpdater() {}
+  virtual ~OccupancyMapUpdater()
+  {
+  }
 
   /** @brief Set updater params using struct that comes from parsing a yaml string*/
   virtual bool setParams(XmlRpc::XmlRpcValue &params) = 0;
@@ -68,9 +70,16 @@ public:
   
   virtual void stop() = 0;
   
+  const std::string& getType() const
+  {
+    return type_;
+  }
+  
 protected:
   
   OccupancyMapMonitor *monitor_;
+  std::string type_;
+  
 };
 
 typedef boost::shared_ptr<OccupancyMapUpdater> OccupancyMapUpdaterPtr;
