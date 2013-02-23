@@ -62,8 +62,6 @@ OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer
 
 void OccupancyMapMonitor::initialize()
 { 
-  tree_update_thread_running_ = false;
-  
   /* load params from param server */
   if (map_resolution_ <= std::numeric_limits<double>::epsilon())
     if (!nh_.getParam("octomap_resolution", map_resolution_))
@@ -102,11 +100,11 @@ void OccupancyMapMonitor::initialize()
           continue;
         }
         
-        std::string sensor_type = std::string (sensor_list[i]["sensor_type"]);
-        boost::shared_ptr<OccupancyMapUpdater> up;
+        std::string sensor_type = std::string(sensor_list[i]["sensor_type"]);
+        OccupancyMapUpdaterPtr up;
         if (sensor_type == "point_cloud_sensor")
         {
-          up.reset(new PointCloudOccupancyMapUpdater(tf_, map_frame_));
+          up.reset(new PointCloudOccupancyMapUpdater(this));
         }
         else
         {
@@ -121,8 +119,8 @@ void OccupancyMapMonitor::initialize()
           continue;
         }
         
-        up->setNotifyFunction(boost::bind(&OccupancyMapMonitor::updateReady, this, _1));
-        map_updaters_.push_back(up);
+        if (up->initialize())
+          map_updaters_.push_back(up);
       }
     else
       ROS_ERROR("List of sensors must be an array!");
@@ -136,129 +134,50 @@ void OccupancyMapMonitor::initialize()
 bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response)
 {
   ROS_INFO("Writing map to %s", request.filename.c_str());
-  this->lockOcTreeRead();
+  tree_->lockRead();
   try
   {
-    response.success = tree_->write(request.filename);
+    response.success = tree_->writeBinary(request.filename);
   }
   catch (...)
   {
     response.success = false;
   }
-  this->unlockOcTreeRead();
+  tree_->unlockRead();
   return true;
 }
 
 bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response)
 {
   ROS_INFO("Reading map from %s", request.filename.c_str());
-  this->lockOcTreeWrite();
   
   /* load the octree from disk */
-  octomap::AbstractOcTree* tree = NULL;
+  tree_->lockWrite();
   try
   {
-    tree = octomap::AbstractOcTree::read(request.filename);
+    response.success = tree_->readBinary(request.filename);
   }
   catch (...)
-  {
-  }
-  
-  if (tree)
-  {
-    /* cast the abstract octree to the right type and update our shared pointer */
-    tree_.reset(dynamic_cast<OccMapTree*>(tree));
-    response.success = tree_ ? true : false;
-    if (!tree_)
-      ROS_ERROR("Failed to load map from file");
-  }
-  else
-  {
+  { 
     ROS_ERROR("Failed to load map from file");
     response.success = false;
   }
+  tree_->unlockWrite();
   
-  this->unlockOcTreeWrite();
   return true;
-}
-
-void OccupancyMapMonitor::treeUpdateThread()
-{
-  std::set<OccupancyMapUpdater*> ready;
-  while (tree_update_thread_running_)
-  {
-    {
-      boost::mutex::scoped_lock update_lock(update_mut_);
-      if (update_cond_.timed_wait(update_lock, boost::posix_time::milliseconds(100)))
-        updates_available_.swap(ready);
-    }
-    if (tree_update_thread_running_ && !ready.empty())
-    {
-      ROS_DEBUG("Calling updaters");
-      {
-        boost::unique_lock<boost::shared_mutex> ulock(tree_mutex_);
-        for (std::set<OccupancyMapUpdater*>::iterator it = ready.begin() ; it != ready.end() ; ++it)
-          (*it)->process(tree_);
-      }
-      if (update_callback_)
-        update_callback_();
-      ready.clear();
-    }
-  }
-}
-
-void OccupancyMapMonitor::updateReady(OccupancyMapUpdater *updater)
-{ 
-  {
-    boost::mutex::scoped_lock update_lock(update_mut_);
-    updates_available_.insert(updater);
-  }
-  update_cond_.notify_all();
-}
-
-void OccupancyMapMonitor::lockOcTreeRead()
-{
-  tree_mutex_.lock_shared();
-}
-
-void OccupancyMapMonitor::unlockOcTreeRead()
-{
-  tree_mutex_.unlock_shared();
-}
-
-void OccupancyMapMonitor::lockOcTreeWrite()
-{
-  tree_mutex_.lock();
-}
-
-void OccupancyMapMonitor::unlockOcTreeWrite()
-{
-  tree_mutex_.unlock();
 }
 
 void OccupancyMapMonitor::startMonitor()
 {
-  if (!tree_update_thread_running_)
-  {
-    /* initialize all of the occupancy map updaters */
-    std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
-    for (it = map_updaters_.begin(); it != map_updaters_.end(); it++)
-      (*it)->initialize();
-    
-    /* start a dedicated thread for updating the occupancy map */
-    tree_update_thread_running_ = true;
-    tree_update_thread_.reset(new boost::thread(&OccupancyMapMonitor::treeUpdateThread, this));
-  }
+  /* initialize all of the occupancy map updaters */
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+    map_updaters_[i]->start();
 }
 
 void OccupancyMapMonitor::stopMonitor()
-{ 
-  if (tree_update_thread_running_)
-  {
-    tree_update_thread_running_ = false;
-    tree_update_thread_->join();
-    tree_update_thread_.reset();
-  }
+{  
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+    map_updaters_[i]->stop();
 }
 
 OccupancyMapMonitor::~OccupancyMapMonitor()

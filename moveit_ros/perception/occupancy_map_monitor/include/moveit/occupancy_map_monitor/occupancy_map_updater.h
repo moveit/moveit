@@ -32,58 +32,50 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney */
+/* Author: Jon Binney, Ioan Sucan */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_UPDATER_H_
-#define MOVEIT_OCCUPANCY_MAP_UPDATER_H_
+#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER__
+#define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER__
 
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
-#include <boost/function.hpp>
-#include <ros/ros.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <boost/shared_ptr.hpp>
 
 namespace occupancy_map_monitor
 {
-	/**
-	 * @class OccupancyMapUpdater
-   * Base class for classes which update the occupancy map.
-   */
+
+class OccupancyMapMonitor;
+
+/** \brief Base class for classes which update the occupancy map.
+ */
 class OccupancyMapUpdater
 {
 public:
-  /** @brief Constructor */
-  OccupancyMapUpdater() {}
-  virtual ~OccupancyMapUpdater() {}
 
-  /** @brief Server calls this
-       *  @param notify_func Function which updater should call when ready to update the map
-       */
-  void setNotifyFunction(const boost::function<void(OccupancyMapUpdater*)> &notify_func) { notify_func_ = notify_func; }
+  OccupancyMapUpdater(OccupancyMapMonitor *monitor) :
+    monitor_(monitor)
+  {
+  }
+  
+  virtual ~OccupancyMapUpdater() {}
 
   /** @brief Set updater params using struct that comes from parsing a yaml string*/
   virtual bool setParams(XmlRpc::XmlRpcValue &params) = 0;
 
   /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
-  virtual void initialize() = 0;
+  virtual bool initialize() = 0;
 
-  /** @brief Update the map
-       *  @param tree Pointer to octree which represents the occupancy map
-       */
-  virtual void process(const OccMapTreePtr &tree) = 0;
-
-protected:
-
-  /** @brief Updater calls this to notify the server that it is ready to modify the map */
-  void notifyUpdateReady()
-  {
-    if (notify_func_)
-      notify_func_(this);
-  }
+  virtual void start() = 0;
   
-private:
-  boost::function<void(OccupancyMapUpdater*)> notify_func_;
+  virtual void stop() = 0;
+  
+protected:
+  
+  OccupancyMapMonitor *monitor_;
 };
+
+typedef boost::shared_ptr<OccupancyMapUpdater> OccupancyMapUpdaterPtr;
+typedef boost::shared_ptr<const OccupancyMapUpdater> OccupancyMapUpdaterConstPtr;
+
 }
 
 #endif /* MOVEIT_OCCUPANCY_MAP_UPDATER_H_ */
