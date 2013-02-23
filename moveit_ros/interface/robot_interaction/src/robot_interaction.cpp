@@ -81,7 +81,7 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
 
 void RobotInteraction::InteractionHandler::setup()
 {
-  std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name  
+  std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
   ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
   velocity_gain_ = 0.1;
@@ -242,7 +242,7 @@ robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState()
   if (kstate_)
     return kstate_;
   else
-  {  
+  {
     do
     {
       state_available_condition_.wait(ulock);
@@ -255,7 +255,7 @@ void RobotInteraction::InteractionHandler::setState(const robot_state::RobotStat
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (!kstate_)
-  {   
+  {
     do
     {
       state_available_condition_.wait(ulock);
@@ -273,12 +273,12 @@ robot_state::RobotStatePtr RobotInteraction::InteractionHandler::getUniqueStateA
   {
     boost::unique_lock<boost::mutex> ulock(state_lock_);
     if (!kstate_)
-    {  
+    {
       do
       {
         state_available_condition_.wait(ulock);
       } while (!kstate_);
-    }  
+    }
     result.swap(kstate_);
   }
   if (!result.unique())
@@ -287,16 +287,16 @@ robot_state::RobotStatePtr RobotInteraction::InteractionHandler::getUniqueStateA
 }
 
 void RobotInteraction::InteractionHandler::setStateToAccess(robot_state::RobotStatePtr &state)
-{      
+{
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (state != kstate_)
     kstate_.swap(state);
-  state_available_condition_.notify_all(); 
+  state_available_condition_.notify_all();
 }
 
 bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
-{ 
+{
   geometry_msgs::PoseStamped tpose;
   geometry_msgs::Pose offset;
   if(!getPoseOffset(eef, offset))
@@ -316,7 +316,7 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
     update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
     setStateToAccess(state);
   }
-  else 
+  else
     if (interaction_mode_ == VELOCITY_IK)
     {
       robot_state::RobotStatePtr state = getUniqueStateAccess();
@@ -326,16 +326,16 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
       tf::poseMsgToEigen(tpose.pose, wMt);
       Eigen::Affine3d eMt = wMe.inverse() * wMt;
       Eigen::VectorXd twist(6);
-      
+
       eigenTransformToEigenVector(eMt, twist);
-      
+
       geometry_msgs::Twist twist_msg;
       tf::twistEigenToMsg(twist, twist_msg);
-      
+
       update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, twist_msg, velocity_gain_, state_validity_callback_fn_);
       setStateToAccess(state);
     }
-  
+
   bool error_state_changed = false;
   if (!update_state_result)
   {
@@ -345,7 +345,7 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
       error_state_.insert(eef.parent_group);
     }
   }
-  else 
+  else
   {
     error_state_changed = inError(eef) ? true : false;
     error_state_.erase(eef.parent_group);
@@ -372,14 +372,14 @@ bool RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_intera
   }
   else
     return false;
-  
+
   robot_state::RobotStatePtr state = getUniqueStateAccess();
   robot_interaction::RobotInteraction::updateState(*state, vj, tpose.pose);
   setStateToAccess(state);
-  
+
   if (update_callback_)
     update_callback_(this, false);
-  
+
   return false;
 }
 
@@ -425,7 +425,7 @@ bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualiza
         return false;
       }
     else
-    {   
+    {
       ROS_ERROR("Cannot transform from frame '%s' to frame '%s' (no TF instance provided)", tpose.header.frame_id.c_str(), planning_frame_.c_str());
       return false;
     }
@@ -435,7 +435,7 @@ bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualiza
 
 RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &kmodel, const std::string &ns) :
   kmodel_(kmodel)
-{  
+{
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC);
 
   // spin a thread that will process feedback events
@@ -465,24 +465,24 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   if (!jmg)
     return 0.0;
-  
+
   const std::vector<std::string> &links = jmg->getLinkModelNames();
   if (links.empty())
     return DEFAULT_SCALE;
-  
+
   std::vector<double> scale(3, 0.0);
   std::vector<double> low(3, std::numeric_limits<double>::infinity());
   std::vector<double> hi(3, -std::numeric_limits<double>::infinity());
   robot_state::RobotState default_state(kmodel_);
   default_state.setToDefaultValues();
-  
+
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
     robot_state::LinkState *ls = default_state.getLinkState(links[i]);
     if (!ls)
       continue;
     const Eigen::Vector3d &ext = ls->getLinkModel()->getShapeExtentsAtOrigin();
-    
+
     Eigen::Vector3d corner1 = ext/2.0;
     corner1 = ls->getGlobalLinkTransform() * corner1;
     Eigen::Vector3d corner2 = ext/-2.0;
@@ -495,16 +495,16 @@ double RobotInteraction::computeGroupScale(const std::string &group)
         hi[k] = corner1[k];
     }
   }
-  
+
   for (int i = 0 ; i < 3 ; ++i)
     scale[i] = hi[i] - low[i];
 
   static const double sqrt_3 = 1.732050808;
   double s = std::max(std::max(scale[0], scale[1]), scale[2]) * sqrt_3;
-  
+
   // if the scale is less than 1mm, set it to default
   if (s < 1e-3)
-    s = DEFAULT_SCALE;  
+    s = DEFAULT_SCALE;
   return s;
 }
 
@@ -514,16 +514,16 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
   active_vj_.clear();
 
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active virtual joints for group '%s'", group.c_str());
-  
+
   if (group.empty())
     return;
-  
+
   const boost::shared_ptr<const srdf::Model> &srdf = kmodel_->getSRDF();
   const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
-  
+
   if (!jmg || !srdf)
     return;
-  
+
   if (!jmg->hasJointModel(kmodel_->getRootJointName()))
     return;
 
@@ -531,7 +531,7 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
   default_state.setToDefaultValues();
   std::vector<double> aabb;
   default_state.computeAABB(aabb);
-  
+
   const std::vector<srdf::Model::VirtualJoint> &vj = srdf->getVirtualJoints();
   for (std::size_t i = 0 ; i < vj.size() ; ++i)
     if (vj[i].name_ == kmodel_->getRootJointName())
@@ -553,25 +553,32 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
 }
 
 void RobotInteraction::decideActiveEndEffectors(const std::string &group)
-{ 
+{
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
 
   active_eef_.clear();
 
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
-  
+
   if (group.empty())
+  {
+    ROS_WARN_NAMED("robot_interaction", "Unable to decide active end effector: end effector group is empty '%s'", group.c_str());
     return;
-  
+  }
+
   const boost::shared_ptr<const srdf::Model> &srdf = kmodel_->getSRDF();
   const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
-  
+
   if (!jmg || !srdf)
+  {
+    ROS_WARN_NAMED("robot_interaction", "Unable to decide active end effector: no joint model group or no srdf model");
     return;
-  
+  }
+
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
+
   const std::pair<robot_model::SolverAllocatorFn, robot_model::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
-  
+
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)
   {
@@ -584,13 +591,15 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
         ee.parent_link = eef[i].parent_link_;
         ee.eef_group = eef[i].component_group_;
         active_eef_.push_back(ee);
+
         break;
       }
   }
   else
+  {
     if (!smap.second.empty())
     {
-      for (std::map<const robot_model::JointModelGroup*, robot_model::SolverAllocatorFn>::const_iterator it = smap.second.begin() ; 
+      for (std::map<const robot_model::JointModelGroup*, robot_model::SolverAllocatorFn>::const_iterator it = smap.second.begin() ;
            it != smap.second.end() ; ++it)
       {
         for (std::size_t i = 0 ; i < eef.size() ; ++i)
@@ -606,15 +615,22 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
           }
       }
     }
+  }
+
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
     active_eef_[i].size = computeGroupScale(active_eef_[i].eef_group);
     ROS_DEBUG_NAMED("robot_interaction", "Found active end-effector '%s', of scale %lf", active_eef_[i].eef_group.c_str(), active_eef_[i].size);
   }
+
+  if( !active_eef_.size() )
+  {
+    ROS_WARN_NAMED("robot_interaction", "No active end effectors found. Make sure you have defined an end effector in your SRDF file and that kinematics.yaml is loaded in this node's namespace.");
+  }
 }
 
 void RobotInteraction::clear()
-{  
+{
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   active_eef_.clear();
   active_vj_.clear();
@@ -623,13 +639,13 @@ void RobotInteraction::clear()
 }
 
 void RobotInteraction::clearInteractiveMarkers()
-{  
+{
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   clearInteractiveMarkersUnsafe();
 }
 
 void RobotInteraction::clearInteractiveMarkersUnsafe()
-{ 
+{
   handlers_.clear();
   shown_markers_.clear();
   int_marker_server_->clear();
@@ -689,22 +705,22 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     m_control.markers.push_back(marker_array.markers[i]);
   }
-  
+
   im.controls.push_back(m_control);
 }
 
 void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
-{ 
+{
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
-  
+
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-  
+
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = kmodel_->getModelFrame();
     pose.header.stamp = ros::Time::now();
-    robot_state::RobotStateConstPtr s = handler->getState(); 
+    robot_state::RobotStateConstPtr s = handler->getState();
     const robot_state::LinkState *ls = s->getLinkState(active_eef_[i].parent_link);
     // Need to allow for control pose offsets
     tf::Transform tf_root_to_link, tf_root_to_control;
@@ -729,11 +745,11 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
 
     std::string marker_name = "EE:" + handler->getName() + "_" + active_eef_[i].parent_link;
     shown_markers_[marker_name] = i;
-    
+
     // Determine interactive maker size
     if (marker_scale < std::numeric_limits<double>::epsilon())
       marker_scale = active_eef_[i].size;
-    
+
     visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, marker_scale);
     if(handler && handler->getControlsVisible())
       add6DOFControl(im, false);
@@ -746,17 +762,17 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
     ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
   }
-  
+
   for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
     if (active_vj_[i].dof == 3)
     {
       geometry_msgs::PoseStamped pose;
       pose.header.frame_id = kmodel_->getModelFrame();
       pose.header.stamp = ros::Time::now();
-      robot_state::RobotStateConstPtr s = handler->getState(); 
+      robot_state::RobotStateConstPtr s = handler->getState();
       const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
       tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
-      s.reset(); // to avoid spurious copies of states     
+      s.reset(); // to avoid spurious copies of states
       std::string marker_name = "VJ:" + handler->getName() + "_" + active_vj_[i].connecting_link;
       shown_markers_[marker_name] = i;
       visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, active_vj_[i].size);
@@ -790,7 +806,7 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const Virtual
 
 bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                                    unsigned int attempts, double ik_timeout, const robot_state::StateValidityCallbackFn &validity_callback)
-{ 
+{
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
 }
 
@@ -804,7 +820,7 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffe
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
   // perform some validity checks
-  
+
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
@@ -812,14 +828,14 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
     ROS_ERROR("Unknown marker name: '%s' (not published by RobotInteraction class)", feedback->marker_name.c_str());
     return;
   }
-  
+
   std::size_t u = feedback->marker_name.find_first_of("_");
   if (u == std::string::npos || u < 4)
   {
     ROS_ERROR("Invalid marker name: '%s'",  feedback->marker_name.c_str());
     return;
   }
-  
+
   feedback_map_[feedback->marker_name] = feedback;
   new_feedback_condition_.notify_all();
 }
@@ -827,7 +843,7 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
 void RobotInteraction::processingThread()
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-  
+
   while (run_processing_thread_ && ros::ok())
   {
     while (feedback_map_.empty() && run_processing_thread_ && ros::ok())
@@ -874,20 +890,20 @@ void RobotInteraction::processingThread()
             ih->handleEndEffector(eef, feedback);
           }
           catch(std::runtime_error &ex)
-          { 
+          {
             ROS_ERROR("Exception caught while handling end-effector update: %s", ex.what());
           }
           catch(...)
           {
             ROS_ERROR("Exception caught while handling end-effector update");
-          }          
+          }
           marker_access_lock_.lock();
         }
         else
           if (marker_class == "VJ")
           {
             // make a copy of the data, so we do not lose it while we are unlocked
-            VirtualJoint vj = active_vj_[it->second];  
+            VirtualJoint vj = active_vj_[it->second];
             InteractionHandlerPtr ih = jt->second;
             marker_access_lock_.unlock();
             try
@@ -895,13 +911,13 @@ void RobotInteraction::processingThread()
               jt->second->handleVirtualJoint(vj, feedback);
             }
             catch(std::runtime_error &ex)
-            { 
+            {
               ROS_ERROR("Exception caught while handling virtual joint update: %s", ex.what());
             }
             catch(...)
             {
               ROS_ERROR("Exception caught while handling virtual joint update");
-            }      
+            }
             marker_access_lock_.lock();
           }
           else
