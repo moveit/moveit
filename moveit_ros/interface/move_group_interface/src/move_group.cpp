@@ -377,6 +377,11 @@ public:
     pose_reference_frame_ = pose_reference_frame;
   }
   
+  void setSupportSurfaceName(const std::string &support_surface)
+  {
+    support_surface_ = support_surface;
+  }
+  
   const std::string& getPoseReferenceFrame() const
   {
     return pose_reference_frame_;
@@ -674,6 +679,12 @@ public:
     goal.group_name = opt_.group_name_;
     goal.end_effector = getEndEffector(); 
     goal.allowed_planning_time = planning_time_;
+    goal.support_surface_name = support_surface_; 
+    goal.planner_id = planner_id_;
+
+    if (path_constraints_)
+      goal.path_constraints = *path_constraints_;
+
     goal_out = goal;
   }
 
@@ -683,7 +694,18 @@ public:
     goal.attached_object_name = object;
     goal.group_name = opt_.group_name_;
     goal.allowed_planning_time = planning_time_;
+    goal.support_surface_name = support_surface_;
+    goal.planner_id = planner_id_;
+
+    if (path_constraints_)
+      goal.path_constraints = *path_constraints_;
+    
     goal_out = goal;
+  }
+  
+  void setPathConstraints(const moveit_msgs::Constraints &constraint)
+  {
+    path_constraints_.reset(new moveit_msgs::Constraints(constraint));
   }
   
   bool setPathConstraints(const std::string &constraint)
@@ -799,6 +821,7 @@ private:
   boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
   std::string end_effector_link_;
   std::string pose_reference_frame_; 
+  std::string support_surface_;
   
   // ROS communication
   ros::Publisher trajectory_event_publisher_;
@@ -1357,6 +1380,11 @@ bool MoveGroup::setPathConstraints(const std::string &constraint)
   return impl_->setPathConstraints(constraint);
 }
 
+void MoveGroup::setPathConstraints(const moveit_msgs::Constraints &constraint)
+{
+  impl_->setPathConstraints(constraint);
+}
+    
 void MoveGroup::clearPathConstraints()
 {
   impl_->clearPathConstraints();
@@ -1375,6 +1403,11 @@ void MoveGroup::setWorkspace(double minx, double miny, double minz, double maxx,
 void MoveGroup::setPlanningTime(double seconds)
 {
   impl_->setPlanningTime(seconds);
+}
+
+void MoveGroup::setSupportSurfaceName(const std::string &name)
+{
+  impl_->setSupportSurfaceName(name);
 }
 
 }

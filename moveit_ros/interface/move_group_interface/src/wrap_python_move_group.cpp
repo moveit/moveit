@@ -276,9 +276,9 @@ void wrap_move_group_interface()
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
   MoveGroupClass.def("move", &MoveGroupWrapper::move);
   MoveGroupClass.def("execute", &MoveGroupWrapper::execute); 
-  bool (MoveGroupWrapper::*pick_1)(const std::string&, const std::vector<manipulation_msgs::Grasp> &) = &MoveGroupWrapper::pick;
+  bool (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
-  bool (MoveGroupWrapper::*place_1)(const std::string&, const std::vector<manipulation_msgs::PlaceLocation> &) = &MoveGroupWrapper::place;
+  bool (MoveGroupWrapper::*place_1)(const std::string&) = &MoveGroupWrapper::place;
   MoveGroupClass.def("place", place_1);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
@@ -340,13 +340,16 @@ void wrap_move_group_interface()
   MoveGroupClass.def("get_goal_tolerance", &MoveGroupWrapper::getGoalTolerance); 
   MoveGroupClass.def("set_goal_tolerance", &MoveGroupWrapper::setGoalTolerance); 
 
-  MoveGroupClass.def("set_path_constraints", &MoveGroupWrapper::setPathConstraints); 
+  bool (MoveGroupWrapper::*setPathConstraints_1)(const std::string&) = &MoveGroupWrapper::setPathConstraints;
+  MoveGroupClass.def("set_path_constraints", setPathConstraints_1);
+
   MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints); 
   MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
   MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase); 
   MoveGroupClass.def("set_workspace", &MoveGroupWrapper::setWorkspace);
   MoveGroupClass.def("set_planning_time", &MoveGroupWrapper::setPlanningTime);
-  MoveGroupClass.def("get_plan", &MoveGroupWrapper::getPlanPythonDict);
+  MoveGroupClass.def("get_plan", &MoveGroupWrapper::getPlanPythonDict);  
+  MoveGroupClass.def("set_support_surface_name", &MoveGroupWrapper::setSupportSurfaceName);
 }
 
 }
