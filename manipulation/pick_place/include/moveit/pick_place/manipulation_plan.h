@@ -62,6 +62,10 @@ struct ManipulationPlanSharedData
   
   unsigned int max_goal_sampling_attempts_;
 
+  std::string planner_id_;
+  
+  moveit_msgs::Constraints path_constraints_;
+
   moveit_msgs::AttachedCollisionObject diff_attached_object_;
   
   ros::WallTime timeout_;

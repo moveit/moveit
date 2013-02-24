@@ -134,7 +134,9 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   plan_data->end_effector_group_ = eef ? eef->getName() : "";
   plan_data->ik_link_name_ = eef ? eef->getEndEffectorParentGroup().second : "";
   plan_data->timeout_ = endtime;
-  plan_data->max_goal_sampling_attempts_ = std::max(1u, jmg->getDefaultIKAttempts());
+  plan_data->path_constraints_ = goal.path_constraints;
+  plan_data->planner_id_ = goal.planner_id;
+  plan_data->max_goal_sampling_attempts_ = std::max(2u, jmg->getDefaultIKAttempts());
   moveit_msgs::AttachedCollisionObject &detach_object_msg = plan_data->diff_attached_object_;
 
   // construct the attached object message that will change the world to what it would become after a placement
@@ -151,14 +153,14 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   std::vector<std::string> touch_links(attached_body->getTouchLinks().begin(), attached_body->getTouchLinks().end());
   approach_place_acm->setEntry(attached_object_name, touch_links, true);
   
-  if (!goal.collision_support_surface_name.empty())
+  if (!goal.support_surface_name.empty())
   {
     // we are allowed to have contact between the target object and the support surface before the place
-    approach_place_acm->setEntry(goal.collision_support_surface_name, attached_object_name, true);
+    approach_place_acm->setEntry(goal.support_surface_name, attached_object_name, true);
     
     // optionally, it may be allowed to touch the support surface with the gripper
     if (goal.allow_gripper_support_collision && eef)
-      approach_place_acm->setEntry(goal.collision_support_surface_name, eef->getLinkModelNames(), true);
+      approach_place_acm->setEntry(goal.support_surface_name, eef->getLinkModelNames(), true);
   }
   
   

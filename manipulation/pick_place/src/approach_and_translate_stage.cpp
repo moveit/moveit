@@ -70,7 +70,6 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  req.verbose = true;
   req.group_name = joint_state_group->getName();
   planning_scene->checkCollision(req, res, *joint_state_group->getRobotState(), *collision_matrix);
   if (res.collision == false)

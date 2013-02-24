@@ -117,7 +117,9 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   plan_data->end_effector_group_ = eef->getName();
   plan_data->ik_link_name_ = ik_link;    
   plan_data->timeout_ = endtime;
-  plan_data->max_goal_sampling_attempts_ = std::max(1u, planning_scene->getRobotModel()->getJointModelGroup(planning_group)->getDefaultIKAttempts());
+  plan_data->path_constraints_ = goal.path_constraints;
+  plan_data->planner_id_ = goal.planner_id;
+  plan_data->max_goal_sampling_attempts_ = std::max(2u, planning_scene->getRobotModel()->getJointModelGroup(planning_group)->getDefaultIKAttempts());
   moveit_msgs::AttachedCollisionObject &attach_object_msg = plan_data->diff_attached_object_;
   
   // construct the attached object message that will change the world to what it would become after a pick
@@ -131,14 +133,14 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   approach_grasp_acm->setEntry(goal.target_name, attach_object_msg.touch_links, true);
   // we are allowed to touch certain other objects with the gripper
   approach_grasp_acm->setEntry(eef->getLinkModelNames(), goal.allowed_touch_objects, true);
-  if (!goal.collision_support_surface_name.empty())
+  if (!goal.support_surface_name.empty())
   {
     // we are allowed to have contact between the target object and the support surface before the grasp 
-    approach_grasp_acm->setEntry(goal.collision_support_surface_name, goal.target_name, true);
+    approach_grasp_acm->setEntry(goal.support_surface_name, goal.target_name, true);
     
     // optionally, it may be allowed to touch the support surface with the gripper
     if (goal.allow_gripper_support_collision)
-      approach_grasp_acm->setEntry(goal.collision_support_surface_name, eef->getLinkModelNames(), true);
+      approach_grasp_acm->setEntry(goal.support_surface_name, eef->getLinkModelNames(), true);
   }
   
   // configure the manipulation pipeline
