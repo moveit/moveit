@@ -184,6 +184,9 @@ public:
   /** \brief Set the starting state for planning to be that reported by the robot's joint state publication */
   void setStartStateToCurrentState();
 
+  /** \brief For pick/place operations, the name of the support surface is used to specify the fact that attached objects are allowed to touch the support surface */
+  void setSupportSurfaceName(const std::string &name);
+  
   /**
    * \defgroup set_joint_goal Setting a joint state goal
    */
@@ -394,6 +397,9 @@ public:
   
   /** \brief Specify a set of path constraints to use */
   bool setPathConstraints(const std::string &constraint);
+
+  /** \brief Specify a set of path constraints to use */
+  void setPathConstraints(const moveit_msgs::Constraints &constraint);
 
   /** \brief Specify that no path constraints are to be used */
   void clearPathConstraints();
