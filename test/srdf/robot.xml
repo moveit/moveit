@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<robot name="pr2_test">
+<robot name="pr2">
   
   <virtual_joint name="world_joint" type="planar" parent_frame="odom_combined" child_link="base_footprint"/> 
   
