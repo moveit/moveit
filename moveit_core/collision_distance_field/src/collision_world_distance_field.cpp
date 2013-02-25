@@ -429,7 +429,7 @@ bool CollisionWorldDistanceField::getEnvironmentProximityGradients(const boost::
   return in_collision;
 } 
 
-void CollisionWorldDistanceField::setWorld(WorldPtr world)
+void CollisionWorldDistanceField::setWorld(const WorldPtr& world)
 {
   if (world == getWorld())
     return;

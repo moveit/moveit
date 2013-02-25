@@ -193,7 +193,7 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   // manager_->update();
 }
 
-void collision_detection::CollisionWorldFCL::setWorld(WorldPtr world)
+void collision_detection::CollisionWorldFCL::setWorld(const WorldPtr& world)
 {
   if (world == getWorld())
     return;

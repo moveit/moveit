@@ -85,12 +85,12 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
     checkRobotCollision(req, res, robot, state1, state2, acm);
 }
 
-void collision_detection::CollisionWorld::setWorld(WorldPtr world)
+void collision_detection::CollisionWorld::setWorld(const WorldPtr& world)
 {
-  if (!world)
-    world.reset(new World);
-
   world_ = world;
+  if (!world_)
+    world_.reset(new World);
+
   world_const_ = world;
 }
 

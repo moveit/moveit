@@ -68,7 +68,7 @@ namespace collision_detection
     virtual double distanceWorld(const CollisionWorld &world) const;
     virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
     
-    virtual void setWorld(WorldPtr world);
+    virtual void setWorld(const WorldPtr& world);
     
   protected:
 
