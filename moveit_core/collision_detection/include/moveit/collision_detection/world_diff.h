@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Acorn Pooley, Ioan Sucan, Sachin Chitta */
 
 #ifndef MOVEIT_COLLISION_DETECTION_WORLD_DIFF_
 #define MOVEIT_COLLISION_DETECTION_WORLD_DIFF_

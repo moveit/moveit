@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Acorn Pooley */
+/* Author: Acorn Pooley, Ioan Sucan */
 
 #include <moveit/collision_detection/world_diff.h>
 
