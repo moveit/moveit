@@ -662,7 +662,7 @@ void MotionPlanningDisplay::drawQueryStartState()
         collision_links_start_[collision_links[i]] = 0;
       const std::vector<robot_state::JointState*> &jstates = state->getJointStateVector();
       for (std::size_t i = 0 ; i < jstates.size() ; ++i)
-        if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
+        if (!jstates[i]->satisfiesBounds(jstates[i]->getJointModel()->getMaximumExtent() * 1e-2))
           collision_links_start_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
       updateLinkColors();
       // update metrics text
