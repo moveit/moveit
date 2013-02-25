@@ -45,7 +45,7 @@ TEST(PlanningScene, LoadRestore)
     boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
     urdf_model->initFile("../../moveit/planning_models/test/urdf/robot.xml");
     planning_scene::PlanningScene ps;
-    ps.setCollisionDetectionTypes<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();
+    ps.setActiveCollisionDetector<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();
     ps.configure(urdf_model, srdf_model);
     EXPECT_TRUE(ps.isConfigured());
     moveit_msgs::PlanningScene ps_msg;
@@ -59,7 +59,7 @@ TEST(PlanningScene, LoadRestoreDiff)
     boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
     urdf_model->initFile("../../moveit/planning_models/test/urdf/robot.xml");
     planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
-    ps->setCollisionDetectionTypes<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();
+    ps->setActiveCollisionDetector<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();
     ps->configure(urdf_model, srdf_model);
     EXPECT_TRUE(ps->isConfigured());
 
@@ -98,7 +98,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
   urdf_model->initFile("../../moveit/planning_models/test/urdf/robot.xml");
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
-  ps->setCollisionDetectionTypes<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();;
+  ps->setActiveCollisionDetector<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();;
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
   
