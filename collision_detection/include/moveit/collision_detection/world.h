@@ -162,10 +162,7 @@ namespace collision_detection
     {
     public:
       Action() : action_(UNINITIALIZED) {}
-      Action(ActionBits v) : action_(v) {}
       Action(int v) : action_(v) {}
-      Action(const Action& v) : action_(v.action_) {}
-      Action& operator=(int v) { action_ = v; return *this; }
       operator ActionBits() const { return ActionBits(action_); }
     private:
       int action_;
