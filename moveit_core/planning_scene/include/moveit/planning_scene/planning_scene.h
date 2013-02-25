@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Acorn Pooley */
 
 #ifndef MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
 #define MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
@@ -157,17 +157,6 @@ public:
   /** \brief get the types of collision detector that have already been added.
    * These are the types which can be passed to setActiveCollisionDetector(). */
   void getCollisionDetectorNames(std::vector<std::string> names) const;
-
-  /** \brief Set the types that satisfy the interfaces for
-   * collision_detection::CollisionWorld and
-   * collision_detection::CollisionRobot that should be used for collision
-   * checking. 
-   * TODO: remove this deprecated function */
-  template<typename CollisionWorldType, typename CollisionRobotType>
-  void setCollisionDetectionTypes()
-  {
-    setActiveCollisionDetector<CollisionWorldType, CollisionRobotType>();
-  }
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The information passed in for this function allows the construction of a kinematic model and of all the classes that
