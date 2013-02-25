@@ -58,7 +58,8 @@ namespace collision_detection
     World();
     
     /** \brief A copy constructor.
-     * \e other should not be changed while the copy constructor is running */
+     * \e other should not be changed while the copy constructor is running
+     * This does copy on write and should be quick. */
     World(const World &other);
     
     /**********************************************************************/
@@ -139,8 +140,9 @@ namespace collision_detection
     
     /** \brief Remove a particular object.
      * If there are no external pointers to the corresponding instance of
-     * Object, the memory is freed. */
-    void removeObject(const std::string &id);
+     * Object, the memory is freed.
+     * Returns true on success and false if no such object was found. */
+    bool removeObject(const std::string &id);
     
     /** \brief Clear all objects.
      * If there are no other pointers to corresponding instances of Objects,

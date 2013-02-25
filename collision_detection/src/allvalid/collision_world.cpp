@@ -40,9 +40,19 @@ collision_detection::CollisionWorldAllValid::CollisionWorldAllValid() : Collisio
 {
 }
 
-collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(const CollisionWorld &other) : CollisionWorld(other)
+collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(const WorldPtr& world) : CollisionWorld(world)
 {
 }
+
+collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(const CollisionWorld &other, const WorldPtr& world) : CollisionWorld(other, world)
+{
+}
+
+const std::string& collision_detection::CollisionWorldAllValid::getCollisionDetectorName(CollisionRobotAllValid* robot_type)
+{
+  return COLLISION_DETECTOR_ALL_VALID;
+}
+const std::string collision_detection::CollisionWorldAllValid::COLLISION_DETECTOR_ALL_VALID = "COLLISION_DETECTOR_ALL_VALID";
 
 void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const
 {

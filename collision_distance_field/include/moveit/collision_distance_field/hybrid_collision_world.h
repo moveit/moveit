@@ -43,6 +43,8 @@
 
 namespace collision_detection {
 
+class CollisionRobotHybrid;
+
 class CollisionWorldHybrid : public CollisionWorldFCL
 {
 public:
@@ -55,9 +57,22 @@ public:
                        double collision_tolerance = 0.0,
                        double max_propogation_distance = .25);
 
-  CollisionWorldHybrid(const CollisionWorldHybrid &other);
+  CollisionWorldHybrid(const WorldPtr& world,
+                       double size_x = 3.0, 
+                       double size_y = 3.0,
+                       double size_z = 4.0,
+                       bool use_signed_distance_field = false,
+                       double resolution = .02,
+                       double collision_tolerance = 0.0,
+                       double max_propogation_distance = .25);
 
-  virtual ~CollisionWorldHybrid(){}
+  CollisionWorldHybrid(const CollisionWorldHybrid &other, const WorldPtr& world);
+
+  virtual ~CollisionWorldHybrid()
+  {}
+
+  static const std::string& getCollisionDetectorName(CollisionRobotHybrid* robot_type);
+  static const std::string COLLISION_DETECTOR_HYBRID;
 
   void checkCollisionDistanceField(const CollisionRequest &req,
                                    CollisionResult &res,
@@ -107,17 +122,7 @@ public:
                                         const AllowedCollisionMatrix &acm,
                                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses);
-  
-  virtual void addToObject(const std::string &id, 
-                           const shapes::ShapeConstPtr &shape, 
-                           const Eigen::Affine3d &pose);
-  virtual bool moveShapeInObject(const std::string &id, 
-                                 const shapes::ShapeConstPtr &shape, 
-                                 const Eigen::Affine3d &pose);
-  virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-  virtual void removeObject(const std::string &id);
-  virtual void clearObjects();
+  virtual void setWorld(WorldPtr world);
 
   void getCollisionGradients(const CollisionRequest &req, 
                              CollisionResult &res, 

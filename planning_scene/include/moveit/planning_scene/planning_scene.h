@@ -40,7 +40,8 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
-#include <moveit/collision_detection/collision_world.h>
+#include <moveit/collision_detection/collision_detection_alloc.h>
+#include <moveit/collision_detection/world_diff.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
@@ -118,11 +119,54 @@ public:
     name_ = name;
   }
 
-  /** \brief Set the types that satisfy the interfaces for collision_space::CollisionWorld and collision_space::CollisionRobot that should be used for collision checking. */
+  /** \brief Add a new collision detector type.
+   * A collision detector type is a valid combination of a subclass of
+   * CollisionWorld and a subclass of collision_detection::CollisionRobot.
+   *
+   * This does nothing if this type of collision detector has already been added.
+   * 
+   * If no collision detectors have been added before configure is called then
+   * configure will add a default collision detector (FCL).  If any collision
+   * detectors have been added when configure is called then configure will not
+   * add any additional ones (i.e. if a non-FCL collision detector is added
+   * before configure is called then FCL will not be available unless it is
+   * explicitly added with addCollisionDetector() or
+   * setActiveCollisionDetector()).
+   */
+  template<typename CollisionWorldType, typename CollisionRobotType>
+  void addCollisionDetector()
+  {
+    addCollisionDetectorInternal(new collision_detection::CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
+  }
+
+  /** \brief Set the type of collision detector to use.
+   * Calls addCollisionDetector() to add it if it has not already been added. */
+  template<typename CollisionWorldType, typename CollisionRobotType>
+  void setActiveCollisionDetector()
+  {
+    collision_detection::CollisionDetectionAllocBasePtr alloc(new collision_detection::CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
+    addCollisionDetectorInternal(alloc);
+    setActiveCollisionDetector(alloc->getCollisionDetectorName());
+  }
+
+
+  /** \brief Set the type of collision detector to use.
+   * This type must have already been added with addCollisionDetector(). */
+  void setActiveCollisionDetector(const std::string& collision_detector_name);
+
+  /** \brief get the types of collision detector that have already been added.
+   * These are the types which can be passed to setActiveCollisionDetector(). */
+  void getCollisionDetectorNames(std::vector<std::string> names) const;
+
+  /** \brief Set the types that satisfy the interfaces for
+   * collision_detection::CollisionWorld and
+   * collision_detection::CollisionRobot that should be used for collision
+   * checking. 
+   * TODO: remove this deprecated function */
   template<typename CollisionWorldType, typename CollisionRobotType>
   void setCollisionDetectionTypes()
   {
-    collision_detection_allocator_.reset(new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
+    setActiveCollisionDetector<CollisionWorldType, CollisionRobotType>();
   }
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
@@ -169,7 +213,7 @@ public:
     return kstate_ ? *kstate_ : parent_->getCurrentState();
   }
   /** \brief Get the state at which the robot is assumed to be */
-  robot_state::RobotState& getCurrentState();
+  robot_state::RobotState& getCurrentStateNonConst();
 
   /** \brief Get the allowed collision matrix */
   const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix() const
@@ -186,7 +230,7 @@ public:
     return (ftf_const_ || !parent_) ? ftf_const_ : parent_->getTransforms();
   }
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
-  const robot_state::TransformsPtr& getTransforms();
+  const robot_state::TransformsPtr& getTransformsNonConst();
 
   /** \brief Get the representation of the world */
   const collision_detection::WorldConstPtr& getWorld() const
@@ -202,36 +246,42 @@ public:
     return world_;
   }
 
-  /** \brief Get the default collision detector for the world */
+  /** \brief Get the active collision detector for the world */
   const collision_detection::CollisionWorldConstPtr& getCollisionWorld() const
   {
-    // we always have a world representation
-    return cworld_const_;
+    // we always have a world representation after configure is called.
+    return active_collision_->cworld_const_;
   }
 
-  //brief Get the default collision detector for the world
+  //brief Get the active collision detector for the world
   const collision_detection::CollisionWorldPtr& getCollisionWorld()
   {
-    // we always have a world representation
-    return cworld_;
+    // we always have a world representation after configure is called.
+    return active_collision_->cworld_;
   }
 
-  /** \brief Get the default collision detector for the robot */
+  /** \brief Get the active collision detector for the robot */
   const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
   {
-    // if we have an updated robot, return that one
-    return (crobot_const_ || !parent_) ? crobot_const_ : parent_->getCollisionRobot();
+    return active_collision_->getCollisionRobot();
   }
 
-  /** \brief Get the default collision detector for the robot */
+  /** \brief Get the active collision detector for the robot */
   const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded() const
   {
-    // if we have an updated robot, return that one
-    return (crobot_unpadded_const_ || !parent_) ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
+    return active_collision_->getCollisionRobotUnpadded();
   }
 
-  /** \brief Get the representation of the collision robot */
-  const collision_detection::CollisionRobotPtr& getCollisionRobot();
+  /** \brief Get the representation of the collision robot
+   * This can be used to set padding and link scale on the active collision_robot.
+   * NOTE: After modifying padding and scale on the active robot call
+   * propogateRobotPadding() to copy it to all the other collision detectors. */
+  const collision_detection::CollisionRobotPtr& getCollisionRobotNonConst();
+
+  /** \brief Copy scale and padding from active CollisionRobot to other CollisionRobots.
+   * This should be called after any changes are made to the scale or padding of the active
+   * CollisionRobot.  This has no effect on the unpadded CollisionRobots. */
+  void propogateRobotPadding();
 
   /** \brief Check whether the current state is in collision */
   void checkCollision(const collision_detection::CollisionRequest& req,
@@ -517,6 +567,7 @@ public:
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
 
+
 protected:
 
   /** \brief Get the non-const kinematic model for which the planning scene is maintained */
@@ -527,67 +578,65 @@ protected:
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
 
-  struct CollisionDetectionAllocBase
-  {
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &kmodel) = 0;
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy) = 0;
-    virtual collision_detection::CollisionWorldPtr allocateWorld() = 0;
-    virtual collision_detection::CollisionWorldPtr allocateWorld(const collision_detection::CollisionWorldConstPtr &copy) = 0;
-    virtual CollisionDetectionAllocBase* clone() = 0;
-  };
+  struct CollisionDetection;
+  typedef boost::shared_ptr<CollisionDetection> CollisionDetectionPtr;
+  typedef boost::shared_ptr<const CollisionDetection> CollisionDetectionConstPtr;
 
-  template<typename CollisionWorldType, typename CollisionRobotType>
-  struct CollisionDetectionAlloc : public CollisionDetectionAllocBase
+  /** \brief A set of compatible collision detectors */
+  struct CollisionDetection
   {
-    BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionWorldType*, collision_detection::CollisionWorld*>));
-    BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionRobotType*, collision_detection::CollisionRobot*>));
+    collision_detection::CollisionDetectionAllocBasePtr alloc_;
+    collision_detection::CollisionRobotPtr         crobot_unpadded_;
+    collision_detection::CollisionRobotConstPtr    crobot_unpadded_const_;
+    collision_detection::CollisionRobotPtr         crobot_;
+    collision_detection::CollisionRobotConstPtr    crobot_const_;
 
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &kmodel)
+    collision_detection::CollisionWorldPtr         cworld_;
+    collision_detection::CollisionWorldConstPtr    cworld_const_;
+
+    CollisionDetectionConstPtr                     parent_;
+
+    const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
     {
-      return collision_detection::CollisionRobotPtr(new CollisionRobotType(kmodel));
+      return crobot_const_ ? crobot_const_ : parent_->getCollisionRobot();
     }
-    virtual collision_detection::CollisionWorldPtr allocateWorld()
+    const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded() const
     {
-      return collision_detection::CollisionWorldPtr(new CollisionWorldType());
+      return crobot_unpadded_const_ ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
     }
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy)
-    {
-      return collision_detection::CollisionRobotPtr(new CollisionRobotType(static_cast<const CollisionRobotType&>(*copy)));
-    }
-    virtual collision_detection::CollisionWorldPtr allocateWorld(const  collision_detection::CollisionWorldConstPtr &copy)
-    {
-      return collision_detection::CollisionWorldPtr(new CollisionWorldType(static_cast<const CollisionWorldType&>(*copy)));
-    }
-    virtual CollisionDetectionAllocBase* clone()
-    {
-      return new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>();
-    }
+    void findParent(const PlanningScene& scene);
+    void copyPadding(const CollisionDetection& src);
   };
+  friend struct CollisionDetection;
+
+  void allocateCollisionDetectors();
+  void allocateCollisionDetectors(CollisionDetection& detection);
+  void addCollisionDetectorInternal(collision_detection::CollisionDetectionAllocBasePtr alloc);
+
+
 
   std::string                                    name_;
 
   PlanningSceneConstPtr                          parent_;
 
-  robot_model::RobotModelPtr             kmodel_;
-  robot_model::RobotModelConstPtr        kmodel_const_;
+  robot_model::RobotModelPtr                     kmodel_;
+  robot_model::RobotModelConstPtr                kmodel_const_;
 
-  robot_state::RobotStatePtr             kstate_;
+  robot_state::RobotStatePtr                     kstate_;
 
-  robot_state::TransformsPtr                 ftf_;
-  robot_state::TransformsConstPtr            ftf_const_;
-
-  boost::scoped_ptr<CollisionDetectionAllocBase> collision_detection_allocator_;
-
-  collision_detection::CollisionRobotPtr         crobot_unpadded_;
-  collision_detection::CollisionRobotConstPtr    crobot_unpadded_const_;
-  collision_detection::CollisionRobotPtr         crobot_;
-  collision_detection::CollisionRobotConstPtr    crobot_const_;
-
-  collision_detection::CollisionWorldPtr         cworld_;
-  collision_detection::CollisionWorldConstPtr    cworld_const_;
+  robot_state::TransformsPtr                     ftf_;
+  robot_state::TransformsConstPtr                ftf_const_;
 
   collision_detection::WorldPtr                  world_;
   collision_detection::WorldConstPtr             world_const_;
+  collision_detection::WorldDiffPtr              world_diff_;
+
+  std::map<std::string, CollisionDetectionPtr>   collision_;
+  CollisionDetectionPtr                          active_collision_;
+  CollisionDetectionConstPtr                     active_collision_const_;
+
+  typedef std::map<std::string, CollisionDetectionPtr>::iterator CollisionDetectionIterator;
+  typedef std::map<std::string, CollisionDetectionPtr>::const_iterator CollisionDetectionConstIterator;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
@@ -599,6 +648,8 @@ protected:
   bool                                           configured_;
 
 };
+
+
 
 }
 

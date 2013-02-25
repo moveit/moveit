@@ -185,14 +185,16 @@ void collision_detection::World::notifyAll(Action action)
     notify(it->second, action);
 }
 
-void collision_detection::World::removeObject(const std::string &id)
+bool collision_detection::World::removeObject(const std::string &id)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
   {
     notify(it->second, DESTROY);
     objects_.erase(it);
+    return true;
   }
+  return false;
 }
 
 void collision_detection::World::clearObjects()
