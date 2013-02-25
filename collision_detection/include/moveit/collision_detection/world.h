@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta, Acorn Pooley */
+/* Author: Ioan Sucan, Acorn Pooley, Sachin Chitta */
 
 #ifndef MOVEIT_COLLISION_DETECTION_WORLD_
 #define MOVEIT_COLLISION_DETECTION_WORLD_
@@ -151,6 +151,7 @@ namespace collision_detection
 
     enum ActionBits
     {
+      UNINITIALIZED = 0,
       CREATE = 1,         /** object was created */
       DESTROY = 2,        /** object was destroyed */
       MOVE_SHAPE = 4,     /** one or more shapes in object were moved */
@@ -160,7 +161,8 @@ namespace collision_detection
     class Action
     {
     public:
-      Action() : action_(0) {}
+      Action() : action_(UNINITIALIZED) {}
+      Action(ActionBits v) : action_(v) {}
       Action(int v) : action_(v) {}
       Action(const Action& v) : action_(v.action_) {}
       Action& operator=(int v) { action_ = v; return *this; }
