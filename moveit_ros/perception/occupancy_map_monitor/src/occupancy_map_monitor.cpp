@@ -130,9 +130,17 @@ void OccupancyMapMonitor::initialize()
       ROS_ERROR("List of sensors must be an array!");
   }
   
+  setUpdatersCallback();
+
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
   load_map_srv_ = nh_.advertiseService("load_map", &OccupancyMapMonitor::loadMapCallback, this);
+}
+
+void OccupancyMapMonitor::setUpdatersCallback()
+{
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+    map_updaters_[i]->setUpdateCallback(update_callback_);
 }
 
 bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response)

@@ -149,7 +149,8 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
   
-  boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
+  boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener(ros::Duration(2.0)));
+  
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor(new planning_scene_monitor::PlanningSceneMonitor(move_group::ROBOT_DESCRIPTION, tf));
   
   if (planning_scene_monitor->getPlanningScene() && planning_scene_monitor->getPlanningScene()->isConfigured())
