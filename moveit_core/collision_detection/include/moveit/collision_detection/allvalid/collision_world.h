@@ -42,13 +42,19 @@
 namespace collision_detection
 {
 
+class CollisionRobotAllValid;
+
 class CollisionWorldAllValid : public CollisionWorld
 {
 public:
   
   CollisionWorldAllValid();
-  CollisionWorldAllValid(const CollisionWorld &other);
-  
+  CollisionWorldAllValid(const WorldPtr& world);
+  CollisionWorldAllValid(const CollisionWorld &other, const WorldPtr& world);
+
+  static const std::string& getCollisionDetectorName(CollisionRobotAllValid* robot_type);
+  static const std::string COLLISION_DETECTOR_ALL_VALID;
+
   virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const;
   virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
   virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state1, const robot_state::RobotState &state2) const;

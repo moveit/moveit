@@ -95,6 +95,14 @@ namespace collision_detection
     {
       return changes_.find(id);
     }
+    /** set the entry for an id */
+    void set(const std::string& id, World::Action val)
+    {
+      if (val)
+        changes_[id] = val;
+      else
+        changes_.erase(id);
+    }
 
     /** \brief Clear the internally maintained vector of changes */
     void clearChanges();

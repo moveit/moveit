@@ -48,8 +48,13 @@ namespace collision_detection
   public:
     
     CollisionWorldFCL();
-    CollisionWorldFCL(const CollisionWorldFCL &other);
+    CollisionWorldFCL(const WorldPtr& world);
+    CollisionWorldFCL(const CollisionWorldFCL &other, const WorldPtr& world);
     virtual ~CollisionWorldFCL();
+
+    static const std::string& getCollisionDetectorName(CollisionRobotFCL* robot_type);
+    static const std::string COLLISION_DETECTOR_FCL;
+
     
     virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const;
     virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
@@ -63,16 +68,7 @@ namespace collision_detection
     virtual double distanceWorld(const CollisionWorld &world) const;
     virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
     
-#if ACORN_USE_WORLD
     virtual void setWorld(WorldPtr world);
-#else
-    virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses);
-    virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-    virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-    virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-    virtual void removeObject(const std::string &id);
-    virtual void clearObjects();
-#endif
     
   protected:
 
@@ -84,11 +80,13 @@ namespace collision_detection
     void constructFCLObject(const World::Object *obj, FCLObject &fcl_obj) const;
     void updateFCLObject(const std::string &id);
 
-    static void notifyObjectChange(CollisionWorldFCL *self, const ObjectConstPtr& obj, World::Action action);
     
     boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
     std::map<std::string, FCLObject >                  fcl_objs_;
     
+  private:
+    void initialize();
+    static void notifyObjectChange(CollisionWorldFCL *self, const ObjectConstPtr& obj, World::Action action);
   };
   
 }

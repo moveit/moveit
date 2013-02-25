@@ -59,7 +59,7 @@ namespace collision_detection
  *  @param The iso-surface threshold value (0.5 is a reasonable default).
  *  @param The metaball radius, as a multiple of the octomap cell size (1.5 is a reasonable default)
  */
-int refineContactNormals(const CollisionWorld::ObjectConstPtr& object,
+int refineContactNormals(const World::ObjectConstPtr& object,
                          CollisionResult &res,
                          double cell_bbx_search_distance = 1.0,
                          double allowed_angle_divergence = 0.0,

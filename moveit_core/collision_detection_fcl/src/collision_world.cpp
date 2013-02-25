@@ -40,7 +40,19 @@
 #include <fcl/traversal/traversal_node_setup.h>
 #include <fcl/collision_node.h>
 
-collision_detection::CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
+collision_detection::CollisionWorldFCL::CollisionWorldFCL() :
+  CollisionWorld()
+{
+  fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
+  // m->tree_init_level = 2;
+  manager_.reset(m);
+
+  // request notifications about changes to new world
+  getWorld()->addObserver(this, notifyObjectChange);
+}
+
+collision_detection::CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world) :
+  CollisionWorld(world)
 {
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
@@ -51,7 +63,8 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
   getWorld()->notifyObserverAllObjects(this, World::CREATE);
 }
 
-collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other) : CollisionWorld(other)
+collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other, const WorldPtr& world) :
+  CollisionWorld(other, world)
 {
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
@@ -64,12 +77,17 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFC
 
   // request notifications about changes to new world
   getWorld()->addObserver(this, notifyObjectChange);
-  getWorld()->notifyObserverAllObjects(this, World::CREATE);
 }
 
 collision_detection::CollisionWorldFCL::~CollisionWorldFCL()
 {
 }
+
+const std::string& collision_detection::CollisionWorldFCL::getCollisionDetectorName(CollisionRobotFCL* robot_type)
+{
+  return COLLISION_DETECTOR_FCL;
+}
+const std::string collision_detection::CollisionWorldFCL::COLLISION_DETECTOR_FCL = "COLLISION_DETECTOR_FCL";
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const
 {
@@ -175,7 +193,6 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   // manager_->update();
 }
 
-#if ACORN_USE_WORLD
 void collision_detection::CollisionWorldFCL::setWorld(WorldPtr world)
 {
   if (world == getWorld())
@@ -185,7 +202,6 @@ void collision_detection::CollisionWorldFCL::setWorld(WorldPtr world)
   getWorld()->removeObserver(this);
 
   // clear out objects from old world
-  CollisionWorld::clearObjects();
   manager_->clear();
   fcl_objs_.clear();  
   cleanCollisionGeometryCache();
@@ -219,65 +235,6 @@ void collision_detection::CollisionWorldFCL::notifyObjectChange(CollisionWorldFC
       cleanCollisionGeometryCache();
   }
 }
-
-#else
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses)
-{
-  CollisionWorld::addToObject(id, shapes, poses);
-  updateFCLObject(id);
-}
-
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
-{
-  CollisionWorld::addToObject(id, shape, pose);
-  updateFCLObject(id);
-}
-
-bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
-{
-  if (CollisionWorld::moveShapeInObject(id, shape, pose))
-  {
-    updateFCLObject(id);
-    return true;
-  }
-  else
-    return false;
-}
-
-bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
-{    
-  if (CollisionWorld::removeShapeFromObject(id, shape))
-  {
-    updateFCLObject(id);
-    cleanCollisionGeometryCache();
-    return true;
-  }
-  else
-    return false;
-}
-
-void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
-{  
-  CollisionWorld::removeObject(id);
-  std::map<std::string, FCLObject>::iterator it = fcl_objs_.find(id);
-  if (it != fcl_objs_.end())
-  {
-    it->second.unregisterFrom(manager_.get());
-    it->second.clear();
-    fcl_objs_.erase(it);
-    // manager_->update();
-  }
-  cleanCollisionGeometryCache();
-}
-
-void collision_detection::CollisionWorldFCL::clearObjects()
-{
-  CollisionWorld::clearObjects();
-  manager_->clear();
-  fcl_objs_.clear();  
-  cleanCollisionGeometryCache();
-}
-#endif
 
 double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm) const
 {       

@@ -61,9 +61,21 @@ public:
                               double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
                               double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE);
 
-  CollisionWorldDistanceField(const CollisionWorldDistanceField &other);
+  CollisionWorldDistanceField(const WorldPtr& world,
+                              double size_x = DEFAULT_SIZE_X, 
+                              double size_y = DEFAULT_SIZE_Y,
+                              double size_z = DEFAULT_SIZE_Z,
+                              bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
+                              double resolution = DEFAULT_RESOLUTION,
+                              double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
+                              double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE);
+
+  CollisionWorldDistanceField(const CollisionWorldDistanceField &other, const WorldPtr& world);
 
   virtual ~CollisionWorldDistanceField(){}
+
+  static const std::string& getCollisionDetectorName(CollisionRobotDistanceField* robot_type);
+  static const std::string COLLISION_DETECTOR_DISTANCE_FIELD;
 
   virtual void checkCollision(const CollisionRequest &req,
                               CollisionResult &res,
@@ -127,23 +139,7 @@ public:
   virtual double distanceWorld(const CollisionWorld &world) const {return 0.0;}
   virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const {return 0.0;}
   
-#if ACORN_USE_WORLD
-    virtual void setWorld(WorldPtr world);
-#else
-  virtual void addToObject(const std::string &id, 
-                           const std::vector<shapes::ShapeConstPtr> &shapes, 
-                           const EigenSTL::vector_Affine3d &poses);
-  
-  virtual void addToObject(const std::string &id, 
-                           const shapes::ShapeConstPtr &shape, 
-                           const Eigen::Affine3d &pose);
-  virtual bool moveShapeInObject(const std::string &id, 
-                                 const shapes::ShapeConstPtr &shape, 
-                                 const Eigen::Affine3d &pose);
-  virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-  virtual void removeObject(const std::string &id);
-  virtual void clearObjects();
-#endif
+  virtual void setWorld(WorldPtr world);
 
   void generateEnvironmentDistanceField(bool redo = true);
 

@@ -45,17 +45,53 @@ CollisionWorldHybrid::CollisionWorldHybrid(double size_x,
                                            double resolution,
                                            double collision_tolerance,
                                            double max_propogation_distance) :
-  CollisionWorldFCL()
+  CollisionWorldFCL(),
+  cworld_distance_(new collision_detection::CollisionWorldDistanceField(getWorld(),
+                                                                        size_x,
+                                                                        size_y, 
+                                                                        size_z, 
+                                                                        use_signed_distance_field,
+                                                                        resolution, 
+                                                                        collision_tolerance, 
+                                                                        max_propogation_distance))
+
 {
-  cworld_distance_.reset(new collision_detection::CollisionWorldDistanceField(size_x, size_y, size_z, use_signed_distance_field, 
-                                                                              resolution, collision_tolerance, max_propogation_distance));
 }
 
-CollisionWorldHybrid::CollisionWorldHybrid(const CollisionWorldHybrid &other) :
-  CollisionWorldFCL(other)
+CollisionWorldHybrid::CollisionWorldHybrid(const WorldPtr& world,
+                                           double size_x, 
+                                           double size_y,
+                                           double size_z,
+                                           bool use_signed_distance_field,
+                                           double resolution,
+                                           double collision_tolerance,
+                                           double max_propogation_distance) :
+  CollisionWorldFCL(world),
+  cworld_distance_(new collision_detection::CollisionWorldDistanceField(getWorld(),
+                                                                        size_x,
+                                                                        size_y, 
+                                                                        size_z, 
+                                                                        use_signed_distance_field,
+                                                                        resolution, 
+                                                                        collision_tolerance, 
+                                                                        max_propogation_distance))
 {
-  cworld_distance_.reset(new collision_detection::CollisionWorldDistanceField(*other.getCollisionWorldDistanceField().get()));
 }
+
+CollisionWorldHybrid::CollisionWorldHybrid(const CollisionWorldHybrid &other, const WorldPtr& world) :
+  CollisionWorldFCL(other, world),
+  cworld_distance_(new collision_detection::CollisionWorldDistanceField(
+                                                        *other.getCollisionWorldDistanceField(),
+                                                        world))
+{
+}
+
+const std::string& CollisionWorldHybrid::getCollisionDetectorName(CollisionRobotHybrid* robot_type)
+{
+  return COLLISION_DETECTOR_HYBRID;
+}
+const std::string CollisionWorldHybrid::COLLISION_DETECTOR_HYBRID = "COLLISION_DETECTOR_HYBRID";
+
 
 void CollisionWorldHybrid::checkCollisionDistanceField(const CollisionRequest &req,
                                                        CollisionResult &res,
@@ -129,43 +165,13 @@ void CollisionWorldHybrid::checkRobotCollisionDistanceField(const CollisionReque
   cworld_distance_->checkRobotCollision(req, res, robot, state, acm, gsr);
 }
 
-void CollisionWorldHybrid::addToObject(const std::string &id, 
-                                       const std::vector<shapes::ShapeConstPtr> &shapes, 
-                                       const EigenSTL::vector_Affine3d &poses)
+void CollisionWorldHybrid::setWorld(WorldPtr world)
 {
-  CollisionWorldFCL::addToObject(id, shapes, poses);
-  cworld_distance_->addToObject(id, shapes, poses);
-}
+  if (world == getWorld())
+    return;
 
-void CollisionWorldHybrid::addToObject(const std::string &id, 
-                                       const shapes::ShapeConstPtr &shape, 
-                                       const Eigen::Affine3d &pose)
-{
-  CollisionWorldFCL::addToObject(id, shape, pose);
-  cworld_distance_->addToObject(id, shape, pose);
-}
-bool CollisionWorldHybrid::moveShapeInObject(const std::string &id, 
-                                             const shapes::ShapeConstPtr &shape, 
-                                             const Eigen::Affine3d &pose)
-{
-  CollisionWorldFCL::moveShapeInObject(id, shape, pose);
-  return cworld_distance_->moveShapeInObject(id, shape, pose);
-}
-
-bool CollisionWorldHybrid::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
-{
-  CollisionWorldFCL::removeShapeFromObject(id, shape);
-  return cworld_distance_->removeShapeFromObject(id, shape);
-}
-void CollisionWorldHybrid::removeObject(const std::string &id)
-{
-  CollisionWorldFCL::removeObject(id);
-  cworld_distance_->removeObject(id);
-}
-void CollisionWorldHybrid::clearObjects()
-{
-  CollisionWorldFCL::clearObjects();
-  cworld_distance_->clearObjects();
+  cworld_distance_->setWorld(world);
+  CollisionWorldFCL::setWorld(world);
 }
 
 void CollisionWorldHybrid::getCollisionGradients(const CollisionRequest &req, 
