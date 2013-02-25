@@ -73,12 +73,25 @@ public:
   const std::string& getType() const
   {
     return type_;
+  } 
+
+  void setUpdateCallback(const boost::function<void()> &update_callback)
+  {
+    update_callback_ = update_callback;
   }
+
   
 protected:
   
   OccupancyMapMonitor *monitor_;
-  std::string type_;
+  std::string type_;  
+  boost::function<void()> update_callback_;
+  
+  void triggerUpdateCallback(void)
+  {
+    if (update_callback_)
+      update_callback_();
+  }
   
 };
 

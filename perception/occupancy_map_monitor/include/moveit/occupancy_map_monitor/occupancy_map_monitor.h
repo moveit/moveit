@@ -104,6 +104,7 @@ public:
   void setUpdateCallback(const boost::function<void()> &update_callback)
   {
     update_callback_ = update_callback;
+    setUpdatersCallback();
   }
 
 private:
@@ -115,7 +116,9 @@ private:
 
   /** @brief Load octree from a binary file (gets rid of current octree data) */
   bool loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response);
-
+  
+  void setUpdatersCallback();
+  
   boost::shared_ptr<tf::Transformer> tf_;
   std::string map_frame_;
   double map_resolution_;
