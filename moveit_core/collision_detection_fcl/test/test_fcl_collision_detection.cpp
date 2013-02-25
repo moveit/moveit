@@ -54,6 +54,10 @@
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
 
+static std::string urdf_file("../../../src/moveit_resources/test/urdf/robot.xml");
+static std::string srdf_file("../../../src/moveit_resources/test/srdf/robot.xml");
+static std::string kinect_dae_file("../../../src/moveit_resources/test/urdf/meshes/sensors/kinect_v0/kinect.dae");
+
 class FclCollisionDetectionTester : public testing::Test{
 
 protected:
@@ -62,7 +66,8 @@ protected:
   {
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file("../planning_models/test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file(urdf_file.c_str(), std::fstream::in);
+
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -76,8 +81,11 @@ protected:
       urdf_ok_ = urdf_model_;
     }
     else
+    {
+      EXPECT_EQ("FAILED TO OPEN FILE", urdf_file);
       urdf_ok_ = false;
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../planning_models/test/srdf/robot.xml");
+    }
+    srdf_ok_ = srdf_model_->initFile(*urdf_model_, srdf_file);
 
     kmodel_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
 
@@ -290,14 +298,14 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
   ASSERT_FALSE(res.collision);  
 
   shapes::Shape* shape = new shapes::Box(.1,.1,.1);
-  cworld_->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
+  cworld_->getWorld()->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
   
   res = collision_detection::CollisionResult();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
   ASSERT_TRUE(res.collision);  
 
   //deletes shape
-  cworld_->removeObject("box");
+  cworld_->getWorld()->removeObject("box");
 
   shape = new shapes::Box(.1,.1,.1);
   std::vector<shapes::ShapeConstPtr> shapes;
@@ -324,7 +332,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
 
   pos1.translation().x() = 5.01;
   shapes::Shape* coll = new shapes::Box(.1, .1, .1);
-  cworld_->addToObject("coll", shapes::ShapeConstPtr(coll), pos1);  
+  cworld_->getWorld()->addToObject("coll", shapes::ShapeConstPtr(coll), pos1);  
   res = collision_detection::CollisionResult();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
   ASSERT_TRUE(res.collision);  
@@ -359,7 +367,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
 
   boost::filesystem::path path(boost::filesystem::current_path());
   
-  shapes[0].reset(shapes::createMeshFromResource("file://"+path.string()+"/../planning_models/test/kinect.dae"));
+  shapes[0].reset(shapes::createMeshFromResource("file://"+path.string()+"/"+kinect_dae_file));
   
   EigenSTL::vector_Affine3d poses;
   poses.push_back(Eigen::Affine3d::Identity());
@@ -395,12 +403,12 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   collision_detection::CollisionResult res;
 
   boost::filesystem::path path(boost::filesystem::current_path());
-  shapes::ShapeConstPtr shape(shapes::createMeshFromResource("file://"+path.string()+"/../planning_models/test/kinect.dae"));
+  shapes::ShapeConstPtr shape(shapes::createMeshFromResource("file://"+path.string()+"/"+kinect_dae_file));
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
   Eigen::Affine3d pos2 = Eigen::Affine3d::Identity();
   pos2.translation().x() = 10.0;
 
-  cworld_->addToObject("kinect", shape, pos1);
+  cworld_->getWorld()->addToObject("kinect", shape, pos1);
 
   robot_state::RobotState kstate(kmodel_);
   kstate.setToDefaultValues();
@@ -414,8 +422,8 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
 
   EXPECT_LT(second_check, .05);
 
-  collision_detection::CollisionWorld::ObjectPtr object = cworld_->getObject("kinect");
-  cworld_->removeObject("kinect");
+  collision_detection::CollisionWorld::ObjectPtr object = cworld_->getWorld()->getObject("kinect");
+  cworld_->getWorld()->removeObject("kinect");
   
   robot_state::RobotState kstate1(kmodel_);
   robot_state::RobotState kstate2(kmodel_);
@@ -461,7 +469,7 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
     shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(.01, .01, .01)));
   }
   ros::WallTime start = ros::WallTime::now();
-  cworld_->addToObject("map", shapes, poses);
+  cworld_->getWorld()->addToObject("map", shapes, poses);
   double t = (ros::WallTime::now()-start).toSec();
   EXPECT_GE(1.0, t);
   // this is not really a failure; it is just that slow; 
@@ -479,15 +487,15 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
   kinect_pose.setIdentity();
   shapes::ShapePtr kinect_shape;
   boost::filesystem::path path(boost::filesystem::current_path());  
-  kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/../kinematic_state/test/kinect.dae"));
+  kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/"+kinect_dae_file));
 
-  cworld_->addToObject("kinect", kinect_shape, kinect_pose);
+  cworld_->getWorld()->addToObject("kinect", kinect_shape, kinect_pose);
 
   Eigen::Affine3d np;
   for(unsigned int i = 0; i < 5 ; i++) 
   {
     np = Eigen::Translation3d(i*.001, i*.001, i*.001)*Eigen::Quaterniond::Identity();
-    cworld_->moveShapeInObject("kinect", kinect_shape, np);
+    cworld_->getWorld()->moveShapeInObject("kinect", kinect_shape, np);
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
     cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
@@ -511,12 +519,12 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
   std::vector<shapes::ShapeConstPtr> shapes;
   for(unsigned int i = 0; i < 5; i++)
   {
-    cworld_->removeObject("shape");
+    cworld_->getWorld()->removeObject("shape");
     shapes.clear();
     poses.clear();
     shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(1+i*.0001, 1+i*.0001, 1+i*.0001)));
     poses.push_back(Eigen::Affine3d::Identity());
-    cworld_->addToObject("shape", shapes, poses);
+    cworld_->getWorld()->addToObject("shape", shapes, poses);
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
     cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
@@ -526,19 +534,19 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
   Eigen::Affine3d kinect_pose;
   shapes::ShapePtr kinect_shape;
   boost::filesystem::path path(boost::filesystem::current_path());  
-  kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/../planning_models/test/kinect.dae"));
-  cworld_->addToObject("kinect", kinect_shape, kinect_pose);
+  kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/"+kinect_dae_file));
+  cworld_->getWorld()->addToObject("kinect", kinect_shape, kinect_pose);
   collision_detection::CollisionRequest req2;
   collision_detection::CollisionResult res2;
   cworld_->checkCollision(req2, res2, *crobot_, kstate1, *acm_);
   ASSERT_TRUE(res2.collision);
   for(unsigned int i = 0; i < 5; i++) {
-    cworld_->removeObject("shape");
+    cworld_->getWorld()->removeObject("shape");
     shapes.clear();
     poses.clear();
     shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(1+i*.0001, 1+i*.0001, 1+i*.0001)));
     poses.push_back(Eigen::Affine3d::Identity());
-    cworld_->addToObject("shape", shapes, poses);
+    cworld_->getWorld()->addToObject("shape", shapes, poses);
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
     cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
