@@ -48,7 +48,7 @@ namespace collision_detection
   /** \brief Perform collision checking with the environment. The
    *  collision world maintains a representation of the environment
    *  that the robot is operating in. */
-  class CollisionWorld
+  class CollisionWorld : boost::noncopyable
   {
   public:
 
