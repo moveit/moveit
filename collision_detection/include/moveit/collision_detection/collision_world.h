@@ -217,7 +217,7 @@ namespace collision_detection
     /** set the world to use.
      * This can be expensive unless the new and old world are empty. 
      * Passing NULL will result in a new empty world being created. */
-    virtual void setWorld(WorldPtr world);
+    virtual void setWorld(const WorldPtr& world);
 
     /** access the world geometry */
     const WorldPtr& getWorld()

@@ -139,7 +139,7 @@ public:
   virtual double distanceWorld(const CollisionWorld &world) const {return 0.0;}
   virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const {return 0.0;}
   
-  virtual void setWorld(WorldPtr world);
+  virtual void setWorld(const WorldPtr& world);
 
   void generateEnvironmentDistanceField(bool redo = true);
 

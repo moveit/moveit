@@ -122,7 +122,7 @@ public:
                                         const AllowedCollisionMatrix &acm,
                                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  virtual void setWorld(WorldPtr world);
+  virtual void setWorld(const WorldPtr& world);
 
   void getCollisionGradients(const CollisionRequest &req, 
                              CollisionResult &res, 

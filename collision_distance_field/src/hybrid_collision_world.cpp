@@ -165,7 +165,7 @@ void CollisionWorldHybrid::checkRobotCollisionDistanceField(const CollisionReque
   cworld_distance_->checkRobotCollision(req, res, robot, state, acm, gsr);
 }
 
-void CollisionWorldHybrid::setWorld(WorldPtr world)
+void CollisionWorldHybrid::setWorld(const WorldPtr& world)
 {
   if (world == getWorld())
     return;
