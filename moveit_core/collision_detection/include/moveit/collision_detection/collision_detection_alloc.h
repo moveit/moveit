@@ -39,6 +39,7 @@
 
 #include <moveit/collision_detection/collision_world.h>
 #include <moveit/collision_detection/collision_robot.h>
+#include <boost/concept_check.hpp>
 
 namespace collision_detection
 {
