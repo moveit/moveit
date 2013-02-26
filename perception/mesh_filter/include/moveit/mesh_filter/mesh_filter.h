@@ -69,7 +69,7 @@ class MeshFilter : public MeshFilterBase
      * \param[in] transform_callback Callback function that is called for each mesh to obtain the current transformation.
      * \note the callback expects the mesh handle but no time stamp. Its the users responsibility to return the correct transformation.
      */
-    MeshFilter (const TransformCallback& transform_callback,
+    MeshFilter (const TransformCallback& transform_callback = TransformCallback(),
                 const typename SensorType::Parameters& sensor_parameters = typename SensorType::Parameters ());
 
     /**

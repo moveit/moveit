@@ -145,8 +145,8 @@ public:
         const Eigen::Vector3f padding_coefficients_;
   };
   
-  /** \brief predefined sensor model for OpenNI compatible devices*/
-  static const StereoCameraModel::Parameters& RegisteredKinectParams;
+  /** \brief predefined sensor model for OpenNI compatible devices (e.g., PrimeSense, Kinect, Asus Xtion) */
+  static const StereoCameraModel::Parameters& RegisteredPSDKParams;
   
   /** \brief source code of the vertex shader used to render the meshes*/
   static const std::string renderVertexShaderSource;

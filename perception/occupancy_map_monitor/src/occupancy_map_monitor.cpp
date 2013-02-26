@@ -47,7 +47,8 @@ namespace occupancy_map_monitor
 
 OccupancyMapMonitor::OccupancyMapMonitor(double map_resolution) :
   nh_("~"),
-  map_resolution_(map_resolution)
+  map_resolution_(map_resolution),
+  mesh_handle_count_(0)
 {
   initialize();
 }
@@ -56,7 +57,8 @@ OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer
   nh_("~"),
   tf_(tf),
   map_frame_(map_frame),
-  map_resolution_(map_resolution)
+  map_resolution_(map_resolution),
+  mesh_handle_count_(0)
 { 
   initialize();
 }
@@ -106,7 +108,7 @@ void OccupancyMapMonitor::initialize()
         if (sensor_type == "point_cloud_sensor")
           up.reset(new PointCloudOccupancyMapUpdater(this));
         else
-          if (sensor_type == "depth_image_sensor")
+          if (sensor_type == "depth_image_sensor" || sensor_type == "kinect")
             up.reset(new DepthImageOccupancyMapUpdater(this));
           else
           {
@@ -130,6 +132,14 @@ void OccupancyMapMonitor::initialize()
       ROS_ERROR("List of sensors must be an array!");
   }
   
+  // we only use the mesh handle mapping mechanism when there are more than one update handlers
+  if (map_updaters_.size() > 1)
+  {
+    mesh_handles_.resize(map_updaters_.size());
+    for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+      map_updaters_[i]->setTransformCallback(boost::bind(&OccupancyMapMonitor::getShapeTransform, this, i, _1, _2));
+  }
+  
   setUpdatersCallback();
 
   /* advertise a service for loading octomaps from disk */
@@ -137,10 +147,51 @@ void OccupancyMapMonitor::initialize()
   load_map_srv_ = nh_.advertiseService("load_map", &OccupancyMapMonitor::loadMapCallback, this);
 }
 
+void OccupancyMapMonitor::setMapFrame(const std::string &frame)
+{
+  boost::mutex::scoped_lock _(parameters_lock_);
+  map_frame_ = frame;
+}
+
 void OccupancyMapMonitor::setUpdatersCallback()
 {
   for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
     map_updaters_[i]->setUpdateCallback(update_callback_);
+}
+
+ShapeHandle OccupancyMapMonitor::excludeShape(const shapes::ShapeConstPtr &shape)
+{
+  // if we have just one updater, remove the additional level of indirection
+  if (map_updaters_.size() == 1)
+    return map_updaters_[0]->excludeShape(shape);
+  
+  ShapeHandle h = mesh_handle_count_++;
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+  {
+    mesh_filter::MeshHandle mh = map_updaters_[i]->excludeShape(shape);
+    if (mh)
+      mesh_handles_[i][mh] = h;
+  }
+  return h;
+}
+  
+void OccupancyMapMonitor::setTransformCallback(const boost::function<bool (ShapeHandle, Eigen::Affine3d&)>& transform_callback)
+{
+  // if we have just one updater, we connect it directly to the transform provider
+  if (map_updaters_.size() == 1)
+    map_updaters_[0]->setTransformCallback(transform_callback);
+  else
+    shape_transform_callback_ = transform_callback;
+}
+
+bool OccupancyMapMonitor::getShapeTransform(std::size_t index, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const
+{
+  // forward the call with the correct ShapeHandle
+  std::map<mesh_filter::MeshHandle, ShapeHandle>::const_iterator it = mesh_handles_[index].find(h);
+  if (it != mesh_handles_[index].end() && shape_transform_callback_)
+    return shape_transform_callback_(it->second, transform);
+  else
+    return false;
 }
 
 bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response)

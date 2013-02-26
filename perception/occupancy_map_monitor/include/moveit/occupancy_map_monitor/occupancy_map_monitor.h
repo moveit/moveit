@@ -32,10 +32,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney */
+/* Author: Jon Binney, Ioan Sucan */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_H_
-#define MOVEIT_OCCUPANCY_MAP_MONITOR_H_
+#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_
+#define MOVEIT_OCCUPANCY_MAP_MONITOR_
 
 #include <vector>
 #include <string>
@@ -45,9 +45,13 @@
 #include <moveit_msgs/LoadMap.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
+#include <boost/thread/mutex.hpp>
 
 namespace occupancy_map_monitor
 {
+
+// The type for the shape handle should be the same as the type of the mesh handle
+typedef mesh_filter::MeshHandle ShapeHandle;
 
 class OccupancyMapMonitor
 {
@@ -83,10 +87,7 @@ public:
     return map_frame_;
   }
   
-  void setMapFrame(const std::string &frame)
-  {
-    map_frame_ = frame;
-  }
+  void setMapFrame(const std::string &frame);
   
   double getMapResolution() const
   {
@@ -98,7 +99,7 @@ public:
     return tf_;
   }
   
-  //  void excludeShape(const shapes::ShapeConstPtr &shape);
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape);
   
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
   void setUpdateCallback(const boost::function<void()> &update_callback)
@@ -107,6 +108,8 @@ public:
     setUpdatersCallback();
   }
 
+  void setTransformCallback(const boost::function<bool (ShapeHandle, Eigen::Affine3d&)>& transform_callback);
+  
 private:
 
   void initialize();
@@ -119,15 +122,22 @@ private:
   
   void setUpdatersCallback();
   
+  bool getShapeTransform(std::size_t index, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;
+  
   boost::shared_ptr<tf::Transformer> tf_;
   std::string map_frame_;
   double map_resolution_;
+  boost::mutex parameters_lock_;
   
   OccMapTreePtr tree_;
   OccMapTreeConstPtr tree_const_;
   
   std::vector<OccupancyMapUpdaterPtr> map_updaters_;
   boost::function<void()> update_callback_;
+  std::vector<std::map<mesh_filter::MeshHandle, ShapeHandle> > mesh_handles_;
+  boost::function<bool(ShapeHandle, Eigen::Affine3d&)> shape_transform_callback_;
+  
+  std::size_t mesh_handle_count_;
   
   ros::NodeHandle root_nh_;
   ros::NodeHandle nh_;

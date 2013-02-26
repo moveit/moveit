@@ -50,9 +50,8 @@ DepthImageOccupancyMapUpdater::DepthImageOccupancyMapUpdater(OccupancyMapMonitor
   near_clipping_plane_distance_(0.4),
   far_clipping_plane_distance_(5.0),
   shadow_threshold_(0.3),
-  padding_coefficient_0_(0.0035),
-  padding_coefficient_1_(0.0),
-  padding_coefficient_2_(0.001)
+  padding_scale_(0.0035),
+  padding_offset_(0.0)
 { 
 }
 
@@ -63,6 +62,8 @@ DepthImageOccupancyMapUpdater::~DepthImageOccupancyMapUpdater()
 
 bool DepthImageOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
 {
+  sensor_type_ = (std::string) params["sensor_type"];
+  
   if (params.hasMember("queue_size"))
     queue_size_ = (int)params["queue_size"];
   if (params.hasMember("near_clipping_plane_distance"))
@@ -71,16 +72,23 @@ bool DepthImageOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
     far_clipping_plane_distance_ = (double) params["far_clipping_plane_distance"];
   if (params.hasMember("shadow_threshold"))
     shadow_threshold_ = (double) params["shadow_threshold"];
-  if (params.hasMember("padding_coefficient_1"))
-    padding_coefficient_0_ = (double) params["padding_coefficient_1"];
-  if (params.hasMember("padding_coefficient_2"))
-    padding_coefficient_1_ = (double) params["padding_coefficient_2"];
-  if (params.hasMember("padding_coefficient_3"))
-    padding_coefficient_2_ = (double) params["padding_coefficient_3"];
+  if (params.hasMember("padding_scale"))
+    padding_scale_ = (double) params["padding_scale"];
+  if (params.hasMember("padding_offset"))
+    padding_offset_ = (double) params["padding_offset"];
 }
 
 bool DepthImageOccupancyMapUpdater::initialize()
-{
+{  
+  // create our mesh filter
+  mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(mesh_filter::MeshFilterBase::TransformCallback(),
+                                                                                 mesh_filter::StereoCameraModel::RegisteredPSDKParams));
+  mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
+  mesh_filter_->setShadowThreshold(shadow_threshold_);
+  mesh_filter_->setPaddingOffset(padding_offset_);
+  mesh_filter_->setPaddingScale(padding_scale_);
+  mesh_filter_->setTransformCallback(transform_provider_callback_);
+
   return true;
 }
 
@@ -100,10 +108,28 @@ void DepthImageOccupancyMapUpdater::stopHelper()
   sub_depth_image_.shutdown();
 }
 
+mesh_filter::MeshHandle DepthImageOccupancyMapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
+{
+  mesh_filter::MeshHandle h = 0;
+  if (mesh_filter_)
+  {
+    if (shape->type == shapes::MESH)
+      h = mesh_filter_->addMesh(static_cast<const shapes::Mesh&>(*shape));
+  }
+  return h;
+}
+
+void DepthImageOccupancyMapUpdater::setTransformCallback(const boost::function<bool(mesh_filter::MeshHandle, Eigen::Affine3d&)> &transform_callback)
+{
+  OccupancyMapUpdater::setTransformCallback(transform_callback);
+  if (mesh_filter_)
+    mesh_filter_->setTransformCallback(transform_provider_callback_);
+}
+
 void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg)
 {
-  
-  ROS_DEBUG("Received a new point cloud message");
+  ROS_DEBUG("Received a new depth image message");
+  ros::WallTime start = ros::WallTime::now();
   
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(depth_msg->header.frame_id);
@@ -130,12 +156,19 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
       return;
   } 
 
-  
+  const float* depth_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
 
   // call the mesh filter
-
-
-
+  mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters();
+  params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
+  params.setImageSize(depth_msg->width, depth_msg->height);
+  mesh_filter_->filter(depth_row);
+  
+  // copy filtered data
+  std::size_t img_size = depth_msg->height * depth_msg->width;
+  if (filtered_data_.size() < img_size)
+    filtered_data_.resize(img_size);
+  mesh_filter_->getFilteredDepth(&filtered_data_[0]);
 
   // Use correct principal point from calibration
   double px = info_msg->K[2];
@@ -143,9 +176,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   
   double inv_fx = 1.0 / info_msg->K[0];
   double inv_fy = 1.0 / info_msg->K[4];
-  
-  const float* depth_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
-  
+    
   // Pre-compute some constants
   if (x_cache_.size() < depth_msg->width)
     x_cache_.resize(depth_msg->width);
@@ -187,8 +218,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
               /* free cells along ray */
               if (tree->computeRayKeys(sensor_origin, point, key_ray_))
                 free_cells.insert(key_ray_.begin(), key_ray_.end());
-              
-              
+                            
               /* occupied cell at ray endpoint if ray is shorter than max range and this point
                  isn't on a part of the robot*/
               octomap::OcTreeKey key;
@@ -207,6 +237,29 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   ROS_DEBUG("Marking free cells in octomap");
   
   tree->unlockRead();
+  tree->lockWrite();
+
+  try
+  {
+    
+    /* mark free cells only if not seen occupied in this cloud */
+    for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
+      /* this check seems unnecessary since we would just overwrite them in the next loop? -jbinney */
+      if (occupied_cells.find(*it) == occupied_cells.end())
+        tree->updateNode(*it, false);
+    
+    ROS_DEBUG("Marking occupied cells in octomap");
+    
+    /* now mark all occupied cells */
+    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; it++)
+      tree->updateNode(*it, true);
+  }
+  catch (...)
+  {
+  }
+  tree->unlockWrite();
+  ROS_INFO("Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  triggerUpdateCallback();
 }
 
 

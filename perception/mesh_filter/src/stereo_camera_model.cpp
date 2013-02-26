@@ -110,7 +110,7 @@ void mesh_filter::StereoCameraModel::Parameters::setFilterParameters (GLRenderer
   renderer.setCameraParameters (fx_, fy_, cx_, cy_);
 }
    
-const mesh_filter::StereoCameraModel::Parameters& mesh_filter::StereoCameraModel::RegisteredKinectParams = 
+const mesh_filter::StereoCameraModel::Parameters& mesh_filter::StereoCameraModel::RegisteredPSDKParams = 
       mesh_filter::StereoCameraModel::Parameters (640, 480, 0.4, 10.0, 525, 525, 319.5, 239.5, 0.075, 0.125);
 
 const string mesh_filter::StereoCameraModel::renderVertexShaderSource =

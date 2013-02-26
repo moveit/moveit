@@ -135,7 +135,7 @@ class MeshFilterBase
      * \author Suat Gedikli (gedikli@willowgarage.com)
      * \param[out] depth pointer to buffer to be filled with depth values.
      */
-    void getModelDepth (float* labels) const;
+    void getModelDepth (float* depth) const;
     
     /**
      * \brief set the shadow threshold. points that are further away than the rendered model are filtered out.
