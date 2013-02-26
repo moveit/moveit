@@ -55,13 +55,13 @@ namespace collision_detection
 
     /** create a new CollisionWorld by copying an existing CollisionWorld of the same type.s
      * The world must be either the same world as used by \orig or a copy of that world which has not yet been modified. */
-    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr &orig, const WorldPtr& world) = 0;
+    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) = 0;
     
     /** create a new CollisionRobot given a robot_model */
-    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &robot_model) = 0;
+    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) = 0;
 
     /** create a new CollisionRobot by copying an existing CollisionRobot of the same type. */
-    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr &orig) = 0;
+    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) = 0;
   };
 
   typedef boost::shared_ptr<CollisionDetectorAllocator> CollisionDetectorAllocatorPtr;
@@ -83,19 +83,19 @@ namespace collision_detection
       return CollisionWorldPtr(new CollisionWorldType(world));
     }
 
-    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr &orig, const WorldPtr& world)
+    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world)
     {
-      return CollisionWorldPtr(new CollisionWorldType(orig, world));
+      return CollisionWorldPtr(new CollisionWorldType(dynamic_cast<const CollisionWorldType&>(*orig), world));
     }
 
-    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &robot_model)
+    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model)
     {
       return CollisionRobotPtr(new CollisionRobotType(robot_model));
     }
 
-    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr &orig)
+    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig)
     {
-      return CollisionRobotPtr(new CollisionRobotType(orig));
+      return CollisionRobotPtr(new CollisionRobotType(dynamic_cast<const CollisionRobotType&>(*orig)));
     }
 
     /** Create an allocator for FCL collision detectors */

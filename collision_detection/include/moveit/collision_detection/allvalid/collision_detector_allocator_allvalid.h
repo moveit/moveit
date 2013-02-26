@@ -46,6 +46,7 @@ namespace collision_detection
   /** \brief An allocator for AllValid collision detectors */
   class CollisionDetectorAllocatorAllValid : public CollisionDetectorAllocatorTemplate<CollisionWorldAllValid, CollisionRobotAllValid, CollisionDetectorAllocatorAllValid>
   {
+  public:
     static const std::string NAME_; // defined in collision_world_allvalid.cpp
   };
 }
