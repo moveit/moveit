@@ -197,7 +197,7 @@ namespace collision_detection
 
     /** send notification of change to all objects to a particular observer.
      * Used which switching from one world to another. */
-    void notifyObserverAllObjects(const ObserverHandle observer_handle, Action action);
+    void notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const;
 
   private:
     
