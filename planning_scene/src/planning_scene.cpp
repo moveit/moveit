@@ -351,14 +351,9 @@ void planning_scene::PlanningScene::setActiveCollisionDetector(const std::string
 {
   CollisionDetectionIterator it = collision_.find(collision_detector_name);
   if (it != collision_.end())
-  {
     active_collision_ = it->second;
-    active_collision_const_ = active_collision_;
-  }
   else
-  {
     logError("No collision detector named %s has been added to PlanningScene", collision_detector_name.c_str());
-  }
 }
 
 const std::string& planning_scene::PlanningScene::getActiveCollisionDetectorName() const

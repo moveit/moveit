@@ -616,7 +616,6 @@ protected:
 
   std::map<std::string, CollisionDetectorPtr>   collision_;
   CollisionDetectorPtr                          active_collision_;
-  CollisionDetectorConstPtr                     active_collision_const_;
 
   typedef std::map<std::string, CollisionDetectorPtr>::iterator CollisionDetectorIterator;
   typedef std::map<std::string, CollisionDetectorPtr>::const_iterator CollisionDetectorConstIterator;
