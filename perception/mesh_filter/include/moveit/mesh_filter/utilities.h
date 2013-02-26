@@ -31,11 +31,13 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
+
+/* Author: Suat Gedikli */
+
+#ifndef MOVEIT_MESH_FILTER_UTILITIES_
+#define	MOVEIT_MESH_FILTER_UTILITIES_
+
 #include <stdint.h>
-
-#ifndef __MESH_FILTER_UTILITIES_H__
-#define	__MESH_FILTER_UTILITIES_H__
-
 
 /**
  * \brief gets the offset of a pointer relative to a 16byte boundary
@@ -59,5 +61,4 @@ inline bool isAligned16 (const void* pointer)
   return (((uintptr_t)pointer & 15) == 0);
 }
 
-#endif	/* __MESH_FILTER_UTILITIES_H__ */
-
+#endif

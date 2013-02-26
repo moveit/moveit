@@ -31,8 +31,11 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
-#ifndef __MESH_FILTER_GLRENDERER_H__
-#define __MESH_FILTER_GLRENDERER_H__
+
+/* Author: Suat Gedikli */
+
+#ifndef MOVEIT_MESH_FILTER_GLRENDERER_
+#define MOVEIT_MESH_FILTER_GLRENDERER_
 
 #include <GL/glew.h>
 #include <GL/gl.h>
