@@ -89,7 +89,7 @@ namespace collision_detection
       return changes_.end();
     }
     /** number of changes stored */
-    std::map<std::string, World::Action>::size_type size() const
+    size_t size() const
     {
       return changes_.size();
     }

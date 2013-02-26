@@ -89,7 +89,7 @@ void collision_detection::CollisionWorld::setWorld(const WorldPtr& world)
 {
   world_ = world;
   if (!world_)
-    world_.reset(new World);
+    world_.reset(new World());
 
   world_const_ = world;
 }
