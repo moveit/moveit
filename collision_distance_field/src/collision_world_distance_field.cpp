@@ -542,9 +542,7 @@ CollisionWorldDistanceField::generateDistanceFieldCacheEntry()
   }
   EigenSTL::vector_Vector3d add_points;
   EigenSTL::vector_Vector3d subtract_points;
-  for(std::map<std::string, ObjectPtr>::const_iterator it = getWorld()->getObjects().begin();
-      it != getWorld()->getObjects().end();
-      it++) 
+  for(World::const_iterator it=getWorld()->begin(); it!=getWorld()->end(); ++it)
   {
     updateDistanceObject(it->first, dfce, add_points, subtract_points);
   }

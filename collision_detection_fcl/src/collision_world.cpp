@@ -170,8 +170,8 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   }
 
   // check to see if we have this object
-  std::map<std::string, ObjectConstPtr>::const_iterator it = getWorld()->getObjects().find(id);
-  if (it != getWorld()->getObjects().end())
+  collision_detection::World::const_iterator it = getWorld()->find(id);
+  if (it != getWorld()->end())
   {
     // construct FCL objects that correspond to this object
     if (jt != fcl_objs_.end())
