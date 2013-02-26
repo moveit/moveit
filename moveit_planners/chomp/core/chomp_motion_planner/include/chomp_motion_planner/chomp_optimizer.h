@@ -43,8 +43,8 @@
 #include <chomp_motion_planner/multivariate_gaussian.h>
 #include <planning_models/robot_model.h>
 #include <planning_scene/planning_scene.h>
-#include <collision_distance_field/hybrid_collision_robot.h>
-#include <collision_distance_field/hybrid_collision_world.h>
+#include <collision_distance_field/collision_robot_hybrid.h>
+#include <collision_distance_field/collision_world_hybrid.h>
 
 
 #include <Eigen/Core>

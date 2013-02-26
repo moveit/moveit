@@ -46,8 +46,8 @@
 #include <sbpl/headers.h>
 #include <sbpl_interface/bfs3d/BFS_3D.h>
 #include <planning_scene/planning_scene.h>
-#include <collision_distance_field/hybrid_collision_robot.h>
-#include <collision_distance_field/hybrid_collision_world.h>
+#include <collision_distance_field/collision_robot_hybrid.h>
+#include <collision_distance_field/collision_world_hybrid.h>
 #include <sbpl_interface/environment_chain3d_types.h>
 #include <moveit_msgs/GetMotionPlan.h>
 
