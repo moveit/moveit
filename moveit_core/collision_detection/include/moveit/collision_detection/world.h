@@ -160,6 +160,9 @@ namespace collision_detection
       ADD_SHAPE = 8,      /** shape(s) were added to object */
       REMOVE_SHAPE = 16,  /** shape(s) were removed from object */
     };
+    /** represents an action that occurred on an object in the world.
+     * Several bits may be set indicating several things happened to the object.
+     * If the DESTROY bit is set, other bits will not be set. */
     class Action
     {
     public:
@@ -170,8 +173,6 @@ namespace collision_detection
       int action_;
     };
 
-#define USE_OBS_HANDLE 1
-#if USE_OBS_HANDLE
   private:
     class Observer;
   public:
@@ -197,25 +198,6 @@ namespace collision_detection
     /** send notification of change to all objects to a particular observer.
      * Used which switching from one world to another. */
     void notifyObserverAllObjects(const ObserverHandle observer_handle, Action action);
-#else
-  
-    /** \brief register a callback function for notification of changes.
-     * \e callback will be called right after any change occurs to any Object.
-     * \e observer is the object which is requesting the changes.  It is only
-     * used for identifying the callback in removeObserver(). */
-    template<class ClientType>
-    void addObserver(ClientType* observer,
-                     void (*callback)(ClientType*, const ObjectConstPtr&, Action));
-
-    /** \brief remove a notifier callback */
-    template<class ClientType>
-    void removeObserver(const ClientType* observer);
-
-    /** send notification of change to all objects to a particular observer.
-     * Used which switching from one world to another. */
-    template<class ClientType>
-    void notifyObserverAllObjects(const ClientType* observer, Action action);
-#endif
 
   private:
     
@@ -235,11 +217,6 @@ namespace collision_detection
     virtual void addToObjectInternal(const ObjectPtr &obj,
                                      const shapes::ShapeConstPtr &shape,
                                      const Eigen::Affine3d &pose);
-
-#if !USE_OBS_HANDLE
-    void removeObserverInternal(const void* observer);
-    void notifyObserverAllObjectsInternal(const void* observer, Action action);
-#endif
 
 
     /** The objects maintained in the world */
@@ -261,28 +238,6 @@ namespace collision_detection
   typedef boost::shared_ptr<World> WorldPtr;
   typedef boost::shared_ptr<const World> WorldConstPtr;
 
-
-#if !USE_OBS_HANDLE
-  template<class ClientType> inline
-  void collision_detection::World::addObserver(ClientType* observer,
-                              void (*callback)(ClientType*, const ObjectConstPtr&, Action))
-  {
-    Observer o(observer, (void (*)(void*, const ObjectConstPtr&, Action))(callback));
-    observers_.push_back(o);
-  }
-
-  template<class ClientType> inline
-  void collision_detection::World::removeObserver(const ClientType* observer)
-  {
-    removeObserverInternal(observer);
-  }
-
-  template<class ClientType> inline
-  void collision_detection::World::notifyObserverAllObjects(const ClientType* observer, Action action)
-  {
-    notifyObserverAllObjectsInternal(observer, action);
-  }
-#endif
 }
 
 
