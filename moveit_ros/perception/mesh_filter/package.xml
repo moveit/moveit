@@ -1,0 +1,57 @@
+<package>
+  <name>mesh_filter</name>
+  <version>0.0.1</version>
+  <description>
+     depth_self_filter
+  </description>
+  <author email="gedikli@me.com">Suat Gedikli</author>
+  <maintainer email="gedikli@me.com">Suat Gedikli</maintainer>
+
+  <license>BSD</license>
+  <url>http://ros.org/wiki/depth_self_filtering</url>
+  
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ldepth_self_filtering -lGLEW" />
+    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
+  </export> 
+  
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>nodelet</build_depend>
+  <build_depend>image_geometry</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>opencv2</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>pcl</build_depend>
+  <build_depend>pcl_ros</build_depend>
+  <build_depend>resource_retriever</build_depend>
+  <build_depend>common_rosdeps</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>libglew-dev</build_depend>
+
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>nodelet</run_depend>
+  <run_depend>image_geometry</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>opencv2</run_depend>
+  <run_depend>cv_bridge</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>urdf</run_depend>
+  <run_depend>pcl</run_depend>
+  <run_depend>pcl_ros</run_depend>
+  <run_depend>resource_retriever</run_depend>
+  <run_depend>common_rosdeps</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>message_filters</run_depend>
+  <run_depend>libglew-dev</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  
+</package>
+
+
