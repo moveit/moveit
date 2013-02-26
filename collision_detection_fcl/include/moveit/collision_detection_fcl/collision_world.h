@@ -86,7 +86,8 @@ namespace collision_detection
     
   private:
     void initialize();
-    static void notifyObjectChange(CollisionWorldFCL *self, const ObjectConstPtr& obj, World::Action action);
+    void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
+    World::ObserverHandle observer_handle_;
   };
   
 }
