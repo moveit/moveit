@@ -40,7 +40,7 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
-#include <moveit/collision_detection/collision_detection_alloc.h>
+#include <moveit/collision_detection/collision_detector_allocator.h>
 #include <moveit/collision_detection/world_diff.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
@@ -120,41 +120,34 @@ public:
   }
 
   /** \brief Add a new collision detector type.
-   * A collision detector type is a valid combination of a subclass of
-   * CollisionWorld and a subclass of collision_detection::CollisionRobot.
+   *
+   * A collision detector type is specified with (a shared pointer to) an
+   * allocator which is a subclass of CollisionDetectorAllocator.  This
+   * identifies a combination of CollisionWorld/CollisionRobot which can ve
+   * used together.
    *
    * This does nothing if this type of collision detector has already been added.
    * 
-   * If no collision detectors have been added before configure is called then
-   * configure will add a default collision detector (FCL).  If any collision
-   * detectors have been added when configure is called then configure will not
-   * add any additional ones (i.e. if a non-FCL collision detector is added
-   * before configure is called then FCL will not be available unless it is
-   * explicitly added with addCollisionDetector() or
-   * setActiveCollisionDetector()).
-   */
-  template<typename CollisionWorldType, typename CollisionRobotType>
-  void addCollisionDetector()
-  {
-    addCollisionDetectorInternal(new collision_detection::CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
-  }
+   * If no collision detectors have been added before configure() is called
+   * then configure will add a default collision detector (FCL).  However, if
+   * other collision detectors ARE added before configure() is called then FCL
+   * will NOT be automatically added by configure, and FCL will not be
+   * available unless it is explicitly added with addCollisionDetector(). */
+  void addCollisionDetector(const CollisionDetectorAllocatorPtr& allocator);
 
   /** \brief Set the type of collision detector to use.
-   * Calls addCollisionDetector() to add it if it has not already been added.
-   * Returns true if the detector was added or had already been added.
-   * Returns false if an error occurs. */
-  template<typename CollisionWorldType, typename CollisionRobotType>
-  bool setActiveCollisionDetector()
+   * Calls addCollisionDetector() to add it if it has not already been added. */
+  void setActiveCollisionDetector(const CollisionDetectorAllocatorPtr& allocator)
   {
-    collision_detection::CollisionDetectionAllocBasePtr alloc(new collision_detection::CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
-    addCollisionDetectorInternal(alloc);
+    addCollisionDetector(allocator);
     setActiveCollisionDetector(alloc->getCollisionDetectorName());
   }
-
 
   /** \brief Set the type of collision detector to use.
    * This type must have already been added with addCollisionDetector(). */
   void setActiveCollisionDetector(const std::string& collision_detector_name);
+
+  const std::string& getActiveCollisionDetectorName() const;
 
   /** \brief get the types of collision detector that have already been added.
    * These are the types which can be passed to setActiveCollisionDetector(). */
@@ -569,23 +562,23 @@ protected:
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
 
-  struct CollisionDetection;
-  typedef boost::shared_ptr<CollisionDetection> CollisionDetectionPtr;
-  typedef boost::shared_ptr<const CollisionDetection> CollisionDetectionConstPtr;
+  struct CollisionDetector;
+  typedef boost::shared_ptr<CollisionDetector> CollisionDetectorPtr;
+  typedef boost::shared_ptr<const CollisionDetector> CollisionDetectorConstPtr;
 
   /** \brief A set of compatible collision detectors */
-  struct CollisionDetection
+  struct CollisionDetector
   {
-    collision_detection::CollisionDetectionAllocBasePtr alloc_;
-    collision_detection::CollisionRobotPtr         crobot_unpadded_;
-    collision_detection::CollisionRobotConstPtr    crobot_unpadded_const_;
-    collision_detection::CollisionRobotPtr         crobot_;
-    collision_detection::CollisionRobotConstPtr    crobot_const_;
-
-    collision_detection::CollisionWorldPtr         cworld_;
-    collision_detection::CollisionWorldConstPtr    cworld_const_;
-
-    CollisionDetectionConstPtr                     parent_;
+    collision_detection::CollisionDetectorAllocatorPtr alloc_;
+    collision_detection::CollisionRobotPtr             crobot_unpadded_;
+    collision_detection::CollisionRobotConstPtr        crobot_unpadded_const_;
+    collision_detection::CollisionRobotPtr             crobot_;
+    collision_detection::CollisionRobotConstPtr        crobot_const_;
+                                                       
+    collision_detection::CollisionWorldPtr             cworld_;
+    collision_detection::CollisionWorldConstPtr        cworld_const_;
+                                                       
+    CollisionDetectorConstPtr                          parent_;
 
     const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
     {
@@ -596,13 +589,12 @@ protected:
       return crobot_unpadded_const_ ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
     }
     void findParent(const PlanningScene& scene);
-    void copyPadding(const CollisionDetection& src);
+    void copyPadding(const CollisionDetector& src);
   };
-  friend struct CollisionDetection;
+  friend struct CollisionDetector;
 
   void allocateCollisionDetectors();
-  void allocateCollisionDetectors(CollisionDetection& detection);
-  void addCollisionDetectorInternal(collision_detection::CollisionDetectionAllocBasePtr alloc);
+  void allocateCollisionDetectors(CollisionDetector& detector);
 
 
 
@@ -622,12 +614,12 @@ protected:
   collision_detection::WorldConstPtr             world_const_;
   collision_detection::WorldDiffPtr              world_diff_;
 
-  std::map<std::string, CollisionDetectionPtr>   collision_;
-  CollisionDetectionPtr                          active_collision_;
-  CollisionDetectionConstPtr                     active_collision_const_;
+  std::map<std::string, CollisionDetectorPtr>   collision_;
+  CollisionDetectorPtr                          active_collision_;
+  CollisionDetectorConstPtr                     active_collision_const_;
 
-  typedef std::map<std::string, CollisionDetectionPtr>::iterator CollisionDetectionIterator;
-  typedef std::map<std::string, CollisionDetectionPtr>::const_iterator CollisionDetectionConstIterator;
+  typedef std::map<std::string, CollisionDetectorPtr>::iterator CollisionDetectorIterator;
+  typedef std::map<std::string, CollisionDetectorPtr>::const_iterator CollisionDetectorConstIterator;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 

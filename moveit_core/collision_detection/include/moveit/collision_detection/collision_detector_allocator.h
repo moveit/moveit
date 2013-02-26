@@ -78,12 +78,12 @@ namespace collision_detection
       return CollisionDetectorAllocatorType::NAME_;
     }
 
-    virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) = 0;
+    virtual CollisionWorldPtr allocateWorld(const WorldPtr& world)
     {
       return CollisionWorldPtr(new CollisionWorldType(world));
     }
 
-    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr &orig, const WorldPtr& world) = 0;
+    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr &orig, const WorldPtr& world)
     {
       return CollisionWorldPtr(new CollisionWorldType(orig, world));
     }
@@ -93,7 +93,7 @@ namespace collision_detection
       return CollisionRobotPtr(new CollisionRobotType(robot_model));
     }
 
-    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr &orig) = 0;
+    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr &orig)
     {
       return CollisionRobotPtr(new CollisionRobotType(orig));
     }
