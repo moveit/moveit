@@ -235,7 +235,7 @@ void collision_detection::World::notify(const ObjectConstPtr& obj, Action action
     (*obs)->callback_(obj, action);
 }
 
-void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action)
+void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
 {
   for (std::vector<Observer*>::const_iterator obs=observers_.begin(); obs!=observers_.end(); ++obs)
   {
