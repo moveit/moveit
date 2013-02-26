@@ -38,6 +38,8 @@
 #define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER__
 
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <moveit/mesh_filter/mesh_filter_base.h>
+#include <geometric_shapes/shapes.h>
 #include <boost/shared_ptr.hpp>
 
 namespace occupancy_map_monitor
@@ -69,23 +71,30 @@ public:
   virtual void start() = 0;
   
   virtual void stop() = 0;
-  
+
+  virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape) = 0;
+
   const std::string& getType() const
   {
     return type_;
   } 
 
+  virtual void setTransformCallback(const boost::function<bool(mesh_filter::MeshHandle, Eigen::Affine3d&)> &transform_callback)
+  {
+    transform_provider_callback_ = transform_callback;
+  }
+
   void setUpdateCallback(const boost::function<void()> &update_callback)
   {
     update_callback_ = update_callback;
   }
-
   
 protected:
   
   OccupancyMapMonitor *monitor_;
   std::string type_;  
   boost::function<void()> update_callback_;
+  boost::function<bool(mesh_filter::MeshHandle, Eigen::Affine3d&)> transform_provider_callback_;
   
   void triggerUpdateCallback(void)
   {

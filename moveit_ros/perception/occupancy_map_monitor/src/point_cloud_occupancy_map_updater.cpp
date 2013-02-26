@@ -139,10 +139,17 @@ void PointCloudOccupancyMapUpdater::stop()
   point_cloud_subscriber_ = NULL;
 }
 
+mesh_filter::MeshHandle PointCloudOccupancyMapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
+{
+  mesh_filter::MeshHandle h = 0;
+  return h;
+}
+
 void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
 {
   ROS_DEBUG("Received a new point cloud message");
-  
+  ros::WallTime start = ros::WallTime::now();
+
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(cloud_msg->header.frame_id);
   
@@ -258,6 +265,7 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
   {
   }
   tree->unlockWrite();
+  ROS_INFO("Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
   triggerUpdateCallback();
 }
 

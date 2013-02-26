@@ -79,7 +79,7 @@ class GLMesh
      * \param[out] normals
      * \author Suat Gedikli (gedikli@willowgarage.com)
      */
-    static void calculateVertexNormals (const shapes::Mesh& mesh, std::vector<Eigen::Vector3f>& normals);
+    static void averageVertexNormals (const shapes::Mesh& mesh, std::vector<Eigen::Vector3f>& normals);
     
     /** \brief the OpenGL mesh represented as a OpenGL list */
     GLuint list_;

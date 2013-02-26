@@ -45,7 +45,7 @@ using shapes::Mesh;
 mesh_filter::GLMesh::GLMesh (const Mesh& mesh, unsigned int mesh_label)
 {
   vector<Vector3f> normals;
-  calculateVertexNormals(mesh, normals);
+  averageVertexNormals(mesh, normals);
   
   mesh_label_ = mesh_label;
   list_ = glGenLists(1);
@@ -88,32 +88,36 @@ void mesh_filter::GLMesh::render (const Affine3d& transform) const
   glPopMatrix();
 }
 
-void mesh_filter::GLMesh::calculateVertexNormals (const Mesh& mesh, vector<Eigen::Vector3f>& normals)
+void mesh_filter::GLMesh::averageVertexNormals (const Mesh& mesh, vector<Eigen::Vector3f>& normals)
 {
   // get average normals!
   normals.resize (mesh.vertex_count, Vector3f (0, 0, 0));
   
   for (unsigned tIdx = 0; tIdx < mesh.triangle_count; ++tIdx)
   {
-    unsigned v1 = mesh.triangles [3*tIdx];
-    unsigned v2 = mesh.triangles [3*tIdx + 1];
-    unsigned v3 = mesh.triangles [3*tIdx + 2];
-
-    normals [v1][0] += mesh.normals [3*tIdx + 0];
-    normals [v1][1] += mesh.normals [3*tIdx + 1];
-    normals [v1][2] += mesh.normals [3*tIdx + 2];
-
-    normals [v2][0] += mesh.normals [3*tIdx + 0];
-    normals [v2][1] += mesh.normals [3*tIdx + 1];
-    normals [v2][2] += mesh.normals [3*tIdx + 2];
+    unsigned tIdx3 = 3 * tIdx;
+    unsigned tIdx3_1 = tIdx3 + 1;
+    unsigned tIdx3_2 = tIdx3 + 2;
     
-    normals [v3][0] += mesh.normals [3*tIdx + 0];
-    normals [v3][1] += mesh.normals [3*tIdx + 1];
-    normals [v3][2] += mesh.normals [3*tIdx + 2];
+    unsigned v1 = mesh.triangles [tIdx3];
+    unsigned v2 = mesh.triangles [tIdx3_1];
+    unsigned v3 = mesh.triangles [tIdx3_2];
+
+    normals [v1][0] += mesh.normals [tIdx3];
+    normals [v1][1] += mesh.normals [tIdx3_1];
+    normals [v1][2] += mesh.normals [tIdx3_2];
+
+    normals [v2][0] += mesh.normals [tIdx3];
+    normals [v2][1] += mesh.normals [tIdx3_1];
+    normals [v2][2] += mesh.normals [tIdx3_2];
+    
+    normals [v3][0] += mesh.normals [tIdx3];
+    normals [v3][1] += mesh.normals [tIdx3_1];
+    normals [v3][2] += mesh.normals [tIdx3_2];
   }
   for (vector<Vector3f>::iterator nIt = normals.begin (); nIt != normals.end (); ++nIt)
   {
-    if (nIt->squaredNorm () != 0)
+    if (nIt->squaredNorm () > 0)
       nIt->normalize ();
   }
 }
