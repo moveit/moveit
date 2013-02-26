@@ -72,7 +72,7 @@ public:
 
   CollisionWorldDistanceField(const CollisionWorldDistanceField &other, const WorldPtr& world);
 
-  virtual ~CollisionWorldDistanceField(){}
+  virtual ~CollisionWorldDistanceField();
 
   static const std::string& getCollisionDetectorName(CollisionRobotDistanceField* robot_type);
   static const std::string COLLISION_DETECTOR_DISTANCE_FIELD;
@@ -198,6 +198,7 @@ protected:
   mutable boost::mutex update_cache_lock_;
   boost::shared_ptr<DistanceFieldCacheEntry> distance_field_cache_entry_;
   //boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> last_gsr_;  
+  World::ObserverHandle observer_handle_;
 };
 
 }

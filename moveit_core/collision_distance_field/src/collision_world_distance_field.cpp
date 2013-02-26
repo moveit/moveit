@@ -38,9 +38,15 @@
 #include <moveit/collision_distance_field/collision_common_distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <boost/make_shared.hpp>
+#include <boost/bind.hpp>
 
 namespace collision_detection
 {
+
+CollisionWorldDistanceField::~CollisionWorldDistanceField()
+{
+  getWorld()->removeObserver(observer_handle_);
+}
 
 CollisionWorldDistanceField::CollisionWorldDistanceField(double size_x, 
                                                          double size_y,
@@ -61,7 +67,7 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(double size_x,
   distance_field_cache_entry_ = generateDistanceFieldCacheEntry();
 
   // request notifications about changes to world
-  getWorld()->addObserver(this, notifyObjectChange);
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldDistanceField::notifyObjectChange, this, _1, _2));
 }
 
 CollisionWorldDistanceField::CollisionWorldDistanceField(const WorldPtr& world,
@@ -84,8 +90,8 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(const WorldPtr& world,
   distance_field_cache_entry_ = generateDistanceFieldCacheEntry();
 
   // request notifications about changes to world
-  getWorld()->addObserver(this, notifyObjectChange);
-  getWorld()->notifyObserverAllObjects(this, World::CREATE);
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldDistanceField::notifyObjectChange, this, _1, _2));
+  getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
 CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDistanceField& other,
@@ -102,8 +108,8 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDis
   distance_field_cache_entry_ = generateDistanceFieldCacheEntry();
 
   // request notifications about changes to world
-  getWorld()->addObserver(this, notifyObjectChange);
-  getWorld()->notifyObserverAllObjects(this, World::CREATE);
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldDistanceField::notifyObjectChange, this, _1, _2));
+  getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
 void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, 
@@ -435,7 +441,7 @@ void CollisionWorldDistanceField::setWorld(const WorldPtr& world)
     return;
 
   // turn off notifications about old world
-  getWorld()->removeObserver(this);
+  getWorld()->removeObserver(observer_handle_);
 
   // clear out objects from old world
   distance_field_cache_entry_->distance_field_->reset();
@@ -443,10 +449,10 @@ void CollisionWorldDistanceField::setWorld(const WorldPtr& world)
   CollisionWorld::setWorld(world);
 
   // request notifications about changes to new world
-  getWorld()->addObserver(this, notifyObjectChange);
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldDistanceField::notifyObjectChange, this, _1, _2));
 
   // get notifications any objects already in the new world
-  getWorld()->notifyObserverAllObjects(this, World::CREATE);
+  getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
 void CollisionWorldDistanceField::notifyObjectChange(CollisionWorldDistanceField *self, const ObjectConstPtr& obj, World::Action action)

@@ -48,7 +48,7 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL() :
   manager_.reset(m);
 
   // request notifications about changes to new world
-  getWorld()->addObserver(this, notifyObjectChange);
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
 }
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world) :
@@ -59,8 +59,8 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world)
   manager_.reset(m);
 
   // request notifications about changes to new world
-  getWorld()->addObserver(this, notifyObjectChange);
-  getWorld()->notifyObserverAllObjects(this, World::CREATE);
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
+  getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other, const WorldPtr& world) :
@@ -76,11 +76,12 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFC
   // manager_->update();
 
   // request notifications about changes to new world
-  getWorld()->addObserver(this, notifyObjectChange);
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
 }
 
 collision_detection::CollisionWorldFCL::~CollisionWorldFCL()
 {
+  getWorld()->removeObserver(observer_handle_);
 }
 
 const std::string& collision_detection::CollisionWorldFCL::getCollisionDetectorName(CollisionRobotFCL* robot_type)
@@ -199,7 +200,7 @@ void collision_detection::CollisionWorldFCL::setWorld(const WorldPtr& world)
     return;
 
   // turn off notifications about old world
-  getWorld()->removeObserver(this);
+  getWorld()->removeObserver(observer_handle_);
 
   // clear out objects from old world
   manager_->clear();
@@ -209,28 +210,28 @@ void collision_detection::CollisionWorldFCL::setWorld(const WorldPtr& world)
   CollisionWorld::setWorld(world);
 
   // request notifications about changes to new world
-  getWorld()->addObserver(this, notifyObjectChange);
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
 
   // get notifications any objects already in the new world
-  getWorld()->notifyObserverAllObjects(this, World::CREATE);
+  getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-void collision_detection::CollisionWorldFCL::notifyObjectChange(CollisionWorldFCL *self, const ObjectConstPtr& obj, World::Action action)
+void collision_detection::CollisionWorldFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
 {
   if (action == World::DESTROY)
   {
-    std::map<std::string, FCLObject>::iterator it = self->fcl_objs_.find(obj->id_);
-    if (it != self->fcl_objs_.end())
+    std::map<std::string, FCLObject>::iterator it = fcl_objs_.find(obj->id_);
+    if (it != fcl_objs_.end())
     {
-      it->second.unregisterFrom(self->manager_.get());
+      it->second.unregisterFrom(manager_.get());
       it->second.clear();
-      self->fcl_objs_.erase(it);
+      fcl_objs_.erase(it);
     }
     cleanCollisionGeometryCache();
   }
   else
   {
-    self->updateFCLObject(obj->id_);
+    updateFCLObject(obj->id_);
     if (action & (World::DESTROY|World::REMOVE_SHAPE))
       cleanCollisionGeometryCache();
   }
