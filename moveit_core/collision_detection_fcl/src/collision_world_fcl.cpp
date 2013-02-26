@@ -285,3 +285,7 @@ double collision_detection::CollisionWorldFCL::distanceWorldHelper(const Collisi
 
   return res.distance;
 }
+
+#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
+const std::string collision_detection::CollisionDetectorAllocatorFCL::NAME_("FCL");
+
