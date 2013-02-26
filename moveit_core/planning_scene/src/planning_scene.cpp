@@ -454,7 +454,7 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
 
   if (world_diff_)
   {
-    for (collision_detection::WorldDiff::Iterator it=world_diff_->begin(); it!=world_diff_->end(); ++it)
+    for (collision_detection::WorldDiff::const_iterator it=world_diff_->begin(); it!=world_diff_->end(); ++it)
     {
       if (it->second == collision_detection::World::DESTROY)
       {
@@ -694,7 +694,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
   {
     bool do_cmap = false;
     bool do_omap = false;
-    for (collision_detection::WorldDiff::Iterator it=world_diff_->begin(); it!=world_diff_->end(); ++it)
+    for (collision_detection::WorldDiff::const_iterator it=world_diff_->begin(); it!=world_diff_->end(); ++it)
     {
       if (it->first == COLLISION_MAP_NS)
         do_cmap = true;

@@ -77,24 +77,24 @@ namespace collision_detection
       return changes_;
     }
 
-    typedef std::map<std::string, World::Action>::const_iterator Iterator;
+    typedef std::map<std::string, World::Action>::const_iterator const_iterator;
     /** iterator pointing to first change */
-    Iterator begin()
+    const_iterator begin() const
     {
       return changes_.begin();
     }
     /** iterator pointing to end of changes */
-    Iterator end()
+    const_iterator end() const
     {
       return changes_.end();
     }
     /** number of changes stored */
-    std::map<std::string, World::Action>::size_type size()
+    std::map<std::string, World::Action>::size_type size() const
     {
       return changes_.size();
     }
     /** find changes for a named object */
-    Iterator find(const std::string& id)
+    const_iterator find(const std::string& id) const
     {
       return changes_.find(id);
     }
