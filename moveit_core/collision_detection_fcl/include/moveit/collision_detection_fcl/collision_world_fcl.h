@@ -48,7 +48,7 @@ namespace collision_detection
   public:
     
     CollisionWorldFCL();
-    CollisionWorldFCL(const WorldPtr& world);
+    explicit CollisionWorldFCL(const WorldPtr& world);
     CollisionWorldFCL(const CollisionWorldFCL &other, const WorldPtr& world);
     virtual ~CollisionWorldFCL();
 
