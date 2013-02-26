@@ -31,14 +31,18 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
-#ifndef __TRANSFORM_PROVIDER_H__
-#define __TRANSFORM_PROVIDER_H__
+
+/* Author: Suat Gedikli */
+
+#ifndef MOVEIT_MESH_FILTER_TRANSFORM_PROVIDER_
+#define MOVEIT_MESH_FILTER_TRANSFORM_PROVIDER_
+
 #include <string>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/shared_ptr.hpp>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <mesh_filter/mesh_filter_base.h>
+#include <moveit/mesh_filter/mesh_filter_base.h>
 #include <map>
 
 namespace tf

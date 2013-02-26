@@ -31,6 +31,9 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
+
+/* Author: Suat Gedikli */
+
 #include <mesh_filter/transform_provider.h>
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>

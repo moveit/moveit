@@ -31,11 +31,14 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
-#include <mesh_filter/mesh_filter.h>
-#include <mesh_filter/gl_mesh.h>
+
+/* Author: Suat Gedikli */
+
+#include <moveit/mesh_filter/mesh_filter.h>
+#include <moveit/mesh_filter/gl_mesh.h>
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_operations.h>
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Eigen>
 #include <stdexcept>
 #include <sensor_msgs/image_encodings.h>
 #include <cv.h>

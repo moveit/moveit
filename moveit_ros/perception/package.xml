@@ -25,6 +25,9 @@
   <build_depend>message_filters</build_depend>
   <build_depend>octomap</build_depend>
   <build_depend>image_transport</build_depend>
+  <build_depend>glut</build_depend>
+  <build_depend>libglew-dev</build_depend>
+  <build_depend>opengl</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>pcl_ros</run_depend>
@@ -36,5 +39,8 @@
   <run_depend>message_filters</run_depend>
   <run_depend>octomap</run_depend>
   <run_depend>image_transport</run_depend>
+  <run_depend>glut</run_depend>
+  <run_depend>libglew-dev</run_depend>
+  <run_depend>opengl</run_depend>
 
 </package>

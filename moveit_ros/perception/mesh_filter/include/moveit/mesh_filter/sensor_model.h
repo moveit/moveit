@@ -31,9 +31,13 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
-#ifndef __MESH_FILTER_SENSOR_MODEL_H__
-#define __MESH_FILTER_SENSOR_MODEL_H__
-#include <eigen3/Eigen/Eigen>
+
+/* Author: Suat Gedikli */
+
+#ifndef MOVEIT_MESH_FILTER_SENSOR_MODEL_
+#define MOVEIT_MESH_FILTER_SENSOR_MODEL_
+
+#include <Eigen/Eigen>
 
 namespace mesh_filter
 {

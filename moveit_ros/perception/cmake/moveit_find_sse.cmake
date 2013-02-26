@@ -1,6 +1,6 @@
 ###############################################################################
 # Check for the presence of SSE and figure out the flags to use for it.
-macro(PCL_CHECK_FOR_SSE)
+macro(MOVEIT_CHECK_FOR_SSE)
     set(SSE_FLAGS)
 
     # Test CLANG
@@ -185,11 +185,11 @@ macro(PCL_CHECK_FOR_SSE)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${SSE_FLAGS}")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${SSE_FLAGS}")
 
-endmacro(PCL_CHECK_FOR_SSE)
+endmacro(MOVEIT_CHECK_FOR_SSE)
 
 ###############################################################################
 # Check for the presence of SSE 4.1
-macro(PCL_CHECK_FOR_SSE4_1)
+macro(MOVEIT_CHECK_FOR_SSE4_1)
   include(CheckCXXSourceRuns)
   set(CMAKE_REQUIRED_FLAGS)
 
@@ -211,11 +211,11 @@ macro(PCL_CHECK_FOR_SSE4_1)
         return 0;
       }"
       HAVE_SSE4_1_EXTENSIONS)
-endmacro(PCL_CHECK_FOR_SSE4_1)
+endmacro(MOVEIT_CHECK_FOR_SSE4_1)
 
 ###############################################################################
 # Check for the presence of SSE 3
-macro(PCL_CHECK_FOR_SSE3)
+macro(MOVEIT_CHECK_FOR_SSE3)
   include(CheckCXXSourceRuns)
   set(CMAKE_REQUIRED_FLAGS)
 
@@ -235,4 +235,4 @@ macro(PCL_CHECK_FOR_SSE3)
           return (0);
       }"
       HAVE_SSE3_EXTENSIONS)
-endmacro(PCL_CHECK_FOR_SSE3)
+endmacro(MOVEIT_CHECK_FOR_SSE3)

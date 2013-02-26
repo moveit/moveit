@@ -31,16 +31,20 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
-#pragma once
+
+/* Author: Suat Gedikli */
+
+#ifndef MOVEIT_DEPTH_SELF_FILTER_NODELET_
+#define MOVEIT_DEPTH_SELF_FILTER_NODELET_
+
 #include <nodelet/nodelet.h>
 #include <image_transport/image_transport.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
-#include <mesh_filter/transform_provider.h>
-#include <mesh_filter/mesh_filter.h>
-#include <mesh_filter/stereo_camera_model.h>
-
+#include <moveit/mesh_filter/transform_provider.h>
+#include <moveit/mesh_filter/mesh_filter.h>
+#include <moveit/mesh_filter/stereo_camera_model.h>
 
 namespace mesh_filter
 {
@@ -138,3 +142,5 @@ class DepthSelfFiltering : public nodelet::Nodelet
 };
 
 } //namespace mesh_filter
+
+#endif

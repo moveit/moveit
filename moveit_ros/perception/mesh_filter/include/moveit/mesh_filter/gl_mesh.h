@@ -31,15 +31,17 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
-#ifndef __MESH_FILTER_MESHFILTER_H__
-#define __MESH_FILTER_MESHFILTER_H__
-#include <map>
-#include <mesh_filter/gl_renderer.h>
-#include <mesh_filter/mesh_filter_base.h>
-#include <boost/function.hpp>
-#include <eigen3/Eigen/Eigen>
 
-//forward declarations
+/* Author: Suat Gedikli */
+
+#ifndef MOVEIT_MESH_FILTER_GLMESH_
+#define MOVEIT_MESH_FILTER_GLMESH_
+
+#include <Eigen/Eigen>
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <vector>
+
 namespace shapes
 {
   class Mesh;
@@ -47,62 +49,43 @@ namespace shapes
 
 namespace mesh_filter
 {
-
-class GLMesh;
-
 /**
- * \brief MeshFilter filters out points that belong to given meshes in depth-images
+ * \brief GLMesh represents a mesh from geometric_shapes for rendering in GL frame buffers
  * \author Suat Gedikli (gedikli@willowgarage.com)
  */
-
-template <typename SensorType>
-class MeshFilter : public MeshFilterBase
+class GLMesh
 {
   public:
     /**
-     * \brief Constructor
+     * \brief Constucts a GLMesh object for given mesh and label
      * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] transform_callback Callback function that is called for each mesh to obtain the current transformation.
-     * \note the callback expects the mesh handle but no time stamp. Its the users responsibility to return the correct transformation.
+     * \param[in] mesh
+     * \param[in] mesh_label
      */
-    MeshFilter (const TransformCallback& transform_callback,
-                const typename SensorType::Parameters& sensor_parameters = typename SensorType::Parameters ());
-
-    /**
-     * \brief returns the Sensor Parameters
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \return reference of the parameters object of the used Sensor
-     */
-    typename SensorType::Parameters& parameters ();
+    GLMesh (const shapes::Mesh& mesh, unsigned int mesh_label);
     
+    /** \brief Destructor*/
+    ~GLMesh ();
     /**
-     * \brief returns the Sensor Parameters
+     * \brief renders the mesh in current OpenGL frame buffer (context)
+     * \param[in] transform the modelview transformation describing the pose of the mesh in camera coordinate frame
      * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \return const reference of the parameters object of the used Sensor
      */
-    const typename SensorType::Parameters& parameters () const;
+    void render (const Eigen::Affine3d& transform) const;
+  private:
+    /**
+     * \brief calculates the vertex normals by averaging the normals of all triangles sharing that vertex
+     * \param[in] mesh
+     * \param[out] normals
+     * \author Suat Gedikli (gedikli@willowgarage.com)
+     */
+    static void calculateVertexNormals (const shapes::Mesh& mesh, std::vector<Eigen::Vector3f>& normals);
+    
+    /** \brief the OpenGL mesh represented as a OpenGL list */
+    GLuint list_;
+    
+    /** \brief label of current mesh*/
+    unsigned int mesh_label_;
 };
-
-template<typename SensorType>
-MeshFilter<SensorType>::MeshFilter (const TransformCallback& transform_callback,
-                                    const typename SensorType::Parameters& sensor_parameters)
-: MeshFilterBase (transform_callback, sensor_parameters,
-                  SensorType::renderVertexShaderSource, SensorType::renderFragmentShaderSource,
-                  SensorType::filterVertexShaderSource, SensorType::filterFragmentShaderSource)
-{
-}
-
-template<typename SensorType>
-typename SensorType::Parameters& MeshFilter<SensorType>::parameters ()
-{
-  return static_cast<typename SensorType::Parameters&> (*sensor_parameters_);
-}
-
-template<typename SensorType>
-const typename SensorType::Parameters& MeshFilter<SensorType>::parameters () const
-{
-  return static_cast<typename SensorType::Parameters&> (*sensor_parameters_);
-}
-
-} //namespace mesh_filter
+} // namespace mesh_filter
 #endif
