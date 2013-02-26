@@ -62,6 +62,7 @@ private:
   void stopHelper();
   
   ros::NodeHandle nh_; 
+  boost::shared_ptr<tf::Transformer> tf_;
   image_transport::ImageTransport input_depth_transport_;
   image_transport::CameraSubscriber sub_depth_image_;
 
@@ -72,6 +73,12 @@ private:
   double padding_coefficient_0_;
   double padding_coefficient_1_;
   double padding_coefficient_2_;
+
+  /* used to store all cells in the map which a given ray passes through during raycasting.
+     we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */
+  octomap::KeyRay key_ray_;
+
+  std::vector<float> x_cache_, y_cache_;
 };
 }
 
