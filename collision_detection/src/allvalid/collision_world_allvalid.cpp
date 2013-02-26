@@ -115,3 +115,7 @@ double collision_detection::CollisionWorldAllValid::distanceWorld(const Collisio
 {
   return 0.0;
 }
+
+
+#include <moveit/collision_detection/allvalid/collision_detector_allocator_allvalid.h>
+const std::string collision_detection::CollisionDetectorAllocatorAllValid::NAME_("ALL_VALID");

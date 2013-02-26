@@ -195,3 +195,6 @@ void CollisionWorldHybrid::getAllCollisions(const CollisionRequest &req,
 }
 
 }
+
+#include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
+const std::string collision_detection::CollisionDetectorAllocatorHybrid::NAME_("HYBRID");
