@@ -35,8 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_scene/planning_scene.h>
-#include <moveit/collision_detection_fcl/collision_world_fcl.h>
-#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
+#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
@@ -217,13 +216,13 @@ bool planning_scene::PlanningScene::configure(const robot_model::RobotModelPtr &
       // copy-on-write when things change.
       world_.reset(new collision_detection::World(*parent_->world_));
       collision_.clear();
-      for (CollisionDetectionConstIterator it = parent_->collision_.begin();
+      for (CollisionDetectorConstIterator it = parent_->collision_.begin();
            it != parent_->collision_.end();
            ++it)
       {
-        const CollisionDetectionPtr& parent_detector = it->second;
-        CollisionDetectionPtr& detector = collision_[it->first];
-        detector.reset(new CollisionDetection);
+        const CollisionDetectorPtr& parent_detector = it->second;
+        CollisionDetectorPtr& detector = collision_[it->first];
+        detector.reset(new CollisionDetector);
         detector->alloc_ = parent_detector->alloc_;
         detector->parent_ = parent_detector;
 
@@ -251,7 +250,7 @@ bool planning_scene::PlanningScene::configure(const robot_model::RobotModelPtr &
   return isConfigured();
 }
 
-void planning_scene::PlanningScene::CollisionDetection::copyPadding(const planning_scene::PlanningScene::CollisionDetection& src)
+void planning_scene::PlanningScene::CollisionDetector::copyPadding(const planning_scene::PlanningScene::CollisionDetector& src)
 {
   if (!crobot_)
   {
@@ -268,24 +267,24 @@ void planning_scene::PlanningScene::propogateRobotPadding()
   if (!active_collision_->crobot_)
     return;
 
-  for (CollisionDetectionIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
   {
     if (it->second != active_collision_)
       it->second->copyPadding(*active_collision_);
   }
 }
 
-void planning_scene::PlanningScene::CollisionDetection::findParent(const PlanningScene& scene)
+void planning_scene::PlanningScene::CollisionDetector::findParent(const PlanningScene& scene)
 {
   if (parent_ || !scene.parent_)
     return;
   
-  CollisionDetectionConstIterator it = scene.parent_->collision_.find(alloc_->getCollisionDetectorName());
+  CollisionDetectorConstIterator it = scene.parent_->collision_.find(alloc_->getName());
   if (it != scene.parent_->collision_.end())
     parent_ = it->second->parent_;
 }
 
-void planning_scene::PlanningScene::allocateCollisionDetectors(CollisionDetection& detector)
+void planning_scene::PlanningScene::allocateCollisionDetectors(CollisionDetector& detector)
 {
   // always allocate the CollisionWorld
   if (!detector.cworld_)
@@ -320,23 +319,23 @@ void planning_scene::PlanningScene::allocateCollisionDetectors(CollisionDetectio
 void planning_scene::PlanningScene::allocateCollisionDetectors()
 {
   if (collision_.empty())
-    setActiveCollisionDetector<collision_detection::CollisionWorldFCL, collision_detection::CollisionRobotFCL>();
+    setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
   
   allocateCollisionDetectors(*active_collision_);
 
-  for (CollisionDetectionConstIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (CollisionDetectorConstIterator it = collision_.begin(); it != collision_.end(); ++it)
     allocateCollisionDetectors(*it->second);
 }
 
 void planning_scene::PlanningScene::addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator)
 {
-  const std::string& name = allocator->getCollisionDetectorName();
-  CollisionDetectionPtr& detector = collision_[name];
+  const std::string& name = allocator->getName();
+  CollisionDetectorPtr& detector = collision_[name];
 
   if (detector)  // already added this one
     return;
 
-  detector.reset(new CollisionDetection);
+  detector.reset(new CollisionDetector);
 
   detector->alloc_ = allocator;
 
@@ -349,7 +348,7 @@ void planning_scene::PlanningScene::addCollisionDetector(const collision_detecti
 
 void planning_scene::PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
 {
-  CollisionDetectionIterator it = collision_.find(collision_detector_name);
+  CollisionDetectorIterator it = collision_.find(collision_detector_name);
   if (it != collision_.end())
     active_collision_ = it->second;
   else
@@ -369,7 +368,7 @@ const std::string& planning_scene::PlanningScene::getActiveCollisionDetectorName
 void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) const
 {
   names.clear();
-  for (CollisionDetectionConstIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (CollisionDetectorConstIterator it = collision_.begin(); it != collision_.end(); ++it)
   {
     names.push_back(it->first);
   }
@@ -402,7 +401,7 @@ void planning_scene::PlanningScene::clearDiffs()
   world_diff_.reset(new collision_detection::WorldDiff(world_));
 
   // use parent crobot_ if it exists.  Otherwise copy padding from parent.
-  for (CollisionDetectionIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
   {
     if (!it->second->parent_)
       it->second->findParent(*this);
@@ -1000,7 +999,7 @@ void planning_scene::PlanningScene::decoupleParent()
     if (!acm_)
       acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
 
-    for (CollisionDetectionIterator it = collision_.begin(); it != collision_.end(); ++it)
+    for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
     {
       if (!it->second->crobot_)
       {
@@ -1079,7 +1078,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
   if (!scene_msg.link_padding.empty() || !scene_msg.link_scale.empty())
   {
-    for (CollisionDetectionIterator it = collision_.begin(); it != collision_.end(); ++it)
+    for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
     {
       if (!it->second->crobot_)
       {
@@ -1131,7 +1130,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   kstate_->clearAttachedBodies();
   setCurrentState(scene_msg.robot_state);
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene_msg.allowed_collision_matrix));
-  for (CollisionDetectionIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
   {
     it->second->crobot_->setPadding(scene_msg.link_padding);
     it->second->crobot_->setScale(scene_msg.link_scale);
