@@ -346,13 +346,19 @@ void planning_scene::PlanningScene::addCollisionDetector(const collision_detecti
     allocateCollisionDetectors(*detector);
 }
 
-void planning_scene::PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
+bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
 {
   CollisionDetectorIterator it = collision_.find(collision_detector_name);
   if (it != collision_.end())
+  {
     active_collision_ = it->second;
+    return true;
+  }
   else
+  {
     logError("No collision detector named %s has been added to PlanningScene", collision_detector_name.c_str());
+    return false;
+  }
 }
 
 const std::string& planning_scene::PlanningScene::getActiveCollisionDetectorName() const

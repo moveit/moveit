@@ -144,8 +144,12 @@ public:
   }
 
   /** \brief Set the type of collision detector to use.
-   * This type must have already been added with addCollisionDetector(). */
-  void setActiveCollisionDetector(const std::string& collision_detector_name);
+   * This type must have already been added with addCollisionDetector().
+   *
+   * Returns true on success, false if \e collision_detector_name is not the
+   * name of a collision detector that has been previously added with
+   * addCollisionDetector(). */
+  bool setActiveCollisionDetector(const std::string& collision_detector_name);
 
   const std::string& getActiveCollisionDetectorName() const;
 
