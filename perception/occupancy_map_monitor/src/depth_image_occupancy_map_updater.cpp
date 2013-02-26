@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney, Ioan Sucan */
+/* Author: Ioan Sucan, Suat Gedikli, Jon Binney */
 
 #include <moveit/occupancy_map_monitor/depth_image_occupancy_map_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
@@ -44,6 +44,7 @@ namespace occupancy_map_monitor
 DepthImageOccupancyMapUpdater::DepthImageOccupancyMapUpdater(OccupancyMapMonitor *monitor) :
   OccupancyMapUpdater(monitor, "DepthImageUpdater"),
   nh_("~"),
+  tf_(monitor->getTFClient()),
   input_depth_transport_(nh_),
   queue_size_(5),
   near_clipping_plane_distance_(0.4),
@@ -101,8 +102,111 @@ void DepthImageOccupancyMapUpdater::stopHelper()
 
 void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg)
 {
+  
+  ROS_DEBUG("Received a new point cloud message");
+  
+  if (monitor_->getMapFrame().empty())
+    monitor_->setMapFrame(depth_msg->header.frame_id);
+  
+  /* get transform for cloud into map frame */
+  tf::StampedTransform map_H_sensor;
+  if (monitor_->getMapFrame() == depth_msg->header.frame_id)
+    map_H_sensor.setIdentity();
+  else
+  {
+    if (tf_)
+    {
+      try
+      {
+        tf_->lookupTransform(monitor_->getMapFrame(), depth_msg->header.frame_id, depth_msg->header.stamp, map_H_sensor);
+      }
+      catch (tf::TransformException& ex)
+      {
+        ROS_ERROR_STREAM("Transform error of sensor data: " << ex.what() << "; quitting callback");
+        return;
+      }
+    }
+    else
+      return;
+  } 
+
+  
+
   // call the mesh filter
 
+
+
+
+  // Use correct principal point from calibration
+  double px = info_msg->K[2];
+  double py = info_msg->K[5];
+  
+  double inv_fx = 1.0 / info_msg->K[0];
+  double inv_fy = 1.0 / info_msg->K[4];
+  
+  const float* depth_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
+  
+  // Pre-compute some constants
+  if (x_cache_.size() < depth_msg->width)
+    x_cache_.resize(depth_msg->width);
+  if (y_cache_.size() < depth_msg->height)
+    y_cache_.resize(depth_msg->height);
+  
+  for (int x = 0; x < depth_msg->width; ++x)
+    x_cache_[x] = (x - px) * inv_fx;
+  
+  for (int y = 0; y < depth_msg->height; ++y)
+    y_cache_[y] = (y - py) * inv_fy;
+
+  tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
+  octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
+  
+  OccMapTreePtr tree = monitor_->getOcTreePtr();
+  octomap::KeySet free_cells, occupied_cells;
+
+  tree->lockRead();
+  
+  try
+  {
+    const float* depth_row = reinterpret_cast<const float*>(depth_msg->data[0]);
+    for (int y = 0; y < depth_msg->height ; ++y, depth_row += depth_msg->width)
+      if (y_cache_[y] == y_cache_[y]) // if not NaN
+        for (int x = 0; x < depth_msg->width; ++x)
+        {
+          float zz = depth_row[x];
+          if (zz == zz) // check for NaN
+          {
+            float yy = y_cache_[y] * zz;
+            float xx = x_cache_[x] * zz;
+            if (xx == xx)
+            {
+              /* transform to map frame */
+              tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
+              octomap::point3d point(point_tf.getX(), point_tf.getY(), point_tf.getZ());
+              
+              /* free cells along ray */
+              if (tree->computeRayKeys(sensor_origin, point, key_ray_))
+                free_cells.insert(key_ray_.begin(), key_ray_.end());
+              
+              
+              /* occupied cell at ray endpoint if ray is shorter than max range and this point
+                 isn't on a part of the robot*/
+              octomap::OcTreeKey key;
+              if (tree->coordToKeyChecked(point, key))
+                occupied_cells.insert(key);
+            }
+          }
+        }
+  }
+  catch (...)
+  { 
+    tree->unlockRead();
+    return;
+  }
+
+  ROS_DEBUG("Marking free cells in octomap");
+  
+  tree->unlockRead();
 }
 
 
