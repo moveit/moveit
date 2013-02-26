@@ -1,0 +1,9 @@
+<library path="build/devel/lib/libself_filtering">
+  <class name="mesh_filter/DepthSelfFiltering"
+	 type="mesh_filter::DepthSelfFiltering"
+	 base_class_type="nodelet::Nodelet">
+    <description>
+      Nodelet for robot self filtering.
+    </description>
+  </class>
+</library>
