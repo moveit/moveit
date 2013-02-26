@@ -42,7 +42,7 @@ TEST(WorldDiff, TrackChanges)
   collision_detection::WorldPtr world(new collision_detection::World);
   collision_detection::WorldDiff diff1(world);
   collision_detection::WorldDiff diff2;
-  collision_detection::WorldDiff::Iterator it;
+  collision_detection::WorldDiff::const_iterator it;
 
   EXPECT_EQ(0, diff1.getChanges().size());
   EXPECT_EQ(0, diff2.getChanges().size());
@@ -238,7 +238,7 @@ TEST(WorldDiff, SetWorld)
   collision_detection::WorldDiff diff1(world1);
   collision_detection::WorldDiff diff1b(world1);
   collision_detection::WorldDiff diff2(world2);
-  collision_detection::WorldDiff::Iterator it;
+  collision_detection::WorldDiff::const_iterator it;
 
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
   shapes::ShapePtr box(new shapes::Box(1,2,3));
