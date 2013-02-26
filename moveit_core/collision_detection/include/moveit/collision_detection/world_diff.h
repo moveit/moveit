@@ -72,7 +72,10 @@ namespace collision_detection
     void reset();
 
     /** \brief Return all the changes that have been recorded */
-    const std::map<std::string, World::Action>& getChanges() const;
+    const std::map<std::string, World::Action>& getChanges() const
+    {
+      return changes_;
+    }
 
     typedef std::map<std::string, World::Action>::const_iterator Iterator;
     /** iterator pointing to first change */
@@ -109,10 +112,13 @@ namespace collision_detection
 
   private:
     /** \brief Notification function */
-    static void notify(WorldDiff*, const World::ObjectConstPtr&, World::Action);
+    void notify(const World::ObjectConstPtr&, World::Action);
 
     /** keep changes in a map so they can be coalesced */
     std::map<std::string, World::Action> changes_;
+
+    /* observer handle for world callback */
+    World::ObserverHandle observer_handle_;
 
     /* used to unregister the notifier */
     boost::weak_ptr<World> world_;
