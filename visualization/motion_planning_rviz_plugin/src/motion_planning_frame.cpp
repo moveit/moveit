@@ -257,7 +257,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
             QString text = QInputDialog::getText(this, tr("Choose a new name"),
                                                  tr("Import the new object under the name:"), QLineEdit::Normal,
                                                  QString::fromStdString(name + "-" + boost::lexical_cast<std::string>
-                                                                        (planning_display_->getPlanningSceneRO()->getWorld()->getObjectsCount())), &ok);
+                                                                        (planning_display_->getPlanningSceneRO()->getWorld()->size())), &ok);
             if (ok)
             {
               if (!text.isEmpty())
