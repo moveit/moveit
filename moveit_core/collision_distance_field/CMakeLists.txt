@@ -5,8 +5,8 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_common_distance_field.cpp
   src/collision_robot_distance_field.cpp
   src/collision_world_distance_field.cpp
-  src/hybrid_collision_robot.cpp
-  src/hybrid_collision_world.cpp
+  src/collision_robot_hybrid.cpp
+  src/collision_world_hybrid.cpp
 )
 # This line is needed to ensure that messages are done being built before this is built
 add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)

@@ -34,10 +34,10 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef MOVEIT_COLLISION_DISTANCE_FIELD_HYBRID_COLLISION_WORLD_
-#define MOVEIT_COLLISION_DISTANCE_FIELD_HYBRID_COLLISION_WORLD_
+#ifndef MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_WORLD_HYBRID_H_
+#define MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_WORLD_HYBRID_H_
 
-#include <moveit/collision_detection_fcl/collision_world.h>
+#include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
 #include <moveit/collision_distance_field/collision_world_distance_field.h>
 

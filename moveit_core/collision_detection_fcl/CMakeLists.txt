@@ -2,8 +2,8 @@ set(MOVEIT_LIB_NAME moveit_collision_detection_fcl)
 
 add_library(${MOVEIT_LIB_NAME}
   src/collision_common.cpp
-  src/collision_robot.cpp
-  src/collision_world.cpp
+  src/collision_robot_fcl.cpp
+  src/collision_world_fcl.cpp
 )
 # This line is needed to ensure that messages are done being built before this is built
 add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)

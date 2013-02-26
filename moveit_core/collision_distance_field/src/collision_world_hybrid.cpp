@@ -34,7 +34,7 @@
 
 /* Author: E. Gil Jones */
 
-#include <moveit/collision_distance_field/hybrid_collision_world.h>
+#include <moveit/collision_distance_field/collision_world_hybrid.h>
 
 namespace collision_detection 
 {

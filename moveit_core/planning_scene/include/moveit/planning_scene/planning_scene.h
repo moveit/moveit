@@ -140,9 +140,11 @@ public:
   }
 
   /** \brief Set the type of collision detector to use.
-   * Calls addCollisionDetector() to add it if it has not already been added. */
+   * Calls addCollisionDetector() to add it if it has not already been added.
+   * Returns true if the detector was added or had already been added.
+   * Returns false if an error occurs. */
   template<typename CollisionWorldType, typename CollisionRobotType>
-  void setActiveCollisionDetector()
+  bool setActiveCollisionDetector()
   {
     collision_detection::CollisionDetectionAllocBasePtr alloc(new collision_detection::CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
     addCollisionDetectorInternal(alloc);
@@ -156,7 +158,7 @@ public:
 
   /** \brief get the types of collision detector that have already been added.
    * These are the types which can be passed to setActiveCollisionDetector(). */
-  void getCollisionDetectorNames(std::vector<std::string> names) const;
+  void getCollisionDetectorNames(std::vector<std::string>& names) const;
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The information passed in for this function allows the construction of a kinematic model and of all the classes that

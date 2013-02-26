@@ -37,8 +37,8 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
-#include <moveit/collision_detection_fcl/collision_world.h>
-#include <moveit/collision_detection_fcl/collision_robot.h>
+#include <moveit/collision_detection_fcl/collision_world_fcl.h>
+#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 
 #include <urdf_parser/urdf_parser.h>
 #include <geometric_shapes/shape_operations.h>

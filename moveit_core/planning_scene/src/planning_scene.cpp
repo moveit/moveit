@@ -35,8 +35,8 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_scene/planning_scene.h>
-#include <moveit/collision_detection_fcl/collision_world.h>
-#include <moveit/collision_detection_fcl/collision_robot.h>
+#include <moveit/collision_detection_fcl/collision_world_fcl.h>
+#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
@@ -361,7 +361,7 @@ void planning_scene::PlanningScene::setActiveCollisionDetector(const std::string
   }
 }
 
-void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::string> names) const
+void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) const
 {
   names.clear();
   for (CollisionDetectionConstIterator it = collision_.begin(); it != collision_.end(); ++it)
