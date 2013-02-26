@@ -54,7 +54,7 @@ namespace collision_detection
 
     CollisionWorld();
 
-    CollisionWorld(const WorldPtr& world);
+    explicit CollisionWorld(const WorldPtr& world);
 
     /** \brief A copy constructor. \e other should not be changed while the copy constructor is running.
      * world must be the same world as used by other or a (not-yet-modified) copy of the world used by other */

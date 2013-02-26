@@ -61,7 +61,7 @@ public:
                               double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
                               double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE);
 
-  CollisionWorldDistanceField(const WorldPtr& world,
+  explicit CollisionWorldDistanceField(const WorldPtr& world,
                               double size_x = DEFAULT_SIZE_X, 
                               double size_y = DEFAULT_SIZE_Y,
                               double size_z = DEFAULT_SIZE_Z,

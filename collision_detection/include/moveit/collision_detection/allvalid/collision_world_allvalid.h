@@ -49,7 +49,7 @@ class CollisionWorldAllValid : public CollisionWorld
 public:
   
   CollisionWorldAllValid();
-  CollisionWorldAllValid(const WorldPtr& world);
+  explicit CollisionWorldAllValid(const WorldPtr& world);
   CollisionWorldAllValid(const CollisionWorld &other, const WorldPtr& world);
 
   static const std::string& getCollisionDetectorName(CollisionRobotAllValid* robot_type);

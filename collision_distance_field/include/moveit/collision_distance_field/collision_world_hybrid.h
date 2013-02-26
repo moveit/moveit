@@ -57,7 +57,7 @@ public:
                        double collision_tolerance = 0.0,
                        double max_propogation_distance = .25);
 
-  CollisionWorldHybrid(const WorldPtr& world,
+  explicit CollisionWorldHybrid(const WorldPtr& world,
                        double size_x = 3.0, 
                        double size_y = 3.0,
                        double size_z = 4.0,
