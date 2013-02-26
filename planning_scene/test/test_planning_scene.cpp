@@ -39,10 +39,12 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 
+
+
 boost::shared_ptr<urdf::ModelInterface> loadRobotModel()
 {
   std::string xml_string;
-  std::fstream xml_file("../planning_models/test/urdf/robot.xml", std::fstream::in);
+  std::fstream xml_file("../../../src/moveit_resources/test/urdf/robot.xml", std::fstream::in);
   EXPECT_TRUE(xml_file.is_open());
   while ( xml_file.good() )
   {
@@ -75,7 +77,7 @@ TEST(PlanningScene, LoadRestoreDiff)
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
 
-  collision_detection::CollisionWorld &world = *ps->getWorld();
+  collision_detection::World &world = *ps->getWorld();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
@@ -90,8 +92,8 @@ TEST(PlanningScene, LoadRestoreDiff)
   EXPECT_TRUE(next->isConfigured());
   EXPECT_TRUE(next->getWorld()->hasObject("sphere"));
   next->getWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
-  EXPECT_EQ(next->getWorld()->getObjectIds().size(), 2);
-  EXPECT_EQ(ps->getWorld()->getObjectIds().size(), 1);
+  EXPECT_EQ(next->getWorld()->size(), 2);
+  EXPECT_EQ(ps->getWorld()->size(), 1);
   next->getPlanningSceneDiffMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
   next->decoupleParent();
@@ -101,7 +103,7 @@ TEST(PlanningScene, LoadRestoreDiff)
   next->getPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
   ps->setPlanningSceneMsg(ps_msg);
-  EXPECT_EQ(ps->getWorld()->getObjectIds().size(), 2);
+  EXPECT_EQ(ps->getWorld()->size(), 2);
 }
 
 TEST(PlanningScene, MakeAttachedDiff)
@@ -113,7 +115,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
 
-  collision_detection::CollisionWorld &world = *ps->getWorld();
+  collision_detection::World &world = *ps->getWorld();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 

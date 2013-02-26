@@ -147,7 +147,7 @@ TEST(World, AddRemoveShape)
 
   EXPECT_TRUE(world.hasObject("mix1"));
 
-  EXPECT_EQ(3, world.getObjectIds().size());
+  EXPECT_EQ(3, world.size());
 
   {
     collision_detection::World::ObjectConstPtr obj = world.getObject("mix1");
@@ -184,7 +184,7 @@ TEST(World, AddRemoveShape)
 
     world.removeObject("mix1");
 
-    EXPECT_EQ(2, world.getObjectIds().size());
+    EXPECT_EQ(2, world.size());
 
     // no change since obj2 still holds a ref
     EXPECT_EQ(3, box.use_count());
@@ -203,7 +203,7 @@ TEST(World, AddRemoveShape)
   EXPECT_EQ(1, cyl.use_count());
   EXPECT_EQ(3, ball.use_count());
 
-  EXPECT_EQ(2, world.getObjectIds().size());
+  EXPECT_EQ(2, world.size());
 
   world.clearObjects();
 
@@ -215,7 +215,7 @@ TEST(World, AddRemoveShape)
   EXPECT_FALSE(world.hasObject("ball"));
   EXPECT_FALSE(world.hasObject("ball2"));
 
-  EXPECT_EQ(0, world.getObjectIds().size());
+  EXPECT_EQ(0, world.size());
 }
 
 /* structure to hold copy of callback args */
