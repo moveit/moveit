@@ -545,8 +545,8 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
           v.dof = 3;
         else
           v.dof = 6;
-        // take the max of the X extent and the Y extent
-        v.size = std::max(aabb[1] - aabb[0], aabb[3] - aabb[2]);
+        // take the max of the X, Y, Z extent  
+        v.size = std::max(std::max(aabb[1] - aabb[0], aabb[3] - aabb[2]), aabb[5] - aabb[4]);
         active_vj_.push_back(v);
       }
     }
@@ -764,24 +764,29 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
   }
 
   for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
-    if (active_vj_[i].dof == 3)
+  {
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = kmodel_->getModelFrame();
+    pose.header.stamp = ros::Time::now();
+    robot_state::RobotStateConstPtr s = handler->getState();
+    const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
+    tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
+    s.reset(); // to avoid spurious copies of states
+    std::string marker_name = "VJ:" + handler->getName() + "_" + active_vj_[i].connecting_link;
+    shown_markers_[marker_name] = i;
+    visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, active_vj_[i].size);
+    if (handler && handler->getControlsVisible())
     {
-      geometry_msgs::PoseStamped pose;
-      pose.header.frame_id = kmodel_->getModelFrame();
-      pose.header.stamp = ros::Time::now();
-      robot_state::RobotStateConstPtr s = handler->getState();
-      const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
-      tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
-      s.reset(); // to avoid spurious copies of states
-      std::string marker_name = "VJ:" + handler->getName() + "_" + active_vj_[i].connecting_link;
-      shown_markers_[marker_name] = i;
-      visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, active_vj_[i].size);
-      if(handler && handler->getControlsVisible())
+      if (active_vj_[i].dof == 3) // planar joint
         add3DOFControl(im, false);
-      int_marker_server_->insert(im);
-      int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_vj_[i].size);
+      else
+        add6DOFControl(im, false);
     }
+    int_marker_server_->insert(im);
+    int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
+    ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_vj_[i].size);
+  }
+  
   handlers_[handler->getName()] = handler;
 }
 
@@ -795,10 +800,24 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const Virtual
   Eigen::Quaterniond q;
   tf::quaternionMsgToEigen(pose.orientation, q);
   std::map<std::string, double> vals;
-  vals[vj.joint_name + "/x"] = pose.position.x;
-  vals[vj.joint_name + "/y"] = pose.position.y;
-  Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
-  vals[vj.joint_name + "/theta"] = xyz[2];
+  if (vj.dof == 3)
+  {
+    vals[vj.joint_name + "/x"] = pose.position.x;
+    vals[vj.joint_name + "/y"] = pose.position.y;
+    Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
+    vals[vj.joint_name + "/theta"] = xyz[2];
+  }
+  else
+    if (vj.dof == 6)
+    {
+      vals[vj.joint_name + "/trans_x"] = pose.position.x;
+      vals[vj.joint_name + "/trans_y"] = pose.position.y;
+      vals[vj.joint_name + "/trans_z"] = pose.position.z;
+      vals[vj.joint_name + "/rot_x"] = q.x();
+      vals[vj.joint_name + "/rot_y"] = q.y();
+      vals[vj.joint_name + "/rot_z"] = q.z();
+      vals[vj.joint_name + "/rot_w"] = q.w();
+    }
   state.getJointState(vj.joint_name)->setVariableValues(vals);
   state.updateLinkTransforms();
   return true;
