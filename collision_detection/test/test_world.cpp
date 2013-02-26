@@ -36,6 +36,8 @@
 
 #include <gtest/gtest.h>
 #include <moveit/collision_detection/world.h>
+#include <boost/bind.hpp>
+
 
 TEST(World, AddRemoveShape)
 {
@@ -250,7 +252,8 @@ TEST(World, TrackChanges)
   collision_detection::World world;
 
   TestAction ta;
-  world.addObserver(&ta, TrackChangesNotify);
+  collision_detection::World::ObserverHandle observer_ta;
+  observer_ta = world.addObserver(boost::bind(TrackChangesNotify, &ta, _1, _2));
 
 
 
@@ -295,7 +298,8 @@ TEST(World, TrackChanges)
   ta.reset();
 
   TestAction ta2;
-  world.addObserver(&ta2, TrackChangesNotify);
+  collision_detection::World::ObserverHandle observer_ta2;
+  observer_ta2 = world.addObserver(boost::bind(TrackChangesNotify, &ta2, _1, _2));
 
   world.addToObject("obj2",
                     cyl,
@@ -345,7 +349,8 @@ TEST(World, TrackChanges)
   EXPECT_EQ(2, ta2.cnt_);
 
   TestAction ta3;
-  world.addObserver(&ta3, TrackChangesNotify);
+  collision_detection::World::ObserverHandle observer_ta3;
+  observer_ta3 = world.addObserver(boost::bind(TrackChangesNotify, &ta3, _1, _2));
 
   bool rm_good = world.removeShapeFromObject("obj2", cyl);
   EXPECT_TRUE(rm_good);
@@ -366,7 +371,7 @@ TEST(World, TrackChanges)
             ta3.action_);
   ta3.reset();
 
-  world.removeObserver(&ta2);
+  world.removeObserver(observer_ta2);
 
   rm_good = world.removeShapeFromObject("obj1", ball);
   EXPECT_TRUE(rm_good);
@@ -398,8 +403,8 @@ TEST(World, TrackChanges)
             ta3.action_);
   ta3.reset();
 
-  world.removeObserver(&ta);
-  world.removeObserver(&ta3);
+  world.removeObserver(observer_ta);
+  world.removeObserver(observer_ta3);
   
   EXPECT_EQ(9, ta.cnt_);
   EXPECT_EQ(3, ta2.cnt_);

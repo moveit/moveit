@@ -35,12 +35,14 @@
 /* Author: Acorn Pooley, Ioan Sucan */
 
 #include <moveit/collision_detection/world_diff.h>
+#include <boost/bind.hpp>
+
 
 collision_detection::WorldDiff::~WorldDiff()
 {
   WorldPtr old_world = world_.lock();
   if (old_world)
-    old_world->removeObserver(this);
+    old_world->removeObserver(observer_handle_);
 }
 
 collision_detection::WorldDiff::WorldDiff()
@@ -49,7 +51,7 @@ collision_detection::WorldDiff::WorldDiff()
 collision_detection::WorldDiff::WorldDiff(const WorldPtr& world) :
   world_(world)
 {
-  world->addObserver(this, notify);
+  observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
 }
 
 collision_detection::WorldDiff::WorldDiff(WorldDiff &other)
@@ -60,7 +62,7 @@ collision_detection::WorldDiff::WorldDiff(WorldDiff &other)
     changes_ = other.changes_;
 
     boost::weak_ptr<World>(world).swap(world_);
-    world->addObserver(this, notify);
+    observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
   }
 }
 
@@ -70,7 +72,7 @@ void collision_detection::WorldDiff::reset()
 
   WorldPtr old_world = world_.lock();
   if (old_world)
-    old_world->removeObserver(this);
+    old_world->removeObserver(observer_handle_);
 
   world_.reset();
 }
@@ -81,10 +83,10 @@ void collision_detection::WorldDiff::reset(const WorldPtr& world)
 
   WorldPtr old_world = world_.lock();
   if (old_world)
-    old_world->removeObserver(this);
+    old_world->removeObserver(observer_handle_);
 
   boost::weak_ptr<World>(world).swap(world_);
-  world->addObserver(this, notify);
+  observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
 }
 
 void collision_detection::WorldDiff::setWorld(const WorldPtr& world)
@@ -92,14 +94,14 @@ void collision_detection::WorldDiff::setWorld(const WorldPtr& world)
   WorldPtr old_world = world_.lock();
   if (old_world)
   {
-    old_world->notifyObserverAllObjects(this, World::DESTROY);
-    old_world->removeObserver(this);
+    old_world->notifyObserverAllObjects(observer_handle_, World::DESTROY);
+    old_world->removeObserver(observer_handle_);
   }
 
   boost::weak_ptr<World>(world).swap(world_);
 
-  world->addObserver(this, notify);
-  world->notifyObserverAllObjects(this, World::CREATE|World::ADD_SHAPE);
+  observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
+  world->notifyObserverAllObjects(observer_handle_, World::CREATE|World::ADD_SHAPE);
 }
 
 void collision_detection::WorldDiff::clearChanges()
@@ -107,14 +109,9 @@ void collision_detection::WorldDiff::clearChanges()
   changes_.clear();
 }
 
-const std::map<std::string, collision_detection::World::Action>& collision_detection::WorldDiff::getChanges() const
+void collision_detection::WorldDiff::notify(const World::ObjectConstPtr& obj, World::Action action)
 {
-  return changes_;
-}
-
-void collision_detection::WorldDiff::notify(WorldDiff *self, const World::ObjectConstPtr& obj, World::Action action)
-{
-  World::Action& a = self->changes_[obj->id_];
+  World::Action& a = changes_[obj->id_];
   if (action == World::DESTROY)
     a = World::DESTROY;
   else

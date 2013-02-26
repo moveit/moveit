@@ -45,6 +45,12 @@ collision_detection::World::World(const World &other)
   objects_ = other.objects_;
 }
 
+collision_detection::World::~World()
+{
+  for (std::vector<Observer*>::iterator obs=observers_.begin(); obs!=observers_.end(); obs=observers_.begin())
+    removeObserver(*obs);
+}
+
 inline void collision_detection::World::addToObjectInternal(const ObjectPtr &obj,
                                                             const shapes::ShapeConstPtr &shape,
                                                             const Eigen::Affine3d &pose)
@@ -179,12 +185,6 @@ bool collision_detection::World::removeShapeFromObject(const std::string &id,
   return false;
 }
 
-void collision_detection::World::notifyAll(Action action)
-{
-  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
-    notify(it->second, action);
-}
-
 bool collision_detection::World::removeObject(const std::string &id)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
@@ -203,39 +203,49 @@ void collision_detection::World::clearObjects()
   objects_.clear();
 }
 
-void collision_detection::World::removeObserverInternal(const void* observer)
+collision_detection::World::ObserverHandle collision_detection::World::addObserver(boost::function<void (const ObjectConstPtr&, Action)> callback)
 {
-  for (std::vector<Observer>::iterator it=observers_.begin(); it!=observers_.end(); ++it)
+  Observer *o = new Observer(callback);
+  observers_.push_back(o);
+  return ObserverHandle(o);
+}
+
+void collision_detection::World::removeObserver(ObserverHandle observer_handle)
+{
+  for (std::vector<Observer*>::iterator obs=observers_.begin(); obs!=observers_.end(); ++obs)
   {
-    if (it->observer_ == observer)
+    if (*obs == observer_handle.observer_)
     {
-      observers_.erase(it, it+1);
+      delete *obs;
+      observers_.erase(obs);
       return;
     }
   }
+}
+
+void collision_detection::World::notifyAll(Action action)
+{
+  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
+    notify(it->second, action);
 }
 
 void collision_detection::World::notify(const ObjectConstPtr& obj, Action action)
 {
-  for (std::vector<Observer>::const_iterator it=observers_.begin(); it!=observers_.end(); ++it)
-    it->callback_(it->observer_, obj, action);
+  for (std::vector<Observer*>::const_iterator obs=observers_.begin(); obs!=observers_.end(); ++obs)
+    (*obs)->callback_(obj, action);
 }
 
-void collision_detection::World::notifyObserverAllObjectsInternal(const void *observer, Action action)
+void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action)
 {
-  // find the callback for this observer
-  std::vector<Observer>::iterator obs=observers_.begin();
-  for (;; ++obs)
+  for (std::vector<Observer*>::const_iterator obs=observers_.begin(); obs!=observers_.end(); ++obs)
   {
-    if (obs == observers_.end())
+    if (*obs == observer_handle.observer_)
     {
-      return;
-    }
-    if (obs->observer_ == observer)
+      // call the callback for each object
+      for (std::map<std::string, ObjectPtr>::const_iterator obj = objects_.begin() ; obj != objects_.end() ; ++obj)
+        (*obs)->callback_(obj->second, action);
       break;
+    }
   }
-
-  // call the callback for all objects
-  for (std::map<std::string, ObjectPtr>::const_iterator obj = objects_.begin() ; obj != objects_.end() ; ++obj)
-    obs->callback_(obs->observer_, obj->second, action);
 }
+

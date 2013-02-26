@@ -61,6 +61,8 @@ namespace collision_detection
      * \e other should not be changed while the copy constructor is running
      * This does copy on write and should be quick. */
     World(const World &other);
+
+    ~World();
     
     /**********************************************************************/
     /* Collision Bodies                                                   */
@@ -167,6 +169,35 @@ namespace collision_detection
     private:
       int action_;
     };
+
+#define USE_OBS_HANDLE 1
+#if USE_OBS_HANDLE
+  private:
+    class Observer;
+  public:
+    class ObserverHandle
+    {
+    public:
+      ObserverHandle() : observer_(0) {}
+    private:
+      ObserverHandle(const Observer* o) : observer_(o) {}
+      const Observer *observer_;
+      friend class World;
+    };
+
+    /** \brief register a callback function for notification of changes.
+     * \e callback will be called right after any change occurs to any Object.
+     * \e observer is the object which is requesting the changes.  It is only
+     * used for identifying the callback in removeObserver(). */
+    ObserverHandle addObserver(boost::function<void (const ObjectConstPtr&, Action)> callback);
+
+    /** \brief remove a notifier callback */
+    void removeObserver(const ObserverHandle observer_handle);
+
+    /** send notification of change to all objects to a particular observer.
+     * Used which switching from one world to another. */
+    void notifyObserverAllObjects(const ObserverHandle observer_handle, Action action);
+#else
   
     /** \brief register a callback function for notification of changes.
      * \e callback will be called right after any change occurs to any Object.
@@ -184,6 +215,7 @@ namespace collision_detection
      * Used which switching from one world to another. */
     template<class ClientType>
     void notifyObserverAllObjects(const ClientType* observer, Action action);
+#endif
 
   private:
     
@@ -204,30 +236,33 @@ namespace collision_detection
                                      const shapes::ShapeConstPtr &shape,
                                      const Eigen::Affine3d &pose);
 
+#if !USE_OBS_HANDLE
     void removeObserverInternal(const void* observer);
     void notifyObserverAllObjectsInternal(const void* observer, Action action);
+#endif
 
 
     /** The objects maintained in the world */
     std::map<std::string, ObjectPtr> objects_;
 
     /* observers to call when something changes */
-    struct Observer
+    class Observer
     {
-      Observer(void* observer, void (*callback)(void*, const ObjectConstPtr&, Action)) :
-        observer_(observer),
+    public:
+      Observer(boost::function<void (const ObjectConstPtr&, Action)> callback) :
         callback_(callback)
       {}
-      void* observer_;
-      void (*callback_)(void*, const ObjectConstPtr&, Action);
+      boost::function<void (const ObjectConstPtr&, Action)> callback_;
     };
-    std::vector<Observer> observers_;
+    std::vector<Observer*> observers_;
+
   };
   
   typedef boost::shared_ptr<World> WorldPtr;
   typedef boost::shared_ptr<const World> WorldConstPtr;
 
 
+#if !USE_OBS_HANDLE
   template<class ClientType> inline
   void collision_detection::World::addObserver(ClientType* observer,
                               void (*callback)(ClientType*, const ObjectConstPtr&, Action))
@@ -247,6 +282,7 @@ namespace collision_detection
   {
     notifyObserverAllObjectsInternal(observer, action);
   }
+#endif
 }
 
 
