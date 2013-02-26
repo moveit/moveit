@@ -133,14 +133,14 @@ public:
    * other collision detectors ARE added before configure() is called then FCL
    * will NOT be automatically added by configure, and FCL will not be
    * available unless it is explicitly added with addCollisionDetector(). */
-  void addCollisionDetector(const CollisionDetectorAllocatorPtr& allocator);
+  void addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator);
 
   /** \brief Set the type of collision detector to use.
    * Calls addCollisionDetector() to add it if it has not already been added. */
-  void setActiveCollisionDetector(const CollisionDetectorAllocatorPtr& allocator)
+  void setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator)
   {
     addCollisionDetector(allocator);
-    setActiveCollisionDetector(alloc->getCollisionDetectorName());
+    setActiveCollisionDetector(allocator->getName());
   }
 
   /** \brief Set the type of collision detector to use.
