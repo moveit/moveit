@@ -91,11 +91,6 @@ namespace collision_detection
     /** \brief Get the list of Object ids */
     std::vector<std::string> getObjectIds() const;
     
-    const std::map<std::string, ObjectConstPtr>& getObjects() const
-    {
-      return  objects_;
-    }
-
     /** \brief Get the number of objects in this collision world */
     std::size_t getObjectsCount() const
     {
@@ -104,6 +99,30 @@ namespace collision_detection
     
     /** \brief Get a particular object */
     const ObjectConstPtr& getObject(const std::string &id) const;
+
+    /** iterator over the objects in the world. */
+    typedef std::map<std::string, ObjectConstPtr>::const_iterator const_iterator;
+    /** iterator pointing to first change */
+    const_iterator begin() const
+    {
+      return objects_.begin();
+    }
+    /** iterator pointing to end of changes */
+    const_iterator end() const
+    {
+      return objects_.end();
+    }
+    /** number of changes stored */
+    size_t size() const
+    {
+      return objects_.size();
+    }
+    /** find changes for a named object */
+    const_iterator find(const std::string& id) const
+    {
+      return objects_.find(id);
+    }
+
     
     /** \brief Check if a particular object exists in the collision world*/
     bool hasObject(const std::string &id) const;
