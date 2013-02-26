@@ -34,7 +34,7 @@
 
 /* Author Ioan Sucan, Jia Pan */
 
-#include <moveit/collision_detection/allvalid/collision_robot.h>
+#include <moveit/collision_detection/allvalid/collision_robot_allvalid.h>
 
 collision_detection::CollisionRobotAllValid::CollisionRobotAllValid(const robot_model::RobotModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
 {

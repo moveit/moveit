@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/collision_detection/allvalid/collision_world.h>
+#include <moveit/collision_detection/allvalid/collision_world_allvalid.h>
 
 collision_detection::CollisionWorldAllValid::CollisionWorldAllValid() : CollisionWorld()
 {

@@ -8,8 +8,8 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_matrix.cpp
   src/collision_tools.cpp
   src/collision_octomap_filter.cpp
-  src/allvalid/collision_robot.cpp
-  src/allvalid/collision_world.cpp
+  src/allvalid/collision_robot_allvalid.cpp
+  src/allvalid/collision_world_allvalid.cpp
 )
 # This line is needed to ensure that messages are done being built before this is built
 add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
