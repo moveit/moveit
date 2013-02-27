@@ -124,19 +124,11 @@ void robot_state::RobotState::copyFrom(const RobotState &ks)
   
   // construct state
   buildState();
+
   // copy attached bodies
-  for (std::size_t i = 0 ; i < ks.link_state_vector_.size() ; ++i)
-  {
-    std::vector<const AttachedBody*> ab;
-    ks.link_state_vector_[i]->getAttachedBodies(ab);
-    LinkState *ls = link_state_map_[ks.link_state_vector_[i]->getName()];
-    for (std::size_t j = 0 ; j < ab.size() ; ++j)
-    {
-      std::vector<std::string> tl;
-      tl.insert(tl.end(), ab[j]->touch_links_.begin(), ab[j]->touch_links_.end());
-      ls->attachBody(ab[j]->id_, ab[j]->shapes_, ab[j]->attach_trans_, tl);
-    }
-  }
+  for (std::map<std::string, AttachedBody*>::const_iterator it = ks.attached_body_map_.begin() ; it != ks.attached_body_map_.end() ; ++it)
+    attachBody(it->second->id_, it->second->shapes_, it->second->attach_trans_, it->second->touch_links_, it->second->getAttachedLinkName());
+
   std::map<std::string, double> current_joint_values;
   ks.getStateValues(current_joint_values);
   setStateValues(current_joint_values);
@@ -144,6 +136,8 @@ void robot_state::RobotState::copyFrom(const RobotState &ks)
 
 robot_state::RobotState::~RobotState()
 {
+  for (std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ; ++it)
+    delete it->second;  
   for (std::size_t i = 0; i < joint_state_vector_.size(); i++)
     delete joint_state_vector_[i];
   for (std::size_t i = 0; i < link_state_vector_.size(); i++)
@@ -437,7 +431,27 @@ void robot_state::RobotState::attachBody(AttachedBody *attached_body)
   {
     attached_body_map_[attached_body->getName()] = attached_body;
     ls->attached_body_map_[attached_body->getName()] = attached_body;
-    attached_body->computeTransform();
+    attached_body->computeTransform(ls->getGlobalLinkTransform());
+    if (attached_body_update_callback_)
+      attached_body_update_callback_(attached_body, true);
+  }
+}
+
+void robot_state::RobotState::attachBody(const std::string &id,
+                                         const std::vector<shapes::ShapeConstPtr> &shapes,
+                                         const EigenSTL::vector_Affine3d &attach_trans,
+                                         const std::set<std::string> &touch_links,
+                                         const std::string &link)
+{
+  LinkState *ls = getLinkState(link);
+  if (ls)
+  {
+    AttachedBody *ab = new AttachedBody(ls->getLinkModel(), id, shapes, attach_trans, touch_links);
+    ls->attached_body_map_[id] = ab;
+    attached_body_map_[id] = ab;
+    ab->computeTransform(ls->getGlobalLinkTransform());
+    if (attached_body_update_callback_)
+      attached_body_update_callback_(ab, true);
   }
 }
 
@@ -451,9 +465,32 @@ void robot_state::RobotState::getAttachedBodies(std::vector<const AttachedBody*>
 
 void robot_state::RobotState::clearAttachedBodies()
 {
+  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
+  {
+    if (attached_body_update_callback_)
+      attached_body_update_callback_(it->second, false);
+    LinkState *ls = getLinkState(it->second->getAttachedLinkName());
+    if (ls)
+      ls->attached_body_map_.clear();
+    delete it->second;
+  }
   attached_body_map_.clear();
-  for (std::size_t i = 0 ; i < link_state_vector_.size() ; ++i)
-    link_state_vector_[i]->clearAttachedBodies();
+}
+
+void robot_state::RobotState::clearAttachedBodies(const std::string &link_name)
+{
+  LinkState *ls = getLinkState(link_name);
+  if (ls)
+  {
+    for (std::map<std::string, AttachedBody*>::const_iterator it = ls->attached_body_map_.begin() ; it != ls->attached_body_map_.end() ;  ++it)
+    {
+      if (attached_body_update_callback_)
+        attached_body_update_callback_(it->second, false);
+      attached_body_map_.erase(it->first);
+      delete it->second;
+    }
+    ls->attached_body_map_.clear();
+  }
 }
 
 bool robot_state::RobotState::clearAttachedBody(const std::string &id)
@@ -461,11 +498,17 @@ bool robot_state::RobotState::clearAttachedBody(const std::string &id)
   std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.find(id);
   if (it != attached_body_map_.end())
   {
+    if (attached_body_update_callback_)
+      attached_body_update_callback_(it->second, false);
     LinkState *ls = getLinkState(it->second->getAttachedLinkName());
     if (ls)
-      return ls->clearAttachedBody(id);
-    else
-      return false;
+    {
+      std::map<std::string, AttachedBody*>::iterator jt = ls->attached_body_map_.find(id);
+      ls->attached_body_map_.erase(jt);
+    }
+    delete it->second;
+    attached_body_map_.erase(it);
+    return true;
   }
   else
     return false;
