@@ -92,7 +92,7 @@ namespace collision_detection
     std::vector<std::string> getObjectIds() const;
     
     /** \brief Get a particular object */
-    const ObjectConstPtr& getObject(const std::string &id) const;
+    ObjectConstPtr getObject(const std::string &id) const;
 
     /** iterator over the objects in the world. */
     typedef std::map<std::string, ObjectConstPtr>::const_iterator const_iterator;

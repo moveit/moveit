@@ -114,12 +114,11 @@ std::vector<std::string> collision_detection::World::getObjectIds() const
   return id;
 }
 
-const collision_detection::World::ObjectConstPtr& collision_detection::World::getObject(const std::string &id) const
+collision_detection::World::ObjectConstPtr collision_detection::World::getObject(const std::string &id) const
 {
-  static ObjectConstPtr empty;
   std::map<std::string, ObjectPtr>::const_iterator it = objects_.find(id);
   if (it == objects_.end())
-    return empty;
+    return ObjectConstPtr();
   else
     return it->second;
 }
