@@ -57,7 +57,7 @@ public:
   OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf,
                       const std::string &map_frame = "", double map_resolution = 0.0); 
   OccupancyMapMonitor(double map_resolution = 0.0);
-
+  
   ~OccupancyMapMonitor();
   
   /** @brief start the monitor (will begin updating the octomap */
@@ -105,7 +105,7 @@ public:
     setUpdatersCallback();
   }
 
-  void setTransformCallback(const TransformProvider& transform_callback);
+  void setTransformCacheCallback(const TransformCacheProvider &transform_cache_callback);
   
 private:
 
@@ -118,8 +118,8 @@ private:
   bool loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response);
   
   void setUpdatersCallback();
-  
-  bool getShapeTransform(std::size_t index, const std::string &target_frame, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;
+
+  bool getShapeTransformCache(std::size_t index, const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache) const;
   
   boost::shared_ptr<tf::Transformer> tf_;
   std::string map_frame_;
@@ -131,8 +131,8 @@ private:
   
   std::vector<OccupancyMapUpdaterPtr> map_updaters_;
   boost::function<void()> update_callback_;
-  std::vector<std::map<mesh_filter::MeshHandle, ShapeHandle> > mesh_handles_;
-  TransformProvider shape_transform_callback_;
+  std::vector<std::map<ShapeHandle, mesh_filter::MeshHandle> > mesh_handles_;
+  TransformCacheProvider transform_cache_callback_;
   
   std::size_t mesh_handle_count_;
   
@@ -144,4 +144,4 @@ private:
 
 }
 
-#endif /* MOVEIT_OCCUPANCY_MAP_MONITOR_H_ */
+#endif
