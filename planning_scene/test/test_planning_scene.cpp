@@ -45,6 +45,8 @@ boost::shared_ptr<urdf::ModelInterface> loadRobotModel()
 {
   std::string xml_string;
   std::fstream xml_file("../../../src/moveit_resources/test/urdf/robot.xml", std::fstream::in);
+  if (!xml_file.is_open())
+    xml_file.open("../src/moveit_resources/test/urdf/robot.xml", std::fstream::in);
   EXPECT_TRUE(xml_file.is_open());
   while ( xml_file.good() )
   {
