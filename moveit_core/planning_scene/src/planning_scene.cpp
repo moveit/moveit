@@ -101,6 +101,9 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   {
     if (parent_->isConfigured())
       configure(parent_->getRobotModel()->getURDF(), parent_->getRobotModel()->getSRDF());
+    if (!world_)
+      world_.reset(new collision_detection::World(*parent_->world_));
+    world_const_ = world_;
     if (!parent_->getName().empty())
       name_ = parent_->getName() + "+";
   }
@@ -215,6 +218,7 @@ bool planning_scene::PlanningScene::configure(const robot_model::RobotModelPtr &
       // because the worlds start out with the same representation and use
       // copy-on-write when things change.
       world_.reset(new collision_detection::World(*parent_->world_));
+      world_const_ = world_;
       collision_.clear();
       for (CollisionDetectorConstIterator it = parent_->collision_.begin() ;
            it != parent_->collision_.end() ;
