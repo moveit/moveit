@@ -63,13 +63,19 @@ public:
 private:
   
   void depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
+  bool getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;  
   void stopHelper();
   
   ros::NodeHandle nh_; 
   boost::shared_ptr<tf::Transformer> tf_;
   image_transport::ImageTransport input_depth_transport_;
+  image_transport::ImageTransport model_depth_transport_;
+  image_transport::ImageTransport filtered_depth_transport_;
+  
   image_transport::CameraSubscriber sub_depth_image_;
-
+  image_transport::CameraPublisher pub_model_depth_image_;
+  image_transport::CameraPublisher pub_filtered_depth_image_;
+  
   std::string sensor_type_;
   std::string image_topic_;
   std::size_t queue_size_;
@@ -79,6 +85,8 @@ private:
   double padding_scale_;
   double padding_offset_;
 
+  std::vector<const shapes::Mesh*> TEMP_;
+  
   boost::scoped_ptr<mesh_filter::MeshFilter<mesh_filter::StereoCameraModel> > mesh_filter_;
   
   /* used to store all cells in the map which a given ray passes through during raycasting.

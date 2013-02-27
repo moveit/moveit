@@ -771,11 +771,10 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
     if (ab)
     {
       known_collision_objects_[item->type()].first = item_text;
-      std::vector<std::string> touch_links(ab->getTouchLinks().begin(), ab->getTouchLinks().end());
-      robot_state::AttachedBody *new_ab = new robot_state::AttachedBody(cs.getLinkState(ab->getAttachedLinkName()),
-                                                                                known_collision_objects_[item->type()].first,
-                                                                                ab->getShapes(), ab->getFixedTransforms(),
-                                                                                touch_links);
+      robot_state::AttachedBody *new_ab = new robot_state::AttachedBody(ab->getAttachedLink(),
+                                                                        known_collision_objects_[item->type()].first,
+                                                                        ab->getShapes(), ab->getFixedTransforms(),
+                                                                        ab->getTouchLinks());
       cs.clearAttachedBody(ab->getName());
       cs.attachBody(new_ab);
     }

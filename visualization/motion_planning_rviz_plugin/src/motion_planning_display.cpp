@@ -1034,23 +1034,23 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &d
       const std::vector<std::string> &links = jsg->getJointModelGroup()->getLinkModelNames();
       for (std::size_t i = 0 ; i < links.size() ; ++i)
       {
-        robot_state::LinkState *ls_src = src_copy.getLinkState(links[i]); 
         robot_state::LinkState *ls = dest.getLinkState(links[i]);
-        if (ls_src && ls)
+        if (ls)
         {
-          ls_src->clearAttachedBodies();
           std::vector<const robot_state::AttachedBody*> attached_bodies;
           ls->getAttachedBodies(attached_bodies);
-          for (std::size_t j = 0 ; j < attached_bodies.size() ; ++j)
+          // if we have attached bodies, we keep them as they were
+          if (!attached_bodies.empty())
           {
-            std::vector<std::string> touch_links(attached_bodies[j]->getTouchLinks().begin(), attached_bodies[j]->getTouchLinks().end());
-            ls_src->attachBody(attached_bodies[j]->getName(),
-                               attached_bodies[j]->getShapes(),
-                               attached_bodies[j]->getFixedTransforms(),
-                               touch_links);
+            src_copy.clearAttachedBodies(links[i]);
+            for (std::size_t j = 0 ; j < attached_bodies.size() ; ++j)
+              src_copy.attachBody(attached_bodies[j]->getName(),
+                                  attached_bodies[j]->getShapes(),
+                                  attached_bodies[j]->getFixedTransforms(),
+                                  attached_bodies[j]->getTouchLinks(),
+                                  links[i]);
           }
         }
-        
       }
     }
   }
@@ -1060,7 +1060,7 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &d
 }
 
 void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
-{
+{  
   PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
   robot_state::RobotState current_state = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();

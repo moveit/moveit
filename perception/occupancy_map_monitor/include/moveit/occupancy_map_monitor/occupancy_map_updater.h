@@ -47,7 +47,9 @@ namespace occupancy_map_monitor
 
 // The type for the shape handle should be the same as the type of the mesh handle
 typedef mesh_filter::MeshHandle ShapeHandle;
-typedef boost::function<bool (const std::string &target_frame, ShapeHandle, Eigen::Affine3d&)> TransformProvider;
+typedef std::map<ShapeHandle, Eigen::Affine3d, std::less<ShapeHandle>, 
+                 Eigen::aligned_allocator<std::pair<const ShapeHandle, Eigen::Affine3d> > > ShapeTransformCache;
+typedef boost::function<bool(const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache)> TransformCacheProvider;
 
 class OccupancyMapMonitor;
 
@@ -84,7 +86,7 @@ public:
     return type_;
   } 
   
-  void setTransformCallback(const TransformProvider &transform_callback)
+  void setTransformCacheCallback(const TransformCacheProvider &transform_callback)
   {
     transform_provider_callback_ = transform_callback;
   }
@@ -99,12 +101,19 @@ protected:
   OccupancyMapMonitor *monitor_;
   std::string type_;  
   boost::function<void()> update_callback_;
-  TransformProvider transform_provider_callback_;
+  TransformCacheProvider transform_provider_callback_;
+  ShapeTransformCache transform_cache_;
   
   void triggerUpdateCallback(void)
   {
     if (update_callback_)
       update_callback_();
+  }
+  
+  bool updateTransformCache(const std::string &target_frame, const ros::Time &target_time)
+  {
+    transform_cache_.clear();
+    return transform_provider_callback_ ? transform_provider_callback_(target_frame, target_time, transform_cache_) : false;
   }
   
 };

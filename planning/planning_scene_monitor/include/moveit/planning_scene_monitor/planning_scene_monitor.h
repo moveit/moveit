@@ -342,7 +342,7 @@ protected:
   
   void getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
   
-  bool getShapeTransform(const std::string &target_frame, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;
+  bool getShapeTransformCache(const std::string &target_frame, const ros::Time &target_time, occupancy_map_monitor::ShapeTransformCache &cache) const;
   
   /// The name of this scene monitor
   std::string                           monitor_name_;

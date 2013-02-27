@@ -46,13 +46,15 @@ DepthImageOccupancyMapUpdater::DepthImageOccupancyMapUpdater(OccupancyMapMonitor
   nh_("~"),
   tf_(monitor->getTFClient()),
   input_depth_transport_(nh_),
+  model_depth_transport_(nh_),
+  filtered_depth_transport_(nh_),
   image_topic_("depth"),
   queue_size_(5),
   near_clipping_plane_distance_(0.3),
   far_clipping_plane_distance_(5.0),
-  shadow_threshold_(0.3),
-  padding_scale_(2.0),
-  padding_offset_(0.01)
+  shadow_threshold_(0.5),
+  padding_scale_(3.0),
+  padding_offset_(0.02)
 { 
 }
 
@@ -90,6 +92,8 @@ void DepthImageOccupancyMapUpdater::start()
 {
   image_transport::TransportHints hints("raw", ros::TransportHints(), nh_);
   sub_depth_image_ = input_depth_transport_.subscribeCamera(image_topic_, queue_size_, &DepthImageOccupancyMapUpdater::depthImageCallback, this, hints);
+  pub_model_depth_image_ = model_depth_transport_.advertiseCamera("model_depth", 10);
+  pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera("filtered_depth", 10);
 }
 
 void DepthImageOccupancyMapUpdater::stop()
@@ -105,13 +109,35 @@ void DepthImageOccupancyMapUpdater::stopHelper()
 
 mesh_filter::MeshHandle DepthImageOccupancyMapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
 {
+  if (shape->type == shapes::MESH)
+  {
+    TEMP_.push_back(static_cast<const shapes::Mesh*>(shape.get()));
+    return 15 + TEMP_.size();
+  }
+  return 0;
+  
+  
   mesh_filter::MeshHandle h = 0;
   if (mesh_filter_)
   {
     if (shape->type == shapes::MESH)
       h = mesh_filter_->addMesh(static_cast<const shapes::Mesh&>(*shape));
   }
+  else
+    ROS_ERROR("Mesh filter not yet initialized!");  
   return h;
+}
+
+bool DepthImageOccupancyMapUpdater::getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const
+{
+  ShapeTransformCache::const_iterator it = transform_cache_.find(h);
+  if (it == transform_cache_.end())
+  {
+    ROS_ERROR("Internal error. Mesh filter handle %u not found", h);
+    return false;
+  }
+  transform = it->second;
+  return true;
 }
 
 void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg)
@@ -128,6 +154,10 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     mesh_filter_->setShadowThreshold(shadow_threshold_);
     mesh_filter_->setPaddingOffset(padding_offset_);
     mesh_filter_->setPaddingScale(padding_scale_);
+    mesh_filter_->setTransformCallback(boost::bind(&DepthImageOccupancyMapUpdater::getShapeTransform, this, _1, _2));
+      
+    for (std::size_t i = 0 ;i < TEMP_.size() ; ++i)
+      mesh_filter_->addMesh(*TEMP_[i]);
   }
   
   if (monitor_->getMapFrame().empty())
@@ -154,21 +184,29 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     else
       return;
   } 
-
+  
+  if (!updateTransformCache(depth_msg->header.frame_id, depth_msg->header.stamp))
+    ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
+  
   // call the mesh filter
   mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters();
   params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(depth_msg->width, depth_msg->height); 
-  mesh_filter_->setTransformCallback(boost::bind(transform_provider_callback_, depth_msg->header.frame_id, _1, _2));
   mesh_filter_->filter(reinterpret_cast<const float*>(&depth_msg->data[0]));
   
   // copy filtered data
   std::size_t img_size = depth_msg->height * depth_msg->width;
   if (filtered_data_.size() < img_size)
     filtered_data_.resize(img_size);
-  mesh_filter_->getFilteredDepth(&filtered_data_[0]);
+  mesh_filter_->getModelDepth(&filtered_data_[0]);
 
-  ROS_INFO("X Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  sensor_msgs::Image depth_msg2 = *depth_msg;
+  memcpy(&depth_msg2.data[0], &filtered_data_[0], sizeof(float) * img_size);
+  pub_model_depth_image_.publish(depth_msg2, *info_msg);
+
+  mesh_filter_->getFilteredDepth(&filtered_data_[0]);
+  memcpy(&depth_msg2.data[0], &filtered_data_[0], sizeof(float) * img_size);
+  pub_filtered_depth_image_.publish(depth_msg2, *info_msg);
 
   // Use correct principal point from calibration
   double px = info_msg->K[2];
@@ -205,6 +243,8 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
         for (int x = 0; x < depth_msg->width; ++x)
         {
           float zz = depth_row[x];
+          if (zz == 0.0f)
+            continue;
           if (zz == zz) // check for NaN
           {
             float yy = y_cache_[y] * zz;
@@ -236,9 +276,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
 
   ROS_DEBUG("Marking free cells in octomap");
   
-  tree->unlockRead();  
-
-  ROS_INFO("222 Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  tree->unlockRead();
 
   tree->lockWrite();
 

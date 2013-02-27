@@ -513,27 +513,29 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor()
   }
 }
 
-bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransform(const std::string &target_frame, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const
+bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransformCache(const std::string &target_frame, const ros::Time &target_time,
+                                                                          occupancy_map_monitor::ShapeTransformCache &cache) const
 {
-  std::map<occupancy_map_monitor::ShapeHandle, std::string>::const_iterator it = shape_handles_.find(h);
-  if (it != shape_handles_.end() && tf_)
+  if (!tf_)
+    return false;
+  for (std::map<occupancy_map_monitor::ShapeHandle, std::string>::const_iterator it = shape_handles_.begin() ; it != shape_handles_.end() ; ++it)
   {
-    static const ros::Time zero_time(0);
     try
     {
       tf::StampedTransform tr;
-      tf_->lookupTransform(target_frame, it->second, zero_time, tr);
+      tf_->lookupTransform(target_frame, it->second, target_time, tr);
+      Eigen::Affine3d &transform = cache[it->first];      
       tf::transformTFToEigen(tr, transform);
+      transform = transform * getRobotModel()->getLinkModel(it->second)->getCollisionOriginTransform();
     }
     catch (tf::TransformException& ex)
     {
       ROS_ERROR_THROTTLE(1, "Transform error: %s", ex.what());
       return false;
     }
-    return true;
   }
-  else
-    return false;
+  
+  return true;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
@@ -591,9 +593,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     for (std::size_t i = 0 ; i < links.size() ; ++i)
     {
       occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(links[i]->getShape());
-      shape_handles_[h] = links[i]->getName();
+      if (h)
+        shape_handles_[h] = links[i]->getName();
     }
-    octomap_monitor_->setTransformCallback(boost::bind(&PlanningSceneMonitor::getShapeTransform, this, _1, _2, _3));
+    octomap_monitor_->setTransformCacheCallback(boost::bind(&PlanningSceneMonitor::getShapeTransformCache, this, _1, _2, _3));
     octomap_monitor_->setUpdateCallback(boost::bind(&PlanningSceneMonitor::octomapUpdateCallback, this));
   }
   
