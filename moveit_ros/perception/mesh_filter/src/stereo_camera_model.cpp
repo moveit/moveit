@@ -158,7 +158,7 @@ const string mesh_filter::StereoCameraModel::filterFragmentShaderSource =
         "		gl_FragColor = vec4 (0.003921569, 0, 0, 0);"
         "		gl_FragDepth = float(texture2D(sensor, gl_TexCoord[0].st));"
         " } else {"
-        "		gl_FragColor = vec4 (1,1,1,1);"
+        "		gl_FragColor = texture2D(label, gl_TexCoord[0].st);"
         "		gl_FragDepth = 0;"
         "	}"
         "}";
