@@ -452,7 +452,7 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
     scene->getCurrentStateNonConst() = *kstate_;
 
   if (acm_)
-    scene->getAllowedCollisionMatrix() = *acm_;
+    scene->getAllowedCollisionMatrixNonConst() = *acm_;
 
   if (active_collision_->crobot_)
   {
@@ -634,7 +634,7 @@ robot_state::RobotState& planning_scene::PlanningScene::getCurrentStateNonConst(
   return *kstate_;
 }
 
-collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getAllowedCollisionMatrix()
+collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getAllowedCollisionMatrixNonConst()
 {
   if (!acm_)
     acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));

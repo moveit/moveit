@@ -132,7 +132,11 @@ public:
    * then configure will add a default collision detector (FCL).  However, if
    * other collision detectors ARE added before configure() is called then FCL
    * will NOT be automatically added by configure, and FCL will not be
-   * available unless it is explicitly added with addCollisionDetector(). */
+   * available unless it is explicitly added with addCollisionDetector().
+   *
+   * If this is the first call to addCollisionDetector() and configure() has
+   * not been called yet then this will be used as the active collision
+   * detector until setActiveCollisionDetector() is called to override it.*/
   void addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator);
 
   /** \brief Set the type of collision detector to use.
@@ -194,13 +198,13 @@ public:
     return parent_ ? parent_->getRobotModel() : kmodel_const_;
   }
 
-  /** \brief Get the state at which the robot is assumed to be */
+  /** \brief Get the state at which the robot is assumed to be. */
   const robot_state::RobotState& getCurrentState() const
   {
     // if we have an updated state, return it; otherwise, return the parent one
     return kstate_ ? *kstate_ : parent_->getCurrentState();
   }
-  /** \brief Get the state at which the robot is assumed to be */
+  /** \brief Get the state at which the robot is assumed to be. */
   robot_state::RobotState& getCurrentStateNonConst();
 
   /** \brief Get the allowed collision matrix */
@@ -209,7 +213,7 @@ public:
     return acm_ ? *acm_ : parent_->getAllowedCollisionMatrix();
   }
   /** \brief Get the allowed collision matrix */
-  collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix();
+  collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrixNonConst();
 
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
   const robot_state::TransformsConstPtr& getTransforms() const
@@ -228,7 +232,7 @@ public:
   }
 
   //brief Get the representation of the world
-  const collision_detection::WorldPtr& getWorld()
+  const collision_detection::WorldPtr& getWorldNonConst()
   {
     // we always have a world representation
     return world_;
@@ -239,13 +243,6 @@ public:
   {
     // we always have a world representation after configure is called.
     return active_collision_->cworld_const_;
-  }
-
-  //brief Get the active collision detector for the world
-  const collision_detection::CollisionWorldPtr& getCollisionWorld()
-  {
-    // we always have a world representation after configure is called.
-    return active_collision_->cworld_;
   }
 
   /** \brief Get the active collision detector for the robot */

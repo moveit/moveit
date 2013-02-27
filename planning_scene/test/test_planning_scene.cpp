@@ -77,7 +77,7 @@ TEST(PlanningScene, LoadRestoreDiff)
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
 
-  collision_detection::World &world = *ps->getWorld();
+  collision_detection::World &world = *ps->getWorldNonConst();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
@@ -91,7 +91,7 @@ TEST(PlanningScene, LoadRestoreDiff)
   planning_scene::PlanningScenePtr next = ps->diff();
   EXPECT_TRUE(next->isConfigured());
   EXPECT_TRUE(next->getWorld()->hasObject("sphere"));
-  next->getWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
+  next->getWorldNonConst()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
   EXPECT_EQ(next->getWorld()->size(), 2);
   EXPECT_EQ(ps->getWorld()->size(), 1);
   next->getPlanningSceneDiffMsg(ps_msg);
@@ -115,7 +115,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
 
-  collision_detection::World &world = *ps->getWorld();
+  collision_detection::World &world = *ps->getWorldNonConst();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
