@@ -45,7 +45,7 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
   
   Eigen::Affine3d t;
   t = Eigen::Translation3d(0.7, -0.5, 0.7);
-  scene->getWorld()->addToObject("pole", shapes::ShapeConstPtr(new shapes::Box(0.1, 0.1, 1.4)), t);
+  scene->getWorldNonConst()->addToObject("pole", shapes::ShapeConstPtr(new shapes::Box(0.1, 0.1, 1.4)), t);
   
   moveit_msgs::AttachedCollisionObject aco;
   aco.link_name = "r_wrist_roll_link";

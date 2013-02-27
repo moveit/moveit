@@ -108,8 +108,8 @@ int main(int argc, char **argv)
     for (int i = 0 ; i < N ; ++i)
     {
       t.translation() = Eigen::Vector3d(rng.uniformReal(aabb[0], aabb[1]), rng.uniformReal(aabb[2], aabb[3]), rng.uniformReal(aabb[4], aabb[5]));
-      scene->getWorld()->clearObjects();
-      scene->getWorld()->addToObject("test", shapes::ShapeConstPtr(new shapes::Sphere(radius)), t);
+      scene->getWorldNonConst()->clearObjects();
+      scene->getWorldNonConst()->addToObject("test", shapes::ShapeConstPtr(new shapes::Sphere(radius)), t);
       collision_detection::CollisionResult res;
       scene->checkCollision(req, res);
       if (res.collision)

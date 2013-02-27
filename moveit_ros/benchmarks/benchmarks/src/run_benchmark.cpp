@@ -310,7 +310,7 @@ public:
       // if we have a different robot, use the world geometry only
       
       // clear all geometry from the scene
-      scene_monitor_.getPlanningScene()->getWorld()->clearObjects();
+      scene_monitor_.getPlanningScene()->getWorldNonConst()->clearObjects();
       scene_monitor_.getPlanningScene()->getCurrentStateNonConst().clearAttachedBodies();
       scene_monitor_.getPlanningScene()->getCurrentStateNonConst().setToDefaultValues();
       
@@ -425,7 +425,7 @@ public:
     {
       // if we have a different robot, use the world geometry only
       // clear all geometry from the scene
-      scene_monitor_.getPlanningScene()->getWorld()->clearObjects();
+      scene_monitor_.getPlanningScene()->getWorldNonConst()->clearObjects();
       scene_monitor_.getPlanningScene()->getCurrentStateNonConst().clearAttachedBodies();
       scene_monitor_.getPlanningScene()->getCurrentStateNonConst().setToDefaultValues();
 
