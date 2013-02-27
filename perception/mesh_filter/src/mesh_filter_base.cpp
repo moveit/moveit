@@ -196,7 +196,7 @@ void mesh_filter::MeshFilterBase::filter (const float* sensor_data) const
   //depth_filter_.setBufferSize (width, height);
   //depth_filter_.setCameraParameters (fx, fy, cx, cy);
   depth_filter_.begin ();
-  sensor_parameters_->setRenderParameters (depth_filter_);
+  sensor_parameters_->setFilterParameters (depth_filter_);
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_CULL_FACE);
   glCullFace (GL_BACK);

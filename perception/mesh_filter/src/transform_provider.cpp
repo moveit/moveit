@@ -34,7 +34,7 @@
 
 /* Author: Suat Gedikli */
 
-#include <mesh_filter/transform_provider.h>
+#include <moveit/mesh_filter/transform_provider.h>
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>
 

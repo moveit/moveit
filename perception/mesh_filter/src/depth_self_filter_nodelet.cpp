@@ -34,9 +34,9 @@
 
 /* Author: Suat Gedikli */
 
-#include <mesh_filter/depth_self_filter_nodelet.h>
-#include <mesh_filter/stereo_camera_model.h>
-#include <mesh_filter/mesh_filter.h>
+#include <moveit/mesh_filter/depth_self_filter_nodelet.h>
+#include <moveit/mesh_filter/stereo_camera_model.h>
+#include <moveit/mesh_filter/mesh_filter.h>
 #include <ros/ros.h>
 #include <image_transport/subscriber_filter.h>
 #include <sensor_msgs/image_encodings.h>

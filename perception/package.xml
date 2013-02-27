@@ -6,7 +6,9 @@
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
 
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
-
+	<export>
+	<nodelet plugin="${prefix}/nodelet_plugins.xml" />
+	</export>
   <license>BSD</license>
 
   <url type="website">http://moveit.ros.org</url>
