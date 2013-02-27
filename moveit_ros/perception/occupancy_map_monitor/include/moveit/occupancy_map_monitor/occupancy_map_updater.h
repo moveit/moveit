@@ -45,6 +45,10 @@
 namespace occupancy_map_monitor
 {
 
+// The type for the shape handle should be the same as the type of the mesh handle
+typedef mesh_filter::MeshHandle ShapeHandle;
+typedef boost::function<bool (const std::string &target_frame, ShapeHandle, Eigen::Affine3d&)> TransformProvider;
+
 class OccupancyMapMonitor;
 
 /** \brief Base class for classes which update the occupancy map.
@@ -54,7 +58,8 @@ class OccupancyMapUpdater
 public:
 
   OccupancyMapUpdater(OccupancyMapMonitor *monitor, const std::string &type) :
-    monitor_(monitor)
+    monitor_(monitor),
+    type_(type)
   {
   }
   
@@ -73,17 +78,17 @@ public:
   virtual void stop() = 0;
 
   virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape) = 0;
-
+  
   const std::string& getType() const
   {
     return type_;
   } 
-
-  virtual void setTransformCallback(const boost::function<bool(mesh_filter::MeshHandle, Eigen::Affine3d&)> &transform_callback)
+  
+  void setTransformCallback(const TransformProvider &transform_callback)
   {
     transform_provider_callback_ = transform_callback;
   }
-
+  
   void setUpdateCallback(const boost::function<void()> &update_callback)
   {
     update_callback_ = update_callback;
@@ -94,7 +99,7 @@ protected:
   OccupancyMapMonitor *monitor_;
   std::string type_;  
   boost::function<void()> update_callback_;
-  boost::function<bool(mesh_filter::MeshHandle, Eigen::Affine3d&)> transform_provider_callback_;
+  TransformProvider transform_provider_callback_;
   
   void triggerUpdateCallback(void)
   {
