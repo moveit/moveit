@@ -47,7 +47,7 @@ collision_detection::World::World(const World &other)
 
 collision_detection::World::~World()
 {
-  for (std::vector<Observer*>::iterator obs=observers_.begin(); obs!=observers_.end(); obs=observers_.begin())
+  for (std::vector<Observer*>::iterator obs=observers_.begin() ; obs != observers_.end() ; obs = observers_.begin())
     removeObserver(*obs);
 }
 
@@ -212,7 +212,7 @@ collision_detection::World::ObserverHandle collision_detection::World::addObserv
 
 void collision_detection::World::removeObserver(ObserverHandle observer_handle)
 {
-  for (std::vector<Observer*>::iterator obs=observers_.begin(); obs!=observers_.end(); ++obs)
+  for (std::vector<Observer*>::iterator obs = observers_.begin() ; obs != observers_.end() ; ++obs)
   {
     if (*obs == observer_handle.observer_)
     {
@@ -231,13 +231,13 @@ void collision_detection::World::notifyAll(Action action)
 
 void collision_detection::World::notify(const ObjectConstPtr& obj, Action action)
 {
-  for (std::vector<Observer*>::const_iterator obs=observers_.begin(); obs!=observers_.end(); ++obs)
+  for (std::vector<Observer*>::const_iterator obs = observers_.begin() ; obs != observers_.end() ; ++obs)
     (*obs)->callback_(obj, action);
 }
 
 void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
 {
-  for (std::vector<Observer*>::const_iterator obs=observers_.begin(); obs!=observers_.end(); ++obs)
+  for (std::vector<Observer*>::const_iterator obs = observers_.begin() ; obs != observers_.end() ; ++obs)
   {
     if (*obs == observer_handle.observer_)
     {
