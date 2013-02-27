@@ -60,14 +60,10 @@ public:
   virtual void stop();
   virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape);
 
-  virtual void setTransformCallback(const boost::function<bool(mesh_filter::MeshHandle, Eigen::Affine3d&)> &transform_callback);
-
 private:
   
   void depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
   void stopHelper();
-
-  bool getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;
   
   ros::NodeHandle nh_; 
   boost::shared_ptr<tf::Transformer> tf_;
@@ -75,6 +71,7 @@ private:
   image_transport::CameraSubscriber sub_depth_image_;
 
   std::string sensor_type_;
+  std::string image_topic_;
   std::size_t queue_size_;
   double near_clipping_plane_distance_;
   double far_clipping_plane_distance_;

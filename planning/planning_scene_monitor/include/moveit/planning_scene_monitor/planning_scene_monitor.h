@@ -342,6 +342,8 @@ protected:
   
   void getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
   
+  bool getShapeTransform(const std::string &target_frame, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;
+  
   /// The name of this scene monitor
   std::string                           monitor_name_;
   
@@ -384,6 +386,7 @@ protected:
 
   // include the octomap monitor as well
   boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
+  std::map<occupancy_map_monitor::ShapeHandle, std::string> shape_handles_;
   
   ros::Subscriber                       attached_collision_object_subscriber_;
   

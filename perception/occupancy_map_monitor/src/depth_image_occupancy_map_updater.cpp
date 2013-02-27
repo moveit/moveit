@@ -46,12 +46,13 @@ DepthImageOccupancyMapUpdater::DepthImageOccupancyMapUpdater(OccupancyMapMonitor
   nh_("~"),
   tf_(monitor->getTFClient()),
   input_depth_transport_(nh_),
+  image_topic_("depth"),
   queue_size_(5),
-  near_clipping_plane_distance_(0.4),
+  near_clipping_plane_distance_(0.3),
   far_clipping_plane_distance_(5.0),
   shadow_threshold_(0.3),
-  padding_scale_(0.0035),
-  padding_offset_(0.0)
+  padding_scale_(2.0),
+  padding_offset_(0.01)
 { 
 }
 
@@ -63,7 +64,8 @@ DepthImageOccupancyMapUpdater::~DepthImageOccupancyMapUpdater()
 bool DepthImageOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
 {
   sensor_type_ = (std::string) params["sensor_type"];
-  
+  if (params.hasMember("image_topic"))
+    image_topic_ = (std::string) params["image_topic"];
   if (params.hasMember("queue_size"))
     queue_size_ = (int)params["queue_size"];
   if (params.hasMember("near_clipping_plane_distance"))
@@ -76,26 +78,18 @@ bool DepthImageOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
     padding_scale_ = (double) params["padding_scale"];
   if (params.hasMember("padding_offset"))
     padding_offset_ = (double) params["padding_offset"];
+  return true;
 }
 
 bool DepthImageOccupancyMapUpdater::initialize()
-{  
-  // create our mesh filter
-  mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(mesh_filter::MeshFilterBase::TransformCallback(),
-                                                                                 mesh_filter::StereoCameraModel::RegisteredPSDKParams));
-  mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
-  mesh_filter_->setShadowThreshold(shadow_threshold_);
-  mesh_filter_->setPaddingOffset(padding_offset_);
-  mesh_filter_->setPaddingScale(padding_scale_);
-  mesh_filter_->setTransformCallback(transform_provider_callback_);
-
+{    
   return true;
 }
 
 void DepthImageOccupancyMapUpdater::start()
 {
   image_transport::TransportHints hints("raw", ros::TransportHints(), nh_);
-  sub_depth_image_ = input_depth_transport_.subscribeCamera("depth", queue_size_, &DepthImageOccupancyMapUpdater::depthImageCallback, this, hints);
+  sub_depth_image_ = input_depth_transport_.subscribeCamera(image_topic_, queue_size_, &DepthImageOccupancyMapUpdater::depthImageCallback, this, hints);
 }
 
 void DepthImageOccupancyMapUpdater::stop()
@@ -104,7 +98,8 @@ void DepthImageOccupancyMapUpdater::stop()
 }
 
 void DepthImageOccupancyMapUpdater::stopHelper()
-{ 
+{   
+  ROS_ERROR_STREAM("stop");
   sub_depth_image_.shutdown();
 }
 
@@ -119,17 +114,21 @@ mesh_filter::MeshHandle DepthImageOccupancyMapUpdater::excludeShape(const shapes
   return h;
 }
 
-void DepthImageOccupancyMapUpdater::setTransformCallback(const boost::function<bool(mesh_filter::MeshHandle, Eigen::Affine3d&)> &transform_callback)
-{
-  OccupancyMapUpdater::setTransformCallback(transform_callback);
-  if (mesh_filter_)
-    mesh_filter_->setTransformCallback(transform_provider_callback_);
-}
-
 void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg)
 {
   ROS_DEBUG("Received a new depth image message");
   ros::WallTime start = ros::WallTime::now();
+ 
+  if (!mesh_filter_)
+  {    
+    // create our mesh filter
+    mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(mesh_filter::MeshFilterBase::TransformCallback(),
+                                                                                   mesh_filter::StereoCameraModel::RegisteredPSDKParams));
+    mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
+    mesh_filter_->setShadowThreshold(shadow_threshold_);
+    mesh_filter_->setPaddingOffset(padding_offset_);
+    mesh_filter_->setPaddingScale(padding_scale_);
+  }
   
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(depth_msg->header.frame_id);
@@ -156,19 +155,20 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
       return;
   } 
 
-  const float* depth_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
-
   // call the mesh filter
   mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters();
   params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
-  params.setImageSize(depth_msg->width, depth_msg->height);
-  mesh_filter_->filter(depth_row);
+  params.setImageSize(depth_msg->width, depth_msg->height); 
+  mesh_filter_->setTransformCallback(boost::bind(transform_provider_callback_, depth_msg->header.frame_id, _1, _2));
+  mesh_filter_->filter(reinterpret_cast<const float*>(&depth_msg->data[0]));
   
   // copy filtered data
   std::size_t img_size = depth_msg->height * depth_msg->width;
   if (filtered_data_.size() < img_size)
     filtered_data_.resize(img_size);
   mesh_filter_->getFilteredDepth(&filtered_data_[0]);
+
+  ROS_INFO("X Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
 
   // Use correct principal point from calibration
   double px = info_msg->K[2];
@@ -194,12 +194,12 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   
   OccMapTreePtr tree = monitor_->getOcTreePtr();
   octomap::KeySet free_cells, occupied_cells;
+  const float* depth_row = reinterpret_cast<const float*>(&filtered_data_[0]);
 
   tree->lockRead();
   
   try
   {
-    const float* depth_row = reinterpret_cast<const float*>(depth_msg->data[0]);
     for (int y = 0; y < depth_msg->height ; ++y, depth_row += depth_msg->width)
       if (y_cache_[y] == y_cache_[y]) // if not NaN
         for (int x = 0; x < depth_msg->width; ++x)
@@ -236,7 +236,10 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
 
   ROS_DEBUG("Marking free cells in octomap");
   
-  tree->unlockRead();
+  tree->unlockRead();  
+
+  ROS_INFO("222 Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+
   tree->lockWrite();
 
   try

@@ -137,7 +137,7 @@ void OccupancyMapMonitor::initialize()
   {
     mesh_handles_.resize(map_updaters_.size());
     for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
-      map_updaters_[i]->setTransformCallback(boost::bind(&OccupancyMapMonitor::getShapeTransform, this, i, _1, _2));
+      map_updaters_[i]->setTransformCallback(boost::bind(&OccupancyMapMonitor::getShapeTransform, this, i, _1, _2, _3));
   }
   
   setUpdatersCallback();
@@ -175,7 +175,7 @@ ShapeHandle OccupancyMapMonitor::excludeShape(const shapes::ShapeConstPtr &shape
   return h;
 }
   
-void OccupancyMapMonitor::setTransformCallback(const boost::function<bool (ShapeHandle, Eigen::Affine3d&)>& transform_callback)
+void OccupancyMapMonitor::setTransformCallback(const TransformProvider& transform_callback)
 {
   // if we have just one updater, we connect it directly to the transform provider
   if (map_updaters_.size() == 1)
@@ -184,12 +184,12 @@ void OccupancyMapMonitor::setTransformCallback(const boost::function<bool (Shape
     shape_transform_callback_ = transform_callback;
 }
 
-bool OccupancyMapMonitor::getShapeTransform(std::size_t index, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const
+bool OccupancyMapMonitor::getShapeTransform(std::size_t index, const std::string &target_frame, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const
 {
   // forward the call with the correct ShapeHandle
   std::map<mesh_filter::MeshHandle, ShapeHandle>::const_iterator it = mesh_handles_[index].find(h);
   if (it != mesh_handles_[index].end() && shape_transform_callback_)
-    return shape_transform_callback_(it->second, transform);
+    return shape_transform_callback_(target_frame, it->second, transform);
   else
     return false;
 }

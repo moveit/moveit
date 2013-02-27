@@ -40,6 +40,8 @@
 #include <dynamic_reconfigure/server.h>
 #include <moveit_ros_planning/PlanningSceneMonitorDynamicReconfigureConfig.h>
 
+#include <tf_conversions/tf_eigen.h>
+
 namespace planning_scene_monitor
 {
 
@@ -511,6 +513,29 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor()
   }
 }
 
+bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransform(const std::string &target_frame, mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const
+{
+  std::map<occupancy_map_monitor::ShapeHandle, std::string>::const_iterator it = shape_handles_.find(h);
+  if (it != shape_handles_.end() && tf_)
+  {
+    static const ros::Time zero_time(0);
+    try
+    {
+      tf::StampedTransform tr;
+      tf_->lookupTransform(target_frame, it->second, zero_time, tr);
+      tf::transformTFToEigen(tr, transform);
+    }
+    catch (tf::TransformException& ex)
+    {
+      ROS_ERROR_THROTTLE(1, "Transform error: %s", ex.what());
+      return false;
+    }
+    return true;
+  }
+  else
+    return false;
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
                                                                              const std::string &collision_map_topic,
                                                                              const std::string &planning_scene_world_topic)
@@ -561,6 +586,14 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
   if (!octomap_monitor_)
   {
     octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(tf_, scene_->getPlanningFrame()));
+    
+    const std::vector<robot_model::LinkModel*> &links = getRobotModel()->getLinkModelsWithCollisionGeometry();
+    for (std::size_t i = 0 ; i < links.size() ; ++i)
+    {
+      occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(links[i]->getShape());
+      shape_handles_[h] = links[i]->getName();
+    }
+    octomap_monitor_->setTransformCallback(boost::bind(&PlanningSceneMonitor::getShapeTransform, this, _1, _2, _3));
     octomap_monitor_->setUpdateCallback(boost::bind(&PlanningSceneMonitor::octomapUpdateCallback, this));
   }
   
