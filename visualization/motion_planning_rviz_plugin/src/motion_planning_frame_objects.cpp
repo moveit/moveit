@@ -75,7 +75,7 @@ void MotionPlanningFrame::clearSceneButtonClicked()
   planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
   if (ps)
   {
-    ps->getWorld()->clearObjects();
+    ps->getWorldNonConst()->clearObjects();
     ps->getCurrentStateNonConst().clearAttachedBodies();
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
@@ -91,12 +91,12 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
     {
       if (ps->getWorld()->hasObject(scaled_object_->id_))
       {
-        ps->getWorld()->removeObject(scaled_object_->id_);
+        ps->getWorldNonConst()->removeObject(scaled_object_->id_);
         for (std::size_t i = 0 ; i < scaled_object_->shapes_.size() ; ++i)
         {
           shapes::Shape *s = scaled_object_->shapes_[i]->clone();
           s->scale((double)value / 100.0);
-          ps->getWorld()->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s), scaled_object_->shape_poses_[i]);
+          ps->getWorldNonConst()->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s), scaled_object_->shape_poses_[i]);
         }
         planning_display_->queueRenderSceneGeometry();
       }
@@ -139,7 +139,7 @@ void MotionPlanningFrame::removeObjectButtonClicked()
   {
     for (int i = 0 ; i < sel.count() ; ++i)
       if (sel[i]->checkState() == Qt::Unchecked)
-        ps->getWorld()->removeObject(sel[i]->text().toStdString());
+        ps->getWorldNonConst()->removeObject(sel[i]->text().toStdString());
       else
         ps->getCurrentStateNonConst().clearAttachedBody(sel[i]->text().toStdString());
     scene_marker_.reset();
@@ -314,7 +314,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
          Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
          Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()));
       
-      ps->getWorld()->moveShapeInObject(obj->id_, obj->shapes_[0], p);
+      ps->getWorldNonConst()->moveShapeInObject(obj->id_, obj->shapes_[0], p);
       planning_display_->queueRenderSceneGeometry();
       
       // Update the interactive marker pose to match the manually introduced one
@@ -406,7 +406,7 @@ void MotionPlanningFrame::copySelectedCollisionObject()
         n++;
       name += boost::lexical_cast<std::string>(n);
     }
-    ps->getWorld()->addToObject(name, obj->shapes_, obj->shape_poses_);
+    ps->getWorldNonConst()->addToObject(name, obj->shapes_, obj->shape_poses_);
     ROS_DEBUG("Copied collision object to '%s'", name.c_str());
   }
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
@@ -745,8 +745,8 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem *item)
     if (obj)
     {
       known_collision_objects_[item->type()].first = item_text;
-      ps->getWorld()->removeObject(obj->id_);
-      ps->getWorld()->addToObject(known_collision_objects_[item->type()].first, obj->shapes_, obj->shape_poses_);
+      ps->getWorldNonConst()->removeObject(obj->id_);
+      ps->getWorldNonConst()->addToObject(known_collision_objects_[item->type()].first, obj->shapes_, obj->shape_poses_);
       if (scene_marker_)
       {
         scene_marker_.reset();

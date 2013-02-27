@@ -414,7 +414,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();  
-      scene_->getWorld()->clearObjects();
+      scene_->getWorldNonConst()->clearObjects();
       scene_->processPlanningSceneWorldMsg(*world);
     }  
     triggerSceneUpdateEvent(UPDATE_SCENE);
@@ -781,7 +781,7 @@ void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(cons
 {
   if (!scene)
     return;
-  collision_detection::AllowedCollisionMatrix &acm = scene->getAllowedCollisionMatrix();
+  collision_detection::AllowedCollisionMatrix &acm = scene->getAllowedCollisionMatrixNonConst();
     
   // read overriding values from the param server
   

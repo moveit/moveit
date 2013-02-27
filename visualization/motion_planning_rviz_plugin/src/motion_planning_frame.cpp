@@ -245,8 +245,8 @@ void MotionPlanningFrame::importResource(const std::string &path)
               planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
               if (ps)
               {
-                ps->getWorld()->removeObject(name);
-                addObject(ps->getWorld(), name, shape, pose);
+                ps->getWorldNonConst()->removeObject(name);
+                addObject(ps->getWorldNonConst(), name, shape, pose);
               }
             }
             break;
@@ -270,7 +270,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
                     QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
                                          append("' already exists. Not importing object."));
                   else
-                    addObject(ps->getWorld(), name, shape, pose);
+                    addObject(ps->getWorldNonConst(), name, shape, pose);
                 }
               }
               else
@@ -287,7 +287,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
       {
         planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
         if (ps)
-          addObject(ps->getWorld(), name, shape, pose);  
+          addObject(ps->getWorldNonConst(), name, shape, pose);  
       }
     }
     else
