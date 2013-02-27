@@ -450,7 +450,7 @@ unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGrap
         num_disabled += setLinkPair( link_graph_it->first->getName(), (*adj_it)->getName(), ADJACENT, link_pairs );
 
         // disable link checking in the collision matrix
-        scene.getAllowedCollisionMatrix().setEntry( link_graph_it->first->getName(), (*adj_it)->getName(), true);
+        scene.getAllowedCollisionMatrixNonConst().setEntry( link_graph_it->first->getName(), (*adj_it)->getName(), true);
       }
 
     }
@@ -479,7 +479,7 @@ unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, Link
     num_disabled += setLinkPair( it->first.first, it->first.second, DEFAULT, link_pairs );
 
     // disable link checking in the collision matrix
-    scene.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); 
+    scene.getAllowedCollisionMatrixNonConst().setEntry(it->first.first, it->first.second, true); 
 
   }
 
@@ -546,7 +546,7 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Link
         num_disabled += setLinkPair( it->first.first, it->first.second, ALWAYS, link_pairs );
 
         // disable link checking in the collision matrix
-        scene.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); 
+        scene.getAllowedCollisionMatrixNonConst().setEntry(it->first.first, it->first.second, true); 
 
         found ++;
       }
@@ -647,7 +647,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
         boost::mutex::scoped_lock slock(*tc.lock_);
         tc.links_seen_colliding_->insert(it->first); 
 
-        tc.scene_.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix        
+        tc.scene_.getAllowedCollisionMatrixNonConst().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix        
       }
 
     }
