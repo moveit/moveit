@@ -377,7 +377,7 @@ const std::string& planning_scene::PlanningScene::getActiveCollisionDetectorName
 void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) const
 {
   names.clear();
-  names.reserve(collision_size());
+  names.reserve(collision_.size());
   for (CollisionDetectorConstIterator it = collision_.begin() ; it != collision_.end() ; ++it)
     names.push_back(it->first);
 }
