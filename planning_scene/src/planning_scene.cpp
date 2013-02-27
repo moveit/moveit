@@ -1272,10 +1272,11 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       }
 
       // there should not exist an attached object with this name
-      if (ls->clearAttachedBody(object.object.id))
+      if (kstate_->clearAttachedBody(object.object.id))
         logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                   object.object.id.c_str(), object.link_name.c_str());
-      ls->attachBody(object.object.id, shapes, poses, object.touch_links);
+      std::set<std::string> touch_links(object.touch_links.begin(), object.touch_links.end());
+      kstate_->attachBody(object.object.id, shapes, poses, touch_links, object.link_name);
       logInform("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       return true;
     }
@@ -1293,7 +1294,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         {
           std::vector<shapes::ShapeConstPtr> shapes = ab->getShapes();
           EigenSTL::vector_Affine3d poses = ab->getGlobalCollisionBodyTransforms();
-          ls->clearAttachedBody(object.object.id);
+          kstate_->clearAttachedBody(object.object.id);
 
           if (cworld_->hasObject(object.object.id))
             logWarn("The collision world already has an object with the same name as the body about to be detached. NOT adding the detached body '%s' to the collision world.", object.object.id.c_str());

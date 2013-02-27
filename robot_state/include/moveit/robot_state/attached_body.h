@@ -58,10 +58,10 @@ public:
   
   /** \brief Construct an attached body for a specified \e link. The name of this body is \e id and it consists of \e shapes that
       attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
-  AttachedBody(const LinkState *link, const std::string &id,
+  AttachedBody(const robot_model::LinkModel *link, const std::string &id,
                const std::vector<shapes::ShapeConstPtr> &shapes,
                const EigenSTL::vector_Affine3d &attach_trans,
-               const std::vector<std::string> &touch_links);
+               const std::set<std::string> &touch_links);
   
   ~AttachedBody();
   
@@ -74,13 +74,13 @@ public:
   /** \brief Get the name of the link this body is attached to */
   const std::string& getAttachedLinkName() const
   {
-    return parent_link_state_->getName();
+    return parent_link_model_->getName();
   } 
 
-  /** \brief Get the link this body is attached to */
+  /** \brief Get the model of the link this body is attached to */
   const robot_model::LinkModel* getAttachedLink() const
   {
-    return parent_link_state_->getLinkModel();
+    return parent_link_model_;
   }
   
   /** \brief Get the shapes that make up this attached body */
@@ -114,13 +114,13 @@ public:
   /** \brief Set the scale for the shapes of this attached object */
   void setScale(double scale);
   
-  /** \brief Recompute global_collision_body_transform */
-  void computeTransform();
+  /** \brief Recompute global_collision_body_transform given the transform of the parent link*/
+  void computeTransform(const Eigen::Affine3d &parent_link_global_transform);
   
 private:
   
   /** \brief The link that owns this attached body */
-  const LinkState                   *parent_link_state_;
+  const robot_model::LinkModel      *parent_link_model_;
   
   /** \brief string id for reference */
   std::string                        id_;
@@ -128,12 +128,12 @@ private:
   /** \brief The geometries of the attached body */
   std::vector<shapes::ShapeConstPtr> shapes_;
   
-  /** \brief The set of links this body is allowed to touch */
-  std::set<std::string>              touch_links_;
-  
   /** \brief The constant transforms applied to the link (needs to be specified by user) */
   EigenSTL::vector_Affine3d          attach_trans_;
-  
+
+  /** \brief The set of links this body is allowed to touch */
+  std::set<std::string>              touch_links_;
+    
   /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
   EigenSTL::vector_Affine3d          global_collision_body_transforms_;
 };

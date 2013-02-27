@@ -36,13 +36,17 @@
 
 #include <moveit/robot_state/attached_body.h>
 
-robot_state::AttachedBody::AttachedBody(const robot_state::LinkState* parent_link_state,
-                                            const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes,
-                                            const EigenSTL::vector_Affine3d &attach_trans,
-                                            const std::vector<std::string> &touch_links) :
-  parent_link_state_(parent_link_state), id_(id), shapes_(shapes), attach_trans_(attach_trans)
+robot_state::AttachedBody::AttachedBody(const robot_model::LinkModel *parent_link_model,
+                                        const std::string &id, 
+                                        const std::vector<shapes::ShapeConstPtr> &shapes,
+                                        const EigenSTL::vector_Affine3d &attach_trans,
+                                        const std::set<std::string> &touch_links) :
+  parent_link_model_(parent_link_model),
+  id_(id),
+  shapes_(shapes),
+  attach_trans_(attach_trans),
+  touch_links_(touch_links)
 {
-  touch_links_.insert(touch_links.begin(), touch_links.end());
   global_collision_body_transforms_.resize(attach_trans.size());
   for(std::size_t i = 0 ; i < global_collision_body_transforms_.size() ; ++i)
     global_collision_body_transforms_[i].setIdentity();
@@ -86,8 +90,8 @@ void robot_state::AttachedBody::setPadding(double padding)
   }
 }
 
-void robot_state::AttachedBody::computeTransform()
+void robot_state::AttachedBody::computeTransform(const Eigen::Affine3d &parent_link_global_transform)
 {
   for(std::size_t i = 0; i < global_collision_body_transforms_.size() ; ++i)
-    global_collision_body_transforms_[i] = parent_link_state_->getGlobalLinkTransform() * attach_trans_[i];
+    global_collision_body_transforms_[i] = parent_link_global_transform * attach_trans_[i];
 }

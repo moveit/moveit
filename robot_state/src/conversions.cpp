@@ -205,6 +205,7 @@ static void attachedBodyToMsg(const AttachedBody &attached_body, moveit_msgs::At
     aco.touch_links.push_back(*it);
   aco.object.header.frame_id = aco.link_name;
   aco.object.id = attached_body.getName();
+  
   aco.object.operation = moveit_msgs::CollisionObject::ADD;
   const std::vector<shapes::ShapeConstPtr>& ab_shapes = attached_body.getShapes();
   const EigenSTL::vector_Affine3d& ab_tf = attached_body.getFixedTransforms();
@@ -312,10 +313,11 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
           logError("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(), aco.object.id.c_str());
         else
         {  
-          if (ls->clearAttachedBody(aco.object.id))
+          if (state.clearAttachedBody(aco.object.id))
             logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                       aco.object.id.c_str(), aco.link_name.c_str());
-          ls->attachBody(aco.object.id, shapes, poses, aco.touch_links);
+          std::set<std::string> touch_links(aco.touch_links.begin(), aco.touch_links.end());
+          state.attachBody(aco.object.id, shapes, poses, touch_links, aco.link_name);
           logDebug("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
       }
@@ -326,9 +328,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
   else
     if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
     {    
-      LinkState *ls = state.getLinkState(aco.link_name);
-      if (ls)
-        ls->clearAttachedBody(aco.object.id);
+      state.clearAttachedBody(aco.object.id);
     }
     else
       logError("Unknown collision object operation: %d", aco.object.operation);
