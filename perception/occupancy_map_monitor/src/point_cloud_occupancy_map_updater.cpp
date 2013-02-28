@@ -41,6 +41,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/ros/conversions.h>
 #include <moveit/robot_self_filter/self_mask.h>
+#include <XmlRpcException.h>
 
 namespace occupancy_map_monitor
 {
@@ -59,35 +60,42 @@ PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater()
 }
 
 bool PointCloudOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
-{
-  if (!params.hasMember("point_cloud_topic"))
-    return false;
-  std::string point_cloud_topic = std::string (params["point_cloud_topic"]);
-
-  if(!params.hasMember("max_range"))
-    return false;
-  double max_range = double (params["max_range"]);
-
-  if(!params.hasMember("frame_subsample"))
-    return false;
-  size_t frame_subsample = int (params["frame_subsample"]);
-
-  if(!params.hasMember("point_subsample"))
-    return false;
-  size_t point_subsample = int (params["point_subsample"]);
-
-  std::vector<robot_self_filter::LinkInfo> links;
-  if(params.hasMember("self_mask"))
-  {
-    ROS_INFO("Configuring self mask");
-    if(!robot_self_filter::createLinksFromParams(params["self_mask"], links))
-    {
-      ROS_ERROR("Failed to load self mask");
+{ 
+  try
+  {    
+    if (!params.hasMember("point_cloud_topic"))
       return false;
+    std::string point_cloud_topic = std::string (params["point_cloud_topic"]);
+    
+    if(!params.hasMember("max_range"))
+      return false;
+    double max_range = double (params["max_range"]);
+    
+    if(!params.hasMember("frame_subsample"))
+      return false;
+    size_t frame_subsample = int (params["frame_subsample"]);
+    
+    if(!params.hasMember("point_subsample"))
+      return false;
+    size_t point_subsample = int (params["point_subsample"]);
+    
+    std::vector<robot_self_filter::LinkInfo> links;
+    if(params.hasMember("self_mask"))
+    {
+      ROS_INFO("Configuring self mask");
+      if(!robot_self_filter::createLinksFromParams(params["self_mask"], links))
+      {
+        ROS_ERROR("Failed to load self mask");
+        return false;
+      }
     }
+    return this->setParams(point_cloud_topic, max_range, frame_subsample, point_subsample, links);
   }
-
-  return this->setParams(point_cloud_topic, max_range, frame_subsample, point_subsample, links);
+  catch (XmlRpc::XmlRpcException &ex)
+  {
+    ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
+    return false;
+  }
 }
 
 bool PointCloudOccupancyMapUpdater::setParams(const std::string &point_cloud_topic, double max_range, size_t frame_subsample,

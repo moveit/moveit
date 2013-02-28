@@ -36,7 +36,7 @@
 
 #include <moveit/occupancy_map_monitor/depth_image_occupancy_map_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
-
+#include <XmlRpcException.h>
 
 namespace occupancy_map_monitor
 {
@@ -63,23 +63,39 @@ DepthImageOccupancyMapUpdater::~DepthImageOccupancyMapUpdater()
   stopHelper();
 }
 
+static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, double *value)
+{
+  if (params.hasMember(param_name))
+  {
+    if (params[param_name].getType() == XmlRpc::XmlRpcValue::TypeInt)
+      *value = (int) params[param_name];
+    else
+      *value = (double) params[param_name];
+  }
+}
+
 bool DepthImageOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
 {
-  sensor_type_ = (std::string) params["sensor_type"];
-  if (params.hasMember("image_topic"))
-    image_topic_ = (std::string) params["image_topic"];
-  if (params.hasMember("queue_size"))
-    queue_size_ = (int)params["queue_size"];
-  if (params.hasMember("near_clipping_plane_distance"))
-    near_clipping_plane_distance_ = (double) params["near_clipping_plane_distance"];
-  if (params.hasMember("far_clipping_plane_distance"))
-    far_clipping_plane_distance_ = (double) params["far_clipping_plane_distance"];
-  if (params.hasMember("shadow_threshold"))
-    shadow_threshold_ = (double) params["shadow_threshold"];
-  if (params.hasMember("padding_scale"))
-    padding_scale_ = (double) params["padding_scale"];
-  if (params.hasMember("padding_offset"))
-    padding_offset_ = (double) params["padding_offset"];
+  try
+  {
+    sensor_type_ = (std::string) params["sensor_type"];
+    if (params.hasMember("image_topic"))
+      image_topic_ = (std::string) params["image_topic"];
+    if (params.hasMember("queue_size"))
+      queue_size_ = (int)params["queue_size"];
+    
+    readXmlParam(params, "near_clipping_plane_distance", &near_clipping_plane_distance_);
+    readXmlParam(params, "far_clipping_plane_distance", &far_clipping_plane_distance_);
+    readXmlParam(params, "shadow_threshold", &shadow_threshold_);
+    readXmlParam(params, "padding_scale", &padding_scale_);
+    readXmlParam(params, "padding_offset", &padding_offset_);
+  }
+  catch (XmlRpc::XmlRpcException &ex)
+  {
+    ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
+    return false;
+  }
+  
   return true;
 }
 
@@ -112,7 +128,6 @@ void DepthImageOccupancyMapUpdater::stop()
 
 void DepthImageOccupancyMapUpdater::stopHelper()
 {   
-  ROS_ERROR_STREAM("stop");
   sub_depth_image_.shutdown();
 }
 
