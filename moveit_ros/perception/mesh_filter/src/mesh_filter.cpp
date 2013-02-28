@@ -41,7 +41,7 @@
 #include <Eigen/Eigen>
 #include <stdexcept>
 #include <sensor_msgs/image_encodings.h>
-#include <cv.h>
+#include <stdint.h>
 
 // include SSE headers
 #ifdef HAVE_SSE_EXTENSIONS
@@ -59,10 +59,8 @@ mesh_filter::MeshFilter::MeshFilter (const boost::function<bool(MeshFilter::Mesh
 , transform_callback_ (transform_callback)
 , shadow_threshold_ (0.5)
 {
-  //mesh_renderer_.setShadersFromFile("/home/gedikli/padding.vshader", "");
   mesh_renderer_.setShadersFromString (padding_vertex_shader_, "");
   depth_filter_.setShadersFromString (filter_vertex_shader_, filter_fragment_shader_);
-  //depth_filter_.setShadersFromFile("/home/gedikli/null.vshader","/home/gedikli/filter.fshader");
 
   depth_filter_.begin ();
 
@@ -151,6 +149,12 @@ void mesh_filter::MeshFilter::setShadowThreshold (float threshold)
 void mesh_filter::MeshFilter::getModelLabels (unsigned* labels) const
 {
   mesh_renderer_.getColorBuffer ((unsigned char*) labels);
+}
+
+namespace
+{
+inline unsigned alignment16 (const void * pointer) { return ((uintptr_t)pointer & 15); }
+inline bool isAligned16 (const void* pointer) { return (((uintptr_t)pointer & 15) == 0); }
 }
 
 void mesh_filter::MeshFilter::getModelDepth (float* depth) const

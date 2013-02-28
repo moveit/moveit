@@ -295,6 +295,8 @@ public:
     return last_update_time_;
   }
 
+  void publishDebugInformation(bool flag);
+  
   /** @brief This function is called every time there is a change to the planning scene */
   void triggerSceneUpdateEvent(SceneUpdateType update_type);
 

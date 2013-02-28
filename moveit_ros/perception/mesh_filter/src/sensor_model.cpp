@@ -35,7 +35,7 @@
 /* Author: Suat Gedikli */
 
 #include <moveit/mesh_filter/sensor_model.h>
-#include <moveit/mesh_filter/utilities.h>
+#include <stdint.h>
 #include <stdexcept>
 
 mesh_filter::SensorModel::~SensorModel ()
@@ -90,6 +90,12 @@ float mesh_filter::SensorModel::Parameters::getNearClippingPlaneDistance () cons
 float mesh_filter::SensorModel::Parameters::getFarClippingPlaneDistance () const
 {
   return far_clipping_plane_distance_;
+}
+
+namespace
+{
+inline unsigned alignment16 (const void * pointer) { return ((uintptr_t)pointer & 15); }
+inline bool isAligned16 (const void* pointer) { return (((uintptr_t)pointer & 15) == 0); }
 }
 
 void mesh_filter::SensorModel::Parameters::transformModelDepthToMetricDepth (float* depth) const

@@ -842,6 +842,12 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
   }
 } 
 
+void planning_scene_monitor::PlanningSceneMonitor::publishDebugInformation(bool flag)
+{
+  if (octomap_monitor_)
+    octomap_monitor_->publishDebugInformation(flag);
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(const planning_scene::PlanningScenePtr &scene)
 {
   if (!scene)

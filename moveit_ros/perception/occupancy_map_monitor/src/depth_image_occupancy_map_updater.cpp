@@ -146,6 +146,19 @@ bool DepthImageOccupancyMapUpdater::getShapeTransform(mesh_filter::MeshHandle h,
   return true;
 }
 
+namespace
+{
+bool host_is_big_endian(void)
+{
+  union {
+    uint32_t i;
+    char c[sizeof(uint32_t)];
+  } bint = {0x01020304};
+  return bint.c[0] == 1; 
+}
+}
+static const bool HOST_IS_BIG_ENDIAN = host_is_big_endian();
+
 void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg)
 {
   ROS_DEBUG("Received a new depth image message");
@@ -178,27 +191,42 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   
   if (!updateTransformCache(depth_msg->header.frame_id, depth_msg->header.stamp))
     ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
+
+  if (depth_msg->is_bigendian && !HOST_IS_BIG_ENDIAN)
+    ROS_ERROR_THROTTLE(1, "edian problem: received image data does not match host");
   
   // call the mesh filter
   mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters();
   params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(depth_msg->width, depth_msg->height); 
   mesh_filter_->filter(reinterpret_cast<const float*>(&depth_msg->data[0]));
-
+  
   // copy filtered data
   std::size_t img_size = depth_msg->height * depth_msg->width;
   if (filtered_data_.size() < img_size)
     filtered_data_.resize(img_size);
-  mesh_filter_->getModelDepth(&filtered_data_[0]);
-
-  sensor_msgs::Image depth_msg2 = *depth_msg;
-  memcpy(&depth_msg2.data[0], &filtered_data_[0], sizeof(float) * img_size);
-  pub_model_depth_image_.publish(depth_msg2, *info_msg);
-
-  mesh_filter_->getFilteredDepth(&filtered_data_[0]);
-  memcpy(&depth_msg2.data[0], &filtered_data_[0], sizeof(float) * img_size);
-  pub_filtered_depth_image_.publish(depth_msg2, *info_msg);
-
+  
+  if (debug_info_)
+  {
+    mesh_filter_->getModelDepth(&filtered_data_[0]);
+    sensor_msgs::Image debug_msg;
+    debug_msg.header = depth_msg->header;
+    debug_msg.height = depth_msg->height;
+    debug_msg.width = depth_msg->width;
+    debug_msg.encoding = depth_msg->encoding;
+    debug_msg.is_bigendian = depth_msg->is_bigendian;
+    debug_msg.step = depth_msg->step;
+    debug_msg.data.resize(depth_msg->data.size());
+    memcpy(&debug_msg.data[0], &filtered_data_[0], sizeof(float) * img_size);
+    pub_model_depth_image_.publish(debug_msg, *info_msg);
+    
+    mesh_filter_->getFilteredDepth(&filtered_data_[0]);
+    memcpy(&debug_msg.data[0], &filtered_data_[0], sizeof(float) * img_size);
+    pub_filtered_depth_image_.publish(debug_msg, *info_msg);
+  }
+  else
+    mesh_filter_->getFilteredDepth(&filtered_data_[0]);
+  
   // Use correct principal point from calibration
   double px = info_msg->K[2];
   double py = info_msg->K[5];
@@ -224,7 +252,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   OccMapTreePtr tree = monitor_->getOcTreePtr();
   octomap::KeySet free_cells, occupied_cells;
   const float* depth_row = reinterpret_cast<const float*>(&filtered_data_[0]);
-
+  
   tree->lockRead();
   
   try
