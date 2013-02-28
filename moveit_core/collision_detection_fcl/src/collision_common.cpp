@@ -342,7 +342,7 @@ struct FCLShapeCache
           map_.erase(it);
         it = nit;
       }
-      logDebug("Cleaning up cache for FCL objects that correspond to static shapes. Cache size reduced from %u to %u", from, (unsigned int)map_.size());
+      //      logDebug("Cleaning up cache for FCL objects that correspond to static shapes. Cache size reduced from %u to %u", from, (unsigned int)map_.size());
     }
   }
 
@@ -484,14 +484,14 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     {
       if (cache_it->second->collision_geometry_data_->ptr.raw == (void*)data)
       {
-        logDebug("Collision data structures for object %s retrieved from cache.", cache_it->second->collision_geometry_data_->getID().c_str());
+        //        logDebug("Collision data structures for object %s retrieved from cache.", cache_it->second->collision_geometry_data_->getID().c_str());
         return cache_it->second;
       }
       else
         if (cache_it->second.unique())
         {
           const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
-          logDebug("Collision data structures for object %s retrieved from cache after updating the source object.", cache_it->second->collision_geometry_data_->getID().c_str());
+          //          logDebug("Collision data structures for object %s retrieved from cache after updating the source object.", cache_it->second->collision_geometry_data_->getID().c_str());
           return cache_it->second;
         }
     }
@@ -520,7 +520,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
 
-        logDebug("Collision data structures for attached body %s retrieved from the cache for world objects.", obj_cache->collision_geometry_data_->getID().c_str());
+        //        logDebug("Collision data structures for attached body %s retrieved from the cache for world objects.", obj_cache->collision_geometry_data_->getID().c_str());
 
         // add to the new cache
         boost::mutex::scoped_lock slock(cache.lock_);
@@ -555,8 +555,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
           // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
           const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
 
-          logDebug("Collision data structures for world object %s retrieved from the cache for attached bodies.",
-                   obj_cache->collision_geometry_data_->getID().c_str());
+          //          logDebug("Collision data structures for world object %s retrieved from the cache for attached bodies.",
+          //                   obj_cache->collision_geometry_data_->getID().c_str());
 
           // add to the new cache
           boost::mutex::scoped_lock slock(cache.lock_);
