@@ -40,8 +40,10 @@
 #include <map>
 #include <moveit/mesh_filter/gl_renderer.h>
 #include <moveit/mesh_filter/sensor_model.h>
+#include <moveit/mesh_filter/semaphore.h>
 #include <boost/function.hpp>
 #include <Eigen/Eigen>
+#include <queue>
 
 //forward declarations
 namespace shapes
@@ -52,6 +54,7 @@ namespace shapes
 namespace mesh_filter
 {
 
+class FilterJob;
 class GLMesh;
 
 typedef unsigned int MeshHandle;
@@ -96,7 +99,7 @@ class MeshFilterBase
      * \author Suat Gedikli (gedikli@willowgarage.com)
      * \param[in] sensor_data pointer to the input depth image from sensor readings.
      */
-    bool filter (const float* sensor_data) const;
+    void filter (const float* sensor_data, bool wait = false) const;
     
     /**
      * \brief retrieves the labels of the input data
@@ -157,6 +160,7 @@ class MeshFilterBase
      * \param[in] offset the offset value
      */
     void setPaddingOffset (float offset);
+    
   protected:
     
     /**
@@ -174,7 +178,7 @@ class MeshFilterBase
     /**
      * \brief the filter method that does the magic
      */
-    void filter () const;
+    void doFilter (const float* sensor_data) const;
     
   /**
    * \brief sets the size of the fram buffers
@@ -204,24 +208,22 @@ class MeshFilterBase
     boost::thread filter_thread_;
 
     /** \brief condition variable to notify the filtering thread if a new image arrived*/
-    mutable boost::condition_variable filter_condition_;
+    mutable boost::condition_variable jobs_condition_;
     
     /** \brief mutex required for synchronization of condition states*/
-    mutable boost::mutex filter_mutex_;
+    mutable boost::mutex jobs_mutex_;
 
-    /** \brief condition variable to notify the if filtering is done and the data is ready*/
-    mutable boost::condition_variable data_ready_condition_;
-
+    /** \brief OpenGL job queue that need to be processed by the worker thread*/
+    mutable std::queue<boost::shared_ptr<FilterJob> > jobs_queue_;
+    
     /** \brief indicates whether the filtering loop should stop*/
     bool stop_;
 
     /** \brief first pass renderer for rendering the mesh*/
     boost::shared_ptr<GLRenderer> mesh_renderer_;
-    //mutable GLRenderer mesh_renderer_;
     
     /** \brief second pass renderer for filtering the results of first pass*/
     boost::shared_ptr<GLRenderer> depth_filter_;
-    //mutable GLRenderer depth_filter_;
     
     /** \brief canvas element (screen-filling quad) for second pass*/
     GLuint canvas_;
@@ -244,8 +246,6 @@ class MeshFilterBase
     /** \brief threshold for shadowed pixels vs. filtered pixels*/
     float shadow_threshold_;
 
-    /** \brief the sensor input data*/
-    mutable const float* sensor_data_;
 };
 } // namespace mesh_filter
 
