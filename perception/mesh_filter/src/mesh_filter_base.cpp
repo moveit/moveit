@@ -169,7 +169,7 @@ void mesh_filter::MeshFilterBase::setShadowThreshold (float threshold)
 
 void mesh_filter::MeshFilterBase::getModelLabels (unsigned* labels) const
 {
-  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&GLRenderer::getColorBuffer, mesh_renderer_.get (), (unsigned char*) labels)));
+  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&GLRenderer::getColorBuffer, *mesh_renderer_, (unsigned char*) labels)));
   
   unique_lock<mutex> lock (jobs_mutex_);
   jobs_queue_.push (job);
@@ -179,7 +179,7 @@ void mesh_filter::MeshFilterBase::getModelLabels (unsigned* labels) const
 
 void mesh_filter::MeshFilterBase::getModelDepth (float* depth) const
 {
-  shared_ptr<FilterJob> job1 (new FilterJob (boost::bind (&GLRenderer::getDepthBuffer, mesh_renderer_.get (), depth)));
+  shared_ptr<FilterJob> job1 (new FilterJob (boost::bind (&GLRenderer::getDepthBuffer, *mesh_renderer_, depth)));
   shared_ptr<FilterJob> job2 (new FilterJob (boost::bind (&SensorModel::Parameters::transformModelDepthToMetricDepth, sensor_parameters_, depth)));
   unique_lock<mutex> lock (jobs_mutex_);
   jobs_queue_.push (job1);
@@ -191,7 +191,7 @@ void mesh_filter::MeshFilterBase::getModelDepth (float* depth) const
 
 void mesh_filter::MeshFilterBase::getFilteredDepth (float* depth) const
 {
-  shared_ptr<FilterJob> job1 (new FilterJob (boost::bind (&GLRenderer::getDepthBuffer, depth_filter_.get (), depth)));
+  shared_ptr<FilterJob> job1 (new FilterJob (boost::bind (&GLRenderer::getDepthBuffer, *depth_filter_, depth)));
   shared_ptr<FilterJob> job2 (new FilterJob (boost::bind (&SensorModel::Parameters::transformFilteredDepthToMetricDepth, sensor_parameters_, depth)));
   unique_lock<mutex> lock (jobs_mutex_);
   jobs_queue_.push (job1);
@@ -203,7 +203,7 @@ void mesh_filter::MeshFilterBase::getFilteredDepth (float* depth) const
 
 void mesh_filter::MeshFilterBase::getFilteredLabels (unsigned* labels) const
 {
-  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&GLRenderer::getColorBuffer, *depth_filter_,(unsigned char*) labels)));
+  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&GLRenderer::getColorBuffer, *depth_filter_, (unsigned char*) labels)));
   
   unique_lock<mutex> lock (jobs_mutex_);
   jobs_queue_.push (job);
