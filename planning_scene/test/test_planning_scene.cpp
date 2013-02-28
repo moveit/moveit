@@ -62,9 +62,7 @@ TEST(PlanningScene, LoadRestore)
 {
   boost::shared_ptr<urdf::ModelInterface> urdf_model = loadRobotModel();
   boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
-  planning_scene::PlanningScene ps;
-  ps.configure(urdf_model, srdf_model);
-  EXPECT_TRUE(ps.isConfigured());
+  planning_scene::PlanningScene ps(urdf_model, srdf_model);
   moveit_msgs::PlanningScene ps_msg;
   ps.getPlanningSceneMsg(ps_msg);
   ps.setPlanningSceneMsg(ps_msg);
@@ -75,9 +73,7 @@ TEST(PlanningScene, LoadRestoreDiff)
   boost::shared_ptr<urdf::ModelInterface> urdf_model = loadRobotModel();
   boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
 
-  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
-  ps->configure(urdf_model, srdf_model);
-  EXPECT_TRUE(ps->isConfigured());
+  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
 
   collision_detection::World &world = *ps->getWorldNonConst();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
@@ -91,7 +87,6 @@ TEST(PlanningScene, LoadRestoreDiff)
   EXPECT_TRUE(world.hasObject("sphere"));
 
   planning_scene::PlanningScenePtr next = ps->diff();
-  EXPECT_TRUE(next->isConfigured());
   EXPECT_TRUE(next->getWorld()->hasObject("sphere"));
   next->getWorldNonConst()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
   EXPECT_EQ(next->getWorld()->size(), 2);
@@ -113,9 +108,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
   boost::shared_ptr<urdf::ModelInterface> urdf_model = loadRobotModel();
 
-  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
-  ps->configure(urdf_model, srdf_model);
-  EXPECT_TRUE(ps->isConfigured());
+  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
 
   collision_detection::World &world = *ps->getWorldNonConst();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();

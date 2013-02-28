@@ -67,6 +67,151 @@ bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorl
   return msg.collision_objects.empty() && msg.octomap.octomap.data.empty() && msg.collision_map.boxes.empty();
 }
 
+planning_scene::PlanningScene::PlanningScene(const robot_model::RobotModelPtr &robot_model,
+                                             collision_detection::WorldPtr world) :
+  kmodel_(robot_model),
+  world_(world),
+  world_const_(world)
+{
+  initialize();
+}
+
+planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+                                             const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                             const std::string &root_link,
+                                             collision_detection::WorldPtr world) :
+  world_(world),
+  world_const_(world)
+{
+  if (!urdf_model)
+    throw ConstructException("Bad urdf");
+
+  if (!srdf_model)
+    throw ConstructException("Bad urdf");
+
+  kmodel_ = createRobotModel(urdf_model, srdf_model, root_link);
+  if (!kmodel_)
+    throw ConstructException("Could not create RobotModel");
+
+  initialize();
+}
+
+void planning_scene::PlanningScene::initialize()
+{
+  name_ = DEFAULT_SCENE_NAME;
+
+  ftf_.reset(new robot_state::Transforms(kmodel_->getModelFrame()));
+  ftf_const_ = ftf_;
+
+  kstate_.reset(new robot_state::RobotState(kmodel_));
+  kstate_->setToDefaultValues();
+
+
+  acm_.reset(new collision_detection::AllowedCollisionMatrix());
+  // Use default collision operations in the SRDF to setup the acm
+  const std::vector<std::string>& collision_links = kmodel_->getLinkModelNamesWithCollisionGeometry();
+  acm_->setEntry(collision_links, collision_links, false);
+
+  // allow collisions for pairs that have been disabled
+  const std::vector<srdf::Model::DisabledCollision> &dc = getRobotModel()->getSRDF()->getDisabledCollisionPairs();
+  for (std::vector<srdf::Model::DisabledCollision>::const_iterator it = dc.begin(); it != dc.end(); ++it)
+    acm_->setEntry(it->link1_, it->link2_, true);
+
+  setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
+}
+
+/* return NULL on failure */
+robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(
+      const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+      const boost::shared_ptr<const srdf::Model> &srdf_model,
+      const std::string &root_link)
+{
+  robot_model::RobotModelPtr robot_model;
+  const urdf::Link *root_link_ptr = 0;
+  if (!root_link.empty())
+  {
+    root_link_ptr = urdf_model->getLink(root_link).get();
+    if (!root_link_ptr)
+      logError("Link '%s' (to be used as root) was not found in model '%s'. "
+               "Attempting to construct model with default root link instead.",
+               root_link.c_str(), urdf_model->getName().c_str());
+  }
+  if (root_link_ptr)
+    robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model, root_link));
+  else
+    robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
+
+  if (!robot_model || !robot_model->getRoot())
+    return robot_model::RobotModelPtr();
+
+  return robot_model;
+}
+
+void planning_scene::PlanningScene::setRootLink(const std::string& root_link)
+{
+  robot_model::RobotModelPtr new_robot_model;
+  new_robot_model = createRobotModel(getRobotModel()->getURDF(), getRobotModel()->getSRDF(), root_link);
+
+  if (!new_robot_model || new_robot_model->getRootLinkName() != root_link)
+  {
+    logError("Unable to set root_link to %s", root_link.c_str());
+    return;
+  }
+
+  kmodel_ = new_robot_model;
+
+  ftf_.reset(new robot_state::Transforms(kmodel_->getModelFrame()));
+  ftf_const_ = ftf_;
+  
+  std::map<std::string, double> jsv;
+  kstate_->getStateValues(jsv);
+  kstate_.reset(new robot_state::RobotState(kmodel_));
+  kstate_->setStateValues(jsv);
+}
+
+planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) :
+  parent_(parent)
+{
+  if (!parent_)
+    throw ConstructException("NULL parent pointer");
+
+  if (!parent_->getName().empty())
+    name_ = parent_->getName() + "+";
+
+  kmodel_ = parent_->kmodel_;
+
+  // maintain a separate world.  Copy on write ensures that most of the object
+  // info is shared until it is modified.
+  world_.reset(new collision_detection::World(*parent_->world_));
+  world_const_ = world_;
+  
+  // record changes to the world
+  world_diff_.reset(new collision_detection::WorldDiff(world_));
+
+  // Set up the same collision detectors as the parent
+  for (CollisionDetectorConstIterator it = parent_->collision_.begin() ;
+       it != parent_->collision_.end() ;
+       ++it)
+  {
+    const CollisionDetectorPtr& parent_detector = it->second;
+    CollisionDetectorPtr& detector = collision_[it->first];
+    detector.reset(new CollisionDetector);
+    detector->alloc_ = parent_detector->alloc_;
+    detector->parent_ = parent_detector;
+
+    detector->cworld_ = detector->alloc_->allocateWorld(parent_detector->cworld_, world_);
+    detector->cworld_const_ = detector->cworld_;
+
+    // leave these empty and use parent collision_robot_ unless/until a non-const one
+    // is requested (e.g. to modify link padding or scale)
+    detector->crobot_.reset();
+    detector->crobot_const_.reset();
+    detector->crobot_unpadded_.reset();
+    detector->crobot_unpadded_const_.reset();
+  }
+  setActiveCollisionDetector(parent_->getActiveCollisionDetectorName());
+}
+
 planning_scene::PlanningScenePtr planning_scene::PlanningScene::clone(const planning_scene::PlanningSceneConstPtr &scene)
 {
   PlanningScenePtr result = scene->diff();
@@ -85,173 +230,6 @@ planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(const movei
   planning_scene::PlanningScenePtr result = diff();
   result->setPlanningSceneDiffMsg(msg);
   return result;
-}
-
-planning_scene::PlanningScene::PlanningScene() :
-  configured_(false),
-  world_(new collision_detection::World()),
-  world_const_(world_)
-{
-  name_ = DEFAULT_SCENE_NAME;
-}
-
-planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
-{
-  if (parent_)
-  {
-    if (parent_->isConfigured())
-      configure(parent_->getRobotModel()->getURDF(), parent_->getRobotModel()->getSRDF());
-    if (!world_)
-      world_.reset(new collision_detection::World(*parent_->world_));
-    world_const_ = world_;
-    if (!parent_->getName().empty())
-      name_ = parent_->getName() + "+";
-  }
-  else
-  {
-    logError("NULL parent scene specified. Ignoring.");
-    name_ = DEFAULT_SCENE_NAME;
-    world_.reset(new collision_detection::World());
-    world_const_ = world_;
-  }
-}
-
-bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                              const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                              const std::string &root_link)
-{
-  if (!urdf_model || !srdf_model)
-  {
-    configured_ = false;
-    return false;
-  }
-
-  if (!parent_)
-  {
-    bool same = configured_ && kmodel_->getURDF() == urdf_model && kmodel_->getSRDF() == srdf_model;
-    if (!same || !kmodel_ || kmodel_->getRootLinkName() != root_link)
-    {
-      robot_model::RobotModelPtr newModel;
-      if (root_link.empty())
-        newModel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
-      else
-      {
-        const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
-        if (root_link_ptr)
-          newModel.reset(new robot_model::RobotModel(urdf_model, srdf_model, root_link));
-        else
-        {
-          logError("Link '%s' (to be used as root) was not found in model '%s'. Attempting to construct model with default root link instead.",
-                   root_link.c_str(), urdf_model->getName().c_str());
-          newModel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
-        }
-      }
-      return configure(newModel);
-    }
-  }
-  else
-    return configure(robot_model::RobotModelPtr());
-  return isConfigured();
-}
-
-bool planning_scene::PlanningScene::configure(const robot_model::RobotModelPtr &kmodel)
-{
-  if (!kmodel && !parent_)
-  {
-    configured_ = false;
-    return false;
-  }
-
-  if (!parent_)
-  {
-    // nothing other than perhaps the root link has changed since the last call to configure()
-    bool same = configured_ && kmodel_ == kmodel;
-    if (!same)
-    {
-      kmodel_ = kmodel;
-      kmodel_const_ = kmodel_;
-      ftf_.reset(new robot_state::Transforms(kmodel_->getModelFrame()));
-      ftf_const_ = ftf_;
-
-      if (kstate_)
-      {
-        // keep the same joint values, update the transforms if needed
-        std::map<std::string, double> jsv;
-        kstate_->getStateValues(jsv);
-        kstate_.reset(new robot_state::RobotState(kmodel_));
-        kstate_->setStateValues(jsv);
-      }
-      else
-      {
-        kstate_.reset(new robot_state::RobotState(kmodel_));
-        kstate_->setToDefaultValues();
-      }
-
-      // no need to reset this if the scene was previously configured
-      if (!acm_)
-      {
-        acm_.reset(new collision_detection::AllowedCollisionMatrix());
-        // Use default collision operations in the SRDF to setup the acm
-        acm_->setEntry(getRobotModel()->getLinkModelNamesWithCollisionGeometry(),
-                      getRobotModel()->getLinkModelNamesWithCollisionGeometry(), false);
-
-        // allow collisions for pairs that have been disabled
-        const std::vector<srdf::Model::DisabledCollision> &dc = getRobotModel()->getSRDF()->getDisabledCollisionPairs();
-        for (std::size_t i = 0 ; i < dc.size() ; ++i)
-        {
-          acm_->setEntry(dc[i].link1_, dc[i].link2_, true);
-        }
-
-      }
-
-      allocateCollisionDetectors();
-
-      configured_ = true;
-    }
-  }
-  else
-  {
-    if (parent_->isConfigured())
-    {
-      // Even if we have a parent, we do maintain a separate world
-      // representation, one that records changes.  This is cheap however,
-      // because the worlds start out with the same representation and use
-      // copy-on-write when things change.
-      world_.reset(new collision_detection::World(*parent_->world_));
-      world_const_ = world_;
-      collision_.clear();
-      for (CollisionDetectorConstIterator it = parent_->collision_.begin() ;
-           it != parent_->collision_.end() ;
-           ++it)
-      {
-        const CollisionDetectorPtr& parent_detector = it->second;
-        CollisionDetectorPtr& detector = collision_[it->first];
-        detector.reset(new CollisionDetector);
-        detector->alloc_ = parent_detector->alloc_;
-        detector->parent_ = parent_detector;
-
-        detector->cworld_ = detector->alloc_->allocateWorld(parent_detector->cworld_, world_);
-        detector->cworld_const_ = detector->cworld_;
-
-        // leave these empty and use parent collision_robot_ unless/until a non-const one
-        // is requested (e.g. to modify link padding or scale)
-        detector->crobot_.reset();
-        detector->crobot_const_.reset();
-        detector->crobot_unpadded_.reset();
-        detector->crobot_unpadded_const_.reset();
-      }
-      setActiveCollisionDetector(parent_->getActiveCollisionDetectorName());
-
-      // record changes to the world
-      world_diff_.reset(new collision_detection::WorldDiff(world_));
-
-      configured_ = true;
-    }
-    else
-      logError("Parent is not configured yet");
-  }
-
-  return isConfigured();
 }
 
 void planning_scene::PlanningScene::CollisionDetector::copyPadding(const planning_scene::PlanningScene::CollisionDetector& src)
@@ -288,52 +266,6 @@ void planning_scene::PlanningScene::CollisionDetector::findParent(const Planning
     parent_ = it->second->parent_;
 }
 
-void planning_scene::PlanningScene::allocateCollisionDetectors(CollisionDetector& detector)
-{
-  // always allocate the CollisionWorld
-  if (!detector.cworld_)
-  {
-    detector.cworld_ = detector.alloc_->allocateWorld(world_);
-    detector.cworld_const_ = detector.cworld_;
-  }
-
-  detector.findParent(*this);
-
-  // Allocate CollisionRobot unless there is a parent and no local padding.
-  // If active_collision_->crobot_ is non-NULL there is local padding.
-  // If it is not allocated then the parent's CollisionRobot is used.
-  if (!detector.crobot_ && (!detector.parent_ || active_collision_->crobot_))
-  {
-    detector.crobot_ = detector.alloc_->allocateRobot(getRobotModel());
-    detector.crobot_const_ = detector.crobot_;
-
-    if (&detector != active_collision_.get())
-      detector.copyPadding(*active_collision_);
-  }
-
-  // Allocate CollisionRobot unless there is a parent.
-  // If it is not allocated then the parent's CollisionRobot is used.
-  if (!detector.crobot_unpadded_ && !detector.parent_)
-  {
-    detector.crobot_unpadded_ = detector.alloc_->allocateRobot(getRobotModel());
-    detector.crobot_unpadded_const_ = detector.crobot_unpadded_;
-  }
-}
-
-void planning_scene::PlanningScene::allocateCollisionDetectors()
-{
-  if (collision_.empty())
-    setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
-  
-  // Need to allocate the active one first to get padding copied correctly.
-  // allocateCollisionDetectors() will be called a second time on
-  // active_collision_ below in the loop, but the second call is a nop.
-  allocateCollisionDetectors(*active_collision_);
-
-  for (CollisionDetectorConstIterator it = collision_.begin() ; it != collision_.end() ; ++it)
-    allocateCollisionDetectors(*it->second);
-}
-
 void planning_scene::PlanningScene::addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator)
 {
   const std::string& name = allocator->getName();
@@ -349,9 +281,53 @@ void planning_scene::PlanningScene::addCollisionDetector(const collision_detecti
   if (!active_collision_)
     active_collision_ = detector;
 
-  if (configured_)
-    allocateCollisionDetectors(*detector);
+  detector->findParent(*this);
+
+  detector->cworld_ = detector->alloc_->allocateWorld(world_);
+  detector->cworld_const_ = detector->cworld_;
+
+  // Allocate CollisionRobot unless we can use the parent's crobot_.
+  // If active_collision_->crobot_ is non-NULL there is local padding and we cannot use the parent's crobot_.
+  if (!detector->parent_ || active_collision_->crobot_)
+  {
+    detector->crobot_ = detector->alloc_->allocateRobot(getRobotModel());
+    detector->crobot_const_ = detector->crobot_;
+
+    if (detector != active_collision_)
+      detector->copyPadding(*active_collision_);
+  }
+
+  // Allocate CollisionRobot unless we can use the parent's crobot_unpadded_.
+  if (!detector->parent_)
+  {
+    detector->crobot_unpadded_ = detector->alloc_->allocateRobot(getRobotModel());
+    detector->crobot_unpadded_const_ = detector->crobot_unpadded_;
+  }
 }
+
+void planning_scene::PlanningScene::setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
+                                                               bool exclusive)
+{
+  if (exclusive)
+  {
+    // remove all collision detectors which do not have the same name as the one we are adding.
+    for (CollisionDetectorIterator it = collision_.begin() ; it != collision_.end() ; )
+    {
+      if (it->first == allocator->getName())
+      {
+        ++it;
+        continue;
+      }
+
+      collision_.erase(it);
+      it = collision_.begin();
+    }
+  }
+  
+  addCollisionDetector(allocator);
+  setActiveCollisionDetector(allocator->getName());
+}
+
 
 bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
 {
@@ -368,39 +344,12 @@ bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string
   }
 }
 
-const std::string& planning_scene::PlanningScene::getActiveCollisionDetectorName() const
-{
-  static const std::string empty("");
-
-  if (active_collision_)
-    return active_collision_->alloc_->getName();
-  else
-    return empty; // can only happen if not configured
-}
-
 void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) const
 {
   names.clear();
   names.reserve(collision_.size());
   for (CollisionDetectorConstIterator it = collision_.begin() ; it != collision_.end() ; ++it)
     names.push_back(it->first);
-}
-
-
-
-
-const robot_model::RobotModelPtr& planning_scene::PlanningScene::getRobotModelNonConst()
-{
-  if (kmodel_ || !parent_)
-    return kmodel_;
-  const PlanningScene *p = parent_.get();
-  const robot_model::RobotModelPtr *r = NULL;
-  while (p && (!r || !*r))
-  {
-    r = &p->kmodel_;
-    p = p->parent_.get();
-  }
-  return *r;
 }
 
 void planning_scene::PlanningScene::clearDiffs()
@@ -438,7 +387,6 @@ void planning_scene::PlanningScene::clearDiffs()
   }
 
   kmodel_.reset();
-  kmodel_const_.reset();
   ftf_.reset();
   ftf_const_.reset();
   kstate_.reset();
@@ -994,62 +942,49 @@ void planning_scene::PlanningScene::decoupleParent()
 {
   if (!parent_)
     return;
-  if (parent_->isConfigured())
+
+  if (!ftf_)
   {
-    kmodel_ = getRobotModelNonConst();
-    kmodel_const_ = kmodel_;
+    ftf_.reset(new robot_state::Transforms(*parent_->getTransforms()));
+    ftf_const_ = ftf_;
+  }
 
-    if (!ftf_)
+  if (!kstate_)
+    kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
+
+  if (!acm_)
+    acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
+
+  for (CollisionDetectorIterator it = collision_.begin() ; it != collision_.end() ; ++it)
+  {
+    if (!it->second->crobot_)
     {
-      ftf_.reset(new robot_state::Transforms(*parent_->getTransforms()));
-      ftf_const_ = ftf_;
+      it->second->crobot_ = it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobot());
+      it->second->crobot_const_ = it->second->crobot_;
     }
-
-    if (!kstate_)
-      kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
-
-    if (!acm_)
-      acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
-
-    for (CollisionDetectorIterator it = collision_.begin() ; it != collision_.end() ; ++it)
+    if (!it->second->crobot_unpadded_)
     {
-      if (!it->second->crobot_)
-      {
-        it->second->crobot_ = it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobot());
-        it->second->crobot_const_ = it->second->crobot_;
-      }
-      if (!it->second->crobot_unpadded_)
-      {
-        it->second->crobot_unpadded_ = it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobotUnpadded());
-        it->second->crobot_unpadded_const_ = it->second->crobot_unpadded_;
-      }
-      if (!it->second->cworld_)
-      {
-        it->second->cworld_ = it->second->alloc_->allocateWorld(it->second->parent_->cworld_const_, world_);
-        it->second->cworld_const_ = it->second->cworld_;
-      }
+      it->second->crobot_unpadded_ = it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobotUnpadded());
+      it->second->crobot_unpadded_const_ = it->second->crobot_unpadded_;
     }
-    world_diff_.reset();
+    it->second->parent_.reset();
+  }
+  world_diff_.reset();
 
-    if (!colors_)
-    {
-      std::map<std::string, std_msgs::ColorRGBA> kc;
-      parent_->getKnownColors(kc);
-      colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>(kc));
-    }
-    else
-    {
-      std::map<std::string, std_msgs::ColorRGBA> kc;
-      parent_->getKnownColors(kc);
-      for (std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = kc.begin() ; it != kc.end() ; ++it)
-        if (colors_->find(it->first) == colors_->end())
-          (*colors_)[it->first] = it->second;
-    }
-
-    configured_ = true;
+  if (!colors_)
+  {
+    std::map<std::string, std_msgs::ColorRGBA> kc;
+    parent_->getKnownColors(kc);
+    colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>(kc));
   }
   else
-    logError("Decoupling scene from a non-configured parent will cause problems");
+  {
+    std::map<std::string, std_msgs::ColorRGBA> kc;
+    parent_->getKnownColors(kc);
+    for (std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = kc.begin() ; it != kc.end() ; ++it)
+      if (colors_->find(it->first) == colors_->end())
+        (*colors_)[it->first] = it->second;
+  }
 
   parent_.reset();
 }
@@ -1136,7 +1071,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 
   // re-parent the robot model if needed
   if (!scene_msg.robot_model_root.empty() && scene_msg.robot_model_root != getRobotModel()->getRootLinkName())
-    configure(getRobotModel()->getURDF(), getRobotModel()->getSRDF(), scene_msg.robot_model_root);
+    setRootLink(scene_msg.robot_model_root);
 
   ftf_->setTransforms(scene_msg.fixed_frame_transforms);
   kstate_->clearAttachedBodies();
@@ -1144,6 +1079,11 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene_msg.allowed_collision_matrix));
   for (CollisionDetectorIterator it = collision_.begin() ; it != collision_.end() ; ++it)
   {
+    if (!it->second->crobot_)
+    {
+      it->second->crobot_ = it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobot());
+      it->second->crobot_const_ = it->second->crobot_;
+    }
     it->second->crobot_->setPadding(scene_msg.link_padding);
     it->second->crobot_->setScale(scene_msg.link_scale);
   }
@@ -1871,4 +1811,11 @@ void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState
   collision_detection::CollisionResult cres;
   checkCollision(creq, cres, state);
   cres.cost_sources.swap(costs);
+}
+
+planning_scene::PlanningScene::ConstructException::ConstructException(const std::string& what_arg) :
+  std::runtime_error(what_arg)
+{
+  logError("Error during construction of PlanningScene: %s.  Exception thrown.",
+    what_arg.c_str());
 }
