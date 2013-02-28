@@ -386,7 +386,6 @@ void planning_scene::PlanningScene::clearDiffs()
     }
   }
 
-  kmodel_.reset();
   ftf_.reset();
   ftf_const_.reset();
   kstate_.reset();
