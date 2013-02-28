@@ -59,6 +59,7 @@ public:
   virtual void start();
   virtual void stop();
   virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape);
+  virtual void forgetShape(mesh_filter::MeshHandle handle);
 
 private:
   
@@ -84,8 +85,6 @@ private:
   double shadow_threshold_;
   double padding_scale_;
   double padding_offset_;
-
-  std::vector<const shapes::Mesh*> TEMP_;
   
   boost::scoped_ptr<mesh_filter::MeshFilter<mesh_filter::StereoCameraModel> > mesh_filter_;
   

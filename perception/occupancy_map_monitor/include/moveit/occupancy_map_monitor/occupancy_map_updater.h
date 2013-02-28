@@ -81,6 +81,8 @@ public:
 
   virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape) = 0;
   
+  virtual void forgetShape(mesh_filter::MeshHandle handle) = 0;
+  
   const std::string& getType() const
   {
     return type_;

@@ -84,7 +84,16 @@ bool DepthImageOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
 }
 
 bool DepthImageOccupancyMapUpdater::initialize()
-{    
+{
+  // create our mesh filter
+  mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(mesh_filter::MeshFilterBase::TransformCallback(),
+                                                                                 mesh_filter::StereoCameraModel::RegisteredPSDKParams));
+  mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
+  mesh_filter_->setShadowThreshold(shadow_threshold_);
+  mesh_filter_->setPaddingOffset(padding_offset_);
+  mesh_filter_->setPaddingScale(padding_scale_);
+  mesh_filter_->setTransformCallback(boost::bind(&DepthImageOccupancyMapUpdater::getShapeTransform, this, _1, _2));
+  
   return true;
 }
 
@@ -109,14 +118,6 @@ void DepthImageOccupancyMapUpdater::stopHelper()
 
 mesh_filter::MeshHandle DepthImageOccupancyMapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
 {
-  if (shape->type == shapes::MESH)
-  {
-    TEMP_.push_back(static_cast<const shapes::Mesh*>(shape.get()));
-    return 15 + TEMP_.size();
-  }
-  return 0;
-  
-  
   mesh_filter::MeshHandle h = 0;
   if (mesh_filter_)
   {
@@ -126,6 +127,11 @@ mesh_filter::MeshHandle DepthImageOccupancyMapUpdater::excludeShape(const shapes
   else
     ROS_ERROR("Mesh filter not yet initialized!");  
   return h;
+}
+
+void DepthImageOccupancyMapUpdater::forgetShape(mesh_filter::MeshHandle handle)
+{
+  mesh_filter_->removeMesh(handle);
 }
 
 bool DepthImageOccupancyMapUpdater::getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const
@@ -145,21 +151,6 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   ROS_DEBUG("Received a new depth image message");
   ros::WallTime start = ros::WallTime::now();
  
-  if (!mesh_filter_)
-  {    
-    // create our mesh filter
-    mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(mesh_filter::MeshFilterBase::TransformCallback(),
-                                                                                   mesh_filter::StereoCameraModel::RegisteredPSDKParams));
-    mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
-    mesh_filter_->setShadowThreshold(shadow_threshold_);
-    mesh_filter_->setPaddingOffset(padding_offset_);
-    mesh_filter_->setPaddingScale(padding_scale_);
-    mesh_filter_->setTransformCallback(boost::bind(&DepthImageOccupancyMapUpdater::getShapeTransform, this, _1, _2));
-      
-    for (std::size_t i = 0 ;i < TEMP_.size() ; ++i)
-      mesh_filter_->addMesh(*TEMP_[i]);
-  }
-  
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(depth_msg->header.frame_id);
   
