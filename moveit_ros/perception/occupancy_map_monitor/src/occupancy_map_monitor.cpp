@@ -47,7 +47,8 @@ namespace occupancy_map_monitor
 
 OccupancyMapMonitor::OccupancyMapMonitor(double map_resolution) :
   nh_("~"),
-  map_resolution_(map_resolution)
+  map_resolution_(map_resolution),
+  mesh_handle_count_(0)
 {
   initialize();
 }
@@ -56,7 +57,8 @@ OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer
   nh_("~"),
   tf_(tf),
   map_frame_(map_frame),
-  map_resolution_(map_resolution)
+  map_resolution_(map_resolution),
+  mesh_handle_count_(0)
 { 
   initialize();
 }
@@ -106,7 +108,7 @@ void OccupancyMapMonitor::initialize()
         if (sensor_type == "point_cloud_sensor")
           up.reset(new PointCloudOccupancyMapUpdater(this));
         else
-          if (sensor_type == "depth_image_sensor")
+          if (sensor_type == "depth_image_sensor" || sensor_type == "kinect")
             up.reset(new DepthImageOccupancyMapUpdater(this));
           else
           {
@@ -130,9 +132,104 @@ void OccupancyMapMonitor::initialize()
       ROS_ERROR("List of sensors must be an array!");
   }
   
+  // we only use the mesh handle mapping mechanism when there are more than one update handlers
+  if (map_updaters_.size() > 1)
+  {
+    mesh_handles_.resize(map_updaters_.size());
+    for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+      map_updaters_[i]->setTransformCacheCallback(boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, i, _1, _2, _3));
+  }
+  
+  setUpdatersCallback();
+
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
   load_map_srv_ = nh_.advertiseService("load_map", &OccupancyMapMonitor::loadMapCallback, this);
+}
+
+void OccupancyMapMonitor::setMapFrame(const std::string &frame)
+{
+  boost::mutex::scoped_lock _(parameters_lock_);
+  map_frame_ = frame;
+}
+
+void OccupancyMapMonitor::setUpdatersCallback()
+{
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+    map_updaters_[i]->setUpdateCallback(update_callback_);
+}
+
+ShapeHandle OccupancyMapMonitor::excludeShape(const shapes::ShapeConstPtr &shape)
+{
+  // if we have just one updater, remove the additional level of indirection
+  if (map_updaters_.size() == 1)
+    return map_updaters_[0]->excludeShape(shape);
+  
+  if (map_updaters_.empty())
+    return 0;
+  
+  ShapeHandle h = mesh_handle_count_++;
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+  {
+    mesh_filter::MeshHandle mh = map_updaters_[i]->excludeShape(shape);
+    if (mh)
+      mesh_handles_[i][h] = mh;
+  }
+  return h;
+}
+
+void OccupancyMapMonitor::forgetShape(ShapeHandle handle)
+{
+  // if we have just one updater, remove the additional level of indirection
+  if (map_updaters_.size() == 1)
+  {
+    map_updaters_[0]->forgetShape(handle);
+    return;
+  }
+  
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+  {
+    std::map<ShapeHandle, mesh_filter::MeshHandle>::const_iterator it = mesh_handles_[i].find(handle);
+    if (it == mesh_handles_[i].end())
+      continue;
+    map_updaters_[i]->forgetShape(it->second);
+  }
+}
+
+void OccupancyMapMonitor::setTransformCacheCallback(const TransformCacheProvider& transform_callback)
+{
+  // if we have just one updater, we connect it directly to the transform provider
+  if (map_updaters_.size() == 1)
+    map_updaters_[0]->setTransformCacheCallback(transform_callback);
+  else
+    transform_cache_callback_ = transform_callback;
+}
+
+bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache) const
+{
+  if (transform_cache_callback_)
+  { 
+    ShapeTransformCache tempCache;
+    if (transform_cache_callback_(target_frame, target_time, tempCache))
+    {
+      for (ShapeTransformCache::iterator it = tempCache.begin() ; it != tempCache.end() ; ++it)
+      { 
+        std::map<ShapeHandle, mesh_filter::MeshHandle>::const_iterator jt = mesh_handles_[index].find(it->first);
+        if (jt == mesh_handles_[index].end())
+        {
+          ROS_ERROR_THROTTLE(1, "Incorrect mapping of mesh handles");
+          return false;
+        }
+        else
+          cache[jt->second] = it->second;
+      }
+      return true;
+    }
+    else
+      return false;
+  }
+  else
+    return false;
 }
 
 bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response)

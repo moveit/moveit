@@ -124,9 +124,6 @@ public:
    *  @return Returns the map from joint names to joint state values*/
   std::map<std::string, double> getCurrentStateValues() const;
   
-//  /** @brief Set a callback that will be called whenever the joint state is updated*/
-//  void setOnStateUpdateCallback(const JointStateUpdateCallback &callback);
-
   /** @brief Add a function that will be called whenever the joint state is updated*/
   void addUpdateCallback(const JointStateUpdateCallback &fn);
 
