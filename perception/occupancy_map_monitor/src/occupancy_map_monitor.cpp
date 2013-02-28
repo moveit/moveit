@@ -48,7 +48,8 @@ namespace occupancy_map_monitor
 OccupancyMapMonitor::OccupancyMapMonitor(double map_resolution) :
   nh_("~"),
   map_resolution_(map_resolution),
-  mesh_handle_count_(0)
+  mesh_handle_count_(0),
+  debug_info_(false)
 {
   initialize();
 }
@@ -58,7 +59,8 @@ OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer
   tf_(tf),
   map_frame_(map_frame),
   map_resolution_(map_resolution),
-  mesh_handle_count_(0)
+  mesh_handle_count_(0),
+  debug_info_(false)
 { 
   initialize();
 }
@@ -123,38 +125,58 @@ void OccupancyMapMonitor::initialize()
           continue;
         }
         
-        if (up->initialize())
-          map_updaters_.push_back(up);
-        else
-          ROS_ERROR("Unable to initialize map updater of type %s", up->getType().c_str());
+        addUpdater(up);
       }
     else
       ROS_ERROR("List of sensors must be an array!");
   }
   
-  // we only use the mesh handle mapping mechanism when there are more than one update handlers
-  if (map_updaters_.size() > 1)
-  {
-    mesh_handles_.resize(map_updaters_.size());
-    for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
-      map_updaters_[i]->setTransformCacheCallback(boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, i, _1, _2, _3));
-  }
-  
-  setUpdatersCallback();
-
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
   load_map_srv_ = nh_.advertiseService("load_map", &OccupancyMapMonitor::loadMapCallback, this);
 }
 
+void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr &updater)
+{
+  if (updater && updater->initialize())
+  {
+    map_updaters_.push_back(updater);
+    updater->setUpdateCallback(update_callback_);
+    updater->publishDebugInformation(debug_info_);
+    if (map_updaters_.size() > 1)
+    {
+      mesh_handles_.resize(map_updaters_.size()); 
+      if (map_updaters_.size() == 2) // when we had one updater only, we passed direcly the transform cache callback to that updater
+      {
+        map_updaters_[0]->setTransformCacheCallback(boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 0, _1, _2, _3));
+        map_updaters_[1]->setTransformCacheCallback(boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 1, _1, _2, _3));
+      }
+      else
+        map_updaters_.back()->setTransformCacheCallback(boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, map_updaters_.size() - 1, _1, _2, _3));
+    }
+    else
+      updater->setTransformCacheCallback(transform_cache_callback_);
+  }
+  else
+    ROS_ERROR("Unable to initialize map updater of type %s", updater ? updater->getType().c_str() : "<NULL>");
+}
+
+void OccupancyMapMonitor::publishDebugInformation(bool flag)
+{  
+  debug_info_ = flag;
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+    map_updaters_[i]->publishDebugInformation(debug_info_);
+}
+
 void OccupancyMapMonitor::setMapFrame(const std::string &frame)
 {
-  boost::mutex::scoped_lock _(parameters_lock_);
+  boost::mutex::scoped_lock _(parameters_lock_); // we lock since an updater could specify a new frame for us
   map_frame_ = frame;
 }
 
-void OccupancyMapMonitor::setUpdatersCallback()
-{
+void OccupancyMapMonitor::setUpdateCallback(const boost::function<void()> &update_callback)
+{  
+  update_callback_ = update_callback;
   for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
     map_updaters_[i]->setUpdateCallback(update_callback_);
 }

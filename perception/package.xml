@@ -2,13 +2,12 @@
   <name>moveit_ros_perception</name>
   <version>0.3.21</version>
   <description>Components of MoveIt connecting to perception</description>
+
   <author email="jbinney@willowgarage.com">Jon Binney</author>
+  <author email="gedikli@willowgarage.com">Suat Gedikli</author>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
 
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
-	<export>
-	<nodelet plugin="${prefix}/nodelet_plugins.xml" />
-	</export>
   <license>BSD</license>
 
   <url type="website">http://moveit.ros.org</url>
@@ -30,7 +29,6 @@
   <build_depend>glut</build_depend>
   <build_depend>libglew-dev</build_depend>
   <build_depend>opengl</build_depend>
-  <build_depend>nodelet</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>nodelet</run_depend>

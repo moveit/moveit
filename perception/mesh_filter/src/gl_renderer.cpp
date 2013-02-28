@@ -45,24 +45,25 @@
 #include <vector>
 #include <iostream>
 #include <boost/thread.hpp>
+#include <ros/console.h>
 
 using namespace std;
 
 
 mesh_filter::GLRenderer::GLRenderer (unsigned width, unsigned height, float near, float far)
-: width_ (width)
-, height_ (height)
-, fbo_id_ (0)
-, rbo_id_ (0)
-, rgb_id_ (0)
-, depth_id_ (0)
-, program_ (0)
-, near_ (near)
-, far_ (far)
-, fx_ (width >> 1) // 90 degree wide angle
-, fy_ (fx_)
-, cx_ (width >> 1)
-, cy_ (height >> 1)
+  : width_ (width)
+  , height_ (height)
+  , fbo_id_ (0)
+  , rbo_id_ (0)
+  , rgb_id_ (0)
+  , depth_id_ (0)
+  , program_ (0)
+  , near_ (near)
+  , far_ (far)
+  , fx_ (width >> 1) // 90 degree wide angle
+  , fy_ (fx_)
+  , cx_ (width >> 1)
+  , cy_ (height >> 1)
 {
   createGLContext ();
   initFrameBuffers ();
@@ -112,11 +113,11 @@ void mesh_filter::GLRenderer::setCameraParameters () const
   float right = near_ * (width_ - cx_) / fx_;
   float top = near_ * cy_ / fy_;
   float bottom = near_ * (cy_ - height_) / fy_;
-
+  
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity ();
   glFrustum (left, right, bottom, top, near_, far_);
-
+  
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt (0, 0, 0, 0, 0, 1, 0, -1, 0);
@@ -132,7 +133,7 @@ void mesh_filter::GLRenderer::initFrameBuffers ()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glBindTexture(GL_TEXTURE_2D, 0);
-
+  
   glGenTextures(1, &depth_id_);
   glBindTexture(GL_TEXTURE_2D, depth_id_);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -141,26 +142,26 @@ void mesh_filter::GLRenderer::initFrameBuffers ()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glBindTexture(GL_TEXTURE_2D, 0);
-
+  
   glGenFramebuffers(1, &fbo_id_);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, rgb_id_, 0);
-
+  
   glGenRenderbuffers(1, &rbo_id_);
   glBindRenderbuffer(GL_RENDERBUFFER, rbo_id_);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width_, height_);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_id_);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_id_, 0);
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
-	glDrawBuffers(2, DrawBuffers);
-
+  
+  GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
+  glDrawBuffers(2, DrawBuffers);
+  
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
+  
   if (status != GL_FRAMEBUFFER_COMPLETE) // If the frame buffer does not report back as complete
     throw runtime_error ("Couldn't create frame buffer");
-
+  
   glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer
 }
 
@@ -256,17 +257,17 @@ GLuint mesh_filter::GLRenderer::createShader (GLuint shaderType, const string& S
 {
   GLuint ShaderID = glCreateShader(shaderType);
   
-	// Compile Shader
-	char const * SourcePointer = ShaderCode.c_str();
-	glShaderSource(ShaderID, 1, &SourcePointer , NULL);
-	glCompileShader(ShaderID);
-
-	// Check Shader
+  // Compile Shader
+  char const * SourcePointer = ShaderCode.c_str();
+  glShaderSource(ShaderID, 1, &SourcePointer , NULL);
+  glCompileShader(ShaderID);
+  
+  // Check Shader
   GLint Result = GL_FALSE;
-	glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &Result);
+  glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &Result);
   if (Result != GL_TRUE)
   {
-  	int InfoLogLength;
+    int InfoLogLength;
     glGetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
     if ( InfoLogLength > 0 )
     {
@@ -310,7 +311,7 @@ GLuint mesh_filter::GLRenderer::loadShaders (const string& vertex_source, const 
   if (vertex_source.empty () && fragment_source.empty ())
     return 0;
   
-	GLuint ProgramID = glCreateProgram();
+  GLuint ProgramID = glCreateProgram();
   GLuint VertexShaderID = 0;
   GLuint FragmentShaderID = 0;
   
@@ -325,56 +326,66 @@ GLuint mesh_filter::GLRenderer::loadShaders (const string& vertex_source, const 
     GLuint FragmentShaderID = createShader(GL_FRAGMENT_SHADER, fragment_source);
     glAttachShader(ProgramID, FragmentShaderID);
   }
-	
-	glLinkProgram(ProgramID);
-
-	// Check the program
+  
+  glLinkProgram(ProgramID);
+  
+  // Check the program
   GLint Result = GL_FALSE;
   GLint InfoLogLength;
-	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 ){
-		vector<char> ProgramErrorMessage(InfoLogLength+1);
-		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-		printf("%s\n", &ProgramErrorMessage[0]);
-	}
-
+  glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+  glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+  if ( InfoLogLength > 0 )
+  {
+    vector<char> ProgramErrorMessage(InfoLogLength+1);
+    glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+    std::size_t l = strnlen(&ProgramErrorMessage[0], ProgramErrorMessage.size());
+    if (l > 0)
+      ROS_ERROR("%s\n", &ProgramErrorMessage[0]);
+  }
+  
   if (VertexShaderID)
     glDeleteShader(VertexShaderID);
   
   if (FragmentShaderID)
     glDeleteShader(FragmentShaderID);
-
-	return ProgramID;
+  
+  return ProgramID;
 }
 
 map<boost::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::context_;
+boost::mutex mesh_filter::GLRenderer::context_lock_;
 
 void mesh_filter::GLRenderer::createGLContext ()
-{    
+{
+  boost::mutex::scoped_lock _(context_lock_);
   boost::thread::id threadID = boost::this_thread::get_id();
   map<boost::thread::id, pair<unsigned, GLuint> >::iterator contextIt = context_.find(threadID);
+  
   if (contextIt == context_.end())
   {
     char buffer[1];
     char* args = buffer;
     int n = 1;
-
+    
     glutInit(&n, &args);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH) + 10, 0);
-    GLuint window_id = glutCreateWindow( "test" );
-
+    glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH) + 30000, 0);
+    glutInitWindowSize(1, 1);
+    GLuint window_id = glutCreateWindow( "mesh_filter" );
+    
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
       stringstream errorStream;
       errorStream << "Unable to initialize GLEW: " << glewGetErrorString(err);
-
+      
       throw (runtime_error (errorStream.str()));
     }
-    glutHideWindow();    
-    glutMainLoopEvent ();
+    glutIconifyWindow();
+    glutHideWindow();
+    
+    for (int i = 0 ; i < 10 ; ++i)
+      glutMainLoopEvent ();
     
     context_ [threadID] = make_pair<unsigned, GLuint> (1, window_id);
   }
@@ -384,6 +395,7 @@ void mesh_filter::GLRenderer::createGLContext ()
 
 void mesh_filter::GLRenderer::deleteGLContext ()
 {
+  boost::mutex::scoped_lock _(context_lock_);
   boost::thread::id threadID = boost::this_thread::get_id();
   map<boost::thread::id, pair<unsigned, GLuint> >::iterator contextIt = context_.find(threadID);
   if (contextIt == context_.end())

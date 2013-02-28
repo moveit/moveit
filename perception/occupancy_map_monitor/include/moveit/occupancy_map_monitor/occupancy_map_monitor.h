@@ -95,6 +95,8 @@ public:
   {
     return tf_;
   }
+
+  void addUpdater(const OccupancyMapUpdaterPtr &updater);
   
   /** \brief Add this shape to the set of shapes to be filtered out from the octomap */
   ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape);
@@ -103,13 +105,11 @@ public:
   void forgetShape(ShapeHandle handle);
   
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
-  void setUpdateCallback(const boost::function<void()> &update_callback)
-  {
-    update_callback_ = update_callback;
-    setUpdatersCallback();
-  }
+  void setUpdateCallback(const boost::function<void()> &update_callback);
 
   void setTransformCacheCallback(const TransformCacheProvider &transform_cache_callback);
+  
+  void publishDebugInformation(bool flag);
   
 private:
 
@@ -137,6 +137,7 @@ private:
   boost::function<void()> update_callback_;
   std::vector<std::map<ShapeHandle, mesh_filter::MeshHandle> > mesh_handles_;
   TransformCacheProvider transform_cache_callback_;
+  bool debug_info_;
   
   std::size_t mesh_handle_count_;
   

@@ -166,6 +166,9 @@ int main(int argc, char **argv)
         debug = true;
         break;
       }
+
+    planning_scene_monitor->publishDebugInformation(true);
+    
     move_group::MoveGroupServer mgs(planning_scene_monitor, debug);
     mgs.status();
     ros::waitForShutdown();

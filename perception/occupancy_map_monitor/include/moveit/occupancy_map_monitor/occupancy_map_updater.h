@@ -61,7 +61,8 @@ public:
 
   OccupancyMapUpdater(OccupancyMapMonitor *monitor, const std::string &type) :
     monitor_(monitor),
-    type_(type)
+    type_(type),
+    debug_info_(false)
   {
   }
   
@@ -97,6 +98,11 @@ public:
   {
     update_callback_ = update_callback;
   }
+
+  void publishDebugInformation(bool flag)
+  {
+    debug_info_ = flag;
+  }
   
 protected:
   
@@ -105,6 +111,7 @@ protected:
   boost::function<void()> update_callback_;
   TransformCacheProvider transform_provider_callback_;
   ShapeTransformCache transform_cache_;
+  bool debug_info_;
   
   void triggerUpdateCallback(void)
   {
