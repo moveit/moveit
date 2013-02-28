@@ -131,6 +131,15 @@ mesh_filter::MeshFilterBase::~MeshFilterBase ()
   filter_thread_.join();
 }
 
+void mesh_filter::MeshFilterBase::addJob (const boost::shared_ptr<FilterJob> &job) const
+{
+  {
+    unique_lock<mutex> _(jobs_mutex_);
+    jobs_queue_.push (job);
+  }
+  jobs_condition_.notify_one(); 
+}
+
 void mesh_filter::MeshFilterBase::deInitialize ()
 {
   // exit the filtering thread and wait until its done
@@ -166,11 +175,7 @@ mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh (const Mesh& mesh)
   Mesh collapsedMesh (1, 1);
   mergeVertices (mesh, collapsedMesh);
   shared_ptr<FilterJob> job (new FilterJob (boost::bind (&MeshFilterBase::addMeshHelper, this, next_handle_, &collapsedMesh)));
-  {
-    unique_lock<mutex> lock (jobs_mutex_);
-    jobs_queue_.push (job);
-  }   
-  jobs_condition_.notify_one(); 
+  addJob(job);
   job->wait ();
   return next_handle_++;
 }
@@ -195,11 +200,7 @@ void mesh_filter::MeshFilterBase::setShadowThreshold (float threshold)
 void mesh_filter::MeshFilterBase::getModelLabels (unsigned* labels) const
 {
   shared_ptr<FilterJob> job (new FilterJob (boost::bind (&GLRenderer::getColorBuffer, mesh_renderer_.get(), (unsigned char*) labels)));
-  {
-    unique_lock<mutex> lock (jobs_mutex_);
-    jobs_queue_.push (job);
-  }   
-  jobs_condition_.notify_one();
+  addJob(job);
   job->wait ();
 }
 
@@ -234,11 +235,7 @@ void mesh_filter::MeshFilterBase::getFilteredDepth (float* depth) const
 void mesh_filter::MeshFilterBase::getFilteredLabels (unsigned* labels) const
 {
   shared_ptr<FilterJob> job (new FilterJob (boost::bind (&GLRenderer::getColorBuffer, depth_filter_.get(), (unsigned char*) labels)));
-  {
-    unique_lock<mutex> lock (jobs_mutex_);
-    jobs_queue_.push (job);
-  }
-  jobs_condition_.notify_one();
+  addJob(job);
   job->wait ();
 }
 
@@ -269,12 +266,7 @@ void mesh_filter::MeshFilterBase::run (const string& render_vertex_shader, const
 void mesh_filter::MeshFilterBase::filter (const float* sensor_data, bool wait) const
 {  
   shared_ptr<FilterJob> job (new FilterJob (boost::bind (&MeshFilterBase::doFilter, this, sensor_data)));
-  {
-    unique_lock<mutex> lock (jobs_mutex_);
-    jobs_queue_.push (job);
-  }
-  jobs_condition_.notify_one();
-
+  addJob(job);
   if (wait)
     job->wait ();
 }

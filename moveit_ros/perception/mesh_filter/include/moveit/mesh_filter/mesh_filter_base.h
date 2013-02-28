@@ -182,7 +182,8 @@ class MeshFilterBase
     void doFilter (const float* sensor_data) const;
 
     void addMeshHelper (MeshHandle handle, const shapes::Mesh *cmesh);
-  
+
+    void addJob (const boost::shared_ptr<FilterJob> &job) const;
 
   /**
    * \brief sets the size of the fram buffers
