@@ -38,10 +38,18 @@
 #define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER__
 
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <moveit/mesh_filter/mesh_filter_base.h>
+#include <geometric_shapes/shapes.h>
 #include <boost/shared_ptr.hpp>
 
 namespace occupancy_map_monitor
 {
+
+// The type for the shape handle should be the same as the type of the mesh handle
+typedef mesh_filter::MeshHandle ShapeHandle;
+typedef std::map<ShapeHandle, Eigen::Affine3d, std::less<ShapeHandle>, 
+                 Eigen::aligned_allocator<std::pair<const ShapeHandle, Eigen::Affine3d> > > ShapeTransformCache;
+typedef boost::function<bool(const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache)> TransformCacheProvider;
 
 class OccupancyMapMonitor;
 
@@ -52,7 +60,8 @@ class OccupancyMapUpdater
 public:
 
   OccupancyMapUpdater(OccupancyMapMonitor *monitor, const std::string &type) :
-    monitor_(monitor)
+    monitor_(monitor),
+    type_(type)
   {
   }
   
@@ -69,16 +78,45 @@ public:
   virtual void start() = 0;
   
   virtual void stop() = 0;
+
+  virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape) = 0;
+  
+  virtual void forgetShape(mesh_filter::MeshHandle handle) = 0;
   
   const std::string& getType() const
   {
     return type_;
+  } 
+  
+  void setTransformCacheCallback(const TransformCacheProvider &transform_callback)
+  {
+    transform_provider_callback_ = transform_callback;
+  }
+  
+  void setUpdateCallback(const boost::function<void()> &update_callback)
+  {
+    update_callback_ = update_callback;
   }
   
 protected:
   
   OccupancyMapMonitor *monitor_;
-  std::string type_;
+  std::string type_;  
+  boost::function<void()> update_callback_;
+  TransformCacheProvider transform_provider_callback_;
+  ShapeTransformCache transform_cache_;
+  
+  void triggerUpdateCallback(void)
+  {
+    if (update_callback_)
+      update_callback_();
+  }
+  
+  bool updateTransformCache(const std::string &target_frame, const ros::Time &target_time)
+  {
+    transform_cache_.clear();
+    return transform_provider_callback_ ? transform_provider_callback_(target_frame, target_time, transform_cache_) : false;
+  }
   
 };
 

@@ -32,10 +32,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney */
+/* Author: Jon Binney, Ioan Sucan */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_H_
-#define MOVEIT_OCCUPANCY_MAP_MONITOR_H_
+#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_
+#define MOVEIT_OCCUPANCY_MAP_MONITOR_
 
 #include <vector>
 #include <string>
@@ -45,6 +45,7 @@
 #include <moveit_msgs/LoadMap.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
+#include <boost/thread/mutex.hpp>
 
 namespace occupancy_map_monitor
 {
@@ -56,7 +57,7 @@ public:
   OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf,
                       const std::string &map_frame = "", double map_resolution = 0.0); 
   OccupancyMapMonitor(double map_resolution = 0.0);
-
+  
   ~OccupancyMapMonitor();
   
   /** @brief start the monitor (will begin updating the octomap */
@@ -83,10 +84,7 @@ public:
     return map_frame_;
   }
   
-  void setMapFrame(const std::string &frame)
-  {
-    map_frame_ = frame;
-  }
+  void setMapFrame(const std::string &frame);
   
   double getMapResolution() const
   {
@@ -98,14 +96,21 @@ public:
     return tf_;
   }
   
-  //  void excludeShape(const shapes::ShapeConstPtr &shape);
+  /** \brief Add this shape to the set of shapes to be filtered out from the octomap */
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape);
+  
+  /** \brief Forget about this shape handle and the shapes it corresponds to */
+  void forgetShape(ShapeHandle handle);
   
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
   void setUpdateCallback(const boost::function<void()> &update_callback)
   {
     update_callback_ = update_callback;
+    setUpdatersCallback();
   }
 
+  void setTransformCacheCallback(const TransformCacheProvider &transform_cache_callback);
+  
 private:
 
   void initialize();
@@ -115,16 +120,25 @@ private:
 
   /** @brief Load octree from a binary file (gets rid of current octree data) */
   bool loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response);
+  
+  void setUpdatersCallback();
 
+  bool getShapeTransformCache(std::size_t index, const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache) const;
+  
   boost::shared_ptr<tf::Transformer> tf_;
   std::string map_frame_;
   double map_resolution_;
+  boost::mutex parameters_lock_;
   
   OccMapTreePtr tree_;
   OccMapTreeConstPtr tree_const_;
   
   std::vector<OccupancyMapUpdaterPtr> map_updaters_;
   boost::function<void()> update_callback_;
+  std::vector<std::map<ShapeHandle, mesh_filter::MeshHandle> > mesh_handles_;
+  TransformCacheProvider transform_cache_callback_;
+  
+  std::size_t mesh_handle_count_;
   
   ros::NodeHandle root_nh_;
   ros::NodeHandle nh_;
@@ -134,4 +148,4 @@ private:
 
 }
 
-#endif /* MOVEIT_OCCUPANCY_MAP_MONITOR_H_ */
+#endif

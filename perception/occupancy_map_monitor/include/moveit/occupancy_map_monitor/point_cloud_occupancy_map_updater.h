@@ -61,7 +61,9 @@ public:
   virtual bool initialize();
   virtual void start();
   virtual void stop();
-  
+  virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape);
+  virtual void forgetShape(mesh_filter::MeshHandle handle);
+
 private:
   
   void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);

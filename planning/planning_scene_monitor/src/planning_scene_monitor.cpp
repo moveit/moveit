@@ -40,6 +40,8 @@
 #include <dynamic_reconfigure/server.h>
 #include <moveit_ros_planning/PlanningSceneMonitorDynamicReconfigureConfig.h>
 
+#include <tf_conversions/tf_eigen.h>
+
 namespace planning_scene_monitor
 {
 
@@ -467,6 +469,27 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
   }
 }
 
+void planning_scene_monitor::PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody *attached_body, bool just_attached)
+{
+  if (just_attached)
+    for (std::size_t i = 0 ; i < attached_body->getShapes().size() ; ++i)
+    {
+      occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(attached_body->getShapes()[i]);
+      if (h)
+        attached_body_shape_handles_[attached_body].push_back(std::make_pair(h, i));
+    }
+  else
+  {
+    AttachedBodyShapeHandles::iterator it = attached_body_shape_handles_.find(attached_body);
+    if (it != attached_body_shape_handles_.end())
+    {
+      for (std::size_t k = 0 ; k < it->second.size() ; ++k)
+        octomap_monitor_->forgetShape(it->second[k].first);
+      attached_body_shape_handles_.erase(it);
+    }
+  }
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
 {
   scene_update_mutex_.lock_shared();
@@ -515,6 +538,40 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor()
     ROS_INFO("Stopping scene monitor");
     planning_scene_subscriber_.shutdown();
   }
+}
+
+bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransformCache(const std::string &target_frame, const ros::Time &target_time,
+                                                                          occupancy_map_monitor::ShapeTransformCache &cache) const
+{
+  if (!tf_)
+    return false;
+  try
+  {
+    for (LinkShapeHandles::const_iterator it = link_shape_handles_.begin() ; it != link_shape_handles_.end() ; ++it)
+    {
+      tf::StampedTransform tr;
+      tf_->lookupTransform(target_frame, it->first, target_time, tr);
+      Eigen::Affine3d &transform = cache[it->second];
+      tf::transformTFToEigen(tr, transform);
+      transform = transform * getRobotModel()->getLinkModel(it->first)->getCollisionOriginTransform();
+    } 
+    for (AttachedBodyShapeHandles::const_iterator it = attached_body_shape_handles_.begin() ; it != attached_body_shape_handles_.end() ; ++it)
+    {
+      tf::StampedTransform tr;
+      tf_->lookupTransform(target_frame, it->first->getAttachedLinkName(), target_time, tr);
+      Eigen::Affine3d transform;
+      tf::transformTFToEigen(tr, transform);
+      for (std::size_t k = 0 ; k < it->second.size() ; ++k)
+        cache[it->second[k].first] = transform * it->first->getFixedTransforms()[it->second[k].second];
+    }
+  }
+  catch (tf::TransformException& ex)
+  {
+    ROS_ERROR_THROTTLE(1, "Transform error: %s", ex.what());
+    return false;
+  }
+  
+  return true;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
@@ -567,6 +624,15 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
   if (!octomap_monitor_)
   {
     octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(tf_, scene_->getPlanningFrame()));
+    
+    const std::vector<robot_model::LinkModel*> &links = getRobotModel()->getLinkModelsWithCollisionGeometry();
+    for (std::size_t i = 0 ; i < links.size() ; ++i)
+    {
+      occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(links[i]->getShape());
+      if (h)
+        link_shape_handles_[links[i]->getName()] = h;
+    }
+    octomap_monitor_->setTransformCacheCallback(boost::bind(&PlanningSceneMonitor::getShapeTransformCache, this, _1, _2, _3));
     octomap_monitor_->setUpdateCallback(boost::bind(&PlanningSceneMonitor::octomapUpdateCallback, this));
   }
   
