@@ -313,18 +313,18 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
   shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());
   std::vector<std::string> touch_links;
-  kstate.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
+  kstate.attachBody("box", shapes, poses, touch_links, "r_gripper_palm_link");
 
   res = collision_detection::CollisionResult();
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);  
 
   //deletes shape
-  kstate.getLinkState("r_gripper_palm_link")->clearAttachedBody("box");
+  kstate.clearAttachedBody("box");
 
   touch_links.push_back("r_gripper_palm_link");
   shapes[0].reset(new shapes::Box(.1,.1,.1));
-  kstate.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
+  kstate.attachBody("box", shapes, poses, touch_links, "r_gripper_palm_link");
 
   res = collision_detection::CollisionResult();
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
@@ -373,7 +373,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
   poses.push_back(Eigen::Affine3d::Identity());
 
   std::vector<std::string> touch_links;
-  kstate.getLinkState("r_gripper_palm_link")->attachBody("kinect", shapes, poses, touch_links);
+  kstate.attachBody("kinect", shapes, poses, touch_links, "r_gripper_palm_link");
 
   before = ros::WallTime::now();
   new_crobot.checkSelfCollision(req,res,kstate);
@@ -431,13 +431,13 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   kstate2.setToDefaultValues();
   
   std::vector<std::string> touch_links;
-  kstate1.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
+  kstate1.attachBody("kinect", object->shapes_, object->shape_poses_, touch_links, "r_gripper_palm_link");
 
   EigenSTL::vector_Affine3d other_poses;
   other_poses.push_back(pos2);
 
   // This creates a new set of constant properties for the attached body, which happens to be the same as the one above;
-  kstate2.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
+  kstate2.attachBody("kinect", object->shapes_, object->shape_poses_, touch_links, "r_gripper_palm_link");
 
   //going to take a while, but that's fine
   res = collision_detection::CollisionResult();

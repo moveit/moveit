@@ -197,6 +197,11 @@ public:
                   const EigenSTL::vector_Affine3d &attach_trans,
                   const std::set<std::string> &touch_links,
                   const std::string &link_name);
+  void attachBody(const std::string &id,
+                  const std::vector<shapes::ShapeConstPtr> &shapes,
+                  const EigenSTL::vector_Affine3d &attach_trans,
+                  const std::vector<std::string> &touch_links,
+                  const std::string &link_name);
   
   /** \brief Get all bodies attached to the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
