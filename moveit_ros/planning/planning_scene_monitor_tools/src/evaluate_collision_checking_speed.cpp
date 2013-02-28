@@ -81,7 +81,7 @@ int main(int argc, char **argv)
   spinner.start();
   
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-  if (psm.getPlanningScene()->isConfigured())
+  if (psm.getPlanningScene())
   {  
     if (vm.count("wait"))
     {

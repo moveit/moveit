@@ -152,7 +152,7 @@ int main(int argc, char **argv)
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor(new planning_scene_monitor::PlanningSceneMonitor(move_group::ROBOT_DESCRIPTION, tf));
   
-  if (planning_scene_monitor->getPlanningScene() && planning_scene_monitor->getPlanningScene()->isConfigured())
+  if (planning_scene_monitor->getPlanningScene())
   {
     planning_scene_monitor->startWorldGeometryMonitor();
     planning_scene_monitor->startSceneMonitor();

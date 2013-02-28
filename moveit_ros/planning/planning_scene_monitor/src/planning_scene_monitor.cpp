@@ -148,21 +148,26 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   robot_description_ = kinematics_loader_->getRobotDescription();
   if (kinematics_loader_->getModel())
   {
-    scene_ = scene ? scene : planning_scene::PlanningScenePtr(new planning_scene::PlanningScene());
-    if (scene_->isConfigured() || scene_->configure(kinematics_loader_->getModel()))
+    scene_ = scene;
+    if (!scene_)
     {
-      scene_const_ = scene_;
-      configureCollisionMatrix(scene_);
-      configureDefaultPadding();
-      
-      scene_->getCollisionRobotNonConst()->setPadding(default_robot_padd_);
-      scene_->getCollisionRobotNonConst()->setScale(default_robot_scale_);
-      scene_->propogateRobotPadding();
-    }
-    else
-    {
-      ROS_ERROR("Configuration of planning scene failed");
-      scene_.reset();
+      try
+      {
+        scene_.reset(new planning_scene::PlanningScene(kinematics_loader_->getModel()));
+        scene_const_ = scene_;
+        configureCollisionMatrix(scene_);
+        configureDefaultPadding();
+        
+        scene_->getCollisionRobotNonConst()->setPadding(default_robot_padd_);
+        scene_->getCollisionRobotNonConst()->setScale(default_robot_scale_);
+        scene_->propogateRobotPadding();
+      }
+      catch (planning_scene::PlanningScene::ConstructException e)
+      {
+        ROS_ERROR("Configuration of planning scene failed");
+        scene_.reset();
+        scene_const_ = scene_;
+      }
     }
   }
   else

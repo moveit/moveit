@@ -375,7 +375,7 @@ void PlanningSceneDisplay::loadRobotModel()
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
                                                                                  context_->getFrameManager()->getTFClientPtr(),
                                                                                  getNameStd() + "_planning_scene_monitor"));
-  if (planning_scene_monitor_->getPlanningScene() && planning_scene_monitor_->getPlanningScene()->isConfigured())
+  if (planning_scene_monitor_->getPlanningScene())
   {
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
