@@ -98,7 +98,7 @@ void mesh_filter::DepthSelfFiltering::filter ()
 {
   // create our mesh filter
   MeshFilter<mesh_filter::StereoCameraModel> mesh_filter (bind(&TransformProvider::getTransform, &transform_provider_, _1, _2),
-                                                          mesh_filter::StereoCameraModel::RegisteredKinectParams);
+                                                          mesh_filter::StereoCameraModel::RegisteredPSDKParams);
   mesh_filter.parameters ().setDepthRange (near_clipping_plane_distance_, far_clipping_plane_distance_);
   mesh_filter.setShadowThreshold(shadow_threshold_);
   mesh_filter.setPaddingOffset (padding_offset_);
