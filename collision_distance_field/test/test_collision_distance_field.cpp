@@ -62,7 +62,7 @@ protected:
   {
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file("../kinematic_state/test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file("../../../src/moveit_resources/test/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -77,7 +77,7 @@ protected:
     }
     else
       urdf_ok_ = false;
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../kinematic_state/test/srdf/robot.xml");
+    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../../../src/moveit_resources/test/srdf/robot.xml");
 
     kmodel_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
 
@@ -308,14 +308,14 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
   ASSERT_FALSE(res.collision);  
 
   shapes::Shape* shape = new shapes::Box(.25,.25,.25);
-  cworld_->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
+  cworld_->getWorld()->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
   
   res = collision_detection::CollisionResult();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
   ASSERT_TRUE(res.collision);  
 
   //deletes shape
-  cworld_->removeObject("box");
+  cworld_->getWorld()->removeObject("box");
 
   shape = new shapes::Box(.25,.25,.25);
   std::vector<shapes::ShapeConstPtr> shapes;
@@ -342,7 +342,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
 
   pos1.translation().x() = 1.01;
   shapes::Shape* coll = new shapes::Box(.1, .1, .1);
-  cworld_->addToObject("coll", shapes::ShapeConstPtr(coll), pos1);  
+  cworld_->getWorld()->addToObject("coll", shapes::ShapeConstPtr(coll), pos1);  
   res = collision_detection::CollisionResult();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
   ASSERT_TRUE(res.collision);  
