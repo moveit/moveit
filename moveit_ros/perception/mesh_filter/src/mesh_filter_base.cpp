@@ -170,7 +170,8 @@ mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh (const Mesh& mesh)
     unique_lock<mutex> lock (jobs_mutex_);
     jobs_queue_.push (job);
   }   
-  jobs_condition_.notify_one();
+  jobs_condition_.notify_one(); 
+  job->wait ();
   return next_handle_++;
 }
 
