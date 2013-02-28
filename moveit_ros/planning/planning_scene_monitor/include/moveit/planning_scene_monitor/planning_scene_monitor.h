@@ -339,6 +339,9 @@ protected:
   
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
+
+  /** @brief Callback for a change for an attached object of the current state of the planning scene */
+  void currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody *attached_body, bool just_attached);
   
   void getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
   
@@ -385,14 +388,22 @@ protected:
   boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionMap> >              collision_map_filter_;
 
   // include the octomap monitor as well
-  boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
-  std::map<occupancy_map_monitor::ShapeHandle, std::string> shape_handles_;
+  boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor>                 octomap_monitor_;
+
+  typedef std::map<std::string, occupancy_map_monitor::ShapeHandle> LinkShapeHandles;
+  typedef std::map<const robot_state::AttachedBody*, 
+                   std::vector<std::pair<occupancy_map_monitor::ShapeHandle,
+                                         std::size_t> > >           AttachedBodyShapeHandles;
+  LinkShapeHandles                      link_shape_handles_;
+  AttachedBodyShapeHandles              attached_body_shape_handles_;
   
   ros::Subscriber                       attached_collision_object_subscriber_;
   
   CurrentStateMonitorPtr                current_state_monitor_;
   ros::Time                             last_update_time_; /// Last time the state was updated
-  std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_;
+
+  std::vector<boost::function<void(SceneUpdateType)> >
+                                        update_callbacks_;
 
   /// the planning scene state is updated at a maximum specified frequency,
   /// and this timestamp is used to implement that functionality
@@ -404,7 +415,7 @@ protected:
   /// the error accepted when the state is reported as outside of bounds;
   double                                bounds_error_;
 
-  robot_model_loader::RDFLoaderPtr kinematics_loader_;
+  robot_model_loader::RDFLoaderPtr      kinematics_loader_;
 
 private:
   

@@ -61,7 +61,7 @@ class FilterJob
 
 void FilterJob::wait () const
 {
-  boost::unique_lock<mutex> lock (mutex_);
+  boost::unique_lock<boost::mutex> lock (mutex_);
   while (!done_)
     condition_.wait (lock);
 }

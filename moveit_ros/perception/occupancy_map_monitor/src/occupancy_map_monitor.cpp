@@ -177,7 +177,25 @@ ShapeHandle OccupancyMapMonitor::excludeShape(const shapes::ShapeConstPtr &shape
   }
   return h;
 }
+
+void OccupancyMapMonitor::forgetShape(ShapeHandle handle)
+{
+  // if we have just one updater, remove the additional level of indirection
+  if (map_updaters_.size() == 1)
+  {
+    map_updaters_[0]->forgetShape(handle);
+    return;
+  }
   
+  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
+  {
+    std::map<ShapeHandle, mesh_filter::MeshHandle>::const_iterator it = mesh_handles_[i].find(handle);
+    if (it == mesh_handles_[i].end())
+      continue;
+    map_updaters_[i]->forgetShape(it->second);
+  }
+}
+
 void OccupancyMapMonitor::setTransformCacheCallback(const TransformCacheProvider& transform_callback)
 {
   // if we have just one updater, we connect it directly to the transform provider

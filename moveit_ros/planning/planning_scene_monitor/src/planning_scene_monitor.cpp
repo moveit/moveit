@@ -463,6 +463,27 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
   }
 }
 
+void planning_scene_monitor::PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody *attached_body, bool just_attached)
+{
+  if (just_attached)
+    for (std::size_t i = 0 ; i < attached_body->getShapes().size() ; ++i)
+    {
+      occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(attached_body->getShapes()[i]);
+      if (h)
+        attached_body_shape_handles_[attached_body].push_back(std::make_pair(h, i));
+    }
+  else
+  {
+    AttachedBodyShapeHandles::iterator it = attached_body_shape_handles_.find(attached_body);
+    if (it != attached_body_shape_handles_.end())
+    {
+      for (std::size_t k = 0 ; k < it->second.size() ; ++k)
+        octomap_monitor_->forgetShape(it->second[k].first);
+      attached_body_shape_handles_.erase(it);
+    }
+  }
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
 {
   scene_update_mutex_.lock_shared();
@@ -518,21 +539,30 @@ bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransformCache(const 
 {
   if (!tf_)
     return false;
-  for (std::map<occupancy_map_monitor::ShapeHandle, std::string>::const_iterator it = shape_handles_.begin() ; it != shape_handles_.end() ; ++it)
+  try
   {
-    try
+    for (LinkShapeHandles::const_iterator it = link_shape_handles_.begin() ; it != link_shape_handles_.end() ; ++it)
     {
       tf::StampedTransform tr;
-      tf_->lookupTransform(target_frame, it->second, target_time, tr);
-      Eigen::Affine3d &transform = cache[it->first];      
+      tf_->lookupTransform(target_frame, it->first, target_time, tr);
+      Eigen::Affine3d &transform = cache[it->second];
       tf::transformTFToEigen(tr, transform);
-      transform = transform * getRobotModel()->getLinkModel(it->second)->getCollisionOriginTransform();
-    }
-    catch (tf::TransformException& ex)
+      transform = transform * getRobotModel()->getLinkModel(it->first)->getCollisionOriginTransform();
+    } 
+    for (AttachedBodyShapeHandles::const_iterator it = attached_body_shape_handles_.begin() ; it != attached_body_shape_handles_.end() ; ++it)
     {
-      ROS_ERROR_THROTTLE(1, "Transform error: %s", ex.what());
-      return false;
+      tf::StampedTransform tr;
+      tf_->lookupTransform(target_frame, it->first->getAttachedLinkName(), target_time, tr);
+      Eigen::Affine3d transform;
+      tf::transformTFToEigen(tr, transform);
+      for (std::size_t k = 0 ; k < it->second.size() ; ++k)
+        cache[it->second[k].first] = transform * it->first->getFixedTransforms()[it->second[k].second];
     }
+  }
+  catch (tf::TransformException& ex)
+  {
+    ROS_ERROR_THROTTLE(1, "Transform error: %s", ex.what());
+    return false;
   }
   
   return true;
@@ -594,7 +624,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     {
       occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(links[i]->getShape());
       if (h)
-        shape_handles_[h] = links[i]->getName();
+        link_shape_handles_[links[i]->getName()] = h;
     }
     octomap_monitor_->setTransformCacheCallback(boost::bind(&PlanningSceneMonitor::getShapeTransformCache, this, _1, _2, _3));
     octomap_monitor_->setUpdateCallback(boost::bind(&PlanningSceneMonitor::octomapUpdateCallback, this));

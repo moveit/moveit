@@ -62,6 +62,7 @@ public:
   virtual void start();
   virtual void stop();
   virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape);
+  virtual void forgetShape(mesh_filter::MeshHandle handle);
 
 private:
   

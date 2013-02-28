@@ -145,6 +145,10 @@ mesh_filter::MeshHandle PointCloudOccupancyMapUpdater::excludeShape(const shapes
   return h;
 }
 
+void PointCloudOccupancyMapUpdater::forgetShape(mesh_filter::MeshHandle handle)
+{
+}
+
 void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
 {
   ROS_DEBUG("Received a new point cloud message");

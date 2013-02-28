@@ -96,7 +96,11 @@ public:
     return tf_;
   }
   
+  /** \brief Add this shape to the set of shapes to be filtered out from the octomap */
   ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape);
+  
+  /** \brief Forget about this shape handle and the shapes it corresponds to */
+  void forgetShape(ShapeHandle handle);
   
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
   void setUpdateCallback(const boost::function<void()> &update_callback)
