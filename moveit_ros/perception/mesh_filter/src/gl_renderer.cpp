@@ -199,7 +199,7 @@ void mesh_filter::GLRenderer::end () const
 {
   glFlush();
   glPopAttrib();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void mesh_filter::GLRenderer::getColorBuffer(unsigned char* buffer) const

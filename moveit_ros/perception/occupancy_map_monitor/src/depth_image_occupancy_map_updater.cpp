@@ -184,7 +184,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(depth_msg->width, depth_msg->height); 
   mesh_filter_->filter(reinterpret_cast<const float*>(&depth_msg->data[0]));
-  
+
   // copy filtered data
   std::size_t img_size = depth_msg->height * depth_msg->width;
   if (filtered_data_.size() < img_size)
