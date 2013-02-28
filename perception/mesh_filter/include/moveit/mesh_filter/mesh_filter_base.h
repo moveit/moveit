@@ -167,6 +167,8 @@ class MeshFilterBase
      */
     void initialize (const std::string& render_vertex_shader, const std::string& render_fragment_shader,
                      const std::string& filter_vertex_shader, const std::string& filter_fragment_shader);
+  
+    void deInitialize ();
 
     /**
      * \brief filtering thread 
@@ -178,7 +180,10 @@ class MeshFilterBase
      * \brief the filter method that does the magic
      */
     void doFilter (const float* sensor_data) const;
-    
+
+    void addMeshHelper (MeshHandle handle, const shapes::Mesh *cmesh);
+  
+
   /**
    * \brief sets the size of the fram buffers
    * \author Suat Gedikli (gedikli@willowgarage.com)
