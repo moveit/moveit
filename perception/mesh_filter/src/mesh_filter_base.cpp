@@ -120,12 +120,11 @@ void mesh_filter::MeshFilterBase::initialize (const string& render_vertex_shader
 
 mesh_filter::MeshFilterBase::~MeshFilterBase ()
 {  
-  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&MeshFilterBase::deInitialize, this)));
   {
     unique_lock<mutex> lock (jobs_mutex_);
+    stop_ = true;
     while (!jobs_queue_.empty())
       jobs_queue_.pop();
-    jobs_queue_.push (job);
   }
   jobs_condition_.notify_one ();
   filter_thread_.join();
@@ -142,10 +141,6 @@ void mesh_filter::MeshFilterBase::addJob (const boost::shared_ptr<FilterJob> &jo
 
 void mesh_filter::MeshFilterBase::deInitialize ()
 {
-  // exit the filtering thread and wait until its done
-  // make sure thread is not waiting for data -> wake up
-  stop_ = true;
-  
   glDeleteLists (1, canvas_);
   glDeleteTextures (1, &sensor_depth_texture_);
 
@@ -261,6 +256,7 @@ void mesh_filter::MeshFilterBase::run (const string& render_vertex_shader, const
       lock.lock ();
     }
   }
+  deInitialize ();
 }
 
 void mesh_filter::MeshFilterBase::filter (const float* sensor_data, bool wait) const
