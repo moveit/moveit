@@ -218,7 +218,7 @@ int main(int argc, char **argv)
   
   ros::NodeHandle nh;
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-  if (!psm.getPlanningScene() || !psm.getPlanningScene()->isConfigured())
+  if (!psm.getPlanningScene())
   {
     ROS_ERROR("Unable to initialize PlanningSceneMonitor");
     return 1;
