@@ -38,7 +38,7 @@
 #include <moveit/robot_state/robot_state.h>
 
 robot_state::LinkState::LinkState(RobotState *state, const robot_model::LinkModel* lm) :
-  kinematic_state_(state), link_model_(lm), parent_joint_state_(NULL), parent_link_state_(NULL)
+  robot_state_(state), link_model_(lm), parent_joint_state_(NULL), parent_link_state_(NULL)
 {
   global_link_transform_.setIdentity();
   global_collision_body_transform_.setIdentity();
@@ -46,22 +46,21 @@ robot_state::LinkState::LinkState(RobotState *state, const robot_model::LinkMode
 
 robot_state::LinkState::~LinkState()
 {
-  clearAttachedBodies();
 }
 
 void robot_state::LinkState::updateGivenGlobalLinkTransform(const Eigen::Affine3d& transform)
 {
   global_link_transform_ = transform;
-  global_collision_body_transform_ = global_link_transform_* link_model_->getCollisionOriginTransform();
+  global_collision_body_transform_ = global_link_transform_ * link_model_->getCollisionOriginTransform();
   updateAttachedBodies();
 }
 
 void robot_state::LinkState::computeTransform()
 {
   if (link_model_->isJointReversed())
-    global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : kinematic_state_->getRootTransform()) * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
+    global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
   else
-    global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : kinematic_state_->getRootTransform()) * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
+    global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
   global_collision_body_transform_ = global_link_transform_ * link_model_->getCollisionOriginTransform();
   
   updateAttachedBodies();
@@ -70,18 +69,7 @@ void robot_state::LinkState::computeTransform()
 void robot_state::LinkState::updateAttachedBodies()
 {  
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
-    it->second->computeTransform();
-}
-
-void robot_state::LinkState::attachBody(const std::string &id,
-                                        const std::vector<shapes::ShapeConstPtr> &shapes,
-                                        const EigenSTL::vector_Affine3d &attach_trans,
-                                        const std::vector<std::string> &touch_links)
-{
-  AttachedBody *ab = new AttachedBody(this, id, shapes, attach_trans, touch_links);
-  attached_body_map_[id] = ab;
-  kinematic_state_->attached_body_map_[id] = ab;
-  ab->computeTransform();
+    it->second->computeTransform(global_link_transform_);
 }
 
 bool robot_state::LinkState::hasAttachedBody(const std::string &id) const
@@ -108,28 +96,4 @@ void robot_state::LinkState::getAttachedBodies(std::vector<const AttachedBody*> 
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
     attached_bodies.push_back(it->second);
 }
-
-bool robot_state::LinkState::clearAttachedBody(const std::string &id)
-{  
-  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
-  if (it != attached_body_map_.end())
-  {
-    delete it->second;
-    attached_body_map_.erase(id);
-    kinematic_state_->attached_body_map_.erase(id);
-    return true;
-  }
-  return false;
-}
-
-void robot_state::LinkState::clearAttachedBodies()
-{ 
-  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
-  {
-    kinematic_state_->attached_body_map_.erase(it->first);
-    delete it->second;
-  }
-  attached_body_map_.clear();
-}
-
 

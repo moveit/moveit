@@ -69,13 +69,13 @@ public:
   /** @brief Get the kinematic state that this link state is part of*/
   const RobotState *getRobotState() const
   {
-    return kinematic_state_;
+    return robot_state_;
   }
   
   /** @brief Get the kinematic state that this link state is part of*/
   RobotState *getRobotState()
   {
-    return kinematic_state_;
+    return robot_state_;
   }
   
   /** @brief Set the link state to the input transform */
@@ -126,33 +126,12 @@ public:
     return global_collision_body_transform_;
   }
   
-  /**
-     @brief Attach a body to this link
-     @param id The string id associated with the attached body
-     @param shapes The shapes that make up the attached body
-     @param attach_trans The desired transform between this link and the attached body
-     @param touch_links The set of links that the attached body is allowed to touch
-  */
-  void attachBody(const std::string &id,
-                  const std::vector<shapes::ShapeConstPtr> &shapes,
-                  const EigenSTL::vector_Affine3d &attach_trans,
-                  const std::vector<std::string> &touch_links);
-  
-  /**
-     @brief Clear the attached body
-     @param id The name of the attached body to clear
-  */
-  bool clearAttachedBody(const std::string &id);
-  
-  /** @brief Clear all attached bodies */
-  void clearAttachedBodies();
-  
 private:
   
-  /** \brief The kinematic state this link is part of */
-  RobotState *kinematic_state_;
+  /** \brief The robot state this link is part of */
+  RobotState                          *robot_state_;
   
-  const robot_model::LinkModel    *link_model_;
+  const robot_model::LinkModel        *link_model_;
   
   const JointState                    *parent_joint_state_;
   

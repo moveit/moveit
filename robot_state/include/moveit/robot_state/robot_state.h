@@ -184,15 +184,32 @@ public:
   /** \brief Attach a body to this state */
   void attachBody(AttachedBody *attached_body);
     
+  /**
+     @brief Attach a body to a link
+     @param id The string id associated with the attached body
+     @param shapes The shapes that make up the attached body
+     @param attach_trans The desired transform between this link and the attached body
+     @param touch_links The set of links that the attached body is allowed to touch
+     @param link_name The link to attach to
+  */
+  void attachBody(const std::string &id,
+                  const std::vector<shapes::ShapeConstPtr> &shapes,
+                  const EigenSTL::vector_Affine3d &attach_trans,
+                  const std::set<std::string> &touch_links,
+                  const std::string &link_name);
+  
   /** \brief Get all bodies attached to the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
     
   /** \brief Remove the attached body named \e id. Return false if the object was not found (and thus not removed). Return true on success. */
   bool clearAttachedBody(const std::string &id);
   
+  /** \brief Clear the bodies attached to a specific link */
+  void clearAttachedBodies(const std::string &link_name);
+
   /** \brief Clear all attached bodies */
   void clearAttachedBodies();
-  
+
   /** \brief Get the attached body named \e name. Return NULL if not found. */
   const AttachedBody* getAttachedBody(const std::string &name) const;
     
@@ -289,6 +306,10 @@ private:
       is allocated on a need basis, by the getRandomNumberGenerator() function. Never use the rng_ member directly, but call
       getRandomNumberGenerator() instead. */
   boost::scoped_ptr<random_numbers::RandomNumberGenerator> rng_;
+  
+  /** \brief This event is called when there is a change in the attached bodies for this state;
+      The event specifies the body that changed and whether it was just attached or about to be detached. */
+  boost::function<void(AttachedBody *body, bool attached)> attached_body_update_callback_;  
 };
 
 typedef boost::shared_ptr<RobotState> RobotStatePtr;
