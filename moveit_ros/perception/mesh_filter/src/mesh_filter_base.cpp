@@ -37,6 +37,7 @@
 #include <moveit/mesh_filter/mesh_filter_base.h>
 #include <moveit/mesh_filter/gl_mesh.h>
 
+
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_operations.h>
 #include <Eigen/Eigen>
@@ -51,38 +52,53 @@
 using namespace std;
 using namespace Eigen;
 using shapes::Mesh;
+using namespace boost;  
 
 mesh_filter::MeshFilterBase::MeshFilterBase (const TransformCallback& transform_callback,
               const SensorModel::Parameters& sensor_parameters,
               const string& render_vertex_shader, const string& render_fragment_shader,
               const string& filter_vertex_shader, const string& filter_fragment_shader)
 : sensor_parameters_ (sensor_parameters.clone ())
-, mesh_renderer_ (sensor_parameters.getWidth(), sensor_parameters.getHeight(),
-                  sensor_parameters.getNearClippingPlaneDistance (), 
-                  sensor_parameters.getFarClippingPlaneDistance ()) // some default values for buffer sizes and clipping planes
-, depth_filter_ (sensor_parameters.getWidth(), sensor_parameters.getHeight(),
-                  sensor_parameters.getNearClippingPlaneDistance (), 
-                  sensor_parameters.getFarClippingPlaneDistance ())
 , next_handle_ (FirstLabel) // 0 and 1 are reserved!
+, stop_ (true)
 , transform_callback_ (transform_callback)
-, shadow_threshold_ (0.5)
 , padding_scale_ (1.0)
 , padding_offset_ (0.01)
+, shadow_threshold_ (0.5)
+, sensor_data_ (0)
 {
-  mesh_renderer_.setShadersFromString (render_vertex_shader, render_fragment_shader);
-  depth_filter_.setShadersFromString (filter_vertex_shader, filter_fragment_shader);
+  filter_thread_ = thread (&MeshFilterBase::run, this, render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader);
+  
+  // wait until filter thread is up and running, to make sure the render buffer objects are created before they can be used from outisde
+  unique_lock<mutex> lock(filter_mutex_);
+  if (stop_)
+    filter_condition_.wait (lock);
+}
 
-  depth_filter_.begin ();
+void mesh_filter::MeshFilterBase::initialize (const string& render_vertex_shader, const string& render_fragment_shader,
+                                              const string& filter_vertex_shader, const string& filter_fragment_shader)
+{
+  mesh_renderer_.reset (new GLRenderer (sensor_parameters_->getWidth(), sensor_parameters_->getHeight(),
+                                        sensor_parameters_->getNearClippingPlaneDistance (), 
+                                        sensor_parameters_->getFarClippingPlaneDistance ()));
+  depth_filter_.reset (new GLRenderer (sensor_parameters_->getWidth(), sensor_parameters_->getHeight(),
+                                        sensor_parameters_->getNearClippingPlaneDistance (), 
+                                        sensor_parameters_->getFarClippingPlaneDistance ()));
+
+  mesh_renderer_->setShadersFromString (render_vertex_shader, render_fragment_shader);
+  depth_filter_->setShadersFromString (filter_vertex_shader, filter_fragment_shader);
+
+  depth_filter_->begin ();
 
   glGenTextures (1, &sensor_depth_texture_);
 
-  glUniform1i (glGetUniformLocation (depth_filter_.getProgramID (), "sensor"), 0);
-  glUniform1i (glGetUniformLocation (depth_filter_.getProgramID (), "depth"), 2);
-  glUniform1i (glGetUniformLocation (depth_filter_.getProgramID (), "label"), 4);
+  glUniform1i (glGetUniformLocation (depth_filter_->getProgramID (), "sensor"), 0);
+  glUniform1i (glGetUniformLocation (depth_filter_->getProgramID (), "depth"), 2);
+  glUniform1i (glGetUniformLocation (depth_filter_->getProgramID (), "label"), 4);
 
-  shadow_threshold_location_ = glGetUniformLocation (depth_filter_.getProgramID (), "shadow_threshold");
+  shadow_threshold_location_ = glGetUniformLocation (depth_filter_->getProgramID (), "shadow_threshold");
 
-  depth_filter_.end ();
+  depth_filter_->end ();
 
   canvas_ = glGenLists (1);
   glNewList (canvas_, GL_COMPILE);
@@ -107,6 +123,14 @@ mesh_filter::MeshFilterBase::MeshFilterBase (const TransformCallback& transform_
 
 mesh_filter::MeshFilterBase::~MeshFilterBase ()
 {
+  // exit the filtering thread and wait until its done
+  // make sure thread is not waiting for data -> wake up
+  unique_lock<mutex> lock (filter_mutex_);
+  stop_ = true;
+  filter_condition_.notify_one ();
+  lock.unlock ();
+  filter_thread_.join ();
+  
   glDeleteLists (1, canvas_);
   glDeleteTextures (1, &sensor_depth_texture_);
 
@@ -117,14 +141,14 @@ mesh_filter::MeshFilterBase::~MeshFilterBase ()
 
 void mesh_filter::MeshFilterBase::setSize (unsigned width, unsigned height)
 {
-  mesh_renderer_.setBufferSize (width, height);
-  mesh_renderer_.setCameraParameters (width, width, width >> 1, height >> 1);
+  mesh_renderer_->setBufferSize (width, height);
+  mesh_renderer_->setCameraParameters (width, width, width >> 1, height >> 1);
 
-  depth_filter_.setBufferSize (width, height);
-  depth_filter_.setCameraParameters (width, width, width >> 1, height >> 1);
+  depth_filter_->setBufferSize (width, height);
+  depth_filter_->setCameraParameters (width, width, width >> 1, height >> 1);
 }
 
-void mesh_filter::MeshFilterBase::setTransformCallback (const boost::function<bool(mesh_filter::MeshHandle, Affine3d&)>& transform_callback)
+void mesh_filter::MeshFilterBase::setTransformCallback (const function<bool(mesh_filter::MeshHandle, Affine3d&)>& transform_callback)
 {
   transform_callback_ = transform_callback;
 }
@@ -151,37 +175,95 @@ void mesh_filter::MeshFilterBase::setShadowThreshold (float threshold)
 
 void mesh_filter::MeshFilterBase::getModelLabels (unsigned* labels) const
 {
-  mesh_renderer_.getColorBuffer ((unsigned char*) labels);
+  unique_lock<mutex> lock (filter_mutex_);
+  if (sensor_data_)
+    data_ready_condition_.wait (lock);
+  mesh_renderer_->getColorBuffer ((unsigned char*) labels);
 }
 
 void mesh_filter::MeshFilterBase::getModelDepth (float* depth) const
 {
-  mesh_renderer_.getDepthBuffer (depth);
+  unique_lock<mutex> lock (filter_mutex_);
+  if (sensor_data_)
+    data_ready_condition_.wait (lock);
+
+  mesh_renderer_->getDepthBuffer (depth);
   sensor_parameters_->transformModelDepthToMetricDepth (depth);
 }
 
 void mesh_filter::MeshFilterBase::getFilteredDepth (float* depth) const
 {
-  depth_filter_.getDepthBuffer (depth);
+  unique_lock<mutex> lock (filter_mutex_);
+  if (sensor_data_)
+    data_ready_condition_.wait (lock);
+  depth_filter_->getDepthBuffer (depth);
   sensor_parameters_->transformFilteredDepthToMetricDepth (depth);
 }
 
 void mesh_filter::MeshFilterBase::getFilteredLabels (unsigned* labels) const
 {
-  depth_filter_.getColorBuffer ((unsigned char*) labels);
+  unique_lock<mutex> lock (filter_mutex_);
+  if (sensor_data_)
+    data_ready_condition_.wait (lock);
+  depth_filter_->getColorBuffer ((unsigned char*) labels);
 }
 
-void mesh_filter::MeshFilterBase::filter (const float* sensor_data) const
+void mesh_filter::MeshFilterBase::run (const string& render_vertex_shader, const string& render_fragment_shader,
+                                       const string& filter_vertex_shader, const string& filter_fragment_shader)
 {
-  mesh_renderer_.begin ();
-  sensor_parameters_->setRenderParameters (mesh_renderer_);
+  initialize (render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader);
+  
+  // trigger the constructor that were done with initialization
+  unique_lock<mutex> lock (filter_mutex_);  
+  stop_ = false;
+  filter_condition_.notify_one ();
+  lock.unlock ();  
+  // we are up and running at this point
+  // thus notify the constructor that were done so it can finish
+  
+  while (!stop_)
+  {
+    unique_lock<mutex> lock (filter_mutex_);
+    // check if we have new sensor data to be processed. If not, wait until we get notified.
+    if (!sensor_data_)
+      filter_condition_.wait (lock);
+    lock.unlock ();
+    
+    if (sensor_data_)
+    {
+      filter ();
+      // here we allow new data
+      unique_lock<mutex> lock (filter_mutex_);
+      sensor_data_ = 0;
+      // notify threads waiting for the results
+      data_ready_condition_.notify_all ();
+      lock.unlock ();
+    }
+  }
+}
+bool mesh_filter::MeshFilterBase::filter (const float* sensor_data) const
+{  
+  if (sensor_data_)
+    return false; // still processing old data
+  
+  unique_lock<mutex> lock (filter_mutex_);
+  sensor_data_ = sensor_data;
+  filter_condition_.notify_one ();
+  
+  return true;
+}
+
+void mesh_filter::MeshFilterBase::filter () const
+{
+  mesh_renderer_->begin ();
+  sensor_parameters_->setRenderParameters (*mesh_renderer_);
   
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_CULL_FACE);
   glCullFace (GL_FRONT);
   glDisable (GL_ALPHA_TEST);
 
-  GLuint padding_coefficients_id = glGetUniformLocation (mesh_renderer_.getProgramID (), "padding_coefficients");
+  GLuint padding_coefficients_id = glGetUniformLocation (mesh_renderer_->getProgramID (), "padding_coefficients");
   Eigen::Vector3f padding_coefficients = sensor_parameters_->getPaddingCoefficients () * padding_scale_ + Eigen::Vector3f (0, 0, padding_offset_);  
   glUniform3f (padding_coefficients_id, padding_coefficients [0], padding_coefficients [1], padding_coefficients [2]);
 
@@ -190,13 +272,13 @@ void mesh_filter::MeshFilterBase::filter (const float* sensor_data) const
     if (transform_callback_ (meshIt->first, transform))
       meshIt->second->render (transform);
 
-  mesh_renderer_.end ();
+  mesh_renderer_->end ();
 
   // now filter the depth_map with the second rendering stage
   //depth_filter_.setBufferSize (width, height);
   //depth_filter_.setCameraParameters (fx, fy, cx, cy);
-  depth_filter_.begin ();
-  sensor_parameters_->setFilterParameters (depth_filter_);
+  depth_filter_->begin ();
+  sensor_parameters_->setFilterParameters (*depth_filter_);
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_CULL_FACE);
   glCullFace (GL_BACK);
@@ -206,8 +288,8 @@ void mesh_filter::MeshFilterBase::filter (const float* sensor_data) const
 //  glUniform1f (far_location_, depth_filter_.getFarClippingDistance ());
   glUniform1f (shadow_threshold_location_, shadow_threshold_);
 
-  GLuint depth_texture = mesh_renderer_.getDepthTexture ();
-  GLuint color_texture = mesh_renderer_.getColorTexture ();
+  GLuint depth_texture = mesh_renderer_->getDepthTexture ();
+  GLuint color_texture = mesh_renderer_->getColorTexture ();
 
   // bind sensor depth
   glActiveTexture (GL_TEXTURE0);
@@ -216,7 +298,7 @@ void mesh_filter::MeshFilterBase::filter (const float* sensor_data) const
   float scale = 1.0 / (sensor_parameters_->getFarClippingPlaneDistance () - sensor_parameters_->getNearClippingPlaneDistance ());
   glPixelTransferf (GL_DEPTH_SCALE, scale);
   glPixelTransferf (GL_DEPTH_BIAS, -scale * sensor_parameters_->getNearClippingPlaneDistance ());
-  glTexImage2D ( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sensor_parameters_->getWidth (), sensor_parameters_->getHeight (), 0, GL_DEPTH_COMPONENT, GL_FLOAT, sensor_data);
+  glTexImage2D ( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sensor_parameters_->getWidth (), sensor_parameters_->getHeight (), 0, GL_DEPTH_COMPONENT, GL_FLOAT, sensor_data_);
   glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -232,7 +314,7 @@ void mesh_filter::MeshFilterBase::filter (const float* sensor_data) const
 
   glCallList (canvas_);
   glDisable ( GL_TEXTURE_2D );
-  depth_filter_.end ();
+  depth_filter_->end ();
 }
 
 void mesh_filter::MeshFilterBase::setPaddingOffset (float offset)

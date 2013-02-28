@@ -362,7 +362,7 @@ void mesh_filter::GLRenderer::createGLContext ()
 
     glutInit(&n, &args);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-
+    glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH) + 10, 0);
     GLuint window_id = glutCreateWindow( "test" );
 
     GLenum err = glewInit();
@@ -373,7 +373,8 @@ void mesh_filter::GLRenderer::createGLContext ()
 
       throw (runtime_error (errorStream.str()));
     }
-    glutHideWindow();
+    glutHideWindow();    
+    glutMainLoopEvent ();
     
     context_ [threadID] = make_pair<unsigned, GLuint> (1, window_id);
   }

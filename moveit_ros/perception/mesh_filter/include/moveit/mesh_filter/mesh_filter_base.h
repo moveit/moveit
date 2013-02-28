@@ -87,23 +87,16 @@ class MeshFilterBase
     /**
      * \brief removes a mesh given by its handle
      * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] the handle of the mesh to be removed.
+     * \param[in] mesh_handle the handle of the mesh to be removed.
      */
-    void removeMesh (MeshHandle);
+    void removeMesh (MeshHandle mesh_handle);
 
     /**
      * \brief label/remove pixels from input depth-image
      * \author Suat Gedikli (gedikli@willowgarage.com)
      * \param[in] sensor_data pointer to the input depth image from sensor readings.
-     * \param[in] width width of the input data in pixels
-     * \param[in] height height of the input data in pixels
-     * \param[in] fx focal length in x-direction of the camera in pixels
-     * \param[in] fy focal length in y-direction of the camera in pixels
-     * \param[in] cx x-component of the principal point in pixels
-     * \param[in] cy y-component of the principal point in pixels
      */
-    void filter (const float* sensor_data) const;
-
+    bool filter (const float* sensor_data) const;
     
     /**
      * \brief retrieves the labels of the input data
@@ -165,6 +158,24 @@ class MeshFilterBase
      */
     void setPaddingOffset (float offset);
   protected:
+    
+    /**
+     * \brief initializes OpenGL related things as well as renderers
+     */
+    void initialize (const std::string& render_vertex_shader, const std::string& render_fragment_shader,
+                     const std::string& filter_vertex_shader, const std::string& filter_fragment_shader);
+
+    /**
+     * \brief filtering thread 
+     */
+    void run (const std::string& render_vertex_shader, const std::string& render_fragment_shader,
+              const std::string& filter_vertex_shader, const std::string& filter_fragment_shader);
+
+    /**
+     * \brief the filter method that does the magic
+     */
+    void filter () const;
+    
   /**
    * \brief sets the size of the fram buffers
    * \author Suat Gedikli (gedikli@willowgarage.com)
@@ -186,11 +197,31 @@ class MeshFilterBase
     /** \brief the parameters of the used sensor model*/
     boost::shared_ptr<SensorModel::Parameters> sensor_parameters_;
     
+    /** \brief next handle to be used for next mesh that is added*/
+    MeshHandle next_handle_;
+    
+    /** \brief the filtering thread that also holds the OpenGL context*/
+    boost::thread filter_thread_;
+
+    /** \brief condition variable to notify the filtering thread if a new image arrived*/
+    mutable boost::condition_variable filter_condition_;
+    
+    /** \brief mutex required for synchronization of condition states*/
+    mutable boost::mutex filter_mutex_;
+
+    /** \brief condition variable to notify the if filtering is done and the data is ready*/
+    mutable boost::condition_variable data_ready_condition_;
+
+    /** \brief indicates whether the filtering loop should stop*/
+    bool stop_;
+
     /** \brief first pass renderer for rendering the mesh*/
-    mutable GLRenderer mesh_renderer_;
+    boost::shared_ptr<GLRenderer> mesh_renderer_;
+    //mutable GLRenderer mesh_renderer_;
     
     /** \brief second pass renderer for filtering the results of first pass*/
-    mutable GLRenderer depth_filter_;
+    boost::shared_ptr<GLRenderer> depth_filter_;
+    //mutable GLRenderer depth_filter_;
     
     /** \brief canvas element (screen-filling quad) for second pass*/
     GLuint canvas_;
@@ -200,9 +231,6 @@ class MeshFilterBase
     
     /** \brief handle to GLSL location of shadow threshold*/
     GLuint shadow_threshold_location_;
-    
-    /** \brief next handle to be used for next mesh that is added*/
-    MeshHandle next_handle_;
     
     /** \brief callback function for retrieving the mesh transformations*/
     boost::function<bool (MeshHandle, Eigen::Affine3d&)> transform_callback_;
@@ -215,7 +243,9 @@ class MeshFilterBase
 
     /** \brief threshold for shadowed pixels vs. filtered pixels*/
     float shadow_threshold_;
-    
+
+    /** \brief the sensor input data*/
+    mutable const float* sensor_data_;
 };
 } // namespace mesh_filter
 
