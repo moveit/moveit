@@ -41,6 +41,7 @@
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
 #include <moveit/occupancy_map_monitor/depth_image_occupancy_map_updater.h>
+#include <XmlRpcException.h>
 
 namespace occupancy_map_monitor
 {
@@ -90,45 +91,58 @@ void OccupancyMapMonitor::initialize()
   XmlRpc::XmlRpcValue sensor_list;
   if (nh_.getParam("sensors", sensor_list))
   {
-    if (sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
-      for (int32_t i = 0; i < sensor_list.size(); ++i)
-      {
-        if (!sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
+    try
+    {      
+      if (sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
+        for (int32_t i = 0; i < sensor_list.size(); ++i)
         {
-          ROS_ERROR("Params for sensor %d not a struct, ignoring sensor", i);
-          continue;
-        }
-        
-        if (!sensor_list[i].hasMember ("sensor_type"))
-        {
-          ROS_ERROR("No sensor type for sensor %d; ignoring.", i);
-          continue;
-        }
-        
-        std::string sensor_type = std::string(sensor_list[i]["sensor_type"]);
-        OccupancyMapUpdaterPtr up;
-        if (sensor_type == "point_cloud_sensor")
-          up.reset(new PointCloudOccupancyMapUpdater(this));
-        else
-          if (sensor_type == "depth_image_sensor" || sensor_type == "kinect")
-            up.reset(new DepthImageOccupancyMapUpdater(this));
-          else
+          if (!sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
           {
-            ROS_ERROR("Sensor %d has unknown type %s; ignoring.", i, sensor_type.c_str());
+            ROS_ERROR("Params for sensor %d not a struct, ignoring sensor", i);
             continue;
           }
-        
-        /* pass the params struct directly in to the updater */
-        if (!up->setParams(sensor_list[i]))
-        {
-          ROS_ERROR("Failed to configure updater of type %s", up->getType().c_str());
-          continue;
+          
+          if (!sensor_list[i].hasMember ("sensor_type"))
+          {
+            ROS_ERROR("No sensor type for sensor %d; ignoring.", i);
+            continue;
+          }
+          
+          std::string sensor_type = std::string(sensor_list[i]["sensor_type"]);
+          if (sensor_type.empty() || sensor_type[0] == '~')
+          {
+            ROS_INFO("Skipping sensor '%s'", sensor_type.c_str());
+            continue;
+          }
+          
+          OccupancyMapUpdaterPtr up;
+          if (sensor_type == "point_cloud_sensor")
+            up.reset(new PointCloudOccupancyMapUpdater(this));
+          else
+            if (sensor_type == "depth_image_sensor" || sensor_type == "kinect")
+              up.reset(new DepthImageOccupancyMapUpdater(this));
+            else
+            {
+              ROS_ERROR("Sensor %d has unknown type %s; ignoring.", i, sensor_type.c_str());
+              continue;
+            }
+          
+          /* pass the params struct directly in to the updater */
+          if (!up->setParams(sensor_list[i]))
+          {
+            ROS_ERROR("Failed to configure updater of type %s", up->getType().c_str());
+            continue;
+          }
+          
+          addUpdater(up);
         }
-        
-        addUpdater(up);
-      }
-    else
-      ROS_ERROR("List of sensors must be an array!");
+      else
+        ROS_ERROR("List of sensors must be an array!");
+    }
+    catch (XmlRpc::XmlRpcException &ex)
+    {
+      ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
+    }
   }
   
   /* advertise a service for loading octomaps from disk */
@@ -187,15 +201,15 @@ ShapeHandle OccupancyMapMonitor::excludeShape(const shapes::ShapeConstPtr &shape
   if (map_updaters_.size() == 1)
     return map_updaters_[0]->excludeShape(shape);
   
-  if (map_updaters_.empty())
-    return 0;
-  
-  ShapeHandle h = mesh_handle_count_++;
+  ShapeHandle h = 0;
   for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
   {
     mesh_filter::MeshHandle mh = map_updaters_[i]->excludeShape(shape);
     if (mh)
+    {
+      h = ++mesh_handle_count_;
       mesh_handles_[i][h] = mh;
+    }
   }
   return h;
 }
@@ -235,7 +249,7 @@ bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::s
     if (transform_cache_callback_(target_frame, target_time, tempCache))
     {
       for (ShapeTransformCache::iterator it = tempCache.begin() ; it != tempCache.end() ; ++it)
-      { 
+      {      
         std::map<ShapeHandle, mesh_filter::MeshHandle>::const_iterator jt = mesh_handles_[index].find(it->first);
         if (jt == mesh_handles_[index].end())
         {
