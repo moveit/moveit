@@ -173,7 +173,8 @@ namespace collision_detection
       ADD_SHAPE = 8,      /** shape(s) were added to object */
       REMOVE_SHAPE = 16,  /** shape(s) were removed from object */
     };
-    /** represents an action that occurred on an object in the world.
+
+    /** \brief Represents an action that occurred on an object in the world.
      * Several bits may be set indicating several things happened to the object.
      * If the DESTROY bit is set, other bits will not be set. */
     class Action
@@ -199,13 +200,13 @@ namespace collision_detection
       friend class World;
     };
 
-	typedef boost::function<void (const ObjectConstPtr&, Action)> ObserverCallbackFn;
+    typedef boost::function<void (const ObjectConstPtr&, Action)> ObserverCallbackFn;
 
     /** \brief register a callback function for notification of changes.
      * \e callback will be called right after any change occurs to any Object.
      * \e observer is the object which is requesting the changes.  It is only
      * used for identifying the callback in removeObserver(). */
-    ObserverHandle addObserver(ObserverCallbackFn callback);
+    ObserverHandle addObserver(const ObserverCallbackFn &callback);
 
     /** \brief remove a notifier callback */
     void removeObserver(const ObserverHandle observer_handle);
@@ -241,7 +242,7 @@ namespace collision_detection
     class Observer
     {
     public:
-      Observer(ObserverCallbackFn callback) :
+      Observer(const ObserverCallbackFn &callback) :
         callback_(callback)
       {}
       ObserverCallbackFn callback_;
