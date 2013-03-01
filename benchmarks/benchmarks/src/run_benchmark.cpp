@@ -310,9 +310,9 @@ public:
       // if we have a different robot, use the world geometry only
       
       // clear all geometry from the scene
-      scene_monitor_.getPlanningScene()->getCollisionWorld()->clearObjects();
-      scene_monitor_.getPlanningScene()->getCurrentState().clearAttachedBodies();
-      scene_monitor_.getPlanningScene()->getCurrentState().setToDefaultValues();
+      scene_monitor_.getPlanningScene()->getWorldNonConst()->clearObjects();
+      scene_monitor_.getPlanningScene()->getCurrentStateNonConst().clearAttachedBodies();
+      scene_monitor_.getPlanningScene()->getCurrentStateNonConst().setToDefaultValues();
       
       scene_monitor_.getPlanningScene()->processPlanningSceneWorldMsg(req.scene.world);
     }
@@ -425,9 +425,9 @@ public:
     {
       // if we have a different robot, use the world geometry only
       // clear all geometry from the scene
-      scene_monitor_.getPlanningScene()->getCollisionWorld()->clearObjects();
-      scene_monitor_.getPlanningScene()->getCurrentState().clearAttachedBodies();
-      scene_monitor_.getPlanningScene()->getCurrentState().setToDefaultValues();
+      scene_monitor_.getPlanningScene()->getWorldNonConst()->clearObjects();
+      scene_monitor_.getPlanningScene()->getCurrentStateNonConst().clearAttachedBodies();
+      scene_monitor_.getPlanningScene()->getCurrentStateNonConst().setToDefaultValues();
 
       scene_monitor_.getPlanningScene()->processPlanningSceneWorldMsg(req.scene.world);
       scene_monitor_.getPlanningScene()->setName(req.scene.name);

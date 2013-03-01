@@ -331,7 +331,7 @@ void MainWindow::trajectoryExecuteButtonClicked()
 
     if (waypoint_poses.size() > 0)
     {
-      robot_state::JointStateGroup *jsg = scene_display_->getPlanningSceneRW()->getCurrentState().getJointStateGroup(ui_.planning_group_combo->currentText().toStdString());
+      robot_state::JointStateGroup *jsg = scene_display_->getPlanningSceneRW()->getCurrentStateNonConst().getJointStateGroup(ui_.planning_group_combo->currentText().toStdString());
 
       std::vector<boost::shared_ptr<robot_state::RobotState> > traj;
       double completed = jsg->computeCartesianPath(traj, robot_interaction_->getActiveEndEffectors()[0].parent_link, waypoint_poses, true, 0.04, 0.0);

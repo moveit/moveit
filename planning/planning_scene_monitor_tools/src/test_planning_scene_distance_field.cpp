@@ -36,8 +36,7 @@
 
 #include <gtest/gtest.h>
 #include <planning_scene/planning_scene.h>
-#include <collision_distance_field/collision_world_distance_field.h>
-#include <collision_distance_field/collision_robot_distance_field.h>
+#include <collision_distance_field/collision_detector_allocator_distance_field.h>
 
 TEST(PlanningScene, LoadRestore)
 {
@@ -45,7 +44,7 @@ TEST(PlanningScene, LoadRestore)
     boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
     urdf_model->initFile("../../moveit/planning_models/test/urdf/robot.xml");
     planning_scene::PlanningScene ps;
-    ps.setCollisionDetectionTypes<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();
+    ps.setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorDistanceField::create());
     ps.configure(urdf_model, srdf_model);
     EXPECT_TRUE(ps.isConfigured());
     moveit_msgs::PlanningScene ps_msg;
@@ -59,27 +58,27 @@ TEST(PlanningScene, LoadRestoreDiff)
     boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
     urdf_model->initFile("../../moveit/planning_models/test/urdf/robot.xml");
     planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
-    ps->setCollisionDetectionTypes<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();
+    ps->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorDistanceField::create());
     ps->configure(urdf_model, srdf_model);
     EXPECT_TRUE(ps->isConfigured());
 
-    collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
+    collision_detection::CollisionWorld &world = *ps->getWorldNonConst();
     Eigen::Affine3d id = Eigen::Affine3d::Identity();
-    cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
+    world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
     
     moveit_msgs::PlanningScene ps_msg;
     EXPECT_TRUE(planning_scene::PlanningScene::isEmpty(ps_msg));
     ps->getPlanningSceneMsg(ps_msg);
     ps->setPlanningSceneMsg(ps_msg);
     EXPECT_FALSE(planning_scene::PlanningScene::isEmpty(ps_msg));
-    EXPECT_TRUE(ps->getCollisionWorld()->hasObject("sphere"));
+    EXPECT_TRUE(ps->getWorld()->hasObject("sphere"));
     
     planning_scene::PlanningScene next(ps);
     EXPECT_TRUE(next.isConfigured());
-    EXPECT_TRUE(next.getCollisionWorld()->hasObject("sphere"));
-    next.getCollisionWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
-    EXPECT_EQ(next.getCollisionWorld()->getObjectIds().size(), 2);
-    EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 1);
+    EXPECT_TRUE(next.getWorld()->hasObject("sphere"));
+    next.getWorldNonConst()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
+    EXPECT_EQ(next.getWorld()->size(), 2);
+    EXPECT_EQ(ps->getWorld()->size(), 1);
     next.getPlanningSceneDiffMsg(ps_msg);
     EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
     next.decoupleParent();
@@ -89,7 +88,7 @@ TEST(PlanningScene, LoadRestoreDiff)
     next.getPlanningSceneMsg(ps_msg);	
     EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
     ps->setPlanningSceneMsg(ps_msg);
-    EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
+    EXPECT_EQ(ps->getWorld()->size(), 2);
 }
 
 TEST(PlanningScene, MakeAttachedDiff)
@@ -98,13 +97,13 @@ TEST(PlanningScene, MakeAttachedDiff)
   boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
   urdf_model->initFile("../../moveit/planning_models/test/urdf/robot.xml");
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
-  ps->setCollisionDetectionTypes<collision_distance_field::CollisionWorldDistanceField, collision_distance_field::CollisionRobotDistanceField>();;
+  ps->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorDistanceField::create());
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
   
-  collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
+  collision_detection::CollisionWorld &world = *ps->getWorldNonConst();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
-  cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
+  world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
   planning_scene::PlanningScenePtr attached_object_diff_scene(new planning_scene::PlanningScene(ps));
   

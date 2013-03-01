@@ -176,7 +176,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           planning_scene::PlanningScenePtr planning_scene_after_approach = planning_scene_->diff();
           
           // assume the current state of the diff world is the one we plan to reach
-          planning_scene_after_approach->getCurrentState() = *plan->possible_goal_states_[i];
+          planning_scene_after_approach->getCurrentStateNonConst() = *plan->possible_goal_states_[i];
           
           // apply the difference message to this world
           planning_scene_after_approach->processAttachedCollisionObjectMsg(plan->shared_data_->diff_attached_object_);

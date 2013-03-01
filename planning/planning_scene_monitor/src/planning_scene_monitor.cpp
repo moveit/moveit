@@ -150,20 +150,26 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   robot_description_ = kinematics_loader_->getRobotDescription();
   if (kinematics_loader_->getModel())
   {
-    scene_ = scene ? scene : planning_scene::PlanningScenePtr(new planning_scene::PlanningScene());
-    if (scene_->isConfigured() || scene_->configure(kinematics_loader_->getModel()))
+    scene_ = scene;
+    if (!scene_)
     {
-      scene_const_ = scene_;
-      configureCollisionMatrix(scene_);
-      configureDefaultPadding();
-      
-      scene_->getCollisionRobot()->setPadding(default_robot_padd_);
-      scene_->getCollisionRobot()->setScale(default_robot_scale_);
-    }
-    else
-    {
-      ROS_ERROR("Configuration of planning scene failed");
-      scene_.reset();
+      try
+      {
+        scene_.reset(new planning_scene::PlanningScene(kinematics_loader_->getModel()));
+        scene_const_ = scene_;
+        configureCollisionMatrix(scene_);
+        configureDefaultPadding();
+        
+        scene_->getCollisionRobotNonConst()->setPadding(default_robot_padd_);
+        scene_->getCollisionRobotNonConst()->setScale(default_robot_scale_);
+        scene_->propogateRobotPadding();
+      }
+      catch (planning_scene::PlanningScene::ConstructException e)
+      {
+        ROS_ERROR("Configuration of planning scene failed");
+        scene_.reset();
+        scene_const_ = scene_;
+      }
     }
   }
   else
@@ -415,7 +421,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();  
-      scene_->getCollisionWorld()->clearObjects();
+      scene_->getWorldNonConst()->clearObjects();
       scene_->processPlanningSceneWorldMsg(*world);
     }  
     triggerSceneUpdateEvent(UPDATE_SCENE);
@@ -747,7 +753,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
-      scene_->getCurrentState().setStateValues(v);
+      scene_->getCurrentStateNonConst().setStateValues(v);
       last_update_time_ = ros::Time::now();
     }
     triggerSceneUpdateEvent(UPDATE_STATE);
@@ -835,7 +841,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
     getUpdatedFrameTransforms(scene_->getRobotModel(), transforms);
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
-      scene_->getTransforms()->setTransforms(transforms);
+      scene_->getTransformsNonConst()->setTransforms(transforms);
       last_update_time_ = ros::Time::now();
     }
     triggerSceneUpdateEvent(UPDATE_TRANSFORMS);
@@ -852,7 +858,7 @@ void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(cons
 {
   if (!scene)
     return;
-  collision_detection::AllowedCollisionMatrix &acm = scene->getAllowedCollisionMatrix();
+  collision_detection::AllowedCollisionMatrix &acm = scene->getAllowedCollisionMatrixNonConst();
     
   // read overriding values from the param server
   
