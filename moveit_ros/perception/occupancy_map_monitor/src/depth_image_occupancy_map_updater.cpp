@@ -241,7 +241,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   }
   else
     mesh_filter_->getFilteredDepth(&filtered_data_[0]);
-  
+
   // Use correct principal point from calibration
   double px = info_msg->K[2];
   double py = info_msg->K[5];
@@ -261,8 +261,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   for (int y = 0; y < depth_msg->height; ++y)
     y_cache_[y] = (y - py) * inv_fy;
 
-  tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
-  octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
+  octomap::point3d sensor_origin(map_H_sensor.getOrigin().getX(), map_H_sensor.getOrigin().getY(), map_H_sensor.getOrigin().getZ());
   
   OccMapTreePtr tree = monitor_->getOcTreePtr();
   octomap::KeySet free_cells, occupied_cells;
@@ -287,20 +286,16 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
             {
               /* transform to map frame */
               tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
-              octomap::point3d point(point_tf.getX(), point_tf.getY(), point_tf.getZ());
-              
-              /* free cells along ray */
-              if (tree->computeRayKeys(sensor_origin, point, key_ray_))
-                free_cells.insert(key_ray_.begin(), key_ray_.end());
-                            
-              /* occupied cell at ray endpoint if ray is shorter than max range and this point
-                 isn't on a part of the robot*/
-              octomap::OcTreeKey key;
-              if (tree->coordToKeyChecked(point, key))
-                occupied_cells.insert(key);
+              // add to the list of occupied cells
+              occupied_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
             }
           }
         }
+    
+    /* compute the free cells along each ray */
+    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
+      if (tree->computeRayKeys(sensor_origin, tree->keyToCoord(*it), key_ray_))
+        free_cells.insert(key_ray_.begin(), key_ray_.end());
   }
   catch (...)
   { 
@@ -315,22 +310,20 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   tree->lockWrite();
 
   try
-  {
-    
+  {    
     /* mark free cells only if not seen occupied in this cloud */
     for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
-      /* this check seems unnecessary since we would just overwrite them in the next loop? -jbinney */
-      if (occupied_cells.find(*it) == occupied_cells.end())
-        tree->updateNode(*it, false);
+      tree->updateNode(*it, false);
     
     ROS_DEBUG("Marking occupied cells in octomap");
     
     /* now mark all occupied cells */
-    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; it++)
+    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
       tree->updateNode(*it, true);
   }
   catch (...)
   {
+    ROS_ERROR("Internal error while updating octree");
   }
   tree->unlockWrite();
   ROS_INFO("Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
