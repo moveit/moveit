@@ -47,8 +47,8 @@ collision_detection::World::World(const World &other)
 
 collision_detection::World::~World()
 {
-  for (std::vector<Observer*>::iterator obs=observers_.begin() ; obs != observers_.end() ; obs = observers_.begin())
-    removeObserver(*obs);
+  while (!observers_.empty())
+    removeObserver(observers_.front());
 }
 
 inline void collision_detection::World::addToObjectInternal(const ObjectPtr &obj,
@@ -202,7 +202,7 @@ void collision_detection::World::clearObjects()
   objects_.clear();
 }
 
-collision_detection::World::ObserverHandle collision_detection::World::addObserver(boost::function<void (const ObjectConstPtr&, Action)> callback)
+collision_detection::World::ObserverHandle collision_detection::World::addObserver(const ObserverCallbackFn &callback)
 {
   Observer *o = new Observer(callback);
   observers_.push_back(o);
