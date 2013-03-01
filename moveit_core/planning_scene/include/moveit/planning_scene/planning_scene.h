@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Acorn Pooley */
 
 #ifndef MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
 #define MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
@@ -40,7 +40,8 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
-#include <moveit/collision_detection/collision_world.h>
+#include <moveit/collision_detection/collision_detector_allocator.h>
+#include <moveit/collision_detection/world_diff.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
@@ -82,25 +83,20 @@ class PlanningScene : private boost::noncopyable,
 {
 public:
 
-  /** \brief Constructor. Allocate an empty planning scene. Before use, this instance needs to be configured
-      by calling the configure() function. */
-  PlanningScene();
+  /** \brief construct using an existing RobotModel */
+  PlanningScene(const robot_model::RobotModelPtr &robot_model,
+                collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
+
+  /** \brief construct using a urdf and srdf.
+   * A RobotModel for the PlanningScene will be created using the urdf and srdf. */
+  PlanningScene(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+                const boost::shared_ptr<const srdf::Model> &srdf_model,
+                const std::string &root_link = "",
+                collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
 
   static const std::string COLLISION_MAP_NS;
   static const std::string OCTOMAP_NS;
   static const std::string DEFAULT_SCENE_NAME;
-
-protected:
-
-  /** \brief Constructor. Allocate a planning scene that is to be maintained as a diff to a \e parent planning scene.
-      This representation does not actually copy the parent scene data. Instead, it maintains diffs with respect to the
-      specified parent. When data in the parent is modified, the changes are visible in the diff class as well, unless
-      the modified objects were previously modified within the diff class (and a modified copy is stored instead).
-      It is recommended that the \e parent planning scene is configured before use. Otherwise,
-      the configure() function will have to be called on the diff class as well. */
-  PlanningScene(const PlanningSceneConstPtr &parent);
-
-public:
 
   virtual ~PlanningScene()
   {
@@ -118,28 +114,58 @@ public:
     name_ = name;
   }
 
-  /** \brief Set the types that satisfy the interfaces for collision_space::CollisionWorld and collision_space::CollisionRobot that should be used for collision checking. */
-  template<typename CollisionWorldType, typename CollisionRobotType>
-  void setCollisionDetectionTypes()
+  /** \brief Add a new collision detector type.
+   *
+   * A collision detector type is specified with (a shared pointer to) an
+   * allocator which is a subclass of CollisionDetectorAllocator.  This
+   * identifies a combination of CollisionWorld/CollisionRobot which can ve
+   * used together.
+   *
+   * This does nothing if this type of collision detector has already been added.
+   * 
+   * A new PlanningScene contains an FCL collision detector.  This FCL collision detector will always be available unless it is removed by calling setActiveCollisionDetector() with exclusive=true. */
+  void addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator);
+
+  /** \brief Set the type of collision detector to use.
+   * Calls addCollisionDetector() to add it if it has not already been added.
+   *
+   * If exclusive is true then all other collision detectors will be removed and only this one will be available. */
+  void setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
+                                  bool exclusive = false);
+
+  /** \brief Set the type of collision detector to use.
+   * This type must have already been added with addCollisionDetector().
+   *
+   * Returns true on success, false if \e collision_detector_name is not the
+   * name of a collision detector that has been previously added with
+   * addCollisionDetector(). */
+  bool setActiveCollisionDetector(const std::string& collision_detector_name);
+
+  const std::string& getActiveCollisionDetectorName() const
   {
-    collision_detection_allocator_.reset(new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
+    return active_collision_->alloc_->getName();
   }
 
-  /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
-      The information passed in for this function allows the construction of a kinematic model and of all the classes that
-      depend on the kinematic model (e.g., collision world/robot classes) */
-  bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                 const boost::shared_ptr<const srdf::Model> &srdf_model,
-                 const std::string &root_link = "");
+  /** \brief get the types of collision detector that have already been added.
+   * These are the types which can be passed to setActiveCollisionDetector(). */
+  void getCollisionDetectorNames(std::vector<std::string>& names) const;
 
-  /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
-      The kinematic model constructed from the parsed descriptions is also passed in. */
-  bool configure(const robot_model::RobotModelPtr &kmodel);
-
-  /** \brief Return a new planning scene that uses this one as parent. */
+  /** \brief Return a new child PlanningScene that uses this one as parent.
+   *
+   *  The child scene has its own copy of the world. It maintains a list (in
+   *  world_diff_) of changes made to the child world.
+   *
+   *  The kmodel_, kstate_, ftf_, and acm_ are not copied.  They are shared
+   *  with the parent.  So if changes to these are made in the parent they will
+   *  be visible in the child.  But if any of these is modified (i.e. if the
+   *  get*NonConst functions are called) in the child then a copy is made and
+   *  subsequent changes to the corresponding member of the parent will no
+   *  longer be visible in the child.
+   */
   PlanningScenePtr diff() const;
 
-  /** \brief Return a new planning scene that uses this one as parent and has the diffs specified by \e msg applied. */
+  /** \brief Return a new child PlanningScene that uses this one as parent and
+   * has the diffs specified by \e msg applied. */
   PlanningScenePtr diff(const moveit_msgs::PlanningScene &msg) const;
 
   /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
@@ -159,17 +185,17 @@ public:
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     // the kinematic model does not change
-    return parent_ ? parent_->getRobotModel() : kmodel_const_;
+    return kmodel_;
   }
 
-  /** \brief Get the state at which the robot is assumed to be */
+  /** \brief Get the state at which the robot is assumed to be. */
   const robot_state::RobotState& getCurrentState() const
   {
     // if we have an updated state, return it; otherwise, return the parent one
     return kstate_ ? *kstate_ : parent_->getCurrentState();
   }
-  /** \brief Get the state at which the robot is assumed to be */
-  robot_state::RobotState& getCurrentState();
+  /** \brief Get the state at which the robot is assumed to be. */
+  robot_state::RobotState& getCurrentStateNonConst();
 
   /** \brief Get the allowed collision matrix */
   const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix() const
@@ -177,7 +203,7 @@ public:
     return acm_ ? *acm_ : parent_->getAllowedCollisionMatrix();
   }
   /** \brief Get the allowed collision matrix */
-  collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix();
+  collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrixNonConst();
 
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
   const robot_state::TransformsConstPtr& getTransforms() const
@@ -186,38 +212,51 @@ public:
     return (ftf_const_ || !parent_) ? ftf_const_ : parent_->getTransforms();
   }
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
-  const robot_state::TransformsPtr& getTransforms();
+  const robot_state::TransformsPtr& getTransformsNonConst();
 
-  /** \brief Get the representation of the collision world */
+  /** \brief Get the representation of the world */
+  const collision_detection::WorldConstPtr& getWorld() const
+  {
+    // we always have a world representation
+    return world_const_;
+  }
+
+  //brief Get the representation of the world
+  const collision_detection::WorldPtr& getWorldNonConst()
+  {
+    // we always have a world representation
+    return world_;
+  }
+
+  /** \brief Get the active collision detector for the world */
   const collision_detection::CollisionWorldConstPtr& getCollisionWorld() const
   {
-    // we always have a world representation
-    return cworld_const_;
+    // we always have a world representation after configure is called.
+    return active_collision_->cworld_const_;
   }
 
-  //brief Get the representation of the collision world
-  const collision_detection::CollisionWorldPtr& getCollisionWorld()
-  {
-    // we always have a world representation
-    return cworld_;
-  }
-
-  /** \brief Get the representation of the collision robot */
+  /** \brief Get the active collision detector for the robot */
   const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
   {
-    // if we have an updated robot, return that one
-    return (crobot_const_ || !parent_) ? crobot_const_ : parent_->getCollisionRobot();
+    return active_collision_->getCollisionRobot();
   }
 
-  /** \brief Get the representation of the collision robot */
+  /** \brief Get the active collision detector for the robot */
   const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded() const
   {
-    // if we have an updated robot, return that one
-    return (crobot_unpadded_const_ || !parent_) ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
+    return active_collision_->getCollisionRobotUnpadded();
   }
 
-  /** \brief Get the representation of the collision robot */
-  const collision_detection::CollisionRobotPtr& getCollisionRobot();
+  /** \brief Get the representation of the collision robot
+   * This can be used to set padding and link scale on the active collision_robot.
+   * NOTE: After modifying padding and scale on the active robot call
+   * propogateRobotPadding() to copy it to all the other collision detectors. */
+  const collision_detection::CollisionRobotPtr& getCollisionRobotNonConst();
+
+  /** \brief Copy scale and padding from active CollisionRobot to other CollisionRobots.
+   * This should be called after any changes are made to the scale or padding of the active
+   * CollisionRobot.  This has no effect on the unpadded CollisionRobots. */
+  void propogateRobotPadding();
 
   /** \brief Check whether the current state is in collision */
   void checkCollision(const collision_detection::CollisionRequest& req,
@@ -293,12 +332,6 @@ public:
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide, if the robot has no padding. */
   double distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
-
-  /** \brief Check if this planning scene has been configured or not */
-  bool isConfigured() const
-  {
-    return parent_ ? configured_ && parent_->isConfigured() : configured_;
-  }
 
   /** \brief Save the geometry of the planning scene to a stream, as plain text */
   void saveGeometryToStream(std::ostream &out) const;
@@ -503,85 +536,101 @@ public:
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
 
-protected:
+  /** this may be thrown during construction if errors occur */
+  struct ConstructException : public std::runtime_error
+  {
+    explicit ConstructException(const std::string& what_arg);
+  };
 
-  /** \brief Get the non-const kinematic model for which the planning scene is maintained */
-  const robot_model::RobotModelPtr& getRobotModelNonConst();
+
+private:
+
+  /* Private constructor used by the diff() methods. */
+  PlanningScene(const PlanningSceneConstPtr &parent);
+
+  /* Initialize the scene.  This should only be called by the constructors.
+   * Requires a valid kmodel_ */
+  void initialize();
+
+  /* helper function to create a RobotModel from a urdf/srdf. */
+  static robot_model::RobotModelPtr createRobotModel(
+      const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+      const boost::shared_ptr<const srdf::Model> &srdf_model,
+      const std::string &root_link);
+
+  void setRootLink(const std::string& root_link);
 
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
 
-  struct CollisionDetectionAllocBase
+  struct CollisionDetector;
+  typedef boost::shared_ptr<CollisionDetector> CollisionDetectorPtr;
+  typedef boost::shared_ptr<const CollisionDetector> CollisionDetectorConstPtr;
+
+  /* \brief A set of compatible collision detectors */
+  struct CollisionDetector
   {
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &kmodel) = 0;
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy) = 0;
-    virtual collision_detection::CollisionWorldPtr allocateWorld() = 0;
-    virtual collision_detection::CollisionWorldPtr allocateWorld(const collision_detection::CollisionWorldConstPtr &copy) = 0;
-    virtual CollisionDetectionAllocBase* clone() = 0;
+    collision_detection::CollisionDetectorAllocatorPtr alloc_;
+    collision_detection::CollisionRobotPtr             crobot_unpadded_;        // if NULL use parent's
+    collision_detection::CollisionRobotConstPtr        crobot_unpadded_const_;
+    collision_detection::CollisionRobotPtr             crobot_;                 // if NULL use parent's
+    collision_detection::CollisionRobotConstPtr        crobot_const_;
+                                                       
+    collision_detection::CollisionWorldPtr             cworld_;                 // never NULL
+    collision_detection::CollisionWorldConstPtr        cworld_const_;
+                                                       
+    CollisionDetectorConstPtr                          parent_;                 // may be NULL
+
+    const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
+    {
+      return crobot_const_ ? crobot_const_ : parent_->getCollisionRobot();
+    }
+    const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded() const
+    {
+      return crobot_unpadded_const_ ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
+    }
+    void findParent(const PlanningScene& scene);
+    void copyPadding(const CollisionDetector& src);
   };
+  friend struct CollisionDetector;
 
-  template<typename CollisionWorldType, typename CollisionRobotType>
-  struct CollisionDetectionAlloc : public CollisionDetectionAllocBase
-  {
-    BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionWorldType*, collision_detection::CollisionWorld*>));
-    BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionRobotType*, collision_detection::CollisionRobot*>));
+  typedef std::map<std::string, CollisionDetectorPtr>::iterator CollisionDetectorIterator;
+  typedef std::map<std::string, CollisionDetectorPtr>::const_iterator CollisionDetectorConstIterator;
 
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr &kmodel)
-    {
-      return collision_detection::CollisionRobotPtr(new CollisionRobotType(kmodel));
-    }
-    virtual collision_detection::CollisionWorldPtr allocateWorld()
-    {
-      return collision_detection::CollisionWorldPtr(new CollisionWorldType());
-    }
-    virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy)
-    {
-      return collision_detection::CollisionRobotPtr(new CollisionRobotType(static_cast<const CollisionRobotType&>(*copy)));
-    }
-    virtual collision_detection::CollisionWorldPtr allocateWorld(const  collision_detection::CollisionWorldConstPtr &copy)
-    {
-      return collision_detection::CollisionWorldPtr(new CollisionWorldType(static_cast<const CollisionWorldType&>(*copy)));
-    }
-    virtual CollisionDetectionAllocBase* clone()
-    {
-      return new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>();
-    }
-  };
+  void allocateCollisionDetectors();
+  void allocateCollisionDetectors(CollisionDetector& detector);
 
-  std::string                                    name_;
 
-  PlanningSceneConstPtr                          parent_;
 
-  robot_model::RobotModelPtr             kmodel_;
-  robot_model::RobotModelConstPtr        kmodel_const_;
+  std::string                                    name_;         // may be empty
 
-  robot_state::RobotStatePtr             kstate_;
+  PlanningSceneConstPtr                          parent_;       // Null unless this is a diff scene
 
-  robot_state::TransformsPtr                 ftf_;
-  robot_state::TransformsConstPtr            ftf_const_;
+  robot_model::RobotModelConstPtr                kmodel_;       // Never null (may point to same model as parent)
 
-  boost::scoped_ptr<CollisionDetectionAllocBase> collision_detection_allocator_;
+  robot_state::RobotStatePtr                     kstate_;       // if NULL use parent's
 
-  collision_detection::CollisionRobotPtr         crobot_unpadded_;
-  collision_detection::CollisionRobotConstPtr    crobot_unpadded_const_;
-  collision_detection::CollisionRobotPtr         crobot_;
-  collision_detection::CollisionRobotConstPtr    crobot_const_;
+  robot_state::TransformsPtr                     ftf_;          // if NULL use parent's
+  robot_state::TransformsConstPtr                ftf_const_;    // copy of ftf_
 
-  collision_detection::CollisionWorldPtr         cworld_;
-  collision_detection::CollisionWorldConstPtr    cworld_const_;
+  collision_detection::WorldPtr                  world_;        // never NULL, never shared with parent/child
+  collision_detection::WorldConstPtr             world_const_;  // copy of world_
+  collision_detection::WorldDiffPtr              world_diff_;   // NULL unless this is a diff scene
 
-  collision_detection::AllowedCollisionMatrixPtr acm_;
+  std::map<std::string, CollisionDetectorPtr>    collision_;          // never empty
+  CollisionDetectorPtr                           active_collision_;   // copy of one of the entries in collision_.  Never NULL.
+
+  collision_detection::AllowedCollisionMatrixPtr acm_;                // if NULL use parent's
 
   StateFeasibilityFn                             state_feasibility_;
   MotionFeasibilityFn                            motion_feasibility_;
 
   boost::scoped_ptr<ColorMap>                    colors_;
-
-  bool                                           configured_;
-
 };
+
+
 
 }
 

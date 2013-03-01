@@ -34,14 +34,16 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef MOVEIT_COLLISION_DISTANCE_FIELD_HYBRID_COLLISION_WORLD_
-#define MOVEIT_COLLISION_DISTANCE_FIELD_HYBRID_COLLISION_WORLD_
+#ifndef MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_WORLD_HYBRID_H_
+#define MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_WORLD_HYBRID_H_
 
-#include <moveit/collision_detection_fcl/collision_world.h>
+#include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
 #include <moveit/collision_distance_field/collision_world_distance_field.h>
 
 namespace collision_detection {
+
+class CollisionRobotHybrid;
 
 class CollisionWorldHybrid : public CollisionWorldFCL
 {
@@ -55,9 +57,19 @@ public:
                        double collision_tolerance = 0.0,
                        double max_propogation_distance = .25);
 
-  CollisionWorldHybrid(const CollisionWorldHybrid &other);
+  explicit CollisionWorldHybrid(const WorldPtr& world,
+                       double size_x = 3.0, 
+                       double size_y = 3.0,
+                       double size_z = 4.0,
+                       bool use_signed_distance_field = false,
+                       double resolution = .02,
+                       double collision_tolerance = 0.0,
+                       double max_propogation_distance = .25);
 
-  virtual ~CollisionWorldHybrid(){}
+  CollisionWorldHybrid(const CollisionWorldHybrid &other, const WorldPtr& world);
+
+  virtual ~CollisionWorldHybrid()
+  {}
 
   void checkCollisionDistanceField(const CollisionRequest &req,
                                    CollisionResult &res,
@@ -107,17 +119,7 @@ public:
                                         const AllowedCollisionMatrix &acm,
                                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses);
-  
-  virtual void addToObject(const std::string &id, 
-                           const shapes::ShapeConstPtr &shape, 
-                           const Eigen::Affine3d &pose);
-  virtual bool moveShapeInObject(const std::string &id, 
-                                 const shapes::ShapeConstPtr &shape, 
-                                 const Eigen::Affine3d &pose);
-  virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-  virtual void removeObject(const std::string &id);
-  virtual void clearObjects();
+  virtual void setWorld(const WorldPtr& world);
 
   void getCollisionGradients(const CollisionRequest &req, 
                              CollisionResult &res, 

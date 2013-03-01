@@ -34,10 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_WORLD_
-#define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_WORLD_
+#ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_WORLD_FCL_
+#define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_WORLD_FCL_
 
-#include <moveit/collision_detection_fcl/collision_robot.h>
+#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 #include <fcl/broadphase/broadphase.h>
 
 namespace collision_detection
@@ -48,8 +48,10 @@ namespace collision_detection
   public:
     
     CollisionWorldFCL();
-    CollisionWorldFCL(const CollisionWorldFCL &other);
+    explicit CollisionWorldFCL(const WorldPtr& world);
+    CollisionWorldFCL(const CollisionWorldFCL &other, const WorldPtr& world);
     virtual ~CollisionWorldFCL();
+
     
     virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const;
     virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
@@ -63,12 +65,7 @@ namespace collision_detection
     virtual double distanceWorld(const CollisionWorld &world) const;
     virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
     
-    virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses);
-    virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-    virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-    virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-    virtual void removeObject(const std::string &id);
-    virtual void clearObjects();
+    virtual void setWorld(const WorldPtr& world);
     
   protected:
 
@@ -77,12 +74,17 @@ namespace collision_detection
     double distanceRobotHelper(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm) const;
     double distanceWorldHelper(const CollisionWorld &world, const AllowedCollisionMatrix *acm) const;
     
-    void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
+    void constructFCLObject(const World::Object *obj, FCLObject &fcl_obj) const;
     void updateFCLObject(const std::string &id);
+
     
     boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
     std::map<std::string, FCLObject >                  fcl_objs_;
     
+  private:
+    void initialize();
+    void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
+    World::ObserverHandle observer_handle_;
   };
   
 }

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2013, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,41 +32,23 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author Adam Leeper */
+/* Author: Acorn Pooley, Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
+#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALL_VALID_H_
+#define MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALL_VALID_H_
 
-#include <moveit/collision_detection/collision_common.h>
-#include <moveit/collision_detection/collision_world.h>
+#include <moveit/collision_detection/collision_detector_allocator.h>
+#include <moveit/collision_detection/allvalid/collision_robot_allvalid.h>
+#include <moveit/collision_detection/allvalid/collision_world_allvalid.h>
 
 namespace collision_detection
 {
-
-/** @brief Re-proceses contact normals for an octomap by estimating a metaball
- *   iso-surface using the centers of occupied cells in a neighborhood of the contact point.
- *
- *  This is an implementation of the algorithm described in:
- *  A. Leeper, S. Chan, K. Salisbury. Point Clouds Can Be Represented as Implicit
- *  Surfaces for Constraint-Based Haptic Rendering. ICRA, May 2012, St Paul, MN.
- *  http://adamleeper.com/research/papers/2012_ICRA_leeper-chan-salisbury.pdf
- *
- *  @param The octomap originally used for collision detection.
- *  @param The collision result (which will get its normals updated)
- *  @param The distance, as a multiple of the octomap cell size, from which to include neighboring cells.
- *  @param The minimum angle change required for a normal to be over-written
- *  @param Whether to request a depth estimate from the algorithm (experimental...)
- *  @param The iso-surface threshold value (0.5 is a reasonable default).
- *  @param The metaball radius, as a multiple of the octomap cell size (1.5 is a reasonable default)
- */
-int refineContactNormals(const World::ObjectConstPtr& object,
-                         CollisionResult &res,
-                         double cell_bbx_search_distance = 1.0,
-                         double allowed_angle_divergence = 0.0,
-                         bool estimate_depth = false,
-                         double iso_value = 0.5,
-                         double metaball_radius_multiple = 1.5);
-
+  /** \brief An allocator for AllValid collision detectors */
+  class CollisionDetectorAllocatorAllValid : public CollisionDetectorAllocatorTemplate<CollisionWorldAllValid, CollisionRobotAllValid, CollisionDetectorAllocatorAllValid>
+  {
+  public:
+    static const std::string NAME_; // defined in collision_world_allvalid.cpp
+  };
 }
 
 #endif
