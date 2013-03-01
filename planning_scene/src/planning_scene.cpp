@@ -310,20 +310,20 @@ void planning_scene::PlanningScene::setActiveCollisionDetector(const collision_d
 {
   if (exclusive)
   {
-	CollisionDetectorPtr p;
+    CollisionDetectorPtr p;
     CollisionDetectorIterator it = collision_.find(allocator->getName());
-	if (it != collision_.end())
-		p = it->second;
+    if (it != collision_.end())
+      p = it->second;
 
-	collision_.clear();
-	active_collision_.reset();
+    collision_.clear();
+    active_collision_.reset();
 
-	if (p)
-	{
-		collision_[allocator->getName()] = p;
-		active_collision_ = p;
-		return;
-	}
+    if (p)
+    {
+      collision_[allocator->getName()] = p;
+      active_collision_ = p;
+      return;
+    }
   }
   
   addCollisionDetector(allocator);
