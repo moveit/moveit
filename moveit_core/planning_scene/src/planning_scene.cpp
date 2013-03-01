@@ -313,17 +313,19 @@ void planning_scene::PlanningScene::setActiveCollisionDetector(const collision_d
 {
   if (exclusive)
   {
-    // remove all collision detectors which do not have the same name as the one we are adding.
-    for (CollisionDetectorIterator it = collision_.begin() ; it != collision_.end() ; )
-    {
-      if (it->first == allocator->getName())
-      {
-        ++it;
-        continue;
-      }
+    CollisionDetectorPtr p;
+    CollisionDetectorIterator it = collision_.find(allocator->getName());
+    if (it != collision_.end())
+      p = it->second;
 
-      collision_.erase(it);
-      it = collision_.begin();
+    collision_.clear();
+    active_collision_.reset();
+
+    if (p)
+    {
+      collision_[allocator->getName()] = p;
+      active_collision_ = p;
+      return;
     }
   }
   
