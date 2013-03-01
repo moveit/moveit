@@ -136,8 +136,7 @@ void robot_state::RobotState::copyFrom(const RobotState &ks)
 
 robot_state::RobotState::~RobotState()
 {
-  for (std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ; ++it)
-    delete it->second;  
+  clearAttachedBodies(); // we call this instead of just deleting so we get the attached body callbacks 
   for (std::size_t i = 0; i < joint_state_vector_.size(); i++)
     delete joint_state_vector_[i];
   for (std::size_t i = 0; i < link_state_vector_.size(); i++)
@@ -705,6 +704,11 @@ void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& a
     }
     arr.markers.push_back(mark);
   }
+}
+
+void robot_state::RobotState::setAttachedBodyCallback(const AttachedBodyCallback &callback)
+{
+  attached_body_update_callback_ = callback;
 }
 
 // ------ printing transforms -----
