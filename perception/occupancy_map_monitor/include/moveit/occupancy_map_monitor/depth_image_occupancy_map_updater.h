@@ -94,6 +94,7 @@ private:
 
   std::vector<float> x_cache_, y_cache_;
   std::vector<float> filtered_data_;
+  
 };
 }
 
