@@ -71,9 +71,6 @@ public:
   virtual ~CollisionWorldHybrid()
   {}
 
-  static const std::string& getCollisionDetectorName(CollisionRobotHybrid* robot_type);
-  static const std::string COLLISION_DETECTOR_HYBRID;
-
   void checkCollisionDistanceField(const CollisionRequest &req,
                                    CollisionResult &res,
                                    const CollisionRobot &robot,

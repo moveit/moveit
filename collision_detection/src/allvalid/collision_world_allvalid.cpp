@@ -48,12 +48,6 @@ collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(const Collis
 {
 }
 
-const std::string& collision_detection::CollisionWorldAllValid::getCollisionDetectorName(CollisionRobotAllValid* robot_type)
-{
-  return COLLISION_DETECTOR_ALL_VALID;
-}
-const std::string collision_detection::CollisionWorldAllValid::COLLISION_DETECTOR_ALL_VALID = "COLLISION_DETECTOR_ALL_VALID";
-
 void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const
 {
   res.collision = false;

@@ -52,9 +52,6 @@ namespace collision_detection
     CollisionWorldFCL(const CollisionWorldFCL &other, const WorldPtr& world);
     virtual ~CollisionWorldFCL();
 
-    static const std::string& getCollisionDetectorName(CollisionRobotFCL* robot_type);
-    static const std::string COLLISION_DETECTOR_FCL;
-
     
     virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const;
     virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;

@@ -86,13 +86,6 @@ CollisionWorldHybrid::CollisionWorldHybrid(const CollisionWorldHybrid &other, co
 {
 }
 
-const std::string& CollisionWorldHybrid::getCollisionDetectorName(CollisionRobotHybrid* robot_type)
-{
-  return COLLISION_DETECTOR_HYBRID;
-}
-const std::string CollisionWorldHybrid::COLLISION_DETECTOR_HYBRID = "COLLISION_DETECTOR_HYBRID";
-
-
 void CollisionWorldHybrid::checkCollisionDistanceField(const CollisionRequest &req,
                                                        CollisionResult &res,
                                                        const CollisionRobot &robot,

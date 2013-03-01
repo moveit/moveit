@@ -84,12 +84,6 @@ collision_detection::CollisionWorldFCL::~CollisionWorldFCL()
   getWorld()->removeObserver(observer_handle_);
 }
 
-const std::string& collision_detection::CollisionWorldFCL::getCollisionDetectorName(CollisionRobotFCL* robot_type)
-{
-  return COLLISION_DETECTOR_FCL;
-}
-const std::string collision_detection::CollisionWorldFCL::COLLISION_DETECTOR_FCL = "COLLISION_DETECTOR_FCL";
-
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const
 {
   checkRobotCollisionHelper(req, res, robot, state, NULL);

@@ -107,7 +107,7 @@ namespace collision_detection
       return objects_.end();
     }
     /** number of changes stored */
-    size_t size() const
+    std::size_t size() const
     {
       return objects_.size();
     }
