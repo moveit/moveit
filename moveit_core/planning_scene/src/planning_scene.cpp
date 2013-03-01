@@ -1091,7 +1091,6 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     setRootLink(scene_msg.robot_model_root);
 
   ftf_->setTransforms(scene_msg.fixed_frame_transforms);
-  kstate_->clearAttachedBodies();
   setCurrentState(scene_msg.robot_state);
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene_msg.allowed_collision_matrix));
   for (CollisionDetectorIterator it = collision_.begin() ; it != collision_.end() ; ++it)
