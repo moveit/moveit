@@ -127,7 +127,7 @@ public:
   /** \brief Get the user kinematic model loader */
   const robot_model_loader::RDFLoaderPtr& getRDFLoader() const
   {
-    return kinematics_loader_;
+    return rdf_loader_;
   }
   
   const robot_model::RobotModelConstPtr& getRobotModel() const;
@@ -249,18 +249,7 @@ public:
 
   /** @brief Get the maximum frequency (Hz) at which the current state of the planning scene is updated.*/
   double getStateUpdateFrequency();
-  
-  /** @brief Sometimes the state reported by the robot is outside bounds (outside safety limits). This parameter specifies the accepted error in bounds.
-      If the read value is within \e error distance to the accepted safety limit bounds, the value is actually assumed to be the value of the bound itself,
-      instead of being slightly outside bounds. By default this value is machine epsilon. */
-  void setStateUpdateBoundsError(double error);
-
-  /** @brief Get the error that is considered acceptable for a state to be outside bounds. */
-  double getStateUpdateBoundsError() const
-  {
-    return bounds_error_;
-  }  
-  
+   
   /** @brief Start the scene monitor
    *  @param scene_topic The name of the planning scene topic
    */
@@ -345,6 +334,11 @@ protected:
   /** @brief Callback for a change for an attached object of the current state of the planning scene */
   void currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody *attached_body, bool just_attached);
   
+  void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr &object, collision_detection::World::Action action);
+
+  void excludeWorldObjectFromOctree(const collision_detection::World::ObjectConstPtr &obj);
+  void includeWorldObjectInOctree(const collision_detection::World::ObjectConstPtr &obj);
+
   void getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
   
   bool getShapeTransformCache(const std::string &target_frame, const ros::Time &target_time, occupancy_map_monitor::ShapeTransformCache &cache) const;
@@ -383,51 +377,51 @@ protected:
   ros::Subscriber                       planning_scene_subscriber_;
   ros::Subscriber                       planning_scene_world_subscriber_;
 
-  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_; 
-  boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionObject> >           collision_object_filter_;
-  
-  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionMap> >    collision_map_subscriber_;
-  boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionMap> >              collision_map_filter_;
+  ros::Subscriber                       attached_collision_object_subscriber_;
 
-  // include the octomap monitor as well
-  boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor>                 octomap_monitor_;
+  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_; 
+  boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionObject> > collision_object_filter_;
+  
+  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionMap> > collision_map_subscriber_;
+  boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionMap> > collision_map_filter_;
+
+  // include a octomap monitor 
+  boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
+
+  // include a current state monitor 
+  CurrentStateMonitorPtr current_state_monitor_;
+  
+
+
+
+  // variables for handling shapes to be excluded from the octomap
+  collision_detection::World::ObserverHandle world_update_handle_;
 
   typedef std::map<std::string, occupancy_map_monitor::ShapeHandle> LinkShapeHandles;
-  typedef std::map<const robot_state::AttachedBody*, 
-                   std::vector<std::pair<occupancy_map_monitor::ShapeHandle,
-                                         std::size_t> > >           AttachedBodyShapeHandles;
-  LinkShapeHandles                      link_shape_handles_;
-  AttachedBodyShapeHandles              attached_body_shape_handles_;
-  
-  ros::Subscriber                       attached_collision_object_subscriber_;
-  
-  CurrentStateMonitorPtr                current_state_monitor_;
-  ros::Time                             last_update_time_; /// Last time the state was updated
+  typedef std::map<const robot_state::AttachedBody*, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > > AttachedBodyShapeHandles;
+  LinkShapeHandles link_shape_handles_;
+  AttachedBodyShapeHandles attached_body_shape_handles_;
 
-  std::vector<boost::function<void(SceneUpdateType)> >
-                                        update_callbacks_;
-
-  /// the planning scene state is updated at a maximum specified frequency,
-  /// and this timestamp is used to implement that functionality
-  ros::WallTime                         last_state_update_;
-
-  /// the amount of time to wait in between updates to the robot state (in seconds)
-  double                                dt_state_update_; 
-
-  /// the error accepted when the state is reported as outside of bounds;
-  double                                bounds_error_;
-
-  robot_model_loader::RDFLoaderPtr      kinematics_loader_;
+  std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_; /// List of callbacks to trigger when updates are received
+  ros::Time last_update_time_; /// Last time the state was updated
 
 private:
   
-  /** @brief */
   void scenePublishingThread();
   
   void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
+  
+  /// the amount of time to wait in between updates to the robot state (in seconds)
+  double dt_state_update_; 
+
+  /// the planning scene state is updated at a maximum specified frequency,
+  /// and this timestamp is used to implement that functionality
+  ros::WallTime last_state_update_;
+  
+  robot_model_loader::RDFLoaderPtr rdf_loader_;
 
   class DynamicReconfigureImpl;
-  DynamicReconfigureImpl *reconfigure_impl_;
+  DynamicReconfigureImpl *reconfigure_impl_;  
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
