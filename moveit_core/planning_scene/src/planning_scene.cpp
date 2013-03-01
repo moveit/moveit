@@ -127,7 +127,7 @@ robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(
       const std::string &root_link)
 {
   robot_model::RobotModelPtr robot_model;
-  const urdf::Link *root_link_ptr = 0;
+  const urdf::Link *root_link_ptr = NULL;
   if (!root_link.empty())
   {
     root_link_ptr = urdf_model->getLink(root_link).get();
