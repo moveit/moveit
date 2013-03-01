@@ -55,8 +55,6 @@
 #include <boost/function.hpp>
 #include <boost/concept_check.hpp>
 
-#define  ACORN_GET_RID_OF_THIS 0
-
 /** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
 {
