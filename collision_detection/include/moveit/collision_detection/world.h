@@ -192,18 +192,20 @@ namespace collision_detection
     class ObserverHandle
     {
     public:
-      ObserverHandle() : observer_(0) {}
+      ObserverHandle() : observer_(NULL) {}
     private:
       ObserverHandle(const Observer* o) : observer_(o) {}
       const Observer *observer_;
       friend class World;
     };
 
+	typedef boost::function<void (const ObjectConstPtr&, Action)> ObserverCallbackFn;
+
     /** \brief register a callback function for notification of changes.
      * \e callback will be called right after any change occurs to any Object.
      * \e observer is the object which is requesting the changes.  It is only
      * used for identifying the callback in removeObserver(). */
-    ObserverHandle addObserver(boost::function<void (const ObjectConstPtr&, Action)> callback);
+    ObserverHandle addObserver(ObserverCallbackFn callback);
 
     /** \brief remove a notifier callback */
     void removeObserver(const ObserverHandle observer_handle);
@@ -239,10 +241,10 @@ namespace collision_detection
     class Observer
     {
     public:
-      Observer(boost::function<void (const ObjectConstPtr&, Action)> callback) :
+      Observer(ObserverCallbackFn callback) :
         callback_(callback)
       {}
-      boost::function<void (const ObjectConstPtr&, Action)> callback_;
+      ObserverCallbackFn callback_;
     };
     std::vector<Observer*> observers_;
 
