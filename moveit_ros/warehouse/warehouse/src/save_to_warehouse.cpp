@@ -136,7 +136,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
-  if (!psm.getPlanningScene() || !psm.getPlanningScene()->isConfigured())
+  if (!psm.getPlanningScene())
   {
     ROS_ERROR("Unable to initialize PlanningSceneMonitor");
     return 1;

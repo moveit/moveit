@@ -97,7 +97,7 @@ int main(int argc, char **argv)
         do 
         {
           attempts++;
-          psm.getPlanningScene()->getCurrentState().setToRandomValues();
+          psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
           collision_detection::CollisionRequest req;
           collision_detection::CollisionResult res;
           psm.getPlanningScene()->checkCollision(req, res);
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
           do 
           {
             attempts++;
-            psm.getPlanningScene()->getCurrentState().setToRandomValues();
+            psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
             collision_detection::CollisionRequest req;
             collision_detection::CollisionResult res;
             psm.getPlanningScene()->checkCollision(req, res);
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
           }
         }
         else
-          psm.getPlanningScene()->getCurrentState().setToRandomValues();
+          psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
       
       moveit_msgs::PlanningScene psmsg;
       psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
