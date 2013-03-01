@@ -74,9 +74,6 @@ public:
 
   virtual ~CollisionWorldDistanceField();
 
-  static const std::string& getCollisionDetectorName(CollisionRobotDistanceField* robot_type);
-  static const std::string COLLISION_DETECTOR_DISTANCE_FIELD;
-
   virtual void checkCollision(const CollisionRequest &req,
                               CollisionResult &res,
                               const CollisionRobot &robot,

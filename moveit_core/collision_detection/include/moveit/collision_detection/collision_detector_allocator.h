@@ -48,20 +48,20 @@ namespace collision_detection
   {
   public:
     /** A unique name identifying the CollisionWorld/CollisionRobot pairing. */
-    virtual const std::string& getName() = 0;
+    virtual const std::string& getName() const = 0;
 
     /** create a new CollisionWorld for checking collisions with the supplied world. */
-    virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) = 0;
+    virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) const = 0;
 
     /** create a new CollisionWorld by copying an existing CollisionWorld of the same type.s
      * The world must be either the same world as used by \orig or a copy of that world which has not yet been modified. */
-    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) = 0;
+    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const = 0;
     
     /** create a new CollisionRobot given a robot_model */
-    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) = 0;
+    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const = 0;
 
     /** create a new CollisionRobot by copying an existing CollisionRobot of the same type. */
-    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) = 0;
+    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const = 0;
   };
 
   typedef boost::shared_ptr<CollisionDetectorAllocator> CollisionDetectorAllocatorPtr;
@@ -73,27 +73,27 @@ namespace collision_detection
   class CollisionDetectorAllocatorTemplate : public CollisionDetectorAllocator
   {
   public:
-    virtual const std::string& getName()
+    virtual const std::string& getName() const
     {
       return CollisionDetectorAllocatorType::NAME_;
     }
 
-    virtual CollisionWorldPtr allocateWorld(const WorldPtr& world)
+    virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) const
     {
       return CollisionWorldPtr(new CollisionWorldType(world));
     }
 
-    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world)
+    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const
     {
       return CollisionWorldPtr(new CollisionWorldType(dynamic_cast<const CollisionWorldType&>(*orig), world));
     }
 
-    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model)
+    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const
     {
       return CollisionRobotPtr(new CollisionRobotType(robot_model));
     }
 
-    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig)
+    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const
     {
       return CollisionRobotPtr(new CollisionRobotType(dynamic_cast<const CollisionRobotType&>(*orig)));
     }

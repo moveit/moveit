@@ -229,21 +229,6 @@ namespace collision_detection
       return world_const_;
     }
 
-    /** \brief name of collision detection algorithm
-     * Each subclass of CollisionWorld needs to override this function for each
-     * type of CollisionRobot that it works with.  Each combination should
-     * return a string uniquely identifying that combination.  Note that most
-     * subclasses of CollisionWorld work with only one particular subclass of
-     * CollisionRobot. */
-    template<class CollisionRobotType>
-    static const std::string& getCollisionDetectorName(CollisionRobotType* robot_type)
-    {
-      // Using this function is an error at compile time.
-      // Only use valid combinations of CollisionWorld and CollisionRobot for
-      // which there is a valid getCollisionDetectorName() override.
-      return robot_type->onlyCallThisFunctionWithValidWorldRobotCollisionCombination();
-    }
-
     typedef World::ObjectPtr ObjectPtr;
     typedef World::ObjectConstPtr ObjectConstPtr;
 
