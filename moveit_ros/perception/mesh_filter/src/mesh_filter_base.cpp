@@ -434,6 +434,7 @@ void mesh_filter::MeshFilterBase::mergeVertices (const Mesh& mesh, Mesh& compres
     Vector3d d2 = compressed_vertices [triangles[tIdx][2]] - compressed_vertices [triangles[tIdx][0]];
     Vector3d normal = d1.cross (d2);
     normal.normalize ();
+    /*
     Vector3d normal_;
     normal_ [0] = mesh.normals [3 * tIdx];
     normal_ [1] = mesh.normals [3 * tIdx + 1];
@@ -445,7 +446,7 @@ void mesh_filter::MeshFilterBase::mergeVertices (const Mesh& mesh, Mesh& compres
       swap (compressed.triangles [3 * tIdx + 1], compressed.triangles [3 * tIdx + 2]);
       normal *= -1;
     }
-
+    */
     compressed.normals [tIdx * 3 + 0] = normal [0];
     compressed.normals [tIdx * 3 + 1] = normal [1];
     compressed.normals [tIdx * 3 + 2] = normal [2];

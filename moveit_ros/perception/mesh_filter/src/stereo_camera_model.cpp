@@ -120,8 +120,6 @@ const string mesh_filter::StereoCameraModel::renderVertexShaderSource =
         "{gl_FrontColor = gl_Color;"
         "vec4 vertex = gl_ModelViewMatrix * gl_Vertex;"
         "vec3 normal = normalize(gl_NormalMatrix * gl_Normal);"
-        "if (normal.z < 0)"
-        " normal *= -1;"
         "float lambda = padding_coefficients.x * vertex.z * vertex.z + padding_coefficients.y * vertex.z + padding_coefficients.z;"
         "gl_Position = gl_ProjectionMatrix * (vertex + lambda * vec4(normal,0) );"
         "gl_Position.y = -gl_Position.y;}";

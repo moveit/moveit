@@ -209,21 +209,26 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
 
   if (depth_msg->is_bigendian && !HOST_IS_BIG_ENDIAN)
     ROS_ERROR_THROTTLE(1, "edian problem: received image data does not match host");
+
+  const int w = depth_msg->width;
+  const int h = depth_msg->height;
+  const float *input_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
   
   // call the mesh filter
   mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters();
   params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
-  params.setImageSize(depth_msg->width, depth_msg->height); 
-  mesh_filter_->filter(reinterpret_cast<const float*>(&depth_msg->data[0]));
+  params.setImageSize(w, h);
+  mesh_filter_->filter(input_row);
   
-  // copy filtered data
-  std::size_t img_size = depth_msg->height * depth_msg->width;
+  // allocate memory if needed
+  std::size_t img_size = h * w;
   if (filtered_data_.size() < img_size)
     filtered_data_.resize(img_size);
   
+  mesh_filter_->getFilteredDepth(&filtered_data_[0]);
+
   if (debug_info_)
   {
-    mesh_filter_->getModelDepth(&filtered_data_[0]);
     sensor_msgs::Image debug_msg;
     debug_msg.header = depth_msg->header;
     debug_msg.height = depth_msg->height;
@@ -232,68 +237,83 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     debug_msg.is_bigendian = depth_msg->is_bigendian;
     debug_msg.step = depth_msg->step;
     debug_msg.data.resize(depth_msg->data.size());
-    memcpy(&debug_msg.data[0], &filtered_data_[0], sizeof(float) * img_size);
+    mesh_filter_->getModelDepth(reinterpret_cast<float*>(&debug_msg.data[0]));
     pub_model_depth_image_.publish(debug_msg, *info_msg);
-    
-    mesh_filter_->getFilteredDepth(&filtered_data_[0]);
     memcpy(&debug_msg.data[0], &filtered_data_[0], sizeof(float) * img_size);
     pub_filtered_depth_image_.publish(debug_msg, *info_msg);
   }
-  else
-    mesh_filter_->getFilteredDepth(&filtered_data_[0]);
-
-  // Use correct principal point from calibration
-  double px = info_msg->K[2];
-  double py = info_msg->K[5];
   
-  double inv_fx = 1.0 / info_msg->K[0];
-  double inv_fy = 1.0 / info_msg->K[4];
+  // Use correct principal point from calibration
+  const double px = info_msg->K[2];
+  const double py = info_msg->K[5];
+  
+  const double inv_fx = 1.0 / info_msg->K[0];
+  const double inv_fy = 1.0 / info_msg->K[4];
     
   // Pre-compute some constants
-  if (x_cache_.size() < depth_msg->width)
-    x_cache_.resize(depth_msg->width);
-  if (y_cache_.size() < depth_msg->height)
-    y_cache_.resize(depth_msg->height);
+  if (x_cache_.size() < w)
+    x_cache_.resize(w);
+  if (y_cache_.size() < h)
+    y_cache_.resize(h);
   
-  for (int x = 0; x < depth_msg->width; ++x)
+  for (int x = 0; x < w; ++x)
     x_cache_[x] = (x - px) * inv_fx;
   
-  for (int y = 0; y < depth_msg->height; ++y)
+  for (int y = 0; y < h; ++y)
     y_cache_[y] = (y - py) * inv_fy;
 
   octomap::point3d sensor_origin(map_H_sensor.getOrigin().getX(), map_H_sensor.getOrigin().getY(), map_H_sensor.getOrigin().getZ());
   
   OccMapTreePtr tree = monitor_->getOcTreePtr();
-  octomap::KeySet free_cells, occupied_cells;
-  const float* depth_row = reinterpret_cast<const float*>(&filtered_data_[0]);
-  
+  octomap::KeySet free_cells, occupied_cells, model_cells;
+  const float* filtered_row = reinterpret_cast<const float*>(&filtered_data_[0]);
+
   tree->lockRead();
   
   try
   {
-    for (int y = 0; y < depth_msg->height ; ++y, depth_row += depth_msg->width)
+    for (int y = 0; y < h ; ++y, filtered_row += w, input_row += w)
       if (y_cache_[y] == y_cache_[y]) // if not NaN
-        for (int x = 0; x < depth_msg->width; ++x)
+        for (int x = 0; x < w; ++x)
         {
-          float zz = depth_row[x];
-          if (zz == 0.0f)
-            continue;
-          if (zz == zz) // check for NaN
+          float zz = filtered_row[x]; 
+          float zz0 = input_row[x];
+          if (zz0 == zz0 && zz == zz) // check for NaN
           {
-            float yy = y_cache_[y] * zz;
-            float xx = x_cache_[x] * zz;
-            if (xx == xx)
+            if (zz == 0.0)
             {
-              /* transform to map frame */
-              tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
-              // add to the list of occupied cells
-              occupied_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+              float yy = y_cache_[y] * zz0;
+              float xx = x_cache_[x] * zz0;
+              if (xx == xx)
+              {
+                /* transform to map frame */
+                tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz0);
+                // add to the list of model cells
+                model_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+              }
+            }
+            else
+            { 
+              float yy = y_cache_[y] * zz;
+              float xx = x_cache_[x] * zz;
+              if (xx == xx)
+              {
+                /* transform to map frame */
+                tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
+                // add to the list of occupied cells
+                occupied_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+              }
             }
           }
         }
     
-    /* compute the free cells along each ray */
+    /* compute the free cells along each ray that ends at an occupied cell */
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
+      if (tree->computeRayKeys(sensor_origin, tree->keyToCoord(*it), key_ray_))
+        free_cells.insert(key_ray_.begin(), key_ray_.end());
+
+    /* compute the free cells along each ray that ends at a model cell */
+    for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
       if (tree->computeRayKeys(sensor_origin, tree->keyToCoord(*it), key_ray_))
         free_cells.insert(key_ray_.begin(), key_ray_.end());
   }
@@ -303,10 +323,19 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     return;
   }
 
-  ROS_DEBUG("Marking free cells in octomap");
-  
   tree->unlockRead();
 
+  /* cells that overlap with the model are not occupied */
+  for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
+  {
+    occupied_cells.erase(*it);
+    free_cells.insert(*it);
+  }
+  
+  /* occupied cells are not free */
+  for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
+    free_cells.erase(*it);
+  
   tree->lockWrite();
 
   try
@@ -315,11 +344,10 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
       tree->updateNode(*it, false);
     
-    ROS_DEBUG("Marking occupied cells in octomap");
-    
     /* now mark all occupied cells */
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
       tree->updateNode(*it, true);
+
   }
   catch (...)
   {
