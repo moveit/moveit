@@ -61,9 +61,18 @@ public:
                               double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
                               double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE);
 
-  CollisionWorldDistanceField(const CollisionWorldDistanceField &other);
+  explicit CollisionWorldDistanceField(const WorldPtr& world,
+                              double size_x = DEFAULT_SIZE_X, 
+                              double size_y = DEFAULT_SIZE_Y,
+                              double size_z = DEFAULT_SIZE_Z,
+                              bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
+                              double resolution = DEFAULT_RESOLUTION,
+                              double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
+                              double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE);
 
-  virtual ~CollisionWorldDistanceField(){}
+  CollisionWorldDistanceField(const CollisionWorldDistanceField &other, const WorldPtr& world);
+
+  virtual ~CollisionWorldDistanceField();
 
   virtual void checkCollision(const CollisionRequest &req,
                               CollisionResult &res,
@@ -127,19 +136,7 @@ public:
   virtual double distanceWorld(const CollisionWorld &world) const {return 0.0;}
   virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const {return 0.0;}
   
-  virtual void addToObject(const std::string &id, 
-                           const std::vector<shapes::ShapeConstPtr> &shapes, 
-                           const EigenSTL::vector_Affine3d &poses);
-  
-  virtual void addToObject(const std::string &id, 
-                           const shapes::ShapeConstPtr &shape, 
-                           const Eigen::Affine3d &pose);
-  virtual bool moveShapeInObject(const std::string &id, 
-                                 const shapes::ShapeConstPtr &shape, 
-                                 const Eigen::Affine3d &pose);
-  virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-  virtual void removeObject(const std::string &id);
-  virtual void clearObjects();
+  virtual void setWorld(const WorldPtr& world);
 
   void generateEnvironmentDistanceField(bool redo = true);
 
@@ -184,6 +181,8 @@ protected:
   
   bool getEnvironmentProximityGradients(const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
                                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+  static void notifyObjectChange(CollisionWorldDistanceField *self, const ObjectConstPtr& obj, World::Action action);
                                         
   double size_x_;
   double size_y_;
@@ -196,6 +195,7 @@ protected:
   mutable boost::mutex update_cache_lock_;
   boost::shared_ptr<DistanceFieldCacheEntry> distance_field_cache_entry_;
   //boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> last_gsr_;  
+  World::ObserverHandle observer_handle_;
 };
 
 }

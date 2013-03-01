@@ -37,6 +37,7 @@
 #ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_COMMON_
 #define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_COMMON_
 
+#include <moveit/collision_detection/world.h>
 #include <moveit/collision_detection/collision_world.h>
 #include <fcl/broadphase/broadphase.h>
 #include <fcl/collision.h>
@@ -58,7 +59,7 @@ struct CollisionGeometryData
     ptr.ab = ab;
   }
   
-  CollisionGeometryData(const CollisionWorld::Object *obj) : type(BodyTypes::WORLD_OBJECT)
+  CollisionGeometryData(const World::Object *obj) : type(BodyTypes::WORLD_OBJECT)
   {
     ptr.obj = obj;
   }
@@ -96,7 +97,7 @@ struct CollisionGeometryData
   {
     const robot_model::LinkModel    *link;
     const robot_state::AttachedBody *ab;
-    const CollisionWorld::Object        *obj;
+    const World::Object        *obj;
     const void                          *raw;
   } ptr;
 };
@@ -156,7 +157,7 @@ struct FCLGeometry
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const CollisionWorld::Object *obj) :
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const World::Object *obj) :
     collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
@@ -204,14 +205,14 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const robot_state::AttachedBody *ab);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const CollisionWorld::Object *obj);
+                                            const World::Object *obj);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const robot_model::LinkModel *link);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const robot_state::AttachedBody *ab);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const CollisionWorld::Object *obj);
+                                            const World::Object *obj);
 void cleanCollisionGeometryCache();
 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::Transform3f &f)

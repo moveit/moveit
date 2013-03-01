@@ -34,20 +34,37 @@
 
 /* Author Ioan Sucan */
 
-#include <moveit/collision_detection_fcl/collision_world.h>
+#include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <fcl/shape/geometric_shape_to_BVH_model.h>
 #include <fcl/traversal/traversal_node_bvhs.h>
 #include <fcl/traversal/traversal_node_setup.h>
 #include <fcl/collision_node.h>
 
-collision_detection::CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
+collision_detection::CollisionWorldFCL::CollisionWorldFCL() :
+  CollisionWorld()
 {
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
   manager_.reset(m);
+
+  // request notifications about changes to new world
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
 }
 
-collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other) : CollisionWorld(other)
+collision_detection::CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world) :
+  CollisionWorld(world)
+{
+  fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
+  // m->tree_init_level = 2;
+  manager_.reset(m);
+
+  // request notifications about changes to new world
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
+  getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
+}
+
+collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other, const WorldPtr& world) :
+  CollisionWorld(other, world)
 {
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
@@ -57,10 +74,14 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFC
   for (std::map<std::string, FCLObject>::iterator it = fcl_objs_.begin() ; it != fcl_objs_.end() ; ++it)
     it->second.registerTo(manager_.get());
   // manager_->update();
+
+  // request notifications about changes to new world
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
 }
 
 collision_detection::CollisionWorldFCL::~CollisionWorldFCL()
 {
+  getWorld()->removeObserver(observer_handle_);
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state) const
@@ -118,7 +139,7 @@ void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const Col
     res.distance = distanceWorldHelper(other_world, acm);
 }
 
-void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *obj, FCLObject &fcl_obj) const
+void collision_detection::CollisionWorldFCL::constructFCLObject(const World::Object *obj, FCLObject &fcl_obj) const
 {
   for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
   {
@@ -143,8 +164,8 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   }
 
   // check to see if we have this object
-  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
-  if (it != objects_.end())
+  collision_detection::World::const_iterator it = getWorld()->find(id);
+  if (it != getWorld()->end())
   {
     // construct FCL objects that correspond to this object
     if (jt != fcl_objs_.end())
@@ -167,61 +188,47 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   // manager_->update();
 }
 
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses)
+void collision_detection::CollisionWorldFCL::setWorld(const WorldPtr& world)
 {
-  CollisionWorld::addToObject(id, shapes, poses);
-  updateFCLObject(id);
-}
+  if (world == getWorld())
+    return;
 
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
-{
-  CollisionWorld::addToObject(id, shape, pose);
-  updateFCLObject(id);
-}
+  // turn off notifications about old world
+  getWorld()->removeObserver(observer_handle_);
 
-bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
-{
-  if (CollisionWorld::moveShapeInObject(id, shape, pose))
-  {
-    updateFCLObject(id);
-    return true;
-  }
-  else
-    return false;
-}
-
-bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
-{    
-  if (CollisionWorld::removeShapeFromObject(id, shape))
-  {
-    updateFCLObject(id);
-    cleanCollisionGeometryCache();
-    return true;
-  }
-  else
-    return false;
-}
-
-void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
-{  
-  CollisionWorld::removeObject(id);
-  std::map<std::string, FCLObject>::iterator it = fcl_objs_.find(id);
-  if (it != fcl_objs_.end())
-  {
-    it->second.unregisterFrom(manager_.get());
-    it->second.clear();
-    fcl_objs_.erase(it);
-    // manager_->update();
-  }
-  cleanCollisionGeometryCache();
-}
-
-void collision_detection::CollisionWorldFCL::clearObjects()
-{
-  CollisionWorld::clearObjects();
+  // clear out objects from old world
   manager_->clear();
   fcl_objs_.clear();  
   cleanCollisionGeometryCache();
+
+  CollisionWorld::setWorld(world);
+
+  // request notifications about changes to new world
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
+
+  // get notifications any objects already in the new world
+  getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
+}
+
+void collision_detection::CollisionWorldFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
+{
+  if (action == World::DESTROY)
+  {
+    std::map<std::string, FCLObject>::iterator it = fcl_objs_.find(obj->id_);
+    if (it != fcl_objs_.end())
+    {
+      it->second.unregisterFrom(manager_.get());
+      it->second.clear();
+      fcl_objs_.erase(it);
+    }
+    cleanCollisionGeometryCache();
+  }
+  else
+  {
+    updateFCLObject(obj->id_);
+    if (action & (World::DESTROY|World::REMOVE_SHAPE))
+      cleanCollisionGeometryCache();
+  }
 }
 
 double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm) const
@@ -272,3 +279,7 @@ double collision_detection::CollisionWorldFCL::distanceWorldHelper(const Collisi
 
   return res.distance;
 }
+
+#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
+const std::string collision_detection::CollisionDetectorAllocatorFCL::NAME_("FCL");
+

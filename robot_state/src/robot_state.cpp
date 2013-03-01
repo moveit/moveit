@@ -455,6 +455,16 @@ void robot_state::RobotState::attachBody(const std::string &id,
   }
 }
 
+void robot_state::RobotState::attachBody(const std::string &id,
+                                         const std::vector<shapes::ShapeConstPtr> &shapes,
+                                         const EigenSTL::vector_Affine3d &attach_trans,
+                                         const std::vector<std::string> &touch_links,
+                                         const std::string &link)
+{
+  std::set<std::string> touch_links_set(touch_links.begin(), touch_links.end());
+  attachBody(id, shapes, attach_trans, touch_links_set, link);
+}
+
 void robot_state::RobotState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
 {
   attached_bodies.clear();

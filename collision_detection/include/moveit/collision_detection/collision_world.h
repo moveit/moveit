@@ -39,23 +39,26 @@
 
 #include <moveit/collision_detection/collision_matrix.h>
 #include <moveit/collision_detection/collision_robot.h>
+#include <moveit/collision_detection/world.h>
 
 /** \brief Generic interface to collision detection */
 namespace collision_detection
 {
 
-  /** @brief Perform collision checking with the environment. The
+  /** \brief Perform collision checking with the environment. The
    *  collision world maintains a representation of the environment
    *  that the robot is operating in. */
-  class CollisionWorld
+  class CollisionWorld : private boost::noncopyable
   {
   public:
 
-    /** @brief Constructor */
     CollisionWorld();
 
-    /** @brief A copy constructor. \e other should not be changed while the copy constructor is running */
-    CollisionWorld(const CollisionWorld &other);
+    explicit CollisionWorld(const WorldPtr& world);
+
+    /** \brief A copy constructor. \e other should not be changed while the copy constructor is running.
+     * world must be the same world as used by other or a (not-yet-modified) copy of the world used by other */
+    CollisionWorld(const CollisionWorld &other, const WorldPtr& world);
 
     virtual ~CollisionWorld()
     {
@@ -65,7 +68,7 @@ namespace collision_detection
     /* Collision Checking Routines                                        */
     /**********************************************************************/
 
-    /** @brief Check whether the robot model is in collision with itself or the world at a particular state.
+    /** \brief Check whether the robot model is in collision with itself or the world at a particular state.
      *  Any collision between any pair of links is checked for, NO collisions are ignored.
      *  @param req A CollisionRequest object that encapsulates the collision request
      *  @param res A CollisionResult object that encapsulates the collision result
@@ -75,7 +78,7 @@ namespace collision_detection
                                 const CollisionRobot &robot,
                                 const robot_state::RobotState &state) const;
 
-    /** @brief Check whether the robot model is in collision with itself or the world at a particular state.
+    /** \brief Check whether the robot model is in collision with itself or the world at a particular state.
      *  Allowed collisions specified by the allowed collision matrix are taken into account.
      *  @param req A CollisionRequest object that encapsulates the collision request
      *  @param res A CollisionResult object that encapsulates the collision result
@@ -87,7 +90,7 @@ namespace collision_detection
                                 const robot_state::RobotState &state,
                                 const AllowedCollisionMatrix &acm) const;
 
-    /** @brief Check whether the robot model is in collision with itself or the world in a continuous manner
+    /** \brief Check whether the robot model is in collision with itself or the world in a continuous manner
      *  (between two robot states)
      *  Any collision between any pair of links is checked for, NO collisions are ignored.
      *  @param req A CollisionRequest object that encapsulates the collision request
@@ -100,7 +103,7 @@ namespace collision_detection
                                 const robot_state::RobotState &state1,
                                 const robot_state::RobotState &state2) const;
 
-    /** @brief Check whether the robot model is in collision with itself or the world in a continuous manner
+    /** \brief Check whether the robot model is in collision with itself or the world in a continuous manner
      *  (between two robot states).
      *  Allowed collisions specified by the allowed collision matrix are taken into account.
      *  @param req A CollisionRequest object that encapsulates the collision request
@@ -209,109 +212,29 @@ namespace collision_detection
     /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements that are allowed to collide (as specified by \e acm) */
     virtual double distanceWorld(const CollisionWorld &world,
                                  const AllowedCollisionMatrix &acm) const = 0;
+    /** set the world to use.
+     * This can be expensive unless the new and old world are empty. 
+     * Passing NULL will result in a new empty world being created. */
+    virtual void setWorld(const WorldPtr& world);
 
-    /**********************************************************************/
-    /* Collision Bodies                                                   */
-    /**********************************************************************/
-
-    /** @class Object
-        @brief A representation of an object */
-    struct Object
+    /** access the world geometry */
+    const WorldPtr& getWorld()
     {
-      Object(const std::string &id);
-
-      virtual ~Object();
-
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-      /** \brief The id for this object */
-      std::string                         id_;
-
-      /** \brief An array of shapes */
-      std::vector< shapes::ShapeConstPtr> shapes_;
-
-      /** \brief An array of shape poses */
-      EigenSTL::vector_Affine3d           shape_poses_;
-    };
-
-    typedef boost::shared_ptr<Object> ObjectPtr;
-    typedef boost::shared_ptr<Object> ObjectConstPtr;
-
-    /** @class Change
-        @brief Contains the change operation to apply (ADD or REMOVE) and the object to apply it on*/
-    struct Change
-    {
-      enum { ADD, REMOVE } type_;
-      std::string          id_;
-    };
-
-    /** \brief Get the list of Object ids */
-    std::vector<std::string> getObjectIds() const;
-
-    /** \brief Get the number of objects in this collision world */
-    std::size_t getObjectsCount() const
-    {
-      return objects_.size();
+      return world_;
     }
 
-    /** \brief Get a particular object */
-    ObjectConstPtr getObject(const std::string &id) const;
+    /** access the world geometry */
+    const WorldConstPtr& getWorld() const
+    {
+      return world_const_;
+    }
 
-    /** \brief Check if a particular object exists in the collision world*/
-    bool hasObject(const std::string &id) const;
+    typedef World::ObjectPtr ObjectPtr;
+    typedef World::ObjectConstPtr ObjectConstPtr;
 
-    /** \brief Add shapes to an object in the map. This function makes repeated calls to addToObjectInternal() to add the shapes one by one.
-        \note This function does NOT call the addToObject() variant that takes a single shape and a single pose as input. */
-    virtual void addToObject(const std::string &id,
-                             const std::vector<shapes::ShapeConstPtr> &shapes,
-                             const EigenSTL::vector_Affine3d &poses);
-
-    /** \brief Add a shape to an object. If the object already exists, this call will add the shape to the object at the specified pose. Otherwise, the object is created and the specified shape is added. This calls addToObjectInternal(). */
-    virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-
-    /** \brief Update the pose of a shape in an object. Shape equality is verified by comparing pointers. Returns true on success. */
-    virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-
-    /** \brief Remove shape from object. Shape equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
-    virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-
-    /** \brief Remove a particular object. If there are no other pointers to the corresponding instance of Object, the memory is freed. */
-    virtual void removeObject(const std::string &id);
-
-    /** \brief Clear all objects. If there are no other pointers to corresponding instances of Objects, the memory is freed. */
-    virtual void clearObjects();
-
-    /** \brief Set a flag that tells the world representation to record the changes made */
-    virtual void recordChanges(bool flag);
-
-    /** \brief Returns true if changes are being recorded */
-    bool isRecordingChanges() const;
-
-    /** \brief Return all the changes that have been recorded */
-    const std::vector<Change>& getChanges() const;
-
-    /** \brief Remember a change for removing the object named \e id */
-    void changeRemoveObject(const std::string &id);
-
-    /** \brief Remember a change for adding the object named \e id */
-    void changeAddObject(const std::string &id);
-
-    /** \brief Clear the internally maintained vector of changes */
-    void clearChanges();
-
-  protected:
-
-    /** \brief The objects maintained in the collision world */
-    std::map<std::string, ObjectPtr> objects_;
-
-    /** \brief Make sure that the object named \e id is known only to this instance of the CollisionWorld. If the object is known outside of it, a clone is made so that it can be safely modified later on. */
-    void ensureUnique(ObjectPtr &id);
-
-    /** \brief Add a shape to a specified object. All the sanity checks are done at the call site; this function should be efficient and not perform work that can be done only once (e.g., in the addToObject() call) */
-    virtual void addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-
-    bool                             record_changes_;
-    std::vector<Change>              changes_;
+  private:
+    WorldPtr      world_;       // The world.  Always valid.  Never NULL.
+    WorldConstPtr world_const_; // always same as world_
   };
 
   typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;

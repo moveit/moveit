@@ -70,7 +70,7 @@ bool sampleCloud(const octomap::point3d_list& cloud,
                  octomath::Vector3& gradient);
 
 
-int collision_detection::refineContactNormals(const CollisionWorld::ObjectConstPtr& object,
+int collision_detection::refineContactNormals(const World::ObjectConstPtr& object,
                                               CollisionResult &res,
                                               double cell_bbx_search_distance,
                                               double allowed_angle_divergence,

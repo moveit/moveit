@@ -38,8 +38,8 @@
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit/collision_detection_fcl/collision_robot.h>
-#include <moveit/collision_detection_fcl/collision_world.h>
+#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
+#include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <eigen_conversions/eigen_msg.h>
@@ -991,7 +991,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Visibil
 
   // add the visibility cone as an object
   collision_detection::CollisionWorldFCL collision_world;
-  collision_world.addToObject("cone", shapes::ShapeConstPtr(m), Eigen::Affine3d::Identity());
+  collision_world.getWorld()->addToObject("cone", shapes::ShapeConstPtr(m), Eigen::Affine3d::Identity());
 
   // check for collisions between the robot and the cone
   collision_detection::CollisionRequest req;

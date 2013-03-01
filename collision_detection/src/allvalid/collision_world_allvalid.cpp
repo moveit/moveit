@@ -34,13 +34,17 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/collision_detection/allvalid/collision_world.h>
+#include <moveit/collision_detection/allvalid/collision_world_allvalid.h>
 
 collision_detection::CollisionWorldAllValid::CollisionWorldAllValid() : CollisionWorld()
 {
 }
 
-collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(const CollisionWorld &other) : CollisionWorld(other)
+collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(const WorldPtr& world) : CollisionWorld(world)
+{
+}
+
+collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(const CollisionWorld &other, const WorldPtr& world) : CollisionWorld(other, world)
 {
 }
 
@@ -105,3 +109,7 @@ double collision_detection::CollisionWorldAllValid::distanceWorld(const Collisio
 {
   return 0.0;
 }
+
+
+#include <moveit/collision_detection/allvalid/collision_detector_allocator_allvalid.h>
+const std::string collision_detection::CollisionDetectorAllocatorAllValid::NAME_("ALL_VALID");
