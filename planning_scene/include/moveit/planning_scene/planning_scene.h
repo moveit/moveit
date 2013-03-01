@@ -375,7 +375,10 @@ public:
 
   /** \brief Set the current robot state */
   void setCurrentState(const robot_state::RobotState &state);
-
+  
+  /** \brief Set the callback to be triggered when changes are made to the current scene state */
+  void setAttachedBodyCallback(const robot_state::AttachedBodyCallback &callback);
+  
   bool hasColor(const std::string &id) const;
 
   const std_msgs::ColorRGBA& getColor(const std::string &id) const;
@@ -611,7 +614,8 @@ private:
   robot_model::RobotModelConstPtr                kmodel_;       // Never null (may point to same model as parent)
 
   robot_state::RobotStatePtr                     kstate_;       // if NULL use parent's
-
+  robot_state::AttachedBodyCallback              current_state_attached_body_callback_; // called when changes are made to attached bodies
+  
   robot_state::TransformsPtr                     ftf_;          // if NULL use parent's
   robot_state::TransformsConstPtr                ftf_const_;    // copy of ftf_
 

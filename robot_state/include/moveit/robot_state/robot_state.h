@@ -47,6 +47,8 @@
 namespace robot_state
 {
 
+typedef boost::function<void(AttachedBody *body, bool attached)> AttachedBodyCallback;
+
 /** @brief Definition of a kinematic state - the parts of the robot
  *   state which can change. Const members are thread safe */
 class RobotState
@@ -279,7 +281,9 @@ public:
   
   /** \brief Assignment operator. Copies everything, including attached bodies (clones them) */
   RobotState& operator=(const RobotState &other);
-  
+
+  void setAttachedBodyCallback(const AttachedBodyCallback &callback);
+
 private:
 
   void buildState();
@@ -314,7 +318,7 @@ private:
   
   /** \brief This event is called when there is a change in the attached bodies for this state;
       The event specifies the body that changed and whether it was just attached or about to be detached. */
-  boost::function<void(AttachedBody *body, bool attached)> attached_body_update_callback_;  
+  AttachedBodyCallback attached_body_update_callback_;  
 };
 
 typedef boost::shared_ptr<RobotState> RobotStatePtr;

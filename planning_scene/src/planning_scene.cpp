@@ -84,10 +84,10 @@ planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf:
   world_const_(world)
 {
   if (!urdf_model)
-    throw ConstructException("Bad urdf");
+    throw ConstructException("The URDF model cannot be NULL");
 
   if (!srdf_model)
-    throw ConstructException("Bad urdf");
+    throw ConstructException("The SRDF model cannot be NULL");
 
   kmodel_ = createRobotModel(urdf_model, srdf_model, root_link);
   if (!kmodel_)
@@ -105,7 +105,6 @@ void planning_scene::PlanningScene::initialize()
 
   kstate_.reset(new robot_state::RobotState(kmodel_));
   kstate_->setToDefaultValues();
-
 
   acm_.reset(new collision_detection::AllowedCollisionMatrix());
   // Use default collision operations in the SRDF to setup the acm
@@ -154,7 +153,7 @@ void planning_scene::PlanningScene::setRootLink(const std::string& root_link)
 
   if (!new_robot_model || new_robot_model->getRootLinkName() != root_link)
   {
-    logError("Unable to set root_link to %s", root_link.c_str());
+    logError("Unable to set root_link to '%s'", root_link.c_str());
     return;
   }
 
@@ -162,11 +161,15 @@ void planning_scene::PlanningScene::setRootLink(const std::string& root_link)
 
   ftf_.reset(new robot_state::Transforms(kmodel_->getModelFrame()));
   ftf_const_ = ftf_;
-  
-  std::map<std::string, double> jsv;
-  kstate_->getStateValues(jsv);
-  kstate_.reset(new robot_state::RobotState(kmodel_));
-  kstate_->setStateValues(jsv);
+
+  if (kstate_)
+  {
+    std::map<std::string, double> jsv;
+    kstate_->getStateValues(jsv);
+    kstate_.reset(new robot_state::RobotState(kmodel_));
+    kstate_->setStateValues(jsv);
+    kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+  }
 }
 
 planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) :
@@ -583,8 +586,17 @@ const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::get
 robot_state::RobotState& planning_scene::PlanningScene::getCurrentStateNonConst()
 {
   if (!kstate_)
+  {
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
+    kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+  }
   return *kstate_;
+}
+
+void planning_scene::PlanningScene::setAttachedBodyCallback(const robot_state::AttachedBodyCallback &callback)
+{
+  current_state_attached_body_callback_ = callback;
+  getCurrentStateNonConst().setAttachedBodyCallback(callback);
 }
 
 collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getAllowedCollisionMatrixNonConst()
@@ -916,7 +928,10 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   if (parent_)
   {
     if (!kstate_)
+    {
       kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
+      kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+    }
     else
       // attached bodies are sent fully, so we need to clear old ones, if any
       kstate_->clearAttachedBodies();
@@ -932,9 +947,7 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
 
 void planning_scene::PlanningScene::setCurrentState(const robot_state::RobotState &state)
 {
-  if (!kstate_)
-    kstate_.reset(new robot_state::RobotState(getRobotModel()));
-  *kstate_ = state;
+  getCurrentStateNonConst() = state;
 }
 
 void planning_scene::PlanningScene::decoupleParent()
@@ -949,7 +962,10 @@ void planning_scene::PlanningScene::decoupleParent()
   }
 
   if (!kstate_)
+  {
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
+    kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+  }  
 
   if (!acm_)
     acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
@@ -1233,8 +1249,11 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
   }
 
   if (!kstate_) // there must be a parent in this case
+  {
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
-
+    kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+  }
+  
   if (object.object.operation == moveit_msgs::CollisionObject::ADD)
   {
     if (object.object.primitives.size() != object.object.primitive_poses.size())
