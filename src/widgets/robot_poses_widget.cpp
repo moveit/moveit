@@ -851,7 +851,7 @@ void RobotPosesWidget::publishJoints()
   //config_data_->getPlanningScene()->getCurrentState().setToRandomValues();
 
   // Set the joints based on the map
-  config_data_->getPlanningScene()->getCurrentState().setStateValues( joint_state_map_ );
+  config_data_->getPlanningScene()->getCurrentStateNonConst().setStateValues( joint_state_map_ );
 
   // Create a planning scene message
   moveit_msgs::DisplayRobotState msg;
