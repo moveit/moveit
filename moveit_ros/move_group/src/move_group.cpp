@@ -167,7 +167,7 @@ int main(int argc, char **argv)
         break;
       }
 
-    planning_scene_monitor->publishDebugInformation(true);
+    planning_scene_monitor->publishDebugInformation(debug);
     
     move_group::MoveGroupServer mgs(planning_scene_monitor, debug);
     mgs.status();
