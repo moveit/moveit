@@ -127,22 +127,22 @@ namespace collision_detection
      *  \note This function does NOT call the addToObject() variant that takes
      * a single shape and a single pose as input. */
     void addToObject(const std::string &id,
-                             const std::vector<shapes::ShapeConstPtr> &shapes,
-                             const EigenSTL::vector_Affine3d &poses);
+                     const std::vector<shapes::ShapeConstPtr> &shapes,
+                     const EigenSTL::vector_Affine3d &poses);
     
     /** \brief Add a shape to an object.
      * If the object already exists, this call will add the shape to the object
      * at the specified pose. Otherwise, the object is created and the
      * specified shape is added. This calls addToObjectInternal(). */
     void addToObject(const std::string &id,
-                             const shapes::ShapeConstPtr &shape,
-                             const Eigen::Affine3d &pose);
+                     const shapes::ShapeConstPtr &shape,
+                     const Eigen::Affine3d &pose);
     
     /** \brief Update the pose of a shape in an object. Shape equality is
      * verified by comparing pointers. Returns true on success. */
     bool moveShapeInObject(const std::string &id,
-                                   const shapes::ShapeConstPtr &shape,
-                                   const Eigen::Affine3d &pose);
+                           const shapes::ShapeConstPtr &shape,
+                           const Eigen::Affine3d &pose);
     
     /** \brief Remove shape from object.
      * Shape equality is verified by comparing pointers. Ownership of the

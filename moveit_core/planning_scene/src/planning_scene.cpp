@@ -96,6 +96,12 @@ planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf:
   initialize();
 }
 
+planning_scene::PlanningScene::~PlanningScene()
+{
+  if (current_world_object_update_callback_)
+    world_->removeObserver(current_world_object_update_observer_handle_);
+}
+
 void planning_scene::PlanningScene::initialize()
 {
   name_ = DEFAULT_SCENE_NAME;
@@ -168,7 +174,7 @@ void planning_scene::PlanningScene::setRootLink(const std::string& root_link)
     kstate_->getStateValues(jsv);
     kstate_.reset(new robot_state::RobotState(kmodel_));
     kstate_->setStateValues(jsv);
-    kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+    kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
   }
 }
 
@@ -187,7 +193,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   // info is shared until it is modified.
   world_.reset(new collision_detection::World(*parent_->world_));
   world_const_ = world_;
-  
+
   // record changes to the world
   world_diff_.reset(new collision_detection::WorldDiff(world_));
 
@@ -198,7 +204,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   {
     const CollisionDetectorPtr& parent_detector = it->second;
     CollisionDetectorPtr& detector = collision_[it->first];
-    detector.reset(new CollisionDetector);
+    detector.reset(new CollisionDetector());
     detector->alloc_ = parent_detector->alloc_;
     detector->parent_ = parent_detector;
 
@@ -365,7 +371,9 @@ void planning_scene::PlanningScene::clearDiffs()
   // clear everything, reset the world, record diffs
   world_.reset(new collision_detection::World(*parent_->world_));
   world_diff_.reset(new collision_detection::WorldDiff(world_));
-
+  if (current_world_object_update_callback_)
+    current_world_object_update_observer_handle_ = world_->addObserver(current_world_object_update_callback_);
+  
   // use parent crobot_ if it exists.  Otherwise copy padding from parent.
   for (CollisionDetectorIterator it = collision_.begin() ; it != collision_.end() ; ++it)
   {
@@ -590,15 +598,24 @@ robot_state::RobotState& planning_scene::PlanningScene::getCurrentStateNonConst(
   if (!kstate_)
   {
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
-    kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+    kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
   }
   return *kstate_;
 }
 
-void planning_scene::PlanningScene::setAttachedBodyCallback(const robot_state::AttachedBodyCallback &callback)
+void planning_scene::PlanningScene::setAttachedBodyUpdateCallback(const robot_state::AttachedBodyCallback &callback)
 {
   current_state_attached_body_callback_ = callback;
-  getCurrentStateNonConst().setAttachedBodyCallback(callback);
+  getCurrentStateNonConst().setAttachedBodyUpdateCallback(callback);
+}
+
+void planning_scene::PlanningScene::setCollisionObjectUpdateCallback(const collision_detection::World::ObserverCallbackFn &callback)
+{
+  if (current_world_object_update_callback_)
+    world_->removeObserver(current_world_object_update_observer_handle_);
+  if (callback)
+    current_world_object_update_observer_handle_ = world_->addObserver(callback);
+  current_world_object_update_callback_ = callback;
 }
 
 collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getAllowedCollisionMatrixNonConst()
@@ -932,7 +949,7 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
     if (!kstate_)
     {
       kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
-      kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+      kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
     }
     else
       // attached bodies are sent fully, so we need to clear old ones, if any
@@ -966,7 +983,7 @@ void planning_scene::PlanningScene::decoupleParent()
   if (!kstate_)
   {
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
-    kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+    kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
   }  
 
   if (!acm_)
@@ -1252,7 +1269,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
   if (!kstate_) // there must be a parent in this case
   {
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
-    kstate_->setAttachedBodyCallback(current_state_attached_body_callback_);
+    kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
   }
   
   if (object.object.operation == moveit_msgs::CollisionObject::ADD)
