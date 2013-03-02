@@ -282,7 +282,7 @@ public:
   /** \brief Assignment operator. Copies everything, including attached bodies (clones them) */
   RobotState& operator=(const RobotState &other);
 
-  void setAttachedBodyCallback(const AttachedBodyCallback &callback);
+  void setAttachedBodyUpdateCallback(const AttachedBodyCallback &callback);
 
 private:
 

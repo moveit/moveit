@@ -706,7 +706,7 @@ void robot_state::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& a
   }
 }
 
-void robot_state::RobotState::setAttachedBodyCallback(const AttachedBodyCallback &callback)
+void robot_state::RobotState::setAttachedBodyUpdateCallback(const AttachedBodyCallback &callback)
 {
   attached_body_update_callback_ = callback;
 }

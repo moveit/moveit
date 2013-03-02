@@ -98,9 +98,7 @@ public:
   static const std::string OCTOMAP_NS;
   static const std::string DEFAULT_SCENE_NAME;
 
-  virtual ~PlanningScene()
-  {
-  }
+  ~PlanningScene();
 
   /** \brief Get the name of the planning scene. This is empty by default */
   const std::string& getName() const
@@ -377,7 +375,10 @@ public:
   void setCurrentState(const robot_state::RobotState &state);
   
   /** \brief Set the callback to be triggered when changes are made to the current scene state */
-  void setAttachedBodyCallback(const robot_state::AttachedBodyCallback &callback);
+  void setAttachedBodyUpdateCallback(const robot_state::AttachedBodyCallback &callback);
+
+  /** \brief Set the callback to be triggered when changes are made to the current scene world */
+  void setCollisionObjectUpdateCallback(const collision_detection::World::ObserverCallbackFn &callback);
   
   bool hasColor(const std::string &id) const;
 
@@ -615,13 +616,15 @@ private:
 
   robot_state::RobotStatePtr                     kstate_;       // if NULL use parent's
   robot_state::AttachedBodyCallback              current_state_attached_body_callback_; // called when changes are made to attached bodies
-  
+
   robot_state::TransformsPtr                     ftf_;          // if NULL use parent's
   robot_state::TransformsConstPtr                ftf_const_;    // copy of ftf_
 
   collision_detection::WorldPtr                  world_;        // never NULL, never shared with parent/child
   collision_detection::WorldConstPtr             world_const_;  // copy of world_
   collision_detection::WorldDiffPtr              world_diff_;   // NULL unless this is a diff scene
+  collision_detection::World::ObserverCallbackFn current_world_object_update_callback_;
+  collision_detection::World::ObserverHandle     current_world_object_update_observer_handle_;  
 
   std::map<std::string, CollisionDetectorPtr>    collision_;          // never empty
   CollisionDetectorPtr                           active_collision_;   // copy of one of the entries in collision_.  Never NULL.
