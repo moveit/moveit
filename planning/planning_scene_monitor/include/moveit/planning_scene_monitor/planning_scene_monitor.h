@@ -334,15 +334,17 @@ protected:
   /** @brief Callback for a change for an attached object of the current state of the planning scene */
   void currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody *attached_body, bool just_attached);
   
+  /** @brief Callback for a change in the world maintained by the planning scene */
   void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr &object, collision_detection::World::Action action);
 
+  void excludeRobotLinksFromOctree();
   void excludeWorldObjectFromOctree(const collision_detection::World::ObjectConstPtr &obj);
   void includeWorldObjectInOctree(const collision_detection::World::ObjectConstPtr &obj);
-
-  void getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
+  void excludeAttachedBodyFromOctree(const robot_state::AttachedBody *attached_body);
+  void includeAttachedBodyInOctree(const robot_state::AttachedBody *attached_body);
   
   bool getShapeTransformCache(const std::string &target_frame, const ros::Time &target_time, occupancy_map_monitor::ShapeTransformCache &cache) const;
-  
+
   /// The name of this scene monitor
   std::string                           monitor_name_;
   
@@ -392,21 +394,21 @@ protected:
   CurrentStateMonitorPtr current_state_monitor_;
   
 
-
-
-  // variables for handling shapes to be excluded from the octomap
-  collision_detection::World::ObserverHandle world_update_handle_;
-
   typedef std::map<std::string, occupancy_map_monitor::ShapeHandle> LinkShapeHandles;
   typedef std::map<const robot_state::AttachedBody*, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > > AttachedBodyShapeHandles;
+  typedef std::map<std::string, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, Eigen::Affine3d*> > > CollisionBodyShapeHandles;
+  
   LinkShapeHandles link_shape_handles_;
   AttachedBodyShapeHandles attached_body_shape_handles_;
-
+  CollisionBodyShapeHandles collision_body_shape_handles_;
+  
   std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_; /// List of callbacks to trigger when updates are received
   ros::Time last_update_time_; /// Last time the state was updated
 
 private:
-  
+
+  void getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms); 
+
   void scenePublishingThread();
   
   void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
