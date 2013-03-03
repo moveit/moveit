@@ -327,10 +327,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
 
   /* cells that overlap with the model are not occupied */
   for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
-  {
     occupied_cells.erase(*it);
-    free_cells.insert(*it);
-  }
   
   /* occupied cells are not free */
   for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
@@ -348,13 +345,19 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
       tree->updateNode(*it, true);
 
+    // set the logodds to the minimum for the cells that are part of the model
+    for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
+      if (octomap::OcTreeNode* leaf = tree->search(*it))
+        tree->updateNode(*it, tree->getClampingThresMinLog() - leaf->getLogOdds());
+      else
+        tree->updateNode(*it, tree->getClampingThresMinLog());
   }
   catch (...)
   {
     ROS_ERROR("Internal error while updating octree");
   }
   tree->unlockWrite();
-  ROS_INFO("Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  ROS_DEBUG("Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
   triggerUpdateCallback();
 }
 
