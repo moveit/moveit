@@ -85,7 +85,7 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
   cl.g = 0.0f;
   cl.b = 0.0f; 
   cl.a = 1.0f;
-  scene->setColor(co.id, cl);   
+  scene->setObjectColor(co.id, cl);   
 }
 
 void sendScene()

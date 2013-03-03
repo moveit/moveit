@@ -78,8 +78,8 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     color.g = default_attached_color.g_;
     color.b = default_attached_color.b_;
     color.a = 1.0f;
-    std::map<std::string, std_msgs::ColorRGBA> color_map;
-    scene->getKnownColors(color_map);
+    planning_scene::ObjectColorMap color_map;
+    scene->getKnownObjectColors(color_map);
     scene_robot_->update(ks, color, color_map);
   }
   
@@ -89,14 +89,15 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     collision_detection::CollisionWorld::ObjectConstPtr o = scene->getWorld()->getObject(ids[i]);
     rviz::Color color = default_env_color;
     float alpha = default_scene_alpha;
-    if (scene->hasColor(ids[i]))
+    if (scene->hasObjectColor(ids[i]))
     {
-      const std_msgs::ColorRGBA &c = scene->getColor(ids[i]);
+      const std_msgs::ColorRGBA &c = scene->getObjectColor(ids[i]);
       color.r_ = c.r; color.g_ = c.g; color.b_ = c.b;
       alpha = c.a;
     }
     for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
-      render_shapes_->renderShape(planning_scene_geometry_node_, o->shapes_[j].get(), o->shape_poses_[j], octree_voxel_rendering, octree_color_mode, color, alpha);
+      render_shapes_->renderShape(planning_scene_geometry_node_, o->shapes_[j].get(), o->shape_poses_[j],
+                                  octree_voxel_rendering, octree_color_mode, color, alpha);
   }
 }
 
