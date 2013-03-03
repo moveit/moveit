@@ -73,7 +73,10 @@ typedef boost::function<bool(const robot_state::RobotState&, bool)> StateFeasibi
 typedef boost::function<bool(const robot_state::RobotState&, const robot_state::RobotState&, bool)> MotionFeasibilityFn;
 
 /** \brief A map from object names (e.g., attached bodies, collision objects) to their colors */
-typedef std::map<std::string, std_msgs::ColorRGBA> ColorMap;
+typedef std::map<std::string, std_msgs::ColorRGBA> ObjectColorMap;
+
+/** \brief A map from object names (e.g., attached bodies, collision objects) to their types */
+typedef std::map<std::string, object_recognition_msgs::ObjectType> ObjectTypeMap;
 
 /** \brief This class maintains the representation of the
     environment as seen by a planning instance. The environment
@@ -380,12 +383,19 @@ public:
   /** \brief Set the callback to be triggered when changes are made to the current scene world */
   void setCollisionObjectUpdateCallback(const collision_detection::World::ObserverCallbackFn &callback);
   
-  bool hasColor(const std::string &id) const;
+  bool hasObjectColor(const std::string &id) const;
 
-  const std_msgs::ColorRGBA& getColor(const std::string &id) const;
-  void setColor(const std::string &id, const std_msgs::ColorRGBA &color);
-  void removeColor(const std::string &id);
-  void getKnownColors(ColorMap &kc) const;
+  const std_msgs::ColorRGBA& getObjectColor(const std::string &id) const;
+  void setObjectColor(const std::string &id, const std_msgs::ColorRGBA &color);
+  void removeObjectColor(const std::string &id);
+  void getKnownObjectColors(ObjectColorMap &kc) const;
+
+  bool hasObjectType(const std::string &id) const;
+
+  const object_recognition_msgs::ObjectType& getObjectType(const std::string &id) const;
+  void setObjectType(const std::string &id, const object_recognition_msgs::ObjectType &type);
+  void removeObjectType(const std::string &id);
+  void getKnownObjectTypes(ObjectTypeMap &kc) const;
 
   /** \brief Clear the diffs accumulated for this planning scene, with respect to the parent. This function is a no-op if there is no parent specified. */
   void clearDiffs();
@@ -630,11 +640,16 @@ private:
   CollisionDetectorPtr                           active_collision_;   // copy of one of the entries in collision_.  Never NULL.
 
   collision_detection::AllowedCollisionMatrixPtr acm_;                // if NULL use parent's
-
+  
   StateFeasibilityFn                             state_feasibility_;
   MotionFeasibilityFn                            motion_feasibility_;
 
-  boost::scoped_ptr<ColorMap>                    colors_;
+  boost::scoped_ptr<ObjectColorMap>              object_colors_;
+
+  // a map of object types
+  boost::scoped_ptr<ObjectTypeMap>               object_types_;
+  
+
 };
 
 
