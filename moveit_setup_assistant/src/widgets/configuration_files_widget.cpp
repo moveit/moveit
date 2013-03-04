@@ -714,6 +714,21 @@ void ConfigurationFilesWidget::savePackage()
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
                  "Loads settings for the ROS parameter server required for executing trajectories using the trajectory_execution_manager::TrajectoryExecutionManager.");
 
+  // Create Demo Launch File  -----------------------------------------------------
+  file_name = "demo.launch";
+  file_path = config_data_->appendPaths( launch_path, file_name );
+  template_path = config_data_->appendPaths( template_launch_path, file_name );
+  // Use generic template copy function
+  if ( !copyTemplate( template_path, file_path, new_package_name ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
+                           .append( " file at location " ).append( file_path.c_str() ) );
+    return;
+  }
+  // Feedback
+  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
+                 "Run a demo of MoveIt.");
+
 
   // Create Setup_Assistant Launch File  -----------------------------------------------------
   file_name = "setup_assistant.launch";
@@ -868,6 +883,16 @@ bool ConfigurationFilesWidget::copyTemplate( const std::string& template_path, c
 
   boost::replace_all( template_string, "[ROBOT_NAME]", config_data_->srdf_->robot_name_ );
 
+  std::stringstream vjb;
+  for (std::size_t i = 0 ; i < config_data_->srdf_->virtual_joints_.size(); ++i)
+  {
+    const srdf::Model::VirtualJoint &vj = config_data_->srdf_->virtual_joints_[i];
+    if (vj.type_ != "fixed")
+      vjb << "  <node pkg=\"tf\" type=\"static_transform_publisher\" name=\"virtual_joint_broadcaster_" << i << "\" args=\"0 0 0 0 0 0 " << vj.parent_frame_ << " " << vj.child_link_ << " 100\" />" << std::endl;
+  }
+  
+  boost::replace_all ( template_string, "[VIRTUAL_JOINT_BROADCASTER]", vjb.str());
+  
   // Save string to new location -----------------------------------------------------------
   std::ofstream output_stream( output_path.c_str(), std::ios_base::trunc );
   if( !output_stream.good() )
