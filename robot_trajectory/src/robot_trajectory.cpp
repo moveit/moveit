@@ -286,7 +286,8 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
     if (trajectory.multi_dof_joint_trajectory.points.size() > i)
     {
       rs.multi_dof_joint_state.joint_names = trajectory.multi_dof_joint_trajectory.joint_names;
-      rs.multi_dof_joint_state.header.stamp = trajectory.joint_trajectory.header.stamp + trajectory.multi_dof_joint_trajectory.points[i].time_from_start;
+      rs.multi_dof_joint_state.header = trajectory.multi_dof_joint_trajectory.header;
+      rs.multi_dof_joint_state.header.stamp = trajectory.multi_dof_joint_trajectory.header.stamp + trajectory.multi_dof_joint_trajectory.points[i].time_from_start;
       rs.multi_dof_joint_state.joint_transforms = trajectory.multi_dof_joint_trajectory.points[i].transforms;
       this_time_stamp = rs.multi_dof_joint_state.header.stamp;
     }

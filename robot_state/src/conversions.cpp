@@ -114,7 +114,7 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
     else
       error = true;
     if (error)
-      logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible to update that transform to frame '%s'",
+      logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible to transform that to frame '%s'",
               mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
   }
   
