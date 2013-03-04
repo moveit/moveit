@@ -208,8 +208,21 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
 // Deconstructor
 // ******************************************************************************************
 MotionPlanningDisplay::~MotionPlanningDisplay()
-{
+{ 
+  background_process_.clear();
+  {
+    boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
+    main_loop_jobs_.clear();
+  }
+  
   clearTrajectoryTrail();
+  trajectory_message_to_display_.reset();
+  displaying_trajectory_message_.reset();
+
+  display_path_robot_.reset();
+  query_robot_start_.reset();
+  query_robot_goal_.reset();
+  
   delete text_to_display_;
   delete int_marker_display_;
   delete frame_dock_;

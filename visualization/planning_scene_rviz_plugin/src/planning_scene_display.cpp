@@ -152,6 +152,8 @@ PlanningSceneDisplay::~PlanningSceneDisplay()
 { 
   planning_scene_render_.reset();
   context_->getSceneManager()->destroySceneNode(planning_scene_node_->getName());
+  planning_scene_robot_.reset();
+  planning_scene_monitor_.reset();
 }
 
 void PlanningSceneDisplay::onInitialize()
