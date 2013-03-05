@@ -117,9 +117,110 @@ void RobotStateDisplay::reset()
   robot_->setVisible(true);
 }
 
+void RobotStateDisplay::setHighlight(const std::string& link_name, const std_msgs::ColorRGBA& color)
+{
+  rviz::RobotLink *link = robot_->getRobot().getLink(link_name);
+  if (link)
+  {
+    link->setColor(color.r, color.g, color.b);
+    link->setRobotAlpha(color.a * robot_alpha_property_->getFloat());
+  }
+}
+
+void RobotStateDisplay::unsetHighlight(const std::string& link_name)
+{
+  rviz::RobotLink *link = robot_->getRobot().getLink(link_name);
+  if (link)
+  {
+    link->unsetColor();
+    link->setRobotAlpha(robot_alpha_property_->getFloat());
+  }
+}
+
 void RobotStateDisplay::changedEnableLinkHighlight()
 {
-  // todo
+  if (enable_link_highlight_->getBool())
+  {
+    for (std::map<std::string, std_msgs::ColorRGBA>::iterator it = highlights_.begin() ;
+         it != highlights_.end() ;
+         ++it)
+    {
+      setHighlight(it->first, it->second);
+    }
+  }
+  else
+  {
+    for (std::map<std::string, std_msgs::ColorRGBA>::iterator it = highlights_.begin() ;
+         it != highlights_.end() ;
+         ++it)
+    {
+      unsetHighlight(it->first);
+    }
+  }
+}
+
+static bool operator!=(const std_msgs::ColorRGBA& a, const std_msgs::ColorRGBA& b)
+{
+  return a.r != b.r ||
+         a.g != b.g ||
+         a.b != b.b ||
+         a.a != b.a;
+}
+
+void RobotStateDisplay::setRobotHighlights(const moveit_msgs::DisplayRobotState::_highlight_links_type& highlight_links)
+{
+  if (highlight_links.empty() && highlights_.empty())
+    return;
+
+  std::map<std::string, std_msgs::ColorRGBA> highlights;
+  for (moveit_msgs::DisplayRobotState::_highlight_links_type::const_iterator it = highlight_links.begin() ;
+       it != highlight_links.end() ;
+       ++it)
+  {
+    highlights[it->id] = it->color;
+  }
+
+  if (enable_link_highlight_->getBool())
+  {
+    std::map<std::string, std_msgs::ColorRGBA>::iterator ho = highlights_.begin();
+    std::map<std::string, std_msgs::ColorRGBA>::iterator hn = highlights.begin();
+    while (ho != highlights_.end() || hn != highlights.end())
+    {
+      if (ho == highlights_.end())
+      {
+        setHighlight(hn->first, hn->second);
+        ++hn;
+      }
+      else if (hn == highlights.end())
+      {
+        unsetHighlight(ho->first);
+        ++ho;
+      }
+      else if (hn->first < ho->first)
+      {
+        setHighlight(hn->first, hn->second);
+        ++hn;
+      }
+      else if (hn->first > ho->first)
+      {
+        unsetHighlight(ho->first);
+        ++ho;
+      }
+      else if (hn->second != ho->second)
+      {
+        setHighlight(hn->first, hn->second);
+        ++ho;
+        ++hn;
+      }
+      else
+      {
+        ++ho;
+        ++hn;
+      }
+    }
+  }
+
+  swap(highlights, highlights_);
 }
 
 void RobotStateDisplay::changedAttachedBodyColor()
@@ -171,14 +272,15 @@ void RobotStateDisplay::changedRobotStateTopic()
   loadRobotModel("");
 }
 
-void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotStateConstPtr &state)
+void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotStateConstPtr &state_msg)
 {
   if (!kmodel_)
     return;
   if (!kstate_)
     kstate_.reset(new robot_state::RobotState(kmodel_)); 
   // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion functio?
-  robot_state::robotStateMsgToRobotState(state->state, *kstate_);
+  robot_state::robotStateMsgToRobotState(state_msg->state, *kstate_);
+  setRobotHighlights(state_msg->highlight_links);
   update_state_ = true;
 }
 
@@ -236,6 +338,8 @@ void RobotStateDisplay::loadRobotModel(const std::string &root_link)
   }
   else
     setStatus( rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded" );
+
+  highlights_.clear();
 }
 
 void RobotStateDisplay::onEnable()

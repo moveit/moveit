@@ -106,6 +106,10 @@ protected:
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
 
   void newRobotStateCallback(const moveit_msgs::DisplayRobotState::ConstPtr &state);
+
+  void setRobotHighlights(const moveit_msgs::DisplayRobotState::_highlight_links_type& highlight_links);
+  void setHighlight(const std::string& link_name, const std_msgs::ColorRGBA& color);
+  void unsetHighlight(const std::string& link_name);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -121,6 +125,7 @@ protected:
   rdf_loader::RDFLoaderPtr rdf_loader_;
   robot_model::RobotModelConstPtr kmodel_;
   robot_state::RobotStatePtr kstate_;
+  std::map<std::string, std_msgs::ColorRGBA> highlights_;
   bool update_state_;
   
   rviz::StringProperty* robot_description_property_;
