@@ -962,7 +962,8 @@ void robot_state::JointStateGroup::ikCallbackFnAdapter(const StateValidityCallba
 
 bool robot_state::JointStateGroup::getJacobian(const std::string &link_name,
                                                const Eigen::Vector3d &reference_point_position, 
-                                               Eigen::MatrixXd& jacobian) const
+                                               Eigen::MatrixXd& jacobian,
+                                               bool use_quaternion_representation) const
 {
   if (!joint_model_group_->isChain())
   {
@@ -979,7 +980,9 @@ bool robot_state::JointStateGroup::getJacobian(const std::string &link_name,
   const robot_state::LinkState *root_link_state = kinematic_state_->getLinkState(root_joint_model->getParentLinkModel()->getName());
   Eigen::Affine3d reference_transform = root_link_state ? root_link_state->getGlobalLinkTransform() : kinematic_state_->getRootTransform();
   reference_transform = reference_transform.inverse();
-  jacobian = Eigen::MatrixXd::Zero(6, joint_model_group_->getVariableCount());
+  int rows = use_quaternion_representation ? 7 : 6;
+  int columns = joint_model_group_->getVariableCount();
+  jacobian = Eigen::MatrixXd::Zero(rows, columns);
   
   const robot_state::LinkState *link_state = kinematic_state_->getLinkState(link_name);
   Eigen::Affine3d link_transform = reference_transform*link_state->getGlobalLinkTransform();
@@ -1037,5 +1040,22 @@ bool robot_state::JointStateGroup::getJacobian(const std::string &link_name,
       break;
     link_state = link_state->getParentLinkState();
   }
+  if (use_quaternion_representation) { // Quaternion representation
+    // From "Advanced Dynamics and Motion Simulation" by Paul Mitiguy
+    // d/dt ( [w] ) = 1/2 * [ -x -y -z ]  * [ omega_1 ]
+    //        [x]           [  w -z  y ]    [ omega_2 ]
+    //        [y]           [  z  w -x ]    [ omega_3 ]
+    //        [z]           [ -y  x  w ]
+    Eigen::Quaterniond q(link_transform.rotation());
+    double w = q.w(), x = q.x(), y = q.y(), z = q.z();
+    Eigen::MatrixXd quaternion_update_matrix(4,3);
+    quaternion_update_matrix << -x, -y, -z,
+                                 w, -z,  y,
+                                 z,  w, -x,
+                                -y,  x,  w;
+    jacobian.block(3,0,4,columns) = 0.5*quaternion_update_matrix*jacobian.block(3,0, 3, columns);
+  }
   return true;
 }
+
+
