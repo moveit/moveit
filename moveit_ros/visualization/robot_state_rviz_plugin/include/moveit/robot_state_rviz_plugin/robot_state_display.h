@@ -92,6 +92,8 @@ private Q_SLOTS:
   void changedAttachedBodyColor();
   void changedRobotStateTopic();
   void changedEnableLinkHighlight();
+  void changedEnableVisualVisible();
+  void changedEnableCollisionVisible();
   
 protected:
 
@@ -134,6 +136,8 @@ protected:
   rviz::FloatProperty* robot_alpha_property_;
   rviz::ColorProperty* attached_body_color_property_;
   rviz::BoolProperty* enable_link_highlight_;
+  rviz::BoolProperty* enable_visual_visible_;
+  rviz::BoolProperty* enable_collision_visible_;
 };
 
 } // namespace moveit_rviz_plugin
