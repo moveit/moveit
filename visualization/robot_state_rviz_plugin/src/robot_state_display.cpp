@@ -90,6 +90,13 @@ RobotStateDisplay::RobotStateDisplay() :
 
   enable_link_highlight_ = new rviz::BoolProperty("Show Highlights", true, "Specifies whether link highlighting is enabled", 
                                                   this, SLOT( changedEnableLinkHighlight() ), this);
+  enable_visual_visible_ = new rviz::BoolProperty("Visual Enabled", true, "Whether to display the visual representation of the robot.", 
+                                                  this, SLOT( changedEnableVisualVisible() ), this);
+  enable_collision_visible_ = new rviz::BoolProperty("Collision Enabled", false, "Whether to display the collision representation of the robot.", 
+                                                  this, SLOT( changedEnableCollisionVisible() ), this);
+  
+  show_all_links_ = new rviz::BoolProperty("Show All Links", true, "Toggle all links visibility on or off.", 
+                                           this, SLOT( changedAllLinks() ), this);
 }
 
 // ******************************************************************************************
@@ -103,6 +110,8 @@ void RobotStateDisplay::onInitialize()
 {  
   Display::onInitialize();
   robot_.reset(new RobotStateVisualization(scene_node_, context_, "Robot State", this));
+  changedEnableVisualVisible();
+  changedEnableCollisionVisible();
   robot_->setVisible(true);
 }
 
@@ -114,7 +123,21 @@ void RobotStateDisplay::reset()
   loadRobotModel("");
   Display::reset();
   
+  changedEnableVisualVisible();
+  changedEnableCollisionVisible();
   robot_->setVisible(true);
+}
+
+void RobotStateDisplay::changedAllLinks()
+{
+  Property *links_prop = subProp("Links");
+  QVariant value(show_all_links_->getBool());
+
+  for (int i=0 ; i<links_prop->numChildren() ; ++i)
+  {
+    Property *link_prop = links_prop->childAt(i);
+    link_prop->setValue(value);
+  }
 }
 
 void RobotStateDisplay::setHighlight(const std::string& link_name, const std_msgs::ColorRGBA& color)
@@ -157,6 +180,16 @@ void RobotStateDisplay::changedEnableLinkHighlight()
       unsetHighlight(it->first);
     }
   }
+}
+
+void RobotStateDisplay::changedEnableVisualVisible()
+{
+  robot_->setVisualVisible(enable_visual_visible_->getBool());
+}
+
+void RobotStateDisplay::changedEnableCollisionVisible()
+{
+  robot_->setCollisionVisible(enable_collision_visible_->getBool());
 }
 
 static bool operator!=(const std_msgs::ColorRGBA& a, const std_msgs::ColorRGBA& b)
@@ -347,7 +380,11 @@ void RobotStateDisplay::onEnable()
   Display::onEnable();
   loadRobotModel("");
   if (robot_)
+  {
+    changedEnableVisualVisible();
+    changedEnableCollisionVisible();
     robot_->setVisible(true);
+  }
   calculateOffsetPosition();
 }
 
