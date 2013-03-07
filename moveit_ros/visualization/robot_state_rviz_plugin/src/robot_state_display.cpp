@@ -94,6 +94,9 @@ RobotStateDisplay::RobotStateDisplay() :
                                                   this, SLOT( changedEnableVisualVisible() ), this);
   enable_collision_visible_ = new rviz::BoolProperty("Collision Enabled", false, "Whether to display the collision representation of the robot.", 
                                                   this, SLOT( changedEnableCollisionVisible() ), this);
+  
+  show_all_links_ = new rviz::BoolProperty("Show All Links", true, "Toggle all links visibility on or off.", 
+                                           this, SLOT( changedAllLinks() ), this);
 }
 
 // ******************************************************************************************
@@ -123,6 +126,18 @@ void RobotStateDisplay::reset()
   changedEnableVisualVisible();
   changedEnableCollisionVisible();
   robot_->setVisible(true);
+}
+
+void RobotStateDisplay::changedAllLinks()
+{
+  Property *links_prop = subProp("Links");
+  QVariant value(show_all_links_->getBool());
+
+  for (int i=0 ; i<links_prop->numChildren() ; ++i)
+  {
+    Property *link_prop = links_prop->childAt(i);
+    link_prop->setValue(value);
+  }
 }
 
 void RobotStateDisplay::setHighlight(const std::string& link_name, const std_msgs::ColorRGBA& color)
