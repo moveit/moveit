@@ -210,9 +210,11 @@ public:
    * \param link_name The name of the link 
    * \param reference_point_position The reference point position (with respect to the link specified in link_name)
    * \param jacobian The resultant jacobian
+   * \param use_quaternion_representation Flag indicating if the Jacobian should use a quaternion representation (default is false)
    * \return True if jacobian was successfully computed, false otherwise
    */    
-  bool getJacobian(const std::string &link_name, const Eigen::Vector3d &reference_point_position, Eigen::MatrixXd& jacobian) const;
+  bool getJacobian(const std::string &link_name, const Eigen::Vector3d &reference_point_position, Eigen::MatrixXd& jacobian,
+                   bool use_quaterion_representation = false) const;
 
   /** \brief Get the default IK timeout */
   double getDefaultIKTimeout() const
