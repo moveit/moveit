@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ompl_planners_core</name>
-  <version>0.3.6</version>
+  <version>0.3.7</version>
   <description>MoveIt interface to OMPL</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
