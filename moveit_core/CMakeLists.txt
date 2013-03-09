@@ -48,6 +48,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     planning_interface/include
     planning_request_adapter/include
     planning_scene/include
+    profiler/include
     sensor_manager/include
     trajectory_processing/include
     kinematics_constraint_aware/include
@@ -68,6 +69,7 @@ catkin_package(
     moveit_planning_scene
     moveit_constraint_samplers
     moveit_planning_request_adapter
+    moveit_profiler
     moveit_trajectory_processing
     moveit_distance_field
     moveit_collision_distance_field
@@ -106,6 +108,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(macros)
+add_subdirectory(profiler)
 add_subdirectory(kinematics_base)
 add_subdirectory(controller_manager)
 add_subdirectory(sensor_manager)
