@@ -921,6 +921,9 @@ void MotionPlanningDisplay::updateLinkColors()
 
 void MotionPlanningDisplay::changedPlanningGroup()
 {
+  if (!getRobotModel())
+    return;
+  
   if (!planning_group_property_->getStdString().empty())
     if (!getRobotModel()->hasJointModelGroup(planning_group_property_->getStdString()))
     {
