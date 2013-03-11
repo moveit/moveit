@@ -161,7 +161,7 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
 {
   ROS_DEBUG("Received a new point cloud message");
   ros::WallTime start = ros::WallTime::now();
-
+  
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(cloud_msg->header.frame_id);
   
@@ -186,23 +186,23 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
     else
       return;
   } 
-
+  
   /* convert cloud message to pcl cloud object */
   pcl::PointCloud<pcl::PointXYZ> cloud;
   pcl::fromROSMsg(*cloud_msg, cloud);
-
+  
   /* compute sensor origin in map frame */
   tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
   octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
-
+  
   /* mask out points on the robot */
   std::vector<int> mask;
   if (self_mask_)
     self_mask_->maskContainment(cloud, mask);
-
+  
   OccMapTreePtr tree = monitor_->getOcTreePtr();
   octomap::KeySet free_cells, occupied_cells;
-
+  
   tree->lockRead();
   
   try
@@ -234,10 +234,10 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
         
         /* occupied cell at ray endpoint if ray is shorter than max range and this point
            isn't on a part of the robot*/
-        if(!self_point)
+        if (!self_point)
         {
           double range = (point - sensor_origin).norm();
-          if(range < max_range_)
+          if (range < max_range_)
           {
             octomap::OcTreeKey key;
             if (tree->coordToKeyChecked(point, key))
@@ -252,32 +252,32 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
     tree->unlockRead();
     return;
   }
-
+  
   ROS_DEBUG("Marking free cells in octomap");
   
-  tree->unlockRead();
+  tree->unlockRead(); 
+  
+  /* occupied cells are not free */
+  for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
+    free_cells.erase(*it);
+  
   tree->lockWrite();
-
+  
   try
-  {
-    
+  {    
     /* mark free cells only if not seen occupied in this cloud */
     for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
-      /* this check seems unnecessary since we would just overwrite them in the next loop? -jbinney */
-      if (occupied_cells.find(*it) == occupied_cells.end())
-        tree->updateNode(*it, false);
-    
-    ROS_DEBUG("Marking occupied cells in octomap");
+      tree->updateNode(*it, false);
     
     /* now mark all occupied cells */
-    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; it++)
+    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
       tree->updateNode(*it, true);
   }
   catch (...)
   {
   }
   tree->unlockWrite();
-  ROS_INFO("Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  ROS_DEBUG("Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
   triggerUpdateCallback();
 }
 
