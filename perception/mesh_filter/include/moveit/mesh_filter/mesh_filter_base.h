@@ -98,7 +98,7 @@ class MeshFilterBase
      * \author Suat Gedikli (gedikli@willowgarage.com)
      * \param[in] sensor_data pointer to the input depth image from sensor readings.
      */
-    void filter (const float* sensor_data, bool wait = false) const;
+    void filter (const void* sensor_data, unsigned type, bool wait = false) const;
     
     /**
      * \brief retrieves the labels of the input data
@@ -168,6 +168,9 @@ class MeshFilterBase
     void initialize (const std::string& render_vertex_shader, const std::string& render_fragment_shader,
                      const std::string& filter_vertex_shader, const std::string& filter_fragment_shader);
   
+    /**
+     * \brief cleaning up
+     */
     void deInitialize ();
 
     /**
@@ -178,11 +181,22 @@ class MeshFilterBase
 
     /**
      * \brief the filter method that does the magic
+     * \param[in] sensor_data pointer to the buffer containing the depth readings
+     * \param[in] encoding the representation of the depth readings in the buffer
      */
-    void doFilter (const float* sensor_data) const;
+    void doFilter (const void* sensor_data, const int encoding) const;
 
+    /**
+     * \brief used within a Job to allow the main thread adding meshes
+     * \param[in] handle the handle of the mesh that is predetermined and passed
+     * \param[in] cmesh the mesh to be added to the corresponding handle
+     */
     void addMeshHelper (MeshHandle handle, const shapes::Mesh *cmesh);
 
+    /**
+     * \brief add a Job for the main thread that needs to be executed there
+     * \param[in] job the job object that has the function o be executed
+     */
     void addJob (const boost::shared_ptr<FilterJob> &job) const;
 
   /**
