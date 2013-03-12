@@ -121,7 +121,7 @@ public:
   virtual void getPosition(geometry_msgs::Point &position);
   virtual void getOrientation(geometry_msgs::Quaternion &orientation);
   virtual void getPose(Eigen::Affine3d &pose);
-
+  virtual void setPose(Eigen::Affine3d &pose);
 
   virtual void select(void);
   virtual void unselect(void);

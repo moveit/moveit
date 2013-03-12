@@ -101,6 +101,7 @@ public Q_SLOTS:
   void loadBenchmarkResults(void);
   void updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state);
   void updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
+  void goalOffsetChanged();
 
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
@@ -164,7 +165,9 @@ private:
   //Goals and start states
   robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
 
+  Eigen::Affine3d goal_offset_;
   EigenSTL::map_string_Affine3d goals_initial_pose_;
+  EigenSTL::map_string_Affine3d goals_dragging_initial_pose_;
   bool goal_pose_dragging_;
 
   typedef std::map<std::string, GripperMarkerPtr> GoalPoseMap;
