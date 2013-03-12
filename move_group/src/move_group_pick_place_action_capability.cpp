@@ -299,12 +299,22 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(c
   action_res.error_code = plan.error_code_;
 }
 
-void move_group::MoveGroupPickPlaceAction::executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal)
+void move_group::MoveGroupPickPlaceAction::executePickupCallback(const moveit_msgs::PickupGoalConstPtr& input_goal)
 {
   setPickupState(PLANNING);
   
   planning_scene_monitor_->updateFrameTransforms();
   
+  moveit_msgs::PickupGoalConstPtr goal;
+  if (input_goal->possible_grasps.empty())
+  {
+    moveit_msgs::PickupGoal* copy(new moveit_msgs::PickupGoal(*input_goal));
+    goal.reset(copy);
+    fillGrasps(*copy);
+  }
+  else
+    goal = input_goal;
+
   moveit_msgs::PickupResult action_res;
   
   if (goal->planning_options.plan_only || !allow_trajectory_execution_)
@@ -383,4 +393,15 @@ void move_group::MoveGroupPickPlaceAction::setPlaceState(MoveGroupState state)
   place_state_ = state;
   place_feedback_.state = stateToStr(state);
   place_action_server_->publishFeedback(place_feedback_);
+}
+
+void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& goal)
+{
+  planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
+  if (lscene->hasObjectType(goal.target_name))
+  {
+    //    const object_recognition_msgs::ObjectType &ot = lscene->getObjectType(goal->target_name);
+    // need to call the grasp planner here
+    
+  }
 }
