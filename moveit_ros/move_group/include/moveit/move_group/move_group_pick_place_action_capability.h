@@ -84,6 +84,8 @@ private:
   
   void setPickupState(MoveGroupState state);
   void setPlaceState(MoveGroupState state);
+
+  void fillGrasps(moveit_msgs::PickupGoal& goal);
   
   pick_place::PickPlacePtr pick_place_;
   plan_execution::PlanExecutionPtr plan_execution_;
