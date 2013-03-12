@@ -82,7 +82,7 @@ namespace collision_detection
       std::vector<shapes::ShapeConstPtr> shapes_;
       
       /** \brief An array of shape poses */
-      EigenSTL::vector_Affine3d           shape_poses_;
+      EigenSTL::vector_Affine3d          shape_poses_;
     };
     
     typedef boost::shared_ptr<Object> ObjectPtr;

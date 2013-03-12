@@ -1543,6 +1543,36 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
   return false;
 }
 
+void planning_scene::PlanningScene::transformPose(const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
+{
+  transformPose(getCurrentState(), from_frame, t_in, t_out);
+}
+
+void planning_scene::PlanningScene::transformPose(const robot_state::RobotState &state, const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
+{
+  if (!from_frame.empty() && from_frame[0] == '/')
+    transformPose(state, from_frame.substr(1), t_in, t_out);
+  else
+  {    
+    if (getTransforms()->isFixedFrame(from_frame) || state.knowsFrameTransform(from_frame))
+      getTransforms()->transformPose(state, from_frame, t_in, t_out);
+    else
+    {
+      if (getWorld()->hasObject(from_frame))
+      {
+        collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(from_frame);
+        if (obj->shape_poses_.size() != 1)
+          logWarn("More than one shapes in object '%s'. Using first one to decide transform");
+        t_out = obj->shape_poses_[0] * t_in;
+      }
+      else
+      {
+        logError("Frame '%s' is not known. Unable to transform", from_frame.c_str());
+      }
+    }
+  }
+}
+
 bool planning_scene::PlanningScene::hasObjectType(const std::string &id) const
 {
   if (object_types_)
