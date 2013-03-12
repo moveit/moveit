@@ -504,30 +504,6 @@ public:
     }
   }
   
-  bool pick(const std::string &object)
-  {
-    if (!pick_action_client_)
-      return false;
-    if (!pick_action_client_->isServerConnected())
-      return false;
-    std::vector<manipulation_msgs::Grasp> grasps;
-    // call grasp planner
-
-    return pick(object, grasps);
-  }
-
-  bool place(const std::string &object)
-  {
-    if (!place_action_client_)
-      return false;
-    if (!place_action_client_->isServerConnected())
-      return false;
-    std::vector<manipulation_msgs::PlaceLocation> locations;
-    // find valid locations
-
-    return place(object, locations);
-  }
-  
   bool plan(Plan &plan)
   {
     if (!move_action_client_)
@@ -891,7 +867,7 @@ bool MoveGroup::plan(Plan &plan)
 
 bool MoveGroup::pick(const std::string &object)
 {
-  return impl_->pick(object);
+  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>());
 }
 
 bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
@@ -901,7 +877,7 @@ bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_m
 
 bool MoveGroup::place(const std::string &object)
 {
-  return impl_->place(object);
+  return impl_->place(object, std::vector<manipulation_msgs::PlaceLocation>());
 }
 
 bool MoveGroup::place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
