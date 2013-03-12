@@ -2,9 +2,9 @@
   <name>moveit_core</name>
   <version>0.3.15</version>
   <description>Core libraries used by MoveIt!</description>
-  <author email="isucan@willowgarage.edu">Ioan Sucan</author>
-  <author email="sachinc@willowgarage.edu">Sachin Chitta</author>
-  <author email="gjones@willowgarage.edu">Gil Jones</author>
+  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="sachinc@willowgarage.com">Sachin Chitta</author>
+  <author email="gjones@willowgarage.com">Gil Jones</author>
 
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
 
