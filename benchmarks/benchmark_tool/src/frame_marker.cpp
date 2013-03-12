@@ -305,6 +305,7 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
   imarker.reset(new rviz::InteractiveMarker(parent_node_, context_ ));
   interactive_markers::autoComplete(int_marker);
   imarker->processMessage(int_marker);
+  imarker->setShowVisualAids(true);
   imarker->setShowAxes(false);
   imarker->setShowDescription(false);
 
@@ -452,6 +453,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   interactive_markers::autoComplete(int_marker);
   imarker->processMessage(int_marker);
   imarker->setShowAxes(false);
+  imarker->setShowVisualAids(true);
   imarker->setShowDescription(false);
   imarker->setPose(Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z),
                     Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z), "");
