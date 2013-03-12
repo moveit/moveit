@@ -45,6 +45,7 @@
 #include <moveit/mesh_filter/transform_provider.h>
 #include <moveit/mesh_filter/mesh_filter.h>
 #include <moveit/mesh_filter/stereo_camera_model.h>
+#include <cv_bridge/cv_bridge.h>
 
 namespace mesh_filter
 {
@@ -71,10 +72,10 @@ class DepthSelfFiltering : public nodelet::Nodelet
     void addMeshes (mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>& mesh_filter);
     
     /**
-     * \brie entry point of filtering thread
+     * \brief main filtering routine
      * \author Suat Gedikli (gedikli@willowgarage.com)
      */
-    void filter ();
+    void filter (const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
     
     /**
      * \brief Callback for connection/deconnection of listener
@@ -107,12 +108,11 @@ class DepthSelfFiltering : public nodelet::Nodelet
     boost::mutex connect_mutex_;
     int queue_size_;
     TransformProvider transform_provider_;
-    // filtering members
-    mutable sensor_msgs::ImageConstPtr next_depth_msg_;
-    mutable sensor_msgs::ImageConstPtr current_depth_msg_;
-    mutable sensor_msgs::CameraInfoConstPtr next_info_msg_;
-    mutable sensor_msgs::CameraInfoConstPtr current_info_msg_;
-    
+
+    cv_bridge::CvImagePtr filtered_depth_ptr_;
+    cv_bridge::CvImagePtr filtered_label_ptr_;
+    cv_bridge::CvImagePtr model_depth_ptr_;
+    cv_bridge::CvImagePtr model_label_ptr_;
     /** \brief distance of near clipping plane*/
     double near_clipping_plane_distance_;
     
@@ -128,17 +128,8 @@ class DepthSelfFiltering : public nodelet::Nodelet
     /** \brief the coefficient for the linear component of the padding function*/
     double padding_offset_;
     
-    /** \brief thread object for dedicated filtering thread*/
-    boost::thread filter_thread_;
-    
-    /** \brief condition variable to notify the filtering thread if a new image arrived*/
-    boost::condition_variable filter_condition_;
-    
-    /** \brief mutex required for synchronization of condition states*/
-    boost::mutex filter_mutex_;
-    
-    /** \brief indicates whether the filtering loop should stop*/
-    bool stop_;
+    /** mesh filter object*/
+    boost::shared_ptr<MeshFilter<StereoCameraModel> > mesh_filter_;
 };
 
 } //namespace mesh_filter
