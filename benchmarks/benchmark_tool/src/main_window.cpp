@@ -45,8 +45,8 @@
 namespace benchmark_tool
 {
 
-const char * MainWindow::ROBOT_DESCRIPTION_PARAM = "benchmark_tool_robot_description";
-const char * MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "benchmark_tool_robot_description_semantic";
+const char * MainWindow::ROBOT_DESCRIPTION_PARAM = "robot_description";
+const char * MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
 const unsigned int MainWindow::DEFAULT_WAREHOUSE_PORT = 33830;
 
 MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
@@ -54,6 +54,8 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     goal_pose_dragging_(false)
 {
   setWindowTitle("Benchmark Tool");
+
+  goal_offset_.setIdentity();
 
   ui_.setupUi(this);
   settings_.reset(new QSettings("WillowGarage", "Benchmark Tool"));
@@ -143,6 +145,10 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect( ui_.show_x_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
     connect( ui_.show_y_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
     connect( ui_.show_z_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
+    connect( ui_.goal_offset_roll, SIGNAL( editingFinished ( )), this, SLOT( goalOffsetChanged( ) ));
+    connect( ui_.goal_offset_pitch, SIGNAL( editingFinished ( )), this, SLOT( goalOffsetChanged( ) ));
+    connect( ui_.goal_offset_yaw, SIGNAL( editingFinished ( )), this, SLOT( goalOffsetChanged( ) ));
+
     connect( ui_.check_goal_collisions_button, SIGNAL( clicked( ) ), this, SLOT( checkGoalsInCollision( ) ));
     connect( ui_.check_goal_reachability_button, SIGNAL( clicked( ) ), this, SLOT( checkGoalsReachable( ) ));
     connect( ui_.run_benchmark_button, SIGNAL( clicked( ) ), this, SLOT( runBenchmark( ) ));
@@ -207,7 +213,7 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
 {
   //Load urdf
   boost::filesystem::path boost_urdf_path(urdf_path);
-  setStatus(STATUS_WARN, QString::fromStdString("Loading urdf " + boost_urdf_path.string()));
+  setStatus(STATUS_INFO, QString::fromStdString("Loading urdf " + boost_urdf_path.string()));
   if (boost::filesystem::exists(boost_urdf_path))
   {
     std::ifstream urdf_input_stream(boost_urdf_path.string().c_str());
@@ -222,7 +228,7 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
 
   //Load srdf
   boost::filesystem::path boost_srdf_path(srdf_path);
-  setStatus(STATUS_WARN, QString::fromStdString("Loading srdf " + boost_srdf_path.string()));
+  setStatus(STATUS_INFO, QString::fromStdString("Loading srdf " + boost_srdf_path.string()));
   if (boost::filesystem::exists(boost_srdf_path))
   {
     std::ifstream srdf_input_stream(boost_srdf_path.string().c_str());
@@ -235,10 +241,10 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     ROS_ERROR("Cannot load SRDF file");
   }
 
-  //Load kinematics.yaml.
+  //Load kinematics.yaml, joint_limits.yaml and ompl_planning.yaml
   //TODO: Can we assume kinematics.yaml to be in the same folder as the srdf?
   boost::filesystem::path kinematics_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "kinematics.yaml");
-  setStatus(STATUS_WARN, QString::fromStdString("Loading " + kinematics_file.string()));
+  setStatus(STATUS_INFO, QString::fromStdString("Loading " + kinematics_file.string()));
   if (boost::filesystem::exists( kinematics_file ) && boost::filesystem::is_regular_file( kinematics_file ))
   {
     if (system(("rosparam load " + kinematics_file.string()).c_str()) < 0)
@@ -247,7 +253,27 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     }
   }
 
-  setStatus(STATUS_WARN, QString("Resetting scene display... "));
+  boost::filesystem::path joint_limits_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "joint_limits.yaml");
+  setStatus(STATUS_INFO, QString::fromStdString("Loading " + joint_limits_file.string()));
+  if (boost::filesystem::exists( joint_limits_file ) && boost::filesystem::is_regular_file( joint_limits_file ))
+  {
+    if (system(("rosparam load " + joint_limits_file.string()).c_str()) < 0)
+    {
+      ROS_ERROR("Couldn't load joint_limits.yaml file");
+    }
+  }
+
+  boost::filesystem::path ompl_planning_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "ompl_planning.yaml");
+  setStatus(STATUS_INFO, QString::fromStdString("Loading " + ompl_planning_file.string()));
+  if (boost::filesystem::exists( ompl_planning_file ) && boost::filesystem::is_regular_file( ompl_planning_file ))
+  {
+    if (system(("rosparam load " + ompl_planning_file.string()).c_str()) < 0)
+    {
+      ROS_ERROR("Couldn't load ompl_planning.yaml file");
+    }
+  }
+
+  setStatus(STATUS_INFO, QString("Resetting scene display... "));
   std::string old_scene_name;
   if (scene_display_->getPlanningSceneRO())
     old_scene_name = scene_display_->getPlanningSceneRO()->getName();
@@ -256,7 +282,7 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
   if (configure())
   {
     //Reload the scene geometry if one scene was already loaded
-    setStatus(STATUS_WARN, QString("Reloading scene... "));
+    setStatus(STATUS_INFO, QString("Reloading scene... "));
     QList<QListWidgetItem *> found_items = ui_.planning_scene_list->findItems(QString::fromStdString(old_scene_name), Qt::MatchExactly);
     if (found_items.size() > 0)
     {
@@ -265,12 +291,12 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     }
 
     //Reload the goals
-    setStatus(STATUS_WARN, QString("Reloading goals... "));
+    setStatus(STATUS_INFO, QString("Reloading goals... "));
     if (ui_.goal_poses_list->count() > 0)
     {
       loadGoalsFromDBButtonClicked();
     }
-    setStatus(STATUS_WARN, QString(""));
+    setStatus(STATUS_INFO, QString(""));
   }
 }
 
@@ -286,14 +312,30 @@ bool MainWindow::configure()
     ui_.check_goal_reachability_button->setEnabled(false);
     ui_.db_connect_button->setEnabled(false);
     ui_.goal_poses_add_button->setEnabled(false);
+    ui_.goal_poses_remove_button->setEnabled(false);
     ui_.load_poses_filter_text->setEnabled(false);
     ui_.goal_poses_open_button->setEnabled(false);
     ui_.goal_poses_save_button->setEnabled(false);
     ui_.goal_switch_visibility_button->setEnabled(false);
+    ui_.show_x_checkbox->setEnabled(false);
+    ui_.show_y_checkbox->setEnabled(false);
+    ui_.show_z_checkbox->setEnabled(false);
+    ui_.goal_offset_roll->setEnabled(false);
+    ui_.goal_offset_pitch->setEnabled(false);
+    ui_.goal_offset_yaw->setEnabled(false);
     ui_.start_states_add_button->setEnabled(false);
     ui_.start_states_remove_button->setEnabled(false);
     ui_.start_states_open_button->setEnabled(false);
     ui_.start_states_save_button->setEnabled(false);
+    ui_.run_benchmark_button->setEnabled(false);
+
+    ui_.trajectory_nwaypoints_spin->setEnabled(false);
+    ui_.trajectories_filter_text->setEnabled(false);
+    ui_.trajectory_add_button->setEnabled(false);
+    ui_.trajectory_remove_button->setEnabled(false);
+    ui_.trajectory_save_button->setEnabled(false);
+    ui_.trajectory_open_button->setEnabled(false);
+    ui_.trajectory_execute_button->setEnabled(false);
     return false;
   }
 
@@ -304,29 +346,44 @@ bool MainWindow::configure()
   ui_.check_goal_reachability_button->setEnabled(true);
   ui_.db_connect_button->setEnabled(true);
   ui_.goal_poses_add_button->setEnabled(true);
+  ui_.goal_poses_remove_button->setEnabled(true);
   ui_.load_poses_filter_text->setEnabled(true);
   ui_.goal_poses_open_button->setEnabled(true);
   ui_.goal_poses_save_button->setEnabled(true);
   ui_.goal_switch_visibility_button->setEnabled(true);
+  ui_.show_x_checkbox->setEnabled(true);
+  ui_.show_y_checkbox->setEnabled(true);
+  ui_.show_z_checkbox->setEnabled(true);
+  ui_.goal_offset_roll->setEnabled(true);
+  ui_.goal_offset_pitch->setEnabled(true);
+  ui_.goal_offset_yaw->setEnabled(true);
   ui_.start_states_add_button->setEnabled(true);
   ui_.start_states_remove_button->setEnabled(true);
   ui_.start_states_open_button->setEnabled(true);
   ui_.start_states_save_button->setEnabled(true);
 
+  ui_.trajectory_nwaypoints_spin->setEnabled(true);
+  ui_.trajectories_filter_text->setEnabled(true);
+  ui_.trajectory_add_button->setEnabled(true);
+  ui_.trajectory_remove_button->setEnabled(true);
+  ui_.trajectory_save_button->setEnabled(true);
+  ui_.trajectory_open_button->setEnabled(true);
+  ui_.trajectory_execute_button->setEnabled(true);
+
   //Set the fixed frame to the model frame
-  setStatus(STATUS_WARN, QString("Setting fixed frame... "));
+  setStatus(STATUS_INFO, QString("Setting fixed frame... "));
   visualization_manager_->setFixedFrame(QString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame().c_str()));
   int_marker_display_->setFixedFrame(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame()));
 
   //robot interaction
-  setStatus(STATUS_WARN, QString("Resetting robot interaction... "));
+  setStatus(STATUS_INFO, QString("Resetting robot interaction... "));
   robot_interaction_.reset(new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getRobotModel()));
 
   //Configure robot-dependent ui elements
   ui_.load_states_filter_text->setText(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() + ".*"));
 
   //Get the list of planning groups and fill in the combo box
-  setStatus(STATUS_WARN, QString("Updating planning groups... "));
+  setStatus(STATUS_INFO, QString("Updating planning groups... "));
   std::vector<std::string> group_names = scene_display_->getPlanningSceneMonitor()->getRobotModel()->getJointModelGroupNames();
   ui_.planning_group_combo->clear();
   for (std::size_t i = 0; i < group_names.size(); i++)
@@ -334,7 +391,10 @@ bool MainWindow::configure()
     ui_.planning_group_combo->addItem(QString(group_names[i].c_str()));
   }
 
-  setStatus(STATUS_WARN, QString(""));
+  if (group_names.size() > 0)
+    planningGroupChanged(QString(group_names[0].c_str()));
+
+  setStatus(STATUS_INFO, QString(""));
 
   return true;
 }
@@ -353,6 +413,12 @@ void MainWindow::planningGroupChanged(const QString &text)
       {
         it->second->setRobotState(scene_display_->getPlanningSceneRO()->getCurrentState());
         it->second->setEndEffector(robot_interaction_->getActiveEndEffectors()[0]);
+
+        if (query_goal_state_)
+        {
+          robotInteractionButtonClicked();
+          robotInteractionButtonClicked();
+        }
       }
     }
   }
@@ -535,6 +601,7 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
       setStatusFromBackground(STATUS_INFO, QString::fromStdString("Attempting to load scene" + scene + "..."));
 
       moveit_warehouse::PlanningSceneWithMetadata scene_m;
+      moveit_msgs::PlanningScene scene_msg;
       bool got_ps = false;
       try
       {
@@ -554,7 +621,12 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
         planning_scene_monitor::LockedPlanningSceneRW ps = scene_display_->getPlanningSceneRW();
         if (ps)
         {
-          ps->setPlanningSceneMsg(*scene_m.get());
+          scene_msg = *scene_m;
+          ps->getWorldNonConst()->clearObjects();
+          for (std::size_t i = 0 ; i < scene_msg.object_colors.size() ; ++i)
+            ps->setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
+          ps->processPlanningSceneWorldMsg(scene_msg.world);
+          ps->setName(scene_msg.name);
           scene_display_->queueRenderSceneGeometry();
         }
 

@@ -86,8 +86,10 @@ void MainWindow::createGoalPoseButtonClicked(void)
       {
         //Create the new goal pose at the current eef pose, and attach an interactive marker to it
         Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getLinkState(robot_interaction_->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
+        goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(name, tip_pose));
+
         geometry_msgs::Pose marker_pose;
-        tf::poseEigenToMsg(tip_pose, marker_pose);
+        tf::poseEigenToMsg(tip_pose * goal_offset_, marker_pose);
         static const float marker_scale = 0.15;
 
         GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getRobotModel()->getModelFrame(),
@@ -162,6 +164,7 @@ void MainWindow::removeSelectedGoalsButtonClicked(void)
 void MainWindow::removeAllGoalsButtonClicked(void)
 {
   goal_poses_.clear();
+  goals_initial_pose_.clear();
   populateGoalPosesList();
 }
 
@@ -210,6 +213,12 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
         geometry_msgs::Pose shape_pose;
         shape_pose.position = c->position_constraints[0].constraint_region.primitive_poses[0].position;
         shape_pose.orientation = c->orientation_constraints[0].orientation;
+
+        Eigen::Affine3d shape_pose_eigen;
+        tf::poseMsgToEigen(shape_pose, shape_pose_eigen);
+        goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(c->name, shape_pose_eigen));
+
+        tf::poseEigenToMsg(shape_pose_eigen * goal_offset_, shape_pose);
 
         static const float marker_scale = 0.15;
         GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, c->name, scene_display_->getRobotModel()->getModelFrame(),
@@ -534,7 +543,7 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
   else if (feedback.event_type == feedback.MOUSE_DOWN)
   {
     //Store current poses
-    goals_initial_pose_.clear();
+    goals_dragging_initial_pose_.clear();
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
       if (it->second->isSelected() && it->second->isVisible())
@@ -544,7 +553,7 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
         pose(0,3) = it->second->imarker->getPosition().x;
         pose(1,3) = it->second->imarker->getPosition().y;
         pose(2,3) = it->second->imarker->getPosition().z;
-        goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second->imarker->getName(), pose));
+        goals_dragging_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second->imarker->getName(), pose));
 
         if (it->second->imarker->getName() == feedback.marker_name)
           initial_pose_eigen = pose;
@@ -578,7 +587,7 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
       {
         visualization_msgs::InteractiveMarkerPose impose;
 
-        Eigen::Affine3d newpose = initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_initial_pose_[it->second->imarker->getName()];
+        Eigen::Affine3d newpose = initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_dragging_initial_pose_[it->second->imarker->getName()];
         tf::poseEigenToMsg(newpose, impose.pose);
 
         it->second->imarker->setPose(Ogre::Vector3(impose.pose.position.x, impose.pose.position.y, impose.pose.position.z),
@@ -611,14 +620,14 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
 
   const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[goal_name]->imarker;
 
-  geometry_msgs::Pose current_pose;
-  current_pose.position.x = imarker->getPosition().x;
-  current_pose.position.y = imarker->getPosition().y;
-  current_pose.position.z = imarker->getPosition().z;
-  current_pose.orientation.x = imarker->getOrientation().x;
-  current_pose.orientation.y = imarker->getOrientation().y;
-  current_pose.orientation.z = imarker->getOrientation().z;
-  current_pose.orientation.w = imarker->getOrientation().w;
+  geometry_msgs::Pose current_pose_msg;
+  current_pose_msg.position.x = imarker->getPosition().x;
+  current_pose_msg.position.y = imarker->getPosition().y;
+  current_pose_msg.position.z = imarker->getPosition().z;
+  current_pose_msg.orientation.x = imarker->getOrientation().x;
+  current_pose_msg.orientation.y = imarker->getOrientation().y;
+  current_pose_msg.orientation.z = imarker->getOrientation().z;
+  current_pose_msg.orientation.w = imarker->getOrientation().w;
 
   // Call to IK
   setStatusFromBackground(STATUS_INFO, "Computing inverse kinematics...");
@@ -627,7 +636,7 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
   static const float ik_timeout = 0.2;
   bool feasible = robot_interaction_->updateState(ks,
                                                   robot_interaction_->getActiveEndEffectors()[0],
-                                                  current_pose, ik_attempts, ik_timeout);
+                                                  current_pose_msg, ik_attempts, ik_timeout);
   if (feasible)
   {
     setStatusFromBackground(STATUS_INFO, "Updating state...");
@@ -660,8 +669,8 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
   const robot_interaction::RobotInteraction::EndEffector &eef = robot_interaction_->getActiveEndEffectors()[0];
 
   const boost::shared_ptr<rviz::InteractiveMarker> &im = goal_poses_[goal_name]->imarker;
-  Eigen::Affine3d marker_pose_eigen = Eigen::Translation3d(im->getPosition().x, im->getPosition().y, im->getPosition().z) *
-    Eigen::Quaterniond(im->getOrientation().w, im->getOrientation().x, im->getOrientation().y, im->getOrientation().z);
+  Eigen::Affine3d marker_pose_eigen;
+  goal_poses_[goal_name]->getPose(marker_pose_eigen);
 
   robot_state::RobotState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
   ks.updateStateWithLinkAt(eef.parent_link, marker_pose_eigen);
@@ -671,6 +680,11 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
   {
     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
                                                   GripperMarker::IN_COLLISION));
+  }
+  else
+  {
+    JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
+                                                      GripperMarker::NOT_TESTED));
   }
 }
 
@@ -1080,4 +1094,22 @@ void MainWindow::updateMarkerState(GripperMarkerPtr marker, const GripperMarker:
   marker->setState(state);
 }
 
+void MainWindow::goalOffsetChanged()
+{
+  goal_offset_.setIdentity();
+  goal_offset_ = Eigen::AngleAxisd(ui_.goal_offset_roll->value() * boost::math::constants::pi<double>() / 180.0, Eigen::Vector3d::UnitX()) *
+      Eigen::AngleAxisd(ui_.goal_offset_pitch->value() * boost::math::constants::pi<double>() / 180.0, Eigen::Vector3d::UnitY()) *
+      Eigen::AngleAxisd(ui_.goal_offset_yaw->value() * boost::math::constants::pi<double>() / 180.0, Eigen::Vector3d::UnitZ());
+
+  if ( ! robot_interaction_->getActiveEndEffectors().empty() )
+  {
+    Eigen::Affine3d current_pose;
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+    {
+      current_pose = goals_initial_pose_[it->first] * goal_offset_;
+      it->second->setPose(current_pose);
+    }
+  }
 }
+
+} //namespace

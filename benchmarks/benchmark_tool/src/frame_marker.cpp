@@ -162,6 +162,13 @@ void FrameMarker::getPose(Eigen::Affine3d &pose)
                                        imarker->getPosition().z);
 }
 
+void FrameMarker::setPose(Eigen::Affine3d &pose)
+{
+  Eigen::Quaterniond q(pose.rotation());
+  imarker->setPose(Ogre::Vector3(pose.translation().x(), pose.translation().y(), pose.translation().z()),
+                   Ogre::Quaternion(q.w(), q.x(), q.y(), q.z()), "");
+}
+
 void FrameMarker::setColor(float r, float g, float b, float a)
 {
   //Update marker color
@@ -316,7 +323,8 @@ GripperMarker::GripperMarker(const robot_state::RobotState& robot_state, Ogre::S
                              const GripperMarkerState &state, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
                              FrameMarker(parent_node, context, name, frame_id, pose, scale, stateToColor(state), is_selected, visible_x, visible_y, visible_z),
                              state_(state),
-                             eef_(eef)
+                             eef_(eef),
+                             display_gripper_mesh_(false)
 {
   robot_state_ = &robot_state;
 }
