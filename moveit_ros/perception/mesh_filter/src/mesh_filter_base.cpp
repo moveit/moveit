@@ -42,6 +42,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <Eigen/Eigen>
 #include <stdexcept>
+#include <sstream>
 #include <sensor_msgs/image_encodings.h>
 
 #include <ros/console.h>
@@ -124,7 +125,10 @@ mesh_filter::MeshFilterBase::~MeshFilterBase ()
     unique_lock<mutex> lock (jobs_mutex_);
     stop_ = true;
     while (!jobs_queue_.empty())
+    {
+      jobs_queue_.front ()->cancel ();
       jobs_queue_.pop();
+    }
   }
   jobs_condition_.notify_one ();
   filter_thread_.join();
@@ -259,19 +263,27 @@ void mesh_filter::MeshFilterBase::run (const string& render_vertex_shader, const
   deInitialize ();
 }
 
-void mesh_filter::MeshFilterBase::filter (const float* sensor_data, bool wait) const
-{  
-  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&MeshFilterBase::doFilter, this, sensor_data)));
+void mesh_filter::MeshFilterBase::filter (const void* sensor_data, unsigned type, bool wait) const
+{
+  if (type != GL_FLOAT && type != GL_UNSIGNED_SHORT)
+  {
+    stringstream msg;
+    msg << "unknown type \"" << type << "\". Allowed values are GL_FLOAT or GL_UNSIGNED_SHORT.";
+    throw std::runtime_error (msg.str ());
+  }
+    
+  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&MeshFilterBase::doFilter, this, sensor_data, type)));
   addJob(job);
   if (wait)
     job->wait ();
 }
 
-void mesh_filter::MeshFilterBase::doFilter (const float* sensor_data) const
+void mesh_filter::MeshFilterBase::doFilter (const void* sensor_data, const int encoding) const
 {
   mesh_renderer_->begin ();
   sensor_parameters_->setRenderParameters (*mesh_renderer_);
   
+  glEnable (GL_TEXTURE_2D);
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_CULL_FACE);
   glCullFace (GL_FRONT);
@@ -293,6 +305,7 @@ void mesh_filter::MeshFilterBase::doFilter (const float* sensor_data) const
   //depth_filter_.setCameraParameters (fx, fy, cx, cy);
   depth_filter_->begin ();
   sensor_parameters_->setFilterParameters (*depth_filter_);
+  glEnable (GL_TEXTURE_2D);
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_CULL_FACE);
   glCullFace (GL_BACK);
@@ -310,9 +323,18 @@ void mesh_filter::MeshFilterBase::doFilter (const float* sensor_data) const
   glBindTexture ( GL_TEXTURE_2D, sensor_depth_texture_ );
 
   float scale = 1.0 / (sensor_parameters_->getFarClippingPlaneDistance () - sensor_parameters_->getNearClippingPlaneDistance ());
-  glPixelTransferf (GL_DEPTH_SCALE, scale);
+  
+  if (encoding == GL_UNSIGNED_SHORT)
+    // unsigned shorts shorts will be mapped to the range 0-1 during transfer. Afterwards we can apply another scale + offset to
+    // map the values between near and far clipping plane to 0 - 1. -> scale = (65535 * depth - near ) / (far - near)
+    // we have: [0 - 65535] -> [0 - 1]
+    // we want: [near - far] -> [0 - 1]
+    glPixelTransferf (GL_DEPTH_SCALE, scale * 65.535);
+  else
+    glPixelTransferf (GL_DEPTH_SCALE, scale);
   glPixelTransferf (GL_DEPTH_BIAS, -scale * sensor_parameters_->getNearClippingPlaneDistance ());
-  glTexImage2D ( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sensor_parameters_->getWidth (), sensor_parameters_->getHeight (), 0, GL_DEPTH_COMPONENT, GL_FLOAT, sensor_data);
+  
+  glTexImage2D ( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sensor_parameters_->getWidth (), sensor_parameters_->getHeight (), 0, GL_DEPTH_COMPONENT, encoding, sensor_data);
   glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -325,9 +347,7 @@ void mesh_filter::MeshFilterBase::doFilter (const float* sensor_data) const
   // bind labels
   glActiveTexture (GL_TEXTURE4);
   glBindTexture (GL_TEXTURE_2D, color_texture);
-
   glCallList (canvas_);
-  glDisable ( GL_TEXTURE_2D );
   depth_filter_->end ();
 }
 

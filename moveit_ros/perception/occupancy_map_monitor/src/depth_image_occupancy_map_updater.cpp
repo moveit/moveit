@@ -36,7 +36,9 @@
 
 #include <moveit/occupancy_map_monitor/depth_image_occupancy_map_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
+#include <sensor_msgs/image_encodings.h>
 #include <XmlRpcException.h>
+#include <stdint.h>
 
 namespace occupancy_map_monitor
 {
@@ -172,6 +174,7 @@ bool host_is_big_endian(void)
   return bint.c[0] == 1; 
 }
 }
+
 static const bool HOST_IS_BIG_ENDIAN = host_is_big_endian();
 
 void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg)
@@ -206,42 +209,23 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   
   if (!updateTransformCache(depth_msg->header.frame_id, depth_msg->header.stamp))
     ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
-
+  
   if (depth_msg->is_bigendian && !HOST_IS_BIG_ENDIAN)
     ROS_ERROR_THROTTLE(1, "edian problem: received image data does not match host");
-
+  
   const int w = depth_msg->width;
   const int h = depth_msg->height;
-  const float *input_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
   
   // call the mesh filter
   mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters();
   params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(w, h);
-  mesh_filter_->filter(input_row);
   
-  // allocate memory if needed
-  std::size_t img_size = h * w;
-  if (filtered_data_.size() < img_size)
-    filtered_data_.resize(img_size);
-  
-  mesh_filter_->getFilteredDepth(&filtered_data_[0]);
-
-  if (debug_info_)
-  {
-    sensor_msgs::Image debug_msg;
-    debug_msg.header = depth_msg->header;
-    debug_msg.height = depth_msg->height;
-    debug_msg.width = depth_msg->width;
-    debug_msg.encoding = depth_msg->encoding;
-    debug_msg.is_bigendian = depth_msg->is_bigendian;
-    debug_msg.step = depth_msg->step;
-    debug_msg.data.resize(depth_msg->data.size());
-    mesh_filter_->getModelDepth(reinterpret_cast<float*>(&debug_msg.data[0]));
-    pub_model_depth_image_.publish(debug_msg, *info_msg);
-    memcpy(&debug_msg.data[0], &filtered_data_[0], sizeof(float) * img_size);
-    pub_filtered_depth_image_.publish(debug_msg, *info_msg);
-  }
+  const bool is_u_short = depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1;
+  if (is_u_short)
+    mesh_filter_->filter(&depth_msg->data[0], GL_UNSIGNED_SHORT);
+  else
+    mesh_filter_->filter(&depth_msg->data[0], GL_FLOAT);
   
   // Use correct principal point from calibration
   const double px = info_msg->K[2];
@@ -249,7 +233,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   
   const double inv_fx = 1.0 / info_msg->K[0];
   const double inv_fy = 1.0 / info_msg->K[4];
-    
+  
   // Pre-compute some constants
   if (x_cache_.size() < w)
     x_cache_.resize(w);
@@ -261,26 +245,90 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   
   for (int y = 0; y < h; ++y)
     y_cache_[y] = (y - py) * inv_fy;
-
+  
   octomap::point3d sensor_origin(map_H_sensor.getOrigin().getX(), map_H_sensor.getOrigin().getY(), map_H_sensor.getOrigin().getZ());
   
   OccMapTreePtr tree = monitor_->getOcTreePtr();
   octomap::KeySet free_cells, occupied_cells, model_cells;
+  
+  // allocate memory if needed
+  std::size_t img_size = h * w;
+  if (filtered_data_.size() < img_size)
+    filtered_data_.resize(img_size);
   const float* filtered_row = reinterpret_cast<const float*>(&filtered_data_[0]);
-
+  
+  mesh_filter_->getFilteredDepth(&filtered_data_[0]);
+  
+  if (debug_info_)
+  {
+    sensor_msgs::Image debug_msg;
+    debug_msg.header = depth_msg->header;
+    debug_msg.height = depth_msg->height;
+    debug_msg.width = depth_msg->width;
+    debug_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+    debug_msg.is_bigendian = depth_msg->is_bigendian;
+    debug_msg.step = depth_msg->step;
+    debug_msg.data.resize(img_size * sizeof(float));
+    mesh_filter_->getModelDepth(reinterpret_cast<float*>(&debug_msg.data[0]));
+    pub_model_depth_image_.publish(debug_msg, *info_msg);
+    memcpy(&debug_msg.data[0], &filtered_data_[0], sizeof(float) * img_size);
+    pub_filtered_depth_image_.publish(debug_msg, *info_msg);
+  }
+  
   tree->lockRead();
   
   try
   {
-    for (int y = 0; y < h ; ++y, filtered_row += w, input_row += w)
-      if (y_cache_[y] == y_cache_[y]) // if not NaN
-        for (int x = 0; x < w; ++x)
-        {
-          float zz = filtered_row[x]; 
-          float zz0 = input_row[x];
-          if (zz0 == zz0 && zz == zz) // check for NaN
+    if (is_u_short)
+    {
+      const uint16_t *input_row = reinterpret_cast<const uint16_t*>(&depth_msg->data[0]);
+      
+      for (int y = 0; y < h ; ++y, filtered_row += w, input_row += w)
+	if (y_cache_[y] == y_cache_[y]) // if not NaN
+	  for (int x = 0; x < w; ++x)
           {
-            if (zz == 0.0)
+            float zz = filtered_row[x];
+            uint16_t zz0 = input_row[x];
+            
+            if (zz0 != 0)
+            {
+              if (zz == 0.0)
+              {
+                float zz1 = (float)zz0 * 1e-3; // scale from mm to m
+                float yy = y_cache_[y] * zz1;
+                float xx = x_cache_[x] * zz1;
+                /* transform to map frame */
+                tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz1);
+                // add to the list of model cells
+                model_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+              }
+              else
+              {
+                if (zz == zz)
+                {
+                  float yy = y_cache_[y] * zz;
+                  float xx = x_cache_[x] * zz;
+                  /* transform to map frame */
+                  tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
+                  
+                  // add to the list of occupied cells
+                  occupied_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+                }
+              }
+            }
+          }
+    }
+    else
+    {
+      const float *input_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
+      
+      for (int y = 0; y < h ; ++y, filtered_row += w, input_row += w)
+	if (y_cache_[y] == y_cache_[y]) // if not NaN
+	  for (int x = 0; x < w; ++x)
+          {
+            float zz = filtered_row[x];
+            float zz0 = input_row[x];
+            if (zz0 == zz0 && zz == zz) // check for NaN
             {
               float yy = y_cache_[y] * zz0;
               float xx = x_cache_[x] * zz0;
@@ -288,30 +336,22 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
               {
                 /* transform to map frame */
                 tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz0);
-                // add to the list of model cells
-                model_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
-              }
-            }
-            else
-            { 
-              float yy = y_cache_[y] * zz;
-              float xx = x_cache_[x] * zz;
-              if (xx == xx)
-              {
-                /* transform to map frame */
-                tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
-                // add to the list of occupied cells
-                occupied_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+                if (zz == 0.0)
+                  // add to the list of model cells
+                  model_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+                else
+                  // add to the list of occupied cells
+                  occupied_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
               }
             }
           }
-        }
+    }
     
     /* compute the free cells along each ray that ends at an occupied cell */
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
       if (tree->computeRayKeys(sensor_origin, tree->keyToCoord(*it), key_ray_))
         free_cells.insert(key_ray_.begin(), key_ray_.end());
-
+    
     /* compute the free cells along each ray that ends at a model cell */
     for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
       if (tree->computeRayKeys(sensor_origin, tree->keyToCoord(*it), key_ray_))
@@ -322,9 +362,9 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     tree->unlockRead();
     return;
   }
-
+  
   tree->unlockRead();
-
+  
   /* cells that overlap with the model are not occupied */
   for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
     occupied_cells.erase(*it);
@@ -334,7 +374,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     free_cells.erase(*it);
   
   tree->lockWrite();
-
+  
   try
   {    
     /* mark free cells only if not seen occupied in this cloud */
@@ -344,7 +384,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     /* now mark all occupied cells */
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
       tree->updateNode(*it, true);
-
+    
     // set the logodds to the minimum for the cells that are part of the model
     const float lg = tree->getClampingThresMinLog() - tree->getClampingThresMaxLog();
     for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
