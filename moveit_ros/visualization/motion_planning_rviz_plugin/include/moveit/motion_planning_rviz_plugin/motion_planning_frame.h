@@ -226,6 +226,8 @@ private:
   
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
   long unsigned int known_collision_objects_version_;
+  bool first_time_;
+  
 };
 
 }

@@ -50,7 +50,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   QWidget(parent),
   planning_display_(pdisplay),
   context_(context),
-  ui_(new Ui::MotionPlanningUI())
+  ui_(new Ui::MotionPlanningUI()),
+  first_time_(true)
 {
   // set up the GUI
   ui_->setupUi(this);
@@ -171,12 +172,13 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       
       if (move_group_ && move_group_->getName() == group)
         return;
+      ROS_INFO("Constructing new MoveGroup connection for group '%s'", group.c_str());
       move_group_interface::MoveGroup::Options opt(group);
       opt.kinematic_model_ = kmodel;
       opt.robot_description_.clear();
       try
       {
-        move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(15, 0)));
+        move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(30, 0)));
         move_group_construction_time_ = ros::WallTime::now();
       }
       catch(std::runtime_error &ex)
@@ -191,6 +193,17 @@ void MotionPlanningFrame::changePlanningGroupHelper()
         if (move_group_->getInterfaceDescription(desc))
           planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
         planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this));
+
+        if (first_time_)
+        {
+          first_time_ = false;
+          const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+          if (ps)
+          {
+            planning_display_->setQueryStartState(ps->getCurrentState());
+            planning_display_->setQueryGoalState(ps->getCurrentState());
+          }
+        }
       }
     }
   } 

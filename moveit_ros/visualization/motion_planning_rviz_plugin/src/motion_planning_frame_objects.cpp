@@ -77,6 +77,9 @@ void MotionPlanningFrame::clearSceneButtonClicked()
   {
     ps->getWorldNonConst()->clearObjects();
     ps->getCurrentStateNonConst().clearAttachedBodies();
+    moveit_msgs::PlanningScene msg;
+    ps->getPlanningSceneMsg(msg);
+    planning_scene_publisher_.publish(msg);
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
   }
