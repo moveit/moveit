@@ -74,7 +74,7 @@ bool ReachableAndValidPoseFilter::isStateCollisionFree(const ManipulationPlan *m
 bool ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const
 {
   tf::poseMsgToEigen(plan->goal_pose_.pose, plan->transformed_goal_pose_);
-  planning_scene_->getTransforms()->transformPose(token_state, plan->goal_pose_.header.frame_id, plan->transformed_goal_pose_, plan->transformed_goal_pose_);
+  planning_scene_->transformPose(token_state, plan->goal_pose_.header.frame_id, plan->transformed_goal_pose_, plan->transformed_goal_pose_);
   token_state.updateStateWithLinkAt(plan->shared_data_->ik_link_name_, plan->transformed_goal_pose_);
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
@@ -89,6 +89,15 @@ bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) cons
   robot_state::RobotStatePtr token_state(new robot_state::RobotState(planning_scene_->getCurrentState()));
   if (isEndEffectorFree(plan, *token_state))
   {
+    // update the goal pose message if anything has changed; this is because the name of the frame in the input goal pose
+    // can be that of objects in the collision world but most components are unaware of those transforms,
+    // so we convert to a frame that is certainly known 
+    if (planning_scene_->getPlanningFrame() != plan->goal_pose_.header.frame_id)
+    {
+      tf::poseEigenToMsg(plan->transformed_goal_pose_, plan->goal_pose_.pose);
+      plan->goal_pose_.header.frame_id = planning_scene_->getPlanningFrame();
+    }
+
     // convert the pose we want to reach to a set of constraints
     plan->goal_constraints_ = kinematic_constraints::constructGoalConstraints(plan->shared_data_->ik_link_name_, plan->goal_pose_);
     
