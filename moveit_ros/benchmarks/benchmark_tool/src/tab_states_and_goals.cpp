@@ -894,7 +894,10 @@ void MainWindow::runBenchmarkOKButtonClicked(void)
                         ros::Time::now() << std::endl;
     outfile << "start=" << run_benchmark_ui_.benchmark_output_folder_text->text().toStdString() << std::endl;
     outfile << "query=" << std::endl;
-    outfile << "goal=" << ui_.load_poses_filter_text->text().toStdString() << std::endl << std::endl;
+    outfile << "goal=" << ui_.load_poses_filter_text->text().toStdString() << std::endl;
+    outfile << "goal_offset_roll=" << ui_.goal_offset_roll->value() << std::endl;
+    outfile << "goal_offset_pitch=" << ui_.goal_offset_pitch->value() << std::endl;
+    outfile << "goal_offset_yaw=" << ui_.goal_offset_yaw->value() << std::endl << std::endl;
 
     //TODO: Let the user select the planners
     outfile << "[plugin]" << std::endl;

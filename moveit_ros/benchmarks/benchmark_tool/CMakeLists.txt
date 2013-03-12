@@ -2,6 +2,7 @@ qt4_wrap_cpp(MOC_FILES include/main_window.h include/trajectory.h)
 qt4_wrap_ui(UIC_FILES
   src/ui/main_window.ui
   src/ui/run_benchmark_dialog.ui
+  src/ui/robot_loader.ui
 )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
