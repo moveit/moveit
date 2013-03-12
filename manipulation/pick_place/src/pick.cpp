@@ -169,6 +169,9 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     p->approach_ = g.approach;
     p->retreat_ = g.retreat;
     p->goal_pose_ = g.grasp_pose;
+    // if no frame of reference was specified, assume the transform to be in the reference frame of the object
+    if (p->goal_pose_.header.frame_id.empty())
+      p->goal_pose_.header.frame_id = goal.target_name;
     p->approach_posture_ = g.pre_grasp_posture;
     p->retreat_posture_ = g.grasp_posture;
     pipeline_.push(p);
