@@ -62,6 +62,9 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   QVariant previous_database_names = settings_->value("database_name", QStringList());
   ui_.db_combo->addItems(previous_database_names.toStringList());
 
+  robot_loader_dialog_ = new QDialog(0,0);
+  load_robot_ui_.setupUi(robot_loader_dialog_);
+
   //Rviz render panel
   render_panel_ = new rviz::RenderPanel();
   ui_.render_widget->addWidget(render_panel_);
@@ -211,9 +214,17 @@ void MainWindow::openActionTriggered(bool)
 
 void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &srdf_path)
 {
+  load_robot_ui_.status_label->setText("");
+  load_robot_ui_.load_progress_bar->setValue(0);
+
+  robot_loader_dialog_->show();
+
+  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+
   //Load urdf
   boost::filesystem::path boost_urdf_path(urdf_path);
-  setStatus(STATUS_INFO, QString::fromStdString("Loading urdf " + boost_urdf_path.string()));
+  load_robot_ui_.status_label->setText(QString::fromStdString("Loading urdf " + boost_urdf_path.string()));
+  load_robot_ui_.load_progress_bar->setValue(10);
   if (boost::filesystem::exists(boost_urdf_path))
   {
     std::ifstream urdf_input_stream(boost_urdf_path.string().c_str());
@@ -228,7 +239,8 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
 
   //Load srdf
   boost::filesystem::path boost_srdf_path(srdf_path);
-  setStatus(STATUS_INFO, QString::fromStdString("Loading srdf " + boost_srdf_path.string()));
+  load_robot_ui_.status_label->setText(QString::fromStdString("Loading srdf " + boost_srdf_path.string()));
+  load_robot_ui_.load_progress_bar->setValue(20);
   if (boost::filesystem::exists(boost_srdf_path))
   {
     std::ifstream srdf_input_stream(boost_srdf_path.string().c_str());
@@ -244,7 +256,8 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
   //Load kinematics.yaml, joint_limits.yaml and ompl_planning.yaml
   //TODO: Can we assume kinematics.yaml to be in the same folder as the srdf?
   boost::filesystem::path kinematics_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "kinematics.yaml");
-  setStatus(STATUS_INFO, QString::fromStdString("Loading " + kinematics_file.string()));
+  load_robot_ui_.status_label->setText(QString::fromStdString("Loading " + kinematics_file.string()));
+  load_robot_ui_.load_progress_bar->setValue(30);
   if (boost::filesystem::exists( kinematics_file ) && boost::filesystem::is_regular_file( kinematics_file ))
   {
     if (system(("rosparam load " + kinematics_file.string()).c_str()) < 0)
@@ -254,7 +267,8 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
   }
 
   boost::filesystem::path joint_limits_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "joint_limits.yaml");
-  setStatus(STATUS_INFO, QString::fromStdString("Loading " + joint_limits_file.string()));
+  load_robot_ui_.status_label->setText(QString::fromStdString("Loading " + joint_limits_file.string()));
+  load_robot_ui_.load_progress_bar->setValue(40);
   if (boost::filesystem::exists( joint_limits_file ) && boost::filesystem::is_regular_file( joint_limits_file ))
   {
     if (system(("rosparam load " + joint_limits_file.string()).c_str()) < 0)
@@ -264,7 +278,8 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
   }
 
   boost::filesystem::path ompl_planning_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "ompl_planning.yaml");
-  setStatus(STATUS_INFO, QString::fromStdString("Loading " + ompl_planning_file.string()));
+  load_robot_ui_.status_label->setText(QString::fromStdString("Loading " + ompl_planning_file.string()));
+  load_robot_ui_.load_progress_bar->setValue(50);
   if (boost::filesystem::exists( ompl_planning_file ) && boost::filesystem::is_regular_file( ompl_planning_file ))
   {
     if (system(("rosparam load " + ompl_planning_file.string()).c_str()) < 0)
@@ -273,7 +288,8 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     }
   }
 
-  setStatus(STATUS_INFO, QString("Resetting scene display... "));
+  load_robot_ui_.status_label->setText(QString("Resetting scene display... "));
+  load_robot_ui_.load_progress_bar->setValue(60);
   std::string old_scene_name;
   if (scene_display_->getPlanningSceneRO())
     old_scene_name = scene_display_->getPlanningSceneRO()->getName();
@@ -282,7 +298,8 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
   if (configure())
   {
     //Reload the scene geometry if one scene was already loaded
-    setStatus(STATUS_INFO, QString("Reloading scene... "));
+    load_robot_ui_.status_label->setText(QString("Reloading scene... "));
+    load_robot_ui_.load_progress_bar->setValue(90);
     QList<QListWidgetItem *> found_items = ui_.planning_scene_list->findItems(QString::fromStdString(old_scene_name), Qt::MatchExactly);
     if (found_items.size() > 0)
     {
@@ -291,13 +308,18 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     }
 
     //Reload the goals
-    setStatus(STATUS_INFO, QString("Reloading goals... "));
+    load_robot_ui_.status_label->setText(QString("Reloading goals... "));
+    load_robot_ui_.load_progress_bar->setValue(95);
     if (ui_.goal_poses_list->count() > 0)
     {
       loadGoalsFromDBButtonClicked();
     }
-    setStatus(STATUS_INFO, QString(""));
+    load_robot_ui_.status_label->setText(QString(""));
+    load_robot_ui_.load_progress_bar->setValue(100);
   }
+  robot_loader_dialog_->close();
+  load_robot_ui_.load_progress_bar->setValue(0);
+  QApplication::restoreOverrideCursor();
 }
 
 bool MainWindow::configure()
@@ -371,19 +393,22 @@ bool MainWindow::configure()
   ui_.trajectory_execute_button->setEnabled(true);
 
   //Set the fixed frame to the model frame
-  setStatus(STATUS_INFO, QString("Setting fixed frame... "));
+  load_robot_ui_.status_label->setText(QString("Setting fixed frame..."));
+  load_robot_ui_.load_progress_bar->setValue(65);
   visualization_manager_->setFixedFrame(QString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame().c_str()));
   int_marker_display_->setFixedFrame(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame()));
 
   //robot interaction
-  setStatus(STATUS_INFO, QString("Resetting robot interaction... "));
+  load_robot_ui_.status_label->setText(QString("Resetting robot interaction..."));
+  load_robot_ui_.load_progress_bar->setValue(75);
   robot_interaction_.reset(new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getRobotModel()));
 
   //Configure robot-dependent ui elements
   ui_.load_states_filter_text->setText(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() + ".*"));
 
   //Get the list of planning groups and fill in the combo box
-  setStatus(STATUS_INFO, QString("Updating planning groups... "));
+  load_robot_ui_.status_label->setText(QString("Updating planning groups..."));
+  load_robot_ui_.load_progress_bar->setValue(85);
   std::vector<std::string> group_names = scene_display_->getPlanningSceneMonitor()->getRobotModel()->getJointModelGroupNames();
   ui_.planning_group_combo->clear();
   for (std::size_t i = 0; i < group_names.size(); i++)
@@ -393,8 +418,6 @@ bool MainWindow::configure()
 
   if (group_names.size() > 0)
     planningGroupChanged(QString(group_names[0].c_str()));
-
-  setStatus(STATUS_INFO, QString(""));
 
   return true;
 }
