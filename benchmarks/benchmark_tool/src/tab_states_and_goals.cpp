@@ -615,6 +615,9 @@ void MainWindow::checkGoalsInCollision(void)
 
 void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable)
 {
+  if ( goal_poses_.find(goal_name) == goal_poses_.end())
+    return;
+
   if ( ! goal_poses_[goal_name]->isVisible())
     return;
 
@@ -662,6 +665,9 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
 
 void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
 {
+  if ( goal_poses_.find(goal_name) == goal_poses_.end())
+    return;
+
   // Check if the end-effector is in collision at the current pose
   if ( ! goal_poses_[goal_name]->isVisible())
     return;
@@ -1089,7 +1095,8 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
 
 void MainWindow::updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state)
 {
-  goal_poses_[name]->setState(state);
+  if ( goal_poses_.find(name) != goal_poses_.end())
+    goal_poses_[name]->setState(state);
 }
 
 void MainWindow::updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state)
