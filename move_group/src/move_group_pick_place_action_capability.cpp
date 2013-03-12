@@ -402,6 +402,39 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
   {
     //    const object_recognition_msgs::ObjectType &ot = lscene->getObjectType(goal->target_name);
     // need to call the grasp planner here
+  }
+
+  if (goal.possible_grasps.empty())
+  {
+    // add a number of default grasp points
+    // \todo add more!
+    manipulation_msgs::Grasp g;
+    g.grasp_pose.header.frame_id = goal.target_name;
+    g.grasp_pose.pose.position.x = 0.0;
+    g.grasp_pose.pose.position.y = 0.0;
+    g.grasp_pose.pose.position.z = 0.0;
+    g.grasp_pose.pose.orientation.x = 0.0;
+    g.grasp_pose.pose.orientation.y = 0.0;
+    g.grasp_pose.pose.orientation.z = 0.0;
+    g.grasp_pose.pose.orientation.w = 1.0;
     
+    g.approach.direction.vector.x = 1.0;
+    g.approach.min_distance = 0.1;
+    g.approach.desired_distance = 0.3;
+    
+    g.retreat.direction.vector.z = 1.0;
+    g.retreat.direction.header.frame_id = lscene->getPlanningFrame();
+    g.retreat.min_distance = 0.1;
+    g.retreat.desired_distance = 0.3;
+    
+    if (lscene->getRobotModel()->hasEndEffector(goal.end_effector))
+    {
+      g.pre_grasp_posture.name = lscene->getRobotModel()->getEndEffector(goal.end_effector)->getJointModelNames();
+      g.pre_grasp_posture.position.resize(g.pre_grasp_posture.name.size(), std::numeric_limits<double>::max());
+      
+      g.grasp_posture.name = g.pre_grasp_posture.name;
+      g.grasp_posture.position.resize(g.grasp_posture.name.size(), -std::numeric_limits<double>::max());
+    }
+    goal.possible_grasps.push_back(g);
   }
 }
