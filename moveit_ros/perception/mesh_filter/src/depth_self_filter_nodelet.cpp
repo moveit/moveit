@@ -40,7 +40,8 @@
 #include <ros/ros.h>
 #include <image_transport/subscriber_filter.h>
 #include <sensor_msgs/image_encodings.h>
-#include <moveit/planning_models_loader/kinematic_model_loader.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
 #include <eigen3/Eigen/Eigen>
 #include <cv_bridge/cv_bridge.h>
 
@@ -51,12 +52,6 @@ using namespace boost;
 
 mesh_filter::DepthSelfFiltering::~DepthSelfFiltering ()
 {
-  stop_ = true;
-  // make sure the thread doesn't miss the notification!
-  filter_mutex_.lock ();
-  filter_condition_.notify_one();
-  filter_mutex_.unlock ();
-  filter_thread_.join ();
 }
 
 void mesh_filter::DepthSelfFiltering::onInit()
@@ -70,12 +65,12 @@ void mesh_filter::DepthSelfFiltering::onInit()
   model_label_transport_.reset(new image_transport::ImageTransport(nh));
 
   // Read parameters
-  private_nh.param("queue_size", queue_size_, 5);
+  private_nh.param("queue_size", queue_size_, 1);
   private_nh.param("near_clipping_plane_distance", near_clipping_plane_distance_, 0.4);
   private_nh.param("far_clipping_plane_distance", far_clipping_plane_distance_, 5.0);;
   private_nh.param("shadow_threshold", shadow_threshold_, 0.3);
-  private_nh.param("padding_scale", padding_scale_, 0.0035);
-  private_nh.param("padding_offset", padding_offset_, 0.0);
+  private_nh.param("padding_scale", padding_scale_, 1.0);
+  private_nh.param("padding_offset", padding_offset_, 0.005);
   double tf_update_rate = 30;
   private_nh.param("tf_update_rate", tf_update_rate, 30.0);
   transform_provider_.setUpdateInterval (long(1000000.0 / tf_update_rate));
@@ -84,117 +79,98 @@ void mesh_filter::DepthSelfFiltering::onInit()
   ros::SubscriberStatusCallback rssc = bind(&DepthSelfFiltering::connectCb, this);
 
   lock_guard<mutex> lock(connect_mutex_);
-  pub_filtered_depth_image_ = filtered_depth_transport_->advertiseCamera("/filtered/depth", 10, itssc, itssc, rssc, rssc);
-  pub_filtered_label_image_ = filtered_label_transport_->advertiseCamera("/filtered/labels", 10, itssc, itssc, rssc, rssc);
-  pub_model_depth_image_ = model_depth_transport_->advertiseCamera("/model/depth", 10, itssc, itssc, rssc, rssc);
-  pub_model_label_image_ = model_depth_transport_->advertiseCamera("/model/label", 10, itssc, itssc, rssc, rssc);
+  pub_filtered_depth_image_ = filtered_depth_transport_->advertiseCamera("/filtered/depth", queue_size_, itssc, itssc, rssc, rssc);
+  pub_filtered_label_image_ = filtered_label_transport_->advertiseCamera("/filtered/labels", queue_size_, itssc, itssc, rssc, rssc);
+  pub_model_depth_image_ = model_depth_transport_->advertiseCamera("/model/depth", queue_size_, itssc, itssc, rssc, rssc);
+  pub_model_label_image_ = model_depth_transport_->advertiseCamera("/model/label", queue_size_, itssc, itssc, rssc, rssc);
   
-  stop_ = false;
-  filter_thread_ = thread (&DepthSelfFiltering::filter, this);
+  filtered_depth_ptr_.reset (new cv_bridge::CvImage);
+  filtered_label_ptr_.reset (new cv_bridge::CvImage);
+  model_depth_ptr_.reset (new cv_bridge::CvImage);
+  model_label_ptr_.reset (new cv_bridge::CvImage);
+  
+  mesh_filter_.reset (new MeshFilter<StereoCameraModel>(bind(&TransformProvider::getTransform, &transform_provider_, _1, _2),
+                                                       mesh_filter::StereoCameraModel::RegisteredPSDKParams));
+  mesh_filter_->parameters ().setDepthRange (near_clipping_plane_distance_, far_clipping_plane_distance_);
+  mesh_filter_->setShadowThreshold(shadow_threshold_);
+  mesh_filter_->setPaddingOffset (padding_offset_);
+  mesh_filter_->setPaddingScale (padding_scale_);
+  // add meshesfla
+  addMeshes (*mesh_filter_);
+  transform_provider_.start ();
 }
 
 
-void mesh_filter::DepthSelfFiltering::filter ()
+void mesh_filter::DepthSelfFiltering::filter (const sensor_msgs::ImageConstPtr& depth_msg,
+                                              const sensor_msgs::CameraInfoConstPtr& info_msg)
 {
-  // create our mesh filter
-  MeshFilter<mesh_filter::StereoCameraModel> mesh_filter (bind(&TransformProvider::getTransform, &transform_provider_, _1, _2),
-                                                          mesh_filter::StereoCameraModel::RegisteredPSDKParams);
-  mesh_filter.parameters ().setDepthRange (near_clipping_plane_distance_, far_clipping_plane_distance_);
-  mesh_filter.setShadowThreshold(shadow_threshold_);
-  mesh_filter.setPaddingOffset (padding_offset_);
-  mesh_filter.setPaddingScale (padding_scale_);
-  // add meshesfla
-  addMeshes (mesh_filter);
-  transform_provider_.start ();
-  cv_bridge::CvImagePtr filtered_label_ptr (new cv_bridge::CvImage);
-  filtered_label_ptr->encoding = sensor_msgs::image_encodings::RGBA8;
+  transform_provider_.setFrame (depth_msg->header.frame_id);
+  // do filtering here
+  mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters ();
+  params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
+  params.setImageSize (depth_msg->width, depth_msg->height);
+  
+  const float* src = (const float*) &depth_msg->data[0];
+  //*
+  unsigned short* data = new unsigned short [depth_msg->width * depth_msg->height];
+  for (unsigned idx = 0; idx < depth_msg->width * depth_msg->height; ++idx)
+    data [idx] = (unsigned short)(src [idx] * 1000.0);
 
-  cv_bridge::CvImagePtr filtered_depth_ptr (new cv_bridge::CvImage);
-  filtered_depth_ptr->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-
-  cv_bridge::CvImagePtr model_depth_ptr (new cv_bridge::CvImage);
-  model_depth_ptr->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-
-  cv_bridge::CvImagePtr model_label_ptr (new cv_bridge::CvImage);
-  model_label_ptr->encoding = sensor_msgs::image_encodings::RGBA8;
-
-  while (!stop_)
+  mesh_filter_->filter (data, GL_UNSIGNED_SHORT);
+  delete[] data;
+  /*/
+  mesh_filter_->filter ((void*) &depth_msg->data[0], GL_FLOAT);
+  //*/
+  if (pub_filtered_depth_image_.getNumSubscribers() > 0)
   {
-    unique_lock<mutex> lock (filter_mutex_);
+    filtered_depth_ptr_->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+    filtered_depth_ptr_->header = depth_msg->header;
+
+    if (filtered_depth_ptr_->image.cols != depth_msg->width || filtered_depth_ptr_->image.rows != depth_msg->height)
+      filtered_depth_ptr_->image = cv::Mat (depth_msg->height, depth_msg->width, CV_32FC1);
+    mesh_filter_->getFilteredDepth ((float*)filtered_depth_ptr_->image.data);
+    pub_filtered_depth_image_.publish (filtered_depth_ptr_->toImageMsg(), info_msg);
+  }
+
+  // this is from rendering of the model
+  if (pub_model_depth_image_.getNumSubscribers() > 0)
+  {
+    model_depth_ptr_->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+    model_depth_ptr_->header = depth_msg->header;
     
-    if (!next_depth_msg_)
-      filter_condition_.wait(lock);
-    
-    if (next_depth_msg_)
-    {
-      current_depth_msg_.swap (next_depth_msg_);
-      current_info_msg_.swap (next_info_msg_);
-      next_depth_msg_.reset ();
-      next_info_msg_.reset ();
-    }
-    lock.unlock ();
-    
-    if (current_depth_msg_)
-    {
-      transform_provider_.setFrame (current_depth_msg_->header.frame_id);
-      // do filtering here
-      mesh_filter::StereoCameraModel::Parameters& params = mesh_filter.parameters ();
-      params.setCameraParameters (current_info_msg_->K[0], current_info_msg_->K[4], current_info_msg_->K[2], current_info_msg_->K[5]);
-      params.setImageSize (current_depth_msg_->width, current_depth_msg_->height);
-      mesh_filter.filter ((float*) &current_depth_msg_->data [0]);
+    if (model_depth_ptr_->image.cols != depth_msg->width || model_depth_ptr_->image.rows != depth_msg->height)
+      model_depth_ptr_->image = cv::Mat (depth_msg->height, depth_msg->width, CV_32FC1);
+    mesh_filter_->getModelDepth ((float*)model_depth_ptr_->image.data);
+    pub_model_depth_image_.publish (model_depth_ptr_->toImageMsg(), info_msg);
+  }
 
-      if (pub_filtered_depth_image_.getNumSubscribers() > 0)
-      {
-        filtered_depth_ptr->header = current_depth_msg_->header;
+  if (pub_filtered_label_image_.getNumSubscribers() > 0)
+  {
+    filtered_label_ptr_->encoding = sensor_msgs::image_encodings::RGBA8;
+    filtered_label_ptr_->header = depth_msg->header;
 
-        if (filtered_depth_ptr->image.cols != current_depth_msg_->width || filtered_depth_ptr->image.rows != current_depth_msg_->height)
-          filtered_depth_ptr->image = cv::Mat (current_depth_msg_->height, current_depth_msg_->width, CV_32FC1);
-        mesh_filter.getFilteredDepth ((float*)filtered_depth_ptr->image.data);
-        pub_filtered_depth_image_.publish (filtered_depth_ptr->toImageMsg(), current_info_msg_);
-      }
-      
-      // this is from rendering of the model
-      if (pub_model_depth_image_.getNumSubscribers() > 0)
-      {
-        model_depth_ptr->header = current_depth_msg_->header;
+    if (filtered_label_ptr_->image.cols != depth_msg->width || filtered_label_ptr_->image.rows != depth_msg->height)
+      filtered_label_ptr_->image = cv::Mat (depth_msg->height, depth_msg->width, CV_8UC4);
+    mesh_filter_->getFilteredLabels ((unsigned int*)filtered_label_ptr_->image.data);
+    pub_filtered_label_image_.publish (filtered_label_ptr_->toImageMsg(), info_msg);
+  }
 
-        if (model_depth_ptr->image.cols != current_depth_msg_->width || model_depth_ptr->image.rows != current_depth_msg_->height)
-          model_depth_ptr->image = cv::Mat (current_depth_msg_->height, current_depth_msg_->width, CV_32FC1);
-        
-        mesh_filter.getModelDepth ((float*)model_depth_ptr->image.data);
-        pub_model_depth_image_.publish (model_depth_ptr->toImageMsg(), current_info_msg_);
-      }
-      
-      if (pub_filtered_label_image_.getNumSubscribers() > 0)
-      {
-        filtered_label_ptr->header = current_depth_msg_->header;
-
-        if (filtered_label_ptr->image.cols != current_depth_msg_->width || filtered_label_ptr->image.rows != current_depth_msg_->height)
-          filtered_label_ptr->image = cv::Mat (current_depth_msg_->height, current_depth_msg_->width, CV_8UC4);
-
-        mesh_filter.getFilteredLabels ((unsigned int*)filtered_label_ptr->image.data);
-        pub_filtered_label_image_.publish (filtered_label_ptr->toImageMsg(), current_info_msg_);
-      }
-
-      if (pub_model_label_image_.getNumSubscribers() > 0)
-      {
-        model_label_ptr->header = current_depth_msg_->header;
-
-        if (model_label_ptr->image.cols != current_depth_msg_->width || model_label_ptr->image.rows != current_depth_msg_->height)
-          model_label_ptr->image = cv::Mat (current_depth_msg_->height, current_depth_msg_->width, CV_8UC4);
-
-        mesh_filter.getModelLabels ((unsigned int*)model_label_ptr->image.data);
-        pub_model_label_image_.publish (model_label_ptr->toImageMsg(), current_info_msg_);
-      }
-    }
+  if (pub_model_label_image_.getNumSubscribers() > 0)
+  {
+    model_label_ptr_->encoding = sensor_msgs::image_encodings::RGBA8;
+    model_label_ptr_->header = depth_msg->header;
+    if (model_label_ptr_->image.cols != depth_msg->width || model_label_ptr_->image.rows != depth_msg->height)
+      model_label_ptr_->image = cv::Mat (depth_msg->height, depth_msg->width, CV_8UC4);
+    mesh_filter_->getModelLabels ((unsigned int*)model_label_ptr_->image.data);
+    pub_model_label_image_.publish (model_label_ptr_->toImageMsg(), info_msg);
   }
 }
 
 void mesh_filter::DepthSelfFiltering::addMeshes (MeshFilter<StereoCameraModel>& mesh_filter)
 {
-  planning_models_loader::KinematicModelLoader kml("robot_description");
-  kinematic_model::KinematicModelConstPtr kmodel = kml.getModel();
-  const vector<kinematic_model::LinkModel*> &links = kmodel->getLinkModelsWithCollisionGeometry();
+  robot_model_loader::RDFLoader robotModelLoader("robot_description");
+  robot_model::RobotModelConstPtr robotModel = robotModelLoader.getModel();
+  const vector<robot_model::LinkModel*> &links = robotModel->getLinkModelsWithCollisionGeometry();
   for (size_t i = 0 ; i < links.size() ; ++i)
   {
     shapes::ShapeConstPtr shape = links[i]->getShape();
@@ -226,18 +202,11 @@ void mesh_filter::DepthSelfFiltering::connectCb()
 }
 
 void mesh_filter::DepthSelfFiltering::depthCb(const sensor_msgs::ImageConstPtr& depth_msg,
-                                 const sensor_msgs::CameraInfoConstPtr& info_msg)
+                                              const sensor_msgs::CameraInfoConstPtr& info_msg)
 {
-  filter_mutex_.lock();
-  if (!next_depth_msg_.get ())
-  {
-    next_depth_msg_ = depth_msg;
-    next_info_msg_ = info_msg;
-    filter_condition_.notify_one();
-  }
-  filter_mutex_.unlock ();
+  filter (depth_msg, info_msg);
 }
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_DECLARE_CLASS (mesh_filter, DepthSelfFiltering, mesh_filter::DepthSelfFiltering, nodelet::Nodelet)
-//PLUGINLIB_EXPORT_CLASS (mesh_filter::DepthSelfFiltering, nodelet::Nodelet);
+//PLUGINLIB_DECLARE_CLASS (mesh_filter, DepthSelfFiltering, mesh_filter::DepthSelfFiltering, nodelet::Nodelet)
+PLUGINLIB_EXPORT_CLASS (mesh_filter::DepthSelfFiltering, nodelet::Nodelet);
