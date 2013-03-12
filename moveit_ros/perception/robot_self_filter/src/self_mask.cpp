@@ -375,7 +375,7 @@ void robot_self_filter::SelfMask::maskAuxContainment(const pcl::PointCloud<pcl::
         //ROS_INFO("Body %d  of type %d has volume %f", j, bodies_[j].body->getType(), bodies_[j].body->computeVolume());
         if (bodies_[j].body->containsPoint(pt))
         {
-          ROS_DEBUG("Point %d in link %s", i, bodies_[j].name.c_str());
+	  //          ROS_DEBUG("Point %d in link %s", i, bodies_[j].name.c_str());
           out = INSIDE;
         }
       }
