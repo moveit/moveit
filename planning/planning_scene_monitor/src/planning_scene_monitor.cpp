@@ -891,7 +891,7 @@ void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(con
     if (all_frame_names[i] == target || kmodel->hasLinkModel(all_frame_names[i]))
       continue;
     
-    ros::Time stamp;
+    ros::Time stamp(0);
     std::string err_string;
     if (tf_->getLatestCommonTime(target, all_frame_names[i], stamp, &err_string) != tf::NO_ERROR)
     {
