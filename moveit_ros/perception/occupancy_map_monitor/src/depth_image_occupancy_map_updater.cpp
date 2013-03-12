@@ -346,11 +346,9 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
       tree->updateNode(*it, true);
 
     // set the logodds to the minimum for the cells that are part of the model
+    const float lg = tree->getClampingThresMinLog() - tree->getClampingThresMaxLog();
     for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
-      if (octomap::OcTreeNode* leaf = tree->search(*it))
-        tree->updateNode(*it, tree->getClampingThresMinLog() - leaf->getLogOdds());
-      else
-        tree->updateNode(*it, tree->getClampingThresMinLog());
+      tree->updateNode(*it, lg);
   }
   catch (...)
   {
@@ -360,6 +358,5 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   ROS_DEBUG("Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
   triggerUpdateCallback();
 }
-
 
 }
