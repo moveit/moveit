@@ -38,6 +38,7 @@
 
 #include "ui_main_window.h"
 #include "ui_run_benchmark_dialog.h"
+#include "ui_robot_loader.h"
 
 #ifndef Q_MOC_RUN
 
@@ -135,6 +136,8 @@ private:
 
   Ui::MainWindow ui_;
   Ui_BenchmarkDialog run_benchmark_ui_;
+  Ui_RobotLoader load_robot_ui_;
+  QDialog *robot_loader_dialog_;
   boost::shared_ptr<QSettings> settings_;
 
   //rviz
