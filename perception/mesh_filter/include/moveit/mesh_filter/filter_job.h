@@ -43,6 +43,9 @@
 
 namespace mesh_filter
 {
+/**
+ * \brief This class is used to execute functions within the thread that holds the OpenGL context.
+ */
 class FilterJob
 {
   public:
@@ -52,6 +55,7 @@ class FilterJob
     {}
     inline void wait () const;
     inline void execute ();
+    inline void cancel ();
   private:
     boost::function<void ()> exec_;
     bool done_;
@@ -68,11 +72,19 @@ void FilterJob::wait () const
 
 void FilterJob::execute ()
 {
-  exec_ ();
   boost::unique_lock<boost::mutex> lock (mutex_);
+  if (!done_) // not canceled !
+    exec_ ();
+
   done_ = true;
   condition_.notify_all ();
 }
 
+void FilterJob::cancel ()
+{
+  boost::unique_lock<boost::mutex> lock (mutex_);
+  done_ = true;
+  condition_.notify_all ();
+}
 }
 #endif
