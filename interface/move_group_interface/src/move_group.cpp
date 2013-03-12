@@ -223,6 +223,8 @@ public:
     
     if (!action->isServerConnected())
       throw std::runtime_error("Unable to connect to action server within allotted time");
+    else
+      ROS_INFO("Connected to '%s'", name.c_str());
   }
   
   ~MoveGroupImpl()
