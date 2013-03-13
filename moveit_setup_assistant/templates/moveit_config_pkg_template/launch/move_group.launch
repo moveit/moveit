@@ -6,8 +6,9 @@
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
-  <arg unless="$(arg debug)" name="command_args" value="" />
-  <arg     if="$(arg debug)" name="command_args" value="--debug" />
+  <arg name="info" default="$(arg debug)" />  
+  <arg unless="$(arg info)" name="command_args" value="" />
+  <arg     if="$(arg info)" name="command_args" value="--debug" />
 
   <arg name="allow_trajectory_execution" default="true"/>
   <arg name="max_safe_path_cost" default="1"/>
