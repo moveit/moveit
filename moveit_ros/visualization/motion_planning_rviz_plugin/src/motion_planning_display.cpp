@@ -1046,7 +1046,7 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &d
       std::map<std::string, double> values_to_keep;
       jsg->getVariableValues(values_to_keep);
       src_copy.setStateValues(values_to_keep);
-      
+      /*
       const std::vector<std::string> &links = jsg->getJointModelGroup()->getLinkModelNames();
       for (std::size_t i = 0 ; i < links.size() ; ++i)
       {
@@ -1068,6 +1068,7 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &d
           }
         }
       }
+      */
     }
   }
   
