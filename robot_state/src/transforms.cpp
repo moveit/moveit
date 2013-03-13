@@ -85,17 +85,12 @@ const Eigen::Affine3d& robot_state::Transforms::getTransform(const RobotState& k
   if (kstate.getRobotModel()->getModelFrame() != target_frame_)
     logError("Target frame is assumed to be '%s' but the model of the kinematic state places the robot in frame '%s'",
              target_frame_.c_str(), kstate.getRobotModel()->getModelFrame().c_str());
-  const Eigen::Affine3d *t = kstate.getFrameTransform(from_frame);
-  if (t)
-    return *t;
-  else
-    // return identity
-    return transforms_.find(target_frame_)->second;
+  return kstate.getFrameTransform(from_frame);
 }
 
 void robot_state::Transforms::transformVector3(const std::string &from_frame, const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const
 {
-  v_out = getTransform(from_frame) * v_in;
+  v_out = getTransform(from_frame).rotation() * v_in;
 }
 
 void robot_state::Transforms::transformQuaternion(const std::string &from_frame, const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const

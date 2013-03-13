@@ -215,15 +215,19 @@ public:
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
   const robot_state::TransformsPtr& getTransformsNonConst();
   
-  /** \brief Transform \e t_in from the frame \e from_frame to the planning scene frame; the result is stored in \e t_out.
-      Frames names can be those stored in robot_state::Transforms, link names, names of attached bodies or names of objects in the world. 
-      For the frames that are link names, the current state is used. */
-  void transformPose(const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const;
+  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
+      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
+  const Eigen::Affine3d& getFrameTransform(const std::string &id) const;
 
-  /** \brief Transform \e t_in from the frame \e from_frame to the planning scene frame; the result is stored in \e t_out.
-      Frames names can be those stored in robot_state::Transforms, link names, names of attached bodies or names of objects in the world.
-      For the frames that are link names, the \e state specified as input is used. */
-  void transformPose(const robot_state::RobotState &state, const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const;
+  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
+      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
+  const Eigen::Affine3d& getFrameTransform(const robot_state::RobotState &state, const std::string &id) const;
+  
+  /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached body id or a collision object */
+  bool knowsFrameTransform(const std::string &id) const;
+
+  /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached body id or a collision object */
+  bool knowsFrameTransform(const robot_state::RobotState &state, const std::string &id) const;
   
   /** \brief Get the representation of the world */
   const collision_detection::WorldConstPtr& getWorld() const
@@ -660,8 +664,6 @@ private:
   
 
 };
-
-
 
 }
 

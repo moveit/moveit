@@ -224,8 +224,8 @@ public:
   bool hasAttachedBody(const std::string &id) const;
 
   /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name or an attached body id.
-      Return NULL when no transform is available. */
-  const Eigen::Affine3d* getFrameTransform(const std::string &id) const;
+      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
+  const Eigen::Affine3d& getFrameTransform(const std::string &id) const;
   
   /** \brief Compute the axis-aligned bounding box for this particular robot state. \e aabb will have 6 values: xmin, xmax, ymin, ymax, zmin, zmax */
   void computeAABB(std::vector<double> &aabb) const;

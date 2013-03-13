@@ -598,31 +598,36 @@ void robot_state::RobotState::interpolate(const RobotState &to, const double t, 
   dest.updateLinkTransforms();
 }
 
-const Eigen::Affine3d* robot_state::RobotState::getFrameTransform(const std::string &id) const
+const Eigen::Affine3d& robot_state::RobotState::getFrameTransform(const std::string &id) const
 {
+  if (!id.empty() && id[0] == '/')
+    return getFrameTransform(id.substr(1));
+  static const Eigen::Affine3d identity_transform = Eigen::Affine3d::Identity();
   std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(id);
   if (it != link_state_map_.end())
-    return &(it->second->getGlobalLinkTransform());
+    return it->second->getGlobalLinkTransform();
   std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
   if (jt == attached_body_map_.end())
   {
     logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an attached body id).",
-             kinematic_model_->getModelFrame().c_str(), id.c_str(), id.c_str());
-    return NULL;
+             id.c_str(), kinematic_model_->getModelFrame().c_str(), id.c_str());
+    return identity_transform;
   }
   const EigenSTL::vector_Affine3d &tf = jt->second->getGlobalCollisionBodyTransforms();
   if (tf.empty())
   {
     logError("Attached body '%s' has no geometry associated to it. No transform to return.", id.c_str());
-    return NULL;
+    return identity_transform;
   }
   if (tf.size() > 1)
     logWarn("There are multiple geometries associated to attached body '%s'. Returning the transform for the first one.", id.c_str());
-  return &(tf[0]);
+  return tf[0];
 }
 
 bool robot_state::RobotState::knowsFrameTransform(const std::string &id) const
-{ 
+{   
+  if (!id.empty() && id[0] == '/')
+    return knowsFrameTransform(id.substr(1));
   if (hasLinkState(id))
     return true;
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);

@@ -237,9 +237,9 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   }
 
   joint_state_group_->setVariableValues(joint_angles);
-  const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
-  const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
-  Eigen::Affine3d transform = tip_frame->inverse()*(*base_frame);  
+  const Eigen::Affine3d &base_frame = kinematic_state_->getFrameTransform(base_name_);
+  const Eigen::Affine3d &tip_frame = kinematic_state_->getFrameTransform(tip_name_);
+  Eigen::Affine3d transform = tip_frame.inverse() * base_frame;
   wrenches.back().force.z = 1.0;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);  
@@ -289,9 +289,9 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
   std::vector<geometry_msgs::Wrench> wrenches(num_segments_);
 
   joint_state_group_->setVariableValues(joint_angles);
-  const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
-  const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
-  Eigen::Affine3d transform = tip_frame->inverse()*(*base_frame);  
+  const Eigen::Affine3d &base_frame = kinematic_state_->getFrameTransform(base_name_);
+  const Eigen::Affine3d &tip_frame = kinematic_state_->getFrameTransform(tip_name_);
+  Eigen::Affine3d transform = tip_frame.inverse()* base_frame;  
   wrenches.back().force.z = payload * gravity_;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);  
