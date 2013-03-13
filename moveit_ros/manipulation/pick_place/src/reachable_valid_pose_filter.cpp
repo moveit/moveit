@@ -74,7 +74,7 @@ bool ReachableAndValidPoseFilter::isStateCollisionFree(const ManipulationPlan *m
 bool ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const
 {
   tf::poseMsgToEigen(plan->goal_pose_.pose, plan->transformed_goal_pose_);
-  planning_scene_->transformPose(token_state, plan->goal_pose_.header.frame_id, plan->transformed_goal_pose_, plan->transformed_goal_pose_);
+  plan->transformed_goal_pose_ = planning_scene_->getFrameTransform(token_state, plan->goal_pose_.header.frame_id) * plan->transformed_goal_pose_;
   token_state.updateStateWithLinkAt(plan->shared_data_->ik_link_name_, plan->transformed_goal_pose_);
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;

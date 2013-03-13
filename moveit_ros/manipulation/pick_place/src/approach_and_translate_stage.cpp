@@ -146,10 +146,16 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
   Eigen::Vector3d approach_direction, retreat_direction;
   tf::vectorMsgToEigen(plan->approach_.direction.vector, approach_direction);
   tf::vectorMsgToEigen(plan->retreat_.direction.vector, retreat_direction);
-  
+
+  // if translation vectors are specified in the frame of the ik link name, then we assume the frame is local; otherwise, the frame is global
+  bool approach_direction_is_global_frame = plan->approach_.direction.header.frame_id != plan->shared_data_->ik_link_name_;
+  bool retreat_direction_is_global_frame = plan->retreat_.direction.header.frame_id != plan->shared_data_->ik_link_name_;
+
   // transform the input vectors in accordance to frame specified in the header; 
-  planning_scene_->getTransforms()->transformVector3(planning_scene_->getCurrentState(), plan->approach_.direction.header.frame_id, approach_direction, approach_direction);
-  planning_scene_->getTransforms()->transformVector3(planning_scene_->getCurrentState(), plan->retreat_.direction.header.frame_id, retreat_direction, retreat_direction);
+  if (approach_direction_is_global_frame)
+    approach_direction = planning_scene_->getFrameTransform(plan->approach_.direction.header.frame_id).rotation() * approach_direction;
+  if (retreat_direction_is_global_frame)
+    retreat_direction = planning_scene_->getFrameTransform(plan->retreat_.direction.header.frame_id).rotation() * retreat_direction;
   
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
   robot_state::StateValidityCallbackFn approach_validCallback = boost::bind(&isStateCollisionFree, planning_scene_.get(), 
@@ -164,7 +170,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
       std::vector<robot_state::RobotStatePtr> approach_states;
       double d_approach = first_approach_state->getJointStateGroup(plan->shared_data_->planning_group_)->
         computeCartesianPath(approach_states, plan->shared_data_->ik_link_name_,
-                             -approach_direction, false, plan->approach_.desired_distance, 
+                             -approach_direction, approach_direction_is_global_frame, plan->approach_.desired_distance, 
                              max_step_, jump_factor_, approach_validCallback);
       
       // if we were able to follow the approach direction for sufficient length, try to compute a retreat direction
@@ -190,7 +196,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           std::vector<robot_state::RobotStatePtr> retreat_states;
           double d_retreat = last_retreat_state->getJointStateGroup(plan->shared_data_->planning_group_)->
             computeCartesianPath(retreat_states, plan->shared_data_->ik_link_name_, 
-                                 retreat_direction, true, plan->retreat_.desired_distance, 
+                                 retreat_direction, retreat_direction_is_global_frame, plan->retreat_.desired_distance, 
                                  max_step_, jump_factor_, retreat_validCallback);
           
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
