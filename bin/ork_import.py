@@ -91,7 +91,7 @@ class ObjectBroadcaster:
         info = None
 
         try:
-            info = self._get_object_info(ob.type)
+            info = self._get_object_info(ob.type).information
         except rospy.ServiceException, e:
             rospy.logwarn("Unable to retrieve object information for object of type\n%s" % str(ob.type))
 
@@ -113,7 +113,6 @@ class ObjectBroadcaster:
             co.mesh_poses = [ob.pose.pose.pose]
 
         rospy.loginfo("Publishing collision object %s" % co.id)
-        print co
         self._publisher.publish(co)
         
     def _bump_index(self):
