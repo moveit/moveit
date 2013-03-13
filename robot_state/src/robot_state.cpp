@@ -126,6 +126,7 @@ void robot_state::RobotState::copyFrom(const RobotState &ks)
   buildState();
 
   // copy attached bodies
+  clearAttachedBodies(); 
   for (std::map<std::string, AttachedBody*>::const_iterator it = ks.attached_body_map_.begin() ; it != ks.attached_body_map_.end() ; ++it)
     attachBody(it->second->id_, it->second->shapes_, it->second->attach_trans_, it->second->touch_links_, it->second->getAttachedLinkName());
 
