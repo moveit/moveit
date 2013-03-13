@@ -1543,34 +1543,50 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
   return false;
 }
 
-void planning_scene::PlanningScene::transformPose(const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
+const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const std::string &id) const
 {
-  transformPose(getCurrentState(), from_frame, t_in, t_out);
+  return getFrameTransform(getCurrentState(), id);
 }
 
-void planning_scene::PlanningScene::transformPose(const robot_state::RobotState &state, const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
+const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const robot_state::RobotState &state, const std::string &id) const
 {
-  if (!from_frame.empty() && from_frame[0] == '/')
-    transformPose(state, from_frame.substr(1), t_in, t_out);
-  else
-  {    
-    if (getTransforms()->isFixedFrame(from_frame) || state.knowsFrameTransform(from_frame))
-      getTransforms()->transformPose(state, from_frame, t_in, t_out);
-    else
+  if (!id.empty() && id[0] == '/')
+    return getFrameTransform(id.substr(1));
+  if (getTransforms()->isFixedFrame(id))
+    return getTransforms()->getTransform(id);
+  if (state.knowsFrameTransform(id))
+    return state.getFrameTransform(id);
+  if (getWorld()->hasObject(id))
+  {
+    collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(id);
+    if (obj->shape_poses_.size() > 1)
     {
-      if (getWorld()->hasObject(from_frame))
-      {
-        collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(from_frame);
-        if (obj->shape_poses_.size() != 1)
-          logWarn("More than one shapes in object '%s'. Using first one to decide transform");
-        t_out = obj->shape_poses_[0] * t_in;
-      }
-      else
-      {
-        logError("Frame '%s' is not known. Unable to transform", from_frame.c_str());
-      }
+      logWarn("More than one shapes in object '%s'. Using first one to decide transform");
+      return obj->shape_poses_[0];
     }
+    else
+      if (obj->shape_poses_.size() == 1)
+        return obj->shape_poses_[0];
   }
+  logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a known frame, a link name, an attached body id or a collision object).",
+           id.c_str(), getPlanningFrame().c_str(), id.c_str());
+  static const Eigen::Affine3d identity_transform = Eigen::Affine3d::Identity();
+  return identity_transform;
+}
+
+bool planning_scene::PlanningScene::knowsFrameTransform(const std::string &id) const
+{
+  return knowsFrameTransform(getCurrentState(), id);
+}
+
+bool planning_scene::PlanningScene::knowsFrameTransform(const robot_state::RobotState &state, const std::string &id) const
+{
+  if (!id.empty() && id[0] == '/')
+    return knowsFrameTransform(id.substr(1));
+  if (getTransforms()->isFixedFrame(id) || state.knowsFrameTransform(id))
+    return true;
+  collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(id);
+  return obj->shape_poses_.size() == 1;
 }
 
 bool planning_scene::PlanningScene::hasObjectType(const std::string &id) const
