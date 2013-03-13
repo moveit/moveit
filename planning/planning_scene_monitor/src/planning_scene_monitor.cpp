@@ -310,7 +310,6 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
     if (have_diff)
     {
       planning_scene_publisher_.publish(msg);
-      //ROS_DEBUG("Published planning scene diff: '%s'", msg.name.c_str());
       rate.sleep(); 
     } 
     else
