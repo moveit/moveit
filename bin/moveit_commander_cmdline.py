@@ -6,7 +6,6 @@ import readline
 import sys
 import os
 
-
 from optparse import OptionParser, OptionGroup
 from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel
 

@@ -33,8 +33,7 @@
 # Author: Ioan Sucan
 
 import roslib
-roslib.load_manifest('moveit_commander')
-from moveit_commander import MoveGroupCommander
+from moveit_commander import MoveGroupCommander, ObjectDetector, ObjectBroadcaster
 import re
 import time
 
@@ -58,6 +57,8 @@ class MoveGroupCommandInterpreter:
     def __init__(self):
         self._gdict = {}
         self._group_name = ""
+        self._detector = None
+        self._broadcaster = None
 
     def get_active_group(self):
         if len(self._group_name) > 0:
@@ -128,6 +129,12 @@ class MoveGroupCommandInterpreter:
                 return (MoveGroupInfoLevel.DEBUG, "OK")
             except:
                 return (MoveGroupInfoLevel.WARN, "Unable to save " + filename)
+        elif cmd.startswith("detect"):
+            clist = cmd.split()
+            if len(clist) >= 2:
+                return self.command_detect(float(clist[1]))
+            else:
+                return self.command_detect(0.5)  
         else:
             return None
 
@@ -163,7 +170,7 @@ class MoveGroupCommandInterpreter:
             else:
                 return (MoveGroupInfoLevel.INFO, "There is no end effector defined")
             
-        if cmd == "tol":
+        if cmd == "tol" or cmd == "tolerance":
             return (MoveGroupInfoLevel.INFO, str(g.get_goal_tolerance()))
 
         # see if we have assignment between variables
@@ -323,6 +330,16 @@ class MoveGroupCommandInterpreter:
         else:
             return (MoveGroupInfoLevel.WARN, "No known end effector. Cannot move " + direction_name)
 
+    def command_detect(self, confidence):
+        if self._broadcaster is None:
+            self._broadcaster = ObjectBroadcaster()
+        if self._detector is None:
+            self._detector = ObjectDetector(self._broadcaster.broadcast)
+            self._detector.start_action_client()
+        self._broadcaster.set_minimum_confidence(confidence)
+        self._detector.trigger_detection()
+        return (MoveGroupInfoLevel.SUCCESS, "OK")
+
     def resolve_command_alias(self, cmd):
         if cmd == "which":
             cmd = "id"
@@ -345,10 +362,15 @@ class MoveGroupCommandInterpreter:
         res.append("  record <name>\t record the current joint values under the name <name>")
         res.append("  delete <name>\t forget the joint values under the name <name>")
         res.append("  current\t show the current state of the active group")
+        res.append("  constrain <name>\t use the constraint <name> as a path constraint")
+        res.append("  eef\t print the name of the end effector attached to the current group")
         res.append("  go <name>\t plan and execute a motion to the state <name>")
         res.append("  go <dir> <dx>|\t plan and execute a motion in direction up|down|left|right|forward|backward for distance <dx>")
         res.append("  go rand\t plan and execute a motion to a random state")
-        res.append("  constrain <name>\t use the constraint <name> as a path constraint")
+        res.append("  rotate <x> <y> <z>\t plan and execute a motion to a specified orientation (about the X,Y,Z axes)")
+        res.append("  tolerance\t show the tolerance for reaching the goal region")
+        res.append("  tolerance <val>\t set the tolerance for reaching the goal region")
+        res.append("  allow <replanning|looking> <T|F> \t enable/disable replanning or looking around")
         res.append("  wait <dt>\t sleep for <dt> seconds")
         res.append("  x = y\t\t assign the value of y to x")
         res.append("  x[idx] = val\t assign a value to dimension idx of x")
@@ -374,7 +396,9 @@ class MoveGroupCommandInterpreter:
                 'save':[],
                 'allow':['replanning', 'looking'],
                 'constrain':known_constr,
+                'detect':[],
                 'vars':[],
                 'joints':[],
                 'tolerance':[],
+                'eef':[],
                 'id':[]}
