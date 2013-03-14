@@ -17,4 +17,3 @@ catkin_package(
     moveit_ros_manipulation
     moveit_ros_warehouse
     )
-
