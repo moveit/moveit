@@ -85,6 +85,8 @@ private:
   double shadow_threshold_;
   double padding_scale_;
   double padding_offset_;
+  unsigned int skip_vertical_pixels_;
+  unsigned int skip_horizontal_pixels_;
   
   boost::scoped_ptr<mesh_filter::MeshFilter<mesh_filter::StereoCameraModel> > mesh_filter_;
   

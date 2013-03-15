@@ -1178,7 +1178,10 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
     return result;
   }
   else
+  {
+    last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
     return false;
+  }
 }
 
 std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryIndex() const

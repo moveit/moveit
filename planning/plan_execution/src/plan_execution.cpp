@@ -126,13 +126,11 @@ void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan &plan, c
 
 void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &plan, const Options &opt)
 {
-  moveit_msgs::MoveItErrorCodes result;
-
   // perform initial configuration steps & various checks
   preempt_requested_ = false;
   
   // run the actual motion plan & execution
-  unsigned int max_replan_attempts = opt.replan_attempts_ > 0 ? opt.replan_attempts_ : default_max_replan_attempts_;
+  unsigned int max_replan_attempts = opt.replan_ ? (opt.replan_attempts_ > 0 ? opt.replan_attempts_ : default_max_replan_attempts_) : 1;
   unsigned int replan_attempts = 0;
   bool previously_solved = false;
   
@@ -141,7 +139,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
   do
   {
     replan_attempts++;
-    ROS_DEBUG("Planning attempt %u", replan_attempts);
+    ROS_INFO("Planning attempt %u of at most %u", replan_attempts, max_replan_attempts);
     
     if (opt.before_plan_callback_)
       opt.before_plan_callback_();
@@ -149,15 +147,17 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
     new_scene_update_ = false; // we clear any scene updates to be evaluated because we are about to compute a new plan, which should consider most recent updates already
 
     // if we never had a solved plan, or there is no specified way of fixing plans, just call the planner; otherwise, try to repair the plan we previously had;
-    bool solved = (!previously_solved || !opt.repair_plan_callback_) ? opt.plan_callback_(plan) : opt.repair_plan_callback_(plan, trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex());
+    bool solved = (!previously_solved || !opt.repair_plan_callback_) ? 
+      opt.plan_callback_(plan) :
+      opt.repair_plan_callback_(plan, trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex());
         
     if (preempt_requested_)
       break;
     
     // if planning fails in a manner that is not recoverable, we exit the loop,
     // otherwise, we attempt to continue, if replanning attempts are left
-    if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
-        plan.error_code_.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED ||
+    if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED ||
+	plan.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
         plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
       continue;
 
@@ -184,9 +184,9 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
       break;
 
     // if execution failed in a manner that we do not consider recoverable, we exit the loop (with failure)
-    if (result.val != moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
+    if (plan.error_code_.val != moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
       break;
-  } while (!preempt_requested_ && opt.replan_ && max_replan_attempts > replan_attempts);
+  } while (!preempt_requested_ && max_replan_attempts > replan_attempts);
 
   if (preempt_requested_)
   {
@@ -359,27 +359,25 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   trajectory_monitor_->stopTrajectoryMonitor();
   
   // decide return value 
-  if (trajectory_execution_manager_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
-    result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  if (path_became_invalid_)
+    result.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
   else
   {
-    if (path_became_invalid_)
-      result.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
+    if (preempt_requested_)
+    {
+      result.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
+    }
     else
     {
-      if (preempt_requested_)
-      {
-        result.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
-      }
+      if (trajectory_execution_manager_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
+	result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       else
-      {
         if (trajectory_execution_manager_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
-          result.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
-        else
-          result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-      }
+	  result.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+	else
+	  result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     }
-  }  
+  }
   return result;
 }
 
