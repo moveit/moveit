@@ -41,6 +41,7 @@
 #include <numeric>
 
 robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &kmodel, const std::string &group) : 
+  //start_time_(0),
   kmodel_(kmodel),
   group_(group.empty() ? NULL : kmodel->getJointModelGroup(group))
 {
@@ -207,14 +208,14 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
   if (!onedof.empty())
   {  
     trajectory.joint_trajectory.header.frame_id = kmodel_->getModelFrame();
-    trajectory.joint_trajectory.header.stamp = ros::Time(0);
+    trajectory.joint_trajectory.header.stamp = ros::Time(0); //start_time_;
     trajectory.joint_trajectory.points.resize(waypoints_.size());
   }
   
   if (!mdof.empty())
   {
     trajectory.multi_dof_joint_trajectory.header.frame_id = kmodel_->getModelFrame();
-    trajectory.multi_dof_joint_trajectory.header.stamp = ros::Time(0);
+    trajectory.multi_dof_joint_trajectory.header.stamp = ros::Time(0); //start_time_;
     trajectory.multi_dof_joint_trajectory.points.resize(waypoints_.size());
   }
   
@@ -270,6 +271,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
                                      trajectory.multi_dof_joint_trajectory.points.size());
   ros::Time last_time_stamp = trajectory.joint_trajectory.points.empty() ? trajectory.multi_dof_joint_trajectory.header.stamp : trajectory.joint_trajectory.header.stamp;
   ros::Time this_time_stamp = last_time_stamp;
+  //start_time_ = last_time_stamp;
   
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
@@ -305,4 +307,77 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
   robot_state::RobotState st(reference_state);
   robot_state::robotStateMsgToRobotState(state, st);
   setRobotTrajectoryMsg(st, trajectory);
+}
+
+void robot_trajectory::RobotTrajectory::findWayPointIndicesForDurationAfterStart( const double& duration, int& before,
+                                                                                  int& after, double &blend )
+{
+  if(duration < 0.0)
+  {
+    before = 0;
+    after = 0;
+    blend = 0;
+    return;
+  }
+
+  // Find indicies
+  size_t index = 0, num_points = waypoints_.size();
+  double running_duration = 0.0;
+  for( ; index < num_points; index++)
+  {
+    running_duration += duration_from_previous_[index];
+    if( running_duration > duration )
+      break;
+  }
+  before = std::max<int>(index - 1, 0);
+  after = std::min<int>(index, num_points - 1);
+
+  // Compute duration blend
+  double before_time = running_duration - duration_from_previous_[index];
+  if(after == before)
+    blend = 1.0;
+  else
+    blend = (duration - before_time) / duration_from_previous_[index];
+}
+
+double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size_t index) const
+{
+  if(index >= duration_from_previous_.size())
+    return -1.0; // or something else? should we throw an exception?
+
+  double time = 0;
+  for(size_t i = 0; i <= index; i++)
+    time += duration_from_previous_[i];
+  return time;
+}
+
+bool robot_trajectory::RobotTrajectory::getStateAtDurationFromStart(const double request_duration,
+                                                                    const bool interpolate_between_waypoints,
+                                                                    robot_state::RobotStatePtr& output_state,
+                                                                    double &actual_duration)
+{
+  if( !getWayPointCount() )
+  {
+    //logDebug("Trajectory has no waypoints!");
+    return false;
+  }
+  else
+  {
+    int before=0, after=0;
+    double blend = 1.0;
+    findWayPointIndicesForDurationAfterStart(request_duration, before, after, blend);
+    if(interpolate_between_waypoints)
+    {
+      //logDebug("Interpolating %.3f of the way between index %d and %d.", blend, before, after);
+      waypoints_[before]->interpolate(*waypoints_[after], blend, *output_state);
+      actual_duration = request_duration;
+    }
+    else // round up
+    {
+      logInform("Time is %.3f of the way between index %d and %d. Rounding up to index %d.", blend, before, after, after);
+      *output_state = *waypoints_[after];
+      actual_duration = getWaypointDurationFromStart(after); // prevents double comparison issues in the low-level controller
+    }
+  }
+  return true;
 }
