@@ -381,13 +381,13 @@
                  </item>
                 </layout>
                </item>
-               <item alignment="Qt::AlignLeft">
+               <item>
                 <widget class="QGroupBox" name="groupBox_3">
                  <property name="title">
                   <string>Goal offset</string>
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_5">
-                  <item alignment="Qt::AlignRight">
+                  <item>
                    <widget class="QLabel" name="label_3">
                     <property name="text">
                      <string>Roll:</string>
@@ -407,7 +407,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item alignment="Qt::AlignRight">
+                  <item>
                    <widget class="QLabel" name="label_4">
                     <property name="text">
                      <string>Pitch:</string>
@@ -427,7 +427,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item alignment="Qt::AlignRight">
+                  <item>
                    <widget class="QLabel" name="label_5">
                     <property name="text">
                      <string>Yaw:</string>
