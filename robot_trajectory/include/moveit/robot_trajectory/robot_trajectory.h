@@ -103,6 +103,11 @@ public:
   {
     return duration_from_previous_;
   }
+
+  /** @brief Returns the duration after start that a waypoint will be reached.
+   *  @param The waypoint index.
+   */
+  double getWaypointDurationFromStart(std::size_t index) const;
   
   double getWayPointDurationFromPrevious(std::size_t index)
   {
@@ -177,9 +182,29 @@ public:
 
   void unwind();
   void unwind(const robot_state::RobotState &state);
-  
+
+  /** @brief Finds the waypoint indicies before and after a duration from start.
+   *  @param The duration from start.
+   *  @param The waypoint index before the supplied duration.
+   *  @param The waypoint index after the supplied duration.
+   *  @param The progress (0 to 1) between the two waypoints, based on time.
+   */
+  void findWayPointIndicesForDurationAfterStart(const double& duration, int& before, int& after, double &blend);
+
+  /** @brief Gets a robot state corresponding to a supplied duration from start for the trajectory.
+   *  @param The duration from start.
+   *  @param A flag: if true, attempts linear interpolation; else uses first waypoint after input duration.
+   *  @param The resulting robot state.
+   *  @return True if state is valid, false otherwise (trajectory is empty).
+   */
+  bool getStateAtDurationFromStart(const double request_duration,
+                                   const bool interpolate_between_waypoints,
+                                   robot_state::RobotStatePtr& output_state,
+                                   double& actual_duration);
+
 private:
 
+  //ros::Time start_time_;
   robot_model::RobotModelConstPtr kmodel_;
   const robot_model::JointModelGroup *group_;
   std::deque<robot_state::RobotStatePtr> waypoints_;
