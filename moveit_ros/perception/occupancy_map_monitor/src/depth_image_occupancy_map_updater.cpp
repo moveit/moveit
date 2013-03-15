@@ -56,8 +56,10 @@ DepthImageOccupancyMapUpdater::DepthImageOccupancyMapUpdater(OccupancyMapMonitor
   far_clipping_plane_distance_(5.0),
   shadow_threshold_(0.5),
   padding_scale_(3.0),
-  padding_offset_(0.02)
-{ 
+  padding_offset_(0.02),
+  skip_vertical_pixels_(4),
+  skip_horizontal_pixels_(6)
+{
 }
 
 DepthImageOccupancyMapUpdater::~DepthImageOccupancyMapUpdater()
@@ -75,6 +77,11 @@ static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_n
       *value = (double) params[param_name];
   }
 }
+static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, unsigned int *value)
+{
+  if (params.hasMember(param_name))
+    *value = (int) params[param_name];
+}
 
 bool DepthImageOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
 {
@@ -91,6 +98,8 @@ bool DepthImageOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
     readXmlParam(params, "shadow_threshold", &shadow_threshold_);
     readXmlParam(params, "padding_scale", &padding_scale_);
     readXmlParam(params, "padding_offset", &padding_offset_);
+    readXmlParam(params, "skip_vertical_pixels", &skip_vertical_pixels_);
+    readXmlParam(params, "skip_horizontal_pixels", &skip_horizontal_pixels_);
   }
   catch (XmlRpc::XmlRpcException &ex)
   {
@@ -211,7 +220,7 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
   
   if (depth_msg->is_bigendian && !HOST_IS_BIG_ENDIAN)
-    ROS_ERROR_THROTTLE(1, "edian problem: received image data does not match host");
+    ROS_ERROR_THROTTLE(1, "endian problem: received image data does not match host");
   
   const int w = depth_msg->width;
   const int h = depth_msg->height;
@@ -279,13 +288,16 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
   
   try
   {
+    const int h_bound = h - skip_vertical_pixels_;
+    const int w_bound = w - skip_horizontal_pixels_;
+    
     if (is_u_short)
     {
       const uint16_t *input_row = reinterpret_cast<const uint16_t*>(&depth_msg->data[0]);
       
-      for (int y = 0; y < h ; ++y, filtered_row += w, input_row += w)
+      for (int y = skip_vertical_pixels_ ; y < h_bound ; ++y, filtered_row += w, input_row += w)
 	if (y_cache_[y] == y_cache_[y]) // if not NaN
-	  for (int x = 0; x < w; ++x)
+	  for (int x = skip_horizontal_pixels_ ; x < w_bound ; ++x)
           {
             float zz = filtered_row[x];
             uint16_t zz0 = input_row[x];
@@ -322,9 +334,9 @@ void DepthImageOccupancyMapUpdater::depthImageCallback(const sensor_msgs::ImageC
     {
       const float *input_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
       
-      for (int y = 0; y < h ; ++y, filtered_row += w, input_row += w)
+      for (int y = skip_vertical_pixels_ ; y < h_bound ; ++y, filtered_row += w, input_row += w)
 	if (y_cache_[y] == y_cache_[y]) // if not NaN
-	  for (int x = 0; x < w; ++x)
+	  for (int x = skip_horizontal_pixels_ ; x < w_bound ; ++x)
           {
             float zz = filtered_row[x];
             float zz0 = input_row[x];
