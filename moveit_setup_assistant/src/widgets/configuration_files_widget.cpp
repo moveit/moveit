@@ -179,7 +179,7 @@ bool ConfigurationFilesWidget::checkDependencies()
   // Check that at least 1 link pair is disabled from collision checking
   if( ! config_data_->srdf_->disabled_collisions_.size() )
   {
-    dependencies << "No self-collisions have been disabled";
+    dependencies << "No self-collisions have been disabled.";
   }
 
   // Check that there is at least 1 end effector added
@@ -198,7 +198,7 @@ bool ConfigurationFilesWidget::checkDependencies()
   if( dependencies.size() )
   {
     // Create a dependency message
-    QString dep_message = "There are incomplete steps in this setup assistant. You probably want to complete the following steps before generating a MoveIt configuration package:<br /><ul>";
+    QString dep_message = "Some setup steps have not been completed. None of the steps are required, but here is a reminder of what was not filled in, just in case something was forgotten::<br /><ul>";
 
     for (int i = 0; i < dependencies.size(); ++i)
     {
