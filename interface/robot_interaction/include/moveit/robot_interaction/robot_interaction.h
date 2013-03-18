@@ -290,7 +290,7 @@ private:
   boost::condition_variable new_feedback_condition_;
   std::map<std::string, visualization_msgs::InteractiveMarkerFeedbackConstPtr> feedback_map_;
 
-  robot_model::RobotModelConstPtr kmodel_;
+  robot_model::RobotModelConstPtr robot_model_;
   
   std::vector<EndEffector> active_eef_;
   std::vector<VirtualJoint> active_vj_;

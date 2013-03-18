@@ -66,10 +66,10 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
 }
 
 RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name,
-                                                         const robot_model::RobotModelConstPtr &kmodel,
+                                                         const robot_model::RobotModelConstPtr &robot_model,
                                                          const boost::shared_ptr<tf::Transformer> &tf) :
   name_(name),
-  kstate_(new robot_state::RobotState(kmodel)),
+  kstate_(new robot_state::RobotState(robot_model)),
   tf_(tf),
   display_meshes_(true),
   display_controls_(true)
@@ -345,8 +345,8 @@ bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualiza
   return true;
 }
 
-RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &kmodel, const std::string &ns) :
-  kmodel_(kmodel)
+RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &robot_model, const std::string &ns) :
+  robot_model_(robot_model)
 {
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC);
 
@@ -376,7 +376,7 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   static const double DEFAULT_SCALE = 0.2;
   if (group.empty())
     return DEFAULT_SCALE;
-  const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
   if (!jmg)
     return 0.0;
 
@@ -388,7 +388,7 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   std::vector<double> scale(3, 0.0);
   std::vector<double> low(3, std::numeric_limits<double>::infinity());
   std::vector<double> hi(3, -std::numeric_limits<double>::infinity());
-  robot_state::RobotState default_state(kmodel_);
+  robot_state::RobotState default_state(robot_model_);
   default_state.setToDefaultValues();
 
   for (std::size_t i = 0 ; i < links.size() ; ++i)
@@ -434,23 +434,23 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
   if (group.empty())
     return;
 
-  const boost::shared_ptr<const srdf::Model> &srdf = kmodel_->getSRDF();
-  const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const boost::shared_ptr<const srdf::Model> &srdf = robot_model_->getSRDF();
+  const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
 
   if (!jmg || !srdf)
     return;
 
-  if (!jmg->hasJointModel(kmodel_->getRootJointName()))
+  if (!jmg->hasJointModel(robot_model_->getRootJointName()))
     return;
 
-  robot_state::RobotState default_state(kmodel_);
+  robot_state::RobotState default_state(robot_model_);
   default_state.setToDefaultValues();
   std::vector<double> aabb;
   default_state.computeAABB(aabb);
 
   const std::vector<srdf::Model::VirtualJoint> &vj = srdf->getVirtualJoints();
   for (std::size_t i = 0 ; i < vj.size() ; ++i)
-    if (vj[i].name_ == kmodel_->getRootJointName())
+    if (vj[i].name_ == robot_model_->getRootJointName())
     {
       if (vj[i].type_ == "planar" || vj[i].type_ == "floating")
       {
@@ -482,8 +482,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
     return;
   }
 
-  const boost::shared_ptr<const srdf::Model> &srdf = kmodel_->getSRDF();
-  const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+  const boost::shared_ptr<const srdf::Model> &srdf = robot_model_->getSRDF();
+  const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
 
   if (!jmg || !srdf)
   {
@@ -584,35 +584,31 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
 }
 
 void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
-                                             const geometry_msgs::Pose& im_to_eef,
-                                             visualization_msgs::InteractiveMarker& im)
+                                             const geometry_msgs::Pose& im_to_eef, visualization_msgs::InteractiveMarker& im)
 {
+  if (eef.parent_group == eef.eef_group || !robot_model_->hasLinkModel(eef.parent_link))
+    return;
+  
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = false;
   m_control.interaction_mode = m_control.MOVE_ROTATE;
-
+  
   std_msgs::ColorRGBA marker_color;
   const float *color = handler->inError(eef) ? END_EFFECTOR_UNREACHABLE_COLOR : END_EFFECTOR_REACHABLE_COLOR;
   marker_color.r = color[0];
   marker_color.g = color[1];
   marker_color.b = color[2];
   marker_color.a = color[3];
-
+  
   robot_state::RobotStateConstPtr kinematic_state = handler->getState();
   const std::vector<std::string> &link_names = kinematic_state->getJointStateGroup(eef.eef_group)->getJointModelGroup()->getLinkModelNames();
   visualization_msgs::MarkerArray marker_array;
   kinematic_state->getRobotMarkers(marker_array, link_names, marker_color, eef.eef_group, ros::Duration());
   tf::Pose tf_root_to_link;
-  try{
-    tf::poseEigenToTF(kinematic_state->getLinkState(eef.parent_link)->getGlobalLinkTransform(), tf_root_to_link);
-  }
-  catch(...)
-  {
-    ROS_ERROR("Didn't find link state for [%s]", eef.parent_link.c_str());
-  }
+  tf::poseEigenToTF(kinematic_state->getLinkState(eef.parent_link)->getGlobalLinkTransform(), tf_root_to_link);
   // Release the ptr count on the kinematic state
   kinematic_state.reset();
-
+  
   for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
   {
     marker_array.markers[i].header = im.header;
@@ -629,20 +625,20 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     m_control.markers.push_back(marker_array.markers[i]);
   }
-
+  
   im.controls.push_back(m_control);
 }
 
 void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
 {
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
-
+  
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
 
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
     geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = kmodel_->getModelFrame();
+    pose.header.frame_id = robot_model_->getModelFrame();
     pose.header.stamp = ros::Time::now();
     robot_state::RobotStateConstPtr s = handler->getState();
     const robot_state::LinkState *ls = s->getLinkState(active_eef_[i].parent_link);
@@ -652,7 +648,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     s.reset(); // to avoid spurious copies of states
     geometry_msgs::Pose msg_link_to_control;
     geometry_msgs::Pose msg_control_to_eef_mesh;
-    if(handler->getPoseOffset(active_eef_[i], msg_link_to_control))
+    if (handler->getPoseOffset(active_eef_[i], msg_link_to_control))
     {
       tf::Transform tf_link_to_control;
       tf::poseMsgToTF(msg_link_to_control, tf_link_to_control);
@@ -690,7 +686,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
   for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
   {
     geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = kmodel_->getModelFrame();
+    pose.header.frame_id = robot_model_->getModelFrame();
     pose.header.stamp = ros::Time::now();
     robot_state::RobotStateConstPtr s = handler->getState();
     const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
