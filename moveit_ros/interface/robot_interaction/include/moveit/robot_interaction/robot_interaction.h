@@ -91,7 +91,6 @@ public:
   class InteractionHandler
   {
   public:
-    typedef enum {POSITION_IK, VELOCITY_IK} IKInteractionType;
 
     InteractionHandler(const std::string &name,
                        const robot_state::RobotState &kstate,
@@ -151,17 +150,7 @@ public:
     {
       return ik_attempts_;
     }
-    
-    void setInteractionMode(IKInteractionType imode)
-    {
-      interaction_mode_ = imode;
-    }
-    
-    IKInteractionType getInteractionMode() const
-    {
-      return interaction_mode_;
-    }
-    
+        
     void setMeshesVisible(bool visible)
     {
       display_meshes_ = visible;
@@ -180,16 +169,6 @@ public:
     bool getControlsVisible() const
     {
       return display_controls_;
-    }
-
-    double getVelocityGain() const
-    {
-      return velocity_gain_;
-    }
-    
-    void setVelocityGain(double velocity_gain)
-    {
-      velocity_gain_ = velocity_gain;
     }
 
     void setPoseOffset(const EndEffector& eef, const geometry_msgs::Pose& m);
@@ -246,10 +225,8 @@ public:
     robot_state::SecondaryTaskFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
-    IKInteractionType interaction_mode_;
     bool display_meshes_;
     bool display_controls_;
-    double velocity_gain_;
     
   private:
     
