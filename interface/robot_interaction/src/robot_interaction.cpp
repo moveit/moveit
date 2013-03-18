@@ -59,7 +59,6 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   name_(name),
   kstate_(new robot_state::RobotState(kstate)),
   tf_(tf),
-  interaction_mode_(POSITION_IK),
   display_meshes_(true),
   display_controls_(true)
 {
@@ -72,7 +71,6 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   name_(name),
   kstate_(new robot_state::RobotState(kmodel)),
   tf_(tf),
-  interaction_mode_(POSITION_IK),
   display_meshes_(true),
   display_controls_(true)
 {
@@ -84,71 +82,7 @@ void RobotInteraction::InteractionHandler::setup()
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
   ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
-  velocity_gain_ = 0.1;
   planning_frame_ = kstate_->getRobotModel()->getModelFrame();
-}
-
-namespace
-{
-/* This function converts a transformation given as an Eigen::Affine3d object to a
- * 6-dimensional pose/orientation vector in the convention (t utheta), being t
- * the translation and utheta the angle-axis representation of the rotation
- * TODO: move functions like this into an eigen_utils package
- */
-void eigenTransformToEigenVector(const Eigen::Affine3d &M, Eigen::VectorXd &pose)
-{
-  pose.resize(6);
-
-  //fill translation
-  pose.matrix().block(0,0,3,1) = M.matrix().block(0,3,3,1);
-
-  //Compute and fill rotation (theta-u convention)
-  //Most of this code is adapted from ViSP vpThetaUVector::build_from(vpRotationMatrix)
-  const Eigen::Matrix3d R = M.matrix().block(0, 0, 3, 3);
-
-  double s,c,theta,sinc;
-  s = (R(1,0) - R(0,1)) * (R(1,0) - R(0,1))
-    + (R(2,0) - R(0,2)) * (R(2,0) - R(0,2))
-    + (R(2,1) - R(1,2)) * (R(2,1) - R(1,2));
-  s = sqrt(s) / 2.0;
-  c = (R(0,0) + R(1,1) + R(2,2) - 1.0) / 2.0;
-  theta = atan2(s,c);  /* theta in [0, PI] since s > 0 */
-
-  // General case when theta != pi. If theta=pi, c=-1
-  static const double minimum = 0.0001;
-  if ( (1 + c) > minimum) // Since -1 <= c <= 1, no fabs(1+c) is required
-  {
-    static const double threshold = 1.0e-8;
-    if (fabs(theta) < threshold) sinc = 1.0 ;
-    else  sinc = (s / theta) ;
-
-    pose(3) = (R(2,1) - R(1,2)) / (2*sinc);
-    pose(4) = (R(0,2) - R(2,0)) / (2*sinc);
-    pose(5) = (R(1,0) - R(0,1)) / (2*sinc);
-  }
-  else /* theta near PI */
-  {
-    if ( (R(0,0) - c) < std::numeric_limits<double>::epsilon() )
-      pose(3) = 0.;
-    else
-      pose(3) = theta * (sqrt((R(0,0) - c) / (1 - c)));
-    if ((R(2,1) - R(1,2)) < 0) pose(3) = -pose(3);
-
-    if ( (R(1,1) - c) < std::numeric_limits<double>::epsilon() )
-      pose(4) = 0.;
-    else
-      pose(4) = theta * (sqrt((R(1,1) - c) / (1 - c)));
-
-    if ((R(0,2) - R(2,0)) < 0) pose(4) = -pose(4);
-
-    if ( (R(2,2) - c) < std::numeric_limits<double>::epsilon() )
-      pose(5) = 0.;
-    else
-      pose(5) = theta * (sqrt((R(2,2) - c) / (1 - c)));
-
-    if ((R(1,0) - R(0,1)) < 0) pose(5) = -pose(5);
-  }
-}
 }
 
 void RobotInteraction::InteractionHandler::setPoseOffset(const RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& m)
@@ -309,32 +243,10 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   }
   else
     return false;
-  bool update_state_result = false;
-  if (interaction_mode_ == POSITION_IK)
-  {
-    robot_state::RobotStatePtr state = getUniqueStateAccess();
-    update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
-    setStateToAccess(state);
-  }
-  else
-    if (interaction_mode_ == VELOCITY_IK)
-    {
-      robot_state::RobotStatePtr state = getUniqueStateAccess();
-      // compute velocity from current pose to goal pose, in the current end-effector frame
-      const Eigen::Affine3d &wMe = state->getLinkState(eef.parent_link)->getGlobalLinkTransform();
-      Eigen::Affine3d wMt;
-      tf::poseMsgToEigen(tpose.pose, wMt);
-      Eigen::Affine3d eMt = wMe.inverse() * wMt;
-      Eigen::VectorXd twist(6);
-
-      eigenTransformToEigenVector(eMt, twist);
-
-      geometry_msgs::Twist twist_msg;
-      tf::twistEigenToMsg(twist, twist_msg);
-
-      update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, twist_msg, velocity_gain_, state_validity_callback_fn_);
-      setStateToAccess(state);
-    }
+  
+  robot_state::RobotStatePtr state = getUniqueStateAccess();
+  bool update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
+  setStateToAccess(state);
 
   bool error_state_changed = false;
   if (!update_state_result)
@@ -462,6 +374,8 @@ void RobotInteraction::decideActiveComponents(const std::string &group)
 double RobotInteraction::computeGroupScale(const std::string &group)
 {
   static const double DEFAULT_SCALE = 0.2;
+  if (group.empty())
+    return DEFAULT_SCALE;
   const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
   if (!jmg)
     return 0.0;
@@ -470,6 +384,7 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   if (links.empty())
     return DEFAULT_SCALE;
 
+  // compute the aabb of the links that make up the cube
   std::vector<double> scale(3, 0.0);
   std::vector<double> low(3, std::numeric_limits<double>::infinity());
   std::vector<double> hi(3, -std::numeric_limits<double>::infinity());
@@ -499,6 +414,7 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   for (int i = 0 ; i < 3 ; ++i)
     scale[i] = hi[i] - low[i];
 
+  // take the diagonal of the cube containing the eef
   static const double sqrt_3 = 1.732050808;
   double s = std::max(std::max(scale[0], scale[1]), scale[2]) * sqrt_3;
 
@@ -576,24 +492,33 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   }
 
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
-
   const std::pair<robot_model::SolverAllocatorFn, robot_model::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
-
+  
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)
   {
-    for (std::size_t i = 0 ; i < eef.size() ; ++i)
-      if ((jmg->hasLinkModel(eef[i].parent_link_) || jmg->getName() == eef[i].parent_group_) && jmg->canSetStateFromIK(eef[i].parent_link_))
-      {
-        // we found an end-effector for the selected group
-        EndEffector ee;
-        ee.parent_group = group;
-        ee.parent_link = eef[i].parent_link_;
-        ee.eef_group = eef[i].component_group_;
-        active_eef_.push_back(ee);
-
-        break;
-      }
+    if (eef.empty() && !jmg->getLinkModelNames().empty())
+    {
+      // we found an end-effector for the selected group
+      EndEffector ee;
+      ee.parent_group = group;
+      ee.parent_link = jmg->getLinkModelNames().back();
+      ee.eef_group = group;
+      active_eef_.push_back(ee);
+    }
+    else
+      for (std::size_t i = 0 ; i < eef.size() ; ++i)
+        if ((jmg->hasLinkModel(eef[i].parent_link_) || jmg->getName() == eef[i].parent_group_) && jmg->canSetStateFromIK(eef[i].parent_link_))
+        {
+          // we found an end-effector for the selected group
+          EndEffector ee;
+          ee.parent_group = group;
+          ee.parent_link = eef[i].parent_link_;
+          ee.eef_group = eef[i].component_group_;
+          active_eef_.push_back(ee);
+          
+          break;
+        }
   }
   else
   {
@@ -619,14 +544,13 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
 
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
-    active_eef_[i].size = computeGroupScale(active_eef_[i].eef_group);
+    // if we have a separate group for the eef, we compte the scale based on it; otherwise, we use a default scale
+    active_eef_[i].size = active_eef_[i].eef_group == active_eef_[i].parent_group ? computeGroupScale("") : computeGroupScale(active_eef_[i].eef_group);
     ROS_DEBUG_NAMED("robot_interaction", "Found active end-effector '%s', of scale %lf", active_eef_[i].eef_group.c_str(), active_eef_[i].size);
   }
 
-  if( !active_eef_.size() )
-  {
+  if (!active_eef_.size())
     ROS_WARN_NAMED("robot_interaction", "No active end effectors found. Make sure you have defined an end effector in your SRDF file and that kinematics.yaml is loaded in this node's namespace.");
-  }
 }
 
 void RobotInteraction::clear()
