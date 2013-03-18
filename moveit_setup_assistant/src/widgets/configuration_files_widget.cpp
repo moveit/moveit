@@ -179,7 +179,7 @@ bool ConfigurationFilesWidget::checkDependencies()
   // Check that at least 1 link pair is disabled from collision checking
   if( ! config_data_->srdf_->disabled_collisions_.size() )
   {
-    dependencies << "No self-collisions have been disabled.";
+    dependencies << "No self-collisions have been disabled";
   }
 
   // Check that there is at least 1 end effector added
