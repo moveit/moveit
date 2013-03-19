@@ -230,10 +230,13 @@ void RobotInteraction::InteractionHandler::setStateToAccess(robot_state::RobotSt
 
 bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
-{
+{    
+  if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+    return false;
+  
   geometry_msgs::PoseStamped tpose;
   geometry_msgs::Pose offset;
-  if(!getPoseOffset(eef, offset))
+  if (!getPoseOffset(eef, offset))
     offset.orientation.w = 1;
   if (transformFeedbackPose(feedback, offset, tpose))
   {
@@ -251,30 +254,30 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   bool error_state_changed = false;
   if (!update_state_result)
   {
-    if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-    {
-      error_state_changed = inError(eef) ? false : true;
-      error_state_.insert(eef.parent_group);
-    }
+    error_state_changed = inError(eef) ? false : true;
+    error_state_.insert(eef.parent_group);
   }
   else
   {
     error_state_changed = inError(eef) ? true : false;
     error_state_.erase(eef.parent_group);
   }
-
+  
   if (update_callback_)
     update_callback_(this, error_state_changed);
-
+  
   return error_state_changed;
 }
 
 bool RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint &vj,
                                                               const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
-{
+{ 
+  if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+    return false;
+  
   geometry_msgs::PoseStamped tpose;
   geometry_msgs::Pose offset;
-  if(!getPoseOffset(vj, offset))
+  if (!getPoseOffset(vj, offset))
     offset.orientation.w = 1;
   if (transformFeedbackPose(feedback, offset, tpose))
   {
@@ -329,7 +332,7 @@ bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualiza
         tf::Transform tf_offset;
         tf::poseMsgToTF(offset, tf_offset);
         spose.setData(spose * tf_offset.inverse());
-        tf::poseStampedTFToMsg(spose, tpose);
+        tf::poseStampedTFToMsg(spose, tpose); 
       }
       catch (tf::TransformException& e)
       {
@@ -477,10 +480,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
 
   if (group.empty())
-  {
-    ROS_WARN_NAMED("robot_interaction", "Unable to decide active end effector: end effector group is empty '%s'", group.c_str());
     return;
-  }
 
   const boost::shared_ptr<const srdf::Model> &srdf = robot_model_->getSRDF();
   const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
@@ -629,70 +629,56 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
   im.controls.push_back(m_control);
 }
 
+static inline std::string getMarkerName(const RobotInteraction::InteractionHandlerPtr &handler, const RobotInteraction::EndEffector &eef)
+{
+  return "EE:" + handler->getName() + "_" + eef.parent_link;
+}
+
+static inline std::string getMarkerName(const RobotInteraction::InteractionHandlerPtr &handler, const RobotInteraction::VirtualJoint &vj)
+{
+  return "VJ:" + handler->getName() + "_" + vj.connecting_link;
+}
+
 void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
 {
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-
+  robot_state::RobotStateConstPtr s = handler->getState();
+  
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
     geometry_msgs::PoseStamped pose;
+    geometry_msgs::Pose control_to_eef_tf;
     pose.header.frame_id = robot_model_->getModelFrame();
     pose.header.stamp = ros::Time::now();
-    robot_state::RobotStateConstPtr s = handler->getState();
-    const robot_state::LinkState *ls = s->getLinkState(active_eef_[i].parent_link);
-    // Need to allow for control pose offsets
-    tf::Transform tf_root_to_link, tf_root_to_control;
-    tf::poseEigenToTF(ls->getGlobalLinkTransform(), tf_root_to_link);
-    s.reset(); // to avoid spurious copies of states
-    geometry_msgs::Pose msg_link_to_control;
-    geometry_msgs::Pose msg_control_to_eef_mesh;
-    if (handler->getPoseOffset(active_eef_[i], msg_link_to_control))
-    {
-      tf::Transform tf_link_to_control;
-      tf::poseMsgToTF(msg_link_to_control, tf_link_to_control);
-
-      tf_root_to_control = tf_root_to_link * tf_link_to_control;
-      tf::poseTFToMsg(tf_link_to_control.inverse(), msg_control_to_eef_mesh);
-    }
-    else
-    {
-      tf_root_to_control = tf_root_to_link;
-      msg_control_to_eef_mesh.orientation.w = 1;
-    }
-    tf::poseTFToMsg(tf_root_to_control, pose.pose);
-
-    std::string marker_name = "EE:" + handler->getName() + "_" + active_eef_[i].parent_link;
+    computeMarkerPose(handler, active_eef_[i], *s, pose.pose, control_to_eef_tf);
+    
+    std::string marker_name = getMarkerName(handler, active_eef_[i]);
     shown_markers_[marker_name] = i;
-
+    
     // Determine interactive maker size
     if (marker_scale < std::numeric_limits<double>::epsilon())
       marker_scale = active_eef_[i].size;
-
+    
     visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, marker_scale);
     if(handler && handler->getControlsVisible())
       add6DOFControl(im, false);
     if (handler && handler->getMeshesVisible())
-      addEndEffectorMarkers(handler, active_eef_[i], msg_control_to_eef_mesh, im);
-    else
-      if (handler && handler->inError(active_eef_[i]))
-        addErrorMarker(im);
+      addEndEffectorMarkers(handler, active_eef_[i], control_to_eef_tf, im);
     int_marker_server_->insert(im);
     int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
     ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
   }
-
+  
   for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
   {
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = robot_model_->getModelFrame();
     pose.header.stamp = ros::Time::now();
-    robot_state::RobotStateConstPtr s = handler->getState();
     const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
     tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
-    s.reset(); // to avoid spurious copies of states
-    std::string marker_name = "VJ:" + handler->getName() + "_" + active_vj_[i].connecting_link;
+    std::string marker_name = getMarkerName(handler, active_vj_[i]);
     shown_markers_[marker_name] = i;
     visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, active_vj_[i].size);
     if (handler && handler->getControlsVisible())
@@ -710,9 +696,75 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
   handlers_[handler->getName()] = handler;
 }
 
+void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr &handler, const EndEffector &eef, const robot_state::RobotState &robot_state,
+                                         geometry_msgs::Pose &pose, geometry_msgs::Pose &control_to_eef_tf) const
+{
+  const robot_state::LinkState *ls = robot_state.getLinkState(eef.parent_link);
+  
+  // Need to allow for control pose offsets
+  tf::Transform tf_root_to_link, tf_root_to_control;
+  tf::poseEigenToTF(ls->getGlobalLinkTransform(), tf_root_to_link);
+  
+  geometry_msgs::Pose msg_link_to_control;
+  if (handler->getPoseOffset(eef, msg_link_to_control))
+  {
+    tf::Transform tf_link_to_control;
+    tf::poseMsgToTF(msg_link_to_control, tf_link_to_control);
+    
+    tf_root_to_control = tf_root_to_link * tf_link_to_control;
+    tf::poseTFToMsg(tf_link_to_control.inverse(), control_to_eef_tf);
+  }
+  else
+  {
+    tf_root_to_control = tf_root_to_link;
+    control_to_eef_tf.orientation.x = 0.0;
+    control_to_eef_tf.orientation.y = 0.0;
+    control_to_eef_tf.orientation.z = 0.0;
+    control_to_eef_tf.orientation.w = 1.0;
+  }
+  
+  tf::poseTFToMsg(tf_root_to_control, pose);
+}
+
+void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr &handler)
+{
+  boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+
+  robot_state::RobotStateConstPtr s = handler->getState();
+  for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
+  {
+    std::string marker_name = getMarkerName(handler, active_eef_[i]);
+    geometry_msgs::Pose pose;
+    geometry_msgs::Pose control_to_eef_tf;
+    computeMarkerPose(handler, active_eef_[i], *s, pose, control_to_eef_tf);
+    int_marker_server_->setPose(marker_name, pose);
+  }
+
+  for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
+  {
+    std::string marker_name = getMarkerName(handler, active_vj_[i]);
+    geometry_msgs::Pose pose;
+    const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
+    tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose);
+    int_marker_server_->setPose(marker_name, pose);
+  }
+  int_marker_server_->applyChanges();
+}
+
 void RobotInteraction::publishInteractiveMarkers()
 {
   int_marker_server_->applyChanges();
+}
+
+bool RobotInteraction::showingMarkers(const InteractionHandlerPtr &handler)
+{
+  for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
+    if (shown_markers_.find(getMarkerName(handler, active_eef_[i])) == shown_markers_.end())
+      return false;
+  for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
+    if (shown_markers_.find(getMarkerName(handler, active_vj_[i])) == shown_markers_.end())
+      return false;
+  return true;
 }
 
 bool RobotInteraction::updateState(robot_state::RobotState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose)
@@ -745,21 +797,13 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const Virtual
 
 bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                                    unsigned int attempts, double ik_timeout, const robot_state::StateValidityCallbackFn &validity_callback)
-{
+{ 
   return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback);
-}
-
-bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain,
-                                   const robot_state::StateValidityCallbackFn &validity_callback,
-                                   const robot_state::SecondaryTaskFn &st_callback)
-{
-  return state.getJointStateGroup(eef.parent_group)->setFromDiffIK(twist, eef.parent_link, gain, validity_callback, st_callback);
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
   // perform some validity checks
-
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
