@@ -180,7 +180,7 @@ protected:
 
   void executeMainLoopJobs();
   void clearTrajectoryTrail();  
-  void publishInteractiveMarkers();
+  void publishInteractiveMarkers(bool pose_update);
 
   void recomputeQueryStartStateMetrics();
   void recomputeQueryGoalStateMetrics();

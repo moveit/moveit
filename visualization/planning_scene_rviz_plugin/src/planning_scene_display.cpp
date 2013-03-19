@@ -491,15 +491,10 @@ void PlanningSceneDisplay::calculateOffsetPosition()
 {  
   if (!getRobotModel())
     return;
+  
+  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), ros::Time(0), getRobotModel()->getModelFrame());
 
-  ros::Time stamp;
-  std::string err_string;
-  if (context_->getTFClient()->getLatestCommonTime(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), stamp, &err_string) != tf::NO_ERROR)
-    return;
-
-  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, getRobotModel()->getModelFrame());
-
-  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), stamp))
+  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), ros::Time(0)))
   {
     try
     {

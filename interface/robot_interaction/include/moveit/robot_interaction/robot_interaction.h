@@ -222,7 +222,6 @@ public:
     // bool can be used to signal a change in "state" (e.g. error, other properties?)
     boost::function<void(InteractionHandler*, bool)> update_callback_;
     robot_state::StateValidityCallbackFn state_validity_callback_fn_;
-    robot_state::SecondaryTaskFn secondary_task_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
     bool display_meshes_;
@@ -251,6 +250,8 @@ public:
   void clear();
   
   void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0.0);
+  void updateInteractiveMarkers(const InteractionHandlerPtr &handler);
+  bool showingMarkers(const InteractionHandlerPtr &handler);
 
   void publishInteractiveMarkers();
   void clearInteractiveMarkers();
@@ -267,19 +268,17 @@ public:
   
   static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout, const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn());
-  static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Twist &twist, double gain, 
-                          const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn(),
-                          const robot_state::SecondaryTaskFn &st_callback = robot_state::SecondaryTaskFn());
   static bool updateState(robot_state::RobotState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
 
 private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
-  double computeGroupScale(const std::string &group);    
-  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
-                             visualization_msgs::InteractiveMarker& im);
-  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
-                             const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im);
+  double computeGroupScale(const std::string &group);  
+  void computeMarkerPose(const InteractionHandlerPtr &handler, const EndEffector &eef, const robot_state::RobotState &robot_state,
+                         geometry_msgs::Pose &pose, geometry_msgs::Pose &control_to_eef_tf) const;
+  
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const EndEffector& eef, visualization_msgs::InteractiveMarker& im);
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const EndEffector& eef, const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void processingThread();
   void clearInteractiveMarkersUnsafe();

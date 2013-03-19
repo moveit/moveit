@@ -707,7 +707,7 @@ void MotionPlanningDisplay::changedQueryStartState()
     return;
 
   drawQueryStartState();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, true));
 }
 
 void MotionPlanningDisplay::changedQueryGoalState()
@@ -716,7 +716,7 @@ void MotionPlanningDisplay::changedQueryGoalState()
     return;
 
   drawQueryGoalState();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, true));
 }
 
 void MotionPlanningDisplay::drawQueryGoalState()
@@ -760,19 +760,31 @@ void MotionPlanningDisplay::resetInteractiveMarkers()
 {
   query_start_state_->clearError();
   query_goal_state_->clearError();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false));
 }
 
-void MotionPlanningDisplay::publishInteractiveMarkers()
+void MotionPlanningDisplay::publishInteractiveMarkers(bool pose_update)
 {
   if (robot_interaction_)
   {
-    robot_interaction_->clearInteractiveMarkers();
-    if (query_start_state_property_->getBool())
-      robot_interaction_->addInteractiveMarkers(query_start_state_, query_marker_scale_property_->getFloat());
-    if (query_goal_state_property_->getBool())
-      robot_interaction_->addInteractiveMarkers(query_goal_state_, query_marker_scale_property_->getFloat());
-    robot_interaction_->publishInteractiveMarkers();
+    if (pose_update && 
+        robot_interaction_->showingMarkers(query_start_state_) == query_start_state_property_->getBool() &&
+        robot_interaction_->showingMarkers(query_goal_state_) == query_goal_state_property_->getBool())
+    {
+      if (query_start_state_property_->getBool())
+        robot_interaction_->updateInteractiveMarkers(query_start_state_);
+      if (query_goal_state_property_->getBool())
+        robot_interaction_->updateInteractiveMarkers(query_goal_state_);
+    }
+    else
+    {
+      robot_interaction_->clearInteractiveMarkers();
+      if (query_start_state_property_->getBool())
+        robot_interaction_->addInteractiveMarkers(query_start_state_, query_marker_scale_property_->getFloat());
+      if (query_goal_state_property_->getBool())
+        robot_interaction_->addInteractiveMarkers(query_goal_state_, query_marker_scale_property_->getFloat());
+      robot_interaction_->publishInteractiveMarkers();
+    }
   }
 }
 
@@ -802,7 +814,7 @@ void MotionPlanningDisplay::changedQueryMarkerScale()
   if (isEnabled())
   {
     // Clear the interactive markers and re-add them:
-    publishInteractiveMarkers();
+    publishInteractiveMarkers(false);
   }
 }
 
@@ -841,7 +853,7 @@ void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::Robot
   if (!planning_scene_monitor_)
     return; 
   if (error_state_changed)
-    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));  
+    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false));
   recomputeQueryStartStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryStartState, this));
   context_->queueRender();
@@ -852,7 +864,7 @@ void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::RobotI
   if (!planning_scene_monitor_)
     return; 
   if (error_state_changed)
-    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false));
   recomputeQueryGoalStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryGoalState, this));
   context_->queueRender();
@@ -888,8 +900,12 @@ bool MotionPlanningDisplay::isIKSolutionCollisionFree(robot_state::JointStateGro
 {
   if (frame_->ui_->collision_aware_ik->isChecked() && planning_scene_monitor_)
   {
+    //    ROS_ERROR("A");    
     group->setVariableValues(ik_solution);
-    return !getPlanningSceneRO()->isStateColliding(*group->getRobotState(), group->getName());
+    //    ROS_ERROR("B");    
+    bool res = !getPlanningSceneRO()->isStateColliding(*group->getRobotState(), group->getName());
+    //    ROS_ERROR("C");    
+    return res;
   }
   else
     return true;
@@ -931,6 +947,7 @@ void MotionPlanningDisplay::changedPlanningGroup()
       return;
     }
   modified_groups_.insert(planning_group_property_->getStdString());
+  calculateOffsetPosition();
   
   if (robot_interaction_)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
@@ -941,7 +958,7 @@ void MotionPlanningDisplay::changedPlanningGroup()
 
   if (frame_)
     frame_->changePlanningGroup();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this));
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false));
 }
 
 void MotionPlanningDisplay::changedWorkspace()
@@ -1013,11 +1030,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   if (!groups.empty() && planning_group_property_->getStdString().empty())
     planning_group_property_->setStdString(groups[0]);
 
-  const std::string &group = planning_group_property_->getStdString();
   modified_groups_.clear();
-  if (!group.empty())
-    modified_groups_.insert(group);
-  robot_interaction_->decideActiveComponents(group);
   kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(getRobotModel()));
   
   geometry_msgs::Vector3 gravity_vector;
@@ -1030,9 +1043,8 @@ void MotionPlanningDisplay::onRobotModelLoaded()
     if (getRobotModel()->getJointModelGroup(groups[i])->isChain())
       dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getRobotModel(),
                                                                             groups[i],
-                                                                            gravity_vector));
-  updateQueryStartState();
-  updateQueryGoalState();
+                                                                            gravity_vector)); 
+  changedPlanningGroup();
 }
 
 void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &dest, const robot_state::RobotState &src)
@@ -1124,6 +1136,7 @@ void MotionPlanningDisplay::onEnable()
   frame_->enable();
 
   int_marker_display_->setEnabled(true);
+  int_marker_display_->setFixedFrame(fixed_frame_);
 
   changedPlanningGroup();
   changedTrajectoryTopic(); // load topic at startup if default used
