@@ -493,8 +493,15 @@ void PlanningSceneDisplay::calculateOffsetPosition()
     return;
   
   tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), ros::Time(0), getRobotModel()->getModelFrame());
-
-  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), ros::Time(0)))
+  static const unsigned int max_attempts = 10;
+  unsigned int attempts = 0;
+  while (!context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), ros::Time(0)) && attempts < max_attempts)
+  {
+    ros::Duration(0.1).sleep();
+    attempts++;
+  }
+  
+  if (attempts < max_attempts)
   {
     try
     {

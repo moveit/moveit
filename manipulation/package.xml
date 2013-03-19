@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_manipulation</name>
-  <version>0.3.24</version>
+  <version>0.3.25</version>
   <description>Components of MoveIt used for manipulation</description>
 
   <author email="sachinc@willowgarage.com">Sachin Chitta</author>
