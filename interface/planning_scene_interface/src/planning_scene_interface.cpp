@@ -53,6 +53,8 @@ namespace planning_scene_interface
   {
     collision_object_pub_ = nh_.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
     attached_collision_object_pub_ = nh_.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
+    // This delay is so critical, otherwise the first published object may not be added in the collision_space by the environment_server
+    ros::Duration(2.0).sleep();
   }
 
 
@@ -100,9 +102,6 @@ namespace planning_scene_interface
                                                               const std::vector<double> &orientation, 
                                                               const std::vector<double> &dimensions)
   {
-
-    ros::Duration(2.0).sleep();// This delay is so critical, otherwise the first published object may not be added in the collision_space by the environment_server
-
     //add the cylinder into the collision space
     moveit_msgs::CollisionObject cylinder_object;
     cylinder_object.id = id;
