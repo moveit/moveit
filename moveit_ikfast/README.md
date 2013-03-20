@@ -26,15 +26,15 @@ Create Plugin
 
 Plugin Package Location:
 
-   catkin_create_pkg myrobot_moveit_plugins	
+       catkin_create_pkg myrobot_moveit_plugins	
 
 Create the plugin source code:
 
-   rosrun moveit_ikfast_converter create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>
+       rosrun moveit_ikfast_converter create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>
 
 Or without ROS:
 
-   python /path/to/create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>
+       python /path/to/create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>
 
 **Parameters**
 yourobot_name - name of robot as in your URDF
@@ -46,8 +46,8 @@ This will generate a new source file ROBOTNAME_GROUPNAME_ikfast_moveit_plugin.cp
 
 Build the plugin library:
 
-   cd YOUR_ROS_WORKSPACE
-   catkin_make
+      cd YOUR_ROS_WORKSPACE
+      catkin_make
 
 This will build the new plugin library lib/lib<robot_name>_moveit_arm_kinematics.so.
 
@@ -57,8 +57,8 @@ Usage
 
 The IKFast plugin should function identically to the default KDL IK Solver, but with greatly increased performance. You can switch between the KDL and IKFast solvers using the kinematics_solver parameter in the robot's kinematics.yaml file:
 
-    roscd my_robot_moveit_config
-    <edit> config/kinematics.yaml
+      roscd my_robot_moveit_config
+      <edit> config/kinematics.yaml
 
 Edit these parts:
 
