@@ -45,11 +45,11 @@ find_package(catkin REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES moveit_ikfast_converter
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
-)
+  #  INCLUDE_DIRS include
+  #  LIBRARIES moveit_ikfast_converter
+  #  CATKIN_DEPENDS other_catkin_pkg
+  #  DEPENDS system_lib
+  )
 
 ###########
 ## Build ##
@@ -77,6 +77,13 @@ catkin_package(
 #############
 ## Install ##
 #############
+
+catkin_python_setup()
+install(
+  PROGRAMS src/create_ikfast_moveit_plugin.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
+
 
 ## Mark executable scripts (Python etc.) for installation
 ## not required for python when using catkin_python_setup()
