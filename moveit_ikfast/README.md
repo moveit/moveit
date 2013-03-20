@@ -70,4 +70,4 @@ Edit these parts:
 Test the Plugin
 ---------
 
-Use the MoveIt Rviz Motion Planning Plugin and use the interactive markers to see if correct IK Solutions are found
+Use the [MoveIt Rviz Motion Planning Plugin](http://moveit.ros.org/wiki/index.php/Groovy/PR2/Rviz_Plugin/Quick_Start) and use the interactive markers to see if correct IK Solutions are found
