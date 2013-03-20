@@ -1,21 +1,16 @@
 MoveIt! IKFast Converter
 ==========
-* Authors:	Dave Coleman <davetcoleman.com>
-  		Based heavily on the arm_kinematic_tools package by Jeremy Zoss, SwRI
-		and the arm_navigation plugin generator by David Butterworth, KAIST
+* Author: Dave Coleman, CU Boulder; Jeremy Zoss, SwRI; David Butterworth, KAIST
 * Date: 3/19/2013
 * Version: 3.0.0
 
-Create an IKFast Plugin for MoveIt!
----------
-
-Generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files
+Generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files. 
  
 You should have already created a MoveIt! package for your robot, by using the Setup Assistant and following this Tutorial.
 
 Tested on ROS Groovy with Catkin from OpenRave 0.8 using a 7dof manipulator
 
-Create IKFast Solition CPP File
+Create IKFast Solution CPP File
 ---------
 
 This is required first before creating the plugin. See [ROS Industrial Tutorial](http://www.ros.org/wiki/Industrial/Tutorials/Create_a_Fast_IK_Solution)
