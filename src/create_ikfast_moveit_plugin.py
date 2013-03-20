@@ -62,7 +62,7 @@ if __name__ == '__main__':
       ikfast_output_file = sys.argv[4]
       assert( len(sys.argv) < 6 )   # invalid num-arguments
    except:
-      print("\nUsage: create_ikfast_plugin.py <yourrobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>\n")
+      print("\nUsage: create_ikfast_plugin.py <yourrobot_name> <planning_group_name> <moveit_plugin_pkg> ikfast_output_path>\n")
       sys.exit(-1)
    print '\nIKFast Plugin Generator'
 
@@ -204,7 +204,7 @@ if __name__ == '__main__':
    print '\nCreated plugin file at \'' + plugin_file_name + '\''
 
    # Create plugin definition
-   lib_file_base = robot_name + "_moveit_arm_kinematics"
+   lib_file_base = robot_name + "_moveit_ikfast_kinematics_plugin"
    plugin_name = robot_name + '_' + planning_group_name + \
        '_kinematics/IKFastKinematicsPlugin'
    plugin_def = etree.Element("library", path="lib/lib"+lib_file_base)
