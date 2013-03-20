@@ -57,6 +57,10 @@
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainiksolverpos_nr_jl.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
+#include <moveit/kdl_kinematics_plugin/chainiksolver_pos_nr_jl_mimic.hpp>
+#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_pinv_mimic.hpp>
+#include <moveit/kdl_kinematics_plugin/chainiksolver_pos_nr_jl_mimic.hpp>
+#include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
 
 // MoveIt!
 #include <moveit/kinematics_base/kinematics_base.h>
@@ -195,11 +199,11 @@ namespace kdl_kinematics_plugin
 
     KDL::Chain kdl_chain_; 
 
-    boost::shared_ptr<KDL::ChainIkSolverVel_pinv> ik_solver_vel_; /** KDL IK velocity solver */
+    boost::shared_ptr<KDL::ChainIkSolverVel> ik_solver_vel_; /** KDL IK velocity solver */
 
     boost::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_;/** KDL FK solver */
 
-    boost::shared_ptr<KDL::ChainIkSolverPos_NR_JL> ik_solver_pos_;/** KDL IK position solver */ 
+    boost::shared_ptr<KDL::ChainIkSolverPos> ik_solver_pos_;/** KDL IK position solver */ 
     
     unsigned int dimension_; /** Dimension of the group */
 
