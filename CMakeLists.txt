@@ -80,9 +80,12 @@ catkin_package(
 
 catkin_python_setup()
 install(
-  PROGRAMS src/create_ikfast_moveit_plugin.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-  )
+  PROGRAMS 
+    src/create_ikfast_moveit_plugin.py
+    src/round_collada_numbers.py
+  DESTINATION 
+    ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 
 ## Mark executable scripts (Python etc.) for installation
