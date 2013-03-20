@@ -23,6 +23,11 @@ Plugin Package Location:
 
        catkin_create_pkg myrobot_moveit_plugins	
 
+Build your workspace so the new package is detected (can be 'roscd')
+
+      cd YOUR_ROS_WORKSPACE
+      catkin_make
+
 Create the plugin source code:
 
        rosrun moveit_ikfast_converter create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>
