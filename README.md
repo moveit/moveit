@@ -18,7 +18,7 @@ Tested on ROS Groovy with Catkin from OpenRave 0.8 using a 7dof manipulator
 Create IKFast Solition CPP File
 ---------
 
-This is required first before creating the plugin. See tutorial http://www.ros.org/wiki/Industrial/Tutorials/Create_a_Fast_IK_Solution
+This is required first before creating the plugin. See [ROS Industrial Tutorial](http://www.ros.org/wiki/Industrial/Tutorials/Create_a_Fast_IK_Solution)
 
 
 Create Plugin
