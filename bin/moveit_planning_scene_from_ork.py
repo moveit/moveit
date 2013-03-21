@@ -9,11 +9,13 @@ from threading import Thread
 from moveit_commander import ObjectDetector, ObjectBroadcaster
 
 def auto_trigger(detector, wait):
-    print "Auto-triggering object detection every %s seconds" % str(wait)
+    rospy.loginfo("Auto-triggering object detection every %s seconds" % str(wait))
     r = rospy.Rate(1.0 / wait)
     while not rospy.is_shutdown():
         r.sleep()
+        rospy.loginfo("Auto-triggering new object detection...")
         detector.trigger_detection()
+        detector.wait_for_detection()
     
 if __name__ == '__main__':
 

@@ -70,6 +70,10 @@ class ObjectDetector:
         goal = ObjectRecognitionGoal()
         self._action_client.send_goal(goal, done_cb=self.on_action_result)
 
+    def wait_for_detection(self):
+        if self._action_client is not None:
+            self._action_client.wait_for_result()
+
     def on_action_result(self, status, result):
         self.detected_object(result.recognized_objects.objects)
     
