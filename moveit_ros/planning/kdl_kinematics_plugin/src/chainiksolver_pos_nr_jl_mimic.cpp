@@ -35,7 +35,7 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
 {  
   mimic_joints.resize(chain.getNrOfJoints());
   for(std::size_t i=0; i < mimic_joints.size(); ++i)
-    mimic_joints[i].clear(i);    
+    mimic_joints[i].reset(i);    
 }
 
 bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& _mimic_joints)
@@ -43,7 +43,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
 
   if(_mimic_joints.size() != chain.getNrOfJoints())
   {    
-    ROS_INFO("Mimic Joint info should be same size as number of joints in chain: %d", chain.getNrOfJoints());    
+    ROS_ERROR("Mimic Joint info should be same size as number of joints in chain: %d", chain.getNrOfJoints());    
     return false;
   }
     
@@ -51,7 +51,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   {
     if(_mimic_joints[i].map_index >= chain.getNrOfJoints())
     {
-      ROS_INFO("Mimic Joint index should be less than number of joints in chain: %d", chain.getNrOfJoints());    
+      ROS_ERROR("Mimic Joint index should be less than number of joints in chain: %d", chain.getNrOfJoints());    
       return false;
     }    
   }
@@ -61,7 +61,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   qToqMimic(q_min,q_min_mimic);
   qToqMimic(q_max,q_max_mimic);
 
-  ROS_INFO_STREAM("Set mimic joints");
+  ROS_DEBUG_STREAM("Set mimic joints");
   return true;
 }
 
@@ -103,22 +103,32 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
     
     for(std::size_t j=0; j<q_min_mimic.rows(); ++j) 
     {
-      if(q_temp(j) < q_min_mimic(j))
-        q_temp(j) = q_min_mimic(j);
+      if(mimic_joints[j].active)
+        if(q_temp(j) < q_min_mimic(j))
+          q_temp(j) = q_min_mimic(j);
     }    
     for(std::size_t j=0; j<q_max_mimic.rows(); ++j) 
     {
-      if(q_temp(j) > q_max_mimic(j))
-        q_temp(j) = q_max_mimic(j);
+      if(mimic_joints[j].active)
+        if(q_temp(j) > q_max_mimic(j))
+          q_temp(j) = q_max_mimic(j);
     }
+
+    //Make sure limits are applied on the mimic joints to
+    qMimicToq(q_temp,q_out);
+    qToqMimic(q_out,q_temp);    
   }
   
-  ROS_DEBUG_STREAM("Solution:");
-  for(std::size_t i=0; i < 10; i++)
-    ROS_DEBUG("%d: %f",i,q_temp(i));
-
   qMimicToq(q_temp, q_out);  
-  
+  /*  ROS_DEBUG_STREAM("Full Solution:");
+  for(std::size_t i=0; i < q_temp.rows(); ++i)
+    ROS_DEBUG("%d: %f",(int) i,q_temp(i));
+
+  ROS_DEBUG_STREAM("Actual Solution:");
+  for(std::size_t i=0; i < q_out.rows(); ++i)
+    ROS_DEBUG("%d: %f",(int) i,q_out(i));
+  */
+
   if(i!=maxiter)
     return 0;
   else
