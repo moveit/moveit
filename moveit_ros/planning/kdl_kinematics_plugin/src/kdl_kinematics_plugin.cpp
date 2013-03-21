@@ -119,7 +119,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
                                      const std::string& tip_frame,
                                      double search_discretization)
 {
-  ROS_DEBUG("Initializing kdl solver");  
+  ROS_INFO("Initializing kdl solver");  
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
   ros::NodeHandle private_handle("~");  
@@ -208,8 +208,6 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;    
     ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_));
     ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
-    const std::vector<const robot_model::JointModel*>& joint_models = joint_model_group->getJointModels();
-    const std::vector<const robot_model::JointModel*>& mimic_models = joint_model_group->getJointModels();
     unsigned int joint_counter = 0;    
     for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
     {
