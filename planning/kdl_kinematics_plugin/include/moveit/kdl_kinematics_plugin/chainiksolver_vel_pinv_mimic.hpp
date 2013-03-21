@@ -73,11 +73,11 @@ public:
 
 private:
   
-  bool jacToJacMimic(const Jacobian &jac, Jacobian &jac_mimic);
+  bool jacToJacReduced(const Jacobian &jac, Jacobian &jac_mimic);
   const Chain chain;
   ChainJntToJacSolver jnt2jac;
   Jacobian jac;
-  Jacobian jac_mimic;
+  Jacobian jac_reduced;
   SVD_HH svd;
   std::vector<JntArray> U;
   JntArray S;
@@ -86,7 +86,7 @@ private:
   double eps;
   int maxiter;
   std::vector<unsigned int> mimic_column;
-  JntArray qdot_out_mimic;  
+  JntArray qdot_out_reduced;  
   std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints_;
   
 };
