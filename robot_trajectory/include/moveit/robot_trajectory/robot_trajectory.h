@@ -204,7 +204,6 @@ public:
 
 private:
 
-  //ros::Time start_time_;
   robot_model::RobotModelConstPtr kmodel_;
   const robot_model::JointModelGroup *group_;
   std::deque<robot_state::RobotStatePtr> waypoints_;

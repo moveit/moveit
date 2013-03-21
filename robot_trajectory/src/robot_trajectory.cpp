@@ -41,7 +41,6 @@
 #include <numeric>
 
 robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &kmodel, const std::string &group) : 
-  //start_time_(0),
   kmodel_(kmodel),
   group_(group.empty() ? NULL : kmodel->getJointModelGroup(group))
 {
@@ -208,14 +207,14 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
   if (!onedof.empty())
   {  
     trajectory.joint_trajectory.header.frame_id = kmodel_->getModelFrame();
-    trajectory.joint_trajectory.header.stamp = ros::Time(0); //start_time_;
+    trajectory.joint_trajectory.header.stamp = ros::Time(0);
     trajectory.joint_trajectory.points.resize(waypoints_.size());
   }
   
   if (!mdof.empty())
   {
     trajectory.multi_dof_joint_trajectory.header.frame_id = kmodel_->getModelFrame();
-    trajectory.multi_dof_joint_trajectory.header.stamp = ros::Time(0); //start_time_;
+    trajectory.multi_dof_joint_trajectory.header.stamp = ros::Time(0);
     trajectory.multi_dof_joint_trajectory.points.resize(waypoints_.size());
   }
   
@@ -271,7 +270,6 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
                                      trajectory.multi_dof_joint_trajectory.points.size());
   ros::Time last_time_stamp = trajectory.joint_trajectory.points.empty() ? trajectory.multi_dof_joint_trajectory.header.stamp : trajectory.joint_trajectory.header.stamp;
   ros::Time this_time_stamp = last_time_stamp;
-  //start_time_ = last_time_stamp;
   
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
