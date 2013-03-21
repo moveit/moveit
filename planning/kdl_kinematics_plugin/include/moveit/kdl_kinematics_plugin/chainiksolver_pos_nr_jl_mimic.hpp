@@ -74,8 +74,8 @@ public:
  
 private:
   const Chain chain;
-  JntArray q_min;
-  JntArray q_max;
+  JntArray q_min, q_min_mimic;
+  JntArray q_max, q_max_mimic;
   JntArray q_temp;  
   ChainFkSolverPos& fksolver;
   ChainIkSolverVel& iksolver;

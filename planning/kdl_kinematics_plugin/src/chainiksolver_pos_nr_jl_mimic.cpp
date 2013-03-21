@@ -31,12 +31,8 @@
 namespace KDL
 {
 
-ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, const JntArray& _q_min, const JntArray& _q_max, ChainFkSolverPos& _fksolver, ChainIkSolverVel& _iksolver, unsigned int _maxiter, double _eps): chain(_chain), q_min(chain.getNrOfJoints()), q_max(chain.getNrOfJoints()), q_temp(chain.getNrOfJoints()), fksolver(_fksolver), iksolver(_iksolver), delta_q(_chain.getNrOfJoints()), maxiter(_maxiter), eps(_eps)
-{
-  //Note that _q_min and _q_max will be of size chain.getNrOfJoints() - num_mimic_joints
-  qToqMimic(_q_min,q_min);
-  qToqMimic(_q_max,q_max);
-  
+ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, const JntArray& _q_min, const JntArray& _q_max, ChainFkSolverPos& _fksolver, ChainIkSolverVel& _iksolver, unsigned int _maxiter, double _eps): chain(_chain), q_min(_q_min), q_max(_q_max), q_temp(chain.getNrOfJoints()), fksolver(_fksolver), iksolver(_iksolver), delta_q(_chain.getNrOfJoints()), maxiter(_maxiter), eps(_eps), q_min_mimic(chain.getNrOfJoints()), q_max_mimic(chain.getNrOfJoints())
+{  
   mimic_joints.resize(chain.getNrOfJoints());
   for(std::size_t i=0; i < mimic_joints.size(); ++i)
     mimic_joints[i].clear(i);    
@@ -44,15 +40,27 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
 
 bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& _mimic_joints)
 {
+
   if(_mimic_joints.size() != chain.getNrOfJoints())
+  {    
+    ROS_INFO("Mimic Joint info should be same size as number of joints in chain: %d", chain.getNrOfJoints());    
     return false;
-  
+  }
+    
   for(std::size_t i=0; i < _mimic_joints.size(); ++i)
   {
     if(_mimic_joints[i].map_index >= chain.getNrOfJoints())
+    {
+      ROS_INFO("Mimic Joint index should be less than number of joints in chain: %d", chain.getNrOfJoints());    
       return false;
+    }    
   }
   mimic_joints = _mimic_joints;
+
+  //Note that q_min and q_max will be of size chain.getNrOfJoints() - num_mimic_joints
+  qToqMimic(q_min,q_min_mimic);
+  qToqMimic(q_max,q_max_mimic);
+
   ROS_INFO_STREAM("Set mimic joints");
   return true;
 }
@@ -93,15 +101,15 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
     iksolver.CartToJnt(q_temp,delta_twist,delta_q);
     Add(q_temp,delta_q,q_temp);
     
-    for(std::size_t j=0; j<q_min.rows(); ++j) 
+    for(std::size_t j=0; j<q_min_mimic.rows(); ++j) 
     {
-      if(q_temp(j) < q_min(j))
-        q_temp(j) = q_min(j);
+      if(q_temp(j) < q_min_mimic(j))
+        q_temp(j) = q_min_mimic(j);
     }    
-    for(std::size_t j=0; j<q_max.rows(); ++j) 
+    for(std::size_t j=0; j<q_max_mimic.rows(); ++j) 
     {
-      if(q_temp(j) > q_max(j))
-        q_temp(j) = q_max(j);
+      if(q_temp(j) > q_max_mimic(j))
+        q_temp(j) = q_max_mimic(j);
     }
   }
   
