@@ -376,6 +376,13 @@ bool robot_trajectory::RobotTrajectory::getStateAtDurationFromStart(const double
     {
       logInform("Time is %.3f of the way between index %d and %d. Rounding up to index %d.", blend, before, after, after);
       *output_state = *waypoints_[after];
+      const std::vector<robot_state::JointState*> &jsv_in = waypoints_[after]->getJointStateVector();
+      const std::vector<robot_state::JointState*> &jsv_out = output_state->getJointStateVector();
+      for(int i = 0; i < jsv_out.size(); i++)
+      {
+        //robot_state::JointState* js = jsv[i];
+        jsv_out[i]->getVelocities() = jsv_in[i]->getVelocities();
+      }
       actual_duration = getWaypointDurationFromStart(after); // prevents double comparison issues in the low-level controller
     }
   }
