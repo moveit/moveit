@@ -24,6 +24,7 @@
 // Copyright  (C)  2013  Sachin Chitta, Willow Garage
 
 #include <moveit/kdl_kinematics_plugin/chainiksolver_vel_pinv_mimic.hpp>
+#include <ros/console.h>
 
 namespace KDL
 {
@@ -31,16 +32,19 @@ ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, in
   chain(_chain),
   jnt2jac(chain),
   jac(chain.getNrOfJoints()),
-  jac_mimic(chain.getNrOfJoints()-_num_mimic_joints),
-  svd(jac_mimic),
+  jac_reduced(chain.getNrOfJoints()-_num_mimic_joints),
+  svd(jac_reduced),
   U(6,JntArray(chain.getNrOfJoints()-_num_mimic_joints)),
   S(chain.getNrOfJoints()-_num_mimic_joints),
   V(chain.getNrOfJoints()-_num_mimic_joints,JntArray(chain.getNrOfJoints()-_num_mimic_joints)),
   tmp(chain.getNrOfJoints()-_num_mimic_joints),
   eps(_eps),
   maxiter(_maxiter),
-  qdot_out_mimic(chain.getNrOfJoints()-_num_mimic_joints)
+  qdot_out_reduced(chain.getNrOfJoints()-_num_mimic_joints)
 {
+  mimic_joints_.resize(chain.getNrOfJoints());
+  for(std::size_t i=0; i < mimic_joints_.size(); ++i)
+    mimic_joints_[i].reset(i);    
 }
 
 ChainIkSolverVel_pinv_mimic::~ChainIkSolverVel_pinv_mimic()
@@ -61,15 +65,15 @@ bool ChainIkSolverVel_pinv_mimic::setMimicJoints(const std::vector<kdl_kinematic
   return true;
 }
 
-bool ChainIkSolverVel_pinv_mimic::jacToJacMimic(const Jacobian &jac, Jacobian &jac_mimic)
+bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian &jac, Jacobian &jac_reduced)
 {
-  jac_mimic.data.setZero();  
+  jac_reduced.data.setZero();  
   for(std::size_t i=0; i < chain.getNrOfJoints(); ++i)
   {
-    Twist vel1 = jac_mimic.getColumn(mimic_joints_[i].map_index);
+    Twist vel1 = jac_reduced.getColumn(mimic_joints_[i].map_index);
     Twist vel2 = jac.getColumn(i);
     Twist result = vel1 + (mimic_joints_[i].multiplier*vel2);
-    jac_mimic.setColumn(mimic_joints_[i].map_index,result);    
+    jac_reduced.setColumn(mimic_joints_[i].map_index,result);    
   }
   return true;
 }
@@ -77,14 +81,15 @@ bool ChainIkSolverVel_pinv_mimic::jacToJacMimic(const Jacobian &jac, Jacobian &j
 int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
 {
   //Let the ChainJntToJacSolver calculate the jacobian "jac" for
-  //the current joint positions "q_in" 
+  //the current joint positions "q_in". This will include the mimic joints
   jnt2jac.JntToJac(q_in,jac);
   
-  jacToJacMimic(jac,jac_mimic);
+  //Now compute the actual jacobian that involves only the active DOFs
+  jacToJacReduced(jac,jac_reduced);
   //Do a singular value decomposition of "jac" with maximum
   //iterations "maxiter", put the results in "U", "S" and "V"
   //jac = U*S*Vt
-  int ret = svd.calculate(jac_mimic,U,S,V,maxiter);
+  int ret = svd.calculate(jac_reduced,U,S,V,maxiter);
   
   double sum;
   unsigned int i,j;
@@ -94,9 +99,9 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
   // qdot_out = V*S_pinv*Ut*v_in
   
   //first we calculate Ut*v_in
-  for (i=0;i<jac_mimic.columns();i++) {
+  for (i=0;i<jac_reduced.columns();i++) {
     sum = 0.0;
-    for (j=0;j<jac_mimic.rows();j++) {
+    for (j=0;j<jac_reduced.rows();j++) {
       sum+= U[j](i)*v_in(j);
     }
     //If the singular value is too small (<eps), don't invert it but
@@ -105,17 +110,18 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
   }
   //tmp is now: tmp=S_pinv*Ut*v_in, we still have to premultiply
   //it with V to get qdot_out
-  for (i=0;i<jac_mimic.columns();i++) {
+  for (i=0;i<jac_reduced.columns();i++) {
     sum = 0.0;
-    for (j=0;j<jac_mimic.columns();j++) {
+    for (j=0;j<jac_reduced.columns();j++) {
       sum+=V[i](j)*tmp(j);
     }
     //Put the result in qdot_out
-    qdot_out_mimic(i)=sum;
+    qdot_out_reduced(i)=sum;
   }
+  ROS_DEBUG_STREAM("Solution:");
   for(i=0; i < chain.getNrOfJoints(); ++i)
   {
-    qdot_out(i) = qdot_out_mimic(mimic_joints_[i].map_index) * mimic_joints_[i].multiplier;    
+    qdot_out(i) = qdot_out_reduced(mimic_joints_[i].map_index) * mimic_joints_[i].multiplier;
   }
   //return the return value of the svd decomposition
   return ret;
