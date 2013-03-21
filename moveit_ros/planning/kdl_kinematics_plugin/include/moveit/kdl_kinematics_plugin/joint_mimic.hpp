@@ -49,7 +49,7 @@ class JointMimic
 {
 public:
 
-  JointMimic() { this->clear(0); };
+  JointMimic() { this->reset(0); };
 
   /** \brief Offset for this joint value from the joint that it mimics */
   double offset;
@@ -62,7 +62,7 @@ public:
   /** \brief If true, this joint is an active DOF and not a mimic joint*/
   bool active;  
   
-  void clear(unsigned int index)
+  void reset(unsigned int index)
   {
     offset = 0.0;
     multiplier = 1.0;

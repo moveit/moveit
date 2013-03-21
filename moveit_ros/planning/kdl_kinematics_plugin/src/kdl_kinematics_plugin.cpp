@@ -119,7 +119,6 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
                                      const std::string& tip_frame,
                                      double search_discretization)
 {
-  ROS_INFO("Initializing kdl solver");  
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
   ros::NodeHandle private_handle("~");  
@@ -206,7 +205,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   else
   {
     std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;    
-    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_));
+    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size()));
     ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
     unsigned int joint_counter = 0;    
     for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
@@ -215,7 +214,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
       if(joint_model_group->isActiveDOF(kdl_chain_.segments[i].getJoint().getName()))
       {
         kdl_kinematics_plugin::JointMimic mimic_joint;
-        mimic_joint.clear(joint_counter);
+        mimic_joint.reset(joint_counter);
         mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();        
         mimic_joint.active = true;        
         mimic_joints.push_back(mimic_joint);        
@@ -227,7 +226,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
         if(joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimic())
         {
           kdl_kinematics_plugin::JointMimic mimic_joint;
-          mimic_joint.clear(joint_counter);
+          mimic_joint.reset(joint_counter);
           mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
           mimic_joint.offset = joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimicOffset();
           mimic_joint.multiplier = joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimicFactor();       
