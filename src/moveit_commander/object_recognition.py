@@ -112,15 +112,18 @@ class ObjectBroadcaster:
                 co.id = info.name + '_' + str(self._bump_index())
             else:
                 co.id = ob.type.key + '_' + str(self._bump_index())
-            co.meshes = [info.ground_truth_mesh]
+            if len(info.ground_truth_mesh.triangles) > 0:
+                co.meshes = [info.ground_truth_mesh]
+            else:
+                co.meshes = [ob.bounding_mesh]
             co.mesh_poses = [ob.pose.pose.pose]
         else:
             co.id = ob.type.key + '_' + str(self._bump_index())
             co.meshes = [ob.bounding_mesh]
             co.mesh_poses = [ob.pose.pose.pose]
-
-        rospy.loginfo("Publishing collision object %s with confidence %s" % (co.id, str(ob.confidence)))
-        self._publisher.publish(co)
+        if len(co.meshes[0].triangles) > 0:
+            rospy.loginfo("Publishing collision object %s with confidence %s" % (co.id, str(ob.confidence)))
+            self._publisher.publish(co)
         
     def broadcast(self, objects):
         if isinstance(objects, collections.Iterable):
