@@ -200,7 +200,6 @@ bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem* parent,
   {
     QTreeWidgetItem* new_item = new QTreeWidgetItem(parent);
     new_item->setText(0, link->getName().c_str());
-    ROS_INFO_STREAM("Adding link " << link->getName().c_str());
 
     parent->addChild(new_item);
     return true;
@@ -268,7 +267,7 @@ void KinematicChainWidget::alterTree( const QString &link )
 void KinematicChainWidget::itemSelected() 
 {
   QTreeWidgetItem* item = link_tree_->currentItem();
-  if(item != NULL );
+  if(item != NULL)
   {
     Q_EMIT unhighlightAll();
 
