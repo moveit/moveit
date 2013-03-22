@@ -51,6 +51,20 @@
 namespace moveit_setup_assistant
 {
 
+// Struct for storing all the file operations
+struct GenerateFile
+{
+  GenerateFile() :
+    generate_(true)
+  {}
+  std::string file_name_;
+  std::string rel_path_;
+  std::string description_;
+  bool generate_;
+  boost::function<bool(std::string)> gen_func_;
+};
+
+// Class
 class ConfigurationFilesWidget : public SetupScreenWidget
 {
   Q_OBJECT
@@ -62,6 +76,8 @@ class ConfigurationFilesWidget : public SetupScreenWidget
 
   ConfigurationFilesWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
+  /// Recieved when this widget is chosen from the navigation menu
+  virtual void focusGiven();
 
   // ******************************************************************************************
   // Qt Components
@@ -99,24 +115,33 @@ private:
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 
-  /// Track progress
-  unsigned int action_num;
+  /// Name of the new package that is being (or going) to be generated, based on user specified save path
+  std::string new_package_name_;
 
-  /// Total actions - update this whenever a new call to displayAction() is added
-  static const unsigned int action_num_total = 24; // note: this is worse case number of actions
+  /// Track progress
+  unsigned int action_num_;
 
   /// Has the package been generated yet this program execution? Used for popping up exit warning
   bool has_generated_pkg_; 
+
+  /// Populate the 'Files to be Generated' list just once
+  bool first_focusGiven_;
+
+  /// Vector of all files to be generated
+  std::vector<GenerateFile> gen_files_;
 
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
 
+  /// Populate the 'Files to be generated' list
+  bool loadGenFiles();
+
   /// Verify with user if certain screens have not been completed
   bool checkDependencies();
 
   /// A function for showing progress and user feedback about what happened
-  void displayAction( const QString title, const QString desc, bool skipped = false );
+  void updateProgress();
 
   /// Get the last folder name in a directory path
   const std::string getPackageName( std::string package_path );
@@ -133,9 +158,14 @@ private:
    * 
    * @return bool if the template was copied correctly
    */
-  bool copyTemplate( const std::string& template_path, const std::string& output_path, 
-                     const std::string& new_package_name );
+  bool copyTemplate(const std::string& template_path, const std::string& output_path );
 
+  /**
+   * \brief Create a folder
+   * \param output_path name of folder relative to package
+   * \return bool if success
+   */
+  bool createFolder(const std::string& output_path);
 
 };
 
