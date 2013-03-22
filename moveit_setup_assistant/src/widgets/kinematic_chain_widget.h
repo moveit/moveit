@@ -41,6 +41,7 @@
 #include <QLabel>
 #include <QTreeWidget>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <ros/ros.h>
 
 namespace moveit_setup_assistant
 {
@@ -143,4 +144,3 @@ private:
 }
 
 #endif
-
