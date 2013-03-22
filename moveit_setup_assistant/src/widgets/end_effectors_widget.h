@@ -105,6 +105,9 @@ private Q_SLOTS:
   /// Preview whatever element is selected
   void previewClicked( int row, int column );
 
+  /// Preview the planning group that is selected
+  void previewClickedString( const QString& name );
+
   /// Delete currently editing ite
   void deleteSelected();
 
