@@ -197,8 +197,8 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   //  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 
-  // Debug mode:
-  if( config_data_->debug_ && false )
+  // Debug mode: auto load the configuration file by clicking button after a timeout
+  if( config_data_->debug_ )
   {
     //select_mode_->btn_exist_->click();
 

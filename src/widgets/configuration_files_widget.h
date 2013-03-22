@@ -105,6 +105,9 @@ private:
   /// Total actions - update this whenever a new call to displayAction() is added
   static const unsigned int action_num_total = 24; // note: this is worse case number of actions
 
+  /// Has the package been generated yet this program execution? Used for popping up exit warning
+  bool has_generated_pkg_; 
+
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************

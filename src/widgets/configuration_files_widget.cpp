@@ -60,8 +60,10 @@ namespace fs = boost::filesystem;
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  : SetupScreenWidget( parent ), config_data_(config_data)
+ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data ) :
+  SetupScreenWidget( parent ),
+  config_data_(config_data),
+  has_generated_pkg_(false)
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout();
@@ -271,7 +273,7 @@ void ConfigurationFilesWidget::savePackage()
 
   // Get path name
   std::string new_package_path = stack_path_->getPath();
-  
+
   // Use these strings multiple times
   QString skipped_pkg_msg = QString("<b>This file was not generated because it would over-write a user customized file with a blank template file. If this is the desired action then first manually delete the file and then re-generate your package by clicking the 'Generate Package' button.</b><br /><br />");
   QString pkg_description;
@@ -633,7 +635,6 @@ void ConfigurationFilesWidget::savePackage()
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
                  "Launch file for benchmarking OMPL planners");
 
-
   // Create Planning_Pipeline Launch File  -----------------------------------------------------
   file_name = "sensor_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
@@ -770,6 +771,7 @@ void ConfigurationFilesWidget::savePackage()
   // Alert user it completed successfully --------------------------------------------------
   progress_bar_->setValue( 100 );
   success_label_->show();
+  has_generated_pkg_ = true;
 }
 
 
@@ -778,10 +780,9 @@ void ConfigurationFilesWidget::savePackage()
 // ******************************************************************************************
 void ConfigurationFilesWidget::exitSetupAssistant()
 {
-  if( QMessageBox::question( this, "Exit Setup Assistant",
-                             QString("Are you sure you want to exit the MoveIt Setup Assistant?"),
-                             QMessageBox::Ok | QMessageBox::Cancel)
-      == QMessageBox::Ok )
+  if( has_generated_pkg_ || QMessageBox::question( this, "Exit Setup Assistant",
+                                                   QString("Are you sure you want to exit the MoveIt Setup Assistant?"),
+                                                   QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok )
   {
     QApplication::quit();
   }
@@ -890,9 +891,9 @@ bool ConfigurationFilesWidget::copyTemplate( const std::string& template_path, c
     if (vj.type_ != "fixed")
       vjb << "  <node pkg=\"tf\" type=\"static_transform_publisher\" name=\"virtual_joint_broadcaster_" << i << "\" args=\"0 0 0 0 0 0 " << vj.parent_frame_ << " " << vj.child_link_ << " 100\" />" << std::endl;
   }
-  
+
   boost::replace_all ( template_string, "[VIRTUAL_JOINT_BROADCASTER]", vjb.str());
-  
+
   // Save string to new location -----------------------------------------------------------
   std::ofstream output_stream( output_path.c_str(), std::ios_base::trunc );
   if( !output_stream.good() )
