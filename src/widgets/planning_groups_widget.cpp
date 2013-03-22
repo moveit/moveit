@@ -1135,6 +1135,23 @@ bool PlanningGroupsWidget::saveGroupScreen()
     return false;
   }
 
+  // Check that all numbers are >0
+  if(kinematics_resolution_double <= 0)
+  {
+    QMessageBox::warning( this, "Error Saving", "Kinematics solver search resolution must be greater than 0." );
+    return false;
+  }
+  if(kinematics_timeout_double <= 0)
+  {
+    QMessageBox::warning( this, "Error Saving", "Kinematics solver search timeout must be greater than 0." );
+    return false;
+  }
+  if(kinematics_attempts_int <= 0)
+  {
+    QMessageBox::warning( this, "Error Saving", "Kinematics solver attempts must be greater than 0." );
+    return false;
+  }
+
   adding_new_group_ = false;
 
   // Save the new group name or create the new group
