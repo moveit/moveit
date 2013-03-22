@@ -83,12 +83,12 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   // resolution to use with solver
   kinematics_timeout_field_ = new QLineEdit( this );
   kinematics_timeout_field_->setMaximumWidth( 400 );
-  form_layout->addRow( "Kin. Search Timeout(s):", kinematics_timeout_field_ );
+  form_layout->addRow( "Kin. Search Timeout (sec):", kinematics_timeout_field_ );
 
   // number of IK attempts
   kinematics_attempts_field_ = new QLineEdit( this );
   kinematics_attempts_field_->setMaximumWidth( 400 );
-  form_layout->addRow( "Kin. Search Attempts:", kinematics_attempts_field_ );
+  form_layout->addRow( "Kin. Solver Attempts:", kinematics_attempts_field_ );
 
   layout->addLayout( form_layout );
   layout->setAlignment( Qt::AlignTop );
