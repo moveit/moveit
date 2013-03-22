@@ -62,6 +62,8 @@ PassiveJointsWidget::PassiveJointsWidget( QWidget *parent, moveit_setup_assistan
   // Joints edit widget
   joints_widget_ = new DoubleListWidget( this, config_data_, "Joint Collection", "Joint", false);
   connect( joints_widget_, SIGNAL( selectionUpdated() ), this, SLOT( selectionUpdated() ) );
+  connect( joints_widget_, SIGNAL( previewClicked( std::string ) ), 
+           this, SLOT( previewClickedJoint( std::string ) ) );
 
   // Set the title
   joints_widget_->title_->setText( "" );
@@ -74,6 +76,9 @@ PassiveJointsWidget::PassiveJointsWidget( QWidget *parent, moveit_setup_assistan
   this->setLayout(layout);
 }
 
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 void PassiveJointsWidget::focusGiven()
 {
   joints_widget_->clearContents();
@@ -103,6 +108,9 @@ void PassiveJointsWidget::focusGiven()
   joints_widget_->setSelected( passive_joints );
 }
 
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 void PassiveJointsWidget::selectionUpdated()
 {
   config_data_->srdf_->passive_joints_.clear();
@@ -112,6 +120,34 @@ void PassiveJointsWidget::selectionUpdated()
     pj.name_ = joints_widget_->selected_data_table_->item( i, 0 )->text().toStdString();
     config_data_->srdf_->passive_joints_.push_back(pj);
   }
+}
+
+// ******************************************************************************************
+// Called from Double List widget to highlight a selected joint
+// ******************************************************************************************
+void PassiveJointsWidget::previewClickedJoint( std::string name )
+{
+  // Unhighlight all links
+  Q_EMIT unhighlightAll();
+
+  const robot_model::JointModel *joint_model =
+    config_data_->getRobotModel()->getJointModel( name );
+
+  // Check that a joint model was found
+  if( !joint_model )
+  {
+    return;
+  }
+  
+  const std::string link = joint_model->getChildLinkModel()->getName();
+
+  if( link.empty() )
+  {
+    return;
+  }
+
+  // Highlight link
+  Q_EMIT highlightLink( link );
 }
 
 } // namespace
