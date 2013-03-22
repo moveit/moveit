@@ -177,6 +177,7 @@ QWidget* EndEffectorsWidget::createEditWidget()
   group_name_field_ = new QComboBox( this );
   group_name_field_->setEditable( false );
   form_layout->addRow( "End Effector Group:", group_name_field_ );
+  connect( group_name_field_, SIGNAL( currentIndexChanged( const QString& ) ), this, SLOT( previewClickedString( const QString& ) ) );
 
   // Parent Link input
   parent_name_field_ = new QComboBox( this );
@@ -273,6 +274,18 @@ void EndEffectorsWidget::previewClicked( int row, int column )
 
   // Highlight group
   Q_EMIT highlightGroup( effector->component_group_ );
+}
+
+// ******************************************************************************************
+// Preview the planning group that is selected
+// ******************************************************************************************
+void EndEffectorsWidget::previewClickedString( const QString& name )
+{
+  // Unhighlight all links
+  Q_EMIT unhighlightAll();
+
+  // Highlight group
+  Q_EMIT highlightGroup( name.toStdString() );
 }
 
 // ******************************************************************************************
@@ -563,6 +576,9 @@ void EndEffectorsWidget::cancelEditing()
 {
   // Switch to screen
   stacked_layout_->setCurrentIndex( 0 ); 
+
+  // Re-highlight the currently selected end effector group
+  previewClicked(0,0); // the number parameters are actually meaningless
 
   // Announce that this widget is not in modal mode
   Q_EMIT isModal( false );

@@ -82,7 +82,10 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
   void selectionUpdated();
-  
+
+  /// Called from Double List widget to highlight a joint
+  void previewClickedJoint( std::string name );
+
 private:
 
   // ******************************************************************************************
