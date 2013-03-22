@@ -83,7 +83,12 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   // resolution to use with solver
   kinematics_timeout_field_ = new QLineEdit( this );
   kinematics_timeout_field_->setMaximumWidth( 400 );
-  form_layout->addRow( "Kin. Search Timeout (s):", kinematics_timeout_field_ );
+  form_layout->addRow( "Kin. Search Timeout(s):", kinematics_timeout_field_ );
+
+  // number of IK attempts
+  kinematics_attempts_field_ = new QLineEdit( this );
+  kinematics_attempts_field_->setMaximumWidth( 400 );
+  form_layout->addRow( "Kin. Search Attempts:", kinematics_attempts_field_ );
 
   layout->addLayout( form_layout );
   layout->setAlignment( Qt::AlignTop );
@@ -181,7 +186,7 @@ void GroupEditWidget::setSelected( const std::string &group_name )
   if( *resolution == 0 )
   {
     // Set default value
-    *resolution = 0.005;
+    *resolution = DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_;
   }
   kinematics_resolution_field_->setText( QString::number( *resolution ) );
 
@@ -190,9 +195,18 @@ void GroupEditWidget::setSelected( const std::string &group_name )
   if( *timeout == 0 )
   {
     // Set default value
-    *timeout = 0.05;
+    *timeout = DEFAULT_KIN_SOLVER_TIMEOUT_;
   }
   kinematics_timeout_field_->setText( QString::number( *timeout ) );
+
+  // Load attempts
+  int *attempts = &config_data_->group_meta_data_[ group_name ].kinematics_solver_attempts_;
+  if( *attempts == 0 )
+  {
+    // Set default value
+    *attempts = DEFAULT_KIN_SOLVER_ATTEMPTS_;
+  }
+  kinematics_attempts_field_->setText( QString::number( *attempts ) );
 
   // Set kin solver
   const std::string& kin_solver = config_data_->group_meta_data_[ group_name ].kinematics_solver_;

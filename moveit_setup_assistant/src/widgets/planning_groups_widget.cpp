@@ -1064,6 +1064,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   const std::string &kinematics_solver = group_edit_widget_->kinematics_solver_field_->currentText().toStdString();
   const std::string &kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
   const std::string &kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
+  const std::string &kinematics_attempts = group_edit_widget_->kinematics_attempts_field_->text().toStdString();
 
   // Used for editing existing groups
   srdf::Model::Group *searched_group = NULL;
@@ -1122,6 +1123,18 @@ bool PlanningGroupsWidget::saveGroupScreen()
     return false;
   }
 
+  // Check that the attempts is an int number
+  int kinematics_attempts_int;
+  try
+  {
+    kinematics_attempts_int = boost::lexical_cast<int>(kinematics_attempts);
+  } 
+  catch( boost::bad_lexical_cast& )
+  {
+    QMessageBox::warning( this, "Error Saving", "Unable to convert kinematics solver attempts to an int number." );
+    return false;
+  }
+
   adding_new_group_ = false;
 
   // Save the new group name or create the new group
@@ -1162,6 +1175,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[ group_name ].kinematics_solver_ = kinematics_solver;
   config_data_->group_meta_data_[ group_name ].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[ group_name ].kinematics_solver_timeout_ = kinematics_timeout_double;
+  config_data_->group_meta_data_[ group_name ].kinematics_solver_attempts_ = kinematics_attempts_int;
 
   // Reload main screen table
   loadGroupsTree();

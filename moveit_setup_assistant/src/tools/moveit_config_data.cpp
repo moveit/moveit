@@ -326,6 +326,10 @@ bool MoveItConfigData::outputKinematicsYAML( const std::string& file_path )
     // Solver Timeout
     emitter << YAML::Key << "kinematics_solver_timeout";
     emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_timeout_;
+
+    // Solver Attempts
+    emitter << YAML::Key << "kinematics_solver_attempts";
+    emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_attempts_;
     
     emitter << YAML::EndMap;
   }    
@@ -460,11 +464,29 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       {
         *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
       }
+      else
+      {
+        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_;
+      }
 
       // kinematics_solver_timeout 
       if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_timeout" ) ) 
       {
         *prop_name >> new_meta_data.kinematics_solver_timeout_;
+      }
+      else
+      {
+        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_TIMEOUT_;
+      }
+
+      // kinematics_solver_attempts
+      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_attempts" ) ) 
+      {
+        *prop_name >> new_meta_data.kinematics_solver_attempts_;
+      }
+      else
+      {
+        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_ATTEMPTS_;
       }
 
       // Assign meta data to vector
