@@ -46,7 +46,7 @@ namespace moveit_setup_assistant
 {
 
 // ******************************************************************************************
-// 
+//
 // ******************************************************************************************
 GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
   :  QWidget( parent ), config_data_( config_data )
@@ -59,7 +59,7 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   QFont group_title_font( "Arial", 12, QFont::Bold );
   title_->setFont(group_title_font);
   layout->addWidget( title_ );
-  
+
   // Simple form -------------------------------------------
   QFormLayout *form_layout = new QFormLayout();
   form_layout->setContentsMargins( 0, 15, 0, 15 );
@@ -74,7 +74,7 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   kinematics_solver_field_->setEditable( false );
   kinematics_solver_field_->setMaximumWidth( 400 );
   form_layout->addRow( "Kinematic Solver:", kinematics_solver_field_ );
-  
+
   // resolution to use with solver
   kinematics_resolution_field_ = new QLineEdit( this );
   kinematics_resolution_field_->setMaximumWidth( 400 );
@@ -97,32 +97,37 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   new_buttons_widget_ = new QWidget();
   QVBoxLayout *new_buttons_layout = new QVBoxLayout();
 
-  QLabel *save_and_add = new QLabel( "Specify components for this planning group:", this );
-  QFont save_and_add_font( "Arial", 10, QFont::Bold );
+  QLabel *save_and_add = new QLabel( "Next, Add Components To Group:", this );
+  QFont save_and_add_font( "Arial", 12, QFont::Bold );
   save_and_add->setFont( save_and_add_font );
   new_buttons_layout->addWidget( save_and_add );
 
+  QLabel *add_subtitle = new QLabel( "A planning group can be any combination of the follow components:", this );
+  QFont add_subtitle_font( "Arial", 10, QFont::Bold );
+  add_subtitle->setFont( add_subtitle_font );
+  new_buttons_layout->addWidget( add_subtitle );
+
   // Save and add joints
-  QPushButton *btn_save_joints = new QPushButton( "Save and Add Joints", this );
-  btn_save_joints->setMaximumWidth( 280 );
+  QPushButton *btn_save_joints = new QPushButton( "Add Joints", this );
+  btn_save_joints->setMaximumWidth( 200 );
   connect( btn_save_joints, SIGNAL(clicked()), this, SIGNAL( saveJoints() ) );
   new_buttons_layout->addWidget( btn_save_joints );
 
   // Save and add links
-  QPushButton *btn_save_links = new QPushButton( "Save and Add Links", this );
-  btn_save_links->setMaximumWidth( 280 );
+  QPushButton *btn_save_links = new QPushButton( "Add Links", this );
+  btn_save_links->setMaximumWidth( 200 );
   connect( btn_save_links, SIGNAL(clicked()), this, SIGNAL( saveLinks() ) );
   new_buttons_layout->addWidget( btn_save_links );
 
   // Save and add chain
-  QPushButton *btn_save_chain = new QPushButton( "Save and Add Chain", this );
-  btn_save_chain->setMaximumWidth( 280 );
+  QPushButton *btn_save_chain = new QPushButton( "Add Kin. Chain", this );
+  btn_save_chain->setMaximumWidth( 200 );
   connect( btn_save_chain, SIGNAL(clicked()), this, SIGNAL( saveChain() ) );
   new_buttons_layout->addWidget( btn_save_chain );
 
   // Save and add subgroups
-  QPushButton *btn_save_subgroups = new QPushButton( "Save and Add Subgroups", this );
-  btn_save_subgroups->setMaximumWidth( 280 );
+  QPushButton *btn_save_subgroups = new QPushButton( "Add Subgroups", this );
+  btn_save_subgroups->setMaximumWidth( 200 );
   connect( btn_save_subgroups, SIGNAL(clicked()), this, SIGNAL( saveSubgroups() ) );
   new_buttons_layout->addWidget( btn_save_subgroups );
 
@@ -134,7 +139,7 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   QWidget *vspacer = new QWidget( this );
   vspacer->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
   layout->addWidget( vspacer );
-  
+
   // Bottom Controls ---------------------------------------------------------
   QHBoxLayout *controls_layout = new QHBoxLayout();
 
@@ -163,13 +168,13 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   connect( btn_cancel, SIGNAL(clicked()), this, SIGNAL( cancelEditing() ) );
   controls_layout->addWidget( btn_cancel );
   controls_layout->setAlignment(btn_cancel, Qt::AlignRight);
-  
+
   // Add layout
   layout->addLayout( controls_layout );
 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
-  
+
 }
 
 // ******************************************************************************************
@@ -178,7 +183,7 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
 void GroupEditWidget::setSelected( const std::string &group_name )
 {
   group_name_field_->setText( QString( group_name.c_str() ) );
-  
+
   // Load properties from moveit_config_data.cpp ----------------------------------------------
 
   // Load resolution
@@ -209,23 +214,26 @@ void GroupEditWidget::setSelected( const std::string &group_name )
   kinematics_attempts_field_->setText( QString::number( *attempts ) );
 
   // Set kin solver
-  const std::string& kin_solver = config_data_->group_meta_data_[ group_name ].kinematics_solver_;
+  std::string kin_solver = config_data_->group_meta_data_[ group_name ].kinematics_solver_;
 
-  // Set the kin solver combo box if its not empty
-  if( !kin_solver.empty() )
+  // If this group doesn't have a solver, reset it to 'None'
+  if( kin_solver.empty() )
   {
-    int index = kinematics_solver_field_->findText( kin_solver.c_str() );
-    if( index == -1 )
-    {
-      QMessageBox::warning( this, "Missing Kinematic Solvers", 
-                            QString( "Unable to find the kinematic solver '").append( kin_solver.c_str() )
-                            .append( "'. Trying running rosmake for this package. Until fixed, this setting will be lost the next time the MoveIt configuration files are generated" ));
-      return;
-    }
-    else
-    {
-      kinematics_solver_field_->setCurrentIndex( index );
-    }
+    kin_solver = "None";
+  }
+
+  // Set the kin solver combo box
+  int index = kinematics_solver_field_->findText( kin_solver.c_str() );
+  if( index == -1 )
+  {
+    QMessageBox::warning( this, "Missing Kinematic Solvers",
+                          QString( "Unable to find the kinematic solver '").append( kin_solver.c_str() )
+                          .append( "'. Trying running rosmake for this package. Until fixed, this setting will be lost the next time the MoveIt configuration files are generated" ));
+    return;
+  }
+  else
+  {
+    kinematics_solver_field_->setCurrentIndex( index );
   }
 
   // Set default
@@ -246,7 +254,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   kinematics_solver_field_->clear();
 
   // Add none option, the default
-  kinematics_solver_field_->addItem( "None" );  
+  kinematics_solver_field_->addItem( "None" );
 
   // load all avail kin planners
   boost::scoped_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > loader;
@@ -255,11 +263,11 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
     loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("moveit_core", "kinematics::KinematicsBase"));
   }
   catch(pluginlib::PluginlibException& ex)
-  { 
+  {
     QMessageBox::warning( this, "Missing Kinematic Solvers", "Exception while creating class loader for kinematic solver plugins");
     ROS_ERROR_STREAM( ex.what() );
     return;
-  }  
+  }
 
   // Get classes
   const std::vector<std::string> &classes = loader->getDeclaredClasses();
