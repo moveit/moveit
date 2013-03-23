@@ -96,8 +96,11 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
-  /// Save package using default path
+  /// Save package click event
   void savePackage();
+
+  /// Generate the package
+  bool generatePackage();
 
   /// Quit the program because we are done
   void exitSetupAssistant();

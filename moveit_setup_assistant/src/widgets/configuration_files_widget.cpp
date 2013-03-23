@@ -232,6 +232,8 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "SRDF (<a href='http://www.ros.org/wiki/srdf'>Semantic Robot Description Format</a>) is a representation of semantic information about robots. This format is intended to represent information about the robot that is not in the URDF file, but it is useful for a variety of applications. The intention is to include information that has a semantic aspect to it.";
   file.gen_func_    = boost::bind(&SRDFWriter::writeSRDF, config_data_->srdf_, _1);
   gen_files_.push_back(file);
+  // special step required so the generated .setup_assistant yaml has this value
+  config_data_->srdf_pkg_relative_path_ = file.rel_path_; 
 
   // ompl_planning.yaml --------------------------------------------------------------------------------------
   file.file_name_   = "ompl_planning.yaml";
@@ -374,6 +376,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // setup_assistant.launch ------------------------------------------------------------------
   file.file_name_   = "setup_assistant.launch";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
+  template_path     = config_data_->appendPaths( template_launch_path, "edit_configuration_package.launch" );
   file.description_ = "Launch file for easily re-starting the MoveIt Setup Assistant to edit this robot's generated configuration package.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
@@ -389,6 +392,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "MoveIt Setup Assistant hidden settings file. You should not need to edit this file.";
   file.gen_func_    = boost::bind(&MoveItConfigData::outputSetupAssistantFile, config_data_, _1);
   gen_files_.push_back(file);
+
 }
 
 // ******************************************************************************************
@@ -505,7 +509,7 @@ void ConfigurationFilesWidget::focusGiven()
 }
 
 // ******************************************************************************************
-// Save package using default path
+// Save configuration click event
 // ******************************************************************************************
 void ConfigurationFilesWidget::savePackage()
 {
@@ -516,6 +520,24 @@ void ConfigurationFilesWidget::savePackage()
   action_num_ = 0;
   progress_bar_->setValue( 0 );
 
+  if( !generatePackage())
+  {
+    ROS_ERROR_STREAM("Failed to generate entire configuration package");
+    return;
+  }
+
+  // Alert user it completed successfully --------------------------------------------------
+  progress_bar_->setValue( 100 );
+  success_label_->show();
+  has_generated_pkg_ = true;
+}
+
+
+// ******************************************************************************************
+// Save package using default path
+// ******************************************************************************************
+bool ConfigurationFilesWidget::generatePackage()
+{
   // Get path name
   std::string new_package_path = stack_path_->getPath();
 
@@ -523,16 +545,16 @@ void ConfigurationFilesWidget::savePackage()
   if( new_package_path.empty() )
   {
     QMessageBox::warning( this, "Error Generating", "No package path provided. Please choose a directory location to generate the MoveIt configuration files." );
-    return;
+    return false;
   }
 
   // Check setup assist deps
   if( !checkDependencies() )
-    return; // canceled
+    return false; // canceled
 
   // Check that all groups have components
   if( !noGroupsEmpty() )
-    return; // not ready
+    return false; // not ready
 
   // Trim whitespace from user input
   boost::trim( new_package_path );
@@ -552,7 +574,7 @@ void ConfigurationFilesWidget::savePackage()
       QMessageBox::warning( this, "Incorrect Folder/Package",
                             QString("The chosen package location already exists but was not previously created using this MoveIt Setup Assistant. If this is a mistake, replace the missing file: ")
                             .append( setup_assistant_file.c_str() ) );
-      return;
+      return false;
     }
 
     // Confirm overwrite
@@ -563,7 +585,7 @@ void ConfigurationFilesWidget::savePackage()
                                QMessageBox::Ok | QMessageBox::Cancel)
         == QMessageBox::Cancel )
     {
-      return; // abort
+      return false; // abort
     }
 
   }
@@ -578,7 +600,7 @@ void ConfigurationFilesWidget::savePackage()
     {
       QMessageBox::critical( this, "Error Generating Files",
                              QString("Unable to create directory ").append( new_package_path.c_str() ) );
-      return;
+      return false;
     }
   }
 
@@ -604,15 +626,12 @@ void ConfigurationFilesWidget::savePackage()
       QMessageBox::critical( this, "Error Generating File",
                              QString("Failed to generate folder or file: '")
                              .append( file->rel_path_.c_str() ).append("' at location:\n").append( absolute_path.c_str() ));
-      return;
+      return false;
     }
     updateProgress(); // Increment and update GUI
   }
 
-  // Alert user it completed successfully --------------------------------------------------
-  progress_bar_->setValue( 100 );
-  success_label_->show();
-  has_generated_pkg_ = true;
+  return true;
 }
 
 
