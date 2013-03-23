@@ -115,13 +115,6 @@ static bool setLinkPair(const std::string &linkA, const std::string &linkB,
                         const DisabledReason reason, LinkPairMap &link_pairs);
 
 /**
- * \brief Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically. n choose 2 pairs
- * \param scene A reference to the robot in the planning scene
- * \param link_pairs List of all unique link pairs and each pair's properties
- **/
-static void computeLinkPairs( planning_scene::PlanningScene &scene, LinkPairMap &link_pairs );
-
-/**
  * \brief Build the robot links connection graph and then check for links with no geomotry
  * \param link The root link to begin a breadth first search on
  * \param link_graph A representation of all bi-direcitonal joint connections between links in robot_description
@@ -272,19 +265,20 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
     double num_possible = boost::math::binomial_coefficient<double>(num_links, 2); // n choose 2
     unsigned int num_sometimes = num_possible - num_disabled;
 
-    ROS_INFO("%6d : %s\n",   num_links, "Total Links");
-    ROS_INFO("%6.0f : %s\n", num_possible, "Total possible collisions");
-    ROS_INFO("%6d : %s\n",   num_always, "Always in collision");
-    ROS_INFO("%6d : %s\n",   num_never, "Never in collision");
-    ROS_INFO("%6d : %s\n",   num_default, "Default in collision");
-    ROS_INFO("%6d : %s\n",   num_adjacent, "Adjacent links disabled");
-    ROS_INFO("%6d : %s\n",   num_sometimes, "Sometimes in collision");
-    ROS_INFO("%6d : %s\n",   num_disabled, "TOTAL DISABLED");
+    ROS_INFO("%6d : %s",   num_links, "Total Links");
+    ROS_INFO("%6.0f : %s", num_possible, "Total possible collisions");
+    ROS_INFO("%6d : %s",   num_always, "Always in collision");
+    ROS_INFO("%6d : %s",   num_never, "Never in collision");
+    ROS_INFO("%6d : %s",   num_default, "Default in collision");
+    ROS_INFO("%6d : %s",   num_adjacent, "Adjacent links disabled");
+    ROS_INFO("%6d : %s",   num_sometimes, "Sometimes in collision");
+    ROS_INFO("%6d : %s",   num_disabled, "TOTAL DISABLED");
 
-    ROS_INFO("Copy to Spreadsheet:");
+    /*ROS_INFO("Copy to Spreadsheet:");
     ROS_INFO_STREAM(num_links << "\t" << num_possible << "\t" << num_always << "\t" << num_never 
                     << "\t" << num_default << "\t" << num_adjacent << "\t" << num_sometimes 
                     << "\t" << num_disabled);
+    */
   }
 
   *progress = 100; // end the status bar
@@ -332,7 +326,7 @@ bool setLinkPair(const std::string &linkA, const std::string &linkB,
 // ******************************************************************************************
 // Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically. n choose 2 pairs
 // ******************************************************************************************
-void computeLinkPairs( planning_scene::PlanningScene &scene, LinkPairMap &link_pairs )
+void computeLinkPairs( const planning_scene::PlanningScene &scene, LinkPairMap &link_pairs )
 {
   // Get the names of the link models that have some collision geometry associated to themselves
   const std::vector<std::string> &names = scene.getRobotModel()->getLinkModelNamesWithCollisionGeometry();

@@ -75,6 +75,13 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
                                      const bool include_never_colliding = true, const unsigned int trials = 10000, 
                                      const bool verbose = false);
 
+/**
+ * \brief Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically. n choose 2 pairs
+ * \param scene A reference to the robot in the planning scene
+ * \param link_pairs List of all unique link pairs and each pair's properties
+ **/
+void computeLinkPairs( const planning_scene::PlanningScene &scene, LinkPairMap &link_pairs );
+
 /** 
  * \brief Converts a reason for disabling a link pair into a string
  * \param reason enum reason type
