@@ -62,8 +62,8 @@ PassiveJointsWidget::PassiveJointsWidget( QWidget *parent, moveit_setup_assistan
   // Joints edit widget
   joints_widget_ = new DoubleListWidget( this, config_data_, "Joint Collection", "Joint", false);
   connect( joints_widget_, SIGNAL( selectionUpdated() ), this, SLOT( selectionUpdated() ) );
-  connect( joints_widget_, SIGNAL( previewClicked( std::string ) ), 
-           this, SLOT( previewClickedJoint( std::string ) ) );
+  connect( joints_widget_, SIGNAL( previewSelected( std::vector<std::string> ) ),
+           this, SLOT( previewSelectedJoints( std::vector<std::string> ) ) );
 
   // Set the title
   joints_widget_->title_->setText( "" );
@@ -123,31 +123,36 @@ void PassiveJointsWidget::selectionUpdated()
 }
 
 // ******************************************************************************************
-// Called from Double List widget to highlight a selected joint
+// Called from Double List widget to highlight joints
 // ******************************************************************************************
-void PassiveJointsWidget::previewClickedJoint( std::string name )
+void PassiveJointsWidget::previewSelectedJoints( std::vector<std::string> joints )
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  const robot_model::JointModel *joint_model =
-    config_data_->getRobotModel()->getJointModel( name );
-
-  // Check that a joint model was found
-  if( !joint_model )
+  for(int i = 0; i < joints.size(); ++i)
   {
-    return;
-  }
-  
-  const std::string link = joint_model->getChildLinkModel()->getName();
 
-  if( link.empty() )
-  {
-    return;
-  }
+    const robot_model::JointModel *joint_model = config_data_->getRobotModel()->getJointModel( joints[i] );
 
-  // Highlight link
-  Q_EMIT highlightLink( link );
+    // Check that a joint model was found
+    if( !joint_model )
+    {
+      continue;
+    }
+
+    // Get the name of the link
+    const std::string link = joint_model->getChildLinkModel()->getName();
+
+    if( link.empty() )
+    {
+      continue;
+    }
+
+    // Highlight link
+    Q_EMIT highlightLink( link );
+  }
 }
+
 
 } // namespace

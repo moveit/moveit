@@ -49,16 +49,16 @@ class DoubleListWidget : public QWidget
 {
   Q_OBJECT
 
-// ******************************************************************************************
-// Reusable double list widget for selecting and deselecting a subset from a set
-// ******************************************************************************************
-public:
+  // ******************************************************************************************
+  // Reusable double list widget for selecting and deselecting a subset from a set
+  // ******************************************************************************************
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
   /// Constructor
-  DoubleListWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data, 
+  DoubleListWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data,
                     QString long_name, QString short_name , bool add_ok_cancel = true );
 
   /// Loads the availble data list
@@ -72,19 +72,19 @@ public:
   /// Convenience function for reusing set table code
   void setTable( const std::vector<std::string> &items, QTableWidget *table );
 
-  /// Set the names of the two columns in the widget 
+  /// Set the names of the two columns in the widget
   void setColumnNames( const QString &col1, const QString &col2);
-  
+
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  
+
   QTableWidget *data_table_;
   QTableWidget *selected_data_table_;
   QLabel *title_; // specify the title from the parent widget
   QLabel *column1_label_;
   QLabel *column2_label_;
-  
+
   /// Name of datatype
   QString long_name_;
   QString short_name_;
@@ -102,27 +102,26 @@ private Q_SLOTS:
   void deselectDataButtonClicked();
 
   /// Event when data table is clicked
-  void previewClickedData( int row, int column );
-  void previewClickedSelected( int row, int column );
+  void previewSelectedLeft( const QItemSelection& selected, const QItemSelection& deselected );
+  void previewSelectedRight( const QItemSelection& selected, const QItemSelection& deselected );
 
 Q_SIGNALS:
 
   // ******************************************************************************************
   // Emitted Signals
   // ******************************************************************************************
-
   /// Event sent when this widget is done making data changes and parent widget can save
   void doneEditing();
 
   /// Event sent when user presses cancel button
   void cancelEditing();
 
-  /// Highlight part of robot
-  void previewClicked( std::string name );
+  /// Signal to highlight parts of robot
+  void previewSelected( std::vector<std::string> );
 
   /// When the set of selected items has changed
   void selectionUpdated();
-  
+
 private:
 
 
@@ -136,7 +135,10 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-  
+
+  /// Event when data table is clicked
+  void previewSelected( const QList<QTableWidgetItem*>& selected );
+
 };
 
 } //namespace moveit_setup_assistant
