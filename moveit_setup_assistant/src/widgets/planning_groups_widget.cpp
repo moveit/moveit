@@ -316,13 +316,30 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive( srdf::Model::Group &group_it
   joints->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, JOINT ) ) );
   group->addChild( joints );
 
+  // Retrieve pointer to the shared kinematic model
+  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
+
   // Loop through all aval. joints
   for( std::vector<std::string>::const_iterator joint_it = group_it.joints_.begin();
        joint_it != group_it.joints_.end(); ++joint_it )
   {
     QTreeWidgetItem *j = new QTreeWidgetItem( joints );
     j->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, JOINT ) ) );
-    j->setText( 0, joint_it->c_str() );
+    std::string joint_name;
+
+    // Get the type of joint this is
+    const robot_model::JointModel* jm = model->getJointModel(*joint_it);
+    if(jm) // check if joint model was found
+    {
+      joint_name = *joint_it + " - " + jm->getTypeName();
+    }
+    else
+    {
+      joint_name = *joint_it;
+    }
+
+    // Add to tree
+    j->setText( 0, joint_name.c_str() );
     joints->addChild( j );
   }
 
