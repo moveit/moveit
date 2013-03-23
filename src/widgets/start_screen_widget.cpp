@@ -629,7 +629,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
     // check if this directory has a package.xml 
     package_path = sub_path;
     package_path /= "package.xml";
-    ROS_INFO_STREAM("Checking for " << package_path.make_preferred().native());
+    ROS_DEBUG_STREAM("Checking for " << package_path.make_preferred().native());
     
     // Check if the files exist
     if( fs::is_regular_file( package_path ) )
@@ -673,8 +673,8 @@ bool StartScreenWidget::extractPackageNameFromPath()
     config_data_->urdf_pkg_relative_path_ = relative_path.make_preferred().native();
   }
 
-  ROS_INFO_STREAM( "PACKAGE NAME: " << config_data_->urdf_pkg_name_ );
-  ROS_INFO_STREAM( "RELATIVE PATH: " << config_data_->urdf_pkg_relative_path_ );
+  ROS_DEBUG_STREAM( "URDF Package Name: " << config_data_->urdf_pkg_name_ );
+  ROS_DEBUG_STREAM( "URDF Package Path: " << config_data_->urdf_pkg_relative_path_ );
 
   return true; // success
 }

@@ -102,7 +102,7 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   save_and_add->setFont( save_and_add_font );
   new_buttons_layout->addWidget( save_and_add );
 
-  QLabel *add_subtitle = new QLabel( "A planning group can be any combination of the follow components:", this );
+  QLabel *add_subtitle = new QLabel( "Recommended: ", this );
   QFont add_subtitle_font( "Arial", 10, QFont::Bold );
   add_subtitle->setFont( add_subtitle_font );
   new_buttons_layout->addWidget( add_subtitle );
@@ -112,6 +112,10 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   btn_save_joints->setMaximumWidth( 200 );
   connect( btn_save_joints, SIGNAL(clicked()), this, SIGNAL( saveJoints() ) );
   new_buttons_layout->addWidget( btn_save_joints );
+
+  QLabel *add_subtitle2 = new QLabel( "Advanced Options:", this );
+  add_subtitle2->setFont( add_subtitle_font );
+  new_buttons_layout->addWidget( add_subtitle2 );
 
   // Save and add links
   QPushButton *btn_save_links = new QPushButton( "Add Links", this );

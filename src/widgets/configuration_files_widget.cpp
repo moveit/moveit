@@ -557,7 +557,7 @@ bool ConfigurationFilesWidget::checkGenFiles()
       if( mod_time > config_data_->config_pkg_generated_timestamp_ + TIME_MOD_TOLERANCE ||
           mod_time < config_data_->config_pkg_generated_timestamp_ - TIME_MOD_TOLERANCE)
       {
-        ROS_INFO_STREAM("Not over-writing file " << file->file_name_ << " by default because it has been manually edited on date");
+        ROS_INFO_STREAM("Manual editing detected: not over-writing by default file " << file->file_name_ );
 
         file->generate_ = false; // do not overwrite by default
         found_modified = true;
