@@ -112,15 +112,15 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   joints_widget_ = new DoubleListWidget( this, config_data_, "Joint Collection", "Joint" );
   connect( joints_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
   connect( joints_widget_, SIGNAL( doneEditing() ), this, SLOT( saveJointsScreen() ) );
-  connect( joints_widget_, SIGNAL( previewClicked( std::string ) ), 
-           this, SLOT( previewClickedJoint( std::string ) ) );
+  connect( joints_widget_, SIGNAL( previewSelected( std::vector<std::string> ) ),
+           this, SLOT( previewSelectedJoints( std::vector<std::string> ) ) );
 
   // Links edit widget
   links_widget_ = new DoubleListWidget( this, config_data_, "Link Collection", "Link" );
   connect( links_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
   connect( links_widget_, SIGNAL( doneEditing() ), this, SLOT( saveLinksScreen() ) );
-  connect( links_widget_, SIGNAL( previewClicked( std::string ) ), 
-           this, SLOT( previewClickedLink( std::string ) ) );
+  connect( links_widget_, SIGNAL( previewSelected( std::vector<std::string> ) ),
+           this, SLOT( previewSelectedLink( std::vector<std::string> ) ) );
 
   // Chain Widget
   chain_widget_ = new KinematicChainWidget( this, config_data );
@@ -133,8 +133,8 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   subgroups_widget_ = new DoubleListWidget( this, config_data_, "Subgroup", "Subgroup" );
   connect( subgroups_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
   connect( subgroups_widget_, SIGNAL( doneEditing() ), this, SLOT( saveSubgroupsScreen() ) );
-  connect( subgroups_widget_, SIGNAL( previewClicked( std::string ) ), 
-           this, SLOT( previewClickedSubgroup( std::string ) ) );
+  connect( subgroups_widget_, SIGNAL( previewSelected( std::vector<std::string> ) ),
+           this, SLOT( previewSelectedSubgroup( std::vector<std::string> ) ) );
 
   // Group Edit Widget
   group_edit_widget_ = new GroupEditWidget( this, config_data_ );
@@ -275,7 +275,7 @@ void PlanningGroupsWidget::loadGroupsTree()
     btn_edit_->hide();
     btn_delete_->hide();
   }
-  
+
   alterTree( "expand" );
 }
 
@@ -502,19 +502,19 @@ void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
 {
   // Retrieve pointer to the shared kinematic model
   const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
-  
+
   // Get the names of the all joints
   const std::vector<std::string> &joints = model->getJointModelNames();
-  
+
   if( joints.size() == 0 )
   {
     QMessageBox::critical( this, "Error Loading", "No joints found for robot model");
     return;
   }
-  
+
   // Set the available joints (left box)
   joints_widget_->setAvailable( joints );
-  
+
   // Set the selected joints (right box)
   joints_widget_->setSelected( this_group->joints_ );
 
@@ -534,19 +534,19 @@ void PlanningGroupsWidget::loadLinksScreen( srdf::Model::Group *this_group )
 {
   // Retrieve pointer to the shared kinematic model
   const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
-  
+
   // Get the names of the all links
   const std::vector<std::string> &links = model->getLinkModelNames();
-  
+
   if( links.size() == 0 )
   {
     QMessageBox::critical( this, "Error Loading", "No links found for robot model");
     return;
   }
-  
+
   // Set the available links (left box)
   links_widget_->setAvailable( links );
-  
+
   // Set the selected links (right box)
   links_widget_->setSelected( this_group->links_ );
 
@@ -664,7 +664,7 @@ void PlanningGroupsWidget::deleteGroup()
   std::string group = current_edit_group_;
   if (group.empty())
   {
-    QTreeWidgetItem* item = groups_tree_->currentItem();    
+    QTreeWidgetItem* item = groups_tree_->currentItem();
     // Check that something was actually selected
     if(item == NULL)
       return;
@@ -677,7 +677,7 @@ void PlanningGroupsWidget::deleteGroup()
     current_edit_group_.clear();
   if (group.empty())
     return;
-  
+
   // Find the group we are editing based on the goup name string
   srdf::Model::Group *searched_group = config_data_->findGroupByName( group );
 
@@ -813,7 +813,7 @@ void PlanningGroupsWidget::deleteGroup()
 void PlanningGroupsWidget::addGroup()
 {
   adding_new_group_ = true;
-  
+
   // Load the data
   loadGroupScreen( NULL ); // NULL indicates this is a new group, not an existing one
 
@@ -1104,7 +1104,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   try
   {
     kinematics_resolution_double = boost::lexical_cast<double>(kinematics_resolution);
-  } 
+  }
   catch( boost::bad_lexical_cast& )
   {
     QMessageBox::warning( this, "Error Saving", "Unable to convert kinematics resolution to a double number." );
@@ -1116,7 +1116,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   try
   {
     kinematics_timeout_double = boost::lexical_cast<double>(kinematics_timeout);
-  } 
+  }
   catch( boost::bad_lexical_cast& )
   {
     QMessageBox::warning( this, "Error Saving", "Unable to convert kinematics solver timeout to a double number." );
@@ -1128,7 +1128,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   try
   {
     kinematics_attempts_int = boost::lexical_cast<int>(kinematics_attempts);
-  } 
+  }
   catch( boost::bad_lexical_cast& )
   {
     QMessageBox::warning( this, "Error Saving", "Unable to convert kinematics solver attempts to an int number." );
@@ -1284,11 +1284,11 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
 // Call when edit screen is canceled
 // ******************************************************************************************
 void PlanningGroupsWidget::cancelEditing()
-{ 
+{
   if (!current_edit_group_.empty() && adding_new_group_)
   {
     srdf::Model::Group *editing = config_data_->findGroupByName( current_edit_group_ );
-    if( editing && editing->joints_.empty() && editing->links_.empty() && 
+    if( editing && editing->joints_.empty() && editing->links_.empty() &&
         editing->chains_.empty() && editing->subgroups_.empty())
     {
       config_data_->group_meta_data_.erase(editing->name_);
@@ -1304,7 +1304,7 @@ void PlanningGroupsWidget::cancelEditing()
       loadGroupsTree();
     }
   }
-  
+
   // Switch to main screen
   showMainScreen();
 }
@@ -1358,53 +1358,70 @@ void PlanningGroupsWidget::changeScreen( int index )
 // ******************************************************************************************
 // Called from Double List widget to highlight a link
 // ******************************************************************************************
-void PlanningGroupsWidget::previewClickedLink( std::string name )
+void PlanningGroupsWidget::previewSelectedLink( std::vector<std::string> links )
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  // Highlight link
-  Q_EMIT highlightLink( name );
+  for(int i = 0; i < links.size(); ++i)
+  {
+    if( links[i].empty() )
+    {
+      continue;
+    }
+
+    std::cout << "    previewSelectedLink " << links[i] << std::endl;
+
+    // Highlight link
+    Q_EMIT highlightLink( links[i] );
+  }
 }
 
 // ******************************************************************************************
-// Called from Double List widget to highlight a joint
+// Called from Double List widget to highlight joints
 // ******************************************************************************************
-void PlanningGroupsWidget::previewClickedJoint( std::string name )
+void PlanningGroupsWidget::previewSelectedJoints( std::vector<std::string> joints )
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  const robot_model::JointModel *joint_model =
-    config_data_->getRobotModel()->getJointModel( name );
-
-  // Check that a joint model was found
-  if( !joint_model )
+  for(int i = 0; i < joints.size(); ++i)
   {
-    return;
-  }
-  
-  const std::string link = joint_model->getChildLinkModel()->getName();
 
-  if( link.empty() )
-  {
-    return;
-  }
+    const robot_model::JointModel *joint_model = config_data_->getRobotModel()->getJointModel( joints[i] );
 
-  // Highlight link
-  Q_EMIT highlightLink( link );
+    // Check that a joint model was found
+    if( !joint_model )
+    {
+      continue;
+    }
+
+    // Get the name of the link
+    const std::string link = joint_model->getChildLinkModel()->getName();
+
+    if( link.empty() )
+    {
+      continue;
+    }
+
+    // Highlight link
+    Q_EMIT highlightLink( link );
+  }
 }
 
 // ******************************************************************************************
 // Called from Double List widget to highlight a subgroup
 // ******************************************************************************************
-void PlanningGroupsWidget::previewClickedSubgroup( std::string name )
+void PlanningGroupsWidget::previewSelectedSubgroup( std::vector<std::string> groups )
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  // Highlight group
-  Q_EMIT highlightGroup( name );
+  for(int i = 0; i < groups.size(); ++i)
+  {
+    // Highlight group
+    Q_EMIT highlightGroup( groups[i] );
+  }
 }
 
 
