@@ -72,7 +72,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   // Top Header Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "Generate Configuration Files",
-                                           "Create or update the configuration files package needed to run your robot with MoveIt. Generated files highlighted orange indicate they were skipped.",
+                                           "Create or update the configuration files package needed to run your robot with MoveIt. Uncheck files to disable them from being generated - this is useful if you have made custom changes to them. Files in orange have been automatically detected as changed.",
                                            this);
   layout->addWidget( header );
 
@@ -89,7 +89,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
 
 
   // Generated Files List -------------------------------------------
-  QLabel* generated_list = new QLabel( "Files to be generated:", this );
+  QLabel* generated_list = new QLabel( "Files to be generated: (checked)", this );
   layout->addWidget( generated_list );
 
   QSplitter* splitter = new QSplitter( Qt::Horizontal, this );
@@ -99,6 +99,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   action_list_ = new QListWidget( this );
   action_list_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
   connect( action_list_, SIGNAL( currentRowChanged(int) ), this, SLOT( changeActionDesc(int) ) );
+  connect( action_list_, SIGNAL( itemChanged(QListWidgetItem*) ), this, SLOT( changeCheckedState(QListWidgetItem*) ) );
 
   // Description
   action_label_ = new QLabel( this );
@@ -222,7 +223,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // config/ --------------------------------------------------------------------------------------
   file.file_name_   = "config/";
   file.rel_path_    = file.file_name_;
-  file.description_ = "Folder containing all MoveIt configuration files for your robot";
+  file.description_ = "Folder containing all MoveIt configuration files for your robot. This folder is required and cannot be disabled.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::createFolder, this, _1);
   gen_files_.push_back(file);
 
@@ -233,7 +234,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.gen_func_    = boost::bind(&SRDFWriter::writeSRDF, config_data_->srdf_, _1);
   gen_files_.push_back(file);
   // special step required so the generated .setup_assistant yaml has this value
-  config_data_->srdf_pkg_relative_path_ = file.rel_path_; 
+  config_data_->srdf_pkg_relative_path_ = file.rel_path_;
 
   // ompl_planning.yaml --------------------------------------------------------------------------------------
   file.file_name_   = "ompl_planning.yaml";
@@ -265,7 +266,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // launch/ --------------------------------------------------------------------------------------
   file.file_name_   = "launch/";
   file.rel_path_    = file.file_name_;
-  file.description_ = "Folder containing all MoveIt launch files for your robot";
+  file.description_ = "Folder containing all MoveIt launch files for your robot. This folder is required and cannot be disabled.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::createFolder, this, _1);
   gen_files_.push_back(file);
 
@@ -380,7 +381,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "Launch file for easily re-starting the MoveIt Setup Assistant to edit this robot's generated configuration package.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
-
+  
 
   // -------------------------------------------------------------------------------------------------------------------
   // OTHER FILES -------------------------------------------------------------------------------------------------------
@@ -477,6 +478,20 @@ void ConfigurationFilesWidget::changeActionDesc(int id)
 }
 
 // ******************************************************************************************
+// Disable or enable item in gen_files_ array
+// ******************************************************************************************
+void ConfigurationFilesWidget::changeCheckedState(QListWidgetItem* item)
+{
+  QVariant index = item->data(Qt::UserRole);
+
+  //ROS_INFO_STREAM_NAMED("adsa","Check state is " << item->checkState() );
+  //ROS_INFO_STREAM("index: " << index.toInt());
+
+  // Enable/disable file
+  gen_files_[index.toInt()].generate_ = (item->checkState() > 0);  // 0=false
+}
+
+// ******************************************************************************************
 // Called when setup assistant navigation switches to this screen
 // ******************************************************************************************
 void ConfigurationFilesWidget::focusGiven()
@@ -489,6 +504,79 @@ void ConfigurationFilesWidget::focusGiven()
   // Load this list of all files to be generated
   loadGenFiles();
 
+  // Which files have been modified outside the Setup Assistant?
+  bool files_already_modified = checkGenFiles();
+
+  // Show files in GUI
+  showGenFiles();
+
+  // Allow list box to populate
+  QApplication::processEvents();
+
+  if(files_already_modified)
+  {
+    // Some were found to be modified
+    QMessageBox::information( this, "Files Modified", QString("Some files have been detected to have been modified outside of the Setup Assistant (based on timestamp). The Setup Assistant will not overwrite these changes by default because often changing configuration files manually is necessary, but we recommend you check the list and enable the checkbox next to files you would like to overwrite."));
+  }
+}
+
+// ******************************************************************************************
+// Check the list of files to be generated for modification
+// Returns true if files were detected as modified
+// ******************************************************************************************
+bool ConfigurationFilesWidget::checkGenFiles()
+{
+  // Check if we are 'editing' a prev generated config pkg
+  if( config_data_->config_pkg_path_.empty() )
+    return false; // this is a new package
+
+  // Check if we have the previous modification timestamp to compare agains
+  if( config_data_->config_pkg_generated_timestamp_ == 0)
+    return false; // this package has not been generated with a timestamp, backwards compatible.
+
+  static const std::time_t TIME_MOD_TOLERANCE = 10;
+
+  // Check all old file's modification time
+  bool found_modified = false;
+  for(int i = 0; i < gen_files_.size(); ++i)
+  {
+    GenerateFile* file = &gen_files_[i];
+
+    fs::path file_path = config_data_->appendPaths(config_data_->config_pkg_path_, file->rel_path_);
+
+    // Don't disable folders from being generated
+    if( fs::is_directory(file_path) )
+      continue;
+
+    if( fs::is_regular_file(file_path) )
+    {
+      std::time_t mod_time = fs::last_write_time(file_path);
+
+      //ROS_DEBUG_STREAM("File " << file->file_name_ << " file modified " << mod_time << " pkg modified " << config_data_->config_pkg_generated_timestamp_);
+
+      if( mod_time > config_data_->config_pkg_generated_timestamp_ + TIME_MOD_TOLERANCE ||
+          mod_time < config_data_->config_pkg_generated_timestamp_ - TIME_MOD_TOLERANCE)
+      {
+        ROS_INFO_STREAM("Not over-writing file " << file->file_name_ << " by default because it has been manually edited on date");
+
+        file->generate_ = false; // do not overwrite by default
+        found_modified = true;
+      }
+    }
+
+  }
+
+  // Warn user if files have been modified outside Setup Assistant
+  return found_modified;
+
+}
+
+// ******************************************************************************************
+// Show the list of files to be generated
+// ******************************************************************************************
+void ConfigurationFilesWidget::showGenFiles()
+{
+
   // Display this list in the GUI
   for (int i = 0; i < gen_files_.size(); ++i)
   {
@@ -497,7 +585,28 @@ void ConfigurationFilesWidget::focusGiven()
     // Create a formatted row
     QListWidgetItem *item = new QListWidgetItem( QString(file->rel_path_.c_str()), action_list_, 0 );
 
-    //item->setForeground( QBrush(QColor(255, 135, 0)));
+    fs::path file_path = config_data_->appendPaths(config_data_->config_pkg_path_, file->rel_path_);
+
+    // Checkbox
+    if( file->generate_ )
+    {
+      item->setCheckState(Qt::Checked);
+    }
+    else
+    {
+      item->setCheckState(Qt::Unchecked);
+      item->setForeground( QBrush(QColor(255, 135, 0)));
+    }
+
+    // Don't allow folders to be disabled
+    if( fs::is_directory(file_path) )
+    {
+      item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    }
+
+    // Link the gen_files_ index to this item
+    item->setData(Qt::UserRole, QVariant(i));
+
 
     // Add actions to list
     action_list_->addItem( item );
@@ -506,6 +615,7 @@ void ConfigurationFilesWidget::focusGiven()
 
   // Select the first item in the list so that a description is visible
   action_list_->setCurrentRow( 0 );
+
 }
 
 // ******************************************************************************************
@@ -613,7 +723,9 @@ bool ConfigurationFilesWidget::generatePackage()
 
     // Check if we should skip this file
     if( !file->generate_ )
+    {
       continue;
+    }
 
     // Create the absolute path
     absolute_path = config_data_->appendPaths( new_package_path, file->rel_path_ );
@@ -654,7 +766,7 @@ void ConfigurationFilesWidget::exitSetupAssistant()
 const std::string ConfigurationFilesWidget::getPackageName( std::string package_path )
 {
   // Remove end slash if there is one
-  if( !package_path.compare( package_path.size() - 1, 1, "/" ) ) // || package_path[ package_path.size() - 1 ] == "\\" )
+  if( !package_path.compare( package_path.size() - 1, 1, "/" ) )
   {
     package_path = package_path.substr( 0, package_path.size() - 1 );
   }

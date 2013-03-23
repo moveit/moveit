@@ -143,6 +143,9 @@ public:
   /// Allowed collision matrix for robot poses
   collision_detection::AllowedCollisionMatrix allowed_collision_matrix_;
 
+  /// Timestamp when configuration package was generated, if it was previously generated
+  std::time_t config_pkg_generated_timestamp_;
+
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
