@@ -108,6 +108,9 @@ private Q_SLOTS:
   /// Display the selected action in the desc box
   void changeActionDesc(int id);
 
+  /// Disable or enable item in gen_files_ array
+  void changeCheckedState(QListWidgetItem* item);
+
 private:
 
 
@@ -139,6 +142,13 @@ private:
 
   /// Populate the 'Files to be generated' list
   bool loadGenFiles();
+
+  /// Check the list of files to be generated for modification
+  /// Returns true if files were detected as modified
+  bool checkGenFiles();
+
+  /// Show the list of files to be generated
+  void showGenFiles();
 
   /// Verify with user if certain screens have not been completed
   bool checkDependencies();

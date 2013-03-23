@@ -518,7 +518,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
   }
 
   ROS_INFO("Setting Param Server with Robot Description");
-  //  ROS_WARN("Ignore the following error message 'Failed to contact master'. This is a known issue.");
+  ROS_WARN("Ignore the following error message 'Failed to contact master'. This is a known issue.");
   nh.setParam("/robot_description", urdf_string); 
 
   return true;
