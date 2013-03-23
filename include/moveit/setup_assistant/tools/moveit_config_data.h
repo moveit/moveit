@@ -178,6 +178,13 @@ public:
   bool outputKinematicsYAML( const std::string& file_path );
   bool outputJointLimitsYAML( const std::string& file_path );
 
+  /**
+   * \brief Decide the best two joints to be used for the projection evaluator
+   * \param planning_group name of group to use
+   * \return string - value to insert into yaml file
+   */
+  std::string decideProjectionJoints(std::string planning_group);
+     
   /** 
    * Input kinematics.yaml file for editing its values
    * @param file_path path to kinematics.yaml in the input package

@@ -284,6 +284,17 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
     emitter << "SBLkConfigDefault" << "LBKPIECEkConfigDefault" << "RRTkConfigDefault"
             << "RRTConnectkConfigDefault" << "ESTkConfigDefault" << "KPIECEkConfigDefault"
             << "BKPIECEkConfigDefault" << "RRTStarkConfigDefault" << YAML::EndSeq;
+    
+    // Output projection_evaluator
+    std::string projection_joints = decideProjectionJoints( group_it->name_ );
+    if( !projection_joints.empty() )
+    {
+      emitter << YAML::Key << "projection_evaluator";
+      emitter << YAML::Value << projection_joints;
+      emitter << YAML::Key << "longest_valid_segment_fraction";
+      emitter << YAML::Value << "0.05";
+    }
+
     emitter << YAML::EndMap;
   }
 
@@ -430,6 +441,37 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   output_stream.close();
 
   return true; // file created successfully
+}
+
+// ******************************************************************************************
+// Decide the best two joints to be used for the projection evaluator
+// ******************************************************************************************
+std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
+{
+  std::string joint_pair = "";
+
+  // Retrieve pointer to the shared kinematic model
+  const robot_model::RobotModelConstPtr &model = getRobotModel();    
+
+  // Error check
+  if( !model->hasJointModelGroup( planning_group ) )
+      return joint_pair;
+
+  // Get the joint model group
+  const robot_model::JointModelGroup* group = model->getJointModelGroup(planning_group);
+
+  // get vector of joint names
+  const std::vector<std::string> joints = group->getJointModelNames();
+
+  if( joints.size() >= 2 )
+  {
+    // Just choose the first two joints. TODO: this could be improved
+    joint_pair = "joints("+joints[0] + "," + joints[1]+")";
+  }
+  else
+    ROS_INFO_STREAM_NAMED("decideProjectionJoints","num joints is " << joints.size());
+
+  return joint_pair;
 }
 
 // ******************************************************************************************
