@@ -381,7 +381,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "Launch file for easily re-starting the MoveIt Setup Assistant to edit this robot's generated configuration package.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
-  
+
 
   // -------------------------------------------------------------------------------------------------------------------
   // OTHER FILES -------------------------------------------------------------------------------------------------------
@@ -814,10 +814,69 @@ bool ConfigurationFilesWidget::noGroupsEmpty()
 }
 
 // ******************************************************************************************
+// Load the strings that will be replaced in all templates
+// ******************************************************************************************
+void ConfigurationFilesWidget::loadTemplateStrings()
+{
+  // Pair 1
+  addTemplateString("[GENERATED_PACKAGE_NAME]", new_package_name_ );
+
+  // Pair 2
+  if (config_data_->urdf_pkg_name_.empty())
+  {
+    addTemplateString("[URDF_LOCATION]", config_data_->urdf_path_ );
+  }
+  else
+  {
+    addTemplateString("[URDF_LOCATION]", "$(find " + config_data_->urdf_pkg_name_ + ")/" + config_data_->urdf_pkg_relative_path_);
+  }
+
+  // Pair 3
+  addTemplateString("[ROBOT_NAME]", config_data_->srdf_->robot_name_ );
+
+  // Pair 4
+  std::stringstream vjb;
+  for (std::size_t i = 0 ; i < config_data_->srdf_->virtual_joints_.size(); ++i)
+  {
+    const srdf::Model::VirtualJoint &vj = config_data_->srdf_->virtual_joints_[i];
+    if (vj.type_ != "fixed")
+      vjb << "  <node pkg=\"tf\" type=\"static_transform_publisher\" name=\"virtual_joint_broadcaster_" << i << "\" args=\"0 0 0 0 0 0 " << vj.parent_frame_ << " " << vj.child_link_ << " 100\" />" << std::endl;
+  }
+  addTemplateString("[VIRTUAL_JOINT_BROADCASTER]", vjb.str());
+
+  // Pair 5 - Add dependencies to package.xml if the robot.urdf file is relative to a ROS package
+  if (config_data_->urdf_pkg_name_.empty())
+  {
+    addTemplateString("[OTHER_DEPENDENCIES",""); // not relative to a ROS package
+  }
+  else
+  {
+    std::stringstream deps;
+    deps << "<build_depend>" << config_data_->urdf_pkg_name_ << "</build_depend>\n";
+    deps << "  <run_depend>" << config_data_->urdf_pkg_name_ << "</run_depend>\n";
+    addTemplateString("[OTHER_DEPENDENCIES]",deps.str() ); // not relative to a ROS package
+  }
+}
+
+// ******************************************************************************************
+// Insert a string pair into the template_strings_ datastructure
+// ******************************************************************************************
+bool ConfigurationFilesWidget::addTemplateString( const std::string& key, const std::string& value )
+{
+  template_strings_.push_back( std::pair<std::string,std::string>(key,value) );
+}
+
+// ******************************************************************************************
 // Copy a template from location <template_path> to location <output_path> and replace package name
 // ******************************************************************************************
 bool ConfigurationFilesWidget::copyTemplate( const std::string& template_path, const std::string& output_path )
 {
+  // Check if template strings have been loaded yet
+  if( template_strings_.empty() )
+  {
+    loadTemplateStrings();
+  }
+
   // Error check file
   if( ! fs::is_regular_file( template_path ) )
   {
@@ -842,28 +901,10 @@ bool ConfigurationFilesWidget::copyTemplate( const std::string& template_path, c
   template_stream.close();
 
   // Replace keywords in string ------------------------------------------------------------
-  boost::replace_all( template_string, "[GENERATED_PACKAGE_NAME]", new_package_name_ );
-
-  if (config_data_->urdf_pkg_name_.empty())
+  for(int i = 0; i < template_strings_.size(); ++i)
   {
-    boost::replace_all( template_string, "[URDF_LOCATION]", config_data_->urdf_path_ );
+    boost::replace_all(template_string, template_strings_[i].first, template_strings_[i].second);
   }
-  else
-  {
-    boost::replace_all( template_string, "[URDF_LOCATION]", "$(find " + config_data_->urdf_pkg_name_ + ")/" + config_data_->urdf_pkg_relative_path_);
-  }
-
-  boost::replace_all( template_string, "[ROBOT_NAME]", config_data_->srdf_->robot_name_ );
-
-  std::stringstream vjb;
-  for (std::size_t i = 0 ; i < config_data_->srdf_->virtual_joints_.size(); ++i)
-  {
-    const srdf::Model::VirtualJoint &vj = config_data_->srdf_->virtual_joints_[i];
-    if (vj.type_ != "fixed")
-      vjb << "  <node pkg=\"tf\" type=\"static_transform_publisher\" name=\"virtual_joint_broadcaster_" << i << "\" args=\"0 0 0 0 0 0 " << vj.parent_frame_ << " " << vj.child_link_ << " 100\" />" << std::endl;
-  }
-
-  boost::replace_all ( template_string, "[VIRTUAL_JOINT_BROADCASTER]", vjb.str());
 
   // Save string to new location -----------------------------------------------------------
   std::ofstream output_stream( output_path.c_str(), std::ios_base::trunc );
