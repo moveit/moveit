@@ -277,12 +277,6 @@ void DoubleListWidget::selectDataButtonClicked()
     }
   }
 
-  //TODO?
-  /*
-    if(selected_data_table_->rowCount() > 0) {
-    first_data_field_->setText("has");
-    }
-  */
   Q_EMIT( selectionUpdated() );
 }
 
@@ -300,35 +294,8 @@ void DoubleListWidget::deselectDataButtonClicked()
     selected_data_table_->removeRow(deselected[i]->row());
   }
 
-  // TODO?
-  /*
-    if(selected_data_table_->rowCount() == 0) {
-    first_data_field_->clear();
-    }
-  */
-
   Q_EMIT( selectionUpdated() );
 }
-
-// ******************************************************************************************
-// Highlight data_table_ item
-// ******************************************************************************************
-/*
-void DoubleListWidget::previewClickedData( int row, int column )
-{
-  // Get list of all selected items
-  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
-
-  // Check that an element was selected
-  if( !selected.size() )
-  {
-    return;
-  }
-
-  // Send to shared function
-  Q_EMIT( previewClicked( selected[0]->text().toStdString() ) );
-}
-*/
 
 // ******************************************************************************************
 // Highlight links of robot for left list
@@ -369,24 +336,6 @@ void DoubleListWidget::previewSelected( const QList<QTableWidgetItem*>& selected
   // Send to shared function
   Q_EMIT( previewSelected( selected_vector ) );
 }
-
-/*
-// ******************************************************************************************
-// Highlight selected_data_table_ item
-// ******************************************************************************************
-void DoubleListWidget::previewClickedSelected( int row, int column )
-{
-// Get list of all selected items
-QList<QTableWidgetItem*> selected = selected_data_table_->selectedItems();
-
-// Check that an element was selected
-if( !selected.size() )
-return;
-
-// Send event
-Q_EMIT( previewClicked( selected[0]->text().toStdString() ) );
-}
-*/
 
 } //namespace moveit_setup_assistant
 
