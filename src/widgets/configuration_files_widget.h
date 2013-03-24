@@ -64,6 +64,9 @@ struct GenerateFile
   boost::function<bool(std::string)> gen_func_;
 };
 
+// Typedef for storing template string replacement pairs
+typedef std::vector< std::pair<std::string, std::string> > StringPairVector;
+
 // Class
 class ConfigurationFilesWidget : public SetupScreenWidget
 {
@@ -128,13 +131,16 @@ private:
   unsigned int action_num_;
 
   /// Has the package been generated yet this program execution? Used for popping up exit warning
-  bool has_generated_pkg_; 
+  bool has_generated_pkg_;
 
   /// Populate the 'Files to be Generated' list just once
   bool first_focusGiven_;
 
   /// Vector of all files to be generated
   std::vector<GenerateFile> gen_files_;
+
+  /// Vector of all strings to search for in templates, and their replacements
+  StringPairVector template_strings_;
 
   // ******************************************************************************************
   // Private Functions
@@ -162,13 +168,27 @@ private:
   /// Check that no group is empty (without links/joints/etc)
   bool noGroupsEmpty();
 
-  /** 
+  /**
+   * \brief Load the strings that will be replaced in all templates
+   * \return void
+   */
+  void loadTemplateStrings();
+
+  /**
+   * \brief Insert a string pair into the template_strings_ datastructure
+   * \param key string to search in template
+   * \param value string to replace with
+   * \return void
+   */
+  bool addTemplateString( const std::string& key, const std::string& value );
+
+  /**
    * Copy a template from location <template_path> to location <output_path> and replace package name
-   * 
+   *
    * @param template_path path to template file
    * @param output_path desired path to copy to
    * @param new_package_name name of the new package being created, to replace key word in template
-   * 
+   *
    * @return bool if the template was copied correctly
    */
   bool copyTemplate(const std::string& template_path, const std::string& output_path );
