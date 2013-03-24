@@ -110,18 +110,6 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   urdf_file_->hide(); // user needs to select option before this is shown
   left_layout->addWidget( urdf_file_ );
 
-  // URDF Package and File Dialog
-  /*urdf_file_ = new LoadURDFWidget( this );
-    urdf_file_->hide();
-    left_layout->addWidget( urdf_file_ );*/
-
-  // SRDF File Dialog
-  /*srdf_file_ = new LoadPathWidget("Load a SRDF File (optional)",
-    "Specify the location for an existing Semantic Robot Description Format (SRDF) file for your robot, if one exists. It will be copied into the generated MoveIt configuration package. If left blank this setup assistant will create the file for you.",
-    false, false, this); // no directory, save
-    srdf_file_->hide(); // user needs to select option before this is shown
-    left_layout->addWidget( srdf_file_ ); */
-
   // Load settings box ---------------------------------------------
   QHBoxLayout *load_files_layout = new QHBoxLayout();
 

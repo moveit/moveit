@@ -284,7 +284,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
     emitter << "SBLkConfigDefault" << "LBKPIECEkConfigDefault" << "RRTkConfigDefault"
             << "RRTConnectkConfigDefault" << "ESTkConfigDefault" << "KPIECEkConfigDefault"
             << "BKPIECEkConfigDefault" << "RRTStarkConfigDefault" << YAML::EndSeq;
-    
+
     // Output projection_evaluator
     std::string projection_joints = decideProjectionJoints( group_it->name_ );
     if( !projection_joints.empty() )
@@ -451,11 +451,11 @@ std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
   std::string joint_pair = "";
 
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr &model = getRobotModel();    
+  const robot_model::RobotModelConstPtr &model = getRobotModel();
 
   // Error check
   if( !model->hasJointModelGroup( planning_group ) )
-      return joint_pair;
+    return joint_pair;
 
   // Get the joint model group
   const robot_model::JointModelGroup* group = model->getJointModelGroup(planning_group);
@@ -465,11 +465,14 @@ std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
 
   if( joints.size() >= 2 )
   {
-    // Just choose the first two joints. TODO: this could be improved
-    joint_pair = "joints("+joints[0] + "," + joints[1]+")";
+    // Check that the first two joints have only 1 variable
+    if( group->getJointModel( joints[0] )->getVariableCount() == 1 &&
+        group->getJointModel( joints[1] )->getVariableCount() == 1)
+    {
+      // Just choose the first two joints.
+      joint_pair = "joints("+joints[0] + "," + joints[1]+")";
+    }
   }
-  else
-    ROS_INFO_STREAM_NAMED("decideProjectionJoints","num joints is " << joints.size());
 
   return joint_pair;
 }
