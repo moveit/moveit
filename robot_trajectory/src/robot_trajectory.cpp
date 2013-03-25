@@ -306,3 +306,60 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
   robot_state::robotStateMsgToRobotState(state, st);
   setRobotTrajectoryMsg(st, trajectory);
 }
+
+void robot_trajectory::RobotTrajectory::findWayPointIndicesForDurationAfterStart( const double& duration, int& before,
+                                                                                  int& after, double &blend ) const
+{
+  if(duration < 0.0)
+  {
+    before = 0;
+    after = 0;
+    blend = 0;
+    return;
+  }
+
+  // Find indicies
+  std::size_t index = 0, num_points = waypoints_.size();
+  double running_duration = 0.0;
+  for( ; index < num_points; index++)
+  {
+    running_duration += duration_from_previous_[index];
+    if( running_duration >= duration )
+      break;
+  }
+  before = std::max<int>(index - 1, 0);
+  after = std::min<int>(index, num_points - 1);
+
+  // Compute duration blend
+  double before_time = running_duration - duration_from_previous_[index];
+  if(after == before)
+    blend = 1.0;
+  else
+    blend = (duration - before_time) / duration_from_previous_[index];
+}
+
+double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size_t index) const
+{
+  if(index >= duration_from_previous_.size())
+    return -1.0; // or something else? should we throw an exception?
+
+  double time = 0;
+  for(std::size_t i = 0; i <= index; ++i)
+    time += duration_from_previous_[i];
+  return time;
+}
+
+bool robot_trajectory::RobotTrajectory::getStateAtDurationFromStart(const double request_duration,
+                                                                    robot_state::RobotStatePtr& output_state) const
+{
+  if( !getWayPointCount() )
+    return false;
+
+  int before=0, after=0;
+  double blend = 1.0;
+  findWayPointIndicesForDurationAfterStart(request_duration, before, after, blend);
+  //logDebug("Interpolating %.3f of the way between index %d and %d.", blend, before, after);
+  waypoints_[before]->interpolate(*waypoints_[after], blend, *output_state);
+  // TODO at some point we should allow for different interpolation types, or visitor classes.
+  return true;
+}

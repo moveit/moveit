@@ -103,6 +103,12 @@ public:
   {
     return duration_from_previous_;
   }
+
+  /** @brief  Returns the duration after start that a waypoint will be reached.
+   *  @param  The waypoint index.
+   *  @return The duration from start; retuns -1.0 if index is out of range.
+   */
+  double getWaypointDurationFromStart(std::size_t index) const;
   
   double getWayPointDurationFromPrevious(std::size_t index)
   {
@@ -177,7 +183,24 @@ public:
 
   void unwind();
   void unwind(const robot_state::RobotState &state);
-  
+
+  /** @brief Finds the waypoint indicies before and after a duration from start.
+   *  @param The duration from start.
+   *  @param The waypoint index before the supplied duration.
+   *  @param The waypoint index after (or equal to) the supplied duration.
+   *  @param The progress (0 to 1) between the two waypoints, based on time (not based on joint distances).
+   */
+  void findWayPointIndicesForDurationAfterStart(const double& duration, int& before, int& after, double &blend) const;
+
+  // TODO support visitor function for interpolation, or at least different types.
+  /** @brief Gets a robot state corresponding to a supplied duration from start for the trajectory, using linear time interpolation.
+   *  @param The duration from start.
+   *  @param The resulting robot state.
+   *  @return True if state is valid, false otherwise (trajectory is empty).
+   */
+  bool getStateAtDurationFromStart(const double request_duration,
+                                   robot_state::RobotStatePtr& output_state) const;
+
 private:
 
   robot_model::RobotModelConstPtr kmodel_;
