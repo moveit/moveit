@@ -110,7 +110,7 @@ public:
    */
   double getWaypointDurationFromStart(std::size_t index) const;
   
-  double getWayPointDurationFromPrevious(std::size_t index)
+  double getWayPointDurationFromPrevious(std::size_t index) const
   {
     if (duration_from_previous_.size() > index)
       return duration_from_previous_[index];
