@@ -280,12 +280,12 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
 
       double v1, v2, a;
 
+      bool start_velocity = false;
       if(dt1 == 0.0 || dt2 == 0.0) {
         v1 = 0.0;
         v2 = 0.0;
         a = 0.0;
       } else {
-        bool start_velocity = false;
         if(i==0 && has_start_velocity)
         {
           std::map<std::string, double>::const_iterator it = velocity_map.find(trajectory.joint_names[j]);
@@ -296,10 +296,11 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
           }
         }
         v1 = start_velocity ? v1 : (q2-q1)/dt1;
-        v2 = (q3-q2)/dt2;
+        //v2 = (q3-q2)/dt2;
+        v2 = start_velocity ? v1 : (q3-q2)/dt2; // Needed to ensure continuous velocity for first point
         a = 2*(v2-v1)/(dt1+dt2);
       }
-      trajectory.points[i].velocities[j] = (v2+v1)/2; // TODO this might do the wrong thing for a first point with specified velocity...
+      trajectory.points[i].velocities[j] = (v2+v1)/2;
       trajectory.points[i].accelerations[j] = a;
     }
   }
@@ -456,9 +457,12 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
   std::map<std::string, double> velocity_map;
   if (start_state.joint_state.name.size() == start_state.joint_state.velocity.size())
   {
-    logDebug("We seem to have velocity data; populating...");
+    //logInform("We seem to have velocity data; populating...");
     for (std::size_t i = 0; i < start_state.joint_state.name.size(); ++i)
+    {
+      //logInform("joint: [%s], velocity: [%.3f]", start_state.joint_state.name[i].c_str(), start_state.joint_state.velocity[i] );
       velocity_map[start_state.joint_state.name[i]] = start_state.joint_state.velocity[i];
+    }
   }
 
   applyVelocityConstraints(trajectory, limits, time_diff);
