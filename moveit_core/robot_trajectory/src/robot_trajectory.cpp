@@ -308,7 +308,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
 }
 
 void robot_trajectory::RobotTrajectory::findWayPointIndicesForDurationAfterStart( const double& duration, int& before,
-                                                                                  int& after, double &blend )
+                                                                                  int& after, double &blend ) const
 {
   if(duration < 0.0)
   {
@@ -319,12 +319,12 @@ void robot_trajectory::RobotTrajectory::findWayPointIndicesForDurationAfterStart
   }
 
   // Find indicies
-  size_t index = 0, num_points = waypoints_.size();
+  std::size_t index = 0, num_points = waypoints_.size();
   double running_duration = 0.0;
   for( ; index < num_points; index++)
   {
     running_duration += duration_from_previous_[index];
-    if( running_duration > duration )
+    if( running_duration >= duration )
       break;
   }
   before = std::max<int>(index - 1, 0);
@@ -344,45 +344,22 @@ double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size
     return -1.0; // or something else? should we throw an exception?
 
   double time = 0;
-  for(size_t i = 0; i <= index; i++)
+  for(std::size_t i = 0; i <= index; ++i)
     time += duration_from_previous_[i];
   return time;
 }
 
 bool robot_trajectory::RobotTrajectory::getStateAtDurationFromStart(const double request_duration,
-                                                                    const bool interpolate_between_waypoints,
-                                                                    robot_state::RobotStatePtr& output_state,
-                                                                    double &actual_duration)
+                                                                    robot_state::RobotStatePtr& output_state) const
 {
   if( !getWayPointCount() )
-  {
-    //logDebug("Trajectory has no waypoints!");
     return false;
-  }
-  else
-  {
-    int before=0, after=0;
-    double blend = 1.0;
-    findWayPointIndicesForDurationAfterStart(request_duration, before, after, blend);
-    if(interpolate_between_waypoints)
-    {
-      //logDebug("Interpolating %.3f of the way between index %d and %d.", blend, before, after);
-      waypoints_[before]->interpolate(*waypoints_[after], blend, *output_state);
-      actual_duration = request_duration;
-    }
-    else // round up
-    {
-      logInform("Time is %.3f of the way between index %d and %d. Rounding up to index %d.", blend, before, after, after);
-      *output_state = *waypoints_[after];
-      const std::vector<robot_state::JointState*> &jsv_in = waypoints_[after]->getJointStateVector();
-      const std::vector<robot_state::JointState*> &jsv_out = output_state->getJointStateVector();
-      for(int i = 0; i < jsv_out.size(); i++)
-      {
-        //robot_state::JointState* js = jsv[i];
-        jsv_out[i]->getVelocities() = jsv_in[i]->getVelocities();
-      }
-      actual_duration = getWaypointDurationFromStart(after); // prevents double comparison issues in the low-level controller
-    }
-  }
+
+  int before=0, after=0;
+  double blend = 1.0;
+  findWayPointIndicesForDurationAfterStart(request_duration, before, after, blend);
+  //logDebug("Interpolating %.3f of the way between index %d and %d.", blend, before, after);
+  waypoints_[before]->interpolate(*waypoints_[after], blend, *output_state);
+  // TODO at some point we should allow for different interpolation types, or visitor classes.
   return true;
 }
