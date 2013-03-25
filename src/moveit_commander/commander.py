@@ -188,8 +188,6 @@ class MoveGroupCommander:
         """ Get the current pose of the end effector, add value to the corresponding axis (0..5: X, Y, Z, R, P, Y) and set the new pose as the pose target """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             pose = self._g.get_current_pose(end_effector_link)
-            print pose
-            print "A"
             # by default we get orientation as a quaternion list
             # if we are updating a rotation axis however, we convert the orientation to RPY
             if axis > 2:
@@ -197,7 +195,6 @@ class MoveGroupCommander:
                 pose = [pose[0], pose[1], pose[2], r, p, y]
             if axis >= 0 and axis < 6:
                 pose[axis] = pose[axis] + value
-                print pose
                 self._g.set_pose_target(pose, end_effector_link)
             else:
                 raise "An axis value between 0 and 5 expected"
