@@ -110,18 +110,6 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   urdf_file_->hide(); // user needs to select option before this is shown
   left_layout->addWidget( urdf_file_ );
 
-  // URDF Package and File Dialog
-  /*urdf_file_ = new LoadURDFWidget( this );
-    urdf_file_->hide();
-    left_layout->addWidget( urdf_file_ );*/
-
-  // SRDF File Dialog
-  /*srdf_file_ = new LoadPathWidget("Load a SRDF File (optional)",
-    "Specify the location for an existing Semantic Robot Description Format (SRDF) file for your robot, if one exists. It will be copied into the generated MoveIt configuration package. If left blank this setup assistant will create the file for you.",
-    false, false, this); // no directory, save
-    srdf_file_->hide(); // user needs to select option before this is shown
-    left_layout->addWidget( srdf_file_ ); */
-
   // Load settings box ---------------------------------------------
   QHBoxLayout *load_files_layout = new QHBoxLayout();
 
@@ -197,8 +185,8 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   //  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 
-  // Debug mode:
-  if( config_data_->debug_ && false )
+  // Debug mode: auto load the configuration file by clicking button after a timeout
+  if( config_data_->debug_ )
   {
     //select_mode_->btn_exist_->click();
 
@@ -518,7 +506,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
   }
 
   ROS_INFO("Setting Param Server with Robot Description");
-  //  ROS_WARN("Ignore the following error message 'Failed to contact master'. This is a known issue.");
+  //ROS_WARN("Ignore the following error message 'Failed to contact master'. This is a known issue.");
   nh.setParam("/robot_description", urdf_string); 
 
   return true;
@@ -629,7 +617,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
     // check if this directory has a package.xml 
     package_path = sub_path;
     package_path /= "package.xml";
-    ROS_INFO_STREAM("Checking for " << package_path.make_preferred().native());
+    ROS_DEBUG_STREAM("Checking for " << package_path.make_preferred().native());
     
     // Check if the files exist
     if( fs::is_regular_file( package_path ) )
@@ -673,8 +661,8 @@ bool StartScreenWidget::extractPackageNameFromPath()
     config_data_->urdf_pkg_relative_path_ = relative_path.make_preferred().native();
   }
 
-  ROS_INFO_STREAM( "PACKAGE NAME: " << config_data_->urdf_pkg_name_ );
-  ROS_INFO_STREAM( "RELATIVE PATH: " << config_data_->urdf_pkg_relative_path_ );
+  ROS_DEBUG_STREAM( "URDF Package Name: " << config_data_->urdf_pkg_name_ );
+  ROS_DEBUG_STREAM( "URDF Package Path: " << config_data_->urdf_pkg_relative_path_ );
 
   return true; // success
 }

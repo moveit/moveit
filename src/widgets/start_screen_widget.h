@@ -186,48 +186,6 @@ class SelectModeWidget : public QFrame
 
 };
 
-/*
-// ******************************************************************************************
-// ******************************************************************************************
-// Class for selecting urdf package and file
-// ******************************************************************************************
-// ******************************************************************************************
-class LoadURDFWidget : public QFrame
-{
-  Q_OBJECT
-
-private:
-
-private Q_SLOTS:
-
-  /// Load the folder dialog
-  void btn_folder_dialog();
-
-  /// Load the file dialog
-  void btn_file_dialog();
-
-public:
-  
-  /// Constructor
-  LoadURDFWidget( QWidget * parent=0 );
-
-  /// Name of package that contains URDF
-  QLineEdit *robot_desc_pkg_field_;
-
-  /// Relative path to URDF from URDF package
-  QLineEdit *relative_urdf_path_field_;
-
-  /// Remember the full path corresponding to the urdf package name, if available
-  std::string robot_desc_pkg_path_;
-
-  /// Get the full URDF path
-  const std::string getURDFPath();
-
-  /// Get the full robot description path
-  const std::string getURDFPackagePath();
-};
-*/
-
 }
 
 #endif
