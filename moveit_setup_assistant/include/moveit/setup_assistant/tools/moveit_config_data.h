@@ -55,6 +55,12 @@ namespace moveit_setup_assistant
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
 
+// Default kin solver values
+static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_ = 0.005;
+static const double DEFAULT_KIN_SOLVER_TIMEOUT_ = 0.005;
+static const int    DEFAULT_KIN_SOLVER_ATTEMPTS_ = 3;
+
+
 // ******************************************************************************************
 // Structs
 // ******************************************************************************************
@@ -66,7 +72,8 @@ struct GroupMetaData
 {
   std::string kinematics_solver_; // Name of kinematics plugin to use
   double kinematics_solver_search_resolution_; // resolution to use with solver
-  double kinematics_solver_timeout_; // default solver timeout
+  double kinematics_solver_timeout_; // solver timeout
+  int kinematics_solver_attempts_; // solver attempts
 };
 
 // ******************************************************************************************
@@ -136,6 +143,9 @@ public:
   /// Allowed collision matrix for robot poses
   collision_detection::AllowedCollisionMatrix allowed_collision_matrix_;
 
+  /// Timestamp when configuration package was generated, if it was previously generated
+  std::time_t config_pkg_generated_timestamp_;
+
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -168,6 +178,13 @@ public:
   bool outputKinematicsYAML( const std::string& file_path );
   bool outputJointLimitsYAML( const std::string& file_path );
 
+  /**
+   * \brief Decide the best two joints to be used for the projection evaluator
+   * \param planning_group name of group to use
+   * \return string - value to insert into yaml file
+   */
+  std::string decideProjectionJoints(std::string planning_group);
+     
   /** 
    * Input kinematics.yaml file for editing its values
    * @param file_path path to kinematics.yaml in the input package

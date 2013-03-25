@@ -156,31 +156,6 @@ void LoadPathWidget::btn_file_dialog()
 
       start_path = path_box_->text();
 
-      /*
-    // smart load: open file dialog in location of stack directory
-    if( path_box_->text() != "" )
-    {
-      start_path = path_box_->text();
-    }
-    else
-    {
-      // Temp pointers used for casting and accessing parent widget elements
-      StartScreenWidget *my_parent = qobject_cast< StartScreenWidget* >( this->parentWidget() );
-      LoadPathWidget *my_stack_path = qobject_cast< LoadPathWidget* >( my_parent->stack_path_ );
-      LoadPathWidget *my_urdf_path = qobject_cast< LoadPathWidget* >( my_parent->urdf_file_ );
-
-      // Check if the urdf file was already loaded
-      if( my_urdf_path->path_box_->text() != "" ) // it has text
-      {
-        start_path = my_urdf_path->path_box_->text();
-      }
-      else
-      {
-        start_path = my_stack_path->path_box_->text();	
-      }
-    }
-    */
-
     if( load_only_ )
     {
       path = QFileDialog::getOpenFileName(this, "Open File", start_path, "");

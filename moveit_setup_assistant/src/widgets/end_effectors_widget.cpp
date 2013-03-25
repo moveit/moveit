@@ -281,6 +281,10 @@ void EndEffectorsWidget::previewClicked( int row, int column )
 // ******************************************************************************************
 void EndEffectorsWidget::previewClickedString( const QString& name )
 {
+  // Don't highlight if we are on the overview end effectors screen. we are just populating drop down box
+  if(stacked_layout_->currentIndex() == 0)
+    return;
+
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
