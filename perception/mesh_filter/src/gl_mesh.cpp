@@ -103,17 +103,17 @@ void mesh_filter::GLMesh::averageVertexNormals (const Mesh& mesh, vector<Eigen::
     unsigned v2 = mesh.triangles [tIdx3_1];
     unsigned v3 = mesh.triangles [tIdx3_2];
 
-    normals [v1][0] += mesh.normals [tIdx3];
-    normals [v1][1] += mesh.normals [tIdx3_1];
-    normals [v1][2] += mesh.normals [tIdx3_2];
+    normals [v1][0] += mesh.triangle_normals [tIdx3];
+    normals [v1][1] += mesh.triangle_normals [tIdx3_1];
+    normals [v1][2] += mesh.triangle_normals [tIdx3_2];
 
-    normals [v2][0] += mesh.normals [tIdx3];
-    normals [v2][1] += mesh.normals [tIdx3_1];
-    normals [v2][2] += mesh.normals [tIdx3_2];
+    normals [v2][0] += mesh.triangle_normals [tIdx3];
+    normals [v2][1] += mesh.triangle_normals [tIdx3_1];
+    normals [v2][2] += mesh.triangle_normals [tIdx3_2];
     
-    normals [v3][0] += mesh.normals [tIdx3];
-    normals [v3][1] += mesh.normals [tIdx3_1];
-    normals [v3][2] += mesh.normals [tIdx3_2];
+    normals [v3][0] += mesh.triangle_normals [tIdx3];
+    normals [v3][1] += mesh.triangle_normals [tIdx3_1];
+    normals [v3][2] += mesh.triangle_normals [tIdx3_2];
   }
   for (vector<Vector3f>::iterator nIt = normals.begin (); nIt != normals.end (); ++nIt)
   {

@@ -171,9 +171,7 @@ void mesh_filter::MeshFilterBase::setTransformCallback (const function<bool(mesh
 
 mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh (const Mesh& mesh)
 {
-  Mesh collapsedMesh (1, 1);
-  mergeVertices (mesh, collapsedMesh);
-  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&MeshFilterBase::addMeshHelper, this, next_handle_, &collapsedMesh)));
+  shared_ptr<FilterJob> job (new FilterJob (boost::bind (&MeshFilterBase::addMeshHelper, this, next_handle_, &mesh)));
   addJob(job);
   job->wait ();
   return next_handle_++;
@@ -359,116 +357,4 @@ void mesh_filter::MeshFilterBase::setPaddingOffset (float offset)
 void mesh_filter::MeshFilterBase::setPaddingScale (float scale)
 {
   padding_scale_ = scale;
-}
-
-void mesh_filter::MeshFilterBase::mergeVertices (const Mesh& mesh, Mesh& compressed)
-{
-  // max allowed distance of vertices to be considered same! 1mm
-  // to allow double-error from transformed vertices.
-  static const double thresholdSQR = pow (0.00001, 2);
-
-  vector<unsigned> vertex_map (mesh.vertex_count);
-  vector<Vector3d> vertices (mesh.vertex_count);
-  vector<Vector3d> compressed_vertices;
-  vector<Vector3i> triangles (mesh.triangle_count);
-
-  for (unsigned vIdx = 0; vIdx < mesh.vertex_count; ++vIdx)
-  {
-    vertices [vIdx][0] = mesh.vertices [3 * vIdx];
-    vertices [vIdx][1] = mesh.vertices [3 * vIdx + 1];
-    vertices [vIdx][2] = mesh.vertices [3 * vIdx + 2];
-    vertex_map [vIdx] = vIdx;
-  }
-
-  for (unsigned tIdx = 0; tIdx < mesh.triangle_count; ++tIdx)
-  {
-    triangles [tIdx][0] = mesh.triangles [3 * tIdx];
-    triangles [tIdx][1] = mesh.triangles [3 * tIdx + 1];
-    triangles [tIdx][2] = mesh.triangles [3 * tIdx + 2];
-  }
-
-  for (unsigned vIdx1 = 0; vIdx1 < mesh.vertex_count; ++vIdx1)
-  {
-    if (vertex_map [vIdx1] != vIdx1)
-      continue;
-
-    vertex_map [vIdx1] = compressed_vertices.size ();
-    compressed_vertices.push_back (vertices[vIdx1]);
-
-    for (unsigned vIdx2 = vIdx1 + 1; vIdx2 < mesh.vertex_count; ++vIdx2)
-    {
-      double distanceSQR = (vertices[vIdx1] - vertices [vIdx2]).squaredNorm ();
-      if (distanceSQR <= thresholdSQR)
-        vertex_map [vIdx2] = vertex_map [vIdx1];
-    }
-  }
-
-  // redirect triangles to new vertices!
-  for (unsigned tIdx = 0; tIdx < mesh.triangle_count; ++tIdx)
-  {
-    triangles [tIdx][0] = vertex_map [triangles [tIdx][0]];
-    triangles [tIdx][1] = vertex_map [triangles [tIdx][1]];
-    triangles [tIdx][2] = vertex_map [triangles [tIdx][2]];
-  }
-
-  for (int vIdx = 0; vIdx < vertices.size (); ++vIdx)
-  {
-    if (vertices[vIdx][0] == vertices[vIdx][1] || vertices[vIdx][0] == vertices[vIdx][2] || vertices[vIdx][1] == vertices[vIdx][2])
-    {
-      vertices[vIdx] = vertices.back ();
-      vertices.pop_back ();
-      --vIdx;
-    }
-  }
-
-  // create new Mesh structure
-  if (compressed.vertex_count > 0 && compressed.vertices)
-    delete [] compressed.vertices;
-  if (compressed.triangle_count > 0 && compressed.triangles)
-    delete [] compressed.triangles;
-  if (compressed.triangle_count > 0 && compressed.normals)
-    delete [] compressed.normals;
-
-  compressed.vertex_count = compressed_vertices.size ();
-  compressed.vertices = new double [compressed.vertex_count * 3];
-  for (unsigned vIdx = 0; vIdx < compressed.vertex_count; ++vIdx)
-  {
-    compressed.vertices [3 * vIdx + 0] = compressed_vertices [vIdx][0];
-    compressed.vertices [3 * vIdx + 1] = compressed_vertices [vIdx][1];
-    compressed.vertices [3 * vIdx + 2] = compressed_vertices [vIdx][2];
-  }
-
-  compressed.triangle_count = triangles.size ();
-  compressed.triangles = new unsigned int [compressed.triangle_count * 3];
-  for (unsigned tIdx = 0; tIdx < compressed.triangle_count; ++tIdx)
-  {
-    compressed.triangles [3 * tIdx + 0] = triangles [tIdx][0];
-    compressed.triangles [3 * tIdx + 1] = triangles [tIdx][1];
-    compressed.triangles [3 * tIdx + 2] = triangles [tIdx][2];
-  }
-
-  compressed.normals = new double [compressed.triangle_count * 3];
-  for (unsigned tIdx = 0; tIdx < compressed.triangle_count; ++tIdx)
-  {
-    Vector3d d1 = compressed_vertices [triangles[tIdx][1]] - compressed_vertices [triangles[tIdx][0]];
-    Vector3d d2 = compressed_vertices [triangles[tIdx][2]] - compressed_vertices [triangles[tIdx][0]];
-    Vector3d normal = d1.cross (d2);
-    normal.normalize ();
-    /*
-    Vector3d normal_;
-    normal_ [0] = mesh.normals [3 * tIdx];
-    normal_ [1] = mesh.normals [3 * tIdx + 1];
-    normal_ [2] = mesh.normals [3 * tIdx + 2];
-    double cosAngle = normal.dot (normal_);
-
-    if (cosAngle < 0)
-    {
-      swap (compressed.triangles [3 * tIdx + 1], compressed.triangles [3 * tIdx + 2]);
-      normal *= -1;
-    }
-    */
-    compressed.normals [tIdx * 3 + 0] = normal [0];
-    compressed.normals [tIdx * 3 + 1] = normal [1];
-    compressed.normals [tIdx * 3 + 2] = normal [2];
-  }
 }

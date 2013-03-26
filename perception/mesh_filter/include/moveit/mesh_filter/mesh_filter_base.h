@@ -207,13 +207,6 @@ class MeshFilterBase
    */
     void setSize (unsigned width, unsigned height);
     
-    /**
-     * \brief merges vertices that are close to each other to a single vertex.
-     * \param[in] mesh the mesh to be merged.
-     * \param[out] compressed the compressed mesh with unique vertices
-     */
-    static void mergeVertices (const shapes::Mesh& mesh, shapes::Mesh& compressed);
-    
     /** \brief storage for meshed to be filtered */
     std::map<MeshHandle, GLMesh*> meshes_;    
 

@@ -143,19 +143,26 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
         manual_object->estimateVertexCount(mesh->triangle_count * 3);
         manual_object->begin(materials_.back()->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
         Eigen::Vector3d normal(0.0, 0.0, 0.0);
+        Eigen::Matrix3d rot = p.rotation();
         for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
         {
           unsigned int i3 = i * 3;
-          if (mesh->normals)
-            for (int k = 0 ; k < 3 ; ++k)
-              normal[k] = mesh->normals[i3 + k];
+          if (mesh->triangle_normals && !mesh->vertex_normals)
+            normal = rot * Eigen::Vector3d(mesh->triangle_normals[i3], mesh->triangle_normals[i3 + 1], mesh->triangle_normals[i3 + 2]);
+          
           for (int k = 0 ; k < 3 ; ++k)
           {
             unsigned int vi = 3 * mesh->triangles[i3 + k];
             Eigen::Vector3d v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
             manual_object->position(v.x(), v.y(), v.z());
-            if (mesh->normals)
+            if (mesh->vertex_normals)
+            {  
+              normal = rot * Eigen::Vector3d(mesh->vertex_normals[vi], mesh->vertex_normals[vi + 1], mesh->vertex_normals[vi + 2]);
               manual_object->normal(normal.x(), normal.y(), normal.z());
+            }
+            else
+              if (mesh->triangle_normals)
+                manual_object->normal(normal.x(), normal.y(), normal.z());
           }
         }
         manual_object->end();
