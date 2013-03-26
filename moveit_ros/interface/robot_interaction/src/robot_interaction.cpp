@@ -351,8 +351,9 @@ bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualiza
 RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &robot_model, const std::string &ns) :
   robot_model_(robot_model)
 {
-  int_marker_server_ = new interactive_markers::InteractiveMarkerServer(ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC);
-
+  topic_ = ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC;
+  int_marker_server_ = new interactive_markers::InteractiveMarkerServer(topic_);
+  
   // spin a thread that will process feedback events
   run_processing_thread_ = true;
   processing_thread_.reset(new boost::thread(boost::bind(&RobotInteraction::processingThread, this)));

@@ -232,8 +232,6 @@ void MotionPlanningDisplay::onInitialize()
 {
   PlanningSceneDisplay::onInitialize();
 
-  text_display_scene_node_ = planning_scene_node_->createChildSceneNode();
-
   display_path_robot_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planned Path", path_category_));
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
@@ -262,8 +260,8 @@ void MotionPlanningDisplay::onInitialize()
 
   int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
   int_marker_display_->initialize(context_);
-  int_marker_display_->subProp("Update Topic")->setValue(QString::fromStdString(robot_interaction::RobotInteraction::INTERACTIVE_MARKER_TOPIC + "/update"));
 
+  text_display_scene_node_ = planning_scene_node_->createChildSceneNode();
   text_to_display_ = new rviz::MovableText("EMPTY");
   text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
   text_to_display_->setCharacterHeight(0.08);
@@ -1011,7 +1009,8 @@ void MotionPlanningDisplay::onRobotModelLoaded()
 {
   PlanningSceneDisplay::onRobotModelLoaded();
 
-  robot_interaction_.reset(new robot_interaction::RobotInteraction(getRobotModel()));
+  robot_interaction_.reset(new robot_interaction::RobotInteraction(getRobotModel(), "rviz_moveit_motion_planning_display"));
+  int_marker_display_->subProp("Update Topic")->setValue(QString::fromStdString(robot_interaction_->getServerTopic() + "/update"));
   display_path_robot_->load(*getRobotModel()->getURDF());
   query_robot_start_->load(*getRobotModel()->getURDF());
   query_robot_goal_->load(*getRobotModel()->getURDF());
