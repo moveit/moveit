@@ -949,7 +949,11 @@ shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *g
       if (!mesh->filename.empty())
       {
         Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
-        result = shapes::createMeshFromResource(mesh->filename, scale);
+        shapes::Mesh *m = shapes::createMeshFromResource(mesh->filename, scale);
+        // merge vertices up to 0.1 mm apart
+        if (m)
+          m->mergeVertices(1e-4);
+        result = m;
       }
     }
     break;
@@ -957,7 +961,7 @@ shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *g
     logError("Unknown geometry type: %d", (int)geom->type);
     break;
   }
-
+  
   return shapes::ShapePtr(result);
 }
 
