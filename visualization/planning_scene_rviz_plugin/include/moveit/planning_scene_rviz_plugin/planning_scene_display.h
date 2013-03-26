@@ -66,7 +66,8 @@ class PlanningSceneDisplay : public rviz::Display
 
 public:
 
-  PlanningSceneDisplay();
+  PlanningSceneDisplay(bool listen_to_planning_scene = true,
+                       bool show_scene_robot = true);
   virtual ~PlanningSceneDisplay();
 
   virtual void load(const rviz::Config& config);

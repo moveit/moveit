@@ -57,7 +57,7 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 // Base class contructor
 // ******************************************************************************************
-PlanningSceneDisplay::PlanningSceneDisplay() :
+PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool show_scene_robot) :
   Display(),  
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true)
@@ -67,18 +67,19 @@ PlanningSceneDisplay::PlanningSceneDisplay() :
                               this,
                               SLOT( changedRobotDescription() ), this );
   
-  planning_scene_topic_property_ =
-    new rviz::RosTopicProperty( "Planning Scene Topic", "planning_scene",
-                                ros::message_traits::datatype<moveit_msgs::PlanningScene>(),
-                                "The topic on which the moveit_msgs::PlanningScene messages are received",
-                                this,
-                                SLOT( changedPlanningSceneTopic() ), this );
-
-  // Category Groups
-  scene_category_ = new rviz::Property( "Scene Geometry", QVariant(), "", this );
-  robot_category_  = new rviz::Property( "Scene Robot",   QVariant(), "", this );
-
+  if (listen_to_planning_scene)
+    planning_scene_topic_property_ =
+      new rviz::RosTopicProperty( "Planning Scene Topic", "planning_scene",
+                                  ros::message_traits::datatype<moveit_msgs::PlanningScene>(),
+                                  "The topic on which the moveit_msgs::PlanningScene messages are received",
+                                  this,
+                                  SLOT( changedPlanningSceneTopic() ), this );
+  else
+    planning_scene_topic_property_ = NULL;
+  
   // Planning scene category -------------------------------------------------------------------------------------------
+  scene_category_ = new rviz::Property( "Scene Geometry", QVariant(), "", this );
+  
   scene_name_property_ =
     new rviz::StringProperty( "Scene Name", "(noname)", "Shows the name of the planning scene",
                               scene_category_,
@@ -115,34 +116,46 @@ PlanningSceneDisplay::PlanningSceneDisplay() :
   octree_coloring_property_->addOption( "Z-Axis",  OCTOMAP_Z_AXIS_COLOR );
   octree_coloring_property_->addOption( "Cell Probability",  OCTOMAP_PROBABLILTY_COLOR );
 
-  root_link_name_property_ =
-    new rviz::StringProperty( "Robot Root Link", "", "Shows the name of the root link for the robot model",
-                              robot_category_,
-                              SLOT( changedRootLinkName() ), this );
-  root_link_name_property_->setReadOnly(true);
-  
-  scene_robot_enabled_property_ =
-    new rviz::BoolProperty( "Show Scene Robot", true, "Indicates whether the robot state specified by the planning scene should be displayed",
-                            robot_category_,
-                            SLOT( changedSceneRobotEnabled() ), this );
-
-  robot_alpha_property_ =
-    new rviz::FloatProperty( "Robot Alpha", 0.5f, "Specifies the alpha for the robot links",
-                             robot_category_,
-                             SLOT( changedRobotSceneAlpha() ), this );
-  robot_alpha_property_->setMin( 0.0 );
-  robot_alpha_property_->setMax( 1.0 );
-
-  attached_body_color_property_ = new rviz::ColorProperty( "Attached Body Color", QColor(150, 50, 150), "The color for the attached bodies",
-                                                           robot_category_,
-                                                           SLOT( changedAttachedBodyColor() ), this );
-  
   scene_display_time_property_ =
     new rviz::FloatProperty( "Scene Display Time", 0.2f, "The amount of wall-time to wait in between rendering updates to the planning scene (if any)",
                              scene_category_,
                              SLOT( changedSceneDisplayTime() ), this );
   scene_display_time_property_->setMin(0.0001);
-
+  
+  if (show_scene_robot)
+  {
+    robot_category_  = new rviz::Property( "Scene Robot",   QVariant(), "", this );
+    
+    root_link_name_property_ =
+      new rviz::StringProperty( "Robot Root Link", "", "Shows the name of the root link for the robot model",
+                                robot_category_,
+                                SLOT( changedRootLinkName() ), this );
+    root_link_name_property_->setReadOnly(true);
+    
+    scene_robot_enabled_property_ =
+      new rviz::BoolProperty( "Show Scene Robot", true, "Indicates whether the robot state specified by the planning scene should be displayed",
+                              robot_category_,
+                              SLOT( changedSceneRobotEnabled() ), this );
+    
+    robot_alpha_property_ =
+      new rviz::FloatProperty( "Robot Alpha", 0.5f, "Specifies the alpha for the robot links",
+                               robot_category_,
+                               SLOT( changedRobotSceneAlpha() ), this );
+    robot_alpha_property_->setMin( 0.0 );
+    robot_alpha_property_->setMax( 1.0 );
+    
+    attached_body_color_property_ = new rviz::ColorProperty( "Attached Body Color", QColor(150, 50, 150), "The color for the attached bodies",
+                                                             robot_category_,
+                                                             SLOT( changedAttachedBodyColor() ), this );
+  }
+  else
+  {
+    robot_category_ = NULL;
+    root_link_name_property_ = NULL;
+    scene_robot_enabled_property_ = NULL;
+    robot_alpha_property_ = NULL;
+    attached_body_color_property_ = NULL;
+  }
 }
 
 // ******************************************************************************************
@@ -152,7 +165,8 @@ PlanningSceneDisplay::~PlanningSceneDisplay()
 { 
   planning_scene_render_.reset();
   context_->getSceneManager()->destroySceneNode(planning_scene_node_->getName());
-  planning_scene_robot_.reset();
+  if (planning_scene_robot_)
+    planning_scene_robot_.reset();
   planning_scene_monitor_.reset();
 }
 
@@ -163,19 +177,24 @@ void PlanningSceneDisplay::onInitialize()
   // the scene node that contains everything
   planning_scene_node_ = scene_node_->createChildSceneNode();
   
-  planning_scene_robot_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Scene", robot_category_));
-  planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  if (robot_category_)
+  {
+    planning_scene_robot_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Scene", robot_category_));
+    planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  }
 }
 
 void PlanningSceneDisplay::reset()
 { 
   planning_scene_render_.reset();
-  planning_scene_robot_->clear();
+  if (planning_scene_robot_)
+    planning_scene_robot_->clear();
   
   loadRobotModel();
   Display::reset();
   
-  planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  if (planning_scene_robot_)
+    planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
 }
 
 const planning_scene_monitor::PlanningSceneMonitorPtr& PlanningSceneDisplay::getPlanningSceneMonitor()
@@ -229,7 +248,7 @@ void PlanningSceneDisplay::changedSceneName()
 
 void PlanningSceneDisplay::changedRootLinkName()
 {
-  if (getRobotModel())
+  if (getRobotModel() && root_link_name_property_)
     root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
 }
 
@@ -239,7 +258,8 @@ void PlanningSceneDisplay::renderPlanningScene()
   {
     QColor color = scene_color_property_->getColor();
     rviz::Color env_color(color.redF(), color.greenF(), color.blueF());
-    color = attached_body_color_property_->getColor();
+    if (attached_body_color_property_)
+      color = attached_body_color_property_->getColor();
     rviz::Color attached_color(color.redF(), color.greenF(), color.blueF());
     
     try
@@ -267,13 +287,16 @@ void PlanningSceneDisplay::changedSceneAlpha()
 
 void PlanningSceneDisplay::changedRobotSceneAlpha()
 {
-  planning_scene_robot_->setAlpha(robot_alpha_property_->getFloat());
-  queueRenderSceneGeometry();
+  if (planning_scene_robot_)
+  {
+    planning_scene_robot_->setAlpha(robot_alpha_property_->getFloat());
+    queueRenderSceneGeometry();
+  }
 }
 
 void PlanningSceneDisplay::changedPlanningSceneTopic()
 {
-  if (planning_scene_monitor_)
+  if (planning_scene_monitor_ && planning_scene_topic_property_)
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
 }
 
@@ -291,7 +314,7 @@ void PlanningSceneDisplay::changedOctreeColorMode()
 
 void PlanningSceneDisplay::changedSceneRobotEnabled()
 {
-  if (isEnabled())
+  if (isEnabled() && planning_scene_robot_)
     planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
 }
 
@@ -341,12 +364,14 @@ void PlanningSceneDisplay::unsetGroupColor(rviz::Robot* robot, const std::string
 
 void PlanningSceneDisplay::setLinkColor(const std::string& link_name, const QColor &color)
 {
-  setLinkColor(&planning_scene_robot_->getRobot(), link_name, color );
+  if (planning_scene_robot_)
+    setLinkColor(&planning_scene_robot_->getRobot(), link_name, color );
 }
 
 void PlanningSceneDisplay::unsetLinkColor(const std::string& link_name)
 {
-  unsetLinkColor(&planning_scene_robot_->getRobot(), link_name);
+  if (planning_scene_robot_)
+    unsetLinkColor(&planning_scene_robot_->getRobot(), link_name);
 }
 
 void PlanningSceneDisplay::setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color )
@@ -380,7 +405,8 @@ void PlanningSceneDisplay::loadRobotModel()
   if (planning_scene_monitor_->getPlanningScene())
   {
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
-    planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
+    if (planning_scene_topic_property_)
+      planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
     planning_scene_render_.reset(new PlanningSceneRender(planning_scene_node_, context_, planning_scene_robot_));
     planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool()); 
     onRobotModelLoaded();
@@ -395,17 +421,23 @@ void PlanningSceneDisplay::loadRobotModel()
 
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
-  planning_scene_robot_->load(*getRobotModel()->getURDF());
   const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
-  planning_scene_robot_->update(robot_state::RobotStatePtr(new robot_state::RobotState(ps->getCurrentState())));
-
+  if (planning_scene_robot_)
+  {
+    planning_scene_robot_->load(*getRobotModel()->getURDF());
+    planning_scene_robot_->update(robot_state::RobotStatePtr(new robot_state::RobotState(ps->getCurrentState())));
+  }
+  
   bool oldState = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(ps->getName());
   scene_name_property_->blockSignals(oldState);
 
-  oldState = root_link_name_property_->blockSignals(true);
-  root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
-  root_link_name_property_->blockSignals(oldState);  
+  if (root_link_name_property_)
+  {
+    oldState = root_link_name_property_->blockSignals(true);
+    root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
+    root_link_name_property_->blockSignals(oldState);
+  }  
 }
 
 void PlanningSceneDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
@@ -432,7 +464,8 @@ void PlanningSceneDisplay::onEnable()
   
   loadRobotModel();
   
-  planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  if (planning_scene_robot_)
+    planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
   if (planning_scene_render_)
     planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool()); 
 
@@ -450,7 +483,8 @@ void PlanningSceneDisplay::onDisable()
     if (planning_scene_render_)
       planning_scene_render_->getGeometryNode()->setVisible(false);
   }
-  planning_scene_robot_->setVisible(false);
+  if (planning_scene_robot_)
+    planning_scene_robot_->setVisible(false);
   Display::onDisable();
 }
 

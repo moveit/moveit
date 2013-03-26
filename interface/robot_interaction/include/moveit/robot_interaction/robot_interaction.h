@@ -243,6 +243,11 @@ public:
   RobotInteraction(const robot_model::RobotModelConstPtr &kmodel, const std::string &ns = "");
   ~RobotInteraction();
   
+  const std::string& getServerTopic(void) const
+  {
+    return topic_;
+  }
+  
   void decideActiveComponents(const std::string &group);
   void decideActiveEndEffectors(const std::string &group);
   void decideActiveVirtualJoints(const std::string &group);
@@ -299,6 +304,7 @@ private:
   boost::mutex marker_access_lock_;
 
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
+  std::string topic_;
 };
 
 typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;
