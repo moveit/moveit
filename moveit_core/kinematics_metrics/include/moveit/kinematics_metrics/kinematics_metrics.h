@@ -68,7 +68,8 @@ public:
    */
   bool getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
                               const std::string &group_name,
-                              double &manipulability_index) const;
+                              double &manipulability_index,
+                              bool translation = false) const;
 
   /**
    * @brief Get the manipulability for a given group at a given joint configuration
@@ -79,7 +80,8 @@ public:
    */
   bool getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
                               const robot_model::JointModelGroup *joint_model_group,
-                              double &manipulability_index) const;
+                              double &manipulability_index,
+                              bool translation = false) const;
     
   /**
    * @brief Get the (translation) manipulability ellipsoid for a given group at a given joint configuration
@@ -118,7 +120,8 @@ public:
    */
   bool getManipulability(const robot_state::RobotState &kinematic_state,
                          const std::string &group_name,
-                         double &condition_number) const;
+                         double &condition_number,
+                         bool translation = false) const;
 
   /**
    * @brief Get the manipulability = sigma_min/sigma_max 
@@ -131,7 +134,8 @@ public:
    */
   bool getManipulability(const robot_state::RobotState &kinematic_state,
                          const robot_model::JointModelGroup *joint_model_group,
-                         double &condition_number) const;
+                         double &condition_number,
+                         bool translation = false) const;
 
 protected:
   

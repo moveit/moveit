@@ -1008,32 +1008,36 @@ bool robot_state::JointStateGroup::getJacobian(const std::string &link_name,
     
     if (joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
     {
+        unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
+        double multiplier = 1.0; // to account for mimic joints        
+        if (link_state->getParentJointState()->getJointModel()->getMimic())
+        {
+          joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getMimic()->getName())->second;
+          multiplier = link_state->getParentJointState()->getJointModel()->getMimicFactor();          
+        }        
       if (link_state->getParentJointState()->getJointModel()->getType() == robot_model::JointModel::REVOLUTE)
       {
-        unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
         joint_axis = joint_transform.rotation()*(static_cast<const robot_model::RevoluteJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
-        jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
-        jacobian.block<3,1>(3,joint_index) = joint_axis;
+        jacobian.block<3,1>(0,joint_index) = jacobian.block<3,1>(0,joint_index) + multiplier * joint_axis.cross(point_transform - joint_transform.translation());
+        jacobian.block<3,1>(3,joint_index) = jacobian.block<3,1>(3,joint_index) + multiplier * joint_axis;
       }
       if (link_state->getParentJointState()->getJointModel()->getType() == robot_model::JointModel::PRISMATIC)
       {
-        unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
         joint_axis = joint_transform*(static_cast<const robot_model::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
-        jacobian.block<3,1>(0,joint_index) = joint_axis;
+        jacobian.block<3,1>(0,joint_index) = jacobian.block<3,1>(0,joint_index) + multiplier * joint_axis;
       }
       if (link_state->getParentJointState()->getJointModel()->getType() == robot_model::JointModel::PLANAR)
       {
-        unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
         joint_transform = reference_transform*link_state->getGlobalLinkTransform();
         joint_axis = joint_transform*Eigen::Vector3d(1.0,0.0,0.0);
-        jacobian.block<3,1>(0,joint_index) = joint_axis;
+        jacobian.block<3,1>(0,joint_index) = jacobian.block<3,1>(0,joint_index) + multiplier * joint_axis;
         joint_axis = joint_transform*Eigen::Vector3d(0.0,1.0,0.0);
-        jacobian.block<3,1>(0,joint_index+1) = joint_axis;
+        jacobian.block<3,1>(0,joint_index+1) = jacobian.block<3,1>(0,joint_index+1) + multiplier * joint_axis;
         joint_axis = joint_transform*Eigen::Vector3d(0.0,0.0,1.0);
-        jacobian.block<3,1>(0,joint_index+2) = joint_axis.cross(point_transform - joint_transform.translation());
-        jacobian.block<3,1>(3,joint_index+2) = joint_axis;
+        jacobian.block<3,1>(0,joint_index+2) = jacobian.block<3,1>(0,joint_index+2) + multiplier * joint_axis.cross(point_transform - joint_transform.translation());
+        jacobian.block<3,1>(3,joint_index+2) = jacobian.block<3,1>(3,joint_index+2) + multiplier * joint_axis;
       }
     }
     if (link_state->getParentJointState()->getJointModel() == root_joint_model)

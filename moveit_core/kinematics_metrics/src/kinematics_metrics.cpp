@@ -53,15 +53,17 @@ Eigen::MatrixXd KinematicsMetrics::getJacobian(const robot_state::RobotState &ki
 
 bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
                                                const std::string &group_name,
-                                               double &manipulability_index) const
+                                               double &manipulability_index,
+                                               bool translation) const
 {
   const robot_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
-  return getManipulabilityIndex(kinematic_state, joint_model_group, manipulability_index);  
+  return getManipulabilityIndex(kinematic_state, joint_model_group, manipulability_index, translation);  
 }
 
 bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
                                                const robot_model::JointModelGroup *joint_model_group,
-                                               double &manipulability_index) const
+                                               double &manipulability_index,
+                                               bool translation) const
 {
   if (!joint_model_group)
   {    
@@ -69,9 +71,19 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &ki
     return false;
   }
   Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
-  Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
-  // Get manipulability index
-  manipulability_index = sqrt(matrix.determinant());
+  if(translation)
+  {
+    Eigen::MatrixXd jacobian_2 = jacobian.topLeftCorner(3,jacobian.cols());
+    Eigen::MatrixXd matrix = jacobian_2*jacobian_2.transpose();  
+    // Get manipulability index
+    manipulability_index = sqrt(matrix.determinant());
+  }
+  else
+  {    
+    Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
+    // Get manipulability index
+    manipulability_index = sqrt(matrix.determinant());
+  }  
   return true;  
 }
 
@@ -104,28 +116,43 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState
 
 bool KinematicsMetrics::getManipulability(const robot_state::RobotState &kinematic_state,
                                           const std::string &group_name,
-                                          double &manipulability) const
+                                          double &manipulability,
+                                          bool translation) const
 {
   const robot_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group_name);
-  return getManipulability(kinematic_state, joint_model_group, manipulability);
+  return getManipulability(kinematic_state, joint_model_group, manipulability, translation);
 }
 
 bool KinematicsMetrics::getManipulability(const robot_state::RobotState &kinematic_state,
                                           const robot_model::JointModelGroup *joint_model_group,
-                                          double &manipulability) const
+                                          double &manipulability,
+                                          bool translation) const
 {
   if (!joint_model_group)
   {    
     logError("Joint model group does not exist");    
     return false;
   }  
-  Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
-  Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
-  Eigen::MatrixXd singular_values = svdsolver.singularValues();
-  for(unsigned int i=0; i < singular_values.rows(); ++i)
-    logDebug("Singular value: %d %f",i,singular_values(i,0));  
-  manipulability = singular_values.minCoeff()/singular_values.maxCoeff();  
-  return true;  
+
+  if(translation)
+  {
+    Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
+    Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3,jacobian.cols()));
+    Eigen::MatrixXd singular_values = svdsolver.singularValues();
+    for(unsigned int i=0; i < singular_values.rows(); ++i)
+      logDebug("Singular value: %d %f",i,singular_values(i,0));  
+    manipulability = singular_values.minCoeff()/singular_values.maxCoeff();  
+  }  
+  else
+  {    
+    Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
+    Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
+    Eigen::MatrixXd singular_values = svdsolver.singularValues();
+    for(unsigned int i=0; i < singular_values.rows(); ++i)
+      logDebug("Singular value: %d %f",i,singular_values(i,0));  
+    manipulability = singular_values.minCoeff()/singular_values.maxCoeff();  
+  }  
+  return true; 
 }
 
 } // namespace
