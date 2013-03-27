@@ -609,7 +609,8 @@ robot_state::RobotState& planning_scene::PlanningScene::getCurrentStateNonConst(
 void planning_scene::PlanningScene::setAttachedBodyUpdateCallback(const robot_state::AttachedBodyCallback &callback)
 {
   current_state_attached_body_callback_ = callback;
-  getCurrentStateNonConst().setAttachedBodyUpdateCallback(callback);
+  if (kstate_)
+    kstate_->setAttachedBodyUpdateCallback(callback);
 }
 
 void planning_scene::PlanningScene::setCollisionObjectUpdateCallback(const collision_detection::World::ObserverCallbackFn &callback)
