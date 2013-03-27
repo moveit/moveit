@@ -131,6 +131,10 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::Jo
     et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
   }
+  else
+  {
+    ROS_WARN_STREAM("No joint states of grasp postures have been defined in the pick place action.");
+  }
 }
 
 /**
