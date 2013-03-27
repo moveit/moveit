@@ -36,6 +36,7 @@ import roslib
 from moveit_commander import MoveGroupCommander, ObjectDetector, ObjectBroadcaster
 import re
 import time
+import os.path
 
 class MoveGroupInfoLevel:
     FAIL = 1
@@ -57,6 +58,7 @@ class MoveGroupCommandInterpreter:
     def __init__(self):
         self._gdict = {}
         self._group_name = ""
+        self._prev_group_name = ""
         self._detector = None
         self._broadcaster = None
 
@@ -81,13 +83,20 @@ class MoveGroupCommandInterpreter:
                 return (MoveGroupInfoLevel.INFO, self.get_help() + "\n\nNo groups initialized yet. You must call the 'use' or the 'load' command first.\n")
 
     def execute_generic_command(self, cmd):
+        if os.path.isfile("cmd/" + cmd):
+            cmd = "load cmd/" + cmd
         if cmd.startswith("use"):
             if cmd == "use":
                 return (MoveGroupInfoLevel.INFO, "\n".join(self.get_loaded_groups()))
             clist = cmd.split()
             if len(clist) == 2:
                 if clist[0] == "use":
+                    if clist[1] == "previous":
+                        clist[1] = self._prev_group_name
+                        if len(clist[1]) == 0:
+                            return (MoveGroupInfoLevel.DEBUG, "OK")
                     if self._gdict.has_key(clist[1]):
+                        self._prev_group_name = self._group_name
                         self._group_name = clist[1]
                         return (MoveGroupInfoLevel.DEBUG, "OK")
                     else:
@@ -105,6 +114,8 @@ class MoveGroupCommandInterpreter:
                 return (MoveGroupInfoLevel.WARN, "Unable to parse load command")
             if len(clist) == 2:
                 filename = clist[1]
+                if not os.path.isfile(filename):
+                    filename = "cmd/" + filename
             try:
                 f = open(filename, 'r')
                 for line in f:
