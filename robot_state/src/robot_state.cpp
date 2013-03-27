@@ -151,7 +151,7 @@ bool robot_state::RobotState::setStateValues(const std::vector<double>& joint_st
 {
   if (joint_state_values.size() != getVariableCount())
   {
-    logError("Incorrect variable count specified for array of joint values. Expected %u but got %u values",
+    logError("RobotState: Incorrect variable count specified for array of joint values. Expected %u but got %u values",
              getVariableCount(), (int)joint_state_values.size());
     return false;
   }
