@@ -1979,9 +1979,27 @@ void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState
   cres.cost_sources.swap(costs);
 }
 
+void planning_scene::PlanningScene::printKnownObjects(std::ostream& out) const
+{
+  const std::vector<std::string>& objects = getWorld()->getObjectIds();
+  
+  out << "Collision World Objects:\n\t ";
+  std::copy(objects.begin(), objects.end(), std::ostream_iterator<std::string>(out, "\n\t "));      
+
+  std::vector<const robot_state::AttachedBody*> attached_bodies;
+  getCurrentState().getAttachedBodies(attached_bodies);
+
+  out << "\nAttached Bodies:\n";
+  for(std::size_t i = 0; i < attached_bodies.size(); ++i)
+  {
+    out << "\t " << attached_bodies[i]->getName() << "\n";
+  }
+}
+
 planning_scene::PlanningScene::ConstructException::ConstructException(const std::string& what_arg) :
   std::runtime_error(what_arg)
 {
   logError("Error during construction of PlanningScene: %s.  Exception thrown.",
     what_arg.c_str());
 }
+
