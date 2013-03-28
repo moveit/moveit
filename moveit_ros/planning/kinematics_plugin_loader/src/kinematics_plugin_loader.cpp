@@ -42,6 +42,7 @@
 #include <vector>
 #include <map>
 #include <ros/ros.h>
+#include <moveit/profiler/profiler.h>
 
 namespace kinematics_plugin_loader
 {
@@ -184,7 +185,10 @@ void kinematics_plugin_loader::KinematicsPluginLoader::status() const
 }
 
 robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction()
-{
+{ 
+  moveit::Profiler::ScopedStart prof_start;
+  moveit::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction");
+
   if (loader_)
     return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
 
@@ -194,7 +198,10 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
 }
 
 robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model)
-{
+{ 
+  moveit::Profiler::ScopedStart prof_start;
+  moveit::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction(SRDF)");
+
   if (!loader_)
   {
     ROS_DEBUG("Configuring kinematics solvers");
@@ -205,13 +212,15 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
     std::map<std::string, std::string> ik_links;
 
     if (srdf_model)
-    {     
+    {
       const std::vector<srdf::Model::Group> &known_groups = srdf_model->getGroups();
       if (default_search_resolution_ <= std::numeric_limits<double>::epsilon())
         default_search_resolution_ = DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION;
       
       if (default_solver_plugin_.empty())
       {
+        ROS_DEBUG("Loading settings for kinematics solvers from the ROS param server ...");
+
         // read data using ROS params
         ros::NodeHandle nh("~");
         
@@ -305,13 +314,15 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
         }
       }
       else
-      {
+      {   
+        ROS_DEBUG("Using specified default settings for kinematics solvers ...");
         for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
         {
           possible_kinematics_solvers[known_groups[i].name_].resize(1, default_solver_plugin_);
           search_res[known_groups[i].name_].resize(1, default_search_resolution_);
           ik_timeout_[known_groups[i].name_] = default_solver_timeout_;
           ik_attempts_[known_groups[i].name_] = default_ik_attempts_;
+          groups_.push_back(known_groups[i].name_);
         }
       }
     }
