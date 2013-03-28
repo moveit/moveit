@@ -39,8 +39,8 @@
 
 #include <dynamic_reconfigure/server.h>
 #include <moveit_ros_planning/PlanningSceneMonitorDynamicReconfigureConfig.h>
-
 #include <tf_conversions/tf_eigen.h>
+#include <moveit/profiler/profiler.h>
 
 namespace planning_scene_monitor
 {
@@ -101,7 +101,7 @@ private:
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), monitor_name_(name)
-{  
+{
   rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
   initialize(planning_scene::PlanningScenePtr());
 }
@@ -149,6 +149,9 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
 
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr &scene)
 {
+  moveit::Profiler::ScopedStart prof_start;
+  moveit::Profiler::ScopedBlock prof_block("PlanningSceneMonitor::initialize");
+
   if (monitor_name_.empty())
     monitor_name_ = "planning_scene_monitor";
   robot_description_ = rm_loader_->getRobotDescription();
@@ -168,7 +171,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
         scene_->getCollisionRobotNonConst()->setScale(default_robot_scale_);
         scene_->propogateRobotPadding();
       }
-      catch (planning_scene::PlanningScene::ConstructException e)
+      catch (planning_scene::PlanningScene::ConstructException &e)
       {
         ROS_ERROR("Configuration of planning scene failed");
         scene_.reset();
