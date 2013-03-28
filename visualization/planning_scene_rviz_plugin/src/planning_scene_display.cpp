@@ -395,20 +395,21 @@ void PlanningSceneDisplay::unsetLinkColor(rviz::Robot* robot, const std::string&
 // ******************************************************************************************
 // Load
 // ******************************************************************************************
+void PlanningSceneDisplay::createPlanningSceneMonitor()
+{
+  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
+                                                                                 context_->getFrameManager()->getTFClientPtr(),
+                                                                                 getNameStd() + "_planning_scene_monitor"));
+}
+
 void PlanningSceneDisplay::loadRobotModel()
 {
   planning_scene_render_.reset();
   planning_scene_monitor_.reset(); // this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
-  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
-                                                                                 context_->getFrameManager()->getTFClientPtr(),
-                                                                                 getNameStd() + "_planning_scene_monitor"));
+  createPlanningSceneMonitor();
   if (planning_scene_monitor_->getPlanningScene())
   {
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
-    if (planning_scene_topic_property_)
-      planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
-    planning_scene_render_.reset(new PlanningSceneRender(planning_scene_node_, context_, planning_scene_robot_));
-    planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool()); 
     onRobotModelLoaded();
     setStatus( rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully" );
   }
@@ -421,6 +422,11 @@ void PlanningSceneDisplay::loadRobotModel()
 
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
+  if (planning_scene_topic_property_)
+    planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
+  planning_scene_render_.reset(new PlanningSceneRender(planning_scene_node_, context_, planning_scene_robot_));
+  planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool()); 
+  
   const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
   if (planning_scene_robot_)
   {
