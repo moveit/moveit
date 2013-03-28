@@ -60,10 +60,10 @@ int main(int argc, char **argv)
   spinner.start();
   
   ros::NodeHandle nh;
-  robot_model_loader::RDFLoader::Options opt;
+  robot_model_loader::RobotModelLoader::Options opt;
   opt.robot_description_ = "robot_description";
-  robot_model_loader::RDFLoaderPtr kml(new robot_model_loader::RDFLoader(opt));
-  planning_scene_monitor::PlanningSceneMonitor psm(kml);
+  robot_model_loader::RobotModelLoaderPtr rml(new robot_model_loader::RobotModelLoader(opt));
+  planning_scene_monitor::PlanningSceneMonitor psm(rml);
   psm.startWorldGeometryMonitor();
   psm.startSceneMonitor();
   ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
