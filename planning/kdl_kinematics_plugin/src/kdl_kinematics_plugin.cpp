@@ -143,7 +143,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   robot_model::JointModelGroup* joint_model_group = kinematic_model_->getJointModelGroup(group_name);
   if(!joint_model_group->isChain())
   {
-    ROS_ERROR("Group is not a chain");
+    ROS_ERROR("Group '%s' is not a chain", group_name.c_str());
     return false;
   }
   
@@ -171,7 +171,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   if(!joint_model_group->hasLinkModel(tip_frame_))
   {
-    ROS_ERROR("Could not find tip name in joint group");
+    ROS_ERROR("Could not find tip name in joint group '%s'", group_name.c_str());
     return false;    
   }
   ik_chain_info_.link_names.push_back(tip_frame_);
