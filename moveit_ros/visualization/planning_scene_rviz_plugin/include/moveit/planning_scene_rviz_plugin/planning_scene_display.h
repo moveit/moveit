@@ -108,7 +108,8 @@ private Q_SLOTS:
 protected:
 
   void loadRobotModel();
-
+  virtual void createPlanningSceneMonitor();
+  
   /**
    * \brief Set the scene node's position, given the target frame and the planning frame
    */
