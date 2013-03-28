@@ -37,6 +37,7 @@
 #include <moveit/robot_model/robot_model.h>
 #include <geometric_shapes/shape_operations.h>
 #include <boost/math/constants/constants.hpp>
+#include <moveit/profiler/profiler.h>
 #include <algorithm>
 #include <limits>
 #include <queue>
@@ -155,6 +156,9 @@ void robot_model::RobotModel::buildModel(const boost::shared_ptr<const urdf::Mod
                                          const boost::shared_ptr<const srdf::Model> &srdf_model,
                                          const std::string &root_link)
 {
+  moveit::Profiler::ScopedStart prof_start;
+  moveit::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
+
   root_joint_ = NULL;
   model_name_ = urdf_model->getName();
   if (urdf_model->getRoot())
@@ -926,7 +930,9 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
 }
 
 shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *geom)
-{
+{ 
+  moveit::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
+
   shapes::Shape *result = NULL;
   switch (geom->type)
   {
