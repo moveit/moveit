@@ -42,8 +42,8 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
   
-  robot_model_loader::RDFLoader kml;
-  trajectory_execution_manager::TrajectoryExecutionManager tem(kml.getModel(), true);
+  robot_model_loader::RobotModelLoader rml;
+  trajectory_execution_manager::TrajectoryExecutionManager tem(rml.getModel(), true);
 
   std::cout << "1:\n";  
   if (!tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "basej")))

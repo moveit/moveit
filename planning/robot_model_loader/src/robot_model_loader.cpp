@@ -37,18 +37,18 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <ros/ros.h>
 
-robot_model_loader::RDFLoader::RDFLoader(const std::string &robot_description)
+robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description)
 {
   Options opt(robot_description);
   configure(opt);
 }
 
-robot_model_loader::RDFLoader::RDFLoader(const Options &opt)
+robot_model_loader::RobotModelLoader::RobotModelLoader(const Options &opt)
 {
   configure(opt);
 }
 
-robot_model_loader::RDFLoader::~RDFLoader()
+robot_model_loader::RobotModelLoader::~RobotModelLoader()
 {
   model_.reset();
   rdf_loader_.reset();
@@ -76,7 +76,7 @@ bool canSpecifyPosition(const robot_model::JointModel *jmodel, const unsigned in
 }
 }
 
-void robot_model_loader::RDFLoader::configure(const Options &opt)
+void robot_model_loader::RobotModelLoader::configure(const Options &opt)
 {
   ros::WallTime start = ros::WallTime::now();
   rdf_loader_.reset(new rdf_loader::RDFLoader(opt.robot_description_));
@@ -178,7 +178,7 @@ void robot_model_loader::RDFLoader::configure(const Options &opt)
   ROS_DEBUG_STREAM("Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
-void robot_model_loader::RDFLoader::loadKinematicsSolvers()
+void robot_model_loader::RobotModelLoader::loadKinematicsSolvers()
 {
   if (rdf_loader_ && model_)
   {
@@ -209,7 +209,7 @@ void robot_model_loader::RDFLoader::loadKinematicsSolvers()
   }
 }
 
-std::map<std::string, kinematics::KinematicsBasePtr> robot_model_loader::RDFLoader::generateKinematicsSolversMap() const
+std::map<std::string, kinematics::KinematicsBasePtr> robot_model_loader::RobotModelLoader::generateKinematicsSolversMap() const
 {
   std::map<std::string, kinematics::KinematicsBasePtr> result;
   if (kinematics_loader_ && model_)

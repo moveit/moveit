@@ -44,12 +44,12 @@
 namespace robot_model_loader
 {
 
-/** @class RDFLoader */
-class RDFLoader
+/** @class RobotModelLoader */
+class RobotModelLoader
 {
 public:
   
-  /** @brief Structure that encodes the options to be passed to the RDFLoader constructor */
+  /** @brief Structure that encodes the options to be passed to the RobotModelLoader constructor */
   struct Options
   {
     Options(const std::string &robot_description = "robot_description") : robot_description_(robot_description), load_kinematics_solvers_(true)
@@ -68,11 +68,11 @@ public:
   
     
   /** @brief Default constructor */
-  RDFLoader(const Options &opt = Options());
+  RobotModelLoader(const Options &opt = Options());
 
-  RDFLoader(const std::string &robot_description);
+  RobotModelLoader(const std::string &robot_description);
   
-  ~RDFLoader();
+  ~RobotModelLoader();
   
   /** @brief Get the constructed planning_models::RobotModel */
   const robot_model::RobotModelPtr& getModel() const
@@ -127,8 +127,8 @@ private:
 
 };
 
-typedef boost::shared_ptr<RDFLoader> RDFLoaderPtr;
-typedef boost::shared_ptr<const RDFLoader> RDFLoaderConstPtr;
+typedef boost::shared_ptr<RobotModelLoader> RobotModelLoaderPtr;
+typedef boost::shared_ptr<const RobotModelLoader> RobotModelLoaderConstPtr;
 
 }
 #endif

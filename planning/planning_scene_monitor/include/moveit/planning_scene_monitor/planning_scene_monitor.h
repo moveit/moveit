@@ -87,11 +87,11 @@ public:
                        const std::string &name = "");
 
   /** @brief Constructor
-   *  @param kml A pointer to a kinematic model loader
+   *  @param rml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const robot_model_loader::RDFLoaderPtr &kml,
+  PlanningSceneMonitor(const robot_model_loader::RobotModelLoaderPtr &rml,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string &name = "");
 
@@ -107,12 +107,12 @@ public:
 
   /** @brief Constructor
    *  @param scene The scene instance to maintain up to date with monitored information
-   *  @param kml A pointer to a kinematic model loader
+   *  @param rml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
   PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, 
-                       const robot_model_loader::RDFLoaderPtr &kml, 
+                       const robot_model_loader::RobotModelLoaderPtr &rml, 
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string &name = "");
 
@@ -125,9 +125,9 @@ public:
   }
   
   /** \brief Get the user kinematic model loader */
-  const robot_model_loader::RDFLoaderPtr& getRDFLoader() const
+  const robot_model_loader::RobotModelLoaderPtr& getRobotModelLoader() const
   {
-    return rdf_loader_;
+    return rm_loader_;
   }
   
   const robot_model::RobotModelConstPtr& getRobotModel() const;
@@ -420,7 +420,7 @@ private:
   /// and this timestamp is used to implement that functionality
   ros::WallTime last_state_update_;
   
-  robot_model_loader::RDFLoaderPtr rdf_loader_;
+  robot_model_loader::RobotModelLoaderPtr rm_loader_;
 
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;  

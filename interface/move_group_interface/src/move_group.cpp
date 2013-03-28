@@ -80,7 +80,7 @@ struct SharedStorage
   
   boost::mutex lock_;
   boost::shared_ptr<tf::Transformer> tf_;
-  std::map<std::string, robot_model_loader::RDFLoaderPtr> model_loaders_;
+  std::map<std::string, robot_model_loader::RobotModelLoaderPtr> model_loaders_;
   std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors_;
 };
 
@@ -107,9 +107,9 @@ robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_des
     return s.model_loaders_[robot_description]->getModel();
   else
   {
-    robot_model_loader::RDFLoader::Options opt(robot_description);
+    robot_model_loader::RobotModelLoader::Options opt(robot_description);
     opt.load_kinematics_solvers_ = false;
-    robot_model_loader::RDFLoaderPtr loader(new robot_model_loader::RDFLoader(opt));
+    robot_model_loader::RobotModelLoaderPtr loader(new robot_model_loader::RobotModelLoader(opt));
     s.model_loaders_[robot_description] = loader;
     return loader->getModel();
   }

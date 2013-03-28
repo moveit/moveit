@@ -102,7 +102,7 @@ private:
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), monitor_name_(name)
 {  
-  rdf_loader_.reset(new robot_model_loader::RDFLoader(robot_description));
+  rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
   initialize(planning_scene::PlanningScenePtr());
 }
 
@@ -110,20 +110,20 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const plannin
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), monitor_name_(name)
 {
-  rdf_loader_.reset(new robot_model_loader::RDFLoader(robot_description));
+  rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
   initialize(scene);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const robot_model_loader::RDFLoaderPtr &rdf_loader,
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const robot_model_loader::RobotModelLoaderPtr &rm_loader,
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
-  nh_("~"), tf_(tf), rdf_loader_(rdf_loader), monitor_name_(name)
+  nh_("~"), tf_(tf), rm_loader_(rm_loader), monitor_name_(name)
 {
   initialize(planning_scene::PlanningScenePtr());
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const robot_model_loader::RDFLoaderPtr &rdf_loader,
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const robot_model_loader::RobotModelLoaderPtr &rm_loader,
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
-  nh_("~"), tf_(tf), rdf_loader_(rdf_loader), monitor_name_(name)
+  nh_("~"), tf_(tf), rm_loader_(rm_loader), monitor_name_(name)
 {
   initialize(scene);
 }
@@ -142,22 +142,22 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
   scene_const_.reset();
   scene_.reset();
   parent_scene_.reset();
-  rdf_loader_.reset();
+  rm_loader_.reset();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr &scene)
 {
   if (monitor_name_.empty())
     monitor_name_ = "planning_scene_monitor";
-  robot_description_ = rdf_loader_->getRobotDescription();
-  if (rdf_loader_->getModel())
+  robot_description_ = rm_loader_->getRobotDescription();
+  if (rm_loader_->getModel())
   {
     scene_ = scene;
     if (!scene_)
     {
       try
       {
-        scene_.reset(new planning_scene::PlanningScene(rdf_loader_->getModel()));
+        scene_.reset(new planning_scene::PlanningScene(rm_loader_->getModel()));
         scene_const_ = scene_;
         configureCollisionMatrix(scene_);
         configureDefaultPadding();
