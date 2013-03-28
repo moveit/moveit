@@ -552,6 +552,9 @@ public:
   void getCostSources(const robot_state::RobotState &state, std::size_t max_costs,
                       const std::string &group_name, std::set<collision_detection::CostSource> &costs) const;
 
+  /** \brief Outputs debug information about the planning scene contents */
+  void printKnownObjects(std::ostream& out) const;
+
   /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message. */
   static bool isEmpty(const moveit_msgs::PlanningScene &msg);
 
