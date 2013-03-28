@@ -37,9 +37,10 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <ros/ros.h>
 
-robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description)
+robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description, bool load_kinematics_solvers)
 {
   Options opt(robot_description);
+  opt.load_kinematics_solvers_ = load_kinematics_solvers;
   configure(opt);
 }
 
@@ -79,7 +80,13 @@ bool canSpecifyPosition(const robot_model::JointModel *jmodel, const unsigned in
 void robot_model_loader::RobotModelLoader::configure(const Options &opt)
 {
   ros::WallTime start = ros::WallTime::now();
-  rdf_loader_.reset(new rdf_loader::RDFLoader(opt.robot_description_));
+  if (opt.urdf_doc_ && opt.srdf_doc_)
+    rdf_loader_.reset(new rdf_loader::RDFLoader(opt.urdf_doc_, opt.srdf_doc_));
+  else
+    if (!opt.urdf_string_.empty() && !opt.srdf_string_.empty())
+      rdf_loader_.reset(new rdf_loader::RDFLoader(opt.urdf_string_, opt.srdf_string_));
+    else
+      rdf_loader_.reset(new rdf_loader::RDFLoader(opt.robot_description_));
   if (rdf_loader_->getURDF())
   {
     const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
@@ -89,7 +96,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
       model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf, opt.root_link_));
   }
 
-  if (model_)
+  if (model_ && !rdf_loader_->getRobotDescription().empty())
   {
     // if there are additional joint limits specified in some .yaml file, read those in
     ros::NodeHandle nh("~");
@@ -172,9 +179,11 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
       }
       it->second->setVariableLimits(group_joint_limits);
     }  
-    if (opt.load_kinematics_solvers_)
-      loadKinematicsSolvers();
   }
+
+  if (model_ && opt.load_kinematics_solvers_)
+    loadKinematicsSolvers();
+  
   ROS_DEBUG_STREAM("Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 

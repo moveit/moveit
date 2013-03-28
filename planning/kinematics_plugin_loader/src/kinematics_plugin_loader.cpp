@@ -184,7 +184,10 @@ void kinematics_plugin_loader::KinematicsPluginLoader::status() const
 }
 
 kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction()
-{  
+{
+  if (loader_)
+    return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
+
   rdf_loader::RDFLoader rml(robot_description_);
   robot_description_ = rml.getRobotDescription();
   return getLoaderFunction(rml.getSRDF());
