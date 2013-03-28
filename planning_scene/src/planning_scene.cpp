@@ -1430,12 +1430,12 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     if (ls)
     {
       std::vector<const robot_state::AttachedBody*> attached_bodies;
-
-      if (object.object.id.empty())
+     
+      if (object.object.id.empty()) // if no specific object id is given, then we remove all objects attached to the link_name
       {
         ls->getAttachedBodies(attached_bodies);
       }
-      else
+      else // a specific object id will be removed
       {
         const robot_state::AttachedBody *ab = ls->getAttachedBody(object.object.id);
         if (ab)
@@ -1458,6 +1458,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           logInform("Detached object '%s' from link '%s' and added it back in the collision world", name.c_str(), object.link_name.c_str());
         }
       }
+      if (!attached_bodies.empty())
+        return true;
     }
     else
       logError("Kinematic state is not compatible with kinematic model. This could be fatal.");
