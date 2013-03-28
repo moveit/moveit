@@ -176,10 +176,10 @@ robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState()
   if (kstate_)
     return kstate_;
   else
-  {
+  {    
     do
     {
-      state_available_condition_.wait(ulock);
+      state_available_condition_.wait(ulock); 
     } while (!kstate_);
     return kstate_;
   }
@@ -643,58 +643,65 @@ static inline std::string getMarkerName(const RobotInteraction::InteractionHandl
 void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
 {
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
-  
-  boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-  robot_state::RobotStateConstPtr s = handler->getState();
-  
-  for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
+  std::vector<visualization_msgs::InteractiveMarker> ims;
   {
-    geometry_msgs::PoseStamped pose;
-    geometry_msgs::Pose control_to_eef_tf;
-    pose.header.frame_id = robot_model_->getModelFrame();
-    pose.header.stamp = ros::Time::now();
-    computeMarkerPose(handler, active_eef_[i], *s, pose.pose, control_to_eef_tf);
     
-    std::string marker_name = getMarkerName(handler, active_eef_[i]);
-    shown_markers_[marker_name] = i;
+    boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+    robot_state::RobotStateConstPtr s = handler->getState();
     
-    // Determine interactive maker size
-    if (marker_scale < std::numeric_limits<double>::epsilon())
-      marker_scale = active_eef_[i].size;
-    
-    visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, marker_scale);
-    if(handler && handler->getControlsVisible())
-      add6DOFControl(im, false);
-    if (handler && handler->getMeshesVisible())
-      addEndEffectorMarkers(handler, active_eef_[i], control_to_eef_tf, im);
-    int_marker_server_->insert(im);
-    int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-    ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
-  }
-  
-  for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
-  {
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = robot_model_->getModelFrame();
-    pose.header.stamp = ros::Time::now();
-    const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
-    tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
-    std::string marker_name = getMarkerName(handler, active_vj_[i]);
-    shown_markers_[marker_name] = i;
-    visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, active_vj_[i].size);
-    if (handler && handler->getControlsVisible())
+    for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
     {
-      if (active_vj_[i].dof == 3) // planar joint
-        add3DOFControl(im, false);
-      else
+      geometry_msgs::PoseStamped pose;
+      geometry_msgs::Pose control_to_eef_tf;
+      pose.header.frame_id = robot_model_->getModelFrame();
+      pose.header.stamp = ros::Time::now();
+      computeMarkerPose(handler, active_eef_[i], *s, pose.pose, control_to_eef_tf);
+      
+      std::string marker_name = getMarkerName(handler, active_eef_[i]);
+      shown_markers_[marker_name] = i;
+      
+      // Determine interactive maker size
+      if (marker_scale < std::numeric_limits<double>::epsilon())
+        marker_scale = active_eef_[i].size;
+      visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, marker_scale);
+      if(handler && handler->getControlsVisible())
         add6DOFControl(im, false);
+      if (handler && handler->getMeshesVisible())
+        addEndEffectorMarkers(handler, active_eef_[i], control_to_eef_tf, im);
+      ims.push_back(im);
+      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
     }
-    int_marker_server_->insert(im);
-    int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-    ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_vj_[i].size);
+    for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
+    {
+      geometry_msgs::PoseStamped pose;
+      pose.header.frame_id = robot_model_->getModelFrame();
+      pose.header.stamp = ros::Time::now();
+      const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
+      tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
+      std::string marker_name = getMarkerName(handler, active_vj_[i]);
+      shown_markers_[marker_name] = i;
+      visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, active_vj_[i].size);
+      if (handler && handler->getControlsVisible())
+      {
+        if (active_vj_[i].dof == 3) // planar joint
+          add3DOFControl(im, false);
+        else
+          add6DOFControl(im, false);
+      }   
+      ims.push_back(im);
+      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), active_vj_[i].size);
+    }
+    handlers_[handler->getName()] = handler;
   }
   
-  handlers_[handler->getName()] = handler;
+  // we do this while marker_access_lock_ is unlocked because the interactive marker server locks
+  // for most function calls, and maintains that lock while the feedback callback is running
+  // that can cause a deadlock if we were to run the loop below while marker_access_lock_ is locked
+  for (std::size_t i = 0 ; i < ims.size() ; ++i)
+  {
+    int_marker_server_->insert(ims[i]);
+    int_marker_server_->setCallback(ims[i].name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
+  }
 }
 
 void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr &handler, const EndEffector &eef, const robot_state::RobotState &robot_state,
@@ -754,11 +761,14 @@ void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr &han
 
 void RobotInteraction::publishInteractiveMarkers()
 {
+  // the server locks internally, so we need not worry about locking
   int_marker_server_->applyChanges();
 }
 
 bool RobotInteraction::showingMarkers(const InteractionHandlerPtr &handler)
 {
+  boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
     if (shown_markers_.find(getMarkerName(handler, active_eef_[i])) == shown_markers_.end())
       return false;
