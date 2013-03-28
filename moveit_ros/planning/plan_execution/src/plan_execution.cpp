@@ -102,6 +102,49 @@ void plan_execution::PlanExecution::stop()
   preempt_requested_ = true;
 }
 
+std::string plan_execution::PlanExecution::getErrorCodeString(const moveit_msgs::MoveItErrorCodes& error_code)
+{
+  if (error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+    return "Success";
+  else
+    if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
+      return "Invalid group name";
+    else
+      if (error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
+        return "Planning failed.";
+      else
+        if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN)
+          return "Invalid motion plan";
+        else
+          if (error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
+            return "Motion plan was found but it seems to be too costly and looking around did not help.";
+          else
+            if (error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
+              return "Solution found but the environment changed during execution and the path was aborted";
+            else
+              if (error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
+                return "Solution found but controller failed during execution";
+              else
+                if (error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
+                  return "Timeout reached";
+                else
+                  if (error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
+                    return "Preempted";
+                  else
+                    if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS)
+                      return "Invalid goal constraints";
+                    else
+                      if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
+                        return "Invalid group name";
+                      else
+                        if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME)
+                          return "Invalid object name";
+                        else
+                          if (error_code.val == moveit_msgs::MoveItErrorCodes::FAILURE)
+                            return "Catastrophic failure";
+  return "Unknown event";
+}
+
 void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan &plan, const Options &opt)
 {
   plan.planning_scene_monitor_ = planning_scene_monitor_;
@@ -197,7 +240,11 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
   if (opt.done_callback_)
     opt.done_callback_();
   
-  ROS_DEBUG("PlanExecution terminating with error code %d", plan.error_code_.val);
+  if( plan.error_code_.val == 1 )
+    ROS_DEBUG("PlanExecution finished successfully.");
+  else
+    ROS_DEBUG("PlanExecution terminating with error code %d - '%s'", plan.error_code_.val, 
+              getErrorCodeString(plan.error_code_).c_str());
 }
 
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan &plan)
@@ -419,3 +466,4 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
       break;
     }
 }
+
