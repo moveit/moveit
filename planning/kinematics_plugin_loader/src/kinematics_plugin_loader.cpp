@@ -46,7 +46,7 @@
 namespace kinematics_plugin_loader
 {
 
-static const double DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION = 0.1;
+const double KinematicsPluginLoader::DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION = 0.1;
 
 class KinematicsPluginLoader::KinematicsLoaderImpl
 {
@@ -183,7 +183,7 @@ void kinematics_plugin_loader::KinematicsPluginLoader::status() const
     ROS_INFO("Loader function was never required");
 }
 
-kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction()
+robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction()
 {
   if (loader_)
     return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
@@ -193,109 +193,126 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
   return getLoaderFunction(rml.getSRDF());
 }
 
-kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model)
+robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model)
 {
   if (!loader_)
   {
     ROS_DEBUG("Configuring kinematics solvers");
     groups_.clear();
-    
-    ros::NodeHandle nh("~");
-    
+
     std::map<std::string, std::vector<std::string> > possible_kinematics_solvers;
     std::map<std::string, std::vector<double> > search_res;
     std::map<std::string, std::string> ik_links;
+
     if (srdf_model)
-    {      
+    {     
       const std::vector<srdf::Model::Group> &known_groups = srdf_model->getGroups();
+      if (default_search_resolution_ <= std::numeric_limits<double>::epsilon())
+        default_search_resolution_ = DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION;
       
-      // read the list of plugin names for possible kinematics solvers
-      for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
+      if (default_solver_plugin_.empty())
       {
-        ROS_DEBUG("Looking for param %s ", (known_groups[i].name_ + "/kinematics_solver").c_str());
-        std::string ksolver_param_name;
-        if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver", ksolver_param_name))
+        // read data using ROS params
+        ros::NodeHandle nh("~");
+        
+        // read the list of plugin names for possible kinematics solvers
+        for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
         {
-          ROS_DEBUG("Found param %s ", ksolver_param_name.c_str());
-          std::string ksolver;          
-          if (nh.getParam(ksolver_param_name, ksolver))
+          ROS_DEBUG("Looking for param %s ", (known_groups[i].name_ + "/kinematics_solver").c_str());
+          std::string ksolver_param_name;
+          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver", ksolver_param_name))
           {
-            std::stringstream ss(ksolver);
-            bool first = true;
-            while (ss.good() && !ss.eof())
+            ROS_DEBUG("Found param %s ", ksolver_param_name.c_str());
+            std::string ksolver;          
+            if (nh.getParam(ksolver_param_name, ksolver))
             {
-              if (first)
+              std::stringstream ss(ksolver);
+              bool first = true;
+              while (ss.good() && !ss.eof())
               {
-                first = false;
-                groups_.push_back(known_groups[i].name_);
+                if (first)
+                {
+                  first = false;
+                  groups_.push_back(known_groups[i].name_);
+                }
+                std::string solver; ss >> solver >> std::ws;
+                possible_kinematics_solvers[known_groups[i].name_].push_back(solver);
+                ROS_DEBUG("Using kinematics solver '%s' for group '%s'.", solver.c_str(), known_groups[i].name_.c_str());
               }
-              std::string solver; ss >> solver >> std::ws;
-              possible_kinematics_solvers[known_groups[i].name_].push_back(solver);
-              ROS_DEBUG("Using kinematics solver '%s' for group '%s'.", solver.c_str(), known_groups[i].name_.c_str());
             }
           }
-        }
-
-        std::string ksolver_timeout_param_name;
-        if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_timeout", ksolver_timeout_param_name))
-        {
-          double ksolver_timeout;
-          if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout))
-            ik_timeout_[known_groups[i].name_] = ksolver_timeout;
-          else
-          {// just in case this is an int
-            int ksolver_timeout_i;
-            if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout_i))
-              ik_timeout_[known_groups[i].name_] = ksolver_timeout_i;
-          }
-        }
-
-        std::string ksolver_attempts_param_name;
-        if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_attempts", ksolver_attempts_param_name))
-        {
-          int ksolver_attempts;
-          if (nh.getParam(ksolver_attempts_param_name, ksolver_attempts))
-            ik_attempts_[known_groups[i].name_] = ksolver_attempts;
-        }
-        
-        std::string ksolver_res_param_name;
-        if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_search_resolution", ksolver_res_param_name))
-        {
-          std::string ksolver_res;
-          if (nh.getParam(ksolver_res_param_name, ksolver_res))
+          
+          std::string ksolver_timeout_param_name;
+          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_timeout", ksolver_timeout_param_name))
           {
-            std::stringstream ss(ksolver_res);
-            while (ss.good() && !ss.eof())
-            {
-              double res; ss >> res >> std::ws;
-              search_res[known_groups[i].name_].push_back(res);
-            }
-          }
-          else
-          { // handle the case this param is just one value and parsed as a double 
-            double res;
-            if (nh.getParam(ksolver_res_param_name, res))
-              search_res[known_groups[i].name_].push_back(res);
+            double ksolver_timeout;
+            if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout))
+              ik_timeout_[known_groups[i].name_] = ksolver_timeout;
             else
-            {
-              int res_i;
-              if (nh.getParam(ksolver_res_param_name, res_i))
-                search_res[known_groups[i].name_].push_back(res_i);
+            {// just in case this is an int
+              int ksolver_timeout_i;
+              if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout_i))
+                ik_timeout_[known_groups[i].name_] = ksolver_timeout_i;
             }
           }
+          
+          std::string ksolver_attempts_param_name;
+          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_attempts", ksolver_attempts_param_name))
+          {
+            int ksolver_attempts;
+            if (nh.getParam(ksolver_attempts_param_name, ksolver_attempts))
+              ik_attempts_[known_groups[i].name_] = ksolver_attempts;
+          }
+          
+          std::string ksolver_res_param_name;
+          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_search_resolution", ksolver_res_param_name))
+          {
+            std::string ksolver_res;
+            if (nh.getParam(ksolver_res_param_name, ksolver_res))
+            {
+              std::stringstream ss(ksolver_res);
+              while (ss.good() && !ss.eof())
+              {
+                double res; ss >> res >> std::ws;
+                search_res[known_groups[i].name_].push_back(res);
+              }
+            }
+            else
+            { // handle the case this param is just one value and parsed as a double 
+              double res;
+              if (nh.getParam(ksolver_res_param_name, res))
+                search_res[known_groups[i].name_].push_back(res);
+              else
+              {
+                int res_i;
+                if (nh.getParam(ksolver_res_param_name, res_i))
+                  search_res[known_groups[i].name_].push_back(res_i);
+              }
+            }
+          }
+          
+          std::string ksolver_ik_link_param_name;
+          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_ik_link", ksolver_ik_link_param_name))
+          {
+            std::string ksolver_ik_link;
+            if (nh.getParam(ksolver_ik_link_param_name, ksolver_ik_link))
+              ik_links[known_groups[i].name_] = ksolver_ik_link;
+          }
+          
+          // make sure there is a default resolution at least specified for every solver (in case it was not specified on the param server)
+          while (search_res[known_groups[i].name_].size() < possible_kinematics_solvers[known_groups[i].name_].size())
+            search_res[known_groups[i].name_].push_back(default_search_resolution_);
         }
-
-        std::string ksolver_ik_link_param_name;
-        if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_ik_link", ksolver_ik_link_param_name))
+      }
+      else
+      {
+        for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
         {
-          std::string ksolver_ik_link;
-          if (nh.getParam(ksolver_ik_link_param_name, ksolver_ik_link))
-            ik_links[known_groups[i].name_] = ksolver_ik_link;
+          possible_kinematics_solvers[known_groups[i].name_].resize(1, default_solver_plugin_);
+          search_res[known_groups[i].name_].resize(1, default_search_resolution_);
+          ik_timeout_[known_groups[i].name_] = default_solver_timeout_;
+          ik_attempts_[known_groups[i].name_] = default_ik_attempts_;
         }
-        
-        // make sure there is a default resolution at least specified for every solver (in case it was not specified on the param server)
-        while (search_res[known_groups[i].name_].size() < possible_kinematics_solvers[known_groups[i].name_].size())
-          search_res[known_groups[i].name_].push_back(DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION);
       }
     }
     
