@@ -951,7 +951,7 @@ void planning_scene_monitor::PlanningSceneMonitor::publishDebugInformation(bool 
 
 void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(const planning_scene::PlanningScenePtr &scene)
 {
-  if (!scene)
+  if (!scene || robot_description_.empty())
     return;
   collision_detection::AllowedCollisionMatrix &acm = scene->getAllowedCollisionMatrixNonConst();
     
@@ -993,6 +993,8 @@ void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(cons
 
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding()
 {
+  if (robot_description_.empty())
+    return;
   nh_.param(robot_description_ + "_planning/default_robot_padding", default_robot_padd_, 0.0);
   nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);
   nh_.param(robot_description_ + "_planning/default_object_padding", default_object_padd_, 0.0);
