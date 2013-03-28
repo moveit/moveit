@@ -74,3 +74,43 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
   }
   ROS_DEBUG_STREAM("Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
+
+rdf_loader::RDFLoader::RDFLoader(const std::string &urdf_string, const std::string &srdf_string)
+{
+  urdf::Model *umodel = new urdf::Model();
+  urdf_.reset(umodel);
+  if (umodel->initString(urdf_string))
+  {
+    srdf_.reset(new srdf::Model());
+    if (!srdf_->initString(*urdf_, srdf_string))
+    {
+      ROS_ERROR("Unable to parse SRDF");
+      srdf_.reset();
+    }
+  }
+  else
+  {
+    ROS_ERROR("Unable to parse URDF");
+    urdf_.reset();
+  }
+}
+
+rdf_loader::RDFLoader::RDFLoader(TiXmlDocument *urdf_doc, TiXmlDocument *srdf_doc)
+{
+  urdf::Model *umodel = new urdf::Model();
+  urdf_.reset(umodel);
+  if (umodel->initXml(urdf_doc))
+  {
+    srdf_.reset(new srdf::Model());
+    if (!srdf_->initXml(*urdf_, srdf_doc))
+    {
+      ROS_ERROR("Unable to parse SRDF");
+      srdf_.reset();
+    }
+  }
+  else
+  {
+    ROS_ERROR("Unable to parse URDF");
+    urdf_.reset();
+  }
+}
