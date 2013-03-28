@@ -127,6 +127,12 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
   const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
 
+  if (!urdf_model || !srdf)
+  {
+    ROS_ERROR("URDF and SRDF must be loaded for KDL kinematics solver to work.");
+    return false;
+  }
+  
   kinematic_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
 
   if(!kinematic_model_->hasJointModelGroup(group_name))
