@@ -737,8 +737,8 @@ void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager 
   std::vector<fcl::CollisionObject*> collision_objects(collision_objects_.size());
   for(std::size_t i = 0; i < collision_objects_.size(); ++i)
     collision_objects[i] = collision_objects_[i].get();
-
-  manager->registerObjects(collision_objects);
+  if (collision_objects.size() > 0)
+    manager->registerObjects(collision_objects);
 }
 
 void collision_detection::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManager *manager)
