@@ -227,6 +227,9 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
       
       if (res.collision || !plan.planning_scene_->isStateFeasible(t.getWayPoint(i), false))
       {
+        // Dave's debacle
+        ROS_INFO("Trajectory component '%s' is invalid", plan.plan_components_[path_segment.first].description_.c_str());
+
         // call the same functions again, in verbose mode, to show what issues have been detected
         plan.planning_scene_->isStateFeasible(t.getWayPoint(i), true);
         req.verbose = true;
@@ -270,7 +273,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   {    
     if (!plan.plan_components_[i].trajectory_ || plan.plan_components_[i].trajectory_->empty())
       continue;
-    
+
     // \todo should this be in trajectory_execution ? Maybe. Then that will have to use kinematic_trajectory too; 
     // spliting trajectories for controllers becomes interesting: tied to groups instead of joints. this could cause some problems
     // in the meantime we do a hack:
@@ -395,7 +398,7 @@ void plan_execution::PlanExecution::doneWithTrajectoryExecution(const moveit_con
 void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan *plan, std::size_t index)
 {
   ROS_DEBUG("Completed '%s'", plan->plan_components_[index].description_.c_str());
-  
+
   // if any side-effects are associated to the trajectory part that just completed, execute them
   if (plan->plan_components_[index].effect_on_success_)
     if (!plan->plan_components_[index].effect_on_success_(plan))
