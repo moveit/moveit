@@ -1458,6 +1458,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           logInform("Detached object '%s' from link '%s' and added it back in the collision world", name.c_str(), object.link_name.c_str());
         }
       }
+      if (!attached_bodies.empty())
+        return true;
     }
     else
       logError("Kinematic state is not compatible with kinematic model. This could be fatal.");
