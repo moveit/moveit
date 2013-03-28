@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -127,9 +127,9 @@ void planning_scene::PlanningScene::initialize()
 
 /* return NULL on failure */
 robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(
-      const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-      const boost::shared_ptr<const srdf::Model> &srdf_model,
-      const std::string &root_link)
+                                                                           const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+                                                                           const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                                                           const std::string &root_link)
 {
   robot_model::RobotModelPtr robot_model;
   const urdf::Link *root_link_ptr = NULL;
@@ -269,7 +269,7 @@ void planning_scene::PlanningScene::CollisionDetector::findParent(const Planning
 {
   if (parent_ || !scene.parent_)
     return;
-  
+
   CollisionDetectorConstIterator it = scene.parent_->collision_.find(alloc_->getName());
   if (it != scene.parent_->collision_.end())
     parent_ = it->second->parent_;
@@ -334,7 +334,7 @@ void planning_scene::PlanningScene::setActiveCollisionDetector(const collision_d
       return;
     }
   }
-  
+
   addCollisionDetector(allocator);
   setActiveCollisionDetector(allocator->getName());
 }
@@ -373,7 +373,7 @@ void planning_scene::PlanningScene::clearDiffs()
   world_diff_.reset(new collision_detection::WorldDiff(world_));
   if (current_world_object_update_callback_)
     current_world_object_update_observer_handle_ = world_->addObserver(current_world_object_update_callback_);
-  
+
   // use parent crobot_ if it exists.  Otherwise copy padding from parent.
   for (CollisionDetectorIterator it = collision_.begin() ; it != collision_.end() ; ++it)
   {
@@ -1000,7 +1000,7 @@ void planning_scene::PlanningScene::decoupleParent()
   {
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
     kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
-  }  
+  }
 
   if (!acm_)
     acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
@@ -1050,7 +1050,7 @@ void planning_scene::PlanningScene::decoupleParent()
       if (object_types_->find(it->first) == object_types_->end())
         (*object_types_)[it->first] = it->second;
   }
-  
+
   parent_.reset();
 }
 
@@ -1303,7 +1303,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
     kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
   }
-  
+
   if (object.object.operation == moveit_msgs::CollisionObject::ADD)
   {
     if (object.object.primitives.size() != object.object.primitive_poses.size())
@@ -1352,7 +1352,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         else
         {
           logError("Attempting to attach object '%s' to link '%s' but no geometry specified and such an object does not exist in the collision world",
-                    object.object.id.c_str(), object.link_name.c_str());
+                   object.object.id.c_str(), object.link_name.c_str());
           return false;
         }
       }
@@ -1429,25 +1429,35 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     robot_state::LinkState *ls = kstate_->getLinkState(object.link_name);
     if (ls)
     {
-      const robot_state::AttachedBody *ab = ls->getAttachedBody(object.object.id);
-      if (ab)
-      {
-        std::vector<shapes::ShapeConstPtr> shapes = ab->getShapes();
-        EigenSTL::vector_Affine3d poses = ab->getGlobalCollisionBodyTransforms();
-        kstate_->clearAttachedBody(object.object.id);
+      std::vector<const robot_state::AttachedBody*> attached_bodies;
 
-        if (world_->hasObject(object.object.id))
+      if (object.object.id.empty())
+      {
+        ls->getAttachedBodies(attached_bodies);
+      }
+      else
+      {
+        const robot_state::AttachedBody *ab = ls->getAttachedBody(object.object.id);
+        if (ab)
+          attached_bodies.push_back(ab);
+      }
+
+      for (std::size_t i = 0; i < attached_bodies.size(); ++i)
+      {
+        std::vector<shapes::ShapeConstPtr> shapes = attached_bodies[i]->getShapes();
+        EigenSTL::vector_Affine3d poses = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+        std::string name = attached_bodies[i]->getName();
+
+        kstate_->clearAttachedBody(name);
+
+        if (world_->hasObject(name))
           logWarn("The collision world already has an object with the same name as the body about to be detached. NOT adding the detached body '%s' to the collision world.", object.object.id.c_str());
         else
         {
-          world_->addToObject(object.object.id, shapes, poses);
-          logInform("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
+          world_->addToObject(name, shapes, poses);
+          logInform("Detached object '%s' from link '%s' and added it back in the collision world", name.c_str(), object.link_name.c_str());
         }
-
-        return true;
       }
-      else
-        logError("Robot state is not compatible with robot model. This could be fatal.");
     }
     else
       logError("Kinematic state is not compatible with kinematic model. This could be fatal.");
@@ -1601,7 +1611,7 @@ bool planning_scene::PlanningScene::hasObjectType(const std::string &id) const
 }
 
 const object_recognition_msgs::ObjectType& planning_scene::PlanningScene::getObjectType(const std::string &id) const
-{  
+{
   if (object_types_)
   {
     ObjectTypeMap::const_iterator it = object_types_->find(id);
@@ -1612,11 +1622,11 @@ const object_recognition_msgs::ObjectType& planning_scene::PlanningScene::getObj
     return parent_->getObjectType(id);
   static const object_recognition_msgs::ObjectType empty;
   return empty;
-  
+
 }
 
 void planning_scene::PlanningScene::setObjectType(const std::string &id, const object_recognition_msgs::ObjectType &type)
-{ 
+{
   if (!object_types_)
     object_types_.reset(new ObjectTypeMap());
   (*object_types_)[id] = type;
@@ -1629,7 +1639,7 @@ void planning_scene::PlanningScene::removeObjectType(const std::string &id)
 }
 
 void planning_scene::PlanningScene::getKnownObjectTypes(ObjectTypeMap &kc) const
-{ 
+{
   kc.clear();
   if (parent_)
     parent_->getKnownObjectTypes(kc);
@@ -1982,9 +1992,9 @@ void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState
 void planning_scene::PlanningScene::printKnownObjects(std::ostream& out) const
 {
   const std::vector<std::string>& objects = getWorld()->getObjectIds();
-  
+
   out << "Collision World Objects:\n\t ";
-  std::copy(objects.begin(), objects.end(), std::ostream_iterator<std::string>(out, "\n\t "));      
+  std::copy(objects.begin(), objects.end(), std::ostream_iterator<std::string>(out, "\n\t "));
 
   std::vector<const robot_state::AttachedBody*> attached_bodies;
   getCurrentState().getAttachedBodies(attached_bodies);
@@ -2000,6 +2010,6 @@ planning_scene::PlanningScene::ConstructException::ConstructException(const std:
   std::runtime_error(what_arg)
 {
   logError("Error during construction of PlanningScene: %s.  Exception thrown.",
-    what_arg.c_str());
+           what_arg.c_str());
 }
 
