@@ -187,13 +187,16 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
   ROS_DEBUG_STREAM("Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
-void robot_model_loader::RobotModelLoader::loadKinematicsSolvers()
+void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kloader)
 {
   if (rdf_loader_ && model_)
   {
     // load the kinematics solvers
-    kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader(rdf_loader_->getRobotDescription()));
-    kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
+    if (kloader)
+      kinematics_loader_ = kloader;
+    else
+      kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader(rdf_loader_->getRobotDescription()));
+    robot_model::SolverAllocatorFn kinematics_allocator = kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
     const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
     std::map<std::string, robot_model::SolverAllocatorFn> imap;
     for (std::size_t i = 0 ; i < groups.size() ; ++i)

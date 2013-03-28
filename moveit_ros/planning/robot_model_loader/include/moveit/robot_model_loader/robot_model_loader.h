@@ -89,8 +89,9 @@ public:
     /** @brief The name of the link to consider as root of the model. By default (\e root_link is empty) the root will be the one specified in the URDF. However, it is possible to re-parent the tree using this argument. */
     std::string root_link_;
         
-    /** @brief Flag indicating whether the kinematics solvers should be loaded as well */
+    /** @brief Flag indicating whether the kinematics solvers should be loaded as well, using specified ROS parameters */
     bool load_kinematics_solvers_;
+    
   };
   
     
@@ -142,12 +143,12 @@ public:
   std::map<std::string, kinematics::KinematicsBasePtr> generateKinematicsSolversMap() const;
   
   /** @brief Load the kinematics solvers into the kinematic model. This is done by default, unless disabled explicitly by the options passed to the constructor */
-  void loadKinematicsSolvers();
+  void loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kloader = kinematics_plugin_loader::KinematicsPluginLoaderPtr());
   
 private:
 
   void configure(const Options &opt);
-
+  
   robot_model::RobotModelPtr model_;
   rdf_loader::RDFLoaderPtr rdf_loader_; 
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
