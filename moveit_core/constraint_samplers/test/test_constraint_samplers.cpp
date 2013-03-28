@@ -119,8 +119,7 @@ protected:
     
     kmodel->setKinematicsAllocators(allocators);
     
-    ps.reset(new planning_scene::PlanningScene());
-    ps->configure(kmodel);
+    ps.reset(new planning_scene::PlanningScene(kmodel));
     
   };
   
@@ -144,7 +143,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
   
   kinematic_constraints::JointConstraint jc1(kmodel, tf);
   moveit_msgs::JointConstraint jcm1;
@@ -285,7 +284,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
   
   kinematic_constraints::PositionConstraint pc(kmodel, tf);
   moveit_msgs::PositionConstraint pcm;
@@ -352,7 +351,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
   
   kinematic_constraints::OrientationConstraint oc(kmodel, tf);
   moveit_msgs::OrientationConstraint ocm;
@@ -389,7 +388,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
   
   kinematic_constraints::PositionConstraint pc(kmodel, tf);
   moveit_msgs::PositionConstraint pcm;
@@ -463,7 +462,7 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
 
   kinematic_constraints::JointConstraint jc1(kmodel, tf);
 
@@ -619,7 +618,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
   
   kinematic_constraints::PositionConstraint pc(kmodel, tf);
 
@@ -865,7 +864,7 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
 
   std::map<std::string, double> state_values;
   ks.getStateValues(state_values);
@@ -939,7 +938,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
   
   kinematic_constraints::JointConstraint jc1(kmodel, tf);
   moveit_msgs::JointConstraint jcm1;
@@ -1073,7 +1072,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
   ocm.weight = 1.0;
   c.orientation_constraints.push_back(ocm);
   
-  robot_state::TransformsPtr tf = ps->getTransforms();
+  robot_state::TransformsPtr tf = ps->getTransformsNonConst();
   constraint_samplers::ConstraintSamplerPtr s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
   EXPECT_TRUE(s);
   constraint_samplers::UnionConstraintSampler* ucs = dynamic_cast<constraint_samplers::UnionConstraintSampler*>(s.get());

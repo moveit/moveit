@@ -174,7 +174,7 @@ void robot_state::JointState::updateMimicJoints()
   {
     std::vector<double> mim_val(joint_state_values_.size());
     for (std::size_t j = 0 ; j < mim_val.size() ; ++j)
-      mim_val[j] = joint_state_values_[j] * joint_model_->getMimicFactor() + joint_model_->getMimicOffset();
+      mim_val[j] = joint_state_values_[j] * mimic_requests_[i]->getJointModel()->getMimicFactor() + mimic_requests_[i]->getJointModel()->getMimicOffset();
     mimic_requests_[i]->setVariableValues(&mim_val[0]);
   }
 }

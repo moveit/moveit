@@ -245,7 +245,9 @@ TEST_F(LoadPlanningModelsPr2, AssociatedFixedLinks)
   EXPECT_TRUE(kmodel->getLinkModel("r_gripper_palm_link")->getAssociatedFixedTransforms().size() > 1);
 }
 
-TEST_F(LoadPlanningModelsPr2, RobotState *Copy) {
+//TEST_F(LoadPlanningModelsPr2, robot_state::RobotState *Copy) 
+TEST_F(LoadPlanningModelsPr2, FullTest) 
+{
   robot_model::RobotModelPtr kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));
 
   robot_state::RobotState ks(kmodel);
@@ -259,8 +261,11 @@ TEST_F(LoadPlanningModelsPr2, RobotState *Copy) {
   shapes::Shape* shape = new shapes::Box(.1,.1,.1);
   shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());
-  std::vector<std::string> touch_links;
-  ks.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
+  std::set<std::string> touch_links;
+
+  robot_state::AttachedBody attached_body(ks.getLinkState("r_gripper_palm_link")->getLinkModel(), "box", shapes, poses, touch_links);
+  
+  ks.attachBody(&attached_body);
 
   std::vector<const robot_state::AttachedBody*> attached_bodies_1;
   ks.getAttachedBodies(attached_bodies_1);
@@ -271,7 +276,7 @@ TEST_F(LoadPlanningModelsPr2, RobotState *Copy) {
   ks2.getAttachedBodies(attached_bodies_2);
   ASSERT_EQ(attached_bodies_2.size(),1);
 
-  ks.getLinkState("r_gripper_palm_link")->clearAttachedBody("box");
+  ks.clearAttachedBody("box");
   attached_bodies_1.clear();
   ks.getAttachedBodies(attached_bodies_1);
   ASSERT_EQ(attached_bodies_1.size(),0);

@@ -322,19 +322,23 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
   EigenSTL::vector_Affine3d poses;
   shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());
-  std::vector<std::string> touch_links;
-  kstate.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
+  std::set<std::string> touch_links;
+  robot_state::AttachedBody attached_body(kstate.getLinkState("r_gripper_palm_link")->getLinkModel(), "box", shapes, poses, touch_links);
+  
+  kstate.attachBody(&attached_body);
 
   res = collision_detection::CollisionResult();
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);  
 
   //deletes shape
-  kstate.getLinkState("r_gripper_palm_link")->clearAttachedBody("box");
+  kstate.clearAttachedBody("box");
 
-  touch_links.push_back("r_gripper_palm_link");
+  touch_links.insert("r_gripper_palm_link");
   shapes[0].reset(new shapes::Box(.1,.1,.1));
-  kstate.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
+
+  robot_state::AttachedBody attached_body_1(kstate.getLinkState("r_gripper_palm_link")->getLinkModel(), "box", shapes, poses, touch_links);
+  kstate.attachBody(&attached_body_1);
 
   res = collision_detection::CollisionResult();
   crobot_->checkSelfCollision(req, res, kstate, *acm_);

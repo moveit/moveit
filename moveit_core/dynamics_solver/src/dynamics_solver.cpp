@@ -82,6 +82,13 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_
     joint_model_group_ = NULL;
     return;
   }
+
+  if(joint_model_group_->getMimicJointModels().size() > 0)
+  {
+    logError("Group %s has a mimic joint. Will not initialize dynamics solver", group_name_.c_str());
+    joint_model_group_ = NULL;
+    return;
+  }
   
   const robot_model::JointModel* joint = joint_model_group_->getJointRoots()[0];  
   if(!joint->getParentLinkModel())
@@ -143,7 +150,7 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
 {
   if(!joint_model_group_)
   {
-    logError("Did not construct DynamisSolver object properly. Check error logs.");
+    logDebug("Did not construct DynamicsSolver object properly. Check error logs.");
     return false;
   }
   if(joint_angles.size() != num_joints_)
@@ -211,7 +218,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
 {
   if(!joint_model_group_)
   {
-    logError("Did not construct DynamisSolver object properly. Check error logs.");
+    logDebug("Did not construct DynamicsSolver object properly. Check error logs.");
     return false;
   }
   if(joint_angles.size() != num_joints_)
@@ -272,7 +279,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
 {
   if(!joint_model_group_)
   {
-    logError("Did not construct DynamisSolver object properly. Check error logs.");
+    logDebug("Did not construct DynamicsSolver object properly. Check error logs.");
     return false;
   }
   if(joint_angles.size() != num_joints_)
