@@ -550,7 +550,7 @@ public:
     goal.planning_options.plan_only = false;
     goal.planning_options.look_around = can_look_;
     goal.planning_options.replan = can_replan_;
-    goal.planning_options.replan_delay = 0.5; // this should become a parameter
+    goal.planning_options.replan_delay = 2.0; // this should become a parameter
 
     move_action_client_->sendGoal(goal);
     if (!wait)
