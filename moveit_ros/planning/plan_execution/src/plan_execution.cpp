@@ -203,7 +203,10 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
         plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
     {
       if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA && opt.replan_delay_ > 0.0)
-	ros::Duration(opt.replan_delay_).sleep();
+      {
+	ros::WallDuration d(opt.replan_delay_);
+	d.sleep();
+      }
       continue;
     }
 
@@ -233,9 +236,16 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
     if (plan.error_code_.val != moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
       break;
     else
+    {
       // othewrise, we wait (if needed)
       if (opt.replan_delay_ > 0.0)
-	ros::Duration(opt.replan_delay_).sleep();
+      {
+	ROS_INFO("Waiting for a %lf seconds before attempting a new plan ...", opt.replan_delay_);
+	ros::WallDuration d(opt.replan_delay_);
+	d.sleep();
+	ROS_INFO("Done waiting");
+      }
+    }
   } while (!preempt_requested_ && max_replan_attempts > replan_attempts);
   
   if (preempt_requested_)
