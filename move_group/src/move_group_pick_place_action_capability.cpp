@@ -253,6 +253,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
   
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
+  opt.replan_delay_ = goal->planning_options.replan_delay;
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPickupExecutionCallback, this);
   
   opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Pickup, this, boost::cref(*goal), _1);
@@ -279,6 +280,7 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(c
 
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
+  opt.replan_delay_ = goal->planning_options.replan_delay;
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPlaceExecutionCallback, this);
   
   opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Place, this, boost::cref(*goal), _1);

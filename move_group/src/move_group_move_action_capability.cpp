@@ -118,6 +118,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
+  opt.replan_delay_ = goal->planning_options.replan_delay;
   opt.before_execution_callback_ = boost::bind(&MoveGroupMoveAction::startMoveExecutionCallback, this);
   
   opt.plan_callback_ = boost::bind(&MoveGroupMoveAction::planUsingPlanningPipeline, this, boost::cref(motion_plan_request), _1);
