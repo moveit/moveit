@@ -529,18 +529,15 @@ void MotionPlanningDisplay::computeMetrics(bool start, const std::string &group,
 {
   if (!robot_interaction_)
     return; 
-  ROS_INFO("started computeMetrics()");  
   const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
   if (eef.empty())
     return;
-  ROS_INFO("started computeMetrics()");  
   boost::mutex::scoped_lock slock(update_metrics_lock_);
   
   robot_state::RobotStateConstPtr state = start ? getQueryStartState() : getQueryGoalState();
   for (std::size_t i = 0 ; i < eef.size() ; ++i)
     if (eef[i].parent_group == group)
       computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i], *state, payload);
-  ROS_INFO("completed computeMetrics()");  
 }
 
 void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &ee,
@@ -887,18 +884,14 @@ void MotionPlanningDisplay::updateQueryGoalState()
 
 void MotionPlanningDisplay::setQueryStartState(const robot_state::RobotState &start)
 {  
-  ROS_INFO("set start 1");
   query_start_state_->setState(start);
   updateQueryStartState();
-  ROS_INFO("set start 2");
 }
 
 void MotionPlanningDisplay::setQueryGoalState(const robot_state::RobotState &goal)
 {
-  ROS_INFO("set goal 1");
   query_goal_state_->setState(goal);
   updateQueryGoalState();
-  ROS_INFO("set goal 2");
 }
 
 bool MotionPlanningDisplay::isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
@@ -1072,13 +1065,10 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &d
 
 void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
-  ROS_INFO("started scene update 1");
-  
   PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
   robot_state::RobotState current_state = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
 
-  ROS_INFO("started scene update 2");
   if (query_start_state_property_->getBool() && !group.empty())
   {
     robot_state::RobotState start = *getQueryStartState();
@@ -1093,12 +1083,8 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor:
     setQueryGoalState(goal);
   }
 
-  ROS_INFO("done scene update 1");
-
   if (frame_)
     frame_->sceneUpdate(update_type);
-
-  ROS_INFO("done scene update 2");
 }
 
 // ******************************************************************************************
