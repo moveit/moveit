@@ -29,6 +29,7 @@
 #include "kdl/chainiksolver.hpp"
 #include "kdl/chainjnttojacsolver.hpp"
 #include "kdl/utilities/svd_HH.hpp"
+#include "kdl/utilities/svd_eigen_HH.hpp"
 
 #include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
 
@@ -57,7 +58,7 @@ public:
    * default: 150
    *
    */
-  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain,int num_mimic_joints =0, double eps=0.00001,int maxiter=150);
+  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain,int num_mimic_joints =0, bool position_ik=false, double eps=0.00001, int maxiter=150);
 
   ~ChainIkSolverVel_pinv_mimic();
   
@@ -88,7 +89,13 @@ private:
   std::vector<unsigned int> mimic_column;
   JntArray qdot_out_reduced;  
   std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints_;
-  
+  Eigen::MatrixXd task_space_weight;  
+  int num_mimic_joints;
+  bool position_ik;  
+  Eigen::MatrixXd U_translate;
+  Eigen::VectorXd S_translate;
+  Eigen::MatrixXd V_translate;
+  Eigen::VectorXd tmp_translate;
 };
 }
 #endif
