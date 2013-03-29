@@ -4,7 +4,7 @@
     <arg name="load_robot_description" value="true"/>
   </include>
 
-[VIRTUAL_JOINT_BROADCASTER]
+  [VIRTUAL_JOINT_BROADCASTER]
 
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <param name="/use_gui" value="false"/>
@@ -16,6 +16,8 @@
     <arg name="allow_trajectory_execution" value="false"/>
   </include>
 
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/moveit_rviz.launch" />
+  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/moveit_rviz.launch">
+    <arg name="config" value="true"/>
+  </include>
 
 </launch>
