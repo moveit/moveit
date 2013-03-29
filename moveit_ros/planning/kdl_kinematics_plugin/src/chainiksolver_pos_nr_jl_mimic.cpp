@@ -94,12 +94,22 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
   {
     fksolver.JntToCart(q_temp,f);
     delta_twist = diff(f,p_in);
-    
-    if(Equal(delta_twist,Twist::Zero(),eps))
-      break;
+
+    //    if(Equal(delta_twist,Twist::Zero(),eps))
+    //      break;
+    if(fabs(delta_twist(0)) < eps && fabs(delta_twist(1)) < eps && fabs(delta_twist(2)) < eps)
+       break;
+
+    ROS_DEBUG_STREAM("delta_twist");
+    for(std::size_t i=0; i < 6; ++i)
+      ROS_DEBUG("%d: %f",(int) i, delta_twist(i));
     
     iksolver.CartToJnt(q_temp,delta_twist,delta_q);
     Add(q_temp,delta_q,q_temp);
+
+    ROS_DEBUG_STREAM("delta_q");
+    for(std::size_t i=0; i < delta_q.rows(); ++i)
+      ROS_DEBUG("%d: %f",(int) i, delta_q(i));
     
     for(std::size_t j=0; j<q_min_mimic.rows(); ++j) 
     {
@@ -117,17 +127,17 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
     //Make sure limits are applied on the mimic joints to
     qMimicToq(q_temp,q_out);
     qToqMimic(q_out,q_temp);    
+
   }
   
   qMimicToq(q_temp, q_out);  
-  /*  ROS_DEBUG_STREAM("Full Solution:");
+  ROS_DEBUG_STREAM("Full Solution:");
   for(std::size_t i=0; i < q_temp.rows(); ++i)
     ROS_DEBUG("%d: %f",(int) i,q_temp(i));
 
   ROS_DEBUG_STREAM("Actual Solution:");
   for(std::size_t i=0; i < q_out.rows(); ++i)
     ROS_DEBUG("%d: %f",(int) i,q_out(i));
-  */
 
   if(i!=maxiter)
     return 0;

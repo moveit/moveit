@@ -28,19 +28,25 @@
 
 namespace KDL
 {
-ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, int _num_mimic_joints, double _eps,int _maxiter):
+ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, int _num_mimic_joints, bool _position_ik, double _eps, int _maxiter):
+  position_ik(_position_ik),
   chain(_chain),
   jnt2jac(chain),
   jac(chain.getNrOfJoints()),
   jac_reduced(chain.getNrOfJoints()-_num_mimic_joints),
   svd(jac_reduced),
+  U_translate(MatrixXd::Zero(3,chain.getNrOfJoints()-_num_mimic_joints)),
+  S_translate(VectorXd::Zero(chain.getNrOfJoints()-_num_mimic_joints)),
+  V_translate(MatrixXd::Zero(chain.getNrOfJoints()-_num_mimic_joints,chain.getNrOfJoints()-_num_mimic_joints)),
+  tmp_translate(VectorXd::Zero(chain.getNrOfJoints())),
   U(6,JntArray(chain.getNrOfJoints()-_num_mimic_joints)),
   S(chain.getNrOfJoints()-_num_mimic_joints),
   V(chain.getNrOfJoints()-_num_mimic_joints,JntArray(chain.getNrOfJoints()-_num_mimic_joints)),
   tmp(chain.getNrOfJoints()-_num_mimic_joints),
   eps(_eps),
   maxiter(_maxiter),
-  qdot_out_reduced(chain.getNrOfJoints()-_num_mimic_joints)
+  qdot_out_reduced(chain.getNrOfJoints()-_num_mimic_joints),
+  num_mimic_joints(_num_mimic_joints)
 {
   mimic_joints_.resize(chain.getNrOfJoints());
   for(std::size_t i=0; i < mimic_joints_.size(); ++i)
@@ -89,31 +95,51 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
   //Do a singular value decomposition of "jac" with maximum
   //iterations "maxiter", put the results in "U", "S" and "V"
   //jac = U*S*Vt
-  int ret = svd.calculate(jac_reduced,U,S,V,maxiter);
-  
+
+  int ret;  
+  if(!position_ik)
+    ret = svd.calculate(jac_reduced,U,S,V,maxiter);
+  else
+    ret = svd_eigen_HH(jac_reduced.data.topLeftCorner(3,chain.getNrOfJoints()-num_mimic_joints),U_translate,S_translate,V_translate,tmp_translate,maxiter);
+ 
   double sum;
   unsigned int i,j;
   
   // We have to calculate qdot_out = jac_pinv*v_in
   // Using the svd decomposition this becomes(jac_pinv=V*S_pinv*Ut):
   // qdot_out = V*S_pinv*Ut*v_in
+
+  unsigned int columns, rows;
+  if(!position_ik)
+    rows = jac_reduced.rows();
+  else
+    rows = 3;
   
   //first we calculate Ut*v_in
   for (i=0;i<jac_reduced.columns();i++) {
     sum = 0.0;
-    for (j=0;j<jac_reduced.rows();j++) {
-      sum+= U[j](i)*v_in(j);
+    for (j=0;j<rows;j++) {
+      if(!position_ik)
+        sum+= U[j](i)*v_in(j);
+      else
+        sum+= U_translate(j,i)*v_in(j);
     }
     //If the singular value is too small (<eps), don't invert it but
     //set the inverted singular value to zero (truncated svd)
-    tmp(i) = sum*(fabs(S(i))<eps?0.0:1.0/S(i));
+    if(!position_ik)
+      tmp(i) = sum*(fabs(S(i))<eps?0.0:1.0/S(i));
+    else
+      tmp(i) = sum*(fabs(S_translate(i))<eps?0.0:1.0/S_translate(i));
   }
   //tmp is now: tmp=S_pinv*Ut*v_in, we still have to premultiply
   //it with V to get qdot_out
   for (i=0;i<jac_reduced.columns();i++) {
     sum = 0.0;
     for (j=0;j<jac_reduced.columns();j++) {
-      sum+=V[i](j)*tmp(j);
+      if(!position_ik)
+        sum+=V[i](j)*tmp(j);
+      else
+        sum+=V_translate(i,j)*tmp(j);        
     }
     //Put the result in qdot_out
     qdot_out_reduced(i)=sum;
