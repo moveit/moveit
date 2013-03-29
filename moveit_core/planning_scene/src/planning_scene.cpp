@@ -1458,7 +1458,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           logInform("Detached object '%s' from link '%s' and added it back in the collision world", name.c_str(), object.link_name.c_str());
         }
       }
-      if (!attached_bodies.empty())
+      if (!attached_bodies.empty() || object.object.id.empty())
         return true;
     }
     else
