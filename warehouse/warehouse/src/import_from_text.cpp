@@ -207,7 +207,8 @@ int main(int argc, char **argv)
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
   
-  if (vm.count("help"))
+  // Show help if requested, or if neither scene nor queries requested
+  if (vm.count("help") || ( !vm.count("scene") && !vm.count("queries") ))
   {
     std::cout << desc << std::endl;
     return 1;
