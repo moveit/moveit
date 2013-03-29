@@ -334,3 +334,7 @@ class MoveGroupCommander:
     def pick(self, object_name):
         """Pick the named object"""
         return self._g.pick(object_name)
+
+    def place(self, object_name):
+        """Place the named object"""
+        return self._g.place(object_name)
