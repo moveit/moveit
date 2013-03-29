@@ -85,6 +85,7 @@ class MoveGroupCommandInterpreter:
     def execute_generic_command(self, cmd):
         if os.path.isfile("cmd/" + cmd):
             cmd = "load cmd/" + cmd
+        print cmd
         if cmd.startswith("use"):
             if cmd == "use":
                 return (MoveGroupInfoLevel.INFO, "\n".join(self.get_loaded_groups()))
@@ -119,7 +120,7 @@ class MoveGroupCommandInterpreter:
             try:
                 f = open(filename, 'r')
                 for line in f:
-                    self.execute(line)
+                    self.execute(line.rstrip('\n'))
                 return (MoveGroupInfoLevel.DEBUG, "OK")
             except:
                 return (MoveGroupInfoLevel.WARN, "Unable to load " + filename)
