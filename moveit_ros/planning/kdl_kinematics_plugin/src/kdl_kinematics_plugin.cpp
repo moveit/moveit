@@ -188,10 +188,15 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   // Get Solver Parameters
   int max_solver_iterations;
   double epsilon;
+  bool position_ik;  
 
   private_handle.param("max_solver_iterations", max_solver_iterations, 500);
   private_handle.param("epsilon", epsilon, 1e-5);
+  private_handle.param("position_only_ik", position_ik, false);
 
+  if(position_ik)
+    ROS_INFO("Using position only ik");
+  
   // Build Solvers
   fk_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
 
@@ -205,7 +210,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   else
   {
     std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;    
-    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), true));
+    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), position_ik));
     ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
     unsigned int joint_counter = 0;    
     for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
