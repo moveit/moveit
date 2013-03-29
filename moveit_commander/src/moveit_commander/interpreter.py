@@ -246,6 +246,16 @@ class MoveGroupCommandInterpreter:
                             return (MoveGroupInfoLevel.FAIL, "Failed while moving to " + clist[1])
                     except:
                         return (MoveGroupInfoLevel.WARN, clist[1] + " is unknown")
+            elif clist[0] == "pick":
+                if g.pick(clist[1]):
+                    return (MoveGroupInfoLevel.SUCCESS, "Picked object " + clist[1])
+                else:
+                    return (MoveGroupInfoLevel.FAIL, "Failed while trying to pick object " + clist[1])
+            elif clist[0] == "place":
+                if g.place(clist[1]):
+                    return (MoveGroupInfoLevel.SUCCESS, "Placed object " + clist[1])
+                else:
+                    return (MoveGroupInfoLevel.FAIL, "Failed while trying to place object " + clist[1])
             elif clist[0] == "record" or clist[0] == "rec":
                 g.remember_joint_values(clist[1])
                 return (MoveGroupInfoLevel.SUCCESS, "Remembered current joint values under the name " + clist[1])
@@ -405,6 +415,8 @@ class MoveGroupCommandInterpreter:
                 'use':groups,
                 'load':[],
                 'save':[],
+                'pick':[],
+                'place':[],
                 'allow':['replanning', 'looking'],
                 'constrain':known_constr,
                 'detect':[],
