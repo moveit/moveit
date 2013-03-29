@@ -377,11 +377,18 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // setup_assistant.launch ------------------------------------------------------------------
   file.file_name_   = "setup_assistant.launch";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
-  template_path     = config_data_->appendPaths( template_launch_path, "edit_configuration_package.launch" );
+  template_path     = config_data_->appendPaths( template_launch_path, "edit_configuration_package.launch" ); // named this so that this launch file is not mixed up with the SA's real launch file
   file.description_ = "Launch file for easily re-starting the MoveIt Setup Assistant to edit this robot's generated configuration package.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
+  // moveit.rviz ------------------------------------------------------------------
+  file.file_name_   = "moveit.rviz";
+  file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
+  template_path     = config_data_->appendPaths( template_launch_path, "moveit.rviz" );
+  file.description_ = "Configuration file for Rviz with the Motion Planning Plugin already setup. Used by passing roslaunch moveit_rviz.launch config:=true";
+  file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  gen_files_.push_back(file);
 
   // -------------------------------------------------------------------------------------------------------------------
   // OTHER FILES -------------------------------------------------------------------------------------------------------
