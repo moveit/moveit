@@ -201,7 +201,11 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
     if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED ||
 	plan.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
         plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
+    {
+      if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA && opt.replan_delay_ > 0.0)
+	ros::Duration(opt.replan_delay_).sleep();
       continue;
+    }
 
     // abort if no plan was found
     if (solved)
@@ -228,8 +232,12 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
     // if execution failed in a manner that we do not consider recoverable, we exit the loop (with failure)
     if (plan.error_code_.val != moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
       break;
+    else
+      // othewrise, we wait (if needed)
+      if (opt.replan_delay_ > 0.0)
+	ros::Duration(opt.replan_delay_).sleep();
   } while (!preempt_requested_ && max_replan_attempts > replan_attempts);
-
+  
   if (preempt_requested_)
   {
     ROS_DEBUG("PlanExecution was preempted");

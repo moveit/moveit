@@ -407,11 +407,13 @@ public:
   void allowLooking(bool flag)
   {
     can_look_ = flag;
+    ROS_INFO("Looking around: %s", can_look_ ? "yes" : "no");
   }
 
   void allowReplanning(bool flag)
   {
     can_replan_ = flag;
+    ROS_INFO("Replanning: %s", can_replan_ ? "yes" : "no");
   }
   
   bool getCurrentState(robot_state::RobotStatePtr &current_state)
@@ -546,8 +548,9 @@ public:
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.planning_options.plan_only = false;
-    goal.planning_options.look_around = can_look_;  
+    goal.planning_options.look_around = can_look_;
     goal.planning_options.replan = can_replan_;
+    goal.planning_options.replan_delay = 0.5; // this should become a parameter
 
     move_action_client_->sendGoal(goal);
     if (!wait)

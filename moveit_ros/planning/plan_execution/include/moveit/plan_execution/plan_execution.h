@@ -56,7 +56,8 @@ public:
   struct Options
   {
     Options() : replan_(false),
-                replan_attempts_(0)
+                replan_attempts_(0),
+                replan_delay_(0.0)
     {
     }
     
@@ -65,7 +66,10 @@ public:
 
     /// If replanning is allowed, this variable specifies how many replanning attempts there can be, at most, before failure
     unsigned int replan_attempts_;
-    
+
+    /// The amount of time to wait in between replanning attempts (in seconds)
+    double replan_delay_;
+
     /// Callback for computing motion plans. This callback must always be specified.
     ExecutableMotionPlanComputationFn plan_callback_;
 
