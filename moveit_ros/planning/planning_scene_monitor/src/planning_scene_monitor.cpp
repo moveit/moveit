@@ -401,6 +401,8 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
     std::string old_scene_name;
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
+      boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
+      
       last_update_time_ = ros::Time::now();
       old_scene_name = scene_->getName();
       scene_->usePlanningSceneMsg(*scene);
@@ -417,6 +419,8 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
         scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));  
         scene_->setCollisionObjectUpdateCallback(boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
       }
+      excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
+      excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
     }
     
     // if we have a diff, try to more accuratelly determine the update type
