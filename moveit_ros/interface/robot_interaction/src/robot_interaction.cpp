@@ -115,7 +115,7 @@ bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction:
   return false;
 }
 
-bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction::VirtualJoint& vj, geometry_msgs::Pose& m)
+bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction::Joint& vj, geometry_msgs::Pose& m)
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   std::map<std::string, geometry_msgs::Pose>::iterator it = offset_map_.find(vj.joint_name);
@@ -139,7 +139,7 @@ bool RobotInteraction::InteractionHandler::getLastEndEffectorMarkerPose(const Ro
   return false;
 }
 
-bool RobotInteraction::InteractionHandler::getLastVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj, geometry_msgs::PoseStamped& ps)
+bool RobotInteraction::InteractionHandler::getLastJointMarkerPose(const RobotInteraction::Joint& vj, geometry_msgs::PoseStamped& ps)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   std::map<std::string, geometry_msgs::PoseStamped>::iterator it = pose_map_.find(vj.joint_name);
@@ -157,7 +157,7 @@ void RobotInteraction::InteractionHandler::clearLastEndEffectorMarkerPose(const 
   pose_map_.erase(eef.eef_group);
 }
 
-void RobotInteraction::InteractionHandler::clearLastVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj)
+void RobotInteraction::InteractionHandler::clearLastJointMarkerPose(const RobotInteraction::Joint& vj)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   pose_map_.erase(vj.joint_name);
@@ -269,7 +269,7 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   return error_state_changed;
 }
 
-bool RobotInteraction::InteractionHandler::handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint &vj,
+bool RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::RobotInteraction::Joint &vj,
                                                               const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
@@ -303,7 +303,7 @@ bool RobotInteraction::InteractionHandler::inError(const robot_interaction::Robo
   return error_state_.find(eef.parent_group) != error_state_.end();
 }
 
-bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::VirtualJoint& vj) const
+bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::Joint& vj) const
 {
   return false;
 }
@@ -372,7 +372,10 @@ RobotInteraction::~RobotInteraction()
 void RobotInteraction::decideActiveComponents(const std::string &group)
 {
   decideActiveEndEffectors(group);
-  decideActiveVirtualJoints(group);
+  decideActiveJoints(group);
+  if (active_eef_.empty() && active_vj_.empty())
+    ROS_WARN_NAMED("robot_interaction", "No active joints or end effectors found. Make sure you have defined an end effector in your SRDF file and that kinematics.yaml is loaded in this node's namespace.");
+
 }
 
 double RobotInteraction::computeGroupScale(const std::string &group)
@@ -428,12 +431,12 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   return s;
 }
 
-void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
+void RobotInteraction::decideActiveJoints(const std::string &group)
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   active_vj_.clear();
 
-  ROS_DEBUG_NAMED("robot_interaction", "Deciding active virtual joints for group '%s'", group.c_str());
+  ROS_DEBUG_NAMED("robot_interaction", "Deciding active joints for group '%s'", group.c_str());
 
   if (group.empty())
     return;
@@ -444,32 +447,54 @@ void RobotInteraction::decideActiveVirtualJoints(const std::string &group)
   if (!jmg || !srdf)
     return;
 
-  if (!jmg->hasJointModel(robot_model_->getRootJointName()))
-    return;
-
-  robot_state::RobotState default_state(robot_model_);
-  default_state.setToDefaultValues();
-  std::vector<double> aabb;
-  default_state.computeAABB(aabb);
-
-  const std::vector<srdf::Model::VirtualJoint> &vj = srdf->getVirtualJoints();
-  for (std::size_t i = 0 ; i < vj.size() ; ++i)
-    if (vj[i].name_ == robot_model_->getRootJointName())
-    {
-      if (vj[i].type_ == "planar" || vj[i].type_ == "floating")
+  std::set<std::string> used;
+  if (jmg->hasJointModel(robot_model_->getRootJointName()))
+  {
+    robot_state::RobotState default_state(robot_model_);
+    default_state.setToDefaultValues();
+    std::vector<double> aabb;
+    default_state.computeAABB(aabb);
+    
+    const std::vector<srdf::Model::VirtualJoint> &vj = srdf->getVirtualJoints();
+    for (std::size_t i = 0 ; i < vj.size() ; ++i)
+      if (vj[i].name_ == robot_model_->getRootJointName())
       {
-        VirtualJoint v;
-        v.connecting_link = vj[i].child_link_;
-        v.joint_name = vj[i].name_;
-        if (vj[i].type_ == "planar")
-          v.dof = 3;
-        else
-          v.dof = 6;
-        // take the max of the X, Y, Z extent  
-        v.size = std::max(std::max(aabb[1] - aabb[0], aabb[3] - aabb[2]), aabb[5] - aabb[4]);
-        active_vj_.push_back(v);
+        if (vj[i].type_ == "planar" || vj[i].type_ == "floating")
+        {
+          Joint v;
+          v.connecting_link = vj[i].child_link_;
+          v.joint_name = vj[i].name_;
+          if (vj[i].type_ == "planar")
+            v.dof = 3;
+          else
+            v.dof = 6;
+          // take the max of the X, Y, Z extent  
+          v.size = std::max(std::max(aabb[1] - aabb[0], aabb[3] - aabb[2]), aabb[5] - aabb[4]);
+          active_vj_.push_back(v);
+          used.insert(v.joint_name);
+        }
       }
+  }
+  
+  const std::vector<const robot_model::JointModel*> &joints = jmg->getJointModels();
+  for (std::size_t i = 0 ; i < joints.size() ; ++i)
+  {
+    if ((joints[i]->getType() == robot_model::JointModel::PLANAR || joints[i]->getType() == robot_model::JointModel::FLOATING) && 
+        used.find(joints[i]->getName()) == used.end())
+    {
+      Joint v;
+      v.connecting_link = joints[i]->getChildLinkModel()->getName();
+      v.joint_name = joints[i]->getName();
+      if (joints[i]->getType() == robot_model::JointModel::PLANAR)
+        v.dof = 3;
+      else
+        v.dof = 6;
+      // take the max of the X, Y, Z extent  
+      v.size = computeGroupScale(group);
+      active_vj_.push_back(v);
     }
+  }
+  
 }
 
 void RobotInteraction::decideActiveEndEffectors(const std::string &group)
@@ -549,9 +574,6 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
     active_eef_[i].size = active_eef_[i].eef_group == active_eef_[i].parent_group ? computeGroupScale("") : computeGroupScale(active_eef_[i].eef_group);
     ROS_DEBUG_NAMED("robot_interaction", "Found active end-effector '%s', of scale %lf", active_eef_[i].eef_group.c_str(), active_eef_[i].size);
   }
-
-  if (!active_eef_.size())
-    ROS_WARN_NAMED("robot_interaction", "No active end effectors found. Make sure you have defined an end effector in your SRDF file and that kinematics.yaml is loaded in this node's namespace.");
 }
 
 void RobotInteraction::clear()
@@ -635,9 +657,9 @@ static inline std::string getMarkerName(const RobotInteraction::InteractionHandl
   return "EE:" + handler->getName() + "_" + eef.parent_link;
 }
 
-static inline std::string getMarkerName(const RobotInteraction::InteractionHandlerPtr &handler, const RobotInteraction::VirtualJoint &vj)
+static inline std::string getMarkerName(const RobotInteraction::InteractionHandlerPtr &handler, const RobotInteraction::Joint &vj)
 {
-  return "VJ:" + handler->getName() + "_" + vj.connecting_link;
+  return "JJ:" + handler->getName() + "_" + vj.connecting_link;
 }
 
 void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
@@ -778,7 +800,7 @@ bool RobotInteraction::showingMarkers(const InteractionHandlerPtr &handler)
   return true;
 }
 
-bool RobotInteraction::updateState(robot_state::RobotState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose)
+bool RobotInteraction::updateState(robot_state::RobotState &state, const Joint &vj, const geometry_msgs::Pose &pose)
 {
   Eigen::Quaterniond q;
   tf::quaternionMsgToEigen(pose.orientation, q);
@@ -894,23 +916,23 @@ void RobotInteraction::processingThread()
           marker_access_lock_.lock();
         }
         else
-          if (marker_class == "VJ")
+          if (marker_class == "JJ")
           {
             // make a copy of the data, so we do not lose it while we are unlocked
-            VirtualJoint vj = active_vj_[it->second];
+            Joint vj = active_vj_[it->second];
             InteractionHandlerPtr ih = jt->second;
             marker_access_lock_.unlock();
             try
             {
-              jt->second->handleVirtualJoint(vj, feedback);
+              jt->second->handleJoint(vj, feedback);
             }
             catch(std::runtime_error &ex)
             {
-              ROS_ERROR("Exception caught while handling virtual joint update: %s", ex.what());
+              ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
             }
             catch(...)
             {
-              ROS_ERROR("Exception caught while handling virtual joint update");
+              ROS_ERROR("Exception caught while handling joint update");
             }
             marker_access_lock_.lock();
           }

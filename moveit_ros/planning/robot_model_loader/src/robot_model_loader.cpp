@@ -213,7 +213,11 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
     
     std::map<std::string, robot_model::SolverAllocatorFn> imap;
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
-      imap[groups[i]] = kinematics_allocator;
+    {
+      const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
+      if (jmg && jmg->isChain())
+        imap[groups[i]] = kinematics_allocator;
+    }
     model_->setKinematicsAllocators(imap);
 
     // set the default IK timeouts

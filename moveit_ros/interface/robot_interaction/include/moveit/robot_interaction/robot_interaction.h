@@ -69,15 +69,15 @@ public:
     double size;
   };
 
-  struct VirtualJoint
+  struct Joint
   { 
-    /// The link in the robot model this joint connects to
+    /// The link in the robot model this joint is a parent of
     std::string connecting_link;
     
-    /// The name of the virtual joint
+    /// The name of the joint
     std::string joint_name;
 
-    /// The number of DOF this virtual joint has
+    /// The number of DOF this joint has
     unsigned int dof;
 
     /// The size of the connectig link  (diameter of enclosing sphere)
@@ -178,7 +178,7 @@ public:
     void clearPoseOffsets();
 
     bool getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m);
-    bool getPoseOffset(const RobotInteraction::VirtualJoint& vj, geometry_msgs::Pose& m);
+    bool getPoseOffset(const RobotInteraction::Joint& vj, geometry_msgs::Pose& m);
     
     /** \brief Get the last interactive_marker command pose for the end-effector
      * @param The end-effector in question.
@@ -186,20 +186,20 @@ public:
      * @return True if a pose for that end-effector was found, false otherwise.
      */
     bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
-    bool getLastVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj, geometry_msgs::PoseStamped& pose);
+    bool getLastJointMarkerPose(const RobotInteraction::Joint& vj, geometry_msgs::PoseStamped& pose);
 
     void clearLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef);
-    void clearLastVirtualJointMarkerPose(const RobotInteraction::VirtualJoint& vj);
+    void clearLastJointMarkerPose(const RobotInteraction::Joint& vj);
     void clearLastMarkerPoses();
 
     /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
     virtual bool handleEndEffector(const RobotInteraction::EndEffector &eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
-    virtual bool handleVirtualJoint(const RobotInteraction::VirtualJoint &vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    virtual bool handleJoint(const RobotInteraction::Joint &vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     virtual bool inError(const RobotInteraction::EndEffector& eef) const;
-    virtual bool inError(const RobotInteraction::VirtualJoint& vj) const;
+    virtual bool inError(const RobotInteraction::Joint& vj) const;
     
     void clearError(void);
     
@@ -250,7 +250,7 @@ public:
   
   void decideActiveComponents(const std::string &group);
   void decideActiveEndEffectors(const std::string &group);
-  void decideActiveVirtualJoints(const std::string &group);
+  void decideActiveJoints(const std::string &group);
   
   void clear();
   
@@ -266,14 +266,14 @@ public:
     return active_eef_;
   }
 
-  const std::vector<VirtualJoint>& getActiveVirtualJoints() const
+  const std::vector<Joint>& getActiveJoints() const
   {
     return active_vj_;
   }
   
   static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout, const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn());
-  static bool updateState(robot_state::RobotState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
+  static bool updateState(robot_state::RobotState &state, const Joint &vj, const geometry_msgs::Pose &pose);
 
 private:
   
@@ -297,7 +297,7 @@ private:
   robot_model::RobotModelConstPtr robot_model_;
   
   std::vector<EndEffector> active_eef_;
-  std::vector<VirtualJoint> active_vj_;
+  std::vector<Joint> active_vj_;
   
   std::map<std::string, InteractionHandlerPtr> handlers_;
   std::map<std::string, std::size_t> shown_markers_;
