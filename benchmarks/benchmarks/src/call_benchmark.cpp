@@ -104,7 +104,7 @@ int main(int argc, char **argv)
   boost::program_options::store(po, vm);
   boost::program_options::notify(vm);
 
-  if (vm.count("help"))
+  if (vm.count("help") || argc == 1) // show help if no parameters passed
   {
     std::cout << desc << std::endl;
     return 1;

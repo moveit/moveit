@@ -213,8 +213,7 @@ int main(int argc, char **argv)
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
 
-  // Show help if requested, or if neither scene nor queries requested
-  if (vm.count("help") || ( !vm.count("scene") && !vm.count("queries") ))
+  if (vm.count("help") || argc == 1) // show help if no parameters passed
   {
     std::cout << desc << std::endl;
     return 1;
