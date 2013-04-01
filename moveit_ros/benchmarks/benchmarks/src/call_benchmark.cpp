@@ -42,7 +42,7 @@
 
 static const std::string BENCHMARK_SERVICE_NAME = "benchmark_planning_problem";
 
-static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, bool run_goal_existence,
+static bool callBenchmarkService(ros::ServiceClient *benchmark_service_client, bool run_planner, bool run_goal_existence,
                                  moveit_msgs::ComputePlanningPluginsBenchmark::Request &req)
 {
   bool goal_ok = true;
@@ -64,7 +64,7 @@ static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, 
         req.benchmark_request.filename = req.benchmark_request.filename + "_goal_only.log";
     }
     moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
-    if (service->call(req, res))
+    if (benchmark_service_client->call(req, res))
     {
       ROS_INFO("Success!");
     }
@@ -77,10 +77,10 @@ static bool callBenchmarkService(ros::ServiceClient *service, bool run_planner, 
   }
   if (goal_ok && run_planner)
   {
-    ROS_INFO("Calling planner benchmark...");
     req.benchmark_request.evaluate_goal_existence_only = false;    
     moveit_msgs::ComputePlanningPluginsBenchmark::Request res;
-    if (service->call(req, res))
+    ROS_INFO("Calling planner benchmark...");
+    if (benchmark_service_client->call(req, res))
     {
       ROS_INFO("Success!");
     }
