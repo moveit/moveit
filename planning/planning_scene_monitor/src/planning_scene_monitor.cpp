@@ -296,11 +296,17 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
         {
           rate.reset();
 	  boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
-	  scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
+	  scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());    
+          scene_->setCollisionObjectUpdateCallback(collision_detection::World::ObserverCallbackFn());
           scene_->pushDiffs(parent_scene_);
           scene_->clearDiffs();
-	  scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
-	  excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
+	  scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));  
+          scene_->setCollisionObjectUpdateCallback(boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
+          if (octomap_monitor_)
+          {
+            excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
+            excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
+          }
           scene_->getPlanningSceneMsg(msg);
           have_full = true;
         }
@@ -311,10 +317,16 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
             scene_->getPlanningSceneDiffMsg(msg);
 	    boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
 	    scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
+            scene_->setCollisionObjectUpdateCallback(collision_detection::World::ObserverCallbackFn());
             scene_->pushDiffs(parent_scene_);
             scene_->clearDiffs();
 	    scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
-	    excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
+            scene_->setCollisionObjectUpdateCallback(boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
+            if (octomap_monitor_)
+            {
+              excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
+              excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
+            }
             have_diff = true;
           }
         new_scene_update_ = UPDATE_NONE;
@@ -419,8 +431,11 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
         scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));  
         scene_->setCollisionObjectUpdateCallback(boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
       }
-      excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
-      excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
+      if (octomap_monitor_)
+      {
+        excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
+        excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
+      }
     }
     
     // if we have a diff, try to more accuratelly determine the update type
@@ -517,8 +532,11 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeRobotLinksFromOctree()
 
 void planning_scene_monitor::PlanningSceneMonitor::includeRobotLinksInOctree()
 {
+  if (!octomap_monitor_)
+    return;
+
   boost::recursive_mutex::scoped_lock _(shape_handles_lock_);
-  
+
   for (LinkShapeHandles::iterator it = link_shape_handles_.begin() ; it != link_shape_handles_.end() ; ++it)
     octomap_monitor_->forgetShape(it->second);
   link_shape_handles_.clear();
