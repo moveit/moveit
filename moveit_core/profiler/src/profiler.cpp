@@ -39,7 +39,7 @@
 
 moveit::Profiler& moveit::Profiler::Instance(void)
 {
-    static Profiler p(true, false);
+    static Profiler p(false, false);
     return p;
 }
 
