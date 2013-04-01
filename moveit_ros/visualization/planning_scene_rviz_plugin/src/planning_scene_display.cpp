@@ -91,7 +91,7 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
                             SLOT( changedSceneEnabled() ), this );
 
   scene_alpha_property_ =
-    new rviz::FloatProperty( "Scene Alpha", 0.9f, "Specifies the alpha for the robot links",
+    new rviz::FloatProperty( "Scene Alpha", 0.9f, "Specifies the alpha for the scene geometry",
                              scene_category_,
                              SLOT( changedSceneAlpha() ), this );
   scene_alpha_property_->setMin( 0.0 );
