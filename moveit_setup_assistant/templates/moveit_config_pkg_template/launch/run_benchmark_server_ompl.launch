@@ -1,7 +1,7 @@
 <launch>
 
   <!-- Load URDF -->
-  <include file="$(find [ROBOT_NAME]_moveit_config)/launch/planning_context.launch">
+  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
   </include>
 
