@@ -10,8 +10,8 @@
 
   <license>BSD</license>  
   <url type="website">http://moveit.ros.org</url>
-  <url type="bugtracker">https://github.com/ros-planning/moveit-core/issues</url>
-  <url type="repository">https://github.com/ros-planning/moveit-core</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_core/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_core</url>
 
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>pkg-config</buildtool_depend>
