@@ -63,10 +63,10 @@ void BackgroundProcessing::processingThread()
     {
       boost::function<void()> fn = actions_.front();
       actions_.pop_front();
+      processing_ = true;
       
       // make sure we are unlocked while we process the event
       action_lock_.unlock();
-      processing_ = true;
       try
       {
         fn();
