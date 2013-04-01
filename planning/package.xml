@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <package>
   <name>moveit_ros_planning</name>
   <version>0.3.25</version>
@@ -10,8 +11,8 @@
   <license>BSD</license>
 
   <url type="website">http://moveit.ros.org</url>
-  <url type="bugtracker">https://github.com/ros-planning/moveit-ros/issues</url>
-  <url type="repository">https://github.com/ros-planning/moveit-ros</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_ros</url>
 
   <buildtool_depend>catkin</buildtool_depend> 
 
