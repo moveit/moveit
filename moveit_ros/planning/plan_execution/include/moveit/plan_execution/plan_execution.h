@@ -125,6 +125,8 @@ public:
 
   void stop();
 
+  std::string getErrorCodeString(const moveit_msgs::MoveItErrorCodes& error_code);
+
 private:
 
   void planAndExecuteHelper(ExecutableMotionPlan &plan, const Options &opt);  
