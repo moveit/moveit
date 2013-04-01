@@ -117,13 +117,13 @@ std::string plan_execution::PlanExecution::getErrorCodeString(const moveit_msgs:
           return "Invalid motion plan";
         else
           if (error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
-            return "Motion plan was found but it seems to be too costly and looking around did not help.";
+            return "Unable to aquire sensor data";
           else
             if (error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
-              return "Solution found but the environment changed during execution and the path was aborted";
+              return "Motion plan invalidated by environment change";
             else
               if (error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
-                return "Solution found but controller failed during execution";
+                return "Controller failed during execution";
               else
                 if (error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
                   return "Timeout reached";
@@ -240,7 +240,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
   if (opt.done_callback_)
     opt.done_callback_();
   
-  if( plan.error_code_.val == 1 )
+  if( plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS )
     ROS_DEBUG("PlanExecution finished successfully.");
   else
     ROS_DEBUG("PlanExecution terminating with error code %d - '%s'", plan.error_code_.val, 
