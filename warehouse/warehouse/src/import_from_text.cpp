@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2012, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2012, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -81,7 +81,7 @@ void parseStart(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *
         robot_state::RobotState st = psm->getPlanningScene()->getCurrentState();
         st.setStateValues(v);
         moveit_msgs::RobotState msg;
-        robot_state::robotStateToRobotStateMsg(st, msg); 
+        robot_state::robotStateToRobotStateMsg(st, msg);
         ROS_INFO("Parsed start state '%s'", name.c_str());
         rs->addRobotState(msg, name);
       }
@@ -93,23 +93,20 @@ void parseLinkConstraint(std::istream &in, planning_scene_monitor::PlanningScene
 {
   Eigen::Translation3d pos;
   Eigen::Quaterniond rot;
-  
+
   bool have_position = false;
   bool have_orientation = false;
-  
+
   std::string name;
-  in >> name;
-  
+  std::getline(in, name);
+
   // The link name is optional, in which case there would be a blank line
   std::string link_name;
-  if (in.peek() != '\n' && in.peek() != '\r')
-  {
-    in >> link_name;
-  }
-  
+  std::getline(in, link_name);
+
   std::string type;
   in >> type;
-  
+
   while (type != "." && in.good() && !in.eof())
   {
     if (type == "xyz")
@@ -133,13 +130,17 @@ void parseLinkConstraint(std::istream &in, planning_scene_monitor::PlanningScene
         ROS_ERROR("Unknown link constraint element: '%s'", type.c_str());
     in >> type;
   }
-  
+
+  // Convert to getLine method by eating line break
+  std::string end_link;
+  std::getline(in, end_link);
+
   if (have_position && have_orientation)
   {
     geometry_msgs::PoseStamped pose;
     tf::poseEigenToMsg(pos * rot, pose.pose);
     pose.header.frame_id = psm->getRobotModel()->getModelFrame();
-    moveit_msgs::Constraints constr = kinematic_constraints::constructGoalConstraints(link_name, pose); 
+    moveit_msgs::Constraints constr = kinematic_constraints::constructGoalConstraints(link_name, pose);
     constr.name = name;
     ROS_INFO("Parsed link constraint '%s'", name.c_str());
     cs->addConstraints(constr);
@@ -150,13 +151,18 @@ void parseGoal(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *p
 {
   int count;
   in >> count;
-  
+
+  // Convert to getLine method from here-on, so eat the line break. 
+  std::string end_link;
+  std::getline(in, end_link);
+
   if (in.good() && !in.eof())
   {
     for (int i = 0 ; i < count ; ++i)
     {
       std::string type;
-      in >> type;
+      std::getline(in, type);
+
       if (in.good() && !in.eof())
       {
         if (type == "link_constraint")
@@ -177,7 +183,7 @@ void parseQueries(std::istream &in, planning_scene_monitor::PlanningSceneMonitor
   {
     std::string type;
     in >> type;
-    
+
     if (in.good() && !in.eof())
     {
       if (type == "start")
@@ -192,9 +198,9 @@ void parseQueries(std::istream &in, planning_scene_monitor::PlanningSceneMonitor
 }
 
 int main(int argc, char **argv)
-{  
+{
   ros::init(argc, argv, "import_from_text_to_warehouse", ros::init_options::AnonymousName);
-  
+
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
@@ -202,12 +208,12 @@ int main(int argc, char **argv)
     ("scene", boost::program_options::value<std::string>(), "Name of file containing motion planning scene.")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
     ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
-  
+
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
-  
-  if (vm.count("help"))
+
+  if (vm.count("help") || argc == 1) // show help if no parameters passed
   {
     std::cout << desc << std::endl;
     return 1;
@@ -215,7 +221,7 @@ int main(int argc, char **argv)
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   ros::NodeHandle nh;
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
   if (!psm.getPlanningScene())
@@ -223,7 +229,7 @@ int main(int argc, char **argv)
     ROS_ERROR("Unable to initialize PlanningSceneMonitor");
     return 1;
   }
-  
+
   moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
                                              vm.count("port") ? vm["port"].as<std::size_t>() : 0);
   moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
@@ -235,12 +241,12 @@ int main(int argc, char **argv)
   {
     std::ifstream fin(vm["scene"].as<std::string>().c_str());
     psm.getPlanningScene()->loadGeometryFromStream(fin);
-    fin.close();  
+    fin.close();
     moveit_msgs::PlanningScene psmsg;
     psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
     pss.addPlanningScene(psmsg);
   }
-  
+
   if (vm.count("queries"))
   {
     std::ifstream fin(vm["queries"].as<std::string>().c_str());
@@ -248,6 +254,6 @@ int main(int argc, char **argv)
       parseQueries(fin, &psm, &rs, &cs);
     fin.close();
   }
-  
+
   return 0;
 }
