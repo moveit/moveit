@@ -235,11 +235,13 @@ public:
       if (!req.planner_interfaces.empty())
       {
         for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
+        {
           if (req.planner_interfaces[i].name == it->first)
           {
             found = i;
             break;
           }
+        }
         if (found < 0)
           continue;
       }
@@ -252,6 +254,7 @@ public:
         average_count_per_planner_interface.resize(average_count_per_planner_interface.size() + 1, std::max<std::size_t>(1, req.default_average_count));
         std::vector<std::string> known;
         it->second->getPlanningAlgorithms(known);
+
         if (found < 0 || req.planner_interfaces[found].planner_ids.empty())
           planner_ids_to_benchmark_per_planner_interface.back() = known;
         else
@@ -271,7 +274,16 @@ public:
             if (fnd)
               planner_ids_to_benchmark_per_planner_interface.back().push_back(req.planner_interfaces[found].planner_ids[k]);
             else
+            {
               ROS_ERROR("The planner id '%s' is not known to the planning interface '%s'", req.planner_interfaces[found].planner_ids[k].c_str(), it->first.c_str());
+              // To help user debug, list all available planners:
+              ROS_ERROR_STREAM("Known algorithms in " << it->first.c_str() << ":");
+              for (std::size_t i = 0; i < known.size(); ++i)
+              {
+                ROS_ERROR_STREAM(" - " << known[i]);
+              }
+
+            }
           }          
         }
         
