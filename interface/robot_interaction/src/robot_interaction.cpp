@@ -391,10 +391,10 @@ double RobotInteraction::computeGroupScale(const std::string &group)
   if (links.empty())
     return DEFAULT_SCALE;
 
-  // compute the aabb of the links that make up the cube
-  std::vector<double> scale(3, 0.0);
-  std::vector<double> low(3, std::numeric_limits<double>::infinity());
-  std::vector<double> hi(3, -std::numeric_limits<double>::infinity());
+  // compute the aabb of the links that make up the group
+  const double inf = std::numeric_limits<double>::infinity();
+  Eigen::Vector3d lo( inf,  inf,  inf);
+  Eigen::Vector3d hi(-inf, -inf, -inf);
   robot_state::RobotState default_state(robot_model_);
   default_state.setToDefaultValues();
 
@@ -409,21 +409,18 @@ double RobotInteraction::computeGroupScale(const std::string &group)
     corner1 = ls->getGlobalLinkTransform() * corner1;
     Eigen::Vector3d corner2 = ext/-2.0;
     corner2 = ls->getGlobalLinkTransform() * corner2;
-    for (int k = 0 ; k < 3 ; ++k)
-    {
-      if (low[k] > corner2[k])
-        low[k] = corner2[k];
-      if (hi[k] < corner1[k])
-        hi[k] = corner1[k];
-    }
+    lo = lo.cwiseMin(corner1);
+    hi = hi.cwiseMax(corner2);
   }
 
-  for (int i = 0 ; i < 3 ; ++i)
-    scale[i] = hi[i] - low[i];
-
+#if 0
   // take the diagonal of the cube containing the eef
-  static const double sqrt_3 = 1.732050808;
-  double s = std::max(std::max(scale[0], scale[1]), scale[2]) * sqrt_3;
+  double s = (hi - lo).norm();
+#else
+  // slightly bigger than the size of the largest end effector dimension
+  double s = std::max(std::max(hi.x() - lo.x(), hi.y() - lo.y()), hi.z() - lo.z());
+  s *= 1.73205081;
+#endif
 
   // if the scale is less than 1mm, set it to default
   if (s < 1e-3)
