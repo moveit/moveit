@@ -378,7 +378,7 @@ void RobotInteraction::decideActiveComponents(const std::string &group)
 
 }
 
-double RobotInteraction::computeGroupScale(const std::string &group)
+double RobotInteraction::computeGroupMarkerSize(const std::string &group)
 {
   static const double DEFAULT_SCALE = 0.2;
   if (group.empty())
@@ -487,7 +487,7 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
       else
         v.dof = 6;
       // take the max of the X, Y, Z extent  
-      v.size = computeGroupScale(group);
+      v.size = computeGroupMarkerSize(group);
       active_vj_.push_back(v);
     }
   }
@@ -567,7 +567,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
     // if we have a separate group for the eef, we compte the scale based on it; otherwise, we use a default scale
-    active_eef_[i].size = active_eef_[i].eef_group == active_eef_[i].parent_group ? computeGroupScale("") : computeGroupScale(active_eef_[i].eef_group);
+    active_eef_[i].size = active_eef_[i].eef_group == active_eef_[i].parent_group ? computeGroupMarkerSize("") : computeGroupMarkerSize(active_eef_[i].eef_group);
     ROS_DEBUG_NAMED("robot_interaction", "Found active end-effector '%s', of scale %lf", active_eef_[i].eef_group.c_str(), active_eef_[i].size);
   }
 }

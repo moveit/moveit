@@ -291,7 +291,7 @@ public:
 private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
-  double computeGroupScale(const std::string &group);  
+  double computeGroupMarkerSize(const std::string &group);  
   void computeMarkerPose(const InteractionHandlerPtr &handler, const EndEffector &eef, const robot_state::RobotState &robot_state,
                          geometry_msgs::Pose &pose, geometry_msgs::Pose &control_to_eef_tf) const;
   
