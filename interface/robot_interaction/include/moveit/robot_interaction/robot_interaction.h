@@ -47,6 +47,14 @@ class InteractiveMarkerServer;
 namespace robot_interaction
 {
   
+// Manage interactive markers for controlling a robot state.
+//
+// The RobotInteraction class manages one or more InteractionHandler objects
+// each of which maintains a set of interactive markers for manipulating one
+// group of one RobotState.
+//
+// The group being manipulated is common to all InteractionHandler objects
+// contained in a RobotInteraction instance.
 class RobotInteraction
 {
 public:
@@ -77,10 +85,10 @@ public:
     /// The name of the joint
     std::string joint_name;
 
-    /// The number of DOF this joint has
+    /// The type of joint disguised as the number of DOF it has.  3=PLANAR in X/Y; 6=FLOATING
     unsigned int dof;
 
-    /// The size of the connectig link  (diameter of enclosing sphere)
+    /// The size of the connecting link  (diameter of enclosing sphere)
     double size;
   };
   
@@ -88,6 +96,11 @@ public:
   
   typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
   
+  // Manage interactive markers to control a RobotState.
+  //
+  // Each instance maintains one or more interactive markers to control various joints in one group of one RobotState.
+  // The group being controlled is maintained by the RobotInteraction object that contains this InteractionHandler object.
+  // All InteractionHandler objects in the same RobotInteraction are controlling the same group.
   class InteractionHandler
   {
   public:
