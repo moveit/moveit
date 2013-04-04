@@ -494,7 +494,6 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
       active_vj_.push_back(v);
     }
   }
-  
 }
 
 void RobotInteraction::decideActiveEndEffectors(const std::string &group)
@@ -525,7 +524,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
   {
     if (eef.empty() && !jmg->getLinkModelNames().empty())
     {
-      // we found an end-effector for the selected group
+      // No end effectors.  Use last link in group as the "end effector".
       EndEffector ee;
       ee.parent_group = group;
       ee.parent_link = jmg->getLinkModelNames().back();
@@ -536,7 +535,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
       for (std::size_t i = 0 ; i < eef.size() ; ++i)
         if ((jmg->hasLinkModel(eef[i].parent_link_) || jmg->getName() == eef[i].parent_group_) && jmg->canSetStateFromIK(eef[i].parent_link_))
         {
-          // we found an end-effector for the selected group
+          // We found an end-effector whose parent is the group.
           EndEffector ee;
           ee.parent_group = group;
           ee.parent_link = eef[i].parent_link_;
@@ -556,7 +555,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
         for (std::size_t i = 0 ; i < eef.size() ; ++i)
           if ((it->first->hasLinkModel(eef[i].parent_link_) || jmg->getName() == eef[i].parent_group_) && it->first->canSetStateFromIK(eef[i].parent_link_))
           {
-            // we found an end-effector for the selected group;
+            // We found an end-effector whose parent is a subgroup of the group.  (May be more than one)
             EndEffector ee;
             ee.parent_group = it->first->getName();
             ee.parent_link = eef[i].parent_link_;
