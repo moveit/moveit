@@ -169,10 +169,18 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
     }
     context->setFollowSamplers(samplers);
   }
-  context->configure();
-  logDebug("%s: New planning context is set.", context->getName().c_str());
-  error_code->val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-
+  try
+  {
+    context->configure();
+    logDebug("%s: New planning context is set.", context->getName().c_str());
+    error_code->val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  }
+  catch (ompl::Exception &ex)
+  {
+    logError("OMPL encountered an error: %s", ex.what());
+    context.reset();
+  }
+  
   return context;
 }
 
