@@ -32,21 +32,21 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney, Ioan Sucan */
+/* Author: Ioan Sucan, Jon Binney */
 
 #ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER_
 #define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER_
 
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
-#include <moveit/mesh_filter/mesh_filter_base.h>
 #include <geometric_shapes/shapes.h>
 #include <boost/shared_ptr.hpp>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 namespace occupancy_map_monitor
 {
 
-// The type for the shape handle should be the same as the type of the mesh handle
-typedef mesh_filter::MeshHandle ShapeHandle;
+typedef unsigned int ShapeHandle;
 typedef std::map<ShapeHandle, Eigen::Affine3d, std::less<ShapeHandle>, 
                  Eigen::aligned_allocator<std::pair<const ShapeHandle, Eigen::Affine3d> > > ShapeTransformCache;
 typedef boost::function<bool(const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache)> TransformCacheProvider;
@@ -59,23 +59,25 @@ class OccupancyMapUpdater
 {
 public:
 
-  OccupancyMapUpdater(OccupancyMapMonitor *monitor, const std::string &type);  
+  OccupancyMapUpdater(const std::string &type);
   virtual ~OccupancyMapUpdater();
-
-
-  /** @brief Set updater params using struct that comes from parsing a yaml string*/
+  
+  /** \brief This is the first function to be called after construction */
+  void setMonitor(OccupancyMapMonitor *monitor);
+  
+  /** @brief Set updater params using struct that comes from parsing a yaml string. This must be called after setMonitor() */
   virtual bool setParams(XmlRpc::XmlRpcValue &params) = 0;
 
-  /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
+  /** @brief Do any necessary setup (subscribe to ros topics, etc.). This call assumes setMonitor() and setParams() have been previously called. */
   virtual bool initialize() = 0;
 
   virtual void start() = 0;
   
   virtual void stop() = 0;
 
-  virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape) = 0;
+  virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape) = 0;
   
-  virtual void forgetShape(mesh_filter::MeshHandle handle) = 0;
+  virtual void forgetShape(ShapeHandle handle) = 0;
   
   const std::string& getType() const
   {
@@ -114,4 +116,4 @@ typedef boost::shared_ptr<const OccupancyMapUpdater> OccupancyMapUpdaterConstPtr
 
 }
 
-#endif /* MOVEIT_OCCUPANCY_MAP_UPDATER_H_ */
+#endif

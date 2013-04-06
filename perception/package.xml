@@ -3,9 +3,8 @@
   <version>0.3.25</version>
   <description>Components of MoveIt connecting to perception</description>
 
-  <author email="jbinney@willowgarage.com">Jon Binney</author>
-  <author email="gedikli@willowgarage.com">Suat Gedikli</author>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="jbinney@willowgarage.com">Jon Binney</author>
 
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
   <license>BSD</license>
@@ -25,13 +24,9 @@
   <build_depend>tf_conversions</build_depend>
   <build_depend>message_filters</build_depend>
   <build_depend>octomap</build_depend>
-  <build_depend>image_transport</build_depend>
-  <build_depend>glut</build_depend>
-  <build_depend>libglew-dev</build_depend>
-  <build_depend>opengl</build_depend>
+  <build_depend>pluginlib</build_depend>
 
   <run_depend>moveit_core</run_depend>
-  <run_depend>nodelet</run_depend>
   <run_depend>pcl_ros</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rosconsole</run_depend>
@@ -40,9 +35,6 @@
   <run_depend>tf_conversions</run_depend>
   <run_depend>message_filters</run_depend>
   <run_depend>octomap</run_depend>
-  <run_depend>image_transport</run_depend>
-  <run_depend>glut</run_depend>
-  <run_depend>libglew-dev</run_depend>
-  <run_depend>opengl</run_depend>
+  <run_depend>pluginlib</run_depend>
 
 </package>

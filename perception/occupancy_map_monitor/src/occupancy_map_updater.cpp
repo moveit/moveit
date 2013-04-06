@@ -40,16 +40,18 @@
 namespace occupancy_map_monitor
 {
 
-OccupancyMapUpdater::OccupancyMapUpdater(OccupancyMapMonitor *monitor, const std::string &type) :
-  monitor_(monitor),
-  tree_(monitor->getOcTreePtr()),
-  type_(type),
-  debug_info_(false)
+OccupancyMapUpdater::OccupancyMapUpdater(const std::string &type) : type_(type)
 {
 }
 
 OccupancyMapUpdater::~OccupancyMapUpdater()
 {
+}
+
+void OccupancyMapUpdater::setMonitor(OccupancyMapMonitor *monitor)
+{
+  monitor_ = monitor;
+  tree_ = monitor->getOcTreePtr();
 }
 
 }

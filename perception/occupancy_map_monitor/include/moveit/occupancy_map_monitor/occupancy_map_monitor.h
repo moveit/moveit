@@ -32,19 +32,22 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney, Ioan Sucan */
+/* Author: Ioan Sucan, Jon Binney */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_
-#define MOVEIT_OCCUPANCY_MAP_MONITOR_
+#ifndef MOVEIT_PERCEPTION_OCCUPANCY_MAP_MONITOR_
+#define MOVEIT_PERCEPTION_OCCUPANCY_MAP_MONITOR_
 
 #include <vector>
 #include <string>
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include <pluginlib/class_loader.h>
+
 #include <moveit_msgs/SaveMap.h>
 #include <moveit_msgs/LoadMap.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
+
 #include <boost/thread/mutex.hpp>
 
 namespace occupancy_map_monitor
@@ -133,9 +136,10 @@ private:
   
   OccMapTreePtr tree_;
   OccMapTreeConstPtr tree_const_;
-  
+
+  boost::scoped_ptr<pluginlib::ClassLoader<OccupancyMapUpdater> > updater_plugin_loader_;
   std::vector<OccupancyMapUpdaterPtr> map_updaters_;
-  std::vector<std::map<ShapeHandle, mesh_filter::MeshHandle> > mesh_handles_;
+  std::vector<std::map<ShapeHandle, ShapeHandle> > mesh_handles_;
   TransformCacheProvider transform_cache_callback_;
   bool debug_info_;
   

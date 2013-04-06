@@ -32,72 +32,63 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Jon Binney, Ioan Sucan */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_DEPTH_IMAGE_OCCUPANCY_MAP_UPDATER_
-#define MOVEIT_OCCUPANCY_MAP_DEPTH_IMAGE_OCCUPANCY_MAP_UPDATER_
+#ifndef MOVEIT_PERCEPTION_POINTCLOUD_OCTOMAP_UPDATER_
+#define MOVEIT_PERCEPTION_POINTCLOUD_OCTOMAP_UPDATER_
 
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include <tf/message_filter.h>
+#include <message_filters/subscriber.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
-#include <moveit/mesh_filter/mesh_filter.h>
-#include <moveit/mesh_filter/stereo_camera_model.h>
-#include <image_transport/image_transport.h>
-#include <boost/scoped_ptr.hpp>
+#include <moveit/robot_self_filter/self_mask.h>
 
 namespace occupancy_map_monitor
 {
-class DepthImageOccupancyMapUpdater : public OccupancyMapUpdater
+
+class PointCloudOctomapUpdater : public OccupancyMapUpdater
 {
 public:
   
-  DepthImageOccupancyMapUpdater(OccupancyMapMonitor *monitor);
-  virtual ~DepthImageOccupancyMapUpdater();
+  PointCloudOctomapUpdater();
+  virtual ~PointCloudOctomapUpdater();
   
   virtual bool setParams(XmlRpc::XmlRpcValue &params);
+  virtual bool setParams(const std::string &point_cloud_topic, double max_range,  size_t frame_subsample,
+                         size_t point_subsample, const std::vector<robot_self_filter::LinkInfo> &see_links);
   virtual bool initialize();
   virtual void start();
   virtual void stop();
-  virtual mesh_filter::MeshHandle excludeShape(const shapes::ShapeConstPtr &shape);
-  virtual void forgetShape(mesh_filter::MeshHandle handle);
+  virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape);
+  virtual void forgetShape(ShapeHandle handle);
 
 private:
   
-  void depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
-  bool getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;  
+  void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
   void stopHelper();
-  
-  ros::NodeHandle nh_; 
+
+  ros::NodeHandle root_nh_; 
   boost::shared_ptr<tf::Transformer> tf_;
-  image_transport::ImageTransport input_depth_transport_;
-  image_transport::ImageTransport model_depth_transport_;
-  image_transport::ImageTransport filtered_depth_transport_;
   
-  image_transport::CameraSubscriber sub_depth_image_;
-  image_transport::CameraPublisher pub_model_depth_image_;
-  image_transport::CameraPublisher pub_filtered_depth_image_;
+  /* params */
+  std::string point_cloud_topic_;
+  double max_range_;
+  size_t frame_subsample_;
+  size_t point_subsample_;
   
-  std::string sensor_type_;
-  std::string image_topic_;
-  std::size_t queue_size_;
-  double near_clipping_plane_distance_;
-  double far_clipping_plane_distance_;
-  double shadow_threshold_;
-  double padding_scale_;
-  double padding_offset_;
-  unsigned int skip_vertical_pixels_;
-  unsigned int skip_horizontal_pixels_;
-  
-  boost::scoped_ptr<mesh_filter::MeshFilter<mesh_filter::StereoCameraModel> > mesh_filter_;
+  message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
+  tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
   
   /* used to store all cells in the map which a given ray passes through during raycasting.
      we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */
   octomap::KeyRay key_ray_;
-
-  std::vector<float> x_cache_, y_cache_;
-  std::vector<float> filtered_data_;
+  
+  boost::shared_ptr<robot_self_filter::SelfMask> self_mask_;
   
 };
+
 }
 
 #endif

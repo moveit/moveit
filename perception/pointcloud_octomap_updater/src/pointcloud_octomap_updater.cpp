@@ -34,7 +34,7 @@
 
 /* Author: Jon Binney, Ioan Sucan */
 
-#include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
+#include <moveit/pointcloud_octomap_updater/pointcloud_octomap_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <message_filters/subscriber.h>
 #include <pcl/point_types.h>
@@ -46,20 +46,18 @@
 namespace occupancy_map_monitor
 {
 
-PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(OccupancyMapMonitor *monitor)
-  : OccupancyMapUpdater(monitor, "PointCloudUpdater"),
-    tf_(monitor->getTFClient()),
-    point_cloud_subscriber_(NULL),
-    point_cloud_filter_(NULL)
+PointCloudOctomapUpdater::PointCloudOctomapUpdater() : OccupancyMapUpdater("PointCloudUpdater"),
+                                                       point_cloud_subscriber_(NULL),
+                                                       point_cloud_filter_(NULL)
 {
 }
 
-PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater()
+PointCloudOctomapUpdater::~PointCloudOctomapUpdater()
 {
   stopHelper();
 }
 
-bool PointCloudOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
+bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue &params)
 { 
   try
   {    
@@ -98,7 +96,7 @@ bool PointCloudOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
   }
 }
 
-bool PointCloudOccupancyMapUpdater::setParams(const std::string &point_cloud_topic, double max_range, size_t frame_subsample,
+bool PointCloudOctomapUpdater::setParams(const std::string &point_cloud_topic, double max_range, size_t frame_subsample,
                                               size_t point_subsample, const std::vector<robot_self_filter::LinkInfo> &links)
 {
   point_cloud_topic_ = point_cloud_topic;
@@ -110,12 +108,13 @@ bool PointCloudOccupancyMapUpdater::setParams(const std::string &point_cloud_top
   return true;
 }
 
-bool PointCloudOccupancyMapUpdater::initialize()
+bool PointCloudOctomapUpdater::initialize()
 {
+  tf_ = monitor_->getTFClient();
   return true;
 }
 
-void PointCloudOccupancyMapUpdater::start()
+void PointCloudOctomapUpdater::start()
 {
   if (point_cloud_subscriber_)
     return;
@@ -124,40 +123,40 @@ void PointCloudOccupancyMapUpdater::start()
   if (tf_ && !monitor_->getMapFrame().empty())
   {
     point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, monitor_->getMapFrame(), 5);
-    point_cloud_filter_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
+    point_cloud_filter_->registerCallback(boost::bind(&PointCloudOctomapUpdater::cloudMsgCallback, this, _1));
     ROS_INFO("Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(), point_cloud_filter_->getTargetFramesString().c_str());
   }
   else
   {
-    point_cloud_subscriber_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
+    point_cloud_subscriber_->registerCallback(boost::bind(&PointCloudOctomapUpdater::cloudMsgCallback, this, _1));
     ROS_INFO("Listening to '%s'", point_cloud_topic_.c_str());
   }
 }
 
-void PointCloudOccupancyMapUpdater::stopHelper()
+void PointCloudOctomapUpdater::stopHelper()
 { 
   delete point_cloud_filter_;
   delete point_cloud_subscriber_;
 }
 
-void PointCloudOccupancyMapUpdater::stop()
+void PointCloudOctomapUpdater::stop()
 { 
   stopHelper();
   point_cloud_filter_ = NULL;
   point_cloud_subscriber_ = NULL;
 }
 
-mesh_filter::MeshHandle PointCloudOccupancyMapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
+ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
 {
-  mesh_filter::MeshHandle h = 0;
+  ShapeHandle h = 0;
   return h;
 }
 
-void PointCloudOccupancyMapUpdater::forgetShape(mesh_filter::MeshHandle handle)
+void PointCloudOctomapUpdater::forgetShape(ShapeHandle handle)
 {
 }
 
-void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
+void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
 {
   ROS_DEBUG("Received a new point cloud message");
   ros::WallTime start = ros::WallTime::now();
