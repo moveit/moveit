@@ -32,15 +32,13 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jon Binney, Ioan Sucan */
+/* Author: Ioan Sucan, Jon Binney */
 
 #include <ros/ros.h>
 #include <moveit_msgs/SaveMap.h>
 #include <moveit_msgs/LoadMap.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
-#include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
-#include <moveit/occupancy_map_monitor/depth_image_occupancy_map_updater.h>
 #include <XmlRpcException.h>
 
 namespace occupancy_map_monitor
@@ -67,7 +65,7 @@ OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer
 }
 
 void OccupancyMapMonitor::initialize()
-{ 
+{
   /* load params from param server */
   if (map_resolution_ <= std::numeric_limits<double>::epsilon())
     if (!nh_.getParam("octomap_resolution", map_resolution_))
@@ -102,39 +100,58 @@ void OccupancyMapMonitor::initialize()
             continue;
           }
           
-          if (!sensor_list[i].hasMember ("sensor_type"))
+          if (!sensor_list[i].hasMember ("sensor_plugin"))
           {
-            ROS_ERROR("No sensor type for sensor %d; ignoring.", i);
+            ROS_ERROR("No sensor plugin specified for sensor %d; ignoring.", i);
             continue;
           }
           
-          std::string sensor_type = std::string(sensor_list[i]["sensor_type"]);
-          if (sensor_type.empty() || sensor_type[0] == '~')
+          std::string sensor_plugin = std::string(sensor_list[i]["sensor_plugin"]);
+          if (sensor_plugin.empty() || sensor_plugin[0] == '~')
           {
-            ROS_INFO("Skipping sensor '%s'", sensor_type.c_str());
+            ROS_INFO("Skipping sensor '%s'", sensor_plugin.c_str());
             continue;
+          }
+          
+          if (!updater_plugin_loader_)
+          {
+            try
+            {
+              updater_plugin_loader_.reset(new pluginlib::ClassLoader<OccupancyMapUpdater>("moveit_ros_perception", "occupancy_map_monitor::OccupancyMapUpdater"));
+            }
+            catch(pluginlib::PluginlibException& ex)
+            {
+              ROS_FATAL_STREAM("Exception while creating octomap updater plugin loader " << ex.what());
+            }
           }
           
           OccupancyMapUpdaterPtr up;
-          if (sensor_type == "point_cloud_sensor")
-            up.reset(new PointCloudOccupancyMapUpdater(this));
-          else
-            if (sensor_type == "depth_image_sensor" || sensor_type == "kinect")
-              up.reset(new DepthImageOccupancyMapUpdater(this));
-            else
+          try
+          {
+            up.reset(updater_plugin_loader_->createUnmanagedInstance(sensor_plugin));
+            up->setMonitor(this);
+          }
+          catch(pluginlib::PluginlibException& ex)
+          {
+            ROS_ERROR_STREAM("Exception while loading octomap updater '" << sensor_plugin << "': " << ex.what() << std::endl);
+          }
+          if (up)
+          {
+            /* pass the params struct directly in to the updater */
+            if (!up->setParams(sensor_list[i]))
             {
-              ROS_ERROR("Sensor %d has unknown type %s; ignoring.", i, sensor_type.c_str());
+              ROS_ERROR("Failed to configure updater of type %s", up->getType().c_str());
               continue;
             }
-          
-          /* pass the params struct directly in to the updater */
-          if (!up->setParams(sensor_list[i]))
-          {
-            ROS_ERROR("Failed to configure updater of type %s", up->getType().c_str());
-            continue;
+            
+            if (!up->initialize())
+            {
+              ROS_ERROR("Unable to initialize map updater of type %s (plugin %s)", up->getType().c_str(), sensor_plugin.c_str());
+              continue;
+            }
+            
+            addUpdater(up);
           }
-          
-          addUpdater(up);
         }
       else
         ROS_ERROR("List of sensors must be an array!");
@@ -152,7 +169,7 @@ void OccupancyMapMonitor::initialize()
 
 void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr &updater)
 {
-  if (updater && updater->initialize())
+  if (updater)
   {
     map_updaters_.push_back(updater);
     updater->publishDebugInformation(debug_info_);
@@ -171,7 +188,7 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr &updater)
       updater->setTransformCacheCallback(transform_cache_callback_);
   }
   else
-    ROS_ERROR("Unable to initialize map updater of type %s", updater ? updater->getType().c_str() : "<NULL>");
+    ROS_ERROR("NULL updater was specified");
 }
 
 void OccupancyMapMonitor::publishDebugInformation(bool flag)
@@ -196,7 +213,7 @@ ShapeHandle OccupancyMapMonitor::excludeShape(const shapes::ShapeConstPtr &shape
   ShapeHandle h = 0;
   for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
   {
-    mesh_filter::MeshHandle mh = map_updaters_[i]->excludeShape(shape);
+    ShapeHandle mh = map_updaters_[i]->excludeShape(shape);
     if (mh)
     {
       h = ++mesh_handle_count_;
@@ -217,7 +234,7 @@ void OccupancyMapMonitor::forgetShape(ShapeHandle handle)
   
   for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
   {
-    std::map<ShapeHandle, mesh_filter::MeshHandle>::const_iterator it = mesh_handles_[i].find(handle);
+    std::map<ShapeHandle, ShapeHandle>::const_iterator it = mesh_handles_[i].find(handle);
     if (it == mesh_handles_[i].end())
       continue;
     map_updaters_[i]->forgetShape(it->second);
@@ -242,7 +259,7 @@ bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::s
     {
       for (ShapeTransformCache::iterator it = tempCache.begin() ; it != tempCache.end() ; ++it)
       {      
-        std::map<ShapeHandle, mesh_filter::MeshHandle>::const_iterator jt = mesh_handles_[index].find(it->first);
+        std::map<ShapeHandle, ShapeHandle>::const_iterator jt = mesh_handles_[index].find(it->first);
         if (jt == mesh_handles_[index].end())
         {
           ROS_ERROR_THROTTLE(1, "Incorrect mapping of mesh handles");
