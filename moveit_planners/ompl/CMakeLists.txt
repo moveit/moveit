@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(moveit_ompl_planners_core)
+project(moveit_ompl_planners)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -8,31 +8,44 @@ endif()
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time thread serialization)
 find_package(catkin REQUIRED COMPONENTS
-  moveit_core
+  moveit_core 
+  moveit_ros_planning
+  roscpp
+  rosconsole
+  pluginlib
+  tf
+  dynamic_reconfigure
   eigen_conversions
   )
 
-include(cmake/addOMPLDep.cmake.in)
+find_package(OMPL REQUIRED)
 
+generate_dynamic_reconfigure_options("ompl_interface/cfg/OMPLDynamicReconfigure.cfg")
 
 catkin_package(
   LIBRARIES
     moveit_ompl_interface
+    ${OMPL_LIBRARIES}
   INCLUDE_DIRS
+    ${OMPL_INCLUDE_DIRS}
     ompl_interface/include
   CATKIN_DEPENDS
     moveit_core
-  CFG_EXTRAS
-    addOMPLDep.cmake)
+)
 
 include_directories(SYSTEM
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
 
-include_directories(ompl_interface/include 
+include_directories(${OMPL_INCLUDE_DIRS}
+                    ompl_interface/include
                     ${catkin_INCLUDE_DIRS})
 
 link_directories(${catkin_LIBRARY_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${OMPL_LIBRARY_DIRS})
 
 add_subdirectory(ompl_interface)
+
+install(FILES ompl_interface_plugin_description.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

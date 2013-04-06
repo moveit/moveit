@@ -32,25 +32,25 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include <moveit/ompl_interface_ros/ompl_interface_ros.h>
+#include <moveit/ompl_interface/ompl_interface_ros.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <boost/shared_ptr.hpp>
 #include <class_loader/class_loader.h>
 
 #include <dynamic_reconfigure/server.h>
-#include "moveit_ompl_planners_ros_plugin/OMPLDynamicReconfigureConfig.h"
+#include "moveit_ompl_planners/OMPLDynamicReconfigureConfig.h"
 
-namespace ompl_interface_ros
+namespace ompl_interface
 {
-using namespace moveit_ompl_planners_ros_plugin;
+using namespace moveit_ompl_planners;
 
 class OMPLPlanner : public planning_interface::Planner
 {
 public:
   
   OMPLPlanner() : planning_interface::Planner(),
-                      nh_("~")
+                  nh_("~")
   {
     dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle("~/ompl")));
     dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
@@ -166,6 +166,6 @@ private:
   std::string planner_data_link_name_;
 };
 
-} // ompl_interface_ros
+} // ompl_interface
 
-CLASS_LOADER_REGISTER_CLASS(ompl_interface_ros::OMPLPlanner, planning_interface::Planner);
+CLASS_LOADER_REGISTER_CLASS(ompl_interface::OMPLPlanner, planning_interface::Planner);

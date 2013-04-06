@@ -41,10 +41,10 @@
 #include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <ros/ros.h>
 
-namespace ompl_interface_ros
+namespace ompl_interface
 {
    /** @class OMPLInterfaceROS */
-    class OMPLInterfaceROS : public ompl_interface::OMPLInterface
+    class OMPLInterfaceROS : public OMPLInterface
     {
     public:
       /** @brief Constructor
