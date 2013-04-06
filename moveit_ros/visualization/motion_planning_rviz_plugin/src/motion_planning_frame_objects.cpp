@@ -29,10 +29,11 @@
 
 /* Author: Ioan Sucan, Mario Prats */
 
+#include <moveit/warehouse/planning_scene_storage.h>
+
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
 
 #include <interactive_markers/tools.h>
