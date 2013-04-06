@@ -96,20 +96,20 @@ void OccupancyMapMonitor::initialize()
         {
           if (!sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
           {
-            ROS_ERROR("Params for sensor %d not a struct, ignoring sensor", i);
+            ROS_ERROR("Params for octomap updater %d not a struct; ignoring.", i);
             continue;
           }
           
           if (!sensor_list[i].hasMember ("sensor_plugin"))
           {
-            ROS_ERROR("No sensor plugin specified for sensor %d; ignoring.", i);
+            ROS_ERROR("No sensor plugin specified for octomap updater %d; ignoring.", i);
             continue;
           }
           
           std::string sensor_plugin = std::string(sensor_list[i]["sensor_plugin"]);
           if (sensor_plugin.empty() || sensor_plugin[0] == '~')
           {
-            ROS_INFO("Skipping sensor '%s'", sensor_plugin.c_str());
+            ROS_INFO("Skipping octomap updater plugin '%s'", sensor_plugin.c_str());
             continue;
           }
           
