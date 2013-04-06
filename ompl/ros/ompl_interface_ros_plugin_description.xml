@@ -1,6 +1,0 @@
-<library path="libmoveit_ompl_planner_plugin">
-  <class name="ompl_interface_ros/OMPLPlanner" type="ompl_interface_ros::OMPLPlanner" base_class_type="planning_interface::Planner">
-    <description>
-    </description>
-  </class>
-</library>

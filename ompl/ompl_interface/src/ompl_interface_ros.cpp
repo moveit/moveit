@@ -34,16 +34,16 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include <moveit/ompl_interface_ros/ompl_interface_ros.h>
+#include <moveit/ompl_interface/ompl_interface_ros.h>
 
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel) :
+ompl_interface::OMPLInterfaceROS::OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel) :
   ompl_interface::OMPLInterface(kmodel),
   nh_("~")
 {
   loadParams();
 }
 
-bool ompl_interface_ros::OMPLInterfaceROS::saveConstraintApproximations()
+bool ompl_interface::OMPLInterfaceROS::saveConstraintApproximations()
 {
   std::string cpath;
   if (nh_.getParam("constraint_approximations", cpath))
@@ -55,7 +55,7 @@ bool ompl_interface_ros::OMPLInterfaceROS::saveConstraintApproximations()
   return false;
 }
 
-bool ompl_interface_ros::OMPLInterfaceROS::loadConstraintApproximations()
+bool ompl_interface::OMPLInterfaceROS::loadConstraintApproximations()
 {
   std::string cpath;
   if (nh_.getParam("constraint_approximations_path", cpath))
@@ -66,12 +66,12 @@ bool ompl_interface_ros::OMPLInterfaceROS::loadConstraintApproximations()
   return false;
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::loadConstraintSamplers()
+void ompl_interface::OMPLInterfaceROS::loadConstraintSamplers()
 {
   constraint_sampler_manager_loader_.reset(new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader(constraint_sampler_manager_));
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::loadParams()
+void ompl_interface::OMPLInterfaceROS::loadParams()
 { 
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
@@ -79,7 +79,7 @@ void ompl_interface_ros::OMPLInterfaceROS::loadParams()
   loadConstraintSamplers();
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations()
+void ompl_interface::OMPLInterfaceROS::loadPlannerConfigurations()
 {
   const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();  
   std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
@@ -193,7 +193,7 @@ void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations()
   setPlanningConfigurations(pconfig);
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::printStatus()
+void ompl_interface::OMPLInterfaceROS::printStatus()
 {
   ROS_INFO("OMPL ROS interface is running.");
 }

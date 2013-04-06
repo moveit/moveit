@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include <moveit/ompl_interface_ros/ompl_interface_ros.h>
+#include <moveit/ompl_interface/ompl_interface_ros.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_state/conversions.h>
 #include <tf/transform_listener.h>
@@ -133,7 +133,7 @@ private:
   
   ros::NodeHandle                               nh_;
   planning_scene_monitor::PlanningSceneMonitor &psm_;  
-  ompl_interface_ros::OMPLInterfaceROS          ompl_interface_;
+  ompl_interface::OMPLInterfaceROS              ompl_interface_;
   ros::ServiceServer                            plan_service_;
   ros::ServiceServer                            benchmark_service_;  
   ros::ServiceServer                            construct_ca_service_;  
