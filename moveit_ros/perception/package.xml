@@ -37,4 +37,8 @@
   <run_depend>octomap</run_depend>
   <run_depend>pluginlib</run_depend>
 
+ <export>
+    <moveit_ros_perception plugin="${prefix}/pointcloud_octomap_updater_plugin_description.xml"/> 
+  </export>
+
 </package>

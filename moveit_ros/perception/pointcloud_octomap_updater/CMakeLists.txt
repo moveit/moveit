@@ -1,4 +1,4 @@
-set(MOVEIT_LIB_NAME moveit_pointcloud_octomap_updater_plugin)
+set(MOVEIT_LIB_NAME moveit_pointcloud_octomap_updater)
 
 add_library(${MOVEIT_LIB_NAME}_core src/pointcloud_octomap_updater.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME}_core ${catkin_LIBRARIES} ${Boost_LIBRARIES})
