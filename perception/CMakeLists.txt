@@ -31,6 +31,7 @@ catkin_package(
   LIBRARIES
     moveit_robot_self_filter
     moveit_occupancy_map_monitor
+    moveit_pointcloud_octomap_updater_core
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core)
