@@ -41,6 +41,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <boost/function.hpp>
+#include <string>
 
 /** @brief API for forward and inverse kinematics */
 namespace kinematics
@@ -176,8 +177,8 @@ public:
   {
     robot_description_ = robot_description;
     group_name_ = group_name;
-    base_frame_ = base_frame;
-    tip_frame_ = tip_frame;
+    base_frame_ = removeSlash(base_frame);
+    tip_frame_ = removeSlash(tip_frame);
     search_discretization_ = search_discretization;
   }
 
@@ -207,7 +208,7 @@ public:
   }
     
   /**
-   * @brief  Return the name of the frame in which the solver is operating
+   * @brief  Return the name of the frame in which the solver is operating. This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
    * @return The string name of the frame in which the solver is operating
    */
   virtual const std::string& getBaseFrame() const
@@ -216,7 +217,7 @@ public:
   }
 
   /**
-   * @brief  Return the name of the tip frame of the chain on which the solver is operating
+   * @brief  Return the name of the tip frame of the chain on which the solver is operating. This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
    * @return The string name of the tip frame of the chain on which the solver is operating
    */
   virtual const std::string& getTipFrame() const
@@ -291,6 +292,13 @@ protected:
   double search_discretization_;
   std::vector<unsigned int> redundant_joint_indices_;
   KinematicsBase() {}
+
+private:
+  
+  std::string removeSlash(const std::string &str) const
+  {
+    return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
+  }  
 };
 
 typedef boost::shared_ptr<KinematicsBase> KinematicsBasePtr;
