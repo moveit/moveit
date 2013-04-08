@@ -228,6 +228,18 @@ void RobotInteraction::InteractionHandler::setStateToAccess(robot_state::RobotSt
   state_available_condition_.notify_all();
 }
 
+void RobotInteraction::InteractionHandler::handleGeneric(const RobotInteraction::Generic &g, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+  if (g.process_feedback)
+  {
+    robot_state::RobotStatePtr state = getUniqueStateAccess();
+    g.process_feedback(*state, feedback);
+    setStateToAccess(state);
+    if (update_callback_)
+      update_callback_(this, false);
+  }
+}
+
 bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {    
@@ -269,11 +281,11 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   return error_state_changed;
 }
 
-bool RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::RobotInteraction::Joint &vj,
-                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::RobotInteraction::Joint &vj,
+                                                       const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 { 
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-    return false;
+    return;
   
   geometry_msgs::PoseStamped tpose;
   geometry_msgs::Pose offset;
@@ -286,7 +298,7 @@ bool RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::
     pose_map_lock_.unlock();
   }
   else
-    return false;
+    return;
 
   robot_state::RobotStatePtr state = getUniqueStateAccess();
   robot_interaction::RobotInteraction::updateState(*state, vj, tpose.pose);
@@ -294,8 +306,6 @@ bool RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::
 
   if (update_callback_)
     update_callback_(this, false);
-
-  return false;
 }
 
 bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::EndEffector& eef) const
@@ -373,9 +383,23 @@ void RobotInteraction::decideActiveComponents(const std::string &group)
 {
   decideActiveEndEffectors(group);
   decideActiveJoints(group);
-  if (active_eef_.empty() && active_vj_.empty())
+  if (active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
     ROS_WARN_NAMED("robot_interaction", "No active joints or end effectors found. Make sure you have defined an end effector in your SRDF file and that kinematics.yaml is loaded in this node's namespace.");
+}
 
+void RobotInteraction::addActiveComponent(const InteractiveMarkerConstructorFn &construct,
+                                          const ProcessFeedbackFn &process,
+                                          const InteractiveMarkerUpdateFn &update,
+                                          const std::string &name)
+{   
+  boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+  Generic g;
+  g.construct_marker = construct;
+  g.update_pose = update;
+  g.process_feedback = process;
+  // compute the suffix that will be added to the generated markers
+  g.marker_name_suffix = "_" + name + "_" + boost::lexical_cast<std::string>(active_generic_.size());
+  active_generic_.push_back(g);
 }
 
 double RobotInteraction::computeGroupMarkerSize(const std::string &group)
@@ -413,14 +437,9 @@ double RobotInteraction::computeGroupMarkerSize(const std::string &group)
     hi = hi.cwiseMax(corner2);
   }
 
-#if 0
-  // take the diagonal of the cube containing the eef
-  double s = (hi - lo).norm();
-#else
   // slightly bigger than the size of the largest end effector dimension
   double s = std::max(std::max(hi.x() - lo.x(), hi.y() - lo.y()), hi.z() - lo.z());
-  s *= 1.73205081;
-#endif
+  s *= 1.73205081; // sqrt(3)
 
   // if the scale is less than 1mm, set it to default
   if (s < 1e-3)
@@ -577,6 +596,7 @@ void RobotInteraction::clear()
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   active_eef_.clear();
   active_vj_.clear();
+  active_generic_.clear();
   clearInteractiveMarkersUnsafe();
   publishInteractiveMarkers();
 }
@@ -658,14 +678,30 @@ static inline std::string getMarkerName(const RobotInteraction::InteractionHandl
   return "JJ:" + handler->getName() + "_" + vj.connecting_link;
 }
 
+static inline std::string getMarkerName(const RobotInteraction::InteractionHandlerPtr &handler, const RobotInteraction::Generic &g)
+{
+  return "GG:" + handler->getName() + "_" + g.marker_name_suffix;
+}
+
 void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
 {
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   std::vector<visualization_msgs::InteractiveMarker> ims;
   {
-    
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
     robot_state::RobotStateConstPtr s = handler->getState();
+    
+    for (std::size_t i = 0 ; i < active_generic_.size() ; ++i)
+    {
+      visualization_msgs::InteractiveMarker im;
+      if (active_generic_[i].construct_marker(*s, im))
+      {
+        im.name = getMarkerName(handler, active_generic_[i]);   
+        shown_markers_[im.name] = i;
+        ims.push_back(im);
+        ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", im.name.c_str(), im.scale);
+      }
+    }
     
     for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
     {
@@ -776,6 +812,15 @@ void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr &han
     tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose);
     int_marker_server_->setPose(marker_name, pose);
   }
+
+  for (std::size_t i = 0 ; i < active_generic_.size() ; ++i)
+  {     
+    std::string marker_name = getMarkerName(handler, active_generic_[i]);
+    geometry_msgs::Pose pose;
+    if (active_generic_[i].update_pose && active_generic_[i].update_pose(*s, pose))
+      int_marker_server_->setPose(marker_name, pose);
+  }
+  
   int_marker_server_->applyChanges();
 }
 
@@ -794,6 +839,9 @@ bool RobotInteraction::showingMarkers(const InteractionHandlerPtr &handler)
       return false;
   for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
     if (shown_markers_.find(getMarkerName(handler, active_vj_[i])) == shown_markers_.end())
+      return false;
+  for (std::size_t i = 0 ; i < active_generic_.size() ; ++i)
+    if (shown_markers_.find(getMarkerName(handler, active_generic_[i])) == shown_markers_.end())
       return false;
   return true;
 }
@@ -922,7 +970,7 @@ void RobotInteraction::processingThread()
             marker_access_lock_.unlock();
             try
             {
-              jt->second->handleJoint(vj, feedback);
+              ih->handleJoint(vj, feedback);
             }
             catch(std::runtime_error &ex)
             {
@@ -935,7 +983,27 @@ void RobotInteraction::processingThread()
             marker_access_lock_.lock();
           }
           else
-            ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());
+            if (marker_class == "GG")
+            { 
+              InteractionHandlerPtr ih = jt->second;
+              Generic g = active_generic_[it->second];
+              marker_access_lock_.unlock();
+              try
+              {
+                ih->handleGeneric(g, feedback);
+              }
+              catch(std::runtime_error &ex)
+              {
+                ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
+              }
+              catch(...)
+              {
+                ROS_ERROR("Exception caught while handling joint update");
+              }
+              marker_access_lock_.lock();
+            }
+            else
+              ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());
       }
       catch (std::runtime_error &ex)
       {
