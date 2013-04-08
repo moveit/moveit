@@ -62,6 +62,7 @@ public:
   /// The topic name on which the internal Interactive Marker Server operates
   static const std::string INTERACTIVE_MARKER_TOPIC;
   
+  /// Representation of an interaction via an end-effector
   struct EndEffector
   {
     /// The name of the group that sustains the end-effector (usually an arm)
@@ -77,6 +78,7 @@ public:
     double size;
   };
 
+  /// Representation of an interaction via a joint.
   struct Joint
   { 
     /// The link in the robot model this joint is a parent of
@@ -90,6 +92,31 @@ public:
 
     /// The size of the connecting link  (diameter of enclosing sphere)
     double size;
+  };
+  
+  // called to construct the marker.  The callback should set up the passed
+  // in marker according to the passed in robot state.  Return true on
+  // success.  Return false on failure or if the marker should not be added
+  // and displayed.
+  typedef boost::function<bool(const robot_state::RobotState&, visualization_msgs::InteractiveMarker&)> InteractiveMarkerConstructorFn;
+
+  // Called when the interactive marker moves.  Callback should update the
+  // robot state that was passed in according to the new position of the
+  // marker.
+  typedef boost::function<void(robot_state::RobotState&, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &)> ProcessFeedbackFn;
+
+  // Called when the robot state changes.  Callback should calculate a new
+  // pose for the marker based on the passed in robot state.
+  // Return true if the pose was modified, false if the existing pose is correct.
+  typedef boost::function<bool(const robot_state::RobotState&, geometry_msgs::Pose&)> InteractiveMarkerUpdateFn;
+
+  /// Representation of a generic interaction.  Displays one interactive marker.
+  struct Generic
+  {
+    InteractiveMarkerConstructorFn construct_marker; // see comment on typedef above
+    ProcessFeedbackFn process_feedback;              // see comment on typedef above
+    InteractiveMarkerUpdateFn update_pose;           // see comment on typedef above
+    std::string marker_name_suffix; // automatically generated suffix added to name of markers
   };
   
   class InteractionHandler;
@@ -205,12 +232,21 @@ public:
     void clearLastJointMarkerPose(const RobotInteraction::Joint& vj);
     void clearLastMarkerPoses();
 
-    /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
-    virtual bool handleEndEffector(const RobotInteraction::EndEffector &eef, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    /** \brief Update the internal state maintained by the handler using
+     * information from the received feedback message. */
+    virtual bool handleEndEffector(const RobotInteraction::EndEffector &eef,
+                                   const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
-    /** \brief Update the internal state maintained by the handler using information from the received feedback message. Returns true if the marker should be updated (redrawn) and false otehrwise. */
-    virtual bool handleJoint(const RobotInteraction::Joint &vj, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    /** \brief Update the internal state maintained by the handler using
+     * information from the received feedback message. */
+    virtual void handleJoint(const RobotInteraction::Joint &vj,
+                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
+    /** \brief Update the internal state maintained by the handler using
+     * information from the received feedback message. */
+    virtual void handleGeneric(const RobotInteraction::Generic &g,
+                               const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    
     virtual bool inError(const RobotInteraction::EndEffector& eef) const;
     virtual bool inError(const RobotInteraction::Joint& vj) const;
     
@@ -232,8 +268,12 @@ public:
     std::set<std::string> error_state_;
     std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
     std::map<std::string, geometry_msgs::Pose> offset_map_;
-    // bool can be used to signal a change in "state" (e.g. error, other properties?)
-    boost::function<void(InteractionHandler*, bool)> update_callback_;
+
+    // Called when the RobotState maintained by the handler changes.  The caller may, for example, redraw the robot at the new state.
+    // handler is the handler that changed.
+    // error_state_changed is true if an end effector's error state may have changed.
+    boost::function<void(InteractionHandler* handler, bool error_state_changed)> update_callback_;
+
     robot_state::StateValidityCallbackFn state_validity_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
@@ -254,17 +294,30 @@ public:
   typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
   
   RobotInteraction(const robot_model::RobotModelConstPtr &kmodel, const std::string &ns = "");
-  ~RobotInteraction();
+  virtual ~RobotInteraction();
   
   const std::string& getServerTopic(void) const
   {
     return topic_;
   }
   
+  // add an interactive marker.
+  // construct - a callback to construct the marker.  See comment on InteractiveMarkerConstructorFn above.
+  // update - Called when the robot state changes.  Updates the marker pose.  Optional.  See comment on InteractiveMarkerUpdateFn above.
+  // process - called when the marker moves.  Updates the robot state.  See comment on ProcessFeedbackFn above.
+  void addActiveComponent(const InteractiveMarkerConstructorFn &construct,
+                          const ProcessFeedbackFn &process,
+                          const InteractiveMarkerUpdateFn &update = InteractiveMarkerUpdateFn(),
+                          const std::string &name = "");
+
+  // Adds an interactive marker for:
+  //  - each end effector in the group that can be controller by IK
+  //  - each floating joint
+  //  - each planar joint
+  // If no end effector exists in the robot then adds an interactive marker for the last link in the chain.
   void decideActiveComponents(const std::string &group);
-  void decideActiveEndEffectors(const std::string &group);
-  void decideActiveJoints(const std::string &group);
   
+  // remove all interactive markers.
   void clear();
   
   void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0.0);
@@ -289,6 +342,9 @@ public:
   static bool updateState(robot_state::RobotState &state, const Joint &vj, const geometry_msgs::Pose &pose);
 
 private:
+  // called by decideActiveComponents
+  void decideActiveEndEffectors(const std::string &group);
+  void decideActiveJoints(const std::string &group);
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupMarkerSize(const std::string &group);  
@@ -311,6 +367,7 @@ private:
   
   std::vector<EndEffector> active_eef_;
   std::vector<Joint> active_vj_;
+  std::vector<Generic> active_generic_;
   
   std::map<std::string, InteractionHandlerPtr> handlers_;
   std::map<std::string, std::size_t> shown_markers_;

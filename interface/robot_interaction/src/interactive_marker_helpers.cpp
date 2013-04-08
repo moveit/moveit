@@ -36,8 +36,8 @@ namespace robot_interaction
 {
 
 visualization_msgs::InteractiveMarker makeEmptyInteractiveMarker(const std::string& name,
-                                                     const geometry_msgs::PoseStamped &stamped,
-                                                     double scale)
+                                                                 const geometry_msgs::PoseStamped &stamped,
+                                                                 double scale)
 {
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.header =  stamped.header;
