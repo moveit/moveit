@@ -359,7 +359,7 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
     pose = ls->getGlobalLinkTransform().inverse() * pose;
   }
 
-    // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
+  // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
   const std::string &tip_frame = solver->getTipFrame();
   if (tip != tip_frame)
   {
