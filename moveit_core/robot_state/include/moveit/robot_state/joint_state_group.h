@@ -182,6 +182,15 @@ public:
   double infinityNormDistance(const JointStateGroup *other) const;  
 
   double distance(const JointStateGroup *other) const;
+
+  /** \brief Returns the minimum distance of a joint to the joint limits for the group. 
+      Will not consider planar joints if they are not bounded in all DOFs.
+      If planar joints are bounded, this function will use the distance
+      function defined for planar joints.
+      This function will not consider floating joints at all.
+      @return A std::pair with the required distance and index of joint corresponding to distance
+  */
+  std::pair<double, int> getMinDistanceToBounds() const;  
   
   void interpolate(const JointStateGroup *to, const double t, JointStateGroup *dest) const;
 

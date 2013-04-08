@@ -37,6 +37,7 @@
 
 #include <moveit/kinematics_metrics/kinematics_metrics.h>
 #include <Eigen/Eigenvalues>
+#include <boost/math/constants/constants.hpp>
 
 namespace kinematics_metrics
 {
@@ -49,6 +50,51 @@ Eigen::MatrixXd KinematicsMetrics::getJacobian(const robot_state::RobotState &ki
   std::string link_name = joint_model_group->getLinkModelNames().back();  
   kinematic_state.getJointStateGroup(joint_model_group->getName())->getJacobian(link_name, reference_point_position, jacobian);
   return jacobian;
+}
+
+double KinematicsMetrics::getJointLimitsPenalty(const robot_state::JointStateGroup* joint_state_group) const
+{
+  if(fabs(penalty_multiplier_) <= boost::math::tools::epsilon<double>())
+     return 1.0;
+  double joint_limits_multiplier(1.0);
+  const std::vector<robot_state::JointState*> &joint_state_vector = joint_state_group->getJointStateVector();  
+  for(std::size_t i=0; i < joint_state_group->getJointStateVector().size(); ++i)
+  {
+     if(joint_state_vector[i]->getType() == robot_model::JointModel::REVOLUTE)
+    {
+      const robot_model::RevoluteJointModel* revolute_model = dynamic_cast<const robot_model::RevoluteJointModel*> (joint_state_vector[i]->getJointModel());
+      if(revolute_model->isContinuous())
+        continue;      
+    }    
+    if(joint_state_vector[i]->getType() == robot_model::JointModel::PLANAR)
+    {
+      const std::vector<std::pair<double, double> >& planar_bounds = joint_state_vector[i]->getVariableBounds();
+      if(planar_bounds[0].first == -std::numeric_limits<double>::max() || planar_bounds[0].second == std::numeric_limits<double>::max() ||
+         planar_bounds[1].first == -std::numeric_limits<double>::max() || planar_bounds[1].second == std::numeric_limits<double>::max() ||
+         planar_bounds[2].first == -boost::math::constants::pi<double>() || planar_bounds[2].second == boost::math::constants::pi<double>())
+        continue;
+    }
+    if(joint_state_vector[i]->getType() == robot_model::JointModel::FLOATING)
+    {
+      //Joint limits are not well-defined for floating joints
+      continue;      
+    }    
+    const std::vector<double>& joint_values = joint_state_vector[i]->getVariableValues();
+    const std::vector<std::pair<double, double> >& bounds = joint_state_vector[i]->getVariableBounds();
+    std::vector<double> lower_bounds, upper_bounds;
+    for(std::size_t j=0; j < bounds.size(); ++j)
+    {
+      lower_bounds.push_back(bounds[j].first);
+      upper_bounds.push_back(bounds[j].second);
+    }
+    double lower_bound_distance = joint_state_vector[i]->getJointModel()->distance(joint_values, lower_bounds);      
+    double upper_bound_distance = joint_state_vector[i]->getJointModel()->distance(joint_values, upper_bounds);
+    double range = lower_bound_distance + upper_bound_distance;
+    if(range <= boost::math::tools::epsilon<double>())
+      continue;    
+    joint_limits_multiplier *= (lower_bound_distance * upper_bound_distance/(range*range));    
+  }  
+  return(1.0 - exp(-penalty_multiplier_*joint_limits_multiplier));  
 }
 
 bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &kinematic_state, 
@@ -71,18 +117,20 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &ki
     return false;
   }
   Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
+  // Get joint limits penalty 
+  double penalty = getJointLimitsPenalty(kinematic_state.getJointStateGroup(joint_model_group->getName()));    
   if(translation)
   {
     Eigen::MatrixXd jacobian_2 = jacobian.topLeftCorner(3,jacobian.cols());
     Eigen::MatrixXd matrix = jacobian_2*jacobian_2.transpose();  
     // Get manipulability index
-    manipulability_index = sqrt(matrix.determinant());
+    manipulability_index = penalty * sqrt(matrix.determinant());
   }
   else
   {    
     Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
     // Get manipulability index
-    manipulability_index = sqrt(matrix.determinant());
+    manipulability_index = penalty * sqrt(matrix.determinant());
   }  
   return true;  
 }
@@ -134,6 +182,8 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState &kinemat
     return false;
   }  
 
+  // Get joint limits penalty 
+  double penalty = getJointLimitsPenalty(kinematic_state.getJointStateGroup(joint_model_group->getName()));    
   if(translation)
   {
     Eigen::MatrixXd jacobian = getJacobian(kinematic_state, joint_model_group);  
@@ -141,7 +191,7 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState &kinemat
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for(unsigned int i=0; i < singular_values.rows(); ++i)
       logDebug("Singular value: %d %f",i,singular_values(i,0));  
-    manipulability = singular_values.minCoeff()/singular_values.maxCoeff();  
+    manipulability = penalty * singular_values.minCoeff()/singular_values.maxCoeff();  
   }  
   else
   {    
@@ -150,51 +200,9 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState &kinemat
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for(unsigned int i=0; i < singular_values.rows(); ++i)
       logDebug("Singular value: %d %f",i,singular_values(i,0));  
-    manipulability = singular_values.minCoeff()/singular_values.maxCoeff();  
+    manipulability = penalty * singular_values.minCoeff()/singular_values.maxCoeff();  
   }  
   return true; 
 }
-
-bool KinematicsMetrics::getMinDistanceToBounds(const robot_state::JointStateGroup* joint_state_group,
-                                               double &distance) const
-{
-  distance = std::numeric_limits<double>::max();  
-  if(!joint_state_group)
-  {    
-    logError("Joint state group does not exist");    
-    return false;
-  }  
-  const std::vector<robot_state::JointState*>& joint_state_vector = joint_state_group->getJointStateVector();
-  if(joint_state_vector.empty())
-  {    
-    logError("Joint state group does not contain any joints");    
-    return false;
-  }  
-  for(std::size_t i=0; i < joint_state_vector.size(); ++i)
-  {   
-    if(joint_state_vector[i]->getType() == robot_model::JointModel::REVOLUTE)
-    {
-      const robot_model::RevoluteJointModel* revolute_model = dynamic_cast<const robot_model::RevoluteJointModel*> (joint_state_vector[i]->getJointModel());
-      if(revolute_model->isContinuous())
-        continue;      
-    }    
-    const std::vector<double>& joint_values = joint_state_vector[i]->getVariableValues();
-    const std::vector<std::pair<double, double> >& bounds = joint_state_vector[i]->getVariableBounds();
-    std::vector<double> lower_bounds, upper_bounds;
-    for(std::size_t j=0; j < bounds.size(); ++j)
-    {
-      lower_bounds.push_back(bounds[j].first);
-      upper_bounds.push_back(bounds[j].second);
-    }
-    double new_distance = joint_state_vector[i]->getJointModel()->distance(joint_values, lower_bounds);      
-    if(new_distance < distance)
-      distance = new_distance;    
-    new_distance = joint_state_vector[i]->getJointModel()->distance(joint_values, upper_bounds);      
-    if(new_distance < distance)
-      distance = new_distance;    
-  }
-  return true;  
-}
-
 
 } // namespace
