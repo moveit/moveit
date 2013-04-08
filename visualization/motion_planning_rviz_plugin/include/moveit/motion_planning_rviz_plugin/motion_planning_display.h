@@ -38,7 +38,6 @@
 
 #ifndef Q_MOC_RUN
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
-#include <moveit/motion_planning_rviz_plugin/background_processing.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -88,12 +87,6 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
   
-  // pass the execution of this function call to a separate thread that runs in the background
-  void addBackgroundJob(const boost::function<void()> &job);
-  
-  // queue the execution of this function for the next time the main update() loop gets called
-  void addMainLoopJob(const boost::function<void()> &job);
-  
   robot_state::RobotStateConstPtr getQueryStartState() const
   {
     return query_start_state_->getState();
@@ -126,9 +119,7 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void updateQueryGoalState();
   
   std::string getCurrentPlanningGroup() const;
-  
-  void queueRenderSceneGeometry();
-  
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -164,7 +155,8 @@ protected:
 
   virtual void onRobotModelLoaded();
   virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-
+  virtual void updateInternal(float wall_dt, float ros_dt);
+  
   /**
    * \brief ROS callback for an incoming path message
    */
@@ -198,7 +190,7 @@ protected:
   void updateStateExceptModified(robot_state::RobotState &dest, const robot_state::RobotState &src);
   float getStateDisplayTime();
   void updateBackgroundJobProgressBar();
-  void backgroundJobCompleted();
+  void backgroundJobUpdate(BackgroundProcessing::JobEvent event);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -206,10 +198,7 @@ protected:
   virtual void onDisable();
   virtual void fixedFrameChanged();
 
-  BackgroundProcessing background_process_;
-  std::deque<boost::function<void()> > main_loop_jobs_;
-  boost::mutex main_loop_jobs_lock_;
-  
+
   RobotStateVisualizationPtr query_robot_start_;                  ///< Handles drawing the robot at the start configuration
   RobotStateVisualizationPtr query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
   RobotStateVisualizationPtr display_path_robot_;                 ///< Handles actually drawing the robot along motion plans

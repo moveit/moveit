@@ -43,6 +43,12 @@ namespace moveit_rviz_plugin
 class BackgroundProcessing
 {
 public:
+  enum JobEvent
+    {
+      ADD, REMOVE, COMPLETE
+    };
+  typedef boost::function<void(JobEvent)> JobUpdateCallback;
+  
   BackgroundProcessing();
   ~BackgroundProcessing();
 
@@ -50,7 +56,7 @@ public:
   std::size_t getJobCount() const;
   void clear();
   
-  void setCompletionEvent(const boost::function<void()> &completion_event);
+  void setJobUpdateEvent(const JobUpdateCallback &event);
   
 private:
   
@@ -60,7 +66,8 @@ private:
   mutable boost::mutex action_lock_;
   boost::condition_variable new_action_condition_;
   std::deque<boost::function<void()> > actions_;
-  boost::function<void()> completion_event_;
+  JobUpdateCallback queue_change_event_;
+
   bool processing_;
   
   void processingThread();

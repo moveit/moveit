@@ -37,6 +37,7 @@
 #ifndef Q_MOC_RUN
 #include <moveit/rviz_plugin_render_tools/planning_scene_render.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_scene_rviz_plugin/background_processing.h>
 #include <ros/ros.h>
 #endif
 
@@ -80,6 +81,15 @@ public:
   void unsetLinkColor(const std::string& link_name);
   
   void queueRenderSceneGeometry();
+
+  // pass the execution of this function call to a separate thread that runs in the background
+  void addBackgroundJob(const boost::function<void()> &job);
+  
+  // queue the execution of this function for the next time the main update() loop gets called
+  void addMainLoopJob(const boost::function<void()> &job);
+
+  // remove all queued jobs
+  void clearJobs();
   
   const robot_model::RobotModelConstPtr& getRobotModel();
   planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO() const;
@@ -114,8 +124,10 @@ protected:
    * \brief Set the scene node's position, given the target frame and the planning frame
    */
   void calculateOffsetPosition();
-
+  
+  void executeMainLoopJobs();  
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
+  void acceptSceneUpdates();
   void renderPlanningScene();
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
@@ -128,12 +140,17 @@ protected:
   virtual void onEnable();
   virtual void onDisable();
   virtual void fixedFrameChanged();
-
+  
+  // new virtual functions added by this plugin
+  virtual void updateInternal(float wall_dt, float ros_dt);
   virtual void onRobotModelLoaded();
   virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-
   
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  
+  BackgroundProcessing background_process_;
+  std::deque<boost::function<void()> > main_loop_jobs_;
+  boost::mutex main_loop_jobs_lock_;
   
   Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
   
