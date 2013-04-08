@@ -1165,7 +1165,7 @@ void robot_model::RobotModel::setKinematicsAllocators(const std::map<std::string
       // go through the groups that we know have IK allocators and see if they are included in the group that does not; if so, put that group in sub
       for (std::map<std::string, SolverAllocatorFn>::const_iterator kt = allocators.begin() ; kt != allocators.end() ; ++kt)
       {
-        const JointModelGroup *sub = jmg->getParentModel()->getJointModelGroup(kt->first);
+        const JointModelGroup *sub = getJointModelGroup(kt->first);
         if (!sub)
         {
           subs.clear();
@@ -1180,7 +1180,7 @@ void robot_model::RobotModel::setKinematicsAllocators(const std::map<std::string
           std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
                               std::inserter(resultj, resultj.end()));
           subs.push_back(sub);
-          joints = resultj;
+          swap(joints, resultj);
         }
       }
 
