@@ -137,6 +137,17 @@ public:
                          double &condition_number,
                          bool translation = false) const;
 
+  /**
+   * @brief Get the manipulability = sigma_min/sigma_max 
+   * where sigma_min and sigma_max are the smallest and largest singular values 
+   * of the Jacobian matrix J
+   * @param kinematic_state Complete kinematic state for the robot
+   * @param joint_model_group A pointer to the desired joint model group
+   * @param condition_number Condition number for JJ^T
+   * @return False if the group was not found
+   */
+  bool getMinDistanceToBounds(const robot_state::JointStateGroup *joint_state_group, double &distance) const;
+
 protected:
   
   robot_model::RobotModelConstPtr kinematic_model_;
