@@ -29,7 +29,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/motion_planning_rviz_plugin/background_processing.h>
+#include <moveit/planning_scene_rviz_plugin/background_processing.h>
 #include <ros/console.h>
 
 namespace moveit_rviz_plugin
@@ -80,8 +80,8 @@ void BackgroundProcessing::processingThread()
         ROS_ERROR("Exception caught while processing event");
       }
       processing_ = false;
-      if (completion_event_)
-        completion_event_();
+      if (queue_change_event_)
+        queue_change_event_(COMPLETE);
       action_lock_.lock();
     }
   }
@@ -89,15 +89,25 @@ void BackgroundProcessing::processingThread()
 
 void BackgroundProcessing::addJob(const boost::function<void()> &job)
 {
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(job);
-  new_action_condition_.notify_all();
+  {
+    boost::mutex::scoped_lock slock(action_lock_);
+    actions_.push_back(job);
+    new_action_condition_.notify_all();
+  }
+  if (queue_change_event_)
+    queue_change_event_(ADD);
 }
 
 void BackgroundProcessing::clear()
 {
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.clear();
+  bool update = false;
+  {
+    boost::mutex::scoped_lock slock(action_lock_);
+    update = !actions_.empty();
+    actions_.clear();
+  }
+  if (update && queue_change_event_)
+    queue_change_event_(REMOVE);
 }
 
 std::size_t BackgroundProcessing::getJobCount() const
@@ -106,11 +116,10 @@ std::size_t BackgroundProcessing::getJobCount() const
   return actions_.size() + (processing_ ? 1 : 0);
 }
 
-void BackgroundProcessing::setCompletionEvent(const boost::function<void()> &completion_event)
-{ 
+void BackgroundProcessing::setJobUpdateEvent(const JobUpdateCallback &event)
+{
   boost::mutex::scoped_lock slock(action_lock_);
-  completion_event_ = completion_event;
+  queue_change_event_ = event;
 }
 
 }
-

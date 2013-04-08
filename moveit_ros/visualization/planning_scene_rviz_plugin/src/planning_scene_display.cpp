@@ -162,12 +162,23 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
 // Deconstructor
 // ******************************************************************************************
 PlanningSceneDisplay::~PlanningSceneDisplay()
-{ 
+{
+  clearJobs();
+  
   planning_scene_render_.reset();
   context_->getSceneManager()->destroySceneNode(planning_scene_node_->getName());
   if (planning_scene_robot_)
     planning_scene_robot_.reset();
   planning_scene_monitor_.reset();
+}
+
+void PlanningSceneDisplay::clearJobs()
+{
+  background_process_.clear();
+  {
+    boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
+    main_loop_jobs_.clear();
+  }
 }
 
 void PlanningSceneDisplay::onInitialize()
@@ -190,11 +201,47 @@ void PlanningSceneDisplay::reset()
   if (planning_scene_robot_)
     planning_scene_robot_->clear();
   
-  loadRobotModel();
+  addBackgroundJob(boost::bind(&PlanningSceneDisplay::loadRobotModel, this));
   Display::reset();
   
   if (planning_scene_robot_)
     planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+}
+
+void PlanningSceneDisplay::addBackgroundJob(const boost::function<void()> &job)
+{
+  background_process_.addJob(job);
+}
+
+void PlanningSceneDisplay::addMainLoopJob(const boost::function<void()> &job)
+{
+  boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
+  main_loop_jobs_.push_back(job);
+}
+
+void PlanningSceneDisplay::executeMainLoopJobs()
+{
+  main_loop_jobs_lock_.lock();
+  while (!main_loop_jobs_.empty())
+  {
+    boost::function<void()> fn = main_loop_jobs_.front();
+    main_loop_jobs_.pop_front();
+    main_loop_jobs_lock_.unlock();
+    try
+    {
+      fn();
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
+    }
+    catch(...)
+    {
+      ROS_ERROR("Exception caught executing main loop job");
+    }
+    main_loop_jobs_lock_.lock();
+  }
+  main_loop_jobs_lock_.unlock();
 }
 
 const planning_scene_monitor::PlanningSceneMonitorPtr& PlanningSceneDisplay::getPlanningSceneMonitor()
@@ -409,15 +456,20 @@ void PlanningSceneDisplay::loadRobotModel()
   createPlanningSceneMonitor();
   if (planning_scene_monitor_->getPlanningScene())
   {
-    planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
-    onRobotModelLoaded();
-    setStatus( rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully" );
+    addMainLoopJob(boost::bind(&PlanningSceneDisplay::onRobotModelLoaded, this)); 
+    addMainLoopJob(boost::bind(&PlanningSceneDisplay::acceptSceneUpdates, this));
+    setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
   }
   else
   {
     planning_scene_monitor_.reset();
-    setStatus( rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded" );
+    setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded");
   }
+}
+
+void PlanningSceneDisplay::acceptSceneUpdates()
+{ 
+  planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
 }
 
 void PlanningSceneDisplay::onRobotModelLoaded()
@@ -443,7 +495,7 @@ void PlanningSceneDisplay::onRobotModelLoaded()
     oldState = root_link_name_property_->blockSignals(true);
     root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
     root_link_name_property_->blockSignals(oldState);
-  }  
+  }
 }
 
 void PlanningSceneDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
@@ -468,7 +520,7 @@ void PlanningSceneDisplay::onEnable()
 {
   Display::onEnable();
   
-  loadRobotModel();
+  addBackgroundJob(boost::bind(&PlanningSceneDisplay::loadRobotModel, this));
   
   if (planning_scene_robot_)
     planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
@@ -502,10 +554,15 @@ void PlanningSceneDisplay::queueRenderSceneGeometry()
 void PlanningSceneDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
+
+  executeMainLoopJobs();
   
-  if (!planning_scene_monitor_)
-    return;
-  
+  if (planning_scene_monitor_)
+    updateInternal(wall_dt, ros_dt);
+}
+
+void PlanningSceneDisplay::updateInternal(float wall_dt, float ros_dt)
+{
   current_scene_time_ += wall_dt;
   if (current_scene_time_ > scene_display_time_property_->getFloat())
   {

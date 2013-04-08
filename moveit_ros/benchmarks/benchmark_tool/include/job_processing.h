@@ -32,7 +32,7 @@
 #ifndef BT_JOB_PROCESSING_
 #define BT_JOB_PROCESSING_
 
-#include <moveit/motion_planning_rviz_plugin/background_processing.h>
+#include <moveit/planning_scene_rviz_plugin/background_processing.h>
 
 namespace benchmark_tool
 {

@@ -201,19 +201,16 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
                             path_category_,
                             SLOT( changedShowTrail() ), this ); 
   
-  background_process_.setCompletionEvent(boost::bind(&MotionPlanningDisplay::backgroundJobCompleted, this));
+  background_process_.setJobUpdateEvent(boost::bind(&MotionPlanningDisplay::backgroundJobUpdate, this, _1));
 }
 
 // ******************************************************************************************
 // Deconstructor
 // ******************************************************************************************
 MotionPlanningDisplay::~MotionPlanningDisplay()
-{ 
-  background_process_.clear();
-  {
-    boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
-    main_loop_jobs_.clear();
-  }
+{
+  background_process_.setJobUpdateEvent(BackgroundProcessing::JobUpdateCallback());
+  clearJobs();
   
   clearTrajectoryTrail();
   trajectory_message_to_display_.reset();
@@ -301,13 +298,7 @@ void MotionPlanningDisplay::reset()
   display_path_robot_->setVisible(false);
 }
 
-void MotionPlanningDisplay::addBackgroundJob(const boost::function<void()> &job)
-{
-  background_process_.addJob(job);
-  addMainLoopJob(boost::bind(&MotionPlanningDisplay::updateBackgroundJobProgressBar, this));
-}
-
-void MotionPlanningDisplay::backgroundJobCompleted()
+void MotionPlanningDisplay::backgroundJobUpdate(BackgroundProcessing::JobEvent )
 {
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::updateBackgroundJobProgressBar, this));
 }
@@ -345,12 +336,6 @@ void MotionPlanningDisplay::updateBackgroundJobProgressBar()
     p->show();
     p->update();
   }
-}
-
-void MotionPlanningDisplay::addMainLoopJob(const boost::function<void()> &job)
-{
-  boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
-  main_loop_jobs_.push_back(job);
 }
 
 void MotionPlanningDisplay::changedShowWeightLimit()
@@ -898,11 +883,8 @@ bool MotionPlanningDisplay::isIKSolutionCollisionFree(robot_state::JointStateGro
 {
   if (frame_->ui_->collision_aware_ik->isChecked() && planning_scene_monitor_)
   {
-    //    ROS_ERROR("A");    
     group->setVariableValues(ik_solution);
-    //    ROS_ERROR("B");    
     bool res = !getPlanningSceneRO()->isStateColliding(*group->getRobotState(), group->getName());
-    //    ROS_ERROR("C");    
     return res;
   }
   else
@@ -1139,36 +1121,6 @@ void MotionPlanningDisplay::onDisable()
   PlanningSceneDisplay::onDisable();
 }
 
-void MotionPlanningDisplay::executeMainLoopJobs()
-{
-  main_loop_jobs_lock_.lock();
-  while (!main_loop_jobs_.empty())
-  {
-    boost::function<void()> fn = main_loop_jobs_.front();
-    main_loop_jobs_.pop_front();
-    main_loop_jobs_lock_.unlock();
-    try
-    {
-      fn();
-    }
-    catch(std::runtime_error &ex)
-    {
-      ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
-    }
-    catch(...)
-    {
-      ROS_ERROR("Exception caught executing main loop job");
-    }
-    main_loop_jobs_lock_.lock();
-  }
-  main_loop_jobs_lock_.unlock();
-}
-
-void MotionPlanningDisplay::queueRenderSceneGeometry()
-{
-  planning_scene_needs_render_ = true;
-}
-
 float MotionPlanningDisplay::getStateDisplayTime()
 {
   std::string tm = state_display_time_property_->getStdString();
@@ -1196,16 +1148,18 @@ float MotionPlanningDisplay::getStateDisplayTime()
 // ******************************************************************************************
 void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
 {
-  int_marker_display_->update(wall_dt, ros_dt);
-  frame_->updateSceneMarkers(wall_dt, ros_dt);
+  if (int_marker_display_)
+    int_marker_display_->update(wall_dt, ros_dt);
+  if (frame_)
+    frame_->updateSceneMarkers(wall_dt, ros_dt);
 
-  Display::update(wall_dt, ros_dt);
+  PlanningSceneDisplay::update(wall_dt, ros_dt);
+}
+
+void MotionPlanningDisplay::updateInternal(float wall_dt, float ros_dt)
+{
+  PlanningSceneDisplay::updateInternal(wall_dt, ros_dt);
   
-  executeMainLoopJobs();
-
-  if (!planning_scene_monitor_)
-    return;
-
   if (!animating_path_ && !trajectory_message_to_display_ && loop_display_property_->getBool() && displaying_trajectory_message_)
   {
     animating_path_ = true;
@@ -1248,13 +1202,6 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
       current_state_time_ = 0.0f;
     }
     current_state_time_ += wall_dt;
-  }
-
-  current_scene_time_ += wall_dt;
-  if (current_scene_time_ > scene_display_time_property_->getFloat())
-  {
-    renderPlanningScene();
-    current_scene_time_ = 0.0f;
   }
 
   renderWorkspaceBox();
