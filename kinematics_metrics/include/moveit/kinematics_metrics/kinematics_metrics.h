@@ -55,7 +55,7 @@ public:
     
   /** \brief Construct a KinematicsMetricss from a RobotModel */
   KinematicsMetrics(const robot_model::RobotModelConstPtr &kinematic_model) : 
-    kinematic_model_(kinematic_model)
+    kinematic_model_(kinematic_model), penalty_multiplier_(0.0)
   {
   }
   
@@ -137,23 +137,38 @@ public:
                          double &condition_number,
                          bool translation = false) const;
 
-  /**
-   * @brief Get the manipulability = sigma_min/sigma_max 
-   * where sigma_min and sigma_max are the smallest and largest singular values 
-   * of the Jacobian matrix J
-   * @param kinematic_state Complete kinematic state for the robot
-   * @param joint_model_group A pointer to the desired joint model group
-   * @param condition_number Condition number for JJ^T
-   * @return False if the group was not found
-   */
-  bool getMinDistanceToBounds(const robot_state::JointStateGroup *joint_state_group, double &distance) const;
+  void setPenaltyMultiplier(double multiplier)
+  {
+    penalty_multiplier_ = fabs(multiplier);
+  }
 
+  const double& getPenaltyMultiplier() const
+  {
+    return penalty_multiplier_;
+  }
+  
 protected:
   
   robot_model::RobotModelConstPtr kinematic_model_;
     
   Eigen::MatrixXd getJacobian(const robot_state::RobotState &kinematic_state,
                               const robot_model::JointModelGroup *joint_model_group) const;  
+
+private:
+
+    /**
+   * @brief Defines a multiplier for the manipulabilty
+   * = 1 - exp ( -penalty_multipler_ * product_{i=1}{n} (distance_to_lower_limit * distance_to_higher_limit/(joint_range*joint_range)))
+   * where n is the number of joints in the group. Floating joints are ignored in this computation. Planar joints with finite bounds 
+   * are considered.
+   * Set penalty_multiplier_ to 0 if you don't want this multiplier to have any effect on the manipulability measures.
+   * See "Workspace Geometric Characterization and Manipulability of Industrial Robots", Ming-June, Tsia, PhD Thesis, 
+   * Ohio State University, 1986, for more details.
+   * @return multiplier that is multiplied with every manipulability measure computed here
+   */
+  double getJointLimitsPenalty(const robot_state::JointStateGroup* joint_state_group) const;  
+
+  double penalty_multiplier_;
   
 };
 

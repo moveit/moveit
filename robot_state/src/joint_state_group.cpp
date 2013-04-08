@@ -37,11 +37,12 @@
 #include <moveit/robot_state/robot_state.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <algorithm>
 #include <Eigen/SVD>
 
 robot_state::JointStateGroup::JointStateGroup(RobotState *state,
-                                                  const robot_model::JointModelGroup *jmg) :
+                                              const robot_model::JointModelGroup *jmg) :
   kinematic_state_(state), joint_model_group_(jmg)
 {
   const std::vector<const robot_model::JointModel*>& joint_model_vector = jmg->getJointModels();
@@ -1062,4 +1063,53 @@ bool robot_state::JointStateGroup::getJacobian(const std::string &link_name,
   return true;
 }
 
+std::pair<double,int> robot_state::JointStateGroup::getMinDistanceToBounds() const
+{  
+  double distance = std::numeric_limits<double>::max();  
+  int index = -1;  
+  for(std::size_t i=0; i < joint_state_vector_.size(); ++i)
+  {   
+    if(joint_state_vector_[i]->getType() == robot_model::JointModel::REVOLUTE)
+    {
+      const robot_model::RevoluteJointModel* revolute_model = dynamic_cast<const robot_model::RevoluteJointModel*> (joint_state_vector_[i]->getJointModel());
+      if(revolute_model->isContinuous())
+        continue;      
+    }    
+    if(joint_state_vector_[i]->getType() == robot_model::JointModel::PLANAR)
+    {
+      const std::vector<std::pair<double, double> >& planar_bounds = joint_state_vector_[i]->getVariableBounds();
+      if(planar_bounds[0].first == -std::numeric_limits<double>::max() || planar_bounds[0].second == std::numeric_limits<double>::max() ||
+         planar_bounds[1].first == -std::numeric_limits<double>::max() || planar_bounds[1].second == std::numeric_limits<double>::max() ||
+         planar_bounds[2].first == -boost::math::constants::pi<double>() || planar_bounds[2].second == boost::math::constants::pi<double>())
+        continue;
+    }
+    if(joint_state_vector_[i]->getType() == robot_model::JointModel::FLOATING)
+    {
+      //Joint limits are not well-defined for floating joints
+      continue;      
+    }    
+
+    const std::vector<double>& joint_values = joint_state_vector_[i]->getVariableValues();
+    const std::vector<std::pair<double, double> >& bounds = joint_state_vector_[i]->getVariableBounds();
+    std::vector<double> lower_bounds, upper_bounds;
+    for(std::size_t j=0; j < bounds.size(); ++j)
+    {
+      lower_bounds.push_back(bounds[j].first);
+      upper_bounds.push_back(bounds[j].second);
+    }
+    double new_distance = joint_state_vector_[i]->getJointModel()->distance(joint_values, lower_bounds);      
+    if(new_distance < distance)
+    {
+      index = i;      
+      distance = new_distance;    
+    }    
+    new_distance = joint_state_vector_[i]->getJointModel()->distance(joint_values, upper_bounds);      
+    if(new_distance < distance)
+    {
+      index = i;      
+      distance = new_distance;    
+    }    
+  }
+  return std::pair<double,int>(distance,index);  
+}
 
