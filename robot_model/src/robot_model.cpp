@@ -1180,7 +1180,7 @@ void robot_model::RobotModel::setKinematicsAllocators(const std::map<std::string
           std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
                               std::inserter(resultj, resultj.end()));
           subs.push_back(sub);
-          swap(joints, resultj);
+          joints.swap(resultj);
         }
       }
 
