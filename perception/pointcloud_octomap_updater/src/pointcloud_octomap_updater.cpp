@@ -46,6 +46,10 @@ namespace occupancy_map_monitor
 {
 
 PointCloudOctomapUpdater::PointCloudOctomapUpdater() : OccupancyMapUpdater("PointCloudUpdater"),
+                                                       scale_(1.0),
+                                                       padding_(0.0),
+                                                       max_range_(std::numeric_limits<double>::infinity()),
+                                                       point_subsample_(1),
                                                        point_cloud_subscriber_(NULL),
                                                        point_cloud_filter_(NULL)
 {
