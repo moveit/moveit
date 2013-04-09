@@ -136,6 +136,7 @@ void robot_model::FloatingJointModel::interpolate(const std::vector<double> &fro
 bool robot_model::FloatingJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   assert(bounds.size() > 2);
+  
   if (values[0] < bounds[0].first - margin || values[0] > bounds[0].second + margin)
     return false;
   if (values[1] < bounds[1].first - margin || values[1] > bounds[1].second + margin)
@@ -143,7 +144,7 @@ bool robot_model::FloatingJointModel::satisfiesBounds(const std::vector<double> 
   if (values[2] < bounds[2].first - margin || values[2] > bounds[2].second + margin)
     return false;
   double normSqr = values[3] * values[3] + values[4] * values[4] + values[5] * values[5] + values[6] * values[6];
-  if (fabs(normSqr - 1.0) > std::numeric_limits<double>::epsilon() * 100.0)
+  if (fabs(normSqr - 1.0) > std::numeric_limits<float>::epsilon() * 10.0)
     return false;
   return true;
 }
