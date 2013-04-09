@@ -917,7 +917,7 @@ void MotionPlanningDisplay::updateLinkColors()
 
 void MotionPlanningDisplay::changedPlanningGroup()
 {
-  if (!getRobotModel())
+  if (!getRobotModel() || !robot_interaction_)
     return;
   
   if (!planning_group_property_->getStdString().empty())
@@ -983,7 +983,7 @@ void MotionPlanningDisplay::changedDisplayPathCollisionEnabled()
 void MotionPlanningDisplay::onRobotModelLoaded()
 {
   PlanningSceneDisplay::onRobotModelLoaded();
-
+  
   robot_interaction_.reset(new robot_interaction::RobotInteraction(getRobotModel(), "rviz_moveit_motion_planning_display"));
   int_marker_display_->subProp("Update Topic")->setValue(QString::fromStdString(robot_interaction_->getServerTopic() + "/update"));
   display_path_robot_->load(*getRobotModel()->getURDF());
@@ -1024,7 +1024,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
       dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getRobotModel(),
                                                                             groups[i],
                                                                             gravity_vector)); 
-  changedPlanningGroup();
+  addMainLoopJob(boost::bind(&MotionPlanningDisplay::changedPlanningGroup, this));
 }
 
 void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &dest, const robot_state::RobotState &src)
@@ -1095,7 +1095,6 @@ void MotionPlanningDisplay::onEnable()
   int_marker_display_->setEnabled(true);
   int_marker_display_->setFixedFrame(fixed_frame_);
 
-  changedPlanningGroup();
   changedTrajectoryTopic(); // load topic at startup if default used
 }
 

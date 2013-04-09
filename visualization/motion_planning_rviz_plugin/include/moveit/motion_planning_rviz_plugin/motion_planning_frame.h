@@ -183,7 +183,8 @@ private:
   void configureForPlanning();
   void configureWorkspace();  
   void updateQueryStateHelper(robot_state::RobotState &state, const std::string &v);
-  
+  void fillStateSelectionOptions();
+
   //Scene objects tab
   void addObject(const collision_detection::WorldPtr &world, const std::string &id,
                  const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
@@ -214,6 +215,7 @@ private:
   //General
   void changePlanningGroupHelper();
   void importResource(const std::string &path);
+  
 
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
