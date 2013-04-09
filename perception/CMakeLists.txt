@@ -24,19 +24,19 @@ find_package(octomap REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
-    robot_self_filter/include
+    point_containment_filter/include
     occupancy_map_monitor/include
     pointcloud_octomap_updater/include
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
-    moveit_robot_self_filter
+    moveit_point_containment_filter
     moveit_occupancy_map_monitor
     moveit_pointcloud_octomap_updater_core
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core)
 
-include_directories(robot_self_filter/include
+include_directories(point_containment_filter/include
                     occupancy_map_monitor/include
 		    pointcloud_octomap_updater/include
                     ${catkin_INCLUDE_DIRS} 
@@ -49,6 +49,6 @@ include_directories(SYSTEM
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-add_subdirectory(robot_self_filter)
+add_subdirectory(point_containment_filter)
 add_subdirectory(occupancy_map_monitor)
 add_subdirectory(pointcloud_octomap_updater)
