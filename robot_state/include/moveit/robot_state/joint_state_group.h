@@ -135,7 +135,7 @@ public:
   bool hasJointState(const std::string &joint) const;
   
   /** \brief Check if a link is updated by this group */
-  bool updatesLinkState(const std::string &joint) const;
+  bool updatesLinkState(const std::string &link) const;
   
   /** \brief Get a joint state by its name */
   JointState* getJointState(const std::string &joint) const;
