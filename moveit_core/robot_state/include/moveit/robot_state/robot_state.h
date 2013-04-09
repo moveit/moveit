@@ -236,6 +236,9 @@ public:
   /** \brief Print information about the constructed model */
   void printStateInfo(std::ostream &out = std::cout) const;
   
+  /** \brief Returns a string showing the joint and link state tree with transforms */
+  std::string getStateTreeString(const std::string& prefix = "") const;
+  
   /** \brief Print the pose of every link */
   void printTransforms(std::ostream &out = std::cout) const;
   
@@ -289,6 +292,9 @@ private:
   void buildState();
   void copyFrom(const RobotState &ks);
   void printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out = std::cout) const;
+  void getStateTreeJointString(std::stringstream& ss, const robot_state::JointState* js, const std::string& prefix, bool last) const;
+  static void getPoseString(std::stringstream& ss, const Eigen::Affine3d& mtx, const std::string& pfx = "");
+
 
   robot_model::RobotModelConstPtr kinematic_model_;
   
