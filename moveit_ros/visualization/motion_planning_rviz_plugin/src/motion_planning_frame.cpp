@@ -131,8 +131,8 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
     found_items[i]->setSelected(selection);
 }
 
-void MotionPlanningFrame::changePlanningGroupHelper()
-{
+void MotionPlanningFrame::fillStateSelectionOptions()
+{ 
   ui_->start_state_selection->clear();
   ui_->goal_state_selection->clear();
   
@@ -141,69 +141,81 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   
   const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup(); 
+  if (group.empty())
+    return;
+  const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
+  if (jmg)
+  {      
+    ui_->start_state_selection->addItem(QString("<random>"));
+    ui_->start_state_selection->addItem(QString("<current>"));
+    ui_->start_state_selection->addItem(QString("<same as goal>"));
+    
+    ui_->goal_state_selection->addItem(QString("<random>"));
+    ui_->goal_state_selection->addItem(QString("<current>"));
+    ui_->goal_state_selection->addItem(QString("<same as start>"));
+    
+    std::vector<std::string> known_states;
+    jmg->getKnownDefaultStates(known_states);
+    if (!known_states.empty())
+    {
+      ui_->start_state_selection->insertSeparator(ui_->start_state_selection->count());
+      ui_->goal_state_selection->insertSeparator(ui_->goal_state_selection->count());
+      for (std::size_t i = 0 ; i < known_states.size() ; ++i)
+      {
+        ui_->start_state_selection->addItem(QString::fromStdString(known_states[i]));
+        ui_->goal_state_selection->addItem(QString::fromStdString(known_states[i]));
+      }
+    }
+    ui_->start_state_selection->setCurrentIndex(1);
+    ui_->goal_state_selection->setCurrentIndex(0);
+  }
+}
+
+void MotionPlanningFrame::changePlanningGroupHelper()
+{
+  if (!planning_display_->getPlanningSceneMonitor())
+    return;
+  
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::fillStateSelectionOptions, this));
+
+  const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
+  std::string group = planning_display_->getCurrentPlanningGroup(); 
 
   if (!group.empty() && kmodel)
   {
-    const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
-    if (jmg)
-    {      
-      ui_->start_state_selection->addItem(QString("<random>"));
-      ui_->start_state_selection->addItem(QString("<current>"));
-      ui_->start_state_selection->addItem(QString("<same as goal>"));
+    if (move_group_ && move_group_->getName() == group)
+      return;
+    ROS_INFO("Constructing new MoveGroup connection for group '%s'", group.c_str());
+    move_group_interface::MoveGroup::Options opt(group);
+    opt.kinematic_model_ = kmodel;
+    opt.robot_description_.clear();
+    try
+    {
+      move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(30, 0)));
+      move_group_construction_time_ = ros::WallTime::now();
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+    }
+    if (move_group_)
+    {
+      move_group_->allowLooking(ui_->allow_looking->isChecked());
+      move_group_->allowReplanning(ui_->allow_replanning->isChecked());
+      moveit_msgs::PlannerInterfaceDescription desc;
+      if (move_group_->getInterfaceDescription(desc))
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
+      planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this));
       
-      ui_->goal_state_selection->addItem(QString("<random>"));
-      ui_->goal_state_selection->addItem(QString("<current>"));
-      ui_->goal_state_selection->addItem(QString("<same as start>"));
-      
-      std::vector<std::string> known_states;
-      jmg->getKnownDefaultStates(known_states);
-      if (!known_states.empty())
+      if (first_time_)
       {
-        ui_->start_state_selection->insertSeparator(ui_->start_state_selection->count());
-        ui_->goal_state_selection->insertSeparator(ui_->goal_state_selection->count());
-        for (std::size_t i = 0 ; i < known_states.size() ; ++i)
+        first_time_ = false;
+        const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+        if (ps)
         {
-          ui_->start_state_selection->addItem(QString::fromStdString(known_states[i]));
-          ui_->goal_state_selection->addItem(QString::fromStdString(known_states[i]));
-        }
-      }
-      ui_->start_state_selection->setCurrentIndex(1);
-      ui_->goal_state_selection->setCurrentIndex(0);
-      
-      if (move_group_ && move_group_->getName() == group)
-        return;
-      ROS_INFO("Constructing new MoveGroup connection for group '%s'", group.c_str());
-      move_group_interface::MoveGroup::Options opt(group);
-      opt.kinematic_model_ = kmodel;
-      opt.robot_description_.clear();
-      try
-      {
-        move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(30, 0)));
-        move_group_construction_time_ = ros::WallTime::now();
-      }
-      catch(std::runtime_error &ex)
-      {
-        ROS_ERROR("%s", ex.what());
-      }
-      if (move_group_)
-      {
-        move_group_->allowLooking(ui_->allow_looking->isChecked());
-        move_group_->allowReplanning(ui_->allow_replanning->isChecked());
-        moveit_msgs::PlannerInterfaceDescription desc;
-        if (move_group_->getInterfaceDescription(desc))
-          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
-        planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this));
-
-        if (first_time_)
-        {
-          first_time_ = false;
-          const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-          if (ps)
-          {
-            planning_display_->setQueryStartState(ps->getCurrentState());
-            planning_display_->setQueryGoalState(ps->getCurrentState());
-          }
-        }
+          planning_display_->setQueryStartState(ps->getCurrentState());
+          planning_display_->setQueryGoalState(ps->getCurrentState());
+        }        
       }
     }
   } 
@@ -317,9 +329,7 @@ void MotionPlanningFrame::enable()
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
   ui_->library_label->setStyleSheet("QLabel { color : red; font: bold }");
   ui_->object_status->setText("");
-
-  changePlanningGroup();
-
+  
   // activate the frame
   show();
 }
