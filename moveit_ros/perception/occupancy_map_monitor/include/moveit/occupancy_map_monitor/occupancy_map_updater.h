@@ -109,6 +109,9 @@ protected:
     return transform_provider_callback_ ? transform_provider_callback_(target_frame, target_time, transform_cache_) : false;
   }
   
+  static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, double *value);
+  static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, unsigned int *value);  
+  
 };
 
 typedef boost::shared_ptr<OccupancyMapUpdater> OccupancyMapUpdaterPtr;

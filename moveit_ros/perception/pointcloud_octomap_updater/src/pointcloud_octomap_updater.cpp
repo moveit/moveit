@@ -40,7 +40,6 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/ros/conversions.h>
-#include <moveit/robot_self_filter/self_mask.h>
 #include <XmlRpcException.h>
 
 namespace occupancy_map_monitor
@@ -63,54 +62,27 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue &params)
   {    
     if (!params.hasMember("point_cloud_topic"))
       return false;
-    std::string point_cloud_topic = std::string (params["point_cloud_topic"]);
+    point_cloud_topic_ = std::string (params["point_cloud_topic"]);
     
-    if(!params.hasMember("max_range"))
-      return false;
-    double max_range = double (params["max_range"]);
-    
-    if(!params.hasMember("frame_subsample"))
-      return false;
-    size_t frame_subsample = int (params["frame_subsample"]);
-    
-    if(!params.hasMember("point_subsample"))
-      return false;
-    size_t point_subsample = int (params["point_subsample"]);
-    
-    std::vector<robot_self_filter::LinkInfo> links;
-    if(params.hasMember("self_mask"))
-    {
-      ROS_INFO("Configuring self mask");
-      if(!robot_self_filter::createLinksFromParams(params["self_mask"], links))
-      {
-        ROS_ERROR("Failed to load self mask");
-        return false;
-      }
-    }
-    return this->setParams(point_cloud_topic, max_range, frame_subsample, point_subsample, links);
+    readXmlParam(params, "max_range", &max_range_);
+    readXmlParam(params, "shape_padding", &padding_);
+    readXmlParam(params, "shape_scale", &scale_);
+    readXmlParam(params, "point_subsample", &point_subsample_);
   }
   catch (XmlRpc::XmlRpcException &ex)
   {
     ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
     return false;
   }
-}
-
-bool PointCloudOctomapUpdater::setParams(const std::string &point_cloud_topic, double max_range, size_t frame_subsample,
-                                              size_t point_subsample, const std::vector<robot_self_filter::LinkInfo> &links)
-{
-  point_cloud_topic_ = point_cloud_topic;
-  max_range_ = max_range;
-  frame_subsample_ = frame_subsample;
-  point_subsample_ = point_subsample;
-  if (tf_)
-    self_mask_.reset(new robot_self_filter::SelfMask(*tf_, links));
+  
   return true;
 }
 
 bool PointCloudOctomapUpdater::initialize()
 {
   tf_ = monitor_->getTFClient();
+  shape_mask_.reset(new point_containment_filter::ShapeMask());
+  shape_mask_->setTransformCallback(boost::bind(&PointCloudOctomapUpdater::getShapeTransform, this, _1, _2));
   return true;
 }
 
@@ -149,11 +121,29 @@ void PointCloudOctomapUpdater::stop()
 ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
 {
   ShapeHandle h = 0;
+  if (shape_mask_)
+    h = shape_mask_->addShape(shape, scale_, padding_);
+  else
+    ROS_ERROR("Shape filter not yet initialized!");  
   return h;
 }
 
 void PointCloudOctomapUpdater::forgetShape(ShapeHandle handle)
+{ 
+  if (shape_mask_)
+    shape_mask_->removeShape(handle);  
+}
+
+bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Affine3d &transform) const
 {
+  ShapeTransformCache::const_iterator it = transform_cache_.find(h);
+  if (it == transform_cache_.end())
+  {
+    ROS_ERROR("Internal error. Shape filter handle %u not found", h);
+    return false;
+  }
+  transform = it->second;
+  return true;
 }
 
 void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
@@ -191,13 +181,15 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   pcl::fromROSMsg(*cloud_msg, cloud);
   
   /* compute sensor origin in map frame */
-  tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
+  const tf::Vector3 &sensor_origin_tf = map_H_sensor.getOrigin();
   octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
+  Eigen::Vector3d sensor_origin_eigen(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
+  
+  if (!updateTransformCache(cloud_msg->header.frame_id, cloud_msg->header.stamp))
+    ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
   
   /* mask out points on the robot */
-  std::vector<int> mask;
-  if (self_mask_)
-    self_mask_->maskContainment(cloud, mask);
+  shape_mask_->maskContainment(cloud, sensor_origin_eigen, 0.0, max_range_, mask_);
   
   octomap::KeySet free_cells, occupied_cells, model_cells;
 
@@ -207,16 +199,13 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   {
     /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
      * should be occupied */
-    unsigned int row, col;
-    for (row = 0; row < cloud.height; row += point_subsample_)
+    for (unsigned int row = 0; row < cloud.height; row += point_subsample_)
     {
-      unsigned int row_c = row*cloud.width;
-      for (col = 0; col < cloud.width; col += point_subsample_)
+      unsigned int row_c = row * cloud.width;
+      for (unsigned int col = 0; col < cloud.width; col += point_subsample_)
       {
-        bool self_point = false;
-        if (!mask.empty() && mask[row_c + col] == robot_self_filter::INSIDE)
-          self_point = true;
-        
+        if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
+          continue;
         const pcl::PointXYZ &p = cloud(col, row);
         
         /* check for NaN */
@@ -224,18 +213,14 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 	{        
 	  /* transform to map frame */
 	  tf::Vector3 point_tf = map_H_sensor * tf::Vector3(p.x, p.y, p.z);
-                
+          
 	  /* occupied cell at ray endpoint if ray is shorter than max range and this point
 	     isn't on a part of the robot*/
-	  if (self_point)
+	  if (mask_[row_c + col] == point_containment_filter::ShapeMask::INSIDE)
 	    model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
 	  else
-	  {
-	    double range = (point_tf - sensor_origin_tf).length();
-	    if (range < max_range_)
-	      occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
-	  }
-	}
+            occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+        }
       }
     }
 
