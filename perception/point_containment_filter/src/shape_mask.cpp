@@ -52,6 +52,11 @@ void point_containment_filter::ShapeMask::freeMemory()
   bodies_.clear();
 }
 
+void point_containment_filter::ShapeMask::setTransformCallback(const TransformCallback& transform_callback)
+{
+  transform_callback_ = transform_callback;
+}
+
 point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addShape(const shapes::ShapeConstPtr &shape, double scale, double padding)
 {
   SeeShape ss;
