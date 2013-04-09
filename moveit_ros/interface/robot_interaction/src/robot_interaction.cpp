@@ -233,18 +233,31 @@ void RobotInteraction::InteractionHandler::handleGeneric(const RobotInteraction:
   if (g.process_feedback)
   {
     robot_state::RobotStatePtr state = getUniqueStateAccess();
-    g.process_feedback(*state, feedback);
+    bool ok = g.process_feedback(*state, feedback);
     setStateToAccess(state);
+    
+    bool error_state_changed = false;
+    if (!ok)
+    {
+      error_state_changed = inError(g) ? false : true;
+      error_state_.insert(g.marker_name_suffix);
+    }
+    else
+    {
+      error_state_changed = inError(g) ? true : false;
+      error_state_.erase(g.marker_name_suffix);
+    }
+    
     if (update_callback_)
-      update_callback_(this, false);
+      update_callback_(this, error_state_changed);
   }
 }
 
-bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef,
+void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {    
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
-    return false;
+    return;
   
   geometry_msgs::PoseStamped tpose;
   geometry_msgs::Pose offset;
@@ -257,7 +270,7 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
     pose_map_lock_.unlock();
   }
   else
-    return false;
+    return;
   
   robot_state::RobotStatePtr state = getUniqueStateAccess();
   bool update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
@@ -277,8 +290,6 @@ bool RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
   
   if (update_callback_)
     update_callback_(this, error_state_changed);
-  
-  return error_state_changed;
 }
 
 void RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::RobotInteraction::Joint &vj,
@@ -311,6 +322,11 @@ void RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::
 bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::EndEffector& eef) const
 {
   return error_state_.find(eef.parent_group) != error_state_.end();
+}
+
+bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::Generic& g) const
+{
+  return error_state_.find(g.marker_name_suffix) != error_state_.end();
 }
 
 bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::Joint& vj) const
