@@ -94,20 +94,20 @@ public:
     double size;
   };
   
-  // called to construct the marker.  The callback should set up the passed
-  // in marker according to the passed in robot state.  Return true on
-  // success.  Return false on failure or if the marker should not be added
-  // and displayed.
+  /// When using generic markers, a means to construct the marker is needed: this callback.
+  /// The callback should set up the passed in marker according to the passed in robot state. 
+  /// Return true on success.  Return false on failure or if the marker should not be added
+  /// and displayed.
   typedef boost::function<bool(const robot_state::RobotState&, visualization_msgs::InteractiveMarker&)> InteractiveMarkerConstructorFn;
 
-  // Called when the interactive marker moves.  Callback should update the
-  // robot state that was passed in according to the new position of the
-  // marker.
-  typedef boost::function<void(robot_state::RobotState&, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &)> ProcessFeedbackFn;
+  /// When using generic markers, this callback is called when the interactive marker changes and sends feedback.
+  /// Callback should update the robot state that was passed in according to the new position of the marker. Return true if the update was successful.
+  /// Return false if the state was not successfully updated.
+  typedef boost::function<bool(robot_state::RobotState&, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &)> ProcessFeedbackFn;
 
-  // Called when the robot state changes.  Callback should calculate a new
-  // pose for the marker based on the passed in robot state.
-  // Return true if the pose was modified, false if the existing pose is correct.
+  /// When using generic markers, this callback is called when the robot state changes. Callback should calculate a new
+  /// pose for the marker based on the passed in robot state.
+  /// Return true if the pose was modified, false if no update is to be issued (pose is unchanged).
   typedef boost::function<bool(const robot_state::RobotState&, geometry_msgs::Pose&)> InteractiveMarkerUpdateFn;
 
   /// Representation of a generic interaction.  Displays one interactive marker.
@@ -120,14 +120,17 @@ public:
   };
   
   class InteractionHandler;
-  
+
+  /// This function is called by the InteractionHandler::handle* functions, when changes are made to the internal robot state the handler maintains.
+  /// The handler passes its own pointer as argument to the callback, as well as a boolean flag that indicates wheher the error state changed --
+  /// whether updates to the robot state performed in the InteractionHandler::handle* functions have switched from failing to succeeding or the other way around.
   typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
   
-  // Manage interactive markers to control a RobotState.
-  //
-  // Each instance maintains one or more interactive markers to control various joints in one group of one RobotState.
-  // The group being controlled is maintained by the RobotInteraction object that contains this InteractionHandler object.
-  // All InteractionHandler objects in the same RobotInteraction are controlling the same group.
+  /// Manage interactive markers to control a RobotState.
+  ///
+  /// Each instance maintains one or more interactive markers to control various joints in one group of one RobotState.
+  /// The group being controlled is maintained by the RobotInteraction object that contains this InteractionHandler object.
+  /// All InteractionHandler objects in the same RobotInteraction are controlling the same group.
   class InteractionHandler
   {
   public:
@@ -234,7 +237,7 @@ public:
 
     /** \brief Update the internal state maintained by the handler using
      * information from the received feedback message. */
-    virtual bool handleEndEffector(const RobotInteraction::EndEffector &eef,
+    virtual void handleEndEffector(const RobotInteraction::EndEffector &eef,
                                    const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     /** \brief Update the internal state maintained by the handler using
@@ -249,7 +252,8 @@ public:
     
     virtual bool inError(const RobotInteraction::EndEffector& eef) const;
     virtual bool inError(const RobotInteraction::Joint& vj) const;
-    
+    virtual bool inError(const RobotInteraction::Generic& g) const;
+
     void clearError(void);
     
   protected:
