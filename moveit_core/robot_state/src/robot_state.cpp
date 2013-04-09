@@ -727,6 +727,59 @@ void robot_state::RobotState::printStateInfo(std::ostream &out) const
     out << it->first << " = " << it->second << std::endl;
 }
 
+void robot_state::RobotState::getPoseString(std::stringstream& ss, const Eigen::Affine3d& pose, const std::string& pfx)
+{
+  ss.precision(3);
+  for (int y=0;y<4;y++) 
+  {
+    ss << pfx;
+    for (int x=0;x<4;x++) 
+    {
+      ss << std::setw(8) << pose(y,x) << " ";
+    }
+    ss << std::endl;
+  }
+} 
+
+void robot_state::RobotState::getStateTreeJointString(std::stringstream& ss, const robot_state::JointState* js, const std::string& pfx0, bool last) const
+{
+  std::string pfx = pfx0 + "+--";
+
+  const robot_model::JointModel* jm = js->getJointModel();
+  ss << pfx << "Joint: " << jm->getName() << std::endl;
+
+  pfx = pfx0 + (last ? "   " : "|  ");
+
+  for (int i=0; i<js->getVariableCount(); i++)
+  {
+    ss.precision(3);
+    ss << pfx << js->getVariableNames()[i] << std::setw(8) << js->getVariableValues()[i] << std::endl;
+  }
+
+  const robot_model::LinkModel* lm = jm->getChildLinkModel();
+  const LinkState* ls = getLinkState(jm->getChildLinkModel()->getName());
+
+  ss << pfx << "Link: " << lm->getName() << std::endl;
+  getPoseString(ss, lm->getJointOriginTransform(), pfx + "joint_origin:");
+  getPoseString(ss, js->getVariableTransform(), pfx + "joint_variable:");
+  getPoseString(ss, ls->getGlobalLinkTransform(), pfx + "link_global:");
+
+  for (std::vector<robot_model::JointModel*>::const_iterator it = lm->getChildJointModels().begin() ; it != lm->getChildJointModels().end() ; ++it)
+  {
+    const robot_model::JointModel* cjm = *it;
+    getStateTreeJointString(ss, getJointState(cjm->getName()), pfx, it+1 == lm->getChildJointModels().end());
+  }
+}
+
+std::string robot_state::RobotState::getStateTreeString(const std::string& prefix) const
+{
+  std::stringstream ss;
+  ss << "ROBOT: " << getRobotModel()->getName() << std::endl;
+  getPoseString(ss, getRootTransform(), "   Root: ");
+  getStateTreeJointString(ss, getJointState(getRobotModel()->getRoot()->getName()), "   ", true);
+  return ss.str();
+}
+
 void robot_state::RobotState::printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out) const
 {
   out << st << std::endl;
