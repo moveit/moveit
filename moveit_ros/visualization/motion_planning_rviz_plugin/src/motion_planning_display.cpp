@@ -690,7 +690,7 @@ void MotionPlanningDisplay::changedQueryStartState()
     return;
 
   drawQueryStartState();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, true));
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, true), "publishInteractiveMarkers");
 }
 
 void MotionPlanningDisplay::changedQueryGoalState()
@@ -699,7 +699,7 @@ void MotionPlanningDisplay::changedQueryGoalState()
     return;
 
   drawQueryGoalState();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, true));
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, true), "publishInteractiveMarkers");
 }
 
 void MotionPlanningDisplay::drawQueryGoalState()
@@ -743,7 +743,7 @@ void MotionPlanningDisplay::resetInteractiveMarkers()
 {
   query_start_state_->clearError();
   query_goal_state_->clearError();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false));
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false), "publishInteractiveMarkers");
 }
 
 void MotionPlanningDisplay::publishInteractiveMarkers(bool pose_update)
@@ -836,7 +836,7 @@ void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::Robot
   if (!planning_scene_monitor_)
     return; 
   if (error_state_changed)
-    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false));
+    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false), "publishInteractiveMarkers");
   recomputeQueryStartStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryStartState, this));
   context_->queueRender();
@@ -847,7 +847,7 @@ void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::RobotI
   if (!planning_scene_monitor_)
     return; 
   if (error_state_changed)
-    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false));
+    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false), "publishInteractiveMarkers");
   recomputeQueryGoalStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryGoalState, this));
   context_->queueRender();
@@ -937,7 +937,7 @@ void MotionPlanningDisplay::changedPlanningGroup()
 
   if (frame_)
     frame_->changePlanningGroup();
-  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false));
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false), "publishInteractiveMarkers");
 }
 
 void MotionPlanningDisplay::changedWorkspace()

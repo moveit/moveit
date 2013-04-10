@@ -41,7 +41,7 @@ moveit_rviz_plugin::BackgroundProcessing JobProcessing::background_process_;
 
 void JobProcessing::addBackgroundJob(const boost::function<void(void)> &job)
 {
-  background_process_.addJob(job);
+  background_process_.addJob(job, "noname");
 }
 
 void JobProcessing::addMainLoopJob(const boost::function<void(void)> &job)

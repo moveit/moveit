@@ -83,11 +83,13 @@ public:
   void queueRenderSceneGeometry();
 
   // pass the execution of this function call to a separate thread that runs in the background
-  void addBackgroundJob(const boost::function<void()> &job);
+  void addBackgroundJob(const boost::function<void()> &job, const std::string &name);
   
   // queue the execution of this function for the next time the main update() loop gets called
   void addMainLoopJob(const boost::function<void()> &job);
 
+  void waitForAllMainLoopJobs();
+    
   // remove all queued jobs
   void clearJobs();
   
@@ -117,9 +119,19 @@ private Q_SLOTS:
   
 protected:
 
+  /// This function reloads the robot model and reinitializes the PlanningSceneMonitor
+  /// It can be called either from the Main Loop or from a Background thread
   void loadRobotModel();
-  void afterRobotModelLoaded();
-  virtual void createPlanningSceneMonitor();
+
+  /// This function is used by loadRobotModel() and should only be called in the MainLoop
+  /// You probably should not call this function directly
+  void clearRobotModel();
+
+  /// This function constructs a new planning scene. Probably this should be called in a background thread
+  /// as it may take some time to complete its execution
+  virtual planning_scene_monitor::PlanningSceneMonitorPtr createPlanningSceneMonitor();
+
+  /// This is an event called by loadRobotModel() in the MainLoop; do not call directly
   virtual void onRobotModelLoaded();
   
   /**
@@ -149,11 +161,11 @@ protected:
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   bool model_is_loading_;
   boost::mutex robot_model_loading_lock_;
-  boost::condition_variable robot_model_loading_condition_;
   
   BackgroundProcessing background_process_;
   std::deque<boost::function<void()> > main_loop_jobs_;
   boost::mutex main_loop_jobs_lock_;
+  boost::condition_variable main_loop_jobs_empty_condition_;
   
   Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
   

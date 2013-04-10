@@ -205,7 +205,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       moveit_msgs::PlannerInterfaceDescription desc;
       if (move_group_->getInterfaceDescription(desc))
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
-      planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this));
+      planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this), "populateConstraintsList");
       
       if (first_time_)
       {
@@ -223,7 +223,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
 
 void MotionPlanningFrame::changePlanningGroup()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::changePlanningGroupHelper, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::changePlanningGroupHelper, this), "Frame::changePlanningGroup");
 }
 
 void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)

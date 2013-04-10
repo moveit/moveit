@@ -62,22 +62,26 @@ void BackgroundProcessing::processingThread()
     while (!actions_.empty())
     {
       boost::function<void()> fn = actions_.front();
+      std::string action_name = action_names_.front();
       actions_.pop_front();
+      action_names_.pop_front();
       processing_ = true;
       
       // make sure we are unlocked while we process the event
       action_lock_.unlock();
       try
       {
+        ROS_DEBUG("Begin executing '%s'", action_name.c_str());
         fn();
+        ROS_DEBUG("Done executing '%s'", action_name.c_str());
       } 
       catch(std::runtime_error &ex)
       {
-        ROS_ERROR("Exception caught while processing event: %s", ex.what());
+        ROS_ERROR("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
       }
       catch(...)
       {
-        ROS_ERROR("Exception caught while processing event");
+        ROS_ERROR("Exception caught while processing action '%s'", action_name.c_str());
       }
       processing_ = false;
       if (queue_change_event_)
@@ -87,11 +91,12 @@ void BackgroundProcessing::processingThread()
   }
 }
 
-void BackgroundProcessing::addJob(const boost::function<void()> &job)
+void BackgroundProcessing::addJob(const boost::function<void()> &job, const std::string &name)
 {
   {
     boost::mutex::scoped_lock slock(action_lock_);
     actions_.push_back(job);
+    action_names_.push_back(name);
     new_action_condition_.notify_all();
   }
   if (queue_change_event_)
@@ -105,6 +110,7 @@ void BackgroundProcessing::clear()
     boost::mutex::scoped_lock slock(action_lock_);
     update = !actions_.empty();
     actions_.clear();
+    action_names_.clear();
   }
   if (update && queue_change_event_)
     queue_change_event_(REMOVE);

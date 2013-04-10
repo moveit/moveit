@@ -699,8 +699,8 @@ static inline std::string getMarkerName(const RobotInteraction::InteractionHandl
   return "GG:" + handler->getName() + "_" + g.marker_name_suffix;
 }
 
-void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale)
-{
+void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale)
+{       
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   std::vector<visualization_msgs::InteractiveMarker> ims;
   {
@@ -729,17 +729,17 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       
       std::string marker_name = getMarkerName(handler, active_eef_[i]);
       shown_markers_[marker_name] = i;
-      
+
       // Determine interactive maker size
-      if (marker_scale < std::numeric_limits<double>::epsilon())
-        marker_scale = active_eef_[i].size;
-      visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, marker_scale);
+      double mscale = marker_scale < std::numeric_limits<double>::epsilon() ? active_eef_[i].size : marker_scale;
+      
+      visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, mscale);
       if(handler && handler->getControlsVisible())
         add6DOFControl(im, false);
       if (handler && handler->getMeshesVisible())
         addEndEffectorMarkers(handler, active_eef_[i], control_to_eef_tf, im);
       ims.push_back(im);
-      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
+      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), mscale);
     }
     for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
     {
@@ -750,9 +750,11 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
       std::string marker_name = getMarkerName(handler, active_vj_[i]);
       shown_markers_[marker_name] = i;
-      if (marker_scale < std::numeric_limits<double>::epsilon())
-        marker_scale = active_vj_[i].size;
-      visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, marker_scale);
+
+      // Determine interactive maker size
+      double mscale = marker_scale < std::numeric_limits<double>::epsilon() ? active_vj_[i].size : marker_scale;
+      
+      visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, mscale);
       if (handler && handler->getControlsVisible())
       {
         if (active_vj_[i].dof == 3) // planar joint
@@ -761,7 +763,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
           add6DOFControl(im, false);
       }   
       ims.push_back(im);
-      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), marker_scale);
+      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), mscale);
     }
     handlers_[handler->getName()] = handler;
   }

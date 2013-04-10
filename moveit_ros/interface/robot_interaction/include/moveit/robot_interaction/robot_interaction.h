@@ -330,7 +330,7 @@ public:
   // remove all interactive markers.
   void clear();
   
-  void addInteractiveMarkers(const InteractionHandlerPtr &handler, double marker_scale = 0.0);
+  void addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale = 0.0);
   void updateInteractiveMarkers(const InteractionHandlerPtr &handler);
   bool showingMarkers(const InteractionHandlerPtr &handler);
 
