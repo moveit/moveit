@@ -130,7 +130,7 @@ void addErrorMarker(visualization_msgs::InteractiveMarker &im)
   im.controls.push_back(err_control);
 }
 
-void add3DOFControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed)
+void addPlanarXYControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed)
 {
   visualization_msgs::InteractiveMarkerControl control;
 
@@ -192,13 +192,41 @@ void add6DOFControl(visualization_msgs::InteractiveMarker& int_marker, bool orie
   int_marker.controls.push_back(control);
 }
 
-visualization_msgs::InteractiveMarker make3DOFMarker(const std::string& name,
+void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed)
+{
+  visualization_msgs::InteractiveMarkerControl control;
+
+  if (orientation_fixed)
+    control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
+  control.orientation.w = 1;
+  control.orientation.x = 1;
+  control.orientation.y = 0;
+  control.orientation.z = 0;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 1;
+  control.orientation.z = 0;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 0;
+  control.orientation.z = 1;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+}
+
+visualization_msgs::InteractiveMarker makePlanarXYMarker(const std::string& name,
                                                      const geometry_msgs::PoseStamped &stamped,
                                                      double scale,
                                                      bool orientation_fixed)
 {
   visualization_msgs::InteractiveMarker int_marker = makeEmptyInteractiveMarker(name, stamped, scale);
-  add3DOFControl(int_marker, orientation_fixed);
+  addPlanarXYControl(int_marker, orientation_fixed);
   return int_marker;
 }
 

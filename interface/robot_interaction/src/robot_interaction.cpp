@@ -756,7 +756,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       if (handler && handler->getControlsVisible())
       {
         if (active_vj_[i].dof == 3) // planar joint
-          add3DOFControl(im, false);
+          addPlanarXYControl(im, false);
         else
           add6DOFControl(im, false);
       }   
