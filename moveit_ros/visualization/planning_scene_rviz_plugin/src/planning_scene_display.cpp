@@ -33,7 +33,6 @@
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
-
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 #include <rviz/robot/robot_link.h>
@@ -59,6 +58,7 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool show_scene_robot) :
   Display(),  
+  model_is_loading_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true)
 {
@@ -447,17 +447,26 @@ void PlanningSceneDisplay::createPlanningSceneMonitor()
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
                                                                                  context_->getFrameManager()->getTFClientPtr(),
                                                                                  getNameStd() + "_planning_scene_monitor"));
-}
+}  
 
 void PlanningSceneDisplay::loadRobotModel()
 {
+  // wait for other robot loadRobotModel() calls to complete;
+  // this is a bit more complex than just a lock because we need to wait for some main loop jobs as well
+  {
+    boost::unique_lock<boost::mutex> ulock(robot_model_loading_lock_);
+    while (model_is_loading_)
+      robot_model_loading_condition_.wait(ulock);
+    model_is_loading_ = true;
+  }
+  
   planning_scene_render_.reset();
   planning_scene_monitor_.reset(); // this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
   createPlanningSceneMonitor();
   if (planning_scene_monitor_->getPlanningScene())
   {
     addMainLoopJob(boost::bind(&PlanningSceneDisplay::onRobotModelLoaded, this)); 
-    addMainLoopJob(boost::bind(&PlanningSceneDisplay::acceptSceneUpdates, this));
+    addMainLoopJob(boost::bind(&PlanningSceneDisplay::afterRobotModelLoaded, this)); // ensure this function is called *after* onRobotModelLoaded completes
     setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
   }
   else
@@ -467,9 +476,16 @@ void PlanningSceneDisplay::loadRobotModel()
   }
 }
 
-void PlanningSceneDisplay::acceptSceneUpdates()
+void PlanningSceneDisplay::afterRobotModelLoaded()
 { 
-  planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
+  if (planning_scene_monitor_)
+    planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
+
+  {
+    boost::unique_lock<boost::mutex> ulock(robot_model_loading_lock_);
+    model_is_loading_ = false;
+    robot_model_loading_condition_.notify_one();
+  }
 }
 
 void PlanningSceneDisplay::onRobotModelLoaded()
