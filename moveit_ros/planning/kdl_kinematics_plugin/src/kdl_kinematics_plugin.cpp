@@ -192,7 +192,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   private_handle.param("max_solver_iterations", max_solver_iterations, 500);
   private_handle.param("epsilon", epsilon, 1e-5);
-  private_handle.param("position_only_ik", position_ik, false);
+  private_handle.param(group_name+"/position_only_ik", position_ik, false);
 
   if(position_ik)
     ROS_INFO("Using position only ik");
