@@ -810,35 +810,35 @@ void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr &handler, c
 
 void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr &handler)
 {
-  boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-
-  robot_state::RobotStateConstPtr s = handler->getState();
-  for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
+  std::map<std::string, geometry_msgs::Pose> pose_updates;
   {
-    std::string marker_name = getMarkerName(handler, active_eef_[i]);
-    geometry_msgs::Pose pose;
-    geometry_msgs::Pose control_to_eef_tf;
-    computeMarkerPose(handler, active_eef_[i], *s, pose, control_to_eef_tf);
-    int_marker_server_->setPose(marker_name, pose);
+    boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+    
+    robot_state::RobotStateConstPtr s = handler->getState();
+    for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
+    {
+      std::string marker_name = getMarkerName(handler, active_eef_[i]);
+      geometry_msgs::Pose control_to_eef_tf;
+      computeMarkerPose(handler, active_eef_[i], *s, pose_updates[marker_name], control_to_eef_tf);
+    }
+    
+    for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
+    {
+      std::string marker_name = getMarkerName(handler, active_vj_[i]);
+      const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
+      tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose_updates[marker_name]);
+    }
+    
+    for (std::size_t i = 0 ; i < active_generic_.size() ; ++i)
+    {     
+      std::string marker_name = getMarkerName(handler, active_generic_[i]);
+      geometry_msgs::Pose pose;
+      if (active_generic_[i].update_pose && active_generic_[i].update_pose(*s, pose))
+        pose_updates[marker_name] = pose;
+    }
   }
-
-  for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
-  {
-    std::string marker_name = getMarkerName(handler, active_vj_[i]);
-    geometry_msgs::Pose pose;
-    const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
-    tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose);
-    int_marker_server_->setPose(marker_name, pose);
-  }
-
-  for (std::size_t i = 0 ; i < active_generic_.size() ; ++i)
-  {     
-    std::string marker_name = getMarkerName(handler, active_generic_[i]);
-    geometry_msgs::Pose pose;
-    if (active_generic_[i].update_pose && active_generic_[i].update_pose(*s, pose))
-      int_marker_server_->setPose(marker_name, pose);
-  }
-  
+  for (std::map<std::string, geometry_msgs::Pose>::const_iterator it = pose_updates.begin() ; it != pose_updates.end() ; ++it)
+    int_marker_server_->setPose(it->first, it->second);
   int_marker_server_->applyChanges();
 }
 
