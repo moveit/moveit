@@ -214,8 +214,10 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
     std::map<std::string, robot_model::SolverAllocatorFn> imap;
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
     {
+      if (!model_->hasJointModelGroup(groups[i]))
+        continue;
       const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
-      if (jmg && jmg->isChain())
+      if (jmg->isChain())
         imap[groups[i]] = kinematics_allocator;
     }
     model_->setKinematicsAllocators(imap);
@@ -224,6 +226,8 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
     const std::map<std::string, double> &timeout = kinematics_loader_->getIKTimeout();
     for (std::map<std::string, double>::const_iterator it = timeout.begin() ; it != timeout.end() ; ++it)
     {
+      if (!model_->hasJointModelGroup(it->first))
+        continue;
       robot_model::JointModelGroup *jmg = model_->getJointModelGroup(it->first);
       jmg->setDefaultIKTimeout(it->second);
     } 
@@ -232,6 +236,8 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
     const std::map<std::string, unsigned int> &attempts = kinematics_loader_->getIKAttempts();
     for (std::map<std::string, unsigned int>::const_iterator it = attempts.begin() ; it != attempts.end() ; ++it)
     {
+      if (!model_->hasJointModelGroup(it->first))
+        continue;
       robot_model::JointModelGroup *jmg = model_->getJointModelGroup(it->first);
       jmg->setDefaultIKAttempts(it->second);
     }
@@ -245,11 +251,16 @@ std::map<std::string, kinematics::KinematicsBasePtr> robot_model_loader::RobotMo
   {
     const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
-    {
+    { 
+      if (!model_->hasJointModelGroup(groups[i]))
+        continue;
       const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
-      robot_model::SolverAllocatorFn a = jmg->getSolverAllocators().first;
-      if (a)
-        result[jmg->getName()] = a(jmg);
+      if (jmg)
+      {
+        robot_model::SolverAllocatorFn a = jmg->getSolverAllocators().first;
+        if (a)
+          result[jmg->getName()] = a(jmg);
+      }
     }
   }
   else
