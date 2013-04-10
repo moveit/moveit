@@ -118,7 +118,9 @@ private Q_SLOTS:
 protected:
 
   void loadRobotModel();
+  void afterRobotModelLoaded();
   virtual void createPlanningSceneMonitor();
+  virtual void onRobotModelLoaded();
   
   /**
    * \brief Set the scene node's position, given the target frame and the planning frame
@@ -127,7 +129,6 @@ protected:
   
   void executeMainLoopJobs();  
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  void acceptSceneUpdates();
   void renderPlanningScene();
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
@@ -143,10 +144,12 @@ protected:
   
   // new virtual functions added by this plugin
   virtual void updateInternal(float wall_dt, float ros_dt);
-  virtual void onRobotModelLoaded();
   virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  bool model_is_loading_;
+  boost::mutex robot_model_loading_lock_;
+  boost::condition_variable robot_model_loading_condition_;
   
   BackgroundProcessing background_process_;
   std::deque<boost::function<void()> > main_loop_jobs_;
