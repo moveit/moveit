@@ -320,6 +320,12 @@ public:
   //  - each planar joint
   // If no end effector exists in the robot then adds an interactive marker for the last link in the chain.
   void decideActiveComponents(const std::string &group);
+
+  /// called by decideActiveComponents(); add markers for end effectors
+  void decideActiveEndEffectors(const std::string &group);
+
+  /// called by decideActiveComponents(); add markers for planar and floating joints
+  void decideActiveJoints(const std::string &group);
   
   // remove all interactive markers.
   void clear();
@@ -346,9 +352,6 @@ public:
   static bool updateState(robot_state::RobotState &state, const Joint &vj, const geometry_msgs::Pose &pose);
 
 private:
-  // called by decideActiveComponents
-  void decideActiveEndEffectors(const std::string &group);
-  void decideActiveJoints(const std::string &group);
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupMarkerSize(const std::string &group);  
