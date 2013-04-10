@@ -378,6 +378,15 @@ private:
   
   std::map<std::string, InteractionHandlerPtr> handlers_;
   std::map<std::string, std::size_t> shown_markers_;
+
+  // This mutex is locked every time markers are read or updated;
+  // This includes the active_* arrays and shown_markers_
+  // Please note that this mutex *MUST NOT* be locked while operations
+  // on the interative marker server are called because the server
+  // also locks internally and we could othewrise end up with a problem 
+  // of Thread 1: Lock A,         Lock B, Unlock B, Unloack A
+  //    Thread 2:         Lock B, Lock A
+  // => deadlock
   boost::mutex marker_access_lock_;
 
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
