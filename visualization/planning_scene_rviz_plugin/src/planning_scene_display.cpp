@@ -173,10 +173,10 @@ PlanningSceneDisplay::~PlanningSceneDisplay()
 }
 
 void PlanningSceneDisplay::clearJobs()
-{
+{  
   background_process_.clear();
   {
-    boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
+    boost::unique_lock<boost::mutex> ulock(main_loop_jobs_lock_);
     main_loop_jobs_.clear();
   }
 }
@@ -201,22 +201,29 @@ void PlanningSceneDisplay::reset()
   if (planning_scene_robot_)
     planning_scene_robot_->clear();
   
-  addBackgroundJob(boost::bind(&PlanningSceneDisplay::loadRobotModel, this));
+  addBackgroundJob(boost::bind(&PlanningSceneDisplay::loadRobotModel, this), "loadRobotModel");
   Display::reset();
   
   if (planning_scene_robot_)
     planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
 }
 
-void PlanningSceneDisplay::addBackgroundJob(const boost::function<void()> &job)
+void PlanningSceneDisplay::addBackgroundJob(const boost::function<void()> &job, const std::string &name)
 {
-  background_process_.addJob(job);
+  background_process_.addJob(job, name);
 }
 
 void PlanningSceneDisplay::addMainLoopJob(const boost::function<void()> &job)
 {
-  boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
+  boost::unique_lock<boost::mutex> ulock(main_loop_jobs_lock_);
   main_loop_jobs_.push_back(job);
+}
+
+void PlanningSceneDisplay::waitForAllMainLoopJobs()
+{
+  boost::unique_lock<boost::mutex> ulock(main_loop_jobs_lock_);
+  while (!main_loop_jobs_.empty())
+    main_loop_jobs_empty_condition_.wait(ulock);
 }
 
 void PlanningSceneDisplay::executeMainLoopJobs()
@@ -240,7 +247,8 @@ void PlanningSceneDisplay::executeMainLoopJobs()
       ROS_ERROR("Exception caught executing main loop job");
     }
     main_loop_jobs_lock_.lock();
-  }
+  }    
+  main_loop_jobs_empty_condition_.notify_all();
   main_loop_jobs_lock_.unlock();
 }
 
@@ -442,50 +450,50 @@ void PlanningSceneDisplay::unsetLinkColor(rviz::Robot* robot, const std::string&
 // ******************************************************************************************
 // Load
 // ******************************************************************************************
-void PlanningSceneDisplay::createPlanningSceneMonitor()
+planning_scene_monitor::PlanningSceneMonitorPtr PlanningSceneDisplay::createPlanningSceneMonitor()
 {
-  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
-                                                                                 context_->getFrameManager()->getTFClientPtr(),
-                                                                                 getNameStd() + "_planning_scene_monitor"));
-}  
+  return planning_scene_monitor::PlanningSceneMonitorPtr
+    (new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
+                                                      context_->getFrameManager()->getTFClientPtr(),
+                                                      getNameStd() + "_planning_scene_monitor"));
+}
+
+void PlanningSceneDisplay::clearRobotModel()
+{
+  planning_scene_render_.reset();
+  planning_scene_monitor_.reset(); // this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
+}
 
 void PlanningSceneDisplay::loadRobotModel()
 {
   // wait for other robot loadRobotModel() calls to complete;
-  // this is a bit more complex than just a lock because we need to wait for some main loop jobs as well
-  {
-    boost::unique_lock<boost::mutex> ulock(robot_model_loading_lock_);
-    while (model_is_loading_)
-      robot_model_loading_condition_.wait(ulock);
-    model_is_loading_ = true;
-  }
+  boost::mutex::scoped_lock _(robot_model_loading_lock_);
+  model_is_loading_ = true;
+
+  // we need to make sure the clearing of the robot model is in the main thread,
+  // so that rendering operations do not have data removed from underneath,
+  // so the next function is executed in the main loop
+  addMainLoopJob(boost::bind(&PlanningSceneDisplay::clearRobotModel, this)); 
   
-  planning_scene_render_.reset();
-  planning_scene_monitor_.reset(); // this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
-  createPlanningSceneMonitor();
-  if (planning_scene_monitor_->getPlanningScene())
+  waitForAllMainLoopJobs();
+  
+  planning_scene_monitor::PlanningSceneMonitorPtr psm = createPlanningSceneMonitor();
+  if (psm->getPlanningScene())
   {
-    addMainLoopJob(boost::bind(&PlanningSceneDisplay::onRobotModelLoaded, this)); 
-    addMainLoopJob(boost::bind(&PlanningSceneDisplay::afterRobotModelLoaded, this)); // ensure this function is called *after* onRobotModelLoaded completes
+    planning_scene_monitor_.swap(psm);
+    addMainLoopJob(boost::bind(&PlanningSceneDisplay::onRobotModelLoaded, this));
     setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
+    waitForAllMainLoopJobs();
   }
   else
   {
-    planning_scene_monitor_.reset();
     setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded");
   }
-}
-
-void PlanningSceneDisplay::afterRobotModelLoaded()
-{ 
+  
   if (planning_scene_monitor_)
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
-
-  {
-    boost::unique_lock<boost::mutex> ulock(robot_model_loading_lock_);
-    model_is_loading_ = false;
-    robot_model_loading_condition_.notify_one();
-  }
+  
+  model_is_loading_ = false;
 }
 
 void PlanningSceneDisplay::onRobotModelLoaded()
@@ -536,7 +544,7 @@ void PlanningSceneDisplay::onEnable()
 {
   Display::onEnable();
   
-  addBackgroundJob(boost::bind(&PlanningSceneDisplay::loadRobotModel, this));
+  addBackgroundJob(boost::bind(&PlanningSceneDisplay::loadRobotModel, this), "loadRobotModel");
   
   if (planning_scene_robot_)
     planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());

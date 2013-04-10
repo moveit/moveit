@@ -49,7 +49,7 @@ namespace moveit_rviz_plugin
 
 void MotionPlanningFrame::databaseConnectButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClicked, this), "connect to database");
 }
 
 void MotionPlanningFrame::publishSceneButtonClicked()
@@ -95,7 +95,7 @@ void MotionPlanningFrame::resetDbButtonClicked()
                             QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
     return;
 
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeResetDbButtonClicked, this, response.toStdString()));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeResetDbButtonClicked, this, response.toStdString()), "reset database");
 }
 
 void MotionPlanningFrame::computeDatabaseConnectButtonClicked()

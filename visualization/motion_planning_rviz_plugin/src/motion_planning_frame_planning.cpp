@@ -42,20 +42,20 @@ namespace moveit_rviz_plugin
 
 void MotionPlanningFrame::planButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanButtonClicked, this), "compute plan");
 }
 
 void MotionPlanningFrame::executeButtonClicked()
 {
   ui_->execute_button->setEnabled(false);
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeExecuteButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeExecuteButtonClicked, this), "execute");
 }
 
 void MotionPlanningFrame::planAndExecuteButtonClicked()
 {
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this), "plan and execute");
 }
 
 void MotionPlanningFrame::allowReplanningToggled(bool checked)

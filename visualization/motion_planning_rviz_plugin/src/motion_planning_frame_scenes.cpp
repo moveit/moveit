@@ -101,7 +101,7 @@ void MotionPlanningFrame::saveSceneButtonClicked()
       }
     }
 
-    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveSceneButtonClicked, this));
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveSceneButtonClicked, this), "save scene");
   }
 }
 
@@ -123,7 +123,7 @@ void MotionPlanningFrame::saveQueryButtonClicked()
       if (s->type() == ITEM_TYPE_SCENE)
       {
         std::string scene = s->text(0).toStdString();
-        planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveQueryButtonClicked, this, scene, ""));
+        planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveQueryButtonClicked, this, scene, ""), "save query");
       }
       else
       {
@@ -164,7 +164,7 @@ void MotionPlanningFrame::saveQueryButtonClicked()
               return;
           }
         }
-        planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveQueryButtonClicked, this, scene, query_name));
+        planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeSaveQueryButtonClicked, this, scene, query_name), "save query");
       }
     }
   }
@@ -172,22 +172,22 @@ void MotionPlanningFrame::saveQueryButtonClicked()
 
 void MotionPlanningFrame::deleteSceneButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDeleteSceneButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDeleteSceneButtonClicked, this), "delete scene");
 }
 
 void MotionPlanningFrame::deleteQueryButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDeleteQueryButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeDeleteQueryButtonClicked, this), "delete query");
 }
 
 void MotionPlanningFrame::loadSceneButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadSceneButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadSceneButtonClicked, this), "load scene");
 }
 
 void MotionPlanningFrame::loadQueryButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadQueryButtonClicked, this));
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeLoadQueryButtonClicked, this), "load query");
 }
 
 void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)

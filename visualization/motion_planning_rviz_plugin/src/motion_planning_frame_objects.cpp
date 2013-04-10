@@ -892,7 +892,7 @@ void MotionPlanningFrame::exportAsTextButtonClicked()
 { 
   QString path = QFileDialog::getSaveFileName(this, tr("Export Scene Geometry"), tr(""), tr("Scene Geometry (*.scene)"));
   if (!path.isEmpty())
-    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeExportAsText, this, path.toStdString()));
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeExportAsText, this, path.toStdString()), "export as text");
 }
 
 void MotionPlanningFrame::computeExportAsText(const std::string &path)
@@ -936,7 +936,7 @@ void MotionPlanningFrame::importFromTextButtonClicked()
 { 
   QString path = QFileDialog::getOpenFileName(this, tr("Import Scene Geometry"), tr(""), tr("Scene Geometry (*.scene)"));
   if (!path.isEmpty()) 
-    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeImportFromText, this, path.toStdString()));
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeImportFromText, this, path.toStdString()), "import from text");
 }
 
 
