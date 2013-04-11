@@ -524,7 +524,16 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeRobotLinksFromOctree()
   const std::vector<robot_model::LinkModel*> &links = getRobotModel()->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
-    occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(links[i]->getShape());
+    shapes::ShapeConstPtr shape = links[i]->getShape();
+    // merge mesh vertices up to 0.1 mm apart
+    if (links[i]->getShape()->type == shapes::MESH)
+    {
+      shapes::Mesh *m = static_cast<shapes::Mesh*>(links[i]->getShape()->clone());
+      m->mergeVertices(1e-4);
+      shape.reset(m);
+    }
+    
+    occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(shape);
     if (h)
       link_shape_handles_[links[i]->getName()] = h;
   }
