@@ -136,7 +136,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   if(!kinematic_model_->hasJointModelGroup(group_name))
   {
-    ROS_ERROR("Kinematic model does not contain group %s",group_name.c_str());
+    ROS_ERROR("Kinematic model does not contain group %s", group_name.c_str());
     return false;
   }  
   robot_model::JointModelGroup* joint_model_group = kinematic_model_->getJointModelGroup(group_name);
@@ -193,7 +193,10 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   private_handle.param("max_solver_iterations", max_solver_iterations, 500);
   private_handle.param("epsilon", epsilon, 1e-5);
   private_handle.param(group_name+"/position_only_ik", position_ik, false);
-
+  ROS_DEBUG("Looking in private handle: %s for param name: %s", 
+            private_handle.getNamespace().c_str(), 
+            (group_name+"/position_only_ik").c_str());
+  
   if(position_ik)
     ROS_INFO("Using position only ik");
   
