@@ -956,9 +956,6 @@ shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *g
       {
         Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
         shapes::Mesh *m = shapes::createMeshFromResource(mesh->filename, scale);
-        // merge vertices up to 0.1 mm apart
-        if (m)
-          m->mergeVertices(1e-4);
         result = m;
       }
     }
