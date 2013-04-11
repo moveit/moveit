@@ -148,6 +148,7 @@ private Q_SLOTS:
   void changedShowManipulability();
   void changedShowJointTorques();
   void changedMetricsSetPayload();
+  void changedMetricsTextHeight();
   void changedWorkspace();
   void resetInteractiveMarkers();
   
@@ -268,6 +269,7 @@ protected:
   rviz::BoolProperty* show_manipulability_property_;
   rviz::BoolProperty* show_joint_torques_property_;
   rviz::FloatProperty* metrics_set_payload_property_;
+  rviz::FloatProperty* metrics_text_height_property_;
   rviz::BoolProperty* show_workspace_property_;
 
   rviz::Display *int_marker_display_;

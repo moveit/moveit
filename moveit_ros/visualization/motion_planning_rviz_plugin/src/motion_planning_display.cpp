@@ -108,6 +108,12 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
                              SLOT( changedMetricsSetPayload() ), this );
   metrics_set_payload_property_->setMin( 0.0 );
 
+  metrics_text_height_property_ =
+    new rviz::FloatProperty( "TextHeight", 0.08f, "Text height",
+                             metrics_category_,
+                             SLOT( changedMetricsTextHeight() ), this );
+  metrics_text_height_property_->setMin( 0.001 );
+
   // Planning request category -----------------------------------------------------------------------------------------
 
   planning_group_property_ = new rviz::EditableEnumProperty("Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
@@ -261,7 +267,7 @@ void MotionPlanningDisplay::onInitialize()
   text_display_scene_node_ = planning_scene_node_->createChildSceneNode();
   text_to_display_ = new rviz::MovableText("EMPTY");
   text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
-  text_to_display_->setCharacterHeight(0.08);
+  text_to_display_->setCharacterHeight(metrics_text_height_property_->getFloat());
   text_to_display_->showOnTop();
   text_to_display_->setVisible(false);
   text_display_for_start_ = false;
@@ -406,6 +412,11 @@ void MotionPlanningDisplay::changedMetricsSetPayload()
     if (query_goal_state_property_->getBool())
       displayMetrics(false);
   }
+}
+
+void MotionPlanningDisplay::changedMetricsTextHeight()
+{
+  text_to_display_->setCharacterHeight( metrics_text_height_property_->getFloat() );
 }
 
 void MotionPlanningDisplay::displayTable(const std::map<std::string, double> &values,
