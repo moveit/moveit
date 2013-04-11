@@ -212,6 +212,7 @@ protected:
   robot_trajectory::RobotTrajectoryPtr trajectory_message_to_display_;
   std::vector<rviz::Robot*> trajectory_trail_;
   ros::Subscriber trajectory_topic_sub_;
+  ros::NodeHandle private_handle_;  
   bool animating_path_;
   int current_state_;
   float current_state_time_;
@@ -235,6 +236,8 @@ protected:
   /// The metrics are pairs of name-value for each of the active end effectors, for both start & goal states.
   /// computed_metrics_[std::make_pair(IS_START_STATE, GROUP_NAME)] = a map of key-value pairs
   std::map<std::pair<bool, std::string>, std::map<std::string, double> > computed_metrics_;
+  /// Some groups use position only ik, calls to the metrics have to be modified appropriately
+  std::map<std::string, bool> position_only_ik_;
   
   //Metric calculations
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  

@@ -78,7 +78,8 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   frame_(NULL),
   frame_dock_(NULL),
   animating_path_(false),
-  int_marker_display_(NULL)
+  int_marker_display_(NULL),
+  private_handle_("~")
 {
   // Category Groups
   plan_category_  = new rviz::Property( "Planning Request",   QVariant(), "", this );
@@ -572,8 +573,23 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
 
   if (kinematics_metrics_)
   {
+    if(position_only_ik_.find(ee.parent_group) == position_only_ik_.end())
+    {
+      if(!private_handle_.hasParam( ee.parent_group + "/position_only_ik"))
+      {
+         position_only_ik_[ee.parent_group] = false;
+      }      
+      else
+      {
+        bool pik;        
+        private_handle_.getParam( ee.parent_group + "/position_only_ik", pik);
+        position_only_ik_[ee.parent_group] = pik;        
+      }      
+    }
+    
     double manipulability_index, manipulability;
-    if (kinematics_metrics_->getManipulabilityIndex(state, ee.parent_group, manipulability_index))
+    bool position_ik = position_only_ik_.find(ee.parent_group)->second;    
+    if (kinematics_metrics_->getManipulabilityIndex(state, ee.parent_group, manipulability_index, position_ik))
       metrics["manipulability_index"] = manipulability_index;
     if (kinematics_metrics_->getManipulability(state, ee.parent_group, manipulability))
       metrics["manipulability"] = manipulability;
