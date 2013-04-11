@@ -330,7 +330,9 @@ public:
   // remove all interactive markers.
   void clear();
   
-  void addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale = 0.0);
+  enum EefInteractionStyle { EEF_6DOF, EEF_POSITION, EEF_ORIENTATION };
+
+  void addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale = 0.0, EefInteractionStyle style = EEF_6DOF);
   void updateInteractiveMarkers(const InteractionHandlerPtr &handler);
   bool showingMarkers(const InteractionHandlerPtr &handler);
 
