@@ -573,22 +573,11 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
 
   if (kinematics_metrics_)
   {
-    if(position_only_ik_.find(ee.parent_group) == position_only_ik_.end())
-    {
-      if(!private_handle_.hasParam( ee.parent_group + "/position_only_ik"))
-      {
-         position_only_ik_[ee.parent_group] = false;
-      }      
-      else
-      {
-        bool pik;        
-        private_handle_.getParam( ee.parent_group + "/position_only_ik", pik);
-        position_only_ik_[ee.parent_group] = pik;        
-      }      
-    }
+    if (position_only_ik_.find(ee.parent_group) == position_only_ik_.end())
+      private_handle_.param(ee.parent_group + "/position_only_ik", position_only_ik_[ee.parent_group], false);
     
     double manipulability_index, manipulability;
-    bool position_ik = position_only_ik_.find(ee.parent_group)->second;    
+    bool position_ik = position_only_ik_[ee.parent_group];
     if (kinematics_metrics_->getManipulabilityIndex(state, ee.parent_group, manipulability_index, position_ik))
       metrics["manipulability_index"] = manipulability_index;
     if (kinematics_metrics_->getManipulability(state, ee.parent_group, manipulability))
