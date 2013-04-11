@@ -58,6 +58,8 @@ void add6DOFControl(visualization_msgs::InteractiveMarker& int_marker, bool orie
 
 void addPlanarXYControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed = false);
 
+void addOrientationControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed = false);
+
 void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed = false);
 
 

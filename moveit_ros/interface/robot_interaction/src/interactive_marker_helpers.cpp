@@ -192,6 +192,34 @@ void add6DOFControl(visualization_msgs::InteractiveMarker& int_marker, bool orie
   int_marker.controls.push_back(control);
 }
 
+void addOrientationControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed)
+{
+  visualization_msgs::InteractiveMarkerControl control;
+
+  if (orientation_fixed)
+    control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
+  control.orientation.w = 1;
+  control.orientation.x = 1;
+  control.orientation.y = 0;
+  control.orientation.z = 0;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 1;
+  control.orientation.z = 0;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 0;
+  control.orientation.z = 1;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+}
+
 void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed)
 {
   visualization_msgs::InteractiveMarkerControl control;

@@ -699,7 +699,7 @@ static inline std::string getMarkerName(const RobotInteraction::InteractionHandl
   return "GG:" + handler->getName() + "_" + g.marker_name_suffix;
 }
 
-void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale)
+void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale, EefInteractionStyle style)
 {       
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   std::vector<visualization_msgs::InteractiveMarker> ims;
@@ -735,7 +735,21 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       
       visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, mscale);
       if(handler && handler->getControlsVisible())
-        add6DOFControl(im, false);
+      {
+        switch (style)
+        {
+        case EEF_POSITION:
+          addPositionControl(im, false);
+          break;
+        case EEF_ORIENTATION:
+          addOrientationControl(im, false);
+          break;
+        case EEF_6DOF:
+        default:
+          add6DOFControl(im, false);
+          break;
+        }
+      }
       if (handler && handler->getMeshesVisible())
         addEndEffectorMarkers(handler, active_eef_[i], control_to_eef_tf, im);
       ims.push_back(im);
