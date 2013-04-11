@@ -61,7 +61,10 @@ public:
   
   /// The topic name on which the internal Interactive Marker Server operates
   static const std::string INTERACTIVE_MARKER_TOPIC;
-  
+
+  /// The different types of interaction that can be constructed for an end effector
+  enum EndEffectorInteractionStyle { EEF_6DOF, EEF_POSITION, EEF_ORIENTATION };
+
   /// Representation of an interaction via an end-effector
   struct EndEffector
   {
@@ -73,6 +76,9 @@ public:
 
     /// The name of the group that defines the group joints
     std::string eef_group;
+    
+    /// Which degrees of freedom to enable for the end-effector
+    EndEffectorInteractionStyle interaction;
     
     /// The size of the end effector group (diameter of enclosing sphere)
     double size;
@@ -319,10 +325,10 @@ public:
   //  - each floating joint
   //  - each planar joint
   // If no end effector exists in the robot then adds an interactive marker for the last link in the chain.
-  void decideActiveComponents(const std::string &group);
+  void decideActiveComponents(const std::string &group, EndEffectorInteractionStyle style = EEF_6DOF);
 
   /// called by decideActiveComponents(); add markers for end effectors
-  void decideActiveEndEffectors(const std::string &group);
+  void decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style = EEF_6DOF);
 
   /// called by decideActiveComponents(); add markers for planar and floating joints
   void decideActiveJoints(const std::string &group);
@@ -330,9 +336,7 @@ public:
   // remove all interactive markers.
   void clear();
   
-  enum EefInteractionStyle { EEF_6DOF, EEF_POSITION, EEF_ORIENTATION };
-
-  void addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale = 0.0, EefInteractionStyle style = EEF_6DOF);
+  void addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale = 0.0);
   void updateInteractiveMarkers(const InteractionHandlerPtr &handler);
   bool showingMarkers(const InteractionHandlerPtr &handler);
 

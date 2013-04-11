@@ -395,9 +395,9 @@ RobotInteraction::~RobotInteraction()
   delete int_marker_server_;
 }
 
-void RobotInteraction::decideActiveComponents(const std::string &group)
+void RobotInteraction::decideActiveComponents(const std::string &group, EndEffectorInteractionStyle style)
 {
-  decideActiveEndEffectors(group);
+  decideActiveEndEffectors(group, style);
   decideActiveJoints(group);
   if (active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
     ROS_WARN_NAMED("robot_interaction", "No active joints or end effectors found. Make sure you have defined an end effector in your SRDF file and that kinematics.yaml is loaded in this node's namespace.");
@@ -528,26 +528,26 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
   }
 }
 
-void RobotInteraction::decideActiveEndEffectors(const std::string &group)
+void RobotInteraction::decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style)
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-
+  
   active_eef_.clear();
-
+  
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
-
+  
   if (group.empty())
     return;
-
+  
   const boost::shared_ptr<const srdf::Model> &srdf = robot_model_->getSRDF();
   const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
-
+  
   if (!jmg || !srdf)
   {
     ROS_WARN_NAMED("robot_interaction", "Unable to decide active end effector: no joint model group or no srdf model");
     return;
   }
-
+  
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
   const std::pair<robot_model::SolverAllocatorFn, robot_model::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
   
@@ -561,6 +561,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
       ee.parent_group = group;
       ee.parent_link = jmg->getLinkModelNames().back();
       ee.eef_group = group;
+      ee.interaction = style;
       active_eef_.push_back(ee);
     }
     else
@@ -571,9 +572,9 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
           EndEffector ee;
           ee.parent_group = group;
           ee.parent_link = eef[i].parent_link_;
-          ee.eef_group = eef[i].component_group_;
-          active_eef_.push_back(ee);
-          
+          ee.eef_group = eef[i].component_group_;   
+          ee.interaction = style;
+          active_eef_.push_back(ee);          
           break;
         }
   }
@@ -591,7 +592,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
             EndEffector ee;
             ee.parent_group = it->first->getName();
             ee.parent_link = eef[i].parent_link_;
-            ee.eef_group = eef[i].component_group_;
+            ee.eef_group = eef[i].component_group_;  
+            ee.interaction = style;
             active_eef_.push_back(ee);
             break;
           }
@@ -699,7 +701,7 @@ static inline std::string getMarkerName(const RobotInteraction::InteractionHandl
   return "GG:" + handler->getName() + "_" + g.marker_name_suffix;
 }
 
-void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale, EefInteractionStyle style)
+void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale)
 {       
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   std::vector<visualization_msgs::InteractiveMarker> ims;
@@ -729,14 +731,14 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       
       std::string marker_name = getMarkerName(handler, active_eef_[i]);
       shown_markers_[marker_name] = i;
-
+      
       // Determine interactive maker size
       double mscale = marker_scale < std::numeric_limits<double>::epsilon() ? active_eef_[i].size : marker_scale;
       
       visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, mscale);
-      if(handler && handler->getControlsVisible())
+      if (handler && handler->getControlsVisible())
       {
-        switch (style)
+        switch (active_eef_[i].interaction)
         {
         case EEF_POSITION:
           addPositionControl(im, false);
