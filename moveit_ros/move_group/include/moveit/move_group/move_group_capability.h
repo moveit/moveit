@@ -40,10 +40,11 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/plan_execution/plan_representation.h>
+#include <moveit/move_group/move_group_context.h>
 
 namespace move_group
 {
-
+    
 enum MoveGroupState
   {
     IDLE,
@@ -56,10 +57,8 @@ class MoveGroupCapability
 {
 public:
   
-  MoveGroupCapability(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : 
-    node_handle_("~"),
-    planning_scene_monitor_(psm),
-    debug_(debug)
+  MoveGroupCapability() : 
+    node_handle_("~")
   {
   }
   
@@ -67,6 +66,12 @@ public:
   {
   }
   
+  void setContext(const MoveGroupContextPtr &context);
+    
+  virtual void initialize() = 0;
+  
+  virtual void getDescription(std::string &brief, std::string &description) const;
+    
 protected:
   
   std::string getActionResultString(const moveit_msgs::MoveItErrorCodes &error_code, bool planned_trajectory_empty, bool plan_only);  
@@ -85,8 +90,7 @@ protected:
   
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  bool debug_;
+  MoveGroupContextPtr context_;    
 };
 
 }

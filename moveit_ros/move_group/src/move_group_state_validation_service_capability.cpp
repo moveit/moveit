@@ -41,15 +41,19 @@
 #include <moveit/collision_detection/collision_tools.h>
 #include <eigen_conversions/eigen_msg.h>
 
-move_group::MoveGroupStateValidationService::MoveGroupStateValidationService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug):
-  MoveGroupCapability(psm, debug)
+move_group::MoveGroupStateValidationService::MoveGroupStateValidationService():
+  MoveGroupCapability()
+{
+}
+
+void move_group::MoveGroupStateValidationService::initialize()
 {
   validity_service_ = root_node_handle_.advertiseService(STATE_VALIDITY_SERVICE_NAME, &MoveGroupStateValidationService::computeService, this);
 }
 
 bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::GetStateValidity::Request &req, moveit_msgs::GetStateValidity::Response &res)
 {
-  planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor_);
+  planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
   robot_state::RobotState rs = ls->getCurrentState();
   robot_state::robotStateMsgToRobotState(req.robot_state, rs);
 

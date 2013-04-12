@@ -36,19 +36,17 @@
 
 #include <moveit/move_group/names.h>
 #include <moveit/move_group/move_group_pick_place_action_capability.h>
+#include <moveit/pick_place/pick_place.h>
+#include <moveit/plan_execution/plan_execution.h>
+#include <moveit/plan_execution/plan_with_sensing.h>
 
-move_group::MoveGroupPickPlaceAction::MoveGroupPickPlaceAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm,
-                                                               const pick_place::PickPlacePtr &pick_place,
-                                                               const plan_execution::PlanExecutionPtr &plan_execution,
-                                                               const plan_execution::PlanWithSensingPtr &plan_with_sensing,
-                                                               bool allow_trajectory_execution,
-                                                               bool debug) : 
-  MoveGroupCapability(psm, debug),
-  pick_place_(pick_place),
-  plan_execution_(plan_execution),
-  plan_with_sensing_(plan_with_sensing),
-  allow_trajectory_execution_(allow_trajectory_execution),
+move_group::MoveGroupPickPlaceAction::MoveGroupPickPlaceAction() : 
+  MoveGroupCapability(),
   pickup_state_(IDLE)
+{
+}
+
+void move_group::MoveGroupPickPlaceAction::initialize()
 {
   // start the pickup action server
   pickup_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::PickupAction>(root_node_handle_, PICKUP_ACTION,
@@ -60,7 +58,7 @@ move_group::MoveGroupPickPlaceAction::MoveGroupPickPlaceAction(const planning_sc
   place_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::PlaceAction>(root_node_handle_, PLACE_ACTION,
                                                                                          boost::bind(&MoveGroupPickPlaceAction::executePlaceCallback, this, _1), false));
   place_action_server_->registerPreemptCallback(boost::bind(&MoveGroupPickPlaceAction::preemptPlaceCallback, this));
-  place_action_server_->start();
+  place_action_server_->start();    
 }
 
 void move_group::MoveGroupPickPlaceAction::startPickupExecutionCallback()
@@ -88,8 +86,8 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
   pick_place::PickPlanPtr plan; 
   try
   {
-    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
-    plan = pick_place_->planPick(ps, *goal);
+    planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
+    plan = context_->pick_place_->planPick(ps, *goal);
   }
   catch(std::runtime_error &ex)
   {
@@ -128,8 +126,8 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
   pick_place::PlacePlanPtr plan; 
   try
   {
-    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
-    plan = pick_place_->planPlace(ps, *goal);
+    planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
+    plan = context_->pick_place_->planPlace(ps, *goal);
   }
   catch(std::runtime_error &ex)
   {
@@ -172,7 +170,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
   pick_place::PickPlanPtr pick_plan;
   try
   {
-    pick_plan = pick_place_->planPick(plan.planning_scene_, goal);
+    pick_plan = context_->pick_place_->planPick(plan.planning_scene_, goal);
   }
   catch(std::runtime_error &ex)
   {
@@ -214,7 +212,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
   pick_place::PlacePlanPtr place_plan;
   try
   {
-    place_plan = pick_place_->planPlace(plan.planning_scene_, goal);
+    place_plan = context_->pick_place_->planPlace(plan.planning_scene_, goal);
   }
   catch(std::runtime_error &ex)
   {
@@ -257,15 +255,15 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPickupExecutionCallback, this);
   
   opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Pickup, this, boost::cref(*goal), _1);
-  if (goal->planning_options.look_around && plan_with_sensing_)
+  if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
-    opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_,
+    opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, context_->plan_with_sensing_.get(), _1, opt.plan_callback_,
                                      goal->planning_options.look_around_attempts, goal->planning_options.max_safe_execution_cost);
-    plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupPickPlaceAction::startPickupLookCallback, this));
+    context_->plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupPickPlaceAction::startPickupLookCallback, this));
   }
   
   plan_execution::ExecutableMotionPlan plan;
-  plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
+  context_->plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
 
   convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.trajectory_stages);
   action_res.trajectory_descriptions.resize(plan.plan_components_.size());
@@ -284,15 +282,15 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(c
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPlaceExecutionCallback, this);
   
   opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Place, this, boost::cref(*goal), _1);
-  if (goal->planning_options.look_around && plan_with_sensing_)
+  if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
-    opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_,
+    opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, context_->plan_with_sensing_.get(), _1, opt.plan_callback_,
                                      goal->planning_options.look_around_attempts, goal->planning_options.max_safe_execution_cost);
-    plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupPickPlaceAction::startPlaceLookCallback, this));
+    context_->plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupPickPlaceAction::startPlaceLookCallback, this));
   }
   
   plan_execution::ExecutableMotionPlan plan;
-  plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
+  context_->plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);  
  
   convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.trajectory_stages);
   action_res.trajectory_descriptions.resize(plan.plan_components_.size());
@@ -305,7 +303,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback(const moveit_ms
 {
   setPickupState(PLANNING);
   
-  planning_scene_monitor_->updateFrameTransforms();
+  context_->planning_scene_monitor_->updateFrameTransforms();
   
   moveit_msgs::PickupGoalConstPtr goal;
   if (input_goal->possible_grasps.empty())
@@ -319,7 +317,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback(const moveit_ms
 
   moveit_msgs::PickupResult action_res;
   
-  if (goal->planning_options.plan_only || !allow_trajectory_execution_)
+  if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
   {
     if (!goal->planning_options.plan_only)
       ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the pick goal request has plan_only set to false. Only a motion plan will be computed anyway.");
@@ -347,11 +345,11 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback(const moveit_msg
 {
   setPlaceState(PLANNING);
   
-  planning_scene_monitor_->updateFrameTransforms();
+  context_->planning_scene_monitor_->updateFrameTransforms();
   
   moveit_msgs::PlaceResult action_res;
   
-  if (goal->planning_options.plan_only || !allow_trajectory_execution_)
+  if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
   {
     if (!goal->planning_options.plan_only)
       ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the place goal request has plan_only set to false. Only a motion plan will be computed anyway.");
@@ -399,7 +397,7 @@ void move_group::MoveGroupPickPlaceAction::setPlaceState(MoveGroupState state)
 
 void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& goal)
 {
-  planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
+  planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
   if (lscene->hasObjectType(goal.target_name))
   {
     //    const object_recognition_msgs::ObjectType &ot = lscene->getObjectType(goal->target_name);

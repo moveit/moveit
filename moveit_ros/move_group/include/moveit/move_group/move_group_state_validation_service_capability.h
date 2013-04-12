@@ -47,7 +47,9 @@ class MoveGroupStateValidationService : public MoveGroupCapability
 {
 public:
   
-  MoveGroupStateValidationService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug);
+  MoveGroupStateValidationService();
+
+  virtual void initialize();
   
 private:
 

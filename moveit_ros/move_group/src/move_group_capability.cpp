@@ -38,6 +38,17 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/move_group/names.h>
 
+void move_group::MoveGroupCapability::setContext(const MoveGroupContextPtr &context)
+{
+  context_ = context;
+}
+
+void move_group::MoveGroupCapability::getDescription(std::string &brief, std::string &description) const
+{
+  brief = "Unknown";
+  description = "Unknown";
+}
+
 void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execution::ExecutableTrajectory> &trajectory,
                                                    moveit_msgs::RobotState &first_state_msg, std::vector<moveit_msgs::RobotTrajectory> &trajectory_msg) const
 {
@@ -169,7 +180,7 @@ std::string move_group::MoveGroupCapability::stateToStr(MoveGroupState state) co
 
 bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStamped &pose_msg, const std::string &target_frame) const
 {
-  if (!planning_scene_monitor_->getTFClient())
+  if (!context_ || !context_->planning_scene_monitor_->getTFClient())
     return false;
   if (pose_msg.header.frame_id == target_frame)
     return true;
@@ -183,14 +194,14 @@ bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStampe
   {
     std::string error;
     ros::Time common_time;
-    planning_scene_monitor_->getTFClient()->getLatestCommonTime(pose_msg.header.frame_id, target_frame, common_time, &error);
+    context_->planning_scene_monitor_->getTFClient()->getLatestCommonTime(pose_msg.header.frame_id, target_frame, common_time, &error);
     if (!error.empty())
       ROS_ERROR("TF Problem: %s", error.c_str());
     
     tf::Stamped<tf::Pose> pose_tf, pose_tf_out;
     tf::poseStampedMsgToTF(pose_msg, pose_tf);
     pose_tf.stamp_ = common_time;    
-    planning_scene_monitor_->getTFClient()->transformPose(target_frame, pose_tf, pose_tf_out);
+    context_->planning_scene_monitor_->getTFClient()->transformPose(target_frame, pose_tf, pose_tf_out);
     tf::poseStampedTFToMsg(pose_tf_out, pose_msg);
   }
   catch (tf::TransformException &ex)

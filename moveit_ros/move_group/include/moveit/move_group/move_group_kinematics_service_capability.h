@@ -48,8 +48,10 @@ class MoveGroupKinematicsService : public MoveGroupCapability
 {
 public:
   
-  MoveGroupKinematicsService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug);
-  
+  MoveGroupKinematicsService();
+    
+  virtual void initialize();
+
 private:
   
   bool computeIKService(moveit_msgs::GetPositionIK::Request &req, moveit_msgs::GetPositionIK::Response &res);
