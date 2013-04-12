@@ -310,11 +310,27 @@ void RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::
   }
   else
     return;
-
-  robot_state::RobotStatePtr state = getUniqueStateAccess();
-  robot_interaction::RobotInteraction::updateState(*state, vj, tpose.pose);
-  setStateToAccess(state);
-
+  
+  if (!vj.parent_frame.empty() && vj.parent_frame != planning_frame_)
+  { 
+    robot_state::RobotStatePtr state = getUniqueStateAccess();
+    const robot_state::LinkState *ls = state->getLinkState(vj.parent_frame);
+    if (ls)
+    {
+      Eigen::Affine3d p;
+      tf::poseMsgToEigen(tpose.pose, p);
+      tf::poseEigenToMsg(ls->getGlobalLinkTransform().inverse() * p, tpose.pose);
+    }
+    robot_interaction::RobotInteraction::updateState(*state, vj, tpose.pose);
+    setStateToAccess(state);
+  }
+  else
+  {
+    robot_state::RobotStatePtr state = getUniqueStateAccess();
+    robot_interaction::RobotInteraction::updateState(*state, vj, tpose.pose);
+    setStateToAccess(state);
+  }
+  
   if (update_callback_)
     update_callback_(this, false);
 }
@@ -495,6 +511,7 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
         {
           Joint v;
           v.connecting_link = vj[i].child_link_;
+          v.parent_frame = vj[i].parent_frame_;
           v.joint_name = vj[i].name_;
           if (vj[i].type_ == "planar")
             v.dof = 3;
@@ -516,6 +533,8 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
     {
       Joint v;
       v.connecting_link = joints[i]->getChildLinkModel()->getName();
+      if (joints[i]->getParentLinkModel())
+        v.parent_frame = joints[i]->getParentLinkModel()->getName();
       v.joint_name = joints[i]->getName();
       if (joints[i]->getType() == robot_model::JointModel::PLANAR)
         v.dof = 3;

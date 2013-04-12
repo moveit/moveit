@@ -90,6 +90,9 @@ public:
     /// The link in the robot model this joint is a parent of
     std::string connecting_link;
     
+    /// The name of the frame that is a parent of this joint
+    std::string parent_frame;
+    
     /// The name of the joint
     std::string joint_name;
 

@@ -258,9 +258,9 @@ void MotionPlanningFrame::configureWorkspace()
       else
         if (jm[i]->getType() == robot_model::JointModel::FLOATING)
         {
-          jm[i]->setVariableBounds(jm[i]->getName() + "/x", b[0]);
-          jm[i]->setVariableBounds(jm[i]->getName() + "/y", b[1]);
-          jm[i]->setVariableBounds(jm[i]->getName() + "/z", b[2]);
+          jm[i]->setVariableBounds(jm[i]->getName() + "/trans_x", b[0]);
+          jm[i]->setVariableBounds(jm[i]->getName() + "/trans_y", b[1]);
+          jm[i]->setVariableBounds(jm[i]->getName() + "/trans_z", b[2]);
         }    
   }
 }
