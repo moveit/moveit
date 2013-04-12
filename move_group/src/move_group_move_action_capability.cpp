@@ -36,22 +36,20 @@
 
 #include <moveit/move_group/names.h>
 #include <moveit/move_group/move_group_move_action_capability.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/plan_execution/plan_execution.h>
+#include <moveit/plan_execution/plan_with_sensing.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_constraints/utils.h>
 
-move_group::MoveGroupMoveAction::MoveGroupMoveAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
-                                                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                                                     const plan_execution::PlanExecutionPtr &plan_execution,
-                                                     const plan_execution::PlanWithSensingPtr &plan_with_sensing,
-                                                     bool allow_trajectory_execution,
-                                                     bool debug) :
-  MoveGroupCapability(psm, debug),
-  planning_pipeline_(planning_pipeline),
-  plan_execution_(plan_execution),
-  plan_with_sensing_(plan_with_sensing),
-  allow_trajectory_execution_(allow_trajectory_execution),
+move_group::MoveGroupMoveAction::MoveGroupMoveAction() :
+  MoveGroupCapability(),
   move_state_(IDLE)
 {  
+}
+
+void move_group::MoveGroupMoveAction::initialize()
+{
   // start the move action server
   move_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_node_handle_, MOVE_ACTION,
                                                                                             boost::bind(&MoveGroupMoveAction::executeMoveCallback, this, _1), false));
@@ -62,10 +60,10 @@ move_group::MoveGroupMoveAction::MoveGroupMoveAction(const planning_scene_monito
 void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
 {
   setMoveState(PLANNING);
-  planning_scene_monitor_->updateFrameTransforms();
+  context_->planning_scene_monitor_->updateFrameTransforms();
   
   moveit_msgs::MoveGroupResult action_res;
-  if (goal->planning_options.plan_only || !allow_trajectory_execution_)
+  if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
   {
     if (!goal->planning_options.plan_only)
       ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the goal request has plan_only set to false. Only a motion plan will be computed anyway.");
@@ -95,7 +93,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   
   if (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff))
   {
-    planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);
+    planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
     const robot_state::RobotState &current_state = lscene->getCurrentState();
     
     // check to see if the desired constraints are already met
@@ -122,15 +120,15 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   opt.before_execution_callback_ = boost::bind(&MoveGroupMoveAction::startMoveExecutionCallback, this);
   
   opt.plan_callback_ = boost::bind(&MoveGroupMoveAction::planUsingPlanningPipeline, this, boost::cref(motion_plan_request), _1);
-  if (goal->planning_options.look_around && plan_with_sensing_)
+  if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
-    opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, plan_with_sensing_.get(), _1, opt.plan_callback_,
+    opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, context_->plan_with_sensing_.get(), _1, opt.plan_callback_,
                                      goal->planning_options.look_around_attempts, goal->planning_options.max_safe_execution_cost);
-    plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupMoveAction::startMoveLookCallback, this));
+    context_->plan_with_sensing_->setBeforeLookCallback(boost::bind(&MoveGroupMoveAction::startMoveLookCallback, this));
   }
   
   plan_execution::ExecutableMotionPlan plan;
-  plan_execution_->planAndExecute(plan, planning_scene_diff, opt);  
+  context_->plan_execution_->planAndExecute(plan, planning_scene_diff, opt);  
   
   convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.planned_trajectory);
   if (plan.executed_trajectory_)
@@ -142,13 +140,13 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanOnly(const moveit_
 {
   ROS_INFO("Planning request received for MoveGroup action. Forwarding to planning pipeline.");
   
-  planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
+  planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
   const planning_scene::PlanningSceneConstPtr &the_scene = (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff)) ?
     static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) : lscene->diff(goal->planning_options.planning_scene_diff);
   planning_interface::MotionPlanResponse res;
   try
   {
-    planning_pipeline_->generatePlan(the_scene, goal->request, res);
+    context_->planning_pipeline_->generatePlan(the_scene, goal->request, res);
   }
   catch(std::runtime_error &ex)
   {
@@ -174,7 +172,7 @@ bool move_group::MoveGroupMoveAction::planUsingPlanningPipeline(const planning_i
   planning_interface::MotionPlanResponse res;
   try
   {
-    solved = planning_pipeline_->generatePlan(plan.planning_scene_, req, res);
+    solved = context_->planning_pipeline_->generatePlan(plan.planning_scene_, req, res);
   }
   catch(std::runtime_error &ex)
   {
@@ -208,7 +206,7 @@ void move_group::MoveGroupMoveAction::startMoveLookCallback()
 
 void move_group::MoveGroupMoveAction::preemptMoveCallback()
 {
-  plan_execution_->stop();
+  context_->plan_execution_->stop();
 }
 
 void move_group::MoveGroupMoveAction::setMoveState(MoveGroupState state)

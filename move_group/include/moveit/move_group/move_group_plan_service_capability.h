@@ -38,7 +38,6 @@
 #define MOVEIT_MOVE_GROUP_PLAN_SERVICE_CAPABILITY_
 
 #include <moveit/move_group/move_group_capability.h>
-#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/GetMotionPlan.h>
 
 namespace move_group
@@ -48,15 +47,14 @@ class MoveGroupPlanService : public MoveGroupCapability
 {
 public:
   
-  MoveGroupPlanService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
-                       const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                       bool debug);
+  MoveGroupPlanService();
+
+  virtual void initialize();
 
 private:
   
   bool computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
   
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
   ros::ServiceServer plan_service_;
 };
 

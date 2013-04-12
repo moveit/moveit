@@ -39,9 +39,6 @@
 
 #include <moveit/move_group/move_group_capability.h>
 #include <actionlib/server/simple_action_server.h>
-#include <moveit/pick_place/pick_place.h>
-#include <moveit/plan_execution/plan_execution.h>
-#include <moveit/plan_execution/plan_with_sensing.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
 
@@ -52,12 +49,8 @@ class MoveGroupPickPlaceAction : public MoveGroupCapability
 {
 public:
   
-  MoveGroupPickPlaceAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm,
-                           const pick_place::PickPlacePtr &pick_place_,
-                           const plan_execution::PlanExecutionPtr &plan_execution,
-                           const plan_execution::PlanWithSensingPtr &plan_with_sensing,
-                           bool allow_trajectory_execution,
-                           bool debug);
+  MoveGroupPickPlaceAction();
+  virtual void initialize();
   
 private:
   
@@ -86,11 +79,6 @@ private:
   void setPlaceState(MoveGroupState state);
 
   void fillGrasps(moveit_msgs::PickupGoal& goal);
-  
-  pick_place::PickPlacePtr pick_place_;
-  plan_execution::PlanExecutionPtr plan_execution_;
-  plan_execution::PlanWithSensingPtr plan_with_sensing_;
-  bool allow_trajectory_execution_;
   
   boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::PickupAction> > pickup_action_server_;
   moveit_msgs::PickupFeedback pickup_feedback_;

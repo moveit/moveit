@@ -36,19 +36,21 @@
 
 #include <moveit/move_group/names.h>
 #include <moveit/move_group/move_group_query_planners_service_capability.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 
-move_group::MoveGroupQueryPlannersService::MoveGroupQueryPlannersService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
-                                                                         const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                                                                         bool debug):
-  MoveGroupCapability(psm, debug),
-  planning_pipeline_(planning_pipeline)
+move_group::MoveGroupQueryPlannersService::MoveGroupQueryPlannersService():
+  MoveGroupCapability()
+{
+}
+
+void move_group::MoveGroupQueryPlannersService::initialize()
 {
   query_service_ = root_node_handle_.advertiseService(QUERY_PLANNERS_SERVICE_NAME, &MoveGroupQueryPlannersService::queryInterface, this);
 }
 
 bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
 {    
-  const planning_interface::PlannerPtr &planner_interface = planning_pipeline_->getPlannerInterface();
+  const planning_interface::PlannerPtr &planner_interface = context_->planning_pipeline_->getPlannerInterface();
   if (planner_interface)
   {
     std::vector<std::string> algs;

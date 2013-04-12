@@ -34,6 +34,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 add_executable(move_group_action_server
+  src/move_group_context.cpp
   src/move_group_capability.cpp
   src/move_group_move_action_capability.cpp
   src/move_group_pick_place_action_capability.cpp

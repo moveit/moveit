@@ -36,12 +36,14 @@
 
 #include <moveit/move_group/names.h>
 #include <moveit/move_group/move_group_plan_service_capability.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 
-move_group::MoveGroupPlanService::MoveGroupPlanService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
-                                                       const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                                                       bool debug):
-  MoveGroupCapability(psm, debug),
-  planning_pipeline_(planning_pipeline)
+move_group::MoveGroupPlanService::MoveGroupPlanService():
+  MoveGroupCapability()
+{
+}
+
+void move_group::MoveGroupPlanService::initialize()
 {
   plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupPlanService::computePlanService, this);
 }
@@ -49,14 +51,14 @@ move_group::MoveGroupPlanService::MoveGroupPlanService(const planning_scene_moni
 bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
 {
   ROS_INFO("Received new planning service request...");
-  planning_scene_monitor_->updateFrameTransforms();
+  context_->planning_scene_monitor_->updateFrameTransforms();
   
   bool solved = false;   
-  planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+  planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
   try
   {
     planning_interface::MotionPlanResponse mp_res;
-    solved = planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
+    solved = context_->planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
     mp_res.getMessage(res.motion_plan_response);
   }
   catch(std::runtime_error &ex)

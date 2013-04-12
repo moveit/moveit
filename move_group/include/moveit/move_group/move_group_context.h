@@ -34,29 +34,58 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_QUERY_PLANNERS_SERVICE_CAPABILITY_
-#define MOVEIT_MOVE_GROUP_QUERY_PLANNERS_SERVICE_CAPABILITY_
+#ifndef MOVEIT_MOVE_GROUP_CONTEXT_
+#define MOVEIT_MOVE_GROUP_CONTEXT_
 
-#include <moveit/move_group/move_group_capability.h>
-#include <moveit_msgs/QueryPlannerInterfaces.h>
+#include <moveit/macros/class_forward.h>
+
+namespace planning_scene_monitor
+{
+MOVEIT_CLASS_FORWARD(PlanningSceneMonitor);
+}
+
+namespace planning_pipeline
+{
+MOVEIT_CLASS_FORWARD(PlanningPipeline);    
+}
+    
+namespace plan_execution
+{	
+MOVEIT_CLASS_FORWARD(PlanExecution);
+MOVEIT_CLASS_FORWARD(PlanWithSensing);
+}
+
+namespace pick_place
+{
+MOVEIT_CLASS_FORWARD(PickPlace);
+}
+
+namespace trajectory_execution_manager
+{
+MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
+}
 
 namespace move_group
 {
-
-class MoveGroupQueryPlannersService : public MoveGroupCapability
+    
+struct MoveGroupContext
 {
-public:
-  
-  MoveGroupQueryPlannersService();
+  MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
+		   bool allow_trajectory_execution = false,
+		   bool debug = false);
+  ~MoveGroupContext();
+    
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
+  plan_execution::PlanExecutionPtr plan_execution_;
+  plan_execution::PlanWithSensingPtr plan_with_sensing_;
+  pick_place::PickPlacePtr pick_place_;
+  bool allow_trajectory_execution_;
+  bool debug_;
+};    
 
-  virtual void initialize();
-  
-private:
-  
-  bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res);
-
-  ros::ServiceServer query_service_;
-};
+typedef boost::shared_ptr<MoveGroupContext> MoveGroupContextPtr;
 
 }
 

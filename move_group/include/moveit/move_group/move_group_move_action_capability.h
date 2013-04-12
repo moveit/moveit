@@ -41,10 +41,6 @@
 #include <actionlib/server/simple_action_server.h>
 #include <moveit_msgs/MoveGroupAction.h>
 
-#include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/plan_execution/plan_execution.h>
-#include <moveit/plan_execution/plan_with_sensing.h>
-
 namespace move_group
 {
 
@@ -52,12 +48,10 @@ class MoveGroupMoveAction : public MoveGroupCapability
 {
 public:
   
-  MoveGroupMoveAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
-                      const planning_pipeline::PlanningPipelinePtr &planning_pipeline,
-                      const plan_execution::PlanExecutionPtr &plan_execution,
-                      const plan_execution::PlanWithSensingPtr &plan_with_sensing,
-                      bool allow_trajectory_execution,
-                      bool debug);
+  MoveGroupMoveAction();
+
+  virtual void initialize();
+
 private:
   
   void executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal);
@@ -68,11 +62,6 @@ private:
   void preemptMoveCallback();
   void setMoveState(MoveGroupState state);
   bool planUsingPlanningPipeline(const planning_interface::MotionPlanRequest &req, plan_execution::ExecutableMotionPlan &plan);
-  
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
-  plan_execution::PlanExecutionPtr plan_execution_;
-  plan_execution::PlanWithSensingPtr plan_with_sensing_;
-  bool allow_trajectory_execution_;
   
   boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > move_action_server_;
   moveit_msgs::MoveGroupFeedback move_feedback_;

@@ -36,12 +36,14 @@
 
 #include <moveit/move_group/names.h>
 #include <moveit/move_group/move_group_execute_service_capability.h>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 
-move_group::MoveGroupExecuteService::MoveGroupExecuteService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, 
-                                                             const trajectory_execution_manager::TrajectoryExecutionManagerPtr &trajectory_execution_manager, 
-                                                             bool debug):
-  MoveGroupCapability(psm, debug),
-  trajectory_execution_manager_(trajectory_execution_manager)
+move_group::MoveGroupExecuteService::MoveGroupExecuteService():
+  MoveGroupCapability()
+{
+}
+
+void move_group::MoveGroupExecuteService::initialize()
 {
   execute_service_ = root_node_handle_.advertiseService(EXECUTE_SERVICE_NAME, &MoveGroupExecuteService::executeTrajectoryService, this);
 }
@@ -49,7 +51,7 @@ move_group::MoveGroupExecuteService::MoveGroupExecuteService(const planning_scen
 bool move_group::MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::ExecuteKnownTrajectory::Request &req, moveit_msgs::ExecuteKnownTrajectory::Response &res)
 {
   ROS_INFO("Received new trajectory execution service request...");
-  if (!trajectory_execution_manager_)
+  if (!context_->trajectory_execution_manager_)
   {
     ROS_ERROR("Cannot execute trajectory since ~allow_trajectory_execution was set to false");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
@@ -59,13 +61,13 @@ bool move_group::MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::
   // \todo unwind trajectory before execution
   //    robot_trajectory::RobotTrajectory to_exec(planning_scene_monitor_->getRobotModel(), ;
   
-  trajectory_execution_manager_->clear();
-  if (trajectory_execution_manager_->push(req.trajectory))
+  context_->trajectory_execution_manager_->clear();
+  if (context_->trajectory_execution_manager_->push(req.trajectory))
   {
-    trajectory_execution_manager_->execute();
+    context_->trajectory_execution_manager_->execute();
     if (req.wait_for_execution)
     {
-      moveit_controller_manager::ExecutionStatus es = trajectory_execution_manager_->waitForExecution();
+      moveit_controller_manager::ExecutionStatus es = context_->trajectory_execution_manager_->waitForExecution();
       if (es == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
         res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       else

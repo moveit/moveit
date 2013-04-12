@@ -36,8 +36,6 @@
 
 #include <moveit/move_group/names.h>
 #include <tf/transform_listener.h>
-#include <moveit/plan_execution/plan_execution.h>
-#include <moveit/plan_execution/plan_with_sensing.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_state/conversions.h>
@@ -60,38 +58,13 @@ class MoveGroupServer
 public:
   
   MoveGroupServer(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : 
-    node_handle_("~"),
-    planning_scene_monitor_(psm),
-    allow_trajectory_execution_(true),
-    debug_(debug)
-  { 
-    planning_pipeline_.reset(new planning_pipeline::PlanningPipeline(planning_scene_monitor_->getRobotModel()));
-    
+    node_handle_("~")
+  {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
-    node_handle_.param("allow_trajectory_execution", allow_trajectory_execution_, true);
-    
-    if (allow_trajectory_execution_)
-    {  
-      trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel()));
-      plan_execution_.reset(new plan_execution::PlanExecution(planning_scene_monitor_, trajectory_execution_manager_));
-      plan_with_sensing_.reset(new plan_execution::PlanWithSensing(trajectory_execution_manager_));
-      if (debug)
-        plan_with_sensing_->displayCostSources(true);
-    }
-    
-    pick_place_.reset(new pick_place::PickPlace(planning_pipeline_));
-    
-    // configure the planning pipeline
-    planning_pipeline_->displayComputedMotionPlans(true);
-    planning_pipeline_->checkSolutionPaths(true);
-    
-    pick_place_->displayComputedMotionPlans(true);
-    
-    if (debug_)
-    {
-      planning_pipeline_->publishReceivedRequests(true);
-      pick_place_->displayProcessedGrasps(true);
-    }
+    bool allow_trajectory_execution;
+    node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
+
+    context_.reset(new MoveGroupContext(psm, allow_trajectory_execution, debug));
 
     // start the capabilities
     configureCapabilities();
@@ -100,19 +73,19 @@ public:
   ~MoveGroupServer()
   {
     capabilities_.clear();
-    planning_scene_monitor_.reset();
+    context_.reset();
   }
   
   void status()
   {
-    const planning_interface::PlannerPtr &planner_interface = planning_pipeline_->getPlannerInterface();
+    const planning_interface::PlannerPtr &planner_interface = context_->planning_pipeline_->getPlannerInterface();
     if (planner_interface)
     {
-      ROS_INFO_STREAM("MoveGroup running using planning plugin " << planning_pipeline_->getPlannerPluginName());
+      ROS_INFO_STREAM("MoveGroup running using planning plugin " << context_->planning_pipeline_->getPlannerPluginName());
       ROS_INFO_STREAM(" *** MoveGroup initialization complete !!!");
     }
     else
-      ROS_WARN_STREAM("MoveGroup running was unable to load " << planning_pipeline_->getPlannerPluginName());
+      ROS_WARN_STREAM("MoveGroup running was unable to load " << context_->planning_pipeline_->getPlannerPluginName());
   }
   
 private:  
@@ -120,26 +93,26 @@ private:
   void configureCapabilities()
   {
     // add individual capabilities move_group supports
-    capabilities_.push_back(boost::make_shared<MoveGroupMoveAction>(planning_scene_monitor_, planning_pipeline_, plan_execution_, plan_with_sensing_, allow_trajectory_execution_, debug_));
-    capabilities_.push_back(boost::make_shared<MoveGroupPickPlaceAction>(planning_scene_monitor_, pick_place_, plan_execution_, plan_with_sensing_, allow_trajectory_execution_, debug_));
-    capabilities_.push_back(boost::make_shared<MoveGroupPlanService>(planning_scene_monitor_, planning_pipeline_, debug_));
-    capabilities_.push_back(boost::make_shared<MoveGroupExecuteService>(planning_scene_monitor_, trajectory_execution_manager_, debug_));
-    capabilities_.push_back(boost::make_shared<MoveGroupQueryPlannersService>(planning_scene_monitor_, planning_pipeline_, debug_)); 
-    capabilities_.push_back(boost::make_shared<MoveGroupKinematicsService>(planning_scene_monitor_, debug_));
-    capabilities_.push_back(boost::make_shared<MoveGroupStateValidationService>(planning_scene_monitor_, debug_));
-    capabilities_.push_back(boost::make_shared<MoveGroupCartesianPathService>(planning_scene_monitor_, debug_));
+    capabilities_.push_back(boost::make_shared<MoveGroupMoveAction>());
+    capabilities_.push_back(boost::make_shared<MoveGroupPickPlaceAction>());
+    capabilities_.push_back(boost::make_shared<MoveGroupPlanService>());
+    capabilities_.push_back(boost::make_shared<MoveGroupExecuteService>());
+    capabilities_.push_back(boost::make_shared<MoveGroupQueryPlannersService>()); 
+    capabilities_.push_back(boost::make_shared<MoveGroupKinematicsService>());
+    capabilities_.push_back(boost::make_shared<MoveGroupStateValidationService>());
+    capabilities_.push_back(boost::make_shared<MoveGroupCartesianPathService>());
+    for (std::size_t i = 0 ; i < capabilities_.size() ; ++i)
+    {
+      std::string brief, long_desc;
+      capabilities_[i]->getDescription(brief, long_desc);
+      ROS_INFO_STREAM("MoveGroup using " << brief);
+      capabilities_[i]->setContext(context_);
+      capabilities_[i]->initialize();
+    }
   }
   
   ros::NodeHandle node_handle_;
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
-  plan_execution::PlanExecutionPtr plan_execution_;
-  plan_execution::PlanWithSensingPtr plan_with_sensing_;
-  pick_place::PickPlacePtr pick_place_;
-  bool allow_trajectory_execution_;
-  bool debug_;
-  
+  MoveGroupContextPtr context_;
   std::vector<boost::shared_ptr<MoveGroupCapability> > capabilities_;
 };
 

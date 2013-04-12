@@ -38,7 +38,6 @@
 #define MOVEIT_MOVE_GROUP_EXECUTE_SERVICE_CAPABILITY_
 
 #include <moveit/move_group/move_group_capability.h>
-#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 
 namespace move_group
@@ -48,15 +47,14 @@ class MoveGroupExecuteService : public MoveGroupCapability
 {
 public:
   
-  MoveGroupExecuteService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm,
-                          const trajectory_execution_manager::TrajectoryExecutionManagerPtr &trajectory_execution_manager, 
-                          bool debug);
+  MoveGroupExecuteService();
+
+  virtual void initialize();
   
 private:
   
   bool executeTrajectoryService(moveit_msgs::ExecuteKnownTrajectory::Request &req, moveit_msgs::ExecuteKnownTrajectory::Response &res);
-  
-  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
+
   ros::ServiceServer execute_service_;
 };
 

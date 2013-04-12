@@ -41,8 +41,12 @@
 #include <moveit/collision_detection/collision_tools.h>
 #include <eigen_conversions/eigen_msg.h>
 
-move_group::MoveGroupCartesianPathService::MoveGroupCartesianPathService(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug):
-  MoveGroupCapability(psm, debug)
+move_group::MoveGroupCartesianPathService::MoveGroupCartesianPathService() :
+  MoveGroupCapability()
+{
+}
+
+void move_group::MoveGroupCartesianPathService::initialize()
 {
   cartesian_path_service_ = root_node_handle_.advertiseService(CARTESIAN_PATH_SERVICE_NAME, &MoveGroupCartesianPathService::computeService, this);
 }
@@ -61,7 +65,7 @@ bool isStateValid(const planning_scene::PlanningScene *planning_scene,
 
 bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath::Request &req, moveit_msgs::GetCartesianPath::Response &res)
 {
-  robot_state::RobotState start_state = planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_)->getCurrentState();
+  robot_state::RobotState start_state = planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
   robot_state::robotStateMsgToRobotState(req.start_state, start_state);
   if (robot_state::JointStateGroup *jsg = start_state.getJointStateGroup(req.group_name))
   {
@@ -71,7 +75,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
     
     bool ok = true;
     EigenSTL::vector_Affine3d waypoints(req.waypoints.size());
-    const std::string &default_frame = planning_scene_monitor_->getRobotModel()->getModelFrame();
+    const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
     bool no_transform = req.header.frame_id.empty() || req.header.frame_id == default_frame || req.header.frame_id == link_name;
     
     for (std::size_t i = 0 ; i < req.waypoints.size() ; ++i)
@@ -109,7 +113,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
           boost::scoped_ptr<kinematic_constraints::KinematicConstraintSet> kset;
           if (req.avoid_collisions || !kinematic_constraints::isEmpty(req.path_constraints))
           {
-            ls.reset(new planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_));
+            ls.reset(new planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_));
             kset.reset(new kinematic_constraints::KinematicConstraintSet((*ls)->getRobotModel(), (*ls)->getTransforms()));
             kset->add(req.path_constraints); 
             constraint_fn = boost::bind(&isStateValid, req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : NULL, kset->empty() ? NULL : kset.get(), _1, _2);
@@ -119,7 +123,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
           res.fraction = jsg->computeCartesianPath(traj, link_name, waypoints, link_name == req.header.frame_id, req.max_step, req.jump_threshold, constraint_fn);
           robot_state::robotStateToRobotStateMsg(start_state, res.start_state);
           
-          robot_trajectory::RobotTrajectory rt(planning_scene_monitor_->getRobotModel(), req.group_name);
+          robot_trajectory::RobotTrajectory rt(context_->planning_scene_monitor_->getRobotModel(), req.group_name);
           for (std::size_t i = 0 ; i < traj.size() ; ++i)
             rt.addSuffixWayPoint(traj[i], 0.0);
           rt.getRobotTrajectoryMsg(res.solution);
