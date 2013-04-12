@@ -34,55 +34,46 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_CONTEXT_
-#define MOVEIT_MOVE_GROUP_CONTEXT_
+#include "plan_service_capability.h"
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/move_group/capability_names.h>
 
-#include <moveit/macros/class_forward.h>
-
-namespace planning_scene_monitor
+move_group::MoveGroupPlanService::MoveGroupPlanService():
+  MoveGroupCapability("MotionPlanService")
 {
-MOVEIT_CLASS_FORWARD(PlanningSceneMonitor);
 }
 
-namespace planning_pipeline
+void move_group::MoveGroupPlanService::initialize()
 {
-MOVEIT_CLASS_FORWARD(PlanningPipeline);    
-}
-    
-namespace plan_execution
-{	
-MOVEIT_CLASS_FORWARD(PlanExecution);
-MOVEIT_CLASS_FORWARD(PlanWithSensing);
+  plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupPlanService::computePlanService, this);
 }
 
-namespace trajectory_execution_manager
+bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
 {
-MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
-}
-
-namespace move_group
-{
-    
-struct MoveGroupContext
-{
-  MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
-		   bool allow_trajectory_execution = false,
-		   bool debug = false);
-  ~MoveGroupContext();
-
-  bool status() const;
+  ROS_INFO("Received new planning service request...");
+  context_->planning_scene_monitor_->updateFrameTransforms();
   
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
-  plan_execution::PlanExecutionPtr plan_execution_;
-  plan_execution::PlanWithSensingPtr plan_with_sensing_;
-  bool allow_trajectory_execution_;
-  bool debug_;
-};    
-
-typedef boost::shared_ptr<MoveGroupContext> MoveGroupContextPtr;
-
+  bool solved = false;   
+  planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
+  try
+  {
+    planning_interface::MotionPlanResponse mp_res;
+    solved = context_->planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
+    mp_res.getMessage(res.motion_plan_response);
+  }
+  catch(std::runtime_error &ex)
+  {
+    ROS_ERROR("Planning pipeline threw an exception: %s", ex.what()); 
+    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+  catch(...)
+  {
+    ROS_ERROR("Planning pipeline threw an exception"); 
+    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+  
+  return solved;
 }
 
-#endif
+#include <class_loader/class_loader.h> 
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupPlanService, move_group::MoveGroupCapability)

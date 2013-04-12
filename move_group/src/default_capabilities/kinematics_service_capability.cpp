@@ -34,14 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group/names.h>
-#include <moveit/move_group/move_group_kinematics_service_capability.h>
+#include "kinematics_service_capability.h"
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <moveit/move_group/capability_names.h>
 
 move_group::MoveGroupKinematicsService::MoveGroupKinematicsService():
-  MoveGroupCapability()
+  MoveGroupCapability("KinematicsService")
 {
 }
 
@@ -189,3 +189,6 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
       res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME;
   return true;
 }
+
+#include <class_loader/class_loader.h> 
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupKinematicsService, move_group::MoveGroupCapability)

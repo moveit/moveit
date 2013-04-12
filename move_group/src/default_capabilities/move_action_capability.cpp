@@ -34,16 +34,17 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group/names.h>
-#include <moveit/move_group/move_group_move_action_capability.h>
+#include "move_action_capability.h"
+
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/move_group/capability_names.h>
 
 move_group::MoveGroupMoveAction::MoveGroupMoveAction() :
-  MoveGroupCapability(),
+  MoveGroupCapability("MoveAction"),
   move_state_(IDLE)
 {  
 }
@@ -215,3 +216,6 @@ void move_group::MoveGroupMoveAction::setMoveState(MoveGroupState state)
   move_feedback_.state = stateToStr(state);
   move_action_server_->publishFeedback(move_feedback_);
 }
+
+#include <class_loader/class_loader.h> 
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupMoveAction, move_group::MoveGroupCapability)

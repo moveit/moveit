@@ -11,6 +11,7 @@ find_package(PythonLibs)
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
+  moveit_ros_manipulation
   moveit_ros_move_group
   eigen_conversions
   interactive_markers
@@ -39,6 +40,7 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_warehouse 
+    moveit_ros_manipulation
     moveit_ros_move_group
     )
 

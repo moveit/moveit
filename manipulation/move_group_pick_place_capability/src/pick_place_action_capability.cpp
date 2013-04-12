@@ -34,20 +34,25 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group/names.h>
-#include <moveit/move_group/move_group_pick_place_action_capability.h>
-#include <moveit/pick_place/pick_place.h>
+#include "pick_place_action_capability.h"
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
+#include <moveit/move_group_pick_place_capability/capability_names.h>
 
 move_group::MoveGroupPickPlaceAction::MoveGroupPickPlaceAction() : 
-  MoveGroupCapability(),
+  MoveGroupCapability("PickPlaceAction"),
   pickup_state_(IDLE)
 {
 }
 
 void move_group::MoveGroupPickPlaceAction::initialize()
-{
+{ 
+  pick_place_.reset(new pick_place::PickPlace(context_->planning_pipeline_));
+  pick_place_->displayComputedMotionPlans(true);
+  
+  if (context_->debug_)
+    pick_place_->displayProcessedGrasps(true);
+
   // start the pickup action server
   pickup_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::PickupAction>(root_node_handle_, PICKUP_ACTION,
                                                                                            boost::bind(&MoveGroupPickPlaceAction::executePickupCallback, this, _1), false));
@@ -87,7 +92,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
   try
   {
     planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
-    plan = context_->pick_place_->planPick(ps, *goal);
+    plan = pick_place_->planPick(ps, *goal);
   }
   catch(std::runtime_error &ex)
   {
@@ -127,7 +132,7 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
   try
   {
     planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
-    plan = context_->pick_place_->planPlace(ps, *goal);
+    plan = pick_place_->planPlace(ps, *goal);
   }
   catch(std::runtime_error &ex)
   {
@@ -170,7 +175,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
   pick_place::PickPlanPtr pick_plan;
   try
   {
-    pick_plan = context_->pick_place_->planPick(plan.planning_scene_, goal);
+    pick_plan = pick_place_->planPick(plan.planning_scene_, goal);
   }
   catch(std::runtime_error &ex)
   {
@@ -212,7 +217,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
   pick_place::PlacePlanPtr place_plan;
   try
   {
-    place_plan = context_->pick_place_->planPlace(plan.planning_scene_, goal);
+    place_plan = pick_place_->planPlace(plan.planning_scene_, goal);
   }
   catch(std::runtime_error &ex)
   {
@@ -438,3 +443,6 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     goal.possible_grasps.push_back(g);
   }
 }
+
+#include <class_loader/class_loader.h> 
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupPickPlaceAction, move_group::MoveGroupCapability)

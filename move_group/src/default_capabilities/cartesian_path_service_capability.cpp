@@ -34,15 +34,15 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group/names.h>
-#include <moveit/move_group/move_group_cartesian_path_service_capability.h>
+#include "cartesian_path_service_capability.h"
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <moveit/move_group/capability_names.h>
 
 move_group::MoveGroupCartesianPathService::MoveGroupCartesianPathService() :
-  MoveGroupCapability()
+  MoveGroupCapability("CartesianPathService")
 {
 }
 
@@ -139,3 +139,6 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
   
   return true;
 }
+
+#include <class_loader/class_loader.h> 
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupCartesianPathService, move_group::MoveGroupCapability)

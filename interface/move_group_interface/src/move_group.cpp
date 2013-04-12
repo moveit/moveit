@@ -35,7 +35,8 @@
 /* Author: Ioan Sucan */
 
 #include <stdexcept>
-#include <moveit/move_group/names.h>
+#include <moveit/move_group/capability_names.h>
+#include <moveit/move_group_pick_place_capability/capability_names.h>
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
