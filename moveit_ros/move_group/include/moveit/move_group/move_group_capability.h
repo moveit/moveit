@@ -57,8 +57,9 @@ class MoveGroupCapability
 {
 public:
   
-  MoveGroupCapability() : 
-    node_handle_("~")
+  MoveGroupCapability(const std::string &capability_name) : 
+    node_handle_("~"),
+    capability_name_(capability_name)
   {
   }
   
@@ -70,7 +71,10 @@ public:
     
   virtual void initialize() = 0;
   
-  virtual void getDescription(std::string &brief, std::string &description) const;
+  const std::string& getName() const
+  {
+    return capability_name_;
+  }  
     
 protected:
   
@@ -90,6 +94,7 @@ protected:
   
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
+  std::string capability_name_;
   MoveGroupContextPtr context_;    
 };
 

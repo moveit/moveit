@@ -34,55 +34,21 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_CONTEXT_
-#define MOVEIT_MOVE_GROUP_CONTEXT_
+#include <moveit/move_group/move_group_capability.h>
+#include <pluginlib/class_loader.h>
+#include <boost/algorithm/string/join.hpp>
 
-#include <moveit/macros/class_forward.h>
-
-namespace planning_scene_monitor
+int main(int argc, char **argv)
 {
-MOVEIT_CLASS_FORWARD(PlanningSceneMonitor);
-}
-
-namespace planning_pipeline
-{
-MOVEIT_CLASS_FORWARD(PlanningPipeline);    
-}
-    
-namespace plan_execution
-{	
-MOVEIT_CLASS_FORWARD(PlanExecution);
-MOVEIT_CLASS_FORWARD(PlanWithSensing);
-}
-
-namespace trajectory_execution_manager
-{
-MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
-}
-
-namespace move_group
-{
-    
-struct MoveGroupContext
-{
-  MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
-		   bool allow_trajectory_execution = false,
-		   bool debug = false);
-  ~MoveGroupContext();
-
-  bool status() const;
+  try
+  {
+    pluginlib::ClassLoader<move_group::MoveGroupCapability> capability_plugin_loader("moveit_ros_move_group", "move_group::MoveGroupCapability");
+    std::cout << "Available capabilities:\n" << boost::algorithm::join(capability_plugin_loader.getDeclaredClasses(), "\n") << std::endl;
+  }
+  catch (pluginlib::PluginlibException& ex)
+  {
+    std::cerr << "Exception while creating plugin loader for move_group capabilities: " << ex.what() << std::endl;
+  }
   
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
-  plan_execution::PlanExecutionPtr plan_execution_;
-  plan_execution::PlanWithSensingPtr plan_with_sensing_;
-  bool allow_trajectory_execution_;
-  bool debug_;
-};    
-
-typedef boost::shared_ptr<MoveGroupContext> MoveGroupContextPtr;
-
+  return 0;
 }
-
-#endif

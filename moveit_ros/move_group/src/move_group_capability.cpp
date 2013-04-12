@@ -36,17 +36,10 @@
 
 #include <moveit/move_group/move_group_capability.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit/move_group/names.h>
 
 void move_group::MoveGroupCapability::setContext(const MoveGroupContextPtr &context)
 {
   context_ = context;
-}
-
-void move_group::MoveGroupCapability::getDescription(std::string &brief, std::string &description) const
-{
-  brief = "Unknown";
-  description = "Unknown";
 }
 
 void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execution::ExecutableTrajectory> &trajectory,
@@ -85,7 +78,7 @@ void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execut
                                                    moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg) const
 {
   if (trajectory.size() > 1)
-    ROS_ERROR_STREAM(NODE_NAME << " internal logic error: trajectory component ignored. !!! THIS IS A SERIOUS ERROR !!!");
+    ROS_ERROR_STREAM("Internal logic error: trajectory component ignored. !!! THIS IS A SERIOUS ERROR !!!");
   if (trajectory.size() > 0)
     convertToMsg(trajectory[0].trajectory_, first_state_msg,trajectory_msg);
 }

@@ -34,54 +34,22 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_CONTEXT_
-#define MOVEIT_MOVE_GROUP_CONTEXT_
+#ifndef MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
+#define MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
 
-#include <moveit/macros/class_forward.h>
-
-namespace planning_scene_monitor
-{
-MOVEIT_CLASS_FORWARD(PlanningSceneMonitor);
-}
-
-namespace planning_pipeline
-{
-MOVEIT_CLASS_FORWARD(PlanningPipeline);    
-}
-    
-namespace plan_execution
-{	
-MOVEIT_CLASS_FORWARD(PlanExecution);
-MOVEIT_CLASS_FORWARD(PlanWithSensing);
-}
-
-namespace trajectory_execution_manager
-{
-MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
-}
+#include <string>
 
 namespace move_group
 {
-    
-struct MoveGroupContext
-{
-  MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
-		   bool allow_trajectory_execution = false,
-		   bool debug = false);
-  ~MoveGroupContext();
 
-  bool status() const;
-  
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
-  plan_execution::PlanExecutionPtr plan_execution_;
-  plan_execution::PlanWithSensingPtr plan_with_sensing_;
-  bool allow_trajectory_execution_;
-  bool debug_;
-};    
-
-typedef boost::shared_ptr<MoveGroupContext> MoveGroupContextPtr;
+static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
+static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
+static const std::string QUERY_PLANNERS_SERVICE_NAME = "query_planner_interface"; // name of the advertised query planners service
+static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
+static const std::string IK_SERVICE_NAME = "compute_ik"; // name of ik service
+static const std::string FK_SERVICE_NAME = "compute_fk"; // name of fk service
+static const std::string STATE_VALIDITY_SERVICE_NAME = "check_state_validity"; // name of the service that validates states
+static const std::string CARTESIAN_PATH_SERVICE_NAME = "compute_cartesian_path"; // name of the service that computes cartesian paths
 
 }
 

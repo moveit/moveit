@@ -36,10 +36,9 @@
 
 #include <moveit/move_group/move_group_context.h>
 
+#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
-#include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/pick_place/pick_place.h>
 
 move_group::MoveGroupContext::MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
 					       bool allow_trajectory_execution, bool debug) : 
@@ -58,25 +57,16 @@ move_group::MoveGroupContext::MoveGroupContext(const planning_scene_monitor::Pla
       plan_with_sensing_->displayCostSources(true);
   }
     
-  pick_place_.reset(new pick_place::PickPlace(planning_pipeline_));
-    
   // configure the planning pipeline
   planning_pipeline_->displayComputedMotionPlans(true);
   planning_pipeline_->checkSolutionPaths(true);
   
-  pick_place_->displayComputedMotionPlans(true);
-  
   if (debug_)
-  {
     planning_pipeline_->publishReceivedRequests(true);
-    pick_place_->displayProcessedGrasps(true);
-  }
-  
 }
 
 move_group::MoveGroupContext::~MoveGroupContext()
 {
-  pick_place_.reset();
   plan_with_sensing_.reset();
   plan_execution_.reset();
   trajectory_execution_manager_.reset();
@@ -84,3 +74,18 @@ move_group::MoveGroupContext::~MoveGroupContext()
   planning_scene_monitor_.reset();
 }
 
+bool move_group::MoveGroupContext::status() const
+{
+  const planning_interface::PlannerPtr &planner_interface = planning_pipeline_->getPlannerInterface();
+  if (planner_interface)
+  {
+    ROS_INFO_STREAM("MoveGroup context using planning plugin " << planning_pipeline_->getPlannerPluginName());
+    ROS_INFO_STREAM("MoveGroup context initialization complete");
+    return true;
+  }
+  else
+  {
+    ROS_WARN_STREAM("MoveGroup running was unable to load " << planning_pipeline_->getPlannerPluginName());
+    return false;
+  }
+}

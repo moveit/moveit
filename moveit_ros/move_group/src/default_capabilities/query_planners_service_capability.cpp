@@ -34,12 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group/names.h>
-#include <moveit/move_group/move_group_query_planners_service_capability.h>
+#include "query_planners_service_capability.h"
 #include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/move_group/capability_names.h>
 
 move_group::MoveGroupQueryPlannersService::MoveGroupQueryPlannersService():
-  MoveGroupCapability()
+  MoveGroupCapability("QueryPlannersService")
 {
 }
 
@@ -62,3 +62,6 @@ bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::Quer
   }
   return true;
 }
+
+#include <class_loader/class_loader.h> 
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupQueryPlannersService, move_group::MoveGroupCapability)

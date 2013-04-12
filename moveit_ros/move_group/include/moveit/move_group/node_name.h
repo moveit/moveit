@@ -34,43 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group/names.h>
-#include <moveit/move_group/move_group_plan_service_capability.h>
-#include <moveit/planning_pipeline/planning_pipeline.h>
+#ifndef MOVEIT_MOVE_GROUP_NODE_NAME
+#define MOVEIT_MOVE_GROUP_NODE_NAME
 
-move_group::MoveGroupPlanService::MoveGroupPlanService():
-  MoveGroupCapability()
+#include <string>
+
+namespace move_group
 {
+static const std::string NODE_NAME = "move_group"; // name of node
 }
 
-void move_group::MoveGroupPlanService::initialize()
-{
-  plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupPlanService::computePlanService, this);
-}
-
-bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
-{
-  ROS_INFO("Received new planning service request...");
-  context_->planning_scene_monitor_->updateFrameTransforms();
-  
-  bool solved = false;   
-  planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
-  try
-  {
-    planning_interface::MotionPlanResponse mp_res;
-    solved = context_->planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
-    mp_res.getMessage(res.motion_plan_response);
-  }
-  catch(std::runtime_error &ex)
-  {
-    ROS_ERROR("Planning pipeline threw an exception: %s", ex.what()); 
-    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-  }
-  catch(...)
-  {
-    ROS_ERROR("Planning pipeline threw an exception"); 
-    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-  }
-  
-  return solved;
-}
+#endif

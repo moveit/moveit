@@ -10,23 +10,27 @@ find_package(Boost REQUIRED thread system filesystem date_time program_options)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning
-  moveit_ros_warehouse
+  moveit_ros_move_group
   roscpp
   rosconsole
   tf
+  pluginlib
+  actionlib
 )
 
 catkin_package(
   INCLUDE_DIRS
     pick_place/include
+    move_group_pick_place_capability/include
   LIBRARIES
     moveit_pick_place_planner
   CATKIN_DEPENDS
     moveit_core
     moveit_ros_planning
-    moveit_ros_warehouse)
+    )
 
 include_directories(pick_place/include)
+include_directories(move_group_pick_place_capability/include)
 
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM
@@ -37,3 +41,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(pick_place)
+add_subdirectory(move_group_pick_place_capability)
+
+install(FILES
+  pick_place_capability_plugin_description.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

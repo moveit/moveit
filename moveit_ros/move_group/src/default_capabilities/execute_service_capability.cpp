@@ -34,12 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group/names.h>
-#include <moveit/move_group/move_group_execute_service_capability.h>
+#include "execute_service_capability.h"
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+#include <moveit/move_group/capability_names.h>
 
 move_group::MoveGroupExecuteService::MoveGroupExecuteService():
-  MoveGroupCapability()
+  MoveGroupCapability("ExecutePathService")
 {
 }
 
@@ -93,3 +93,6 @@ bool move_group::MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::
   return true;
 }
 
+
+#include <class_loader/class_loader.h> 
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupExecuteService, move_group::MoveGroupCapability)

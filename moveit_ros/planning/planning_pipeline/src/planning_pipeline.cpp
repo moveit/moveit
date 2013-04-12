@@ -39,6 +39,7 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <boost/tokenizer.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <sstream>
 
 const std::string planning_pipeline::PlanningPipeline::DISPLAY_PATH_TOPIC = "display_planned_path";
@@ -113,12 +114,9 @@ void planning_pipeline::PlanningPipeline::configure()
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
   }
   catch(pluginlib::PluginlibException& ex)
-  {
-    std::stringstream ss;
-    for (std::size_t i = 0 ; i < classes.size() ; ++i)
-      ss << classes[i] << " ";
+  { 
     ROS_ERROR_STREAM("Exception while loading planner '" << planner_plugin_name_ << "': " << ex.what() << std::endl
-                     << "Available plugins: " << ss.str());
+                     << "Available plugins: " << boost::algorithm::join(classes, ", "));
   }
   
   // load the planner request adapters
