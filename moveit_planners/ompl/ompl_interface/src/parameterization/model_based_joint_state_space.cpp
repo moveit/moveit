@@ -129,6 +129,7 @@ void ompl_interface::ModelBasedJointStateSpace::serialize(void *serialization, c
 void ompl_interface::ModelBasedJointStateSpace::deserialize(ompl::base::State *state, const void *serialization) const
 { 
   memcpy(&state->as<StateType>()->joint_state->getVariableValues()[0], serialization, joint_model_->getVariableCount() * sizeof(double));
+  propagateJointStateUpdate(state);
 }
 
 void ompl_interface::ModelBasedJointStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
