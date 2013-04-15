@@ -200,10 +200,9 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
   if (self_mask_)
     self_mask_->maskContainment(cloud, mask);
   
-  OccMapTreePtr tree = monitor_->getOcTreePtr();
   octomap::KeySet free_cells, occupied_cells, model_cells;
 
-  tree->lockRead();
+  tree_->lockRead();
   
   try
   {
@@ -230,12 +229,12 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
 	  /* occupied cell at ray endpoint if ray is shorter than max range and this point
 	     isn't on a part of the robot*/
 	  if (self_point)
-	    model_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+	    model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
 	  else
 	  {
 	    double range = (point_tf - sensor_origin_tf).length();
 	    if (range < max_range_)
-	      occupied_cells.insert(tree->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+	      occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
 	  }
 	}
       }
@@ -243,21 +242,21 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
 
     /* compute the free cells along each ray that ends at an occupied cell */
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
-      if (tree->computeRayKeys(sensor_origin, tree->keyToCoord(*it), key_ray_))
+      if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(*it), key_ray_))
         free_cells.insert(key_ray_.begin(), key_ray_.end());
 
     /* compute the free cells along each ray that ends at a model cell */
     for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
-      if (tree->computeRayKeys(sensor_origin, tree->keyToCoord(*it), key_ray_))
+      if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(*it), key_ray_))
         free_cells.insert(key_ray_.begin(), key_ray_.end());
   }
   catch (...)
   { 
-    tree->unlockRead();
+    tree_->unlockRead();
     return;
   }
   
-  tree->unlockRead(); 
+  tree_->unlockRead(); 
   
   /* cells that overlap with the model are not occupied */
   for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
@@ -267,30 +266,30 @@ void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointClo
   for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
     free_cells.erase(*it);
   
-  tree->lockWrite();
+  tree_->lockWrite();
   
   try
   {    
     /* mark free cells only if not seen occupied in this cloud */
     for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
-      tree->updateNode(*it, false);
+      tree_->updateNode(*it, false);
     
     /* now mark all occupied cells */
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
-      tree->updateNode(*it, true);
+      tree_->updateNode(*it, true);
 
     // set the logodds to the minimum for the cells that are part of the model
-    const float lg = tree->getClampingThresMinLog() - tree->getClampingThresMaxLog();
+    const float lg = tree_->getClampingThresMinLog() - tree_->getClampingThresMaxLog();
     for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
-      tree->updateNode(*it, lg);
+      tree_->updateNode(*it, lg);
   }
   catch (...)
   {
     ROS_ERROR("Internal error while updating octree");
   }
-  tree->unlockWrite();
+  tree_->unlockWrite();
   ROS_DEBUG("Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
-  triggerUpdateCallback();
+  tree_->triggerUpdateCallback();
 }
 
 }

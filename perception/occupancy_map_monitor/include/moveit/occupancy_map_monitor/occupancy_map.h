@@ -40,6 +40,7 @@
 #include <octomap/octomap.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#include <boost/function.hpp>
 
 namespace occupancy_map_monitor
 {
@@ -83,9 +84,22 @@ public:
   {  
     tree_mutex_.unlock();
   }
+
+  void triggerUpdateCallback(void)
+  {
+    if (update_callback_)
+      update_callback_();
+  }
+  
+  /** @brief Set the callback to trigger when updates are received */
+  void setUpdateCallback(const boost::function<void()> &update_callback)
+  {
+    update_callback_ = update_callback;
+  }
   
 private:
-  boost::shared_mutex tree_mutex_;  
+  boost::shared_mutex tree_mutex_;
+  boost::function<void()> update_callback_;
 };
 
 typedef boost::shared_ptr<OccMapTree> OccMapTreePtr;
