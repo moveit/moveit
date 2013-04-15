@@ -155,7 +155,8 @@ public:
   virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
                              const std::vector<double> &ik_seed_state,
                              std::vector<double> &solution,
-                             moveit_msgs::MoveItErrorCodes &error_code) const;      
+                             moveit_msgs::MoveItErrorCodes &error_code,
+                             bool lock_redundant_joints) const;      
     
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -169,7 +170,8 @@ public:
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
                                 std::vector<double> &solution,
-                                moveit_msgs::MoveItErrorCodes &error_code) const;      
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                bool lock_redundant_joints) const;      
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
    * This particular method is intended for "searching" for a solutions by stepping through the redundancy
@@ -184,7 +186,8 @@ public:
                                 double timeout,
                                 const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
-                                moveit_msgs::MoveItErrorCodes &error_code) const;      
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                bool lock_redundant_joints) const;      
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -199,7 +202,8 @@ public:
                                 double timeout,
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
-                                moveit_msgs::MoveItErrorCodes &error_code) const;      
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                bool lock_redundant_joints) const;      
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -217,7 +221,8 @@ public:
                                 const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
-                                moveit_msgs::MoveItErrorCodes &error_code) const;      
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                bool lock_redundant_joints) const;      
     
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
