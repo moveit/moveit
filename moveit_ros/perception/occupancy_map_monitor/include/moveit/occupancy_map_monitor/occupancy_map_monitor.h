@@ -105,8 +105,11 @@ public:
   void forgetShape(ShapeHandle handle);
   
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
-  void setUpdateCallback(const boost::function<void()> &update_callback);
-
+  void setUpdateCallback(const boost::function<void()> &update_callback)
+  {
+    tree_->setUpdateCallback(update_callback);
+  }
+  
   void setTransformCacheCallback(const TransformCacheProvider &transform_cache_callback);
   
   void publishDebugInformation(bool flag);
@@ -120,8 +123,6 @@ private:
 
   /** @brief Load octree from a binary file (gets rid of current octree data) */
   bool loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response);
-  
-  void setUpdatersCallback();
 
   bool getShapeTransformCache(std::size_t index, const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache) const;
   
@@ -134,7 +135,6 @@ private:
   OccMapTreeConstPtr tree_const_;
   
   std::vector<OccupancyMapUpdaterPtr> map_updaters_;
-  boost::function<void()> update_callback_;
   std::vector<std::map<ShapeHandle, mesh_filter::MeshHandle> > mesh_handles_;
   TransformCacheProvider transform_cache_callback_;
   bool debug_info_;

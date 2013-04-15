@@ -155,7 +155,6 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr &updater)
   if (updater && updater->initialize())
   {
     map_updaters_.push_back(updater);
-    updater->setUpdateCallback(update_callback_);
     updater->publishDebugInformation(debug_info_);
     if (map_updaters_.size() > 1)
     {
@@ -186,13 +185,6 @@ void OccupancyMapMonitor::setMapFrame(const std::string &frame)
 {
   boost::mutex::scoped_lock _(parameters_lock_); // we lock since an updater could specify a new frame for us
   map_frame_ = frame;
-}
-
-void OccupancyMapMonitor::setUpdateCallback(const boost::function<void()> &update_callback)
-{  
-  update_callback_ = update_callback;
-  for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
-    map_updaters_[i]->setUpdateCallback(update_callback_);
 }
 
 ShapeHandle OccupancyMapMonitor::excludeShape(const shapes::ShapeConstPtr &shape)

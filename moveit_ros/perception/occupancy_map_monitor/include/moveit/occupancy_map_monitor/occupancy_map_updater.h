@@ -34,8 +34,8 @@
 
 /* Author: Jon Binney, Ioan Sucan */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER__
-#define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER__
+#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER_
+#define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER_
 
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <moveit/mesh_filter/mesh_filter_base.h>
@@ -59,16 +59,9 @@ class OccupancyMapUpdater
 {
 public:
 
-  OccupancyMapUpdater(OccupancyMapMonitor *monitor, const std::string &type) :
-    monitor_(monitor),
-    type_(type),
-    debug_info_(false)
-  {
-  }
-  
-  virtual ~OccupancyMapUpdater()
-  {
-  }
+  OccupancyMapUpdater(OccupancyMapMonitor *monitor, const std::string &type);  
+  virtual ~OccupancyMapUpdater();
+
 
   /** @brief Set updater params using struct that comes from parsing a yaml string*/
   virtual bool setParams(XmlRpc::XmlRpcValue &params) = 0;
@@ -94,11 +87,6 @@ public:
     transform_provider_callback_ = transform_callback;
   }
   
-  void setUpdateCallback(const boost::function<void()> &update_callback)
-  {
-    update_callback_ = update_callback;
-  }
-
   void publishDebugInformation(bool flag)
   {
     debug_info_ = flag;
@@ -106,18 +94,12 @@ public:
   
 protected:
   
-  OccupancyMapMonitor *monitor_;
+  OccupancyMapMonitor *monitor_; 
   std::string type_;  
-  boost::function<void()> update_callback_;
+  OccMapTreePtr tree_;
   TransformCacheProvider transform_provider_callback_;
   ShapeTransformCache transform_cache_;
   bool debug_info_;
-  
-  void triggerUpdateCallback(void)
-  {
-    if (update_callback_)
-      update_callback_();
-  }
   
   bool updateTransformCache(const std::string &target_frame, const ros::Time &target_time)
   {
