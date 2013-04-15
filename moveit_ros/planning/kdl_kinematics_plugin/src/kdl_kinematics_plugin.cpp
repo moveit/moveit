@@ -205,6 +205,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   // Check for mimic joints
   bool has_mimic_joints = joint_model_group->getMimicJointModels().size() > 0;  
+  std::vector<unsigned int> redundant_joints_map_index;    
   if(!has_mimic_joints)
   {
     ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(kdl_chain_));
@@ -212,8 +213,48 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   }
   else
   {
+    //Handle redundant and mimic joints
+    int num_redundant_joints = kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik? 3:6);
+    if(num_redundant_joints < 0)
+      num_redundant_joints = 0;    
+    if(num_redundant_joints)
+    {      
+      XmlRpc::XmlRpcValue joint_list;
+      if(private_handle.getParam(group_name+"/redundant_joints", joint_list))
+      {
+        ROS_ASSERT(joint_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+        std::vector<std::string> redundant_joints;  
+        for (std::size_t i = 0; i < joint_list.size(); ++i) 
+        {
+          ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
+          redundant_joints.push_back(static_cast<std::string>(joint_list[i]));   
+          ROS_INFO("Designated joint: %s as redundant joint", redundant_joints.back().c_str());          
+        }
+      
+        for(std::size_t i=0; i < joint_model_group->getJointModels().size(); ++i)
+        {
+          bool is_redundant_joint = false;      
+          for(std::size_t j=0; j < redundant_joints.size(); ++j)
+          {
+            if(joint_model_group->getJointModels()[i]->getName() == redundant_joints[j])
+            {
+              is_redundant_joint = true;
+              break;
+            }        
+          }
+          if(!is_redundant_joint)
+          {
+            redundant_joints_map_index.push_back(i);
+          }    
+        }        
+      }      
+    }
+
+    for(std::size_t i=0; i < redundant_joints_map_index.size(); ++i)
+      ROS_DEBUG("Redundant joint map index: %d %d", (int) i, (int) redundant_joints_map_index[i]);
+    
     std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;    
-    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), position_ik));
+    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), num_redundant_joints, position_ik));
     ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
     unsigned int joint_counter = 0;    
     for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
@@ -257,10 +298,11 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
         }        
       }
     }
-    KDL::ChainIkSolverVel_pinv_mimic* tmp_vel_solver = static_cast<KDL::ChainIkSolverVel_pinv_mimic*> (ik_solver_vel_.get());
+    vel_solver_ = static_cast<KDL::ChainIkSolverVel_pinv_mimic*> (ik_solver_vel_.get());
     KDL::ChainIkSolverPos_NR_JL_Mimic* tmp_pos_solver = static_cast<KDL::ChainIkSolverPos_NR_JL_Mimic*> (ik_solver_pos_.get());
     
-    tmp_vel_solver->setMimicJoints(mimic_joints);
+    vel_solver_->setMimicJoints(mimic_joints);
+    vel_solver_->setRedundantJointsMapIndex(redundant_joints_map_index);    
     tmp_pos_solver->setMimicJoints(mimic_joints);    
   }  
 
@@ -302,7 +344,8 @@ bool KDLKinematicsPlugin::timedOut(const ros::WallTime &start_time, double durat
 bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
                                         const std::vector<double> &ik_seed_state,
                                         std::vector<double> &solution,
-                                        moveit_msgs::MoveItErrorCodes &error_code) const
+                                        moveit_msgs::MoveItErrorCodes &error_code,
+                                        bool lock_redundancy) const
 {
   const IKCallbackFn solution_callback = 0;  
   std::vector<double> consistency_limits;
@@ -313,14 +356,16 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
                           solution,
                           solution_callback,
                           error_code,
-                          consistency_limits);
+                          consistency_limits,
+                          lock_redundancy);
 }
 
 bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            const std::vector<double> &ik_seed_state,
                                            double timeout,
                                            std::vector<double> &solution,
-                                           moveit_msgs::MoveItErrorCodes &error_code) const
+                                           moveit_msgs::MoveItErrorCodes &error_code,
+                                           bool lock_redundancy) const
 {
   const IKCallbackFn solution_callback = 0; 
   std::vector<double> consistency_limits;
@@ -331,7 +376,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           solution,
                           solution_callback,
                           error_code,
-                          consistency_limits);
+                          consistency_limits,
+                          lock_redundancy);
 }
     
 bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -339,7 +385,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            double timeout,
                                            const std::vector<double> &consistency_limits,
                                            std::vector<double> &solution,
-                                           moveit_msgs::MoveItErrorCodes &error_code) const
+                                           moveit_msgs::MoveItErrorCodes &error_code,
+                                           bool lock_redundancy) const
 {
   const IKCallbackFn solution_callback = 0; 
   return searchPositionIK(ik_pose,
@@ -348,41 +395,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                           solution,
                           solution_callback,
                           error_code,
-                          consistency_limits);
-}
-
-bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                           const std::vector<double> &ik_seed_state,
-                                           double timeout,
-                                           std::vector<double> &solution,
-                                           const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code) const
-{
-  std::vector<double> consistency_limits;
-  return searchPositionIK(ik_pose,
-                          ik_seed_state,
-                          timeout,
-                          solution,
-                          solution_callback,
-                          error_code,
-                          consistency_limits);
-}
-
-bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                           const std::vector<double> &ik_seed_state,
-                                           double timeout,
-                                           const std::vector<double> &consistency_limits,
-                                           std::vector<double> &solution,
-                                           const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code) const
-{
-  return searchPositionIK(ik_pose,
-                          ik_seed_state,
-                          timeout,
-                          solution,
-                          solution_callback,
-                          error_code,
-                          consistency_limits);
+                          consistency_limits,
+                          lock_redundancy);
 }
 
 bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -391,7 +405,46 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            std::vector<double> &solution,
                                            const IKCallbackFn &solution_callback,
                                            moveit_msgs::MoveItErrorCodes &error_code,
-                                           const std::vector<double> &consistency_limits) const
+                                           bool lock_redundancy) const
+{
+  std::vector<double> consistency_limits;
+  return searchPositionIK(ik_pose,
+                          ik_seed_state,
+                          timeout,
+                          solution,
+                          solution_callback,
+                          error_code,
+                          consistency_limits,
+                          lock_redundancy);
+}
+
+bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
+                                           const std::vector<double> &ik_seed_state,
+                                           double timeout,
+                                           const std::vector<double> &consistency_limits,
+                                           std::vector<double> &solution,
+                                           const IKCallbackFn &solution_callback,
+                                           moveit_msgs::MoveItErrorCodes &error_code,
+                                           bool lock_redundancy) const
+{
+  return searchPositionIK(ik_pose,
+                          ik_seed_state,
+                          timeout,
+                          solution,
+                          solution_callback,
+                          error_code,
+                          consistency_limits,
+                          lock_redundancy);
+}
+
+bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
+                                           const std::vector<double> &ik_seed_state,
+                                           double timeout,
+                                           std::vector<double> &solution,
+                                           const IKCallbackFn &solution_callback,
+                                           moveit_msgs::MoveItErrorCodes &error_code,
+                                           const std::vector<double> &consistency_limits,
+                                           bool lock_redundancy) const
 {
   ros::WallTime n1 = ros::WallTime::now();
   if(!active_)
@@ -413,6 +466,11 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     ROS_ERROR_STREAM("Consistency limits be empty or must have size " << dimension_ << " instead of size " << consistency_limits.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;        
+  }  
+
+  if(lock_redundancy)
+  {
+    vel_solver_->lockRedundantJoints();    
   }  
 
   solution.resize(dimension_);
