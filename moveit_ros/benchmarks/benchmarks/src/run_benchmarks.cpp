@@ -42,6 +42,11 @@ static const std::string ROBOT_DESCRIPTION="robot_description";      // name of 
 
 int main(int argc, char **argv)
 {
+  ros::init(argc, argv, "moveit_benchmarks", ros::init_options::AnonymousName);
+  
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
@@ -61,39 +66,39 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  ros::init(argc, argv, "moveit_benchmarks", ros::init_options::AnonymousName);
-  
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-  moveit_benchmarks::BenchmarkType btype = 0;
-  moveit_benchmarks::BenchmarkExecution be(psm.getPlanningScene(), 
-                                           vm.count("host") ? vm["host"].as<std::string>() : "",
-                                           vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-  if (vm.count("benchmark-planners"))
+  try
   {
-    btype += moveit_benchmarks::BENCHMARK_PLANNERS;    
-  }
-  if (vm.count("benchmark-goal-existance"))
-  {  
-    btype += moveit_benchmarks::BENCHMARK_GOAL_EXISTANCE;
-  }
-  
-  unsigned int proc = 0; 
-  std::vector<std::string> files = boost::program_options::collect_unrecognized(po.options, boost::program_options::include_positional);
-  for (std::size_t i = 0 ; i < files.size() ; ++i)
-  {
-    if (be.readOptions(files[i].c_str()))
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+    moveit_benchmarks::BenchmarkType btype = 0;
+    moveit_benchmarks::BenchmarkExecution be(psm.getPlanningScene(), 
+                                             vm.count("host") ? vm["host"].as<std::string>() : "",
+                                             vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+    if (vm.count("benchmark-planners"))
+      btype += moveit_benchmarks::BENCHMARK_PLANNERS;    
+    if (vm.count("benchmark-goal-existance"))
+      btype += moveit_benchmarks::BENCHMARK_GOAL_EXISTANCE;
+    
+    unsigned int proc = 0; 
+    std::vector<std::string> files = boost::program_options::collect_unrecognized(po.options, boost::program_options::include_positional);
+    for (std::size_t i = 0 ; i < files.size() ; ++i)
     {
-      std::stringstream ss;
-      be.printOptions(ss);
-      std::cout << "Calling benchmark with options:" << std::endl << ss.str() << std::endl;
-      be.runAllBenchmarks(btype);
-      proc++;
+      if (be.readOptions(files[i].c_str()))
+      {
+        std::stringstream ss;
+        be.printOptions(ss);
+        std::cout << "Calling benchmark with options:" << std::endl << ss.str() << std::endl;
+        be.runAllBenchmarks(btype);
+        proc++;
+      }
     }
+    std::cout << "Processed " << proc << " benchmark configuration files" << std::endl;
   }
-  std::cout << "Processed " << proc << " benchmark configuration files" << std::endl;
+  catch(mongo_ros::DbConnectException &ex)
+  {
+    ROS_ERROR_STREAM("Unable to connect to warehouse. If you just created the database, it could take a while for initial setup. Please try to run the benchmark again." 
+                     << std::endl << ex.what());
+  }
+  
   ros::shutdown();
   
   return 0;
