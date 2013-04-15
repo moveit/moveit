@@ -7,6 +7,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/point_cloud_occupancy_map_updater.cpp  
   src/depth_image_occupancy_map_updater.cpp
   )
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_robot_self_filter
   moveit_mesh_filter
