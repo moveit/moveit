@@ -530,16 +530,19 @@ void MotionPlanningDisplay::changedTrajectoryTopic()
 void MotionPlanningDisplay::computeMetrics(bool start, const std::string &group, double payload)
 {
   if (!robot_interaction_)
-    return;
+    return; 
+  ROS_INFO("started computeMetrics()");  
   const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
   if (eef.empty())
     return;
+  ROS_INFO("started computeMetrics()");  
   boost::mutex::scoped_lock slock(update_metrics_lock_);
   
   robot_state::RobotStateConstPtr state = start ? getQueryStartState() : getQueryGoalState();
   for (std::size_t i = 0 ; i < eef.size() ; ++i)
     if (eef[i].parent_group == group)
       computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i], *state, payload);
+  ROS_INFO("completed computeMetrics()");  
 }
 
 void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &ee,
@@ -885,15 +888,19 @@ void MotionPlanningDisplay::updateQueryGoalState()
 }
 
 void MotionPlanningDisplay::setQueryStartState(const robot_state::RobotState &start)
-{
+{  
+  ROS_INFO("set start 1");
   query_start_state_->setState(start);
   updateQueryStartState();
+  ROS_INFO("set start 2");
 }
 
 void MotionPlanningDisplay::setQueryGoalState(const robot_state::RobotState &goal)
 {
+  ROS_INFO("set goal 1");
   query_goal_state_->setState(goal);
   updateQueryGoalState();
+  ROS_INFO("set goal 2");
 }
 
 bool MotionPlanningDisplay::isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
@@ -1057,29 +1064,6 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &d
       std::map<std::string, double> values_to_keep;
       jsg->getVariableValues(values_to_keep);
       src_copy.setStateValues(values_to_keep);
-      /*
-      const std::vector<std::string> &links = jsg->getJointModelGroup()->getLinkModelNames();
-      for (std::size_t i = 0 ; i < links.size() ; ++i)
-      {
-        robot_state::LinkState *ls = dest.getLinkState(links[i]);
-        if (ls)
-        {
-          std::vector<const robot_state::AttachedBody*> attached_bodies;
-          ls->getAttachedBodies(attached_bodies);
-          // if we have attached bodies, we keep them as they were
-          if (!attached_bodies.empty())
-          {
-            src_copy.clearAttachedBodies(links[i]);
-            for (std::size_t j = 0 ; j < attached_bodies.size() ; ++j)
-              src_copy.attachBody(attached_bodies[j]->getName(),
-                                  attached_bodies[j]->getShapes(),
-                                  attached_bodies[j]->getFixedTransforms(),
-                                  attached_bodies[j]->getTouchLinks(),
-                                  links[i]);
-          }
-        }
-      }
-      */
     }
   }
   
@@ -1088,11 +1072,14 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &d
 }
 
 void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
-{  
+{
+  ROS_INFO("started scene update 1");
+  
   PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
   robot_state::RobotState current_state = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
 
+  ROS_INFO("started scene update 2");
   if (query_start_state_property_->getBool() && !group.empty())
   {
     robot_state::RobotState start = *getQueryStartState();
@@ -1107,8 +1094,12 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor:
     setQueryGoalState(goal);
   }
 
+  ROS_INFO("done scene update 1");
+
   if (frame_)
     frame_->sceneUpdate(update_type);
+
+  ROS_INFO("done scene update 2");
 }
 
 // ******************************************************************************************
