@@ -422,6 +422,8 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
     ik_callback_fn = boost::bind(&JointStateGroup::ikCallbackFnAdapter, this, constraint, _1, _2, _3);
   
   bool first_seed = true;
+  std::vector<double> initial_values;    
+  getVariableValues(initial_values);
   for (unsigned int st = 0 ; st < attempts ; ++st)
   {
     std::vector<double> seed(bij.size());
@@ -430,8 +432,6 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
     if (first_seed)
     {
       first_seed = false;
-      std::vector<double> initial_values;
-      getVariableValues(initial_values);
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         seed[bij[i]] = initial_values[i];
     }
@@ -443,15 +443,13 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
       joint_model_group_->getVariableRandomValues(rng, random_values);
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         seed[bij[i]] = random_values[i];
-
-      if(lock_redundant_joints)
+      
+      if (lock_redundant_joints)
       {
-        std::vector<unsigned int> red_joints;      
+        std::vector<unsigned int> red_joints;
         solver->getRedundantJoints(red_joints);
-        if(!red_joints.empty())
+        if (!red_joints.empty())
         {
-          std::vector<double> initial_values;
-          getVariableValues(initial_values);
           for(std::size_t i = 0 ; i < red_joints.size(); ++i)
             seed[bij[red_joints[i]]] = initial_values[red_joints[i]];
         }      
