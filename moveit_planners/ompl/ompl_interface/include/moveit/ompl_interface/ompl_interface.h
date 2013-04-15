@@ -81,30 +81,6 @@ public:
                  const moveit_msgs::BenchmarkPluginRequest &req,                  
                  moveit_msgs::BenchmarkPluginResponse &res) const;
   
-  /** @brief Solve the planning problem
-   *  @param config
-   *  @param start_state The start state specified for the planning problem
-   *  @param goal_constraints The goal constraints
-   *  @param timeout The amount of time to spend on planning
-   */
-  ob::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const std::string &config, const robot_state::RobotState &start_state,
-                    const moveit_msgs::Constraints &goal_constraints, double timeout,
-                    const std::string &factory_type = "") const;
-  
-  /** @brief Solve the planning problem
-   *  @param config
-   *  @param start_state The start state specified for the planning problem
-   *  @param goal_constraints The goal constraints
-   *  @param path_constraints The path constraints
-   *  @param timeout The amount of time to spend on planning
-   */
-  ob::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const std::string &config, const robot_state::RobotState &start_state,
-                    const moveit_msgs::Constraints &goal_constraints,
-                    const moveit_msgs::Constraints &path_constraints, double timeout,
-                    const std::string &factory_type = "") const;
-  
   void terminateSolve();
 
   ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::MotionPlanRequest &req) const;
