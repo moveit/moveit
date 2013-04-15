@@ -92,7 +92,7 @@ moveit_benchmarks::BenchmarkConfig::BenchmarkConfig(const std::string &host, std
   rs_(host, port)
 {  
 }
-void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &call)
+void moveit_benchmarks::BenchmarkConfig::generateRequests(const BenchmarkCallFn &call)
 {
   if (!call)
   {
@@ -151,7 +151,7 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
     }
   }
 
-  moveit_msgs::ComputePlanningPluginsBenchmark::Request req;
+  BenchmarkRequest req;
   if (world_only)
   {
     req.benchmark_request.scene.world = static_cast<const moveit_msgs::PlanningSceneWorld&>(*pswwm);
@@ -172,16 +172,8 @@ void moveit_benchmarks::BenchmarkConfig::runBenchmark(const BenchmarkCallFn &cal
   
   if (planning_queries_names.empty())
     ROS_INFO("Scene '%s' has no associated queries", opt_.scene.c_str());
-  req.benchmark_request.default_average_count = opt_.default_run_count;
-  req.benchmark_request.planner_interfaces.resize(opt_.plugins.size());
-  req.benchmark_request.average_count.resize(req.benchmark_request.planner_interfaces.size());
-  for (std::size_t i = 0 ; i < opt_.plugins.size() ; ++i)
-  {
-    req.benchmark_request.planner_interfaces[i].name = opt_.plugins[i].name;
-    req.benchmark_request.planner_interfaces[i].planner_ids = opt_.plugins[i].planners;
-    req.benchmark_request.average_count[i] = opt_.plugins[i].runs;
-  }
-
+  req.plugins = opt_.plugins;
+  
   unsigned int n_call = 0;
   
   // see if we have any start states specified
