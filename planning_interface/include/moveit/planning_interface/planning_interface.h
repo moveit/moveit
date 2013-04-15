@@ -58,8 +58,10 @@ public:
   {
   };
   
-  /// Subclass may implement methods below
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model) { return true; }
+  /// Initialize a planner. This function will be called after the construction of the plugin, before any other call is made.
+  /// It is assumed that motion plans will be computed for the robot described by \e model and that any exposed functionality
+  /// or required parameters are namespaced by \e ns
+  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns) { return true; }
   
   /// Get a short string that identifies the planning interface
   virtual std::string getDescription() const { return ""; }
