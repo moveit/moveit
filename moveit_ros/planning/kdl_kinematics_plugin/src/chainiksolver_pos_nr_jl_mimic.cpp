@@ -40,7 +40,6 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
 
 bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& _mimic_joints)
 {
-
   if(_mimic_joints.size() != chain.getNrOfJoints())
   {    
     ROS_ERROR("Mimic Joint info should be same size as number of joints in chain: %d", chain.getNrOfJoints());    
@@ -86,6 +85,11 @@ void ChainIkSolverPos_NR_JL_Mimic::qMimicToq(const JntArray& q, JntArray& q_resu
 
 int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out)
 {
+  return CartToJntAdvanced(q_init,p_in,q_out,false);
+}
+  
+int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out, bool lock_redundant_joints)
+{
   //Note that q_init and q_out will be of size chain.getNrOfJoints() - num_mimic_joints
   qToqMimic(q_init,q_temp);  
 
@@ -105,6 +109,7 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
       ROS_DEBUG("%d: %f",(int) i, delta_twist(i));
     
     iksolver.CartToJnt(q_temp,delta_twist,delta_q);
+    
     Add(q_temp,delta_q,q_temp);
 
     ROS_DEBUG_STREAM("delta_q");
