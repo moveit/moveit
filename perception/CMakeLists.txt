@@ -33,6 +33,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(octomap REQUIRED)
 
+find_package(OpenMP)
+
 catkin_package(
   INCLUDE_DIRS
     mesh_filter/include
