@@ -33,7 +33,7 @@ catkin_package(
   INCLUDE_DIRS
     benchmarks/include  
   LIBRARIES
-    moveit_benchmarks_config
+    moveit_benchmark_execution
   CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_planning_interface
