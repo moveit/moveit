@@ -66,6 +66,7 @@ moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first,
 /** \brief Check if any constraints were specified */
 bool isEmpty(const moveit_msgs::Constraints &constr);
 
+std::size_t countIndividualConstraints(const moveit_msgs::Constraints &constr);
 
 /** 
  * \brief Generates a constraint message intended to be used as a goal

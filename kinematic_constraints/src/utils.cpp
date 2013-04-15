@@ -109,6 +109,12 @@ bool kinematic_constraints::isEmpty(const moveit_msgs::Constraints &constr)
     constr.visibility_constraints.empty() && constr.joint_constraints.empty();
 }
 
+std::size_t kinematic_constraints::countIndividualConstraints(const moveit_msgs::Constraints &constr)
+{
+  return constr.position_constraints.size() + constr.orientation_constraints.size() +
+    constr.visibility_constraints.size() + constr.joint_constraints.size();
+}
+
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::JointStateGroup *jsg,
                                                                          double tolerance)
 {
