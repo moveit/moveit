@@ -107,7 +107,10 @@ public:
   {
     const planning_interface::PlannerPtr &planner_interface = planning_pipeline_->getPlannerInterface();
     if (planner_interface)
+    {
       ROS_INFO_STREAM("MoveGroup running using planning plugin " << planning_pipeline_->getPlannerPluginName());
+      ROS_INFO_STREAM(" *** MoveGroup initialization complete !!!");
+    }
     else
       ROS_WARN_STREAM("MoveGroup running was unable to load " << planning_pipeline_->getPlannerPluginName());
   }
@@ -155,10 +158,6 @@ int main(int argc, char **argv)
   
   if (planning_scene_monitor->getPlanningScene())
   {
-    planning_scene_monitor->startWorldGeometryMonitor();
-    planning_scene_monitor->startSceneMonitor();
-    planning_scene_monitor->startStateMonitor();
-    
     bool debug = false;
     for (int i = 1 ; i < argc ; ++i)
       if (strncmp(argv[i], "--debug", 7) == 0)
@@ -166,11 +165,21 @@ int main(int argc, char **argv)
         debug = true;
         break;
       }
+    if (debug)
+      ROS_INFO("MoveGroup debug mode is ON");
+    else
+      ROS_INFO("MoveGroup debug mode is OFF");
+
+    move_group::MoveGroupServer mgs(planning_scene_monitor, debug);
+
+    planning_scene_monitor->startSceneMonitor();    
+    planning_scene_monitor->startWorldGeometryMonitor();
+    planning_scene_monitor->startStateMonitor();
 
     planning_scene_monitor->publishDebugInformation(debug);
     
-    move_group::MoveGroupServer mgs(planning_scene_monitor, debug);
     mgs.status();
+    
     ros::waitForShutdown();
   }
   else

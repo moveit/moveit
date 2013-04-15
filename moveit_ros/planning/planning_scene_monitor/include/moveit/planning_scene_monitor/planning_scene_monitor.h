@@ -47,6 +47,7 @@
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <boost/noncopyable.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 namespace planning_scene_monitor
 {
@@ -337,9 +338,16 @@ protected:
   /** @brief Callback for a change in the world maintained by the planning scene */
   void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr &object, collision_detection::World::Action action);
 
+  void includeRobotLinksInOctree();
   void excludeRobotLinksFromOctree();
+
+  void excludeWorldObjectsFromOctree();
+  void includeWorldObjectsInOctree();
   void excludeWorldObjectFromOctree(const collision_detection::World::ObjectConstPtr &obj);
   void includeWorldObjectInOctree(const collision_detection::World::ObjectConstPtr &obj);
+
+  void excludeAttachedBodiesFromOctree();
+  void includeAttachedBodiesInOctree();  
   void excludeAttachedBodyFromOctree(const robot_state::AttachedBody *attached_body);
   void includeAttachedBodyInOctree(const robot_state::AttachedBody *attached_body);
   
@@ -401,7 +409,8 @@ protected:
   LinkShapeHandles link_shape_handles_;
   AttachedBodyShapeHandles attached_body_shape_handles_;
   CollisionBodyShapeHandles collision_body_shape_handles_;
-  
+  mutable boost::recursive_mutex shape_handles_lock_;
+
   std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_; /// List of callbacks to trigger when updates are received
   ros::Time last_update_time_; /// Last time the state was updated
 

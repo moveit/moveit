@@ -78,7 +78,6 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
 { 
   if (!trajectory_execution_manager_)
     trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel()));
-  trajectory_monitor_.reset(new planning_scene_monitor::TrajectoryMonitor(planning_scene_monitor_->getStateMonitor()));
   
   default_max_replan_attempts_ = 5;
 
@@ -361,8 +360,12 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     }
   }
 
+  if (!trajectory_monitor_ && planning_scene_monitor_->getStateMonitor())
+    trajectory_monitor_.reset(new planning_scene_monitor::TrajectoryMonitor(planning_scene_monitor_->getStateMonitor()));
+
   // start recording trajectory states
-  trajectory_monitor_->startTrajectoryMonitor();
+  if (trajectory_monitor_)
+    trajectory_monitor_->startTrajectoryMonitor();
   
   // start a trajectory execution thread
   trajectory_execution_manager_->execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1),
@@ -405,7 +408,8 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
       }
   
   // stop recording trajectory states
-  trajectory_monitor_->stopTrajectoryMonitor();
+  if (trajectory_monitor_)
+    trajectory_monitor_->stopTrajectoryMonitor();
   
   // decide return value 
   if (path_became_invalid_)
