@@ -36,9 +36,9 @@
 
 #include <moveit/ompl_interface/ompl_interface_ros.h>
 
-ompl_interface::OMPLInterfaceROS::OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel) :
+ompl_interface::OMPLInterfaceROS::OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel, const ros::NodeHandle &nh) :
   ompl_interface::OMPLInterface(kmodel),
-  nh_("~")
+  nh_(nh)
 {
   loadParams();
 }

@@ -54,14 +54,17 @@ public:
   OMPLPlanner() : planning_interface::Planner(),
                   nh_("~")
   {
-    dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle("~/ompl")));
-    dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
   }
   
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model) 
+  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns) 
   {
-    ompl_interface_.reset(new OMPLInterfaceROS(model));
+    if (!ns.empty())
+      nh_ = ros::NodeHandle(ns);
+    ompl_interface_.reset(new OMPLInterfaceROS(model, nh_));
     pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
+    
+    dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle(nh_, "ompl")));
+    dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
     return true;
   }
   

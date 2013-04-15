@@ -49,7 +49,7 @@ namespace ompl_interface
     public:
       /** @brief Constructor
        *  @param scene A pointer to the planning scene*/
-      OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel);
+      OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel, const ros::NodeHandle &nh = ros::NodeHandle("~"));
 
       /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint approximations to */
       bool saveConstraintApproximations();
