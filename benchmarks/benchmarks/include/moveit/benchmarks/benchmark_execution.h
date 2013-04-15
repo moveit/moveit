@@ -34,72 +34,104 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
-#define MOVEIT_BENCHMARKS_BENCHMARKS_CONFIG_
+#ifndef MOVEIT_BENCHMARKS_BENCHMARK_EXECUTION_
+#define MOVEIT_BENCHMARKS_BENCHMARK_EXECUTION_
 
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/planning_scene_world_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/trajectory_constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
-#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <pluginlib/class_loader.h>
 #include <boost/function.hpp>
 
 namespace moveit_benchmarks
 {
 
-struct BenchmarkOptions
-{
-  std::string scene;
-  std::string output;
-  std::string start_regex;
-  std::string query_regex;
-  std::string goal_regex;
-  std::string trajectory_regex;
-  std::string group_override;
-  std::string planning_frame;
-  std::string default_constrained_link;
-  std::size_t default_run_count;
-  double offsets[6];
-  double timeout;
+typedef unsigned int BenchmarkType;
+static const BenchmarkType BENCHMARK_PLANNERS = 1;
+static const BenchmarkType BENCHMARK_GOAL_EXISTANCE = 2;
 
-  struct PluginOptions
-  {
-    std::string name;
-    std::vector<std::string> planners;
-    std::size_t runs;
-  };
-  
-  std::vector<PluginOptions> plugins;
+struct PlanningPluginOptions
+{
+  std::string name;
+  std::vector<std::string> planners;
+  std::size_t runs;
 };
 
-typedef boost::function<bool(moveit_msgs::ComputePlanningPluginsBenchmark::Request&)> BenchmarkCallFn;
+struct BenchmarkRequest
+{
+  BenchmarkRequest() : benchmark_type(0)
+  {
+  }
+  
+  // The scene to consider in the benchmark
+  moveit_msgs::PlanningScene scene;
+  
+  // The problem to benchmarked
+  moveit_msgs::MotionPlanRequest motion_plan_request;
 
-class BenchmarkConfig
+  // The planning plugins to use in the benchmark
+  std::vector<PlanningPluginOptions> plugins;
+
+  BenchmarkType benchmark_type;
+
+  // The file where to store the results
+  std::string filename;
+};
+
+class BenchmarkExecution
 {
 public:
 
-  BenchmarkConfig(const std::string &host, std::size_t port);
+  BenchmarkExecution(const planning_scene::PlanningScenePtr &scene, const std::string &host, std::size_t port);
   
-  bool readOptions(const char *filename);
-  
-  void runBenchmark(const BenchmarkCallFn &call);
-
-  const BenchmarkOptions& getOptions() const
-  {
-    return opt_;
-  }
-  
+  bool readOptions(const std::string &filename);
   void printOptions(std::ostream &out);
+
+  void runAllBenchmarks(BenchmarkType type);
+
+  void runBenchmark(BenchmarkRequest &req);
+  void runPlanningBenchmark(BenchmarkRequest &req);
+  void runGoalExistenceBenchmark(BenchmarkRequest &req);
   
 private:
   
-  BenchmarkOptions opt_;
+  struct BenchmarkOptions
+  {
+    std::string scene;
+    std::string output;
+    std::string start_regex;
+    std::string query_regex;
+    std::string goal_regex;
+    std::string trajectory_regex;
+    std::string group_override;
+    std::string planning_frame;
+    std::string default_constrained_link;
+    std::size_t default_run_count;
+    double offsets[6];
+    double timeout;
+    
+    std::vector<PlanningPluginOptions> plugins;
+  };
+
+  void collectMetrics(std::map<std::string, std::string> &rundata,
+                      const planning_interface::MotionPlanDetailedResponse &mp_res,
+                      bool solved, double total_time);
+  
+  BenchmarkOptions opt_; 
+  std::vector<std::string> available_plugins_;
+  planning_scene::PlanningScenePtr planning_scene_;
+
   moveit_warehouse::PlanningSceneStorage pss_; 
   moveit_warehouse::PlanningSceneWorldStorage psws_;
   moveit_warehouse::ConstraintsStorage cs_;
   moveit_warehouse::TrajectoryConstraintsStorage tcs_;
   moveit_warehouse::RobotStateStorage rs_;
+
+  boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
+  std::map<std::string, boost::shared_ptr<planning_interface::Planner> > planner_interfaces_;
 };
 
 
