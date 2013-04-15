@@ -55,11 +55,13 @@ public:
   static const std::string MOTION_PLAN_REQUEST_TOPIC;
   static const std::string MOTION_CONTACTS_TOPIC;
 
-  PlanningPipeline(const robot_model::RobotModelConstPtr& model, 
+  PlanningPipeline(const robot_model::RobotModelConstPtr& model,
+                   const ros::NodeHandle &nh = ros::NodeHandle("~"),
                    const std::string &planning_plugin_param_name = "planning_plugin",
                    const std::string &adapter_plugins_param_name = "request_adapters");
   
   PlanningPipeline(const robot_model::RobotModelConstPtr& model, 
+                   const ros::NodeHandle &nh,
                    const std::string &planning_plugin_name,
                    const std::vector<std::string> &adapter_plugin_names);
   
