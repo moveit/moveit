@@ -47,9 +47,10 @@ const std::string planning_pipeline::PlanningPipeline::MOTION_PLAN_REQUEST_TOPIC
 const std::string planning_pipeline::PlanningPipeline::MOTION_CONTACTS_TOPIC = "display_contacts";
 
 planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotModelConstPtr& model, 
+                                                      const ros::NodeHandle &nh,
                                                       const std::string &planner_plugin_param_name,
                                                       const std::string &adapter_plugins_param_name) :
-  nh_("~"),
+  nh_(nh),
   kmodel_(model)
 {
   std::string planner;
@@ -69,9 +70,10 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotMo
 }
 
 planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotModelConstPtr& model, 
+                                                      const ros::NodeHandle &nh,
                                                       const std::string &planner_plugin_name,
                                                       const std::vector<std::string> &adapter_plugin_names) :
-  nh_("~"),
+  nh_(nh),
   planner_plugin_name_(planner_plugin_name),
   adapter_plugin_names_(adapter_plugin_names),
   kmodel_(model)
@@ -109,7 +111,7 @@ void planning_pipeline::PlanningPipeline::configure()
   try
   {
     planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planner_plugin_name_));
-    if (!planner_instance_->initialize(kmodel_))
+    if (!planner_instance_->initialize(kmodel_, nh_.getNamespace()))
       throw std::runtime_error("Unable to initialize planning plugin");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
   }
