@@ -360,20 +360,19 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
       return result;
     }
   }
-  
+
   // start recording trajectory states
   trajectory_monitor_->startTrajectoryMonitor();
   
   // start a trajectory execution thread
   trajectory_execution_manager_->execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1),
                                          boost::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan, _1));
-  
   // wait for path to be done, while checking that the path does not become invalid
-  static const ros::WallDuration d(0.01);
+  ros::Rate r(100);
   path_became_invalid_ = false;
   while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid_)
   {
-    d.sleep();
+    r.sleep();
     // check the path if there was an environment update in the meantime
     if (new_scene_update_)
     {
@@ -385,7 +384,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
       }
     }
   }
-  
+
   // stop execution if needed
   if (preempt_requested_)
   {
