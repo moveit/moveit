@@ -41,11 +41,11 @@
 #include <class_loader/class_loader.h>
 
 #include <dynamic_reconfigure/server.h>
-#include "moveit_ompl_planners/OMPLDynamicReconfigureConfig.h"
+#include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
 
 namespace ompl_interface
 {
-using namespace moveit_ompl_planners;
+using namespace moveit_planners_ompl;
 
 class OMPLPlanner : public planning_interface::Planner
 {
