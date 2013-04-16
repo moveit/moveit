@@ -1,5 +1,5 @@
 <package>
-  <name>moveit_ompl_planners</name>
+  <name>moveit_planners_ompl</name>
   <version>0.3.7</version>
   <description>MoveIt interface to OMPL</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
