@@ -38,6 +38,7 @@ from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
 import rospy
 import tf
+from moveit_ros_planning_interface import _moveit_move_group_interface
 
 class MoveGroupCommander:
     """
