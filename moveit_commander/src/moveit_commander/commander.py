@@ -258,6 +258,9 @@ class MoveGroupCommander:
     def set_planning_time(self, seconds):
         self._g.set_planning_time(seconds)
 
+    def set_planner_id(self, planner_id):
+        self._g.set_planner_id(planner_id)
+
     def set_workspace(self, ws):
         """ Set the workspace for the robot as either [], [minX, minY, maxX, maxY] or [minX, minY, minZ, maxX, maxY, maxZ] """
         if len(ws) == 0:
