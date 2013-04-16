@@ -136,6 +136,11 @@ public:
     constraints_library_->saveConstraintApproximations(path);
   }
   
+  void simplifySolutions(bool flag)
+  {
+    simplify_solutions_ = true;
+  }
+  
 protected:
 
   void configureConstraints(const ModelBasedPlanningContextPtr &context) const;
@@ -153,9 +158,10 @@ protected:
   
   PlanningContextManager context_manager_;
   
-  ConstraintsLibraryPtr constraints_library_;
-  
+  ConstraintsLibraryPtr constraints_library_;  
   bool use_constraints_approximations_;
+
+  bool simplify_solutions_;
   
 };
 
