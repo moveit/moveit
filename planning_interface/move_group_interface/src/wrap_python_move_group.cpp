@@ -348,6 +348,7 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase); 
   MoveGroupClass.def("set_workspace", &MoveGroupWrapper::setWorkspace);
   MoveGroupClass.def("set_planning_time", &MoveGroupWrapper::setPlanningTime);
+  MoveGroupClass.def("set_planner_id", &MoveGroupWrapper::setPlannerId);
   MoveGroupClass.def("get_plan", &MoveGroupWrapper::getPlanPythonDict);  
   MoveGroupClass.def("set_support_surface_name", &MoveGroupWrapper::setSupportSurfaceName);
 }
