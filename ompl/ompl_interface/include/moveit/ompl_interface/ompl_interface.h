@@ -43,8 +43,6 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MotionPlanResponse.h>
-#include <moveit_msgs/BenchmarkPluginRequest.h>
-#include <moveit_msgs/BenchmarkPluginResponse.h>
 #include <string>
 #include <map>
 
@@ -77,9 +75,11 @@ public:
              const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const;
   
   /** @brief Benchmark the planning problem*/
+  /*
   bool benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
                  const moveit_msgs::BenchmarkPluginRequest &req,                  
                  moveit_msgs::BenchmarkPluginResponse &res) const;
+  */
   
   void terminateSolve();
 

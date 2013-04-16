@@ -284,7 +284,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     return false;
   }
 }
-
+/*
 bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                               const moveit_msgs::BenchmarkPluginRequest &req,
                                               moveit_msgs::BenchmarkPluginResponse &res) const
@@ -297,7 +297,7 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
     return false; 
   return context->benchmark(timeout, attempts, req.filename);
 }
-
+*/
 void ompl_interface::OMPLInterface::terminateSolve()
 {
   const ModelBasedPlanningContextPtr &context = getLastPlanningContext();

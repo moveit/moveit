@@ -41,12 +41,10 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <moveit_msgs/GetMotionPlan.h>
-#include <moveit_msgs/ComputePlanningPluginsBenchmark.h>
 #include <moveit_msgs/ConstructConstraintApproximation.h>
 
 static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; // name of the advertised service (within the ~ namespace)
 static const std::string CONSTRUCT_CONSTRAINT_APPROXIMATION_SERVICE_NAME="construct_constraint_approximation"; // name of the advertised service (within the ~ namespace)
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
 
@@ -58,7 +56,6 @@ public:
     nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getRobotModel()), debug_(debug)
   {
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
-    benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);
     construct_ca_service_ = nh_.advertiseService(CONSTRUCT_CONSTRAINT_APPROXIMATION_SERVICE_NAME, &OMPLPlannerService::constructConstraintApproximation, this);
     if (debug_)
     {
@@ -96,12 +93,6 @@ public:
     pub_plan_.publish(d);
   }
   
-  bool computeBenchmark(moveit_msgs::ComputePlanningPluginsBenchmark::Request &req, moveit_msgs::ComputePlanningPluginsBenchmark::Response &res)
-  {
-      ROS_INFO("Received new benchmark request...");
-      return ompl_interface_.benchmark(psm_.getPlanningScene(), req.benchmark_request, res.benchmark_response);
-  }
-
   bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
   {
     planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
@@ -135,7 +126,6 @@ private:
   planning_scene_monitor::PlanningSceneMonitor &psm_;  
   ompl_interface::OMPLInterfaceROS              ompl_interface_;
   ros::ServiceServer                            plan_service_;
-  ros::ServiceServer                            benchmark_service_;  
   ros::ServiceServer                            construct_ca_service_;  
   ros::ServiceServer                            display_states_service_;
   ros::Publisher                                pub_plan_;
