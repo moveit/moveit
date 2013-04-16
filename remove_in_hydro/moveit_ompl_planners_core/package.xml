@@ -13,7 +13,7 @@
   <url type="repository">https://github.com/ros-planning/moveit_planners</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>moveit_ompl_planners</run_depend>
+  <run_depend>moveit_planners_ompl</run_depend>
 
   <export>
     <metapackage/>
