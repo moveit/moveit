@@ -26,7 +26,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
   py_bindings_tools/include
   robot_interaction/include
   move_group_interface/include
-  planning_scene_interface/include
 )
 
 catkin_python_setup()
@@ -58,6 +57,5 @@ link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(py_bindings_tools)
 add_subdirectory(robot_interaction)
 add_subdirectory(move_group_interface)
-add_subdirectory(planning_scene_interface)
 
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
