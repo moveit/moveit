@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_manipulation
   moveit_ros_move_group
   eigen_conversions
-  interactive_markers
   tf
   roscpp
   actionlib
@@ -24,7 +23,6 @@ find_package(catkin REQUIRED COMPONENTS
 
 set(THIS_PACKAGE_INCLUDE_DIRS
   py_bindings_tools/include
-  robot_interaction/include
   move_group_interface/include
 )
 
@@ -32,7 +30,6 @@ catkin_python_setup()
 
 catkin_package(
   LIBRARIES  
-    moveit_robot_interaction
     moveit_move_group_interface
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
@@ -55,7 +52,6 @@ link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(py_bindings_tools)
-add_subdirectory(robot_interaction)
 add_subdirectory(move_group_interface)
 
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
