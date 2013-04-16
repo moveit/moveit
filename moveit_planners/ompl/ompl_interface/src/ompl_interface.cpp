@@ -46,7 +46,8 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   constraint_sampler_manager_(new  constraint_samplers::ConstraintSamplerManager()),
   context_manager_(kmodel, constraint_sampler_manager_),
   constraints_library_(new ConstraintsLibrary(context_manager_)),
-  use_constraints_approximations_(true)
+  use_constraints_approximations_(true),
+  simplify_solutions_(true)
 {
 }
 
@@ -204,7 +205,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
   {
     double ptime = context->getLastPlanTime();
-    if (ptime < timeout && !follow)
+    if (simplify_solutions_ && ptime < timeout && !follow)
     {
       context->simplifySolution(timeout - ptime);
       ptime += context->getLastSimplifyTime();
@@ -254,7 +255,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     context->getSolutionPath(*res.trajectory_.back());
     
     // simplify solution if time remains
-    if (ptime < timeout || !follow)
+    if (simplify_solutions_ && ptime < timeout || !follow)
     {
       context->simplifySolution(timeout - ptime);
       res.processing_time_.push_back(context->getLastSimplifyTime());
@@ -284,7 +285,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     return false;
   }
 }
-
+/*
 bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                               const moveit_msgs::BenchmarkPluginRequest &req,
                                               moveit_msgs::BenchmarkPluginResponse &res) const
@@ -297,49 +298,7 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
     return false; 
   return context->benchmark(timeout, attempts, req.filename);
 }
-
-ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                         const std::string &config, const robot_state::RobotState &start_state,
-                                                         const moveit_msgs::Constraints &goal_constraints, double timeout,
-                                                         const std::string &factory_type) const
-{
-  moveit_msgs::Constraints empty;
-  return solve(planning_scene, config, start_state, goal_constraints, empty, timeout, factory_type);
-}
-
-ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                         const std::string &config, const robot_state::RobotState &start_state,
-                                                         const moveit_msgs::Constraints &goal_constraints,
-                                                         const moveit_msgs::Constraints &path_constraints, double timeout,
-                                                         const std::string &factory_type) const
-{ 
-  ompl::tools::Profiler::ScopedStart pslv;
-  ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
-
-  ModelBasedPlanningContextPtr context = getPlanningContext(config, factory_type);
-  if (!context)
-    return ob::PathPtr();
-  
-  std::vector<moveit_msgs::Constraints> goal_constraints_v(1, goal_constraints);  
-  context->setPlanningScene(planning_scene);
-  context->setCompleteInitialState(start_state);
-  context->setPathConstraints(path_constraints, NULL);
-  context->setGoalConstraints(goal_constraints_v, path_constraints, NULL);
-  context->configure();
-  
-  // solve the planning problem
-  if (context->solve(timeout, 1))
-  {
-    double ptime = context->getLastPlanTime();
-    if (ptime < timeout)
-      context->simplifySolution(timeout - ptime);
-    context->interpolateSolution();
-    return ob::PathPtr(new og::PathGeometric(context->getOMPLSimpleSetup().getSolutionPath()));
-  }
-  
-  return ob::PathPtr();  
-}
-
+*/
 void ompl_interface::OMPLInterface::terminateSolve()
 {
   const ModelBasedPlanningContextPtr &context = getLastPlanningContext();
