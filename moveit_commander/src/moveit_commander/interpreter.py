@@ -33,7 +33,7 @@
 # Author: Ioan Sucan
 
 import roslib
-from moveit_commander import MoveGroupCommander, ObjectDetector, ObjectBroadcaster
+from moveit_commander import MoveGroupCommander
 import re
 import time
 import os.path
@@ -59,8 +59,6 @@ class MoveGroupCommandInterpreter:
         self._gdict = {}
         self._group_name = ""
         self._prev_group_name = ""
-        self._detector = None
-        self._broadcaster = None
 
     def get_active_group(self):
         if len(self._group_name) > 0:
@@ -140,12 +138,6 @@ class MoveGroupCommandInterpreter:
                 return (MoveGroupInfoLevel.DEBUG, "OK")
             except:
                 return (MoveGroupInfoLevel.WARN, "Unable to save " + filename)
-        elif cmd.startswith("detect"):
-            clist = cmd.split()
-            if len(clist) >= 2:
-                return self.command_detect(float(clist[1]))
-            else:
-                return self.command_detect(0.5)  
         else:
             return None
 
@@ -351,16 +343,6 @@ class MoveGroupCommandInterpreter:
         else:
             return (MoveGroupInfoLevel.WARN, "No known end effector. Cannot move " + direction_name)
 
-    def command_detect(self, confidence):
-        if self._broadcaster is None:
-            self._broadcaster = ObjectBroadcaster()
-        if self._detector is None:
-            self._detector = ObjectDetector(self._broadcaster.broadcast)
-            self._detector.start_action_client()
-        self._broadcaster.set_minimum_confidence(confidence)
-        self._detector.trigger_detection()
-        return (MoveGroupInfoLevel.SUCCESS, "OK")
-
     def resolve_command_alias(self, cmd):
         if cmd == "which":
             cmd = "id"
@@ -419,7 +401,6 @@ class MoveGroupCommandInterpreter:
                 'place':[],
                 'allow':['replanning', 'looking'],
                 'constrain':known_constr,
-                'detect':[],
                 'vars':[],
                 'joints':[],
                 'tolerance':[],
