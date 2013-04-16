@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ompl_planners_core</name>
-  <version>0.3.7</version>
+  <version>0.3.9</version>
   <description>Dummy metapackage</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
 
@@ -12,7 +12,8 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit_planners/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit_planners</url>
 
-  <run_depend>moveit_ompl_planners</run_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>moveit_planners_ompl</run_depend>
 
   <export>
     <metapackage/>

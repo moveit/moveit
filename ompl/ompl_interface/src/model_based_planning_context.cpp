@@ -55,7 +55,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getRobotModel()),
   ompl_simple_setup_(spec.state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
   last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_state_sampling_attempts_(0), max_goal_sampling_attempts_(0), 
-  max_planning_threads_(0), max_solution_segment_length_(0.0)
+  max_planning_threads_(0), max_solution_segment_length_(0.0), minimum_waypoint_count_(0)
 {
   ompl_simple_setup_.getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
@@ -240,7 +240,7 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
   if (ompl_simple_setup_.haveSolutionPath())
   {
     og::PathGeometric &pg = ompl_simple_setup_.getSolutionPath();
-    pg.interpolate((std::size_t)floor(0.5 + pg.length() / max_solution_segment_length_));
+    pg.interpolate(std::max((unsigned int)floor(0.5 + pg.length() / max_solution_segment_length_), minimum_waypoint_count_));
   }
 }
 

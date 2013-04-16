@@ -101,7 +101,7 @@ struct PlanningContextManager::CachedContexts
 ompl_interface::PlanningContextManager::PlanningContextManager(const robot_model::RobotModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
   kmodel_(kmodel), constraint_sampler_manager_(csm),
   max_goal_samples_(10), max_state_sampling_attempts_(4), max_goal_sampling_attempts_(1000),
-  max_planning_threads_(4), max_solution_segment_length_(0.0)
+  max_planning_threads_(4), max_solution_segment_length_(0.0), minimum_waypoint_count_(2)
 {
   last_planning_context_.reset(new LastPlanningContext());
   cached_contexts_.reset(new CachedContexts());
@@ -276,6 +276,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     context->setMaximumSolutionSegmentLength(context->getOMPLSimpleSetup().getStateSpace()->getMaximumExtent() / 100.0);
   else
     context->setMaximumSolutionSegmentLength(max_solution_segment_length_);
+  context->setMinimumWaypointCount(minimum_waypoint_count_);
   
   last_planning_context_->setContext(context);
   return context;  

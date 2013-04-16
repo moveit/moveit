@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #include <moveit/ompl_interface/ompl_interface_ros.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -39,11 +41,11 @@
 #include <class_loader/class_loader.h>
 
 #include <dynamic_reconfigure/server.h>
-#include "moveit_ompl_planners/OMPLDynamicReconfigureConfig.h"
+#include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
 
 namespace ompl_interface
 {
-using namespace moveit_ompl_planners;
+using namespace moveit_planners_ompl;
 
 class OMPLPlanner : public planning_interface::Planner
 {
@@ -52,14 +54,17 @@ public:
   OMPLPlanner() : planning_interface::Planner(),
                   nh_("~")
   {
-    dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle("~/ompl")));
-    dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
   }
   
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model) 
+  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns) 
   {
-    ompl_interface_.reset(new OMPLInterfaceROS(model));
+    if (!ns.empty())
+      nh_ = ros::NodeHandle(ns);
+    ompl_interface_.reset(new OMPLInterfaceROS(model, nh_));
     pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
+    
+    dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle(nh_, "ompl")));
+    dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
     return true;
   }
   
@@ -156,6 +161,9 @@ private:
       ROS_INFO("Not displaying OMPL exploration data structures.");
     else
       ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
+    ompl_interface_->simplifySolutions(config.simplify_solutions);
+    ompl_interface_->getPlanningContextManager().setMaximumSolutionSegmentLength(config.maximum_waypoint_distance);
+    ompl_interface_->getPlanningContextManager().setMinimumWaypointCount(config.minimum_waypoint_count);
   }
   
   ros::NodeHandle nh_;

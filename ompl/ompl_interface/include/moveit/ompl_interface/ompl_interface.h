@@ -43,8 +43,6 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MotionPlanResponse.h>
-#include <moveit_msgs/BenchmarkPluginRequest.h>
-#include <moveit_msgs/BenchmarkPluginResponse.h>
 #include <string>
 #include <map>
 
@@ -77,33 +75,11 @@ public:
              const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const;
   
   /** @brief Benchmark the planning problem*/
+  /*
   bool benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
                  const moveit_msgs::BenchmarkPluginRequest &req,                  
                  moveit_msgs::BenchmarkPluginResponse &res) const;
-  
-  /** @brief Solve the planning problem
-   *  @param config
-   *  @param start_state The start state specified for the planning problem
-   *  @param goal_constraints The goal constraints
-   *  @param timeout The amount of time to spend on planning
-   */
-  ob::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const std::string &config, const robot_state::RobotState &start_state,
-                    const moveit_msgs::Constraints &goal_constraints, double timeout,
-                    const std::string &factory_type = "") const;
-  
-  /** @brief Solve the planning problem
-   *  @param config
-   *  @param start_state The start state specified for the planning problem
-   *  @param goal_constraints The goal constraints
-   *  @param path_constraints The path constraints
-   *  @param timeout The amount of time to spend on planning
-   */
-  ob::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const std::string &config, const robot_state::RobotState &start_state,
-                    const moveit_msgs::Constraints &goal_constraints,
-                    const moveit_msgs::Constraints &path_constraints, double timeout,
-                    const std::string &factory_type = "") const;
+  */
   
   void terminateSolve();
 
@@ -160,6 +136,11 @@ public:
     constraints_library_->saveConstraintApproximations(path);
   }
   
+  void simplifySolutions(bool flag)
+  {
+    simplify_solutions_ = true;
+  }
+  
 protected:
 
   void configureConstraints(const ModelBasedPlanningContextPtr &context) const;
@@ -177,9 +158,10 @@ protected:
   
   PlanningContextManager context_manager_;
   
-  ConstraintsLibraryPtr constraints_library_;
-  
+  ConstraintsLibraryPtr constraints_library_;  
   bool use_constraints_approximations_;
+
+  bool simplify_solutions_;
   
 };
 
