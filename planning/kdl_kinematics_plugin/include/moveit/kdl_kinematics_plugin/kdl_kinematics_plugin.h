@@ -164,6 +164,8 @@ namespace kdl_kinematics_plugin
                           moveit_msgs::MoveItErrorCodes &error_code,
                           const std::vector<double> &consistency_limits,
                           bool lock_redundancy=false) const;
+
+    virtual bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices);    
     
   private:
     
@@ -225,6 +227,8 @@ namespace kdl_kinematics_plugin
 
     //    robot_state::JointStateGroup* joint_state_group_, joint_state_group_2_;
     KDL::ChainIkSolverVel_pinv_mimic* vel_solver_;//pointer to the actual velocity solver
+
+    int num_possible_redundant_joints_;
     
   };
 }

@@ -202,6 +202,8 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   
   // Build Solvers
   fk_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
+  // Setup for redundant joints
+  num_possible_redundant_joints_ = kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik? 3:6);
 
   // Check for mimic joints
   bool has_mimic_joints = joint_model_group->getMimicJointModels().size() > 0;  
@@ -212,49 +214,9 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
   }
   else
-  {
-    //Handle redundant and mimic joints
-    int num_redundant_joints = kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik? 3:6);
-    if(num_redundant_joints < 0)
-      num_redundant_joints = 0;    
-    if(num_redundant_joints)
-    {      
-      XmlRpc::XmlRpcValue joint_list;
-      if(private_handle.getParam(group_name+"/redundant_joints", joint_list))
-      {
-        ROS_ASSERT(joint_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-        std::vector<std::string> redundant_joints;  
-        for (std::size_t i = 0; i < joint_list.size(); ++i) 
-        {
-          ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-          redundant_joints.push_back(static_cast<std::string>(joint_list[i]));   
-          ROS_INFO("Designated joint: %s as redundant joint", redundant_joints.back().c_str());          
-        }
-      
-        for(std::size_t i=0; i < joint_model_group->getJointModels().size(); ++i)
-        {
-          bool is_redundant_joint = false;      
-          for(std::size_t j=0; j < redundant_joints.size(); ++j)
-          {
-            if(joint_model_group->getJointModels()[i]->getName() == redundant_joints[j])
-            {
-              is_redundant_joint = true;
-              break;
-            }        
-          }
-          if(!is_redundant_joint)
-          {
-            redundant_joints_map_index.push_back(i);
-          }    
-        }        
-      }      
-    }
-
-    for(std::size_t i=0; i < redundant_joints_map_index.size(); ++i)
-      ROS_DEBUG("Redundant joint map index: %d %d", (int) i, (int) redundant_joints_map_index[i]);
-    
+  {    
     std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;    
-    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), num_redundant_joints, position_ik));
+    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), num_possible_redundant_joints_, position_ik));
     ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
     unsigned int joint_counter = 0;    
     for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
@@ -302,7 +264,6 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     KDL::ChainIkSolverPos_NR_JL_Mimic* tmp_pos_solver = static_cast<KDL::ChainIkSolverPos_NR_JL_Mimic*> (ik_solver_pos_.get());
     
     vel_solver_->setMimicJoints(mimic_joints);
-    vel_solver_->setRedundantJointsMapIndex(redundant_joints_map_index);    
     tmp_pos_solver->setMimicJoints(mimic_joints);    
   }  
 
@@ -313,6 +274,56 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   active_ = true;  
   ROS_DEBUG("KDL solver initialized");  
   return true;
+}
+
+bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &redundant_joints)
+{
+  if(num_possible_redundant_joints_ < 0)
+  {
+    ROS_ERROR("This group cannot have redundant joints");
+    return false;
+  }
+  if(redundant_joints.size() != num_possible_redundant_joints_)
+  {
+    ROS_ERROR("This group can only have %d redundant joints", num_possible_redundant_joints_);
+    return false;
+  }
+  /*
+    XmlRpc::XmlRpcValue joint_list;
+    if(private_handle.getParam(group_name+"/redundant_joints", joint_list))
+    {
+      ROS_ASSERT(joint_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+      std::vector<std::string> redundant_joints;  
+      for (std::size_t i = 0; i < joint_list.size(); ++i) 
+      {
+        ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
+        redundant_joints.push_back(static_cast<std::string>(joint_list[i]));   
+        ROS_INFO("Designated joint: %s as redundant joint", redundant_joints.back().c_str());          
+      }
+    }
+  */
+  std::vector<unsigned int> redundant_joints_map_index;  
+  for(std::size_t i=0; i < dimension_; ++i)
+  {
+    bool is_redundant_joint = false;      
+    for(std::size_t j=0; j < redundant_joints.size(); ++j)
+    {
+      if(i == redundant_joints[j])
+      {
+        is_redundant_joint = true;
+        break;
+      }        
+    }
+    if(!is_redundant_joint)
+    {
+      redundant_joints_map_index.push_back(i);
+    }    
+  }        
+  for(std::size_t i=0; i < redundant_joints_map_index.size(); ++i)
+    ROS_DEBUG("Redundant joint map index: %d %d", (int) i, (int) redundant_joints_map_index[i]);
+  vel_solver_->setRedundantJointsMapIndex(redundant_joints_map_index);    
+  redundant_joint_indices_ = redundant_joints;  
+  return true;  
 }
 
 int KDLKinematicsPlugin::getJointIndex(const std::string &name) const
