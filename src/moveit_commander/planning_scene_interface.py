@@ -30,81 +30,43 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Sarah Elliott
+# Author: Ioan Sucan
 
-import time, copy, threading
-import numpy as np
-import roslib
-roslib.load_manifest('moveit_commander')
 import rospy
-import actionlib
-import actionlib_msgs.msg
-import tf
-from geometry_msgs.msg import Pose, PoseStamped
-from sensor_msgs.msg import JointState
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
-from _moveit_planning_scene_interface import PlanningSceneInterface
+from moveit_msgs.msg import CollisionObject, AttachedCollisionObject
+from geometry_msgs.msg import PoseStamped
+from shape_msgs.msg import SolidPrimitive
 
-#DEFAULT_PLANNER_SERVICE_NAME = 'ompl_planning/plan_kinematic_path'
+# This is going to have more functionality; (feel free to add some!)
+# This class will include simple Python code for publishing messages for a planning scene
 
-class PlanningScene:
+class PlanningSceneInterface:
+    """ Simple interface to making updates to a planning scene """
 
     def __init__(self):
-        self._g = PlanningSceneInterface()
+        self._pub_co = rospy.Publisher('/collision_object', CollisionObject)
+        self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject)
 
-    def add_sphere(self, id_name, frame_id, position, orientation, radius):
+    def add_sphere(self, name, pose, radius = 1):
         """
-        Add sphere to the planning scene in specified frame
-        position: [x,y,z]
-        orientation: [x,y,z,w]
+        Add sphere to the planning scene 
+        """
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        sphere = SolidPrimitive()
+        sphere.type = SolidPrimitive.SPHERE
+        sphere.dimensions = [radius]
+        co.primitives = [sphere]
+        co.primitive_poses = [pose.pose]
+        self._pub_co.publish(co)
         
+    def remove_object(self, name):
         """
-        self._g.add_sphere(id_name, frame_id, position, orientation, radius)
-
-    def add_cylinder(self, id_name, frame_id, position, orientation, height, radius):
-        
-        self._g.add_cylinder(id_name, frame_id, position, orientation, height, radius)
-
-    def add_box(self, id_name, frame_id, position, orientation, length, width, height):
-        self._g.add_box(id_name, frame_id, position, orientation, length, width, height)
-
-    def add_cone(self, id_name, frame_id, position, orientation, height, radius):
-        self._g.add_cone(id_name, frame_id, position, orientation, height, radius)
-
-    def remove_simple_object(self, id_name, frame_id):
+        Remove object from planning scene         
         """
-        Remove object from planning scene with id_name and frame_id
-        
-        """
-        self._g.remove_simple_object(id_name, frame_id)
-
-    def attach_sphere(self, id_name, frame_id, link_name, touch_links, position, orientation, radius):
-        """
-        Add sphere to the planning scene in attached to specified link
-        touch_links: [link1, link2, link3, etc] <- links that object can touch
-        position: [x,y,z]
-        orientation: [x,y,z,w]
-        
-        """
-
-        self._g.attach_sphere(id_name, frame_id, link_name, touch_links, position, orientation, radius)
-
-    def attach_cylinder(self, id_name, frame_id, link_name, touch_links, position, orientation, height, radius):
-        self._g.attach_cylinder(id_name, frame_id, link_name, touch_links, position, orientation, height, radius)
-
-    def attach_box(self, id_name, frame_id, link_name, touch_links, position, orientation, length, width, height):
-        self._g.attach_box(id_name, frame_id, link_name, touch_links, position, orientation, length, width, height)
-
-    def attach_cone(self, id_name, frame_id, link_name, touch_links, position, orientation, height, radius):
-        self._g.attach_cone(id_name, frame_id, link_name, touch_links, position, orientation, height, radius)
-
-    def remove_simple_attached_object(self, id_name, frame_id, link_name):
-        """
-        Detach object from link, add it back into planning scene
-        
-        """
-
-        self._g.remove_simple_attached_object(id_name, frame_id, link_name)
-
-
+        co = CollisionObject()
+        co.operation = CollisionObject.REMOVE
+        co.id = name
+        self._pub_co.publish(co)
