@@ -212,6 +212,17 @@ public:
     max_solution_segment_length_ = mssl;
   }
 
+  unsigned int getMinimumWaypointCount() const
+  {
+    return minimum_waypoint_count_;
+  }
+  
+  /** \brief Get the minimum number of waypoints along the solution path */
+  void setMinimumWaypointCount(unsigned int mwc)
+  {
+    minimum_waypoint_count_ = mwc;
+  }
+  
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager()
   {
     return spec_.constraint_sampler_manager_;
@@ -360,6 +371,9 @@ protected:
 
   /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
   double                                                  max_solution_segment_length_;
+
+  /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if needed)
+  unsigned int                                          minimum_waypoint_count_;
 };
 
 }

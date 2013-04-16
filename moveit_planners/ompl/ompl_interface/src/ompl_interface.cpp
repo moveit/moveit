@@ -46,7 +46,8 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   constraint_sampler_manager_(new  constraint_samplers::ConstraintSamplerManager()),
   context_manager_(kmodel, constraint_sampler_manager_),
   constraints_library_(new ConstraintsLibrary(context_manager_)),
-  use_constraints_approximations_(true)
+  use_constraints_approximations_(true),
+  simplify_solutions_(true)
 {
 }
 
@@ -204,7 +205,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
   {
     double ptime = context->getLastPlanTime();
-    if (ptime < timeout && !follow)
+    if (simplify_solutions_ && ptime < timeout && !follow)
     {
       context->simplifySolution(timeout - ptime);
       ptime += context->getLastSimplifyTime();
@@ -254,7 +255,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     context->getSolutionPath(*res.trajectory_.back());
     
     // simplify solution if time remains
-    if (ptime < timeout || !follow)
+    if (simplify_solutions_ && ptime < timeout || !follow)
     {
       context->simplifySolution(timeout - ptime);
       res.processing_time_.push_back(context->getLastSimplifyTime());

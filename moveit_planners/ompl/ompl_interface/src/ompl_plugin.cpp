@@ -161,6 +161,9 @@ private:
       ROS_INFO("Not displaying OMPL exploration data structures.");
     else
       ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
+    ompl_interface_->simplifySolutions(config.simplify_solutions);
+    ompl_interface_->getPlanningContextManager().setMaximumSolutionSegmentLength(config.maximum_waypoint_distance);
+    ompl_interface_->getPlanningContextManager().setMinimumWaypointCount(config.minimum_waypoint_count);
   }
   
   ros::NodeHandle nh_;
