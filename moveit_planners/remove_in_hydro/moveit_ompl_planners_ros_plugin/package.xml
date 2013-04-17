@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ompl_planners_ros_plugin</name>
-  <version>0.3.9</version>
+  <version>0.3.10</version>
   <description>Dummy metapackage</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
 
