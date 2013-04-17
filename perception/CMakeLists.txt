@@ -52,3 +52,9 @@ link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(point_containment_filter)
 add_subdirectory(occupancy_map_monitor)
 add_subdirectory(pointcloud_octomap_updater)
+
+install(
+  FILES
+    pointcloud_octomap_updater_plugin_description.xml
+  DESTINATION
+    ${CATKIN_PACKAGE_SHARE_DESTINATION})
