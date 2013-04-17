@@ -82,6 +82,7 @@ void RobotInteraction::InteractionHandler::setup()
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
   ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
+  lock_redundancy_ = false;
   planning_frame_ = kstate_->getRobotModel()->getModelFrame();
 }
 
@@ -273,7 +274,7 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
     return;
   
   robot_state::RobotStatePtr state = getUniqueStateAccess();
-  bool update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_);
+  bool update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_, lock_redundancy_);
   setStateToAccess(state);
 
   bool error_state_changed = false;
@@ -581,7 +582,6 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, EndEff
       ee.parent_link = jmg->getLinkModelNames().back();
       ee.eef_group = group;
       ee.interaction = style;
-      ee.redundancy_locked = false;      
       active_eef_.push_back(ee);
     }
     else
@@ -594,7 +594,6 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, EndEff
           ee.parent_link = eef[i].parent_link_;
           ee.eef_group = eef[i].component_group_;   
           ee.interaction = style;
-          ee.redundancy_locked = false;      
           active_eef_.push_back(ee);          
           break;
         }
@@ -615,7 +614,6 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, EndEff
             ee.parent_link = eef[i].parent_link_;
             ee.eef_group = eef[i].component_group_;  
             ee.interaction = style;
-            ee.redundancy_locked = false;      
             active_eef_.push_back(ee);
             break;
           }
@@ -931,9 +929,10 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const Joint &
 }
 
 bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
-                                   unsigned int attempts, double ik_timeout, const robot_state::StateValidityCallbackFn &validity_callback)
-{ 
-  return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, attempts, ik_timeout, validity_callback, eef.redundancy_locked);
+                                   unsigned int attempts, double ik_timeout, 
+                                   const robot_state::StateValidityCallbackFn &validity_callback, bool redundancy_locked)
+{
+  return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, redundancy_locked ? 1 : attempts, ik_timeout, validity_callback, redundancy_locked);
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
