@@ -82,6 +82,10 @@ public:
     
     /// The size of the end effector group (diameter of enclosing sphere)
     double size;
+
+    /// Lock the redundancy for the parent group (if possible)
+    bool redundancy_locked;
+    
   };
 
   /// Representation of an interaction via a joint.
@@ -264,7 +268,7 @@ public:
     virtual bool inError(const RobotInteraction::Generic& g) const;
 
     void clearError(void);
-    
+
   protected:
 
     bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
