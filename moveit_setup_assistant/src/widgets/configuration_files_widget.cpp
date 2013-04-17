@@ -440,9 +440,15 @@ void ConfigurationFilesWidget::savePackage()
   // -------------------------------------------------------------------------------------------------------------------
 
   // Create SRDF file -----------------------------------------------------------------
-  const std::string srdf_file = config_data_->urdf_model_->getName() + ".srdf";
-  const std::string srdf_path = config_data_->appendPaths( config_path, srdf_file );
-  config_data_->srdf_pkg_relative_path_ = "config/" + srdf_file;
+  std::string srdf_file = "config/" + config_data_->urdf_model_->getName() + ".srdf";
+  if(config_data_->srdf_pkg_relative_path_.empty()){
+    config_data_->srdf_pkg_relative_path_ = srdf_file;
+  }
+  else
+  {
+    srdf_file = config_data_->srdf_pkg_relative_path_;
+  }
+  const std::string srdf_path = config_data_->appendPaths( new_package_path, srdf_file );
 
   if ( !config_data_->srdf_->writeSRDF( srdf_path ) )
   {
@@ -451,7 +457,7 @@ void ConfigurationFilesWidget::savePackage()
     return;
   }
   // Feedback
-  displayAction( QString( srdf_file.c_str() ).prepend( qconfig_path ),
+  displayAction( QString( srdf_file.c_str() ),
                  "SRDF (<a href='http://www.ros.org/wiki/srdf'>Semantic Robot Description Format</a>) is a representation of semantic information about robots. This format is intended to represent information about the robot that is not in the URDF file, but it is useful for a variety of applications. The intention is to include information that has a semantic aspect to it.");
   // Select first item in file list for user clue. This may or may not be the srdf file being highlighted
   action_list_->setCurrentRow( 0 );
