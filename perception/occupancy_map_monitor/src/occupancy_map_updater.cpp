@@ -71,6 +71,18 @@ void OccupancyMapUpdater::readXmlParam(XmlRpc::XmlRpcValue &params, const std::s
     *value = (int) params[param_name];
 }
 
+bool OccupancyMapUpdater::updateTransformCache(const std::string &target_frame, const ros::Time &target_time)
+{
+  transform_cache_.clear();
+  if (transform_provider_callback_)
+    return transform_provider_callback_(target_frame, target_time, transform_cache_);
+  else
+  {
+    ROS_WARN_THROTTLE(1, "No callback provided for updating the transform cache for octomap updaters");
+    return false;
+  }
+}
+
 }
 
 
