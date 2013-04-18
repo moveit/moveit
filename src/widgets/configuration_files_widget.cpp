@@ -326,6 +326,14 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
+  // default_warehouse_db.launch --------------------------------------------------------------------------------------
+  file.file_name_   = "default_warehouse_db.launch";
+  file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
+  template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
+  file.description_ = "Launch file for starting the warehouse with a default MongoDB.";
+  file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  gen_files_.push_back(file);
+
   // run_benchmark_server_ompl.launch --------------------------------------------------------------------------------------
   file.file_name_   = "run_benchmark_server_ompl.launch";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
