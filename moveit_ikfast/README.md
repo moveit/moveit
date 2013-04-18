@@ -6,21 +6,39 @@ MoveIt! IKFast Converter
 
 Generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files. 
  
-You should have already created a MoveIt! package for your robot, by using the Setup Assistant and following this Tutorial.
+You should have already created a MoveIt! package for your robot, by using the Setup Assistant and following this [tutorial](http://moveit.ros.org/wiki/index.php/Groovy/MoveIt!_Setup_Assistant).
 
 Tested on ROS Groovy with Catkin from OpenRave 0.8 using a 6dof manipulator. Attempting to make it work with 7dof.
 
-Create IKFast Solution CPP File
+Create Collada File For Use With OpenRave
 ---------
 
-First you will need robot description file that is in Collada or OpenRave robot format. If you do not have these we recommend you create a ROS [URDF](http://www.ros.org/wiki/urdf/Tutorials/Create%20your%20own%20urdf%20file) file, then convert it to a Collada .dae file. 
+First you will need robot description file that is in [Collada or OpenRave](http://openrave.org/docs/latest_stable/collada_robot_extensions/) robot format. 
 
-Often floating point issues arrise in converting a URDF file to Collada file, so a script has been created to round all the numbers down to x decimal places in your .dae file:
+If your robot is not in this format we recommend you create a ROS [URDF](http://www.ros.org/wiki/urdf/Tutorials/Create%20your%20own%20urdf%20file) file, then convert it to a Collada .dae file using the following command:
+
+      rosrun collada_urdf urdf_to_collada YOURROBOT.urdf YOURROBOT.dae
+
+Often floating point issues arrise in converting a URDF file to Collada file, so a script has been created to round all the numbers down to x decimal places in your .dae file. From experience we recommend 5 decimal places:
 
       rosrun moveit_ikfast_converter round_collada_numbers.py <input_dae> <output_dae> <decimal places>
 
-Once you have a rounded Collada file see [ROS Industrial Tutorial](http://www.ros.org/wiki/Industrial/Tutorials/Create_a_Fast_IK_Solution)
+For example
 
+      rosrun moveit_ikfast_converter round_collada_numbers.py YOURROBOT.dae YOURROBOT.rounded.dae 5
+
+To see the links in your newly generated Collada file (assuming you have openrave installed):
+
+      /usr/bin/openrave-robot.py YOURROBOT.dae --info links
+
+To test your newly generated Collada file in OpenRave (assuming you have openrave installed):
+
+      openrave YOURROBOT.dae
+
+
+Create IKFast Solution CPP File
+---------
+Once you have a rounded Collada file see [ROS Industrial Tutorial](http://www.ros.org/wiki/Industrial/Tutorials/Create_a_Fast_IK_Solution)
 
 Create Plugin
 ---------
