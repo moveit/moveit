@@ -1,8 +1,13 @@
 <launch>
 
+  <arg name="reset" default="false"/>
+
   <!-- Launch the warehouse with a default database location -->  
   <include file="$(find [GENERATED_PACKAGE_NAME])/launch/warehouse.launch">
     <arg name="moveit_warehouse_database_path" value="$(find [GENERATED_PACKAGE_NAME])/default_warehouse_mongo_db" />
   </include>
+
+  <!-- If we want to reset the database, run this node -->
+  <node if="$(arg reset)" name="$(anon moveit_default_db_reset)" type="moveit_init_demo_warehouse" pkg="moveit_ros_warehouse" respawn="false" output="screen" />
 
 </launch>
