@@ -200,6 +200,7 @@ bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem* parent,
   {
     QTreeWidgetItem* new_item = new QTreeWidgetItem(parent);
     new_item->setText(0, link->getName().c_str());
+
     parent->addChild(new_item);
     return true;
   }
@@ -269,6 +270,14 @@ void KinematicChainWidget::itemSelected()
   if(item != NULL)
   {
     Q_EMIT unhighlightAll();
+
+    std::string name = item->text(0).toStdString();
+
+    // Don't try to highlight empty links!
+    if( name.empty() )
+      return;
+
+    // Check that item is not empty
     Q_EMIT highlightLink( item->text(0).toStdString() );
   }
 }
