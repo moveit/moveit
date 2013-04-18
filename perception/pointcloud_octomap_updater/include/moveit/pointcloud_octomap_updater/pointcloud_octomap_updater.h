@@ -44,6 +44,8 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <moveit/point_containment_filter/shape_mask.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 
 namespace occupancy_map_monitor
 {
@@ -63,6 +65,10 @@ public:
   virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape);
   virtual void forgetShape(ShapeHandle handle);
 
+protected:
+
+  virtual void updateMask(const pcl::PointCloud<pcl::PointXYZ> &cloud, const Eigen::Vector3d &sensor_origin, std::vector<int> &mask);
+    
 private:
   
   bool getShapeTransform(ShapeHandle h, Eigen::Affine3d &transform) const;

@@ -37,8 +37,6 @@
 #include <moveit/pointcloud_octomap_updater/pointcloud_octomap_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <message_filters/subscriber.h>
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
 #include <pcl/ros/conversions.h>
 #include <XmlRpcException.h>
 
@@ -150,6 +148,10 @@ bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Affine3d 
   return true;
 }
 
+void PointCloudOctomapUpdater::updateMask(const pcl::PointCloud<pcl::PointXYZ> &cloud, const Eigen::Vector3d &sensor_origin, std::vector<int> &mask)
+{
+}
+    
 void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
 {
   ROS_DEBUG("Received a new point cloud message");
@@ -194,6 +196,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   
   /* mask out points on the robot */
   shape_mask_->maskContainment(cloud, sensor_origin_eigen, 0.0, max_range_, mask_);
+  updateMask(cloud, sensor_origin_eigen, mask_);
   
   octomap::KeySet free_cells, occupied_cells, model_cells;
 
