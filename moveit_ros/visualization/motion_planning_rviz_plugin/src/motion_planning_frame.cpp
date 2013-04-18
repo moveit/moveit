@@ -177,6 +177,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     return;
   
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::fillStateSelectionOptions, this));
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
 
   const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup(); 
@@ -192,7 +193,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     try
     {
       move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(30, 0)));
-      move_group_construction_time_ = ros::WallTime::now();
+      if (planning_scene_storage_)
+        move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
     }
     catch(std::runtime_error &ex)
     {
