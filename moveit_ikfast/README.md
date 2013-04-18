@@ -61,13 +61,10 @@ Or without ROS:
        python /path/to/create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>
 
 **Parameters**
-yourobot_name - name of robot as in your URDF
-
-planning_group_name - name of the planning group you would like to use this solver for, as referenced in your SRDF and kinematics.yaml
-
-moveit_plugin_pkg - name of the new package you just created - e.g. myrobot_moveit_plugins
-
-ikfast_output_path - file path to the location of your generated IKFast output.cpp file
+* yourobot_name - name of robot as in your URDF
+* planning_group_name - name of the planning group you would like to use this solver for, as referenced in your SRDF and kinematics.yaml
+* moveit_plugin_pkg - name of the new package you just created - e.g. myrobot_moveit_plugins
+* ikfast_output_path - file path to the location of your generated IKFast output.cpp file
 
 This will generate a new source file ROBOTNAME_GROUPNAME_ikfast_moveit_plugin.cpp in the src/ directory, and modify various configuration files.
 
