@@ -160,6 +160,7 @@ public:
     can_replan_ = false;
     goal_tolerance_ = 1e-4;
     planning_time_ = 5.0;
+    initializing_constraints_ = false;
     
     const robot_model::JointModelGroup *joint_model_group = getRobotModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
@@ -183,7 +184,6 @@ public:
       
       execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
       query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>("query_planner_interface");
-      initializeConstraintsStorage();
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -231,10 +231,7 @@ public:
   ~MoveGroupImpl()
   {
     if (constraints_init_thread_)
-    {
-      terminate_constraints_init_thread_ = true;
       constraints_init_thread_->join();
-    }
   }
   
   const boost::shared_ptr<tf::Transformer>& getTF() const
@@ -714,20 +711,24 @@ public:
   
   std::vector<std::string> getKnownConstraints() const
   {
+    while (initializing_constraints_)
+    {
+      static ros::WallDuration d(0.01);
+      d.sleep();
+    }
+
     std::vector<std::string> c;
     if (constraints_storage_)
       constraints_storage_->getKnownConstraints(c, kinematic_model_->getName(), opt_.group_name_);
+
     return c;
   }
   
-  void initializeConstraintsStorage(const std::string &host = "", unsigned int port = 0)
-  {    
+  void initializeConstraintsStorage(const std::string &host, unsigned int port)
+  {
+    initializing_constraints_ = true;
     if (constraints_init_thread_)
-    {
-      terminate_constraints_init_thread_ = true;
       constraints_init_thread_->join();
-    }
-    terminate_constraints_init_thread_ = false;
     constraints_init_thread_.reset(new boost::thread(boost::bind(&MoveGroupImpl::initializeConstraintsStorageThread, this, host, port)));
   }
   
@@ -747,14 +748,6 @@ private:
   
   void initializeConstraintsStorageThread(const std::string &host, unsigned int port)
   {
-    // this is interruptible, allows the thread to quickly terminate if the destructor is 
-    // triggered right after the constructor
-    ros::WallDuration d(0.01);
-    for (int i = 0 ; i < 20 ; ++i)
-      if (terminate_constraints_init_thread_)
-        return;
-      else
-        d.sleep();
     try
     {
       constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host, port));
@@ -764,6 +757,7 @@ private:
     {
       ROS_DEBUG("%s", ex.what());
     }
+    initializing_constraints_ = false;
   }
   
   enum ActiveTarget
@@ -811,7 +805,7 @@ private:
   ros::ServiceClient query_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
-  bool terminate_constraints_init_thread_;
+  bool initializing_constraints_;
 };
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)

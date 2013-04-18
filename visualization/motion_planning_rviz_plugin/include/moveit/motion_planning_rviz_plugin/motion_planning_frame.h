@@ -96,7 +96,6 @@ protected:
   Ui::MotionPlanningUI *ui_;
   
   boost::shared_ptr<move_group_interface::MoveGroup> move_group_;
-  ros::WallTime move_group_construction_time_;
 
   boost::shared_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
