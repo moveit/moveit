@@ -1,6 +1,6 @@
 <package>
   <name>moveit_setup_assistant</name>
-  <version>0.3.6</version>
+  <version>0.3.7</version>
 
   <description>
     Generates a configuration package that makes it easy to use MoveIt!
@@ -8,11 +8,12 @@
 
   <author email="davetcoleman@gmail.com">Dave Coleman</author>
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+  <maintainer email="davetcoleman@gmail.com">Dave Coleman</maintainer>
   <license>BSD</license>
 
   <url type="website">http://moveit.ros.org</url>
-  <url type="bugtracker">https://github.com/ros-planning/moveit-setup-assistant/issues</url>
-  <url type="repository">https://github.com/ros-planning/moveit-setup-assistant</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_setup_assistant/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_setup_assistant</url>
 
   <buildtool_depend>catkin</buildtool_depend> 
 
@@ -25,6 +26,5 @@
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>
   <run_depend>yaml-cpp</run_depend>
-  <run_depend>mpg123</run_depend>
 
 </package>

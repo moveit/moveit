@@ -12,24 +12,40 @@
 
   <arg name="allow_trajectory_execution" default="true"/>
   <arg name="max_safe_path_cost" default="1"/>
+  <arg name="jiggle_fraction" default="0.05" />
   <arg name="publish_monitored_planning_scene" default="false"/>
 
   <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch">
     <arg name="pipeline" value="ompl" />
   </include>
 
-  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/trajectory_execution.launch">
+  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/trajectory_execution.launch" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_controller_manager" value="[ROBOT_NAME]" /> 
     <arg name="moveit_manage_controllers" value="true" />
   </include>
 
-  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/sensor_manager.launch">
+  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/sensor_manager.launch" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_sensor_manager" value="[ROBOT_NAME]" /> 
   </include>
 
-  <node name="move_group" launch-prefix="$(arg launch_prefix)" pkg="moveit_ros_move_group" type="move_group_action_server" respawn="false" output="screen" args="$(arg command_args)">
+  <node name="move_group" launch-prefix="$(arg launch_prefix)" pkg="moveit_ros_move_group" type="move_group" respawn="false" output="screen" args="$(arg command_args)">
+    <!-- Set the display variable, in case OpenGL code is used internally -->
+    <env name="DISPLAY" value="$(optenv DISPLAY :0)" />
+
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
+    <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
+
+    <!-- MoveGroup capabilities to load -->
+    <param name="capabilities" value="move_group/MoveGroupCartesianPathService
+				      move_group/MoveGroupExecuteService
+				      move_group/MoveGroupKinematicsService
+				      move_group/MoveGroupMoveAction
+				      move_group/MoveGroupPickPlaceAction
+				      move_group/MoveGroupPlanService
+				      move_group/MoveGroupQueryPlannersService
+				      move_group/MoveGroupStateValidationService
+				      " />
 
     <!-- Publish the planning scene of the physical robot so that rviz plugin can know actual robot -->
     <param name="planning_scene_monitor/publish_planning_scene" value="$(arg publish_monitored_planning_scene)" />

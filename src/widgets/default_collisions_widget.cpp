@@ -179,7 +179,6 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   // Checkbox
   collision_checkbox_ = new QCheckBox( this );
   collision_checkbox_->setText("Show Non-Disabled Link Pairs");
-  collision_checkbox_->hide(); // not until we have clicked the button at least once
   connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(collisionCheckboxToggle()));
   controls_box_bottom_layout->addWidget(collision_checkbox_);
   controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
@@ -245,10 +244,6 @@ void DefaultCollisionsWidget::generateCollisionTable()
 
   // Load the results into the GUI
   loadCollisionTable();
-
-  // Show the checkbox for "show non-disabled link pairs" only after we have run the algorithm, because otherwise
-  // we do not yet know all the link pairs, but only the ones that were in the SRDF
-  collision_checkbox_->show();
 
   // Hide the progress bar
   disableControls(false); // enable everything else
@@ -514,11 +509,17 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
   // Clear all the previous data in the compute_default_collisions tool
   link_pairs_.clear();
 
+  // Create new instance of planning scene using pointer
+  planning_scene::PlanningScenePtr scene = config_data_->getPlanningScene()->diff();
+
+  // Populate link_pairs_ list with every possible n choose 2 combination of links
+  moveit_setup_assistant::computeLinkPairs(*scene, link_pairs_);
+
   // Create temp link pair data struct
   moveit_setup_assistant::LinkPairData link_pair_data;
   std::pair<std::string, std::string> link_pair;
 
-  // Loop through all disabled collisions in SRDF and add to this data structure
+  // Loop through all disabled collisions in SRDF and update the comprehensive list that has already been created
   for( std::vector<srdf::Model::DisabledCollision>::const_iterator collision_it = 
          config_data_->srdf_->disabled_collisions_.begin(); 
        collision_it != config_data_->srdf_->disabled_collisions_.end(); ++collision_it )

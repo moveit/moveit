@@ -195,8 +195,6 @@ void SetupAssistantWidget::moveToScreen( const int index )
   {
     current_index_ = index;
 
-    //rviz_container_->show();
-
     // Unhighlight anything on robot
     unhighlightAll();
 
@@ -213,7 +211,7 @@ void SetupAssistantWidget::moveToScreen( const int index )
 }
 
 // ******************************************************************************************
-// Loads other windows, enables navigation and goes to screen 2
+// Loads other windows, enables navigation
 // ******************************************************************************************
 void SetupAssistantWidget::progressPastStartScreen()
 {
@@ -282,6 +280,12 @@ void SetupAssistantWidget::progressPastStartScreen()
 
   // Replace logo with Rviz screen
   rviz_container_->show();
+
+  // Move to next screen in debug mode
+  if( config_data_->debug_)
+  {
+    moveToScreen(3);
+  }
 }
 
 // ******************************************************************************************
@@ -379,10 +383,19 @@ void SetupAssistantWidget::unhighlightAll()
     return;
   }
 
+  // check if rviz is ready
+  if( !rviz_manager_ || !robot_state_display_)
+  {    
+    return;
+  }
+
   // Iterate through the links
   for( std::vector<std::string>::const_iterator link_it = links.begin();
        link_it < links.end(); ++link_it )
   {
+    if( (*link_it).empty() )
+      continue;
+
     robot_state_display_->unsetLinkColor( *link_it );
   }
 
