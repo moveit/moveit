@@ -75,7 +75,11 @@ void MotionPlanningFrame::pathConstraintsIndexChanged(int index)
   if (move_group_)
   {
     if (index > 0)
-      move_group_->setPathConstraints(ui_->path_constraints_combo_box->itemText(index).toStdString());
+    {
+      std::string c = ui_->path_constraints_combo_box->itemText(index).toStdString();
+      if (!move_group_->setPathConstraints(c))
+        ROS_WARN_STREAM("Unable to set the path constraints: " << c);
+    }
     else
       move_group_->clearPathConstraints();
   }
@@ -193,13 +197,7 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
 void MotionPlanningFrame::populateConstraintsList()
 {
   if (move_group_)
-  {
-    // add some artificial wait time (but in the background) for the constraints DB to connect
-    double dt = (ros::WallTime::now() - move_group_construction_time_).toSec();
-    if (dt < 0.2)
-      ros::WallDuration(0.1).sleep();
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this, move_group_->getKnownConstraints()));
-  }
 }
 
 void MotionPlanningFrame::populateConstraintsList(const std::vector<std::string> &constr)
