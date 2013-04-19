@@ -38,7 +38,7 @@ To test your newly generated Collada file in OpenRave (assuming you have openrav
 
 Create IKFast Solution CPP File
 ---------
-Once you have a rounded Collada file see [ROS Industrial Tutorial](http://www.ros.org/wiki/Industrial/Tutorials/Create_a_Fast_IK_Solution)
+Once you have a rounded Collada file see section 5 - "Generate the IK solution" of the [ROS Industrial Tutorial](http://www.ros.org/wiki/Industrial/Tutorials/Create_a_Fast_IK_Solution). After section 5 continue with these instructions.
 
 Create Plugin
 ---------
