@@ -185,7 +185,7 @@ if __name__ == '__main__':
       sys.exit(-1)
 
    # Check if template exists
-   template_file_name = plugin_gen_dir + '/templates/ikfast' + str(template_version) + '_moveit_plugin_template.cxx'
+   template_file_name = plugin_gen_dir + '/templates/ikfast' + str(template_version) + '_moveit_plugin_template.cpp'
 
    if not os.path.exists(template_file_name):
       print '\nERROR: can\'t find template file at \'' + template_file_name + '\'\n'
@@ -210,7 +210,7 @@ if __name__ == '__main__':
    plugin_def = etree.Element("library", path="lib/lib"+lib_file_base)
    cl = etree.SubElement(plugin_def, "class")
    cl.set("name", plugin_name)
-   cl.set("type", robot_name+'_'+planning_group_name+'_kinematics::IKFastKinematicsPlugin')
+   cl.set("type", 'ikfast_kinematics_plugin::IKFastKinematicsPlugin')
    cl.set("base_class_type", "kinematics::KinematicsBase")
    desc = etree.SubElement(cl, "description")
    desc.text = 'IKFast'+str(template_version)+' plugin for closed-form kinematics'
