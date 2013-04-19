@@ -54,11 +54,13 @@ void point_containment_filter::ShapeMask::freeMemory()
 
 void point_containment_filter::ShapeMask::setTransformCallback(const TransformCallback& transform_callback)
 {
+  boost::mutex::scoped_lock _(shapes_lock_);
   transform_callback_ = transform_callback;
 }
 
 point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addShape(const shapes::ShapeConstPtr &shape, double scale, double padding)
-{
+{ 
+  boost::mutex::scoped_lock _(shapes_lock_);
   SeeShape ss;
   ss.body = bodies::createBodyFromShape(shape.get());
   if (ss.body)
@@ -67,7 +69,10 @@ point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addSh
     ss.body->setPadding(padding);
     ss.volume = ss.body->computeVolume();
     ss.handle = next_handle_;
-    used_handles_[next_handle_] = bodies_.insert(ss).first;
+    std::pair<std::set<SeeShape, SortBodies>::iterator, bool> insert_op = bodies_.insert(ss);
+    if (!insert_op.second)
+      ROS_ERROR("Internal error in management of bodies in ShapeMask. This is a serious error.");
+    used_handles_[next_handle_] = insert_op.first;
   }
   else
     return 0;
@@ -87,6 +92,7 @@ point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addSh
 
 void point_containment_filter::ShapeMask::removeShape(ShapeHandle handle)
 {
+  boost::mutex::scoped_lock _(shapes_lock_);
   std::map<ShapeHandle, std::set<SeeShape, SortBodies>::iterator>::iterator it = used_handles_.find(handle);
   if (it != used_handles_.end())
   {
@@ -95,6 +101,8 @@ void point_containment_filter::ShapeMask::removeShape(ShapeHandle handle)
     used_handles_.erase(it);
     min_handle_ = handle;
   }
+  else
+    ROS_ERROR("Unable to remove shape handle %u", handle);
 }
 
 void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<pcl::PointXYZ>& data_in,
@@ -102,6 +110,7 @@ void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<
                                                           const double min_sensor_dist, const double max_sensor_dist, 
                                                           std::vector<int> &mask)
 {
+  boost::mutex::scoped_lock _(shapes_lock_);
   mask.resize(data_in.points.size());
   if (bodies_.empty())
     std::fill(mask.begin(), mask.end(), (int)OUTSIDE);
@@ -149,12 +158,14 @@ void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<
           }
       }
       mask[i] = out;
-    }    
+    }
   }
 }
 
 int point_containment_filter::ShapeMask::getMaskContainment(const Eigen::Vector3d &pt) const
-{
+{ 
+  boost::mutex::scoped_lock _(shapes_lock_);
+
   int out = OUTSIDE;        
   for (std::set<SeeShape>::const_iterator it = bodies_.begin() ; it != bodies_.end() && out == OUTSIDE ; ++it)
     if (it->body->containsPoint(pt))

@@ -40,6 +40,7 @@
 #include <set>
 #include <map>
 
+#include <boost/thread/mutex.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
@@ -108,7 +109,11 @@ private:
   {
     bool operator()(const SeeShape &b1, const SeeShape &b2)
     {
-      return (b1.volume > b2.volume);
+      if (b1.volume > b2.volume)
+        return true;
+      if (b1.volume < b2.volume)
+        return false;
+      return b1.handle < b2.handle;
     }
   };
   
@@ -119,6 +124,7 @@ private:
   ShapeHandle next_handle_;
   ShapeHandle min_handle_;
   
+  mutable boost::mutex shapes_lock_;
   std::set<SeeShape, SortBodies> bodies_;
   std::map<ShapeHandle, std::set<SeeShape, SortBodies>::iterator> used_handles_;
   std::vector<bodies::BoundingSphere> bspheres_;
