@@ -860,9 +860,6 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor()
     } 
   if (octomap_monitor_)
     octomap_monitor_->stopMonitor();
-  link_shape_handles_.clear();
-  attached_body_shape_handles_.clear();
-  collision_body_shape_handles_.clear();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::string &joint_states_topic, const std::string &attached_objects_topic)
