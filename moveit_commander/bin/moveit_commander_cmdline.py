@@ -5,9 +5,10 @@ import rospy
 import readline
 import sys
 import os
+import signal 
 
 from optparse import OptionParser, OptionGroup
-from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel
+from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel, roscpp_initialize, roscpp_shutdown
 
 class bcolors:
     HEADER = '\033[95m'
@@ -122,8 +123,22 @@ def run_service(group_names):
     print "Running ROS service"
     rospy.spin()
 
+def stop(reason):
+    rospy.signal_shutdown(reason)
+    roscpp_shutdown()
+
+def sigint_handler(signal, frame):
+    stop("Ctrl+C pressed")
+    # this won't actually exit, but trigger an exception to terminate raw_input
+    sys.exit(0)
+
 if __name__=='__main__':
-    rospy.init_node('move_group_interface_cmdline', anonymous=True)
+    
+    signal.signal(signal.SIGINT, sigint_handler)
+
+    roscpp_initialize(sys.argv)
+
+    rospy.init_node('move_group_interface_cmdline', anonymous=True, disable_signals=True)
 
     usage = """%prog [options] <group_name_1> [<group_name_2> ...]"""
     parser = OptionParser(usage)
@@ -137,4 +152,7 @@ if __name__=='__main__':
         run_service(args)
     else:
         run_interactive(args)
+
+    stop("Done")
+
     print "Bye bye!"

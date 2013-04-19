@@ -341,3 +341,10 @@ class MoveGroupCommander:
     def place(self, object_name):
         """Place the named object"""
         return self._g.place(object_name)
+
+
+def roscpp_initialize(args):
+    _moveit_move_group_interface.roscpp_init("move_group_commander_wrappers", args)
+
+def roscpp_shutdown():
+    _moveit_move_group_interface.roscpp_shutdown()
