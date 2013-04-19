@@ -8,7 +8,7 @@ Generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp fil
  
 You should have already created a MoveIt! package for your robot, by using the Setup Assistant and following this [tutorial](http://moveit.ros.org/wiki/index.php/Groovy/MoveIt!_Setup_Assistant).
 
-Tested on ROS Groovy with Catkin from OpenRave 0.8 using a 6dof manipulator. Attempting to make it work with 7dof.
+Tested on ROS Groovy with Catkin using OpenRave 0.8 with a 6dof and 7dof robot arm manipulator. Does not work with >7dof. 
 
 Create Collada File For Use With OpenRave
 ---------
@@ -19,7 +19,7 @@ If your robot is not in this format we recommend you create a ROS [URDF](http://
 
       rosrun collada_urdf urdf_to_collada YOURROBOT.urdf YOURROBOT.dae
 
-Often floating point issues arrise in converting a URDF file to Collada file, so a script has been created to round all the numbers down to x decimal places in your .dae file. From experience we recommend 5 decimal places:
+Often floating point issues arrise in converting a URDF file to Collada file, so a script has been created to round all the numbers down to x decimal places in your .dae file. From experience we recommend 5 decimal places, but if the OpenRave ikfast generator takes to long to find a solution, lowering the number of decimal places should help.
 
       rosrun moveit_ikfast_converter round_collada_numbers.py <input_dae> <output_dae> <decimal places>
 
