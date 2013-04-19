@@ -38,6 +38,8 @@
 #include <moveit/benchmarks/benchmarks_config.h>
 #include <moveit/benchmarks/benchmarks_utils.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
 static const std::string BENCHMARK_SERVICE_NAME = "benchmark_planning_problem";
