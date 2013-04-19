@@ -64,6 +64,7 @@ public:
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
+   * @param lock_redundant_joints ?
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
