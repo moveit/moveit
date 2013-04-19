@@ -43,6 +43,8 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <ros/ros.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
@@ -77,37 +79,74 @@ int main(int argc, char **argv)
     ROS_ERROR("Unable to initialize PlanningSceneMonitor");
     return 1;
   }
-  
-  moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
+
+  bool done = false;
+  unsigned int attempts = 0;
+  while (!done && attempts < 5)
+  { 
+    attempts++;
+    try
+    {
+      moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                                 vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+      moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                              vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+      moveit_warehouse::RobotStateStorage rs(vm.count("host") ? vm["host"].as<std::string>() : "",
                                              vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-  moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
-                                          vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-  moveit_warehouse::RobotStateStorage rs(vm.count("host") ? vm["host"].as<std::string>() : "",
-                                         vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-  
-  // add default planning scenes
-  moveit_msgs::PlanningScene psmsg;
-  psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
-  psmsg.name = "default1";
-  pss.addPlanningScene(psmsg);
-  psmsg.name = "default2";
-  pss.addPlanningScene(psmsg);
+      pss.reset();
+      cs.reset();
+      rs.reset();
+      
+      // add default planning scenes
+      moveit_msgs::PlanningScene psmsg;
+      psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
+      psmsg.name = "default";
+      pss.addPlanningScene(psmsg);
+      ROS_INFO("Added default scene: '%s'", psmsg.name.c_str());
+      
+      moveit_msgs::RobotState rsmsg;
+      robot_state::robotStateToRobotStateMsg(psm.getPlanningScene()->getCurrentState(), rsmsg);
+      rs.addRobotState(rsmsg, "default");
+      ROS_INFO("Added default state");
 
-  moveit_msgs::RobotState rsmsg;
-  robot_state::robotStateToRobotStateMsg(psm.getPlanningScene()->getCurrentState(), rsmsg);
-  rs.addRobotState(rsmsg, "S1");
-  rs.addRobotState(rsmsg, "S2");
-
-  const std::vector<std::string> &gnames = psm.getRobotModel()->getJointModelGroupNames();
-  if (gnames.empty())
-  {
-    moveit_msgs::Constraints cmsg = kinematic_constraints::constructGoalConstraints(psm.getPlanningScene()->getCurrentState().getJointStateGroup(gnames.front()));
-    cmsg.name = "Constr1";
-    cs.addConstraints(cmsg);
-    cmsg = kinematic_constraints::constructGoalConstraints(psm.getPlanningScene()->getCurrentState().getJointStateGroup(gnames.back()));
-    cmsg.name = "Constr2";
-    cs.addConstraints(cmsg);
+      const std::vector<std::string> &gnames = psm.getRobotModel()->getJointModelGroupNames();
+      for (std::size_t i = 0 ; i < gnames.size() ; ++i)
+      {
+        const robot_model::JointModelGroup *jmg = psm.getRobotModel()->getJointModelGroup(gnames[i]);
+        if (!jmg->isChain())
+          continue;
+        const std::vector<std::string> &lnames = jmg->getLinkModelNames();
+        if (lnames.empty())
+          continue;
+        
+        moveit_msgs::OrientationConstraint ocm;
+        ocm.link_name = lnames.back();
+        ocm.header.frame_id = psm.getRobotModel()->getModelFrame();
+        ocm.orientation.x = 0;
+        ocm.orientation.y = 0;
+        ocm.orientation.z = 0;
+        ocm.orientation.w = 1.0;
+        ocm.absolute_x_axis_tolerance = 0.05;
+        ocm.absolute_y_axis_tolerance = 0.05;
+        ocm.absolute_z_axis_tolerance = boost::math::constants::pi<double>();
+        ocm.weight = 1.0;
+        moveit_msgs::Constraints cmsg;
+        cmsg.orientation_constraints.resize(1, ocm);
+        cmsg.name = ocm.link_name + ":upright"; 
+        cs.addConstraints(cmsg, psm.getRobotModel()->getName(), jmg->getName());    
+        ROS_INFO("Added default constraint: '%s'", cmsg.name.c_str());
+      }
+      done = true; 
+      ROS_INFO("Default MoveIt! Warehouse was reset. Done.");
+    }
+    catch(mongo_ros::DbConnectException &ex)
+    {
+      ROS_WARN("MongoDB does not appear to be initialized yet. Waiting for a few seconds before trying again ...");
+      ros::WallDuration(15.0).sleep();
+    }
   }
+
+  ros::shutdown();
   
   return 0;
 }

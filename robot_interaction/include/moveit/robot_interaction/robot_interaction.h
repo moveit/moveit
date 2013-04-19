@@ -82,6 +82,7 @@ public:
     
     /// The size of the end effector group (diameter of enclosing sphere)
     double size;
+    
   };
 
   /// Representation of an interaction via a joint.
@@ -202,7 +203,17 @@ public:
     {
       return ik_attempts_;
     }
-        
+    
+    void setLockRedundancy(bool lock)
+    {
+      lock_redundancy_ = lock;
+    }
+    
+    bool getLockRedundancy() const
+    {
+      return lock_redundancy_;
+    }
+    
     void setMeshesVisible(bool visible)
     {
       display_meshes_ = visible;
@@ -264,7 +275,7 @@ public:
     virtual bool inError(const RobotInteraction::Generic& g) const;
 
     void clearError(void);
-    
+
   protected:
 
     bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
@@ -290,6 +301,10 @@ public:
     robot_state::StateValidityCallbackFn state_validity_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
+    /// Lock the redundancy for the parent group (if possible)
+    bool lock_redundancy_;
+
+
     bool display_meshes_;
     bool display_controls_;
     
@@ -357,7 +372,9 @@ public:
   }
   
   static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
-                          unsigned int attempts, double ik_timeout, const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn());
+                          unsigned int attempts, double ik_timeout,
+                          const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn(),
+                          bool redundancy_locked = false);
   static bool updateState(robot_state::RobotState &state, const Joint &vj, const geometry_msgs::Pose &pose);
 
 private:
