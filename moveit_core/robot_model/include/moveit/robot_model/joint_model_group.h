@@ -313,6 +313,11 @@ public:
 
   const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
   {
+    return solver_instance_const_;
+  }
+
+  const kinematics::KinematicsBasePtr& getSolverInstance()
+  {
     return solver_instance_;
   }
 
@@ -448,7 +453,9 @@ protected:
 
   std::pair<SolverAllocatorFn, SolverAllocatorMapFn>    solver_allocators_;
   
-  kinematics::KinematicsBaseConstPtr                    solver_instance_;
+  kinematics::KinematicsBaseConstPtr                    solver_instance_const_;
+
+  kinematics::KinematicsBasePtr                         solver_instance_;
   
   std::vector<unsigned int>                             ik_joint_bijection_;
 

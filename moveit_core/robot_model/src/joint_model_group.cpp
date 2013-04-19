@@ -382,6 +382,7 @@ void robot_model::JointModelGroup::setSolverAllocators(const std::pair<SolverAll
         for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
           ik_joint_bijection_.push_back(it->second + k);
       }
+      solver_instance_const_ = solver_instance_;
     }
   }
 }
