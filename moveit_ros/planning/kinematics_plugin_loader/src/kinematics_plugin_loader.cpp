@@ -129,7 +129,10 @@ public:
     }
     
     if (!result)
-      ROS_DEBUG("No usable kinematics solver was found for this group");
+    {
+      ROS_DEBUG("No usable kinematics solver was found for this group.");
+      ROS_DEBUG("Did you load kinematics.yaml into your node's namespace?");
+    }
     return result;
   }
 
