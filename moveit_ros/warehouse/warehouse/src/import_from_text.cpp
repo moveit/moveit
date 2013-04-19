@@ -42,6 +42,8 @@
 #include <moveit/robot_state/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/program_options/cmdline.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <ros/ros.h>
 
