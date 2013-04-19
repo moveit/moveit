@@ -42,8 +42,9 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/program_options/cmdline.hpp>
-#include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <ros/ros.h>
 
