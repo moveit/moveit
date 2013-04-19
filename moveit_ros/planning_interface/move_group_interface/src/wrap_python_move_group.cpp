@@ -271,6 +271,10 @@ public:
   
 void wrap_move_group_interface()
 {
+  void (*init_fn)(const std::string&, bp::list&) = &moveit_py_bindings_tools::roscpp_init;
+  bp::def("roscpp_init", init_fn);
+  bp::def("roscpp_shutdown", &moveit_py_bindings_tools::roscpp_shutdown);
+
   bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string>());
 
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
