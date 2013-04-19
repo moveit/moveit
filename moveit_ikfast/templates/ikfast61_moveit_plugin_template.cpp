@@ -825,4 +825,4 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
 
 //register IKFastKinematicsPlugin as a KinematicsBase implementation
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(_ROBOT_NAME___GROUP_NAME__kinematics::IKFastKinematicsPlugin, kinematics::KinematicsBase);
+PLUGINLIB_EXPORT_CLASS(ikfast_kinematics_plugin::IKFastKinematicsPlugin, kinematics::KinematicsBase);

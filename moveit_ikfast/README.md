@@ -43,9 +43,9 @@ Once you have a rounded Collada file see [ROS Industrial Tutorial](http://www.ro
 Create Plugin
 ---------
 
-Plugin Package Location:
+Create the package that will contain the IK plugin. We recommend YOURROBOT_moveit_plugins or YOURROBOT_moveit_ikfast_plugin
 
-       catkin_create_pkg myrobot_moveit_plugins	
+       catkin_create_pkg <moveit_ik_plugin_pkg>
 
 Build your workspace so the new package is detected (can be 'roscd')
 
@@ -54,27 +54,26 @@ Build your workspace so the new package is detected (can be 'roscd')
 
 Create the plugin source code:
 
-       rosrun moveit_ikfast_converter create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>
+       rosrun moveit_ikfast_converter create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_ik_plugin_pkg> <ikfast_output_path>
 
 Or without ROS:
 
-       python /path/to/create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_plugin_pkg> <ikfast_output_path>
+       python /path/to/create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_ik_plugin_pkg> <ikfast_output_path>
 
 **Parameters**
 * yourobot_name - name of robot as in your URDF
 * planning_group_name - name of the planning group you would like to use this solver for, as referenced in your SRDF and kinematics.yaml
-* moveit_plugin_pkg - name of the new package you just created - e.g. myrobot_moveit_plugins
+* moveit_ik_plugin_pkg - name of the new package you just created - e.g. myrobot_moveit_plugins
 * ikfast_output_path - file path to the location of your generated IKFast output.cpp file
 
 This will generate a new source file ROBOTNAME_GROUPNAME_ikfast_moveit_plugin.cpp in the src/ directory, and modify various configuration files.
 
-Build the plugin library:
+Build your workspace again to create the ik plugin:
 
       cd YOUR_ROS_WORKSPACE
       catkin_make
 
-This will build the new plugin library lib/lib<robot_name>_moveit_arm_kinematics.so.
-
+This will build the new plugin library lib/libROBOTNAME_moveit_arm_kinematics.so that can be used with MoveIt!
 
 Usage
 ---------
