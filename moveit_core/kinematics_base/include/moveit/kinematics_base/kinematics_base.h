@@ -64,7 +64,7 @@ public:
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
-   * @param lock_redundant_joints ?
+   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as redundant the same as in the seed 
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -82,6 +82,7 @@ public:
    * @param timeout The amount of time (in seconds) available to the solver
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
+   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as redundant the same as in the seed 
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -101,6 +102,7 @@ public:
    * @param consistency_limits the distance that any joint in the solution can be from the corresponding joints in the current seed state
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
+   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as redundant the same as in the seed 
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -122,6 +124,7 @@ public:
    * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
    * @param solution_callback A callback solution for the IK solution
    * @param error_code an error code that encodes the reason for failure or success
+   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as redundant the same as in the seed 
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -144,6 +147,7 @@ public:
    * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
    * @param solution_callback A callback solution for the IK solution
    * @param error_code an error code that encodes the reason for failure or success
+   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as redundant the same as in the seed 
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -229,10 +233,10 @@ public:
   virtual const std::string& getTipFrame() const
   {
     return tip_frame_;
-  }
+  } 
 
   /**
-   * @brief Set a set of redundant joints for the kinematics solver to use. 
+   * @brief Set a set of redundant joints for the kinematics solver to use.  This can fail, depending on the IK solver and choice of redundant joints!
    * @param redundant_joint_indices The set of redundant joint indices (corresponding to 
    * the list of joints you get from getJointNames()). 
    * @return False if any of the input joint indices are invalid (exceed number of 
@@ -250,7 +254,28 @@ public:
     redundant_joint_indices_ = redundant_joint_indices;
     return true;    
   }
-      
+
+  /**
+   * @brief Set a set of redundant joints for the kinematics solver to use. 
+   * This function is just a convenience function that calls the previous definition of setRedundantJoints()
+   * @param redundant_joint_names The set of redundant joint names. 
+   * @return False if any of the input joint indices are invalid (exceed number of 
+   * joints)
+   */
+  bool setRedundantJoints(const std::vector<std::string> &redundant_joint_names)
+  {
+    const std::vector<std::string> &jnames = getJointNames();
+    std::vector<unsigned int> redundant_joint_indices;
+    for (std::size_t i = 0 ; i < redundant_joint_names.size() ; ++i)
+      for (std::size_t j = 0 ; j < jnames.size() ; ++j)
+        if (jnames[j] == redundant_joint_names[i])
+        {
+          redundant_joint_indices.push_back(j);
+          break;
+        }
+    return redundant_joint_indices.size() == redundant_joint_names.size() ? setRedundantJoints(redundant_joint_indices) : false;
+  }
+  
   /**
    * @brief Get the set of redundant joints
    */
