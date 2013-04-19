@@ -123,12 +123,12 @@ def run_service(group_names):
     print "Running ROS service"
     rospy.spin()
 
-def stop(reason):
+def stop_ros(reason):
     rospy.signal_shutdown(reason)
     roscpp_shutdown()
 
 def sigint_handler(signal, frame):
-    stop("Ctrl+C pressed")
+    stop_ros("Ctrl+C pressed")
     # this won't actually exit, but trigger an exception to terminate raw_input
     sys.exit(0)
 
@@ -153,6 +153,6 @@ if __name__=='__main__':
     else:
         run_interactive(args)
 
-    stop("Done")
+    stop_ros("Done")
 
     print "Bye bye!"
