@@ -74,7 +74,8 @@ bool robot_state::JointState::setVariableValue(const std::string &variable, doub
   std::map<std::string, unsigned int>::const_iterator it = getVariableIndexMap().find(variable);
   if (it != getVariableIndexMap().end())
   {
-    joint_state_values_[it->second] = value;
+    joint_state_values_[it->second] = value; 
+    joint_model_->updateTransform(joint_state_values_, variable_transform_);
     updateMimicJoints();
     return true;
   }
