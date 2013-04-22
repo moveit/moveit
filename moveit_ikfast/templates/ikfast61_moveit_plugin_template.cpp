@@ -2,7 +2,7 @@
  *
  * Software License Agreement (BSD License)
  *
- * Copyright (c) 2013, Dave Coleman, CU Boulder; Jeremy Zoss, SwRI; David Butterworth, KAIST; unknown author
+ * Copyright (c) 2013, Dave Coleman, CU Boulder; Jeremy Zoss, SwRI; David Butterworth, KAIST; Mathias Lüdtke, Fraunhofer IPA
  * All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
