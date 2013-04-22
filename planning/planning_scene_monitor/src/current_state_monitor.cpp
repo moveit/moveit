@@ -98,6 +98,7 @@ void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::s
     else
       joint_state_subscriber_ = nh_.subscribe(joint_states_topic, 25, &CurrentStateMonitor::jointStateCallback, this);
     state_monitor_started_ = true;
+    monitor_start_time_ = ros::Time::now();
     ROS_DEBUG("Listening to joint states on topic '%s'", joint_states_topic.c_str());
   }
 }
