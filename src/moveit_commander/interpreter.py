@@ -176,6 +176,9 @@ class MoveGroupCommandInterpreter:
         if cmd == "tol" or cmd == "tolerance":
             return (MoveGroupInfoLevel.INFO, str(g.get_goal_tolerance()))
 
+        if cmd == "time":
+            return (MoveGroupInfoLevel.INFO, str(g.get_planning_time()))
+
         # see if we have assignment between variables
         assign_match = re.match(r"^(\w+)\s*=\s*(\w+)$", cmd)
         if assign_match:
@@ -269,6 +272,12 @@ class MoveGroupCommandInterpreter:
                     return (MoveGroupInfoLevel.SUCCESS, "OK")
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to parse tolerance value '" + clist[1] + "'")
+            elif clist[0] == "time":
+                try:
+                    g.set_planning_time(float(clist[1]))
+                    return (MoveGroupInfoLevel.SUCCESS, "OK")
+                except:
+                    return (MoveGroupInfoLevel.WARN, "Unable to parse planning duration value '" + clist[1] + "'")
             elif clist[0] == "constrain":
                 try:
                     g.set_path_constraints(clist[1])
@@ -404,5 +413,6 @@ class MoveGroupCommandInterpreter:
                 'vars':[],
                 'joints':[],
                 'tolerance':[],
+                'time':[],
                 'eef':[],
                 'id':[]}

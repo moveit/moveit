@@ -258,6 +258,9 @@ class MoveGroupCommander:
     def set_planning_time(self, seconds):
         self._g.set_planning_time(seconds)
 
+    def get_planning_time(self):
+        return self._g.get_planning_time()
+
     def set_planner_id(self, planner_id):
         self._g.set_planner_id(planner_id)
 
