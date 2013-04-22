@@ -59,6 +59,7 @@ class MoveGroupCommandInterpreter:
         self._gdict = {}
         self._group_name = ""
         self._prev_group_name = ""
+        self._last_plan = None
 
     def get_active_group(self):
         if len(self._group_name) > 0:
@@ -172,7 +173,13 @@ class MoveGroupCommandInterpreter:
                 return (MoveGroupInfoLevel.INFO, g.get_end_effector_link())
             else:
                 return (MoveGroupInfoLevel.INFO, "There is no end effector defined")
-            
+
+        if cmd == "plan":
+            if self._last_plan != None:
+                return (MoveGroupInfoLevel.INFO, str(self._last_plan))
+            else:
+                return (MoveGroupInfoLevel.INFO, "No previous plan")
+
         if cmd == "tol" or cmd == "tolerance":
             return (MoveGroupInfoLevel.INFO, str(g.get_goal_tolerance()))
 
@@ -227,11 +234,12 @@ class MoveGroupCommandInterpreter:
         if len(clist) == 2:
             if clist[0] == "go":
                 if clist[1] == "rand" or clist[1] == "random":
-                    g.set_random_target()
+                    vals = g.get_random_joint_values()
+                    g.set_joint_value_target(vals)
                     if g.go():
-                        return (MoveGroupInfoLevel.SUCCESS, "Moved to random target")
+                        return (MoveGroupInfoLevel.SUCCESS, "Moved to random target [" + " ".join([str(x) for x in vals]) + "]")
                     else:
-                        return (MoveGroupInfoLevel.FAIL, "Failed while moving to random target")
+                        return (MoveGroupInfoLevel.FAIL, "Failed while moving to random target [" + " ".join([str(x) for x in vals]) + "]")
                 else:
                     try:
                         g.set_named_target(clist[1])
@@ -241,6 +249,29 @@ class MoveGroupCommandInterpreter:
                             return (MoveGroupInfoLevel.FAIL, "Failed while moving to " + clist[1])
                     except:
                         return (MoveGroupInfoLevel.WARN, clist[1] + " is unknown")
+            if clist[0] == "plan":
+                self._last_plan = None
+                vals = None
+                if clist[1] == "rand" or clist[1] == "random":
+                    vals = g.get_random_joint_values()
+                    g.set_joint_value_target(vals)
+                    self._last_plan = g.plan()
+                else:
+                    try:
+                        g.set_named_target(clist[1])
+                        self._last_plan = g.plan()
+                    except:
+                        return (MoveGroupInfoLevel.WARN, clist[1] + " is unknown")
+                if self._last_plan != None:
+                    if len(self._last_plan.joint_trajectory.points) == 0 and len(self._last_plan.multi_dof_joint_trajectory.points) == 0:
+                        self._last_plan = None
+                dest_str = clist[1]
+                if vals != None:
+                    dest_str = "[" + " ".join([str(x) for x in vals]) + "]"
+                if self._last_plan != None:
+                    return (MoveGroupInfoLevel.SUCCESS, "Planned to " + dest_str)
+                else:
+                    return (MoveGroupInfoLevel.FAIL, "Failed while planning to " + dest_str)
             elif clist[0] == "pick":
                 if g.pick(clist[1]):
                     return (MoveGroupInfoLevel.SUCCESS, "Picked object " + clist[1])
@@ -251,6 +282,10 @@ class MoveGroupCommandInterpreter:
                     return (MoveGroupInfoLevel.SUCCESS, "Placed object " + clist[1])
                 else:
                     return (MoveGroupInfoLevel.FAIL, "Failed while trying to place object " + clist[1])
+            elif clist[0] == "planner":
+                g.set_planner_id(clist[1])
+                g.set_planner_id("RRTConnectkConfigDefault")
+                return (MoveGroupInfoLevel.SUCCESS, "Planner is now " + clist[1])
             elif clist[0] == "record" or clist[0] == "rec":
                 g.remember_joint_values(clist[1])
                 return (MoveGroupInfoLevel.SUCCESS, "Remembered current joint values under the name " + clist[1])
