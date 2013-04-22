@@ -606,6 +606,11 @@ public:
       planning_time_ = seconds;
   }
   
+  double getPlanningTime() const
+  {
+    return planning_time_;
+  }
+
   void constructGoal(moveit_msgs::MoveGroupGoal &goal_out)
   {
     moveit_msgs::MoveGroupGoal goal;
@@ -1379,6 +1384,11 @@ void MoveGroup::setWorkspace(double minx, double miny, double minz, double maxx,
 void MoveGroup::setPlanningTime(double seconds)
 {
   impl_->setPlanningTime(seconds);
+}
+
+double MoveGroup::getPlanningTime() const
+{
+  return impl_->getPlanningTime();
 }
 
 void MoveGroup::setSupportSurfaceName(const std::string &name)

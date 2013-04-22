@@ -163,6 +163,9 @@ public:
   /** \brief Specify the maximum amount of time to use when planning */
   void setPlanningTime(double seconds);
 
+  /** \brief Gtet the number of seconds allowed for planning */
+  double getPlanningTime() const;
+
   /** \brief Get the tolerance that is used for reaching the goal. For
       joint state goals, this will be distance for each joint, in the
       configuration space. For pose goals this will be the side of a
