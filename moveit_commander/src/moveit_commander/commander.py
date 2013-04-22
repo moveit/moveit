@@ -323,8 +323,6 @@ class MoveGroupCommander:
                 accelerations = point["accelerations"]))
         multi_dof_joint_traj = MultiDOFJointTrajectory()
         multi_dof_joint_traj.joint_names = plan["multi_dof_joint_trajectory"]["joint_names"]
-        multi_dof_joint_traj.frame_ids = plan["multi_dof_joint_trajectory"]["frame_ids"]
-        multi_dof_joint_traj.child_frame_ids = plan["multi_dof_joint_trajectory"]["child_frame_ids"]
         for point in plan["multi_dof_joint_trajectory"]["points"]:
              multi_dof_joint_traj_point = MultiDOFJointTrajectoryPoint()
              for t in point["transforms"]:
