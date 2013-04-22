@@ -124,6 +124,12 @@ public:
    *  @return Returns the map from joint names to joint state values*/
   std::map<std::string, double> getCurrentStateValues() const;
   
+  /** @brief Get the time point when the monitor was started */
+  const ros::Time& getMonitorStartTime() const
+  {
+    return monitor_start_time_;
+  }
+
   /** @brief Add a function that will be called whenever the joint state is updated*/
   void addUpdateCallback(const JointStateUpdateCallback &fn);
 
@@ -155,17 +161,17 @@ private:
 
   ros::NodeHandle                              nh_;
   boost::shared_ptr<tf::Transformer>           tf_;
-  robot_model::RobotModelConstPtr      kmodel_;
-  robot_state::RobotState              kstate_;
-  robot_state::JointState                 *root_;
+  robot_model::RobotModelConstPtr              kmodel_;
+  robot_state::RobotState                      kstate_;
+  robot_state::JointState                     *root_;
   std::map<std::string, ros::Time>             joint_time_;
   bool                                         state_monitor_started_;
+  ros::Time                                    monitor_start_time_;
   double                                       error_;
   ros::Subscriber                              joint_state_subscriber_;
   ros::Time                                    current_state_time_;
   
   mutable boost::mutex                         state_update_lock_;
-  //JointStateUpdateCallback                     on_state_update_callback_;
   std::vector< JointStateUpdateCallback >      update_callbacks_;
 };
 

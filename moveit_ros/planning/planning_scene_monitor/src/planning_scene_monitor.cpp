@@ -937,10 +937,10 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
   if (current_state_monitor_)
   {
     std::vector<std::string> missing;
-    if (!current_state_monitor_->haveCompleteState(missing))
+    if (!current_state_monitor_->haveCompleteState(missing) && (ros::Time::now() - current_state_monitor_->getMonitorStartTime()).toSec() > 1.0)
     {
       std::string missing_str = boost::algorithm::join(missing, ", ");
-      ROS_WARN("The complete state of the robot is not yet known.  Missing %s", missing_str.c_str());
+      ROS_WARN_THROTTLE(1, "The complete state of the robot is not yet known.  Missing %s", missing_str.c_str());
     }
     
     {
@@ -952,7 +952,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
     triggerSceneUpdateEvent(UPDATE_STATE);
   }
   else
-    ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
+    ROS_ERROR_THROTTLE(1, "State monitor is not active. Unable to set the planning scene state");
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::addUpdateCallback(const boost::function<void(SceneUpdateType)> &fn)
