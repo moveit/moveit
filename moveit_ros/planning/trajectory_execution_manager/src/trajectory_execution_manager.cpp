@@ -92,10 +92,10 @@ void TrajectoryExecutionManager::initialize()
       if (classes.size() == 1)
       {
         controller = classes[0];
-        ROS_WARN("Parameter '~controller_manager' is not specified but only one matching plugin was found: '%s'. Using that one.", controller.c_str());
+        ROS_WARN("Parameter '~moveit_controller_manager' is not specified but only one matching plugin was found: '%s'. Using that one.", controller.c_str());
       }
       else
-        ROS_FATAL("Parameter '~controller_manager' not specified. This is needed to identify the plugin to use for interacting with controllers. No paths can be executed.");
+        ROS_FATAL("Parameter '~moveit_controller_manager' not specified. This is needed to identify the plugin to use for interacting with controllers. No paths can be executed.");
     }
 
     if (!controller.empty())
