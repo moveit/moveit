@@ -475,15 +475,33 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
     QMessageBox::warning( this, "Error Loading Files", QString( "URDF/COLLADA file not found: " ).append( urdf_file_path.c_str() ) );
     return false;
   }
-
-  // Load the file to a string using an efficient memory allocation technique
   std::string urdf_string;
-  urdf_stream.seekg(0, std::ios::end);
-  urdf_string.reserve(urdf_stream.tellg());
-  urdf_stream.seekg(0, std::ios::beg);
-  urdf_string.assign( (std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>() );
-  urdf_stream.close();
-
+  
+  if(urdf_file_path.find(".xacro") != std::string::npos)
+  {
+    std::string cmd("rosrun xacro xacro.py ");
+    cmd += urdf_file_path;
+    FILE* pipe = popen(cmd.c_str(), "r");
+    if (!pipe){
+      QMessageBox::warning( this, "Error Loading Files", QString( "XACRO file or parser not found: " ).append( urdf_file_path.c_str() ) );
+      return false;
+    }
+    char buffer[128];
+    while(!feof(pipe)) {
+        if(fgets(buffer, 128, pipe) != NULL)
+                urdf_string += buffer;
+    }
+    pclose(pipe);
+  }
+  else
+  {
+    // Load the file to a string using an efficient memory allocation technique
+    urdf_stream.seekg(0, std::ios::end);
+    urdf_string.reserve(urdf_stream.tellg());
+    urdf_stream.seekg(0, std::ios::beg);
+    urdf_string.assign( (std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>() );
+    urdf_stream.close();
+  }
   // Verify that file is in correct format / not an XACRO by loading into robot model
   if( !config_data_->urdf_model_->initString( urdf_string ) )
   {
