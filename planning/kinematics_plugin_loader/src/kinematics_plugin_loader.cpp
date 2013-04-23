@@ -47,8 +47,6 @@
 namespace kinematics_plugin_loader
 {
 
-const double KinematicsPluginLoader::DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION = 0.1;
-
 class KinematicsPluginLoader::KinematicsLoaderImpl
 {
 public:
@@ -111,8 +109,11 @@ public:
                   result.reset();
                 }
                 else
+		{
+		  result->setDefaultTimeout(jmg->getDefaultIKTimeout());
                   ROS_DEBUG("Successfully allocated and initialized a kinematics solver of type '%s' with search resolution %lf for group '%s' at address %p",
                             it->second[i].c_str(), search_res, jmg->getName().c_str(), result.get());
+		}
               }
               else
                 ROS_ERROR("No links specified for group '%s'", jmg->getName().c_str());
@@ -218,7 +219,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
     {
       const std::vector<srdf::Model::Group> &known_groups = srdf_model->getGroups();
       if (default_search_resolution_ <= std::numeric_limits<double>::epsilon())
-        default_search_resolution_ = DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION;
+        default_search_resolution_ = kinematics::KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION;
       
       if (default_solver_plugin_.empty())
       {

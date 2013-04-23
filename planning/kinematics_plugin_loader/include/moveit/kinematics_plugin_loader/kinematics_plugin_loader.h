@@ -50,9 +50,6 @@ class KinematicsPluginLoader
 {
 public:
 
-  /// The default search resolution when solving IK
-  static const double DEFAULT_KINEMATICS_SOLVER_SEARCH_RESOLUTION;
-  
   /** \brief Load the kinematics solvers based on information on the
       ROS parameter server. Take as optional argument the name of the
       ROS parameter under which the robot description can be
