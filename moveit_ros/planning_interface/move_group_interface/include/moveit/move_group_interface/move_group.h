@@ -356,6 +356,10 @@ public:
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
   geometry_msgs::PoseStamped getCurrentPose(const std::string &end_effector_link = "");
 
+  /** \brief Get the roll-pitch-yaw (XYZ) for the end-effector \e end_effector_link. 
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  std::vector<double> getCurrentXYZOrientation(const std::string &end_effector_link = "");
+
   /** \brief Get random joint values for the joints planned for by this instance (see getJoints()) */
   std::vector<double> getRandomJointValues();
 

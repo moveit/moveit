@@ -700,7 +700,7 @@ public:
       if (constraints_storage_->getConstraints(msg_m, constraint, kinematic_model_->getName(), opt_.group_name_))
       {
         path_constraints_.reset(new moveit_msgs::Constraints(static_cast<moveit_msgs::Constraints>(*msg_m)));
-        return true;
+	return true;
       }
       else
         return false;
@@ -1317,6 +1317,31 @@ geometry_msgs::PoseStamped MoveGroup::getCurrentPose(const std::string &end_effe
   pose_msg.header.frame_id = impl_->getRobotModel()->getModelFrame();
   tf::poseEigenToMsg(pose, pose_msg.pose);
   return pose_msg;
+}
+
+std::vector<double> MoveGroup::getCurrentXYZOrientation(const std::string &end_effector_link)
+{
+  std::vector<double> result;
+  const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
+  if (eef.empty())
+    ROS_ERROR("No end-effector specified");
+  else
+  {
+    robot_state::RobotStatePtr current_state;
+    if (impl_->getCurrentState(current_state))
+    {
+      const robot_state::LinkState *ls = current_state->getLinkState(eef);
+      if (ls)
+      {
+	result.resize(3);
+	Eigen::Vector3d xyz = ls->getGlobalLinkTransform().rotation().eulerAngles(0, 1, 2);
+	result[0] = xyz.x();
+	result[1] = xyz.y();
+	result[2] = xyz.z();
+      }
+    }
+  }
+  return result;
 }
 
 const std::vector<std::string>& MoveGroup::getJoints() const
