@@ -627,6 +627,9 @@ void planning_scene_monitor::PlanningSceneMonitor::includeAttachedBodyInOctree(c
 
 void planning_scene_monitor::PlanningSceneMonitor::excludeWorldObjectFromOctree(const collision_detection::World::ObjectConstPtr &obj)
 {
+  if (obj->id_ == planning_scene::PlanningScene::OCTOMAP_NS)
+    return;
+  
   boost::recursive_mutex::scoped_lock _(shape_handles_lock_);
 
   bool found = false;
