@@ -59,6 +59,7 @@ catkin_package(
     ${THIS_PACKAGE_INCLUDE_DIRS}
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
+    moveit_kinematics_base
     moveit_robot_model
     moveit_robot_state
     moveit_robot_trajectory
