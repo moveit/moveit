@@ -39,7 +39,7 @@
 #include <moveit/robot_state/conversions.h>
 #include <tf/transform_listener.h>
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <ompl/tools/debug/Profiler.h>
+#include <moveit/profiler/profiler.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <moveit_msgs/ConstructConstraintApproximation.h>
 
@@ -78,7 +78,7 @@ public:
       if (result)
         displaySolution(res.motion_plan_response);
       std::stringstream ss;
-      ompl::tools::Profiler::Status(ss);
+      moveit::Profiler::Status(ss);
       ROS_INFO("%s", ss.str().c_str());
     }
     return result;

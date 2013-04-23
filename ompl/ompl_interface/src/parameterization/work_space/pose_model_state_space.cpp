@@ -36,7 +36,7 @@
 
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
-#include <ompl/tools/debug/Profiler.h>
+#include <moveit/profiler/profiler.h>
 
 const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "PoseModel";
 
@@ -114,16 +114,19 @@ void ompl_interface::PoseModelStateSpace::sanityChecks() const
 }
 
 void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
-{    
+{
   // we want to interpolate in Cartesian space; we do not have a guarantee that from and to
   // have their poses computed, but this is very unlikely to happen (depends how the planner gets its input states)
   ModelBasedStateSpace::interpolate(from, to, t, state);
+
   /*
-  std::cout << "X\n";
+  std::cout << "*********** interpolate\n";
   printState(from, std::cout);
   printState(to, std::cout);
   printState(state, std::cout);
+  std::cout << "\n\n";
   */
+
   // after interpolation we cannot be sure about the joint values (we use them as seed only)
   // so we recompute IK
   state->as<StateType>()->setJointsComputed(false);
@@ -195,6 +198,7 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(const om
     for (unsigned int j = 0 ; j < joint_val_count_[i] ; ++j)
       seed_values[vindex++] = v[j];
   }
+
   /*
   std::cout << "seed: ";
   for (std::size_t i = 0 ; i < seed_values.size() ; ++i)
@@ -216,10 +220,12 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(const om
   
   // run IK
   std::vector<double> solution;
-  moveit_msgs::MoveItErrorCodes dummy;
-  if (!kinematics_solver_->getPositionIK(pose, seed_values, solution, dummy))
+  moveit_msgs::MoveItErrorCodes err_code;
+  if (!kinematics_solver_->getPositionIK(pose, seed_values, solution, err_code))
+  {
     return false;
-  
+  }
+
   // copy solution to the joint state 
   vindex = 0;
   for (std::size_t i = 0 ; i < jaddr.size() ; ++i)
