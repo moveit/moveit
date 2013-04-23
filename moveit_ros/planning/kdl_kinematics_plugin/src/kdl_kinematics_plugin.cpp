@@ -48,8 +48,6 @@
 
 #include <moveit/rdf_loader/rdf_loader.h>
 
-static const double MAX_TIMEOUT_KDL_PLUGIN = 5.0;
- 
 //register KDLKinematics as a KinematicsBase implementation
 CLASS_LOADER_REGISTER_CLASS(kdl_kinematics_plugin::KDLKinematicsPlugin, kinematics::KinematicsBase)
 
@@ -363,7 +361,7 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
   
   return searchPositionIK(ik_pose,
                           ik_seed_state,
-                          MAX_TIMEOUT_KDL_PLUGIN,
+			  default_timeout_,
                           solution,
                           solution_callback,
                           error_code,
