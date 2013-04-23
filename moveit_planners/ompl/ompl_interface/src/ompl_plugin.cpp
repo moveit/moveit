@@ -37,11 +37,15 @@
 #include <moveit/ompl_interface/ompl_interface_ros.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <boost/shared_ptr.hpp>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/profiler/profiler.h>
 #include <class_loader/class_loader.h>
 
 #include <dynamic_reconfigure/server.h>
 #include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
+
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 
 namespace ompl_interface
 {
@@ -52,7 +56,8 @@ class OMPLPlanner : public planning_interface::Planner
 public:
   
   OMPLPlanner() : planning_interface::Planner(),
-                  nh_("~")
+                  nh_("~"),
+		  display_random_valid_states_(false)
   {
   }
   
@@ -62,7 +67,9 @@ public:
       nh_ = ros::NodeHandle(ns);
     ompl_interface_.reset(new OMPLInterfaceROS(model, nh_));
     pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
-    
+    pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
+    pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
+
     dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle(nh_, "ompl")));
     dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
     return true;
@@ -77,7 +84,9 @@ public:
                      const planning_interface::MotionPlanRequest &req, 
                      planning_interface::MotionPlanResponse &res) const
   {
+    display_random_valid_states_ = false;
     bool r = ompl_interface_->solve(planning_scene, req, res);
+    moveit::Profiler::Status();
     if (!planner_data_link_name_.empty())
       displayPlannerData(planning_scene, planner_data_link_name_);
     return r;
@@ -87,6 +96,7 @@ public:
                      const planning_interface::MotionPlanRequest &req, 
                      planning_interface::MotionPlanDetailedResponse &res) const
   {
+    display_random_valid_states_ = false;
     bool r = ompl_interface_->solve(planning_scene, req, res);
     if (!planner_data_link_name_.empty())
       displayPlannerData(planning_scene, planner_data_link_name_);
@@ -111,6 +121,57 @@ public:
   }
   
 private:
+  
+  void displayRandomValidStates()
+  {
+    const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_->getLastPlanningContext();
+    if (!pc)
+    {
+      ROS_ERROR("No planning context to sample states for");
+      return;
+    }
+    ROS_INFO_STREAM("Displaying states for context " << pc->getName());
+    const og::SimpleSetup &ss = pc->getOMPLSimpleSetup();
+    ob::ValidStateSamplerPtr vss = ss.getSpaceInformation()->allocValidStateSampler();
+    robot_state::RobotState kstate = pc->getPlanningScene()->getCurrentState();
+    ob::ScopedState<> rstate1(ss.getStateSpace());
+    ob::ScopedState<> rstate2(ss.getStateSpace());
+    ros::WallDuration wait(2);
+    unsigned int n = 0;
+    std::vector<ob::State*> sts;
+    while (display_random_valid_states_)
+    {
+      if (!vss->sample(rstate1.get()))
+	continue;
+      pc->getOMPLStateSpace()->copyToRobotState(kstate, rstate1.get());
+      kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
+      moveit_msgs::DisplayRobotState state_msg;
+      robot_state::robotStateToRobotStateMsg(kstate, state_msg.state);
+      pub_valid_states_.publish(state_msg);
+      n = (n + 1) % 2;
+      if (n == 0)
+      {
+	robot_trajectory::RobotTrajectory traj(pc->getRobotModel(), pc->getJointModelGroupName());
+	unsigned int g = ss.getSpaceInformation()->getMotionStates(rstate1.get(), rstate2.get(), sts, 10, true, true);
+	ROS_INFO("Generated %u states", g);
+	for (std::size_t i = 0 ; i < g ; ++i)
+	{
+	  pc->getOMPLStateSpace()->copyToRobotState(kstate, sts[i]);
+	  traj.addSuffixWayPoint(kstate, 0.0);
+	}
+
+        moveit_msgs::DisplayTrajectory msg;
+	msg.model_id = pc->getRobotModel()->getName();
+	msg.trajectory.resize(1);
+	traj.getRobotTrajectoryMsg(msg.trajectory[0]);
+	robot_state::robotStateToRobotStateMsg(traj.getFirstWayPoint(), msg.trajectory_start);
+	pub_valid_traj_.publish(msg);
+      }
+      rstate2 = rstate1;
+      wait.sleep();
+    }
+    
+  }
   
   void displayPlannerData(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const std::string &link_name) const
@@ -156,20 +217,42 @@ private:
   
   void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig &config, uint32_t level)
   {
-    planner_data_link_name_ = config.link_for_exploration_tree;
-    if (planner_data_link_name_.empty())
+    if (config.link_for_exploration_tree.empty() && !planner_data_link_name_.empty())
+    {
+      planner_data_link_name_.clear();
       ROS_INFO("Not displaying OMPL exploration data structures.");
+    }
     else
+    {
+      planner_data_link_name_ = config.link_for_exploration_tree;
       ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
+    }
+
     ompl_interface_->simplifySolutions(config.simplify_solutions);
     ompl_interface_->getPlanningContextManager().setMaximumSolutionSegmentLength(config.maximum_waypoint_distance);
     ompl_interface_->getPlanningContextManager().setMinimumWaypointCount(config.minimum_waypoint_count);
+    if (display_random_valid_states_ && !config.display_random_valid_states)
+    {
+      display_random_valid_states_ = false;
+      pub_valid_states_thread_->join();
+      pub_valid_states_thread_.reset();
+    }
+    else
+      if (!display_random_valid_states_ && config.display_random_valid_states)
+      {
+	display_random_valid_states_ = true; 
+	pub_valid_states_thread_.reset(new boost::thread(boost::bind(&OMPLPlanner::displayRandomValidStates, this)));
+      }
   }
   
   ros::NodeHandle nh_;
   boost::scoped_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig> > dynamic_reconfigure_server_;
   boost::scoped_ptr<OMPLInterfaceROS> ompl_interface_;
+  boost::scoped_ptr<boost::thread> pub_valid_states_thread_;
+  mutable bool display_random_valid_states_;
   ros::Publisher pub_markers_;
+  ros::Publisher pub_valid_states_;
+  ros::Publisher pub_valid_traj_;
   ros::Subscriber debug_link_sub_;
   std::string planner_data_link_name_;
 };

@@ -36,6 +36,7 @@
 
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
+#include <moveit/profiler/profiler.h>
 
 ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBasedPlanningContext *pc,
                                                                  const kinematic_constraints::KinematicConstraintSetPtr &ks,
@@ -69,6 +70,7 @@ bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State *state)
 
 bool ompl_interface::ValidConstrainedSampler::sample(ob::State *state)
 {
+  //  moveit::Profiler::ScopedBlock pblock("ValidConstrainedSampler::sample");
   if (constraint_sampler_)
   {
     if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))

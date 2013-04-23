@@ -36,6 +36,7 @@
 
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit/profiler/profiler.h>
 #include <algorithm>
 #include <set>
 
@@ -53,8 +54,6 @@
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/contrib/rrt_star/RRTstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
-
-#include <ompl/tools/debug/Profiler.h>
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>

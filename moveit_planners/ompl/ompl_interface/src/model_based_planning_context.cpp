@@ -42,12 +42,12 @@
 #include <moveit/ompl_interface/detail/projection_evaluators.h>
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/profiler/profiler.h>
 #include <eigen_conversions/eigen_msg.h>
 
 #include <ompl/base/samplers/UniformValidStateSampler.h>
 #include <ompl/base/goals/GoalLazySamples.h>
 #include <ompl/tools/config/SelfConfig.h>
-#include <ompl/tools/debug/Profiler.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/PDF.h>
 
@@ -701,7 +701,7 @@ void Follower::computeSolution(const std::vector<std::vector<base::State*> > &se
 
 bool ompl_interface::ModelBasedPlanningContext::follow(double timeout, unsigned int count)
 {
-  ot::Profiler::ScopedBlock sblock("PlanningContext:Follow");
+  moveit::Profiler::ScopedBlock sblock("PlanningContext:Follow");
   ompl::time::point start = ompl::time::now();
   preSolve();
   
@@ -753,8 +753,7 @@ void ompl_interface::ModelBasedPlanningContext::postSolve()
 
 bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
 {
-  ot::Profiler::ScopedBlock sblock("PlanningContext:Solve");
-
+  moveit::Profiler::ScopedBlock sblock("PlanningContext:Solve");
   ompl::time::point start = ompl::time::now();
   preSolve();
   

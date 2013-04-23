@@ -38,7 +38,7 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
-#include <ompl/tools/debug/Profiler.h>
+#include <moveit/profiler/profiler.h>
 #include <fstream>
 
 ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel) :
@@ -84,7 +84,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
                                                                                             moveit_msgs::MoveItErrorCodes *error_code,
                                                                                             unsigned int *attempts, double *timeout) const
 {
-  ot::Profiler::ScopedBlock sblock("OMPLInterface:PrepareForSolve");
+  moveit::Profiler::ScopedBlock sblock("OMPLInterface:PrepareForSolve");
 
   if (!planning_scene)
   { 
@@ -188,8 +188,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                           const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res) const
 {
-  ompl::tools::Profiler::ScopedStart pslv;
-  ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
+  moveit::Profiler::ScopedStart pslv;
+  moveit::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
 
   unsigned int attempts = 1;
   double timeout = 0.0;
@@ -198,9 +198,8 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 
   if (!context)
     return false;
-  
+
   res.trajectory_.reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
-  
   bool follow = !req.trajectory_constraints.constraints.empty();
   if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
   {
@@ -231,8 +230,8 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
 					  const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const
 {
-  ompl::tools::Profiler::ScopedStart pslv;
-  ot::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
+  moveit::Profiler::ScopedStart pslv;
+  moveit::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
   
   unsigned int attempts = 1;
   double timeout = 0.0;
