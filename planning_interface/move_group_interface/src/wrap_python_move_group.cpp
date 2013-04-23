@@ -129,6 +129,11 @@ public:
     return moveit_py_bindings_tools::listFromDouble(v);
   }
   
+  bp::list getCurrentXYZOrientationPython(const std::string &end_effector_link = "")
+  {
+    return moveit_py_bindings_tools::listFromDouble(getCurrentXYZOrientation(end_effector_link));
+  }
+  
   bp::list getCurrentPosePython(const std::string &end_effector_link = "")
   {
     geometry_msgs::PoseStamped pose = getCurrentPose(end_effector_link);
@@ -311,6 +316,8 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_orientation_target", setOrientationTarget_2);
   
   MoveGroupClass.def("get_current_pose", &MoveGroupWrapper::getCurrentPosePython);
+  MoveGroupClass.def("get_current_xyz_orientation", &MoveGroupWrapper::getCurrentXYZOrientationPython);
+
   MoveGroupClass.def("get_random_pose", &MoveGroupWrapper::getRandomPosePython);
 
   MoveGroupClass.def("clear_pose_target", &MoveGroupWrapper::clearPoseTarget);
