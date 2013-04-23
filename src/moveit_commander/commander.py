@@ -125,7 +125,13 @@ class MoveGroupCommander:
             return self.__list_to_pose(self._g.get_current_pose(end_effector_link))
         else:
             raise "There is no end effector to get the pose of"
-        
+
+    def get_current_xyz_orientation(self, end_effector_link = ""):
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            return self._g.get_current_xyz_orientation(end_effector_link)
+        else:
+            raise "There is no end effector to get the orientation of"
+
     def get_random_joint_values(self):
         return self._g.get_random_joint_values()
 
