@@ -70,7 +70,7 @@ public:
     if (planning_scene->isStateValid(start_state) && 
         !planning_scene->isStateValid(start_state, req.path_constraints))
     {
-      ROS_DEBUG("Planning to path constraints...");
+      ROS_INFO("Planning to path constraints...");
       
       planning_interface::MotionPlanRequest req2 = req;
       req2.goal_constraints.resize(1);
@@ -82,7 +82,7 @@ public:
       if (solved1)
       { 
         planning_interface::MotionPlanRequest req3 = req;
-        ROS_DEBUG("Planned to path constraints. Resuming original planning request.");
+        ROS_INFO("Planned to path constraints. Resuming original planning request.");
         
         // extract the last state of the computed motion plan and set it as the new start state
         robot_state::robotStateToRobotStateMsg(res2.trajectory_->getLastWayPoint(), req3.start_state);
