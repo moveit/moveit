@@ -561,11 +561,7 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_nam
     ROS_ERROR("kinematics not active");    
     return false;
   }
-  if(poses.size() != link_names.size())
-  {
-    ROS_ERROR("Poses vector must have size: %zu",link_names.size());
-    return false;    
-  }
+  poses.resize(link_names.size());
   if(joint_angles.size() != dimension_)
   {
     ROS_ERROR("Joint angles vector must have size: %d",dimension_);
