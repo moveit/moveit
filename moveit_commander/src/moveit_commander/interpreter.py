@@ -60,6 +60,8 @@ class MoveGroupCommandInterpreter:
         self._group_name = ""
         self._prev_group_name = ""
         self._last_plan = None
+        self._db_host = None
+        self._db_port = 33829
 
     def get_active_group(self):
         if len(self._group_name) > 0:
@@ -136,6 +138,8 @@ class MoveGroupCommandInterpreter:
                     known = self._gdict[gr].get_remembered_joint_values()
                     for v in known.keys():
                         f.write(v + " = [" + " ".join([str(x) for x in known[v]]) + "]\n")
+                if self._db_host != None:
+                    f.write("database " + self._db_host + " " + str(self._db_port) + "\n")
                 return (MoveGroupInfoLevel.DEBUG, "OK")
             except:
                 return (MoveGroupInfoLevel.WARN, "Unable to save " + filename)
@@ -174,11 +178,20 @@ class MoveGroupCommandInterpreter:
             else:
                 return (MoveGroupInfoLevel.INFO, "There is no end effector defined")
 
+        if cmd == "database":
+            if self._db_host == None:
+                return (MoveGroupInfoLevel.INFO, "Not connected to a database")
+            else:
+                return (MoveGroupInfoLevel.INFO, "Connected to " + self._db_host + ":" + str(self._db_port))
         if cmd == "plan":
             if self._last_plan != None:
                 return (MoveGroupInfoLevel.INFO, str(self._last_plan))
             else:
                 return (MoveGroupInfoLevel.INFO, "No previous plan")
+
+        if cmd == "constrain":
+            g.clear_path_constraints()
+            return (MoveGroupInfoLevel.SUCCESS, "Cleared path constraints")
 
         if cmd == "tol" or cmd == "tolerance":
             return (MoveGroupInfoLevel.INFO, str(g.get_goal_tolerance()))
@@ -318,13 +331,23 @@ class MoveGroupCommandInterpreter:
                     g.set_path_constraints(clist[1])
                     return (MoveGroupInfoLevel.SUCCESS, "OK")
                 except:
-                    return (MoveGroupInfoLevel.WARN, "Constraint " + clist[1] + " is not known")
+                    if self._db_host != None:
+                        return (MoveGroupInfoLevel.WARN, "Constraint " + clist[1] + " is not known.")
+                    else:
+                        return (MoveGroupInfoLevel.WARN, "Not connected to a database.")
             elif clist[0] == "wait":
                 try:
                     time.sleep(float(clist[1]))
                     return (MoveGroupInfoLevel.SUCCESS, clist[1] + " seconds passed")
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to wait '" + clist[1] + "' seconds")
+            elif clist[0] == "database":
+                try:
+                    g.set_constraints_database(clist[1], self._db_port)
+                    self._db_host = clist[1]
+                    return (MoveGroupInfoLevel.SUCCESS, "Connected to " + self._db_host + ":" + str(self._db_port))
+                except:
+                    return (MoveGroupInfoLevel.WARN, "Unable to connect to '" + clist[1] + ":" + str(self._db_port) + "'")
             else:
                 return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
 
@@ -348,6 +371,15 @@ class MoveGroupCommandInterpreter:
                 else:
                     g.allow_replanning(False)
                 return (MoveGroupInfoLevel.DEBUG, "OK")
+            elif clist[0] == "database":
+                try:
+                    g.set_constraints_database(clist[1], int(clist[2]))
+                    self._db_host = clist[1]
+                    self._db_port = int(clist[2])
+                    return (MoveGroupInfoLevel.SUCCESS, "Connected to " + self._db_host + ":" + str(self._db_port))
+                except:
+                    self._db_host = None
+                    return (MoveGroupInfoLevel.WARN, "Unable to connect to '" + clist[1] + ":" + clist[2] + "'")
         if len(clist) == 4:
             if clist[0] == "rotate":
                 try:
@@ -372,6 +404,7 @@ class MoveGroupCommandInterpreter:
         res = "joints = [" + " ".join([str(x) for x in g.get_current_joint_values()]) + "]"
         if len(g.get_end_effector_link()) > 0:
             res = res + "\n" + g.get_end_effector_link() + " pose = [\n" + str(g.get_current_pose()) + " ]"
+            res = res + "\n" + g.get_end_effector_link() + " XYZ orientation = " + str(g.get_current_xyz_orientation())
         return (MoveGroupInfoLevel.INFO, res)
 
     def command_go_offset(self, g, offset, factor, dimension_index, direction_name):
@@ -437,12 +470,14 @@ class MoveGroupCommandInterpreter:
                 'show':known_vars,
                 'wait':[],
                 'delete':known_vars,
+                'database': [],
                 'current':[],
                 'use':groups,
                 'load':[],
                 'save':[],
                 'pick':[],
                 'place':[],
+                'plan':known_vars,
                 'allow':['replanning', 'looking'],
                 'constrain':known_constr,
                 'vars':[],
