@@ -67,9 +67,11 @@ public:
     robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
     
     // if the start state is otherwise valid but does not meet path constraints
-    if (planning_scene->isStateValid(start_state) && 
-        !planning_scene->isStateValid(start_state, req.path_constraints))
+    if (planning_scene->isStateValid(start_state, req.group_name) && 
+        !planning_scene->isStateValid(start_state, req.path_constraints, req.group_name))
     {
+      ROS_INFO("Path constraints not satisfied for start state...");
+      planning_scene->isStateValid(start_state, req.path_constraints, req.group_name, true);
       ROS_INFO("Planning to path constraints...");
       
       planning_interface::MotionPlanRequest req2 = req;
