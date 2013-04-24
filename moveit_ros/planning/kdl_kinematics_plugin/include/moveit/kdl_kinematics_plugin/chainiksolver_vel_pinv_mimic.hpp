@@ -100,6 +100,11 @@ public:
   {
     redundant_joints_locked = true;
   }
+
+  void unlockRedundantJoints()
+  {
+    redundant_joints_locked = false;
+  }
   
 private:
   
