@@ -297,7 +297,6 @@ class MoveGroupCommandInterpreter:
                     return (MoveGroupInfoLevel.FAIL, "Failed while trying to place object " + clist[1])
             elif clist[0] == "planner":
                 g.set_planner_id(clist[1])
-                g.set_planner_id("RRTConnectkConfigDefault")
                 return (MoveGroupInfoLevel.SUCCESS, "Planner is now " + clist[1])
             elif clist[0] == "record" or clist[0] == "rec":
                 g.remember_joint_values(clist[1])
