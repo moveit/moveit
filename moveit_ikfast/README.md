@@ -1,6 +1,6 @@
 MoveIt! IKFast Converter
 ==========
-* Author: Dave Coleman, CU Boulder; Jeremy Zoss, SwRI; David Butterworth, KAIST
+* Author: Dave Coleman, CU Boulder; Jeremy Zoss, SwRI; David Butterworth, KAIST, Mathias Lüdtke, Fraunhofer IPA
 * Date: 3/19/2013
 * Version: 3.0.0
 
