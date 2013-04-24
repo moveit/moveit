@@ -240,7 +240,7 @@ void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, doub
   marker.color.a = color.w();
 
   control.markers.push_back( marker );
-  control.always_visible = true;
+  control.always_visible = false;
 
   int_marker.controls.push_back(control);
 }
