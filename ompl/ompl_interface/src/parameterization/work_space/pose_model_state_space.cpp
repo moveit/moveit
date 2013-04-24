@@ -115,6 +115,8 @@ void ompl_interface::PoseModelStateSpace::sanityChecks() const
 
 void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
 {
+  //  moveit::Profiler::ScopedBlock sblock("interpolate");
+
   // we want to interpolate in Cartesian space; we do not have a guarantee that from and to
   // have their poses computed, but this is very unlikely to happen (depends how the planner gets its input states)
   ModelBasedStateSpace::interpolate(from, to, t, state);
@@ -223,9 +225,11 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(const om
   moveit_msgs::MoveItErrorCodes err_code;
   if (!kinematics_solver_->getPositionIK(pose, seed_values, solution, err_code))
   {
-    return false;
+    if (err_code.val != moveit_msgs::MoveItErrorCodes::TIMED_OUT ||
+	!kinematics_solver_->searchPositionIK(pose, seed_values, kinematics_solver_->getDefaultTimeout() * 2.0, solution, err_code))
+      return false;
   }
-
+  
   // copy solution to the joint state 
   vindex = 0;
   for (std::size_t i = 0 ; i < jaddr.size() ; ++i)
