@@ -330,10 +330,7 @@ public:
   }
 
   /** \brief Set the default IK timeout */
-  void setDefaultIKTimeout(double ik_timeout)
-  {
-    default_ik_timeout_ = ik_timeout;
-  }
+  void setDefaultIKTimeout(double ik_timeout);
 
   /** \brief Get the default IK attempts */
   unsigned int getDefaultIKAttempts() const
