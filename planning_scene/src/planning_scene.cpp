@@ -370,6 +370,7 @@ void planning_scene::PlanningScene::clearDiffs()
 
   // clear everything, reset the world, record diffs
   world_.reset(new collision_detection::World(*parent_->world_));
+  world_const_ = world_;
   world_diff_.reset(new collision_detection::WorldDiff(world_));
   if (current_world_object_update_callback_)
     current_world_object_update_observer_handle_ = world_->addObserver(current_world_object_update_callback_);
