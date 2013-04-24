@@ -93,6 +93,9 @@ private:
 
   MoveGroupState pickup_state_;
   MoveGroupState place_state_;  
+
+  ros::ServiceClient grasp_planning_service_;
+  
 };
 
 }

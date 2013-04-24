@@ -39,6 +39,9 @@
 #include <moveit/plan_execution/plan_with_sensing.h>
 #include <moveit/move_group_pick_place_capability/capability_names.h>
 
+#include <manipulation_msgs/GraspPlanning.h>
+#include <eigen_conversions/eigen_msg.h>
+
 move_group::MoveGroupPickPlaceAction::MoveGroupPickPlaceAction() : 
   MoveGroupCapability("PickPlaceAction"),
   pickup_state_(IDLE)
@@ -64,6 +67,8 @@ void move_group::MoveGroupPickPlaceAction::initialize()
                                                                                          boost::bind(&MoveGroupPickPlaceAction::executePlaceCallback, this, _1), false));
   place_action_server_->registerPreemptCallback(boost::bind(&MoveGroupPickPlaceAction::preemptPlaceCallback, this));
   place_action_server_->start();    
+
+  grasp_planning_service_ = root_node_handle_.serviceClient<manipulation_msgs::GraspPlanning>("database_grasp_planning");  
 }
 
 void move_group::MoveGroupPickPlaceAction::startPickupExecutionCallback()
@@ -403,8 +408,58 @@ void move_group::MoveGroupPickPlaceAction::setPlaceState(MoveGroupState state)
 void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& goal)
 {
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
+  manipulation_msgs::GraspPlanning::Request request;
+  manipulation_msgs::GraspPlanning::Response response;
+
+  std::vector<std::string> object_ids = lscene->getWorld()->getObjectIds();
+  for(std::size_t i=0; i < object_ids.size(); ++i)
+  {
+    ROS_INFO("Collision world has object: %s", object_ids[i].c_str());
+  }
+  
   if (lscene->hasObjectType(goal.target_name))
   {
+    if(!lscene->getObjectType(goal.target_name).key.empty())
+    {
+      if(lscene->getWorld()->getObject(goal.target_name))
+	{
+	  if(!lscene->getWorld()->getObject(goal.target_name)->shape_poses_.empty())
+	    {
+	      request.arm_name = goal.group_name;    
+	      //        request.collision_object_name = goal.target_name;
+	      //        request.collision_support_surface_name = goal.support_surface_name;
+	      
+	      request.target.reference_frame_id = lscene->getPlanningFrame();
+	      //        request.target.collision_name = goal.target_name;
+	      
+	      household_objects_database_msgs::DatabaseModelPose dbp;    
+	      dbp.pose.header.frame_id = lscene->getPlanningFrame();
+	      dbp.pose.header.stamp = ros::Time::now();
+	      tf::poseEigenToMsg(lscene->getWorld()->getObject(goal.target_name)->shape_poses_[0], dbp.pose.pose);
+	      dbp.type = lscene->getObjectType(goal.target_name);    
+	      std::stringstream dbp_type(dbp.type.key);
+	      dbp_type >> dbp.model_id;
+	      ROS_INFO("Asking database for grasps for %s with model id: %d", dbp.type.key.c_str(), dbp.model_id);
+	      request.target.potential_models.push_back(dbp);
+	    }
+	  else
+	    {
+	      ROS_ERROR("Object has no meshes");
+	    }
+	  if (grasp_planning_service_)
+	    {
+	      if(grasp_planning_service_.call(request, response))
+		{
+		  ROS_INFO("Grasp planning successful");        
+		  goal.possible_grasps = response.grasps;
+		}      
+	    }        
+	}         
+    } 
+    else
+    {
+      ROS_WARN("Object is not a recognized object");
+    }
     //    const object_recognition_msgs::ObjectType &ot = lscene->getObjectType(goal->target_name);
     // need to call the grasp planner here
   }
