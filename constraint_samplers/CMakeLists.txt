@@ -12,6 +12,7 @@ add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
 target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_robot_state 
   moveit_kinematic_constraints
+  moveit_kinematics_base
   moveit_planning_scene 
   ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 

@@ -54,7 +54,10 @@ namespace kinematics
 class KinematicsBase
 {
 public:
-      
+
+  static const double DEFAULT_SEARCH_DISCRETIZATION; /* = 0.1 */
+  static const double DEFAULT_TIMEOUT; /* = 1.0 */
+  
   /** @brief The signature for a callback that can compute IK */
   typedef boost::function<void(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_solution, moveit_msgs::MoveItErrorCodes &error_code)> IKCallbackFn;
       
@@ -183,14 +186,7 @@ public:
                          const std::string& group_name,
                          const std::string& base_frame,
                          const std::string& tip_frame,
-                         double search_discretization)
-  {
-    robot_description_ = robot_description;
-    group_name_ = group_name;
-    base_frame_ = removeSlash(base_frame);
-    tip_frame_ = removeSlash(tip_frame);
-    search_discretization_ = search_discretization;
-  }
+                         double search_discretization);
 
   /**
    * @brief  Initialization function for the kinematics
@@ -242,18 +238,7 @@ public:
    * @return False if any of the input joint indices are invalid (exceed number of 
    * joints)
    */
-  virtual bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
-  {
-    for(std::size_t i=0; i < redundant_joint_indices.size(); ++i)
-    {
-      if(redundant_joint_indices[i] >= getJointNames().size())
-      {
-        return false;
-      }      
-    }    
-    redundant_joint_indices_ = redundant_joint_indices;
-    return true;    
-  }
+  virtual bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices);
 
   /**
    * @brief Set a set of redundant joints for the kinematics solver to use. 
@@ -262,19 +247,7 @@ public:
    * @return False if any of the input joint indices are invalid (exceed number of 
    * joints)
    */
-  bool setRedundantJoints(const std::vector<std::string> &redundant_joint_names)
-  {
-    const std::vector<std::string> &jnames = getJointNames();
-    std::vector<unsigned int> redundant_joint_indices;
-    for (std::size_t i = 0 ; i < redundant_joint_names.size() ; ++i)
-      for (std::size_t j = 0 ; j < jnames.size() ; ++j)
-        if (jnames[j] == redundant_joint_names[i])
-        {
-          redundant_joint_indices.push_back(j);
-          break;
-        }
-    return redundant_joint_indices.size() == redundant_joint_names.size() ? setRedundantJoints(redundant_joint_indices) : false;
-  }
+  bool setRedundantJoints(const std::vector<std::string> &redundant_joint_names);
   
   /**
    * @brief Get the set of redundant joints
@@ -310,26 +283,42 @@ public:
     return search_discretization_;
   }
 
+  /** @brief For functions that require a timeout specified but one is not specified using arguments, 
+      a default timeout is used, as set by this function (and initialized to KinematicsBase::DEFAULT_TIMEOUT) */
+  void setDefaultTimeout(double timeout)
+  {
+    default_timeout_ = timeout;
+  }
+
+  /** @brief For functions that require a timeout specified but one is not specified using arguments, this default timeout is used */
+  double getDefaultTimeout() const
+  {
+    return default_timeout_;
+  }
+
   /**
    * @brief  Virtual destructor for the interface
    */
   virtual ~KinematicsBase() {}
 
+  KinematicsBase() : 
+    search_discretization_(DEFAULT_SEARCH_DISCRETIZATION),
+    default_timeout_(DEFAULT_TIMEOUT)
+  {}
+
 protected:
+
   std::string robot_description_;
   std::string group_name_;
   std::string base_frame_;
   std::string tip_frame_;
   double search_discretization_;
+  double default_timeout_;
   std::vector<unsigned int> redundant_joint_indices_;
-  KinematicsBase() {}
 
 private:
   
-  std::string removeSlash(const std::string &str) const
-  {
-    return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
-  }  
+  std::string removeSlash(const std::string &str) const;
 };
 
 typedef boost::shared_ptr<KinematicsBase> KinematicsBasePtr;
