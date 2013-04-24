@@ -86,10 +86,12 @@ class MoveGroupCommandInterpreter:
     def execute_generic_command(self, cmd):
         if os.path.isfile("cmd/" + cmd):
             cmd = "load cmd/" + cmd
-        if cmd.startswith("use"):
-            if cmd == "use":
+        cmdlow = cmd.lower()
+        if cmdlow.startswith("use"):
+            if cmdlow == "use":
                 return (MoveGroupInfoLevel.INFO, "\n".join(self.get_loaded_groups()))
             clist = cmd.split()
+            clist[0] = clist[0].lower()
             if len(clist) == 2:
                 if clist[0] == "use":
                     if clist[1] == "previous":
@@ -108,7 +110,7 @@ class MoveGroupCommandInterpreter:
                             return (MoveGroupInfoLevel.DEBUG, "OK")
                         except:
                             return (MoveGroupInfoLevel.FAIL, "Unable to initialize " + clist[1])
-        elif cmd.startswith("load"):
+        elif cmdlow.startswith("load"):
             filename = self.DEFAULT_FILENAME
             clist = cmd.split()
             if len(clist) > 2:
@@ -124,7 +126,7 @@ class MoveGroupCommandInterpreter:
                 return (MoveGroupInfoLevel.DEBUG, "OK")
             except:
                 return (MoveGroupInfoLevel.WARN, "Unable to load " + filename)
-        elif cmd.startswith("save"):
+        elif cmdlow.startswith("save"):
             filename = self.DEFAULT_FILENAME
             clist = cmd.split()
             if len(clist) > 2:
@@ -146,8 +148,9 @@ class MoveGroupCommandInterpreter:
         else:
             return None
 
-    def execute_group_command(self, g, cmd):
-        
+    def execute_group_command(self, g, cmdorig):
+        cmd = cmdorig.lower()
+
         if cmd == "stop":
             g.stop()
             return (MoveGroupInfoLevel.DEBUG, "OK")
@@ -233,7 +236,8 @@ class MoveGroupCommandInterpreter:
             else:
                 return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
 
-        clist = cmd.split()
+        clist = cmdorig.split()
+        clist[0] = clist[0].lower()
 
         # if this is an unknown one-word command, it is probably a variable
         if len(clist) == 1:
@@ -419,12 +423,13 @@ class MoveGroupCommandInterpreter:
         else:
             return (MoveGroupInfoLevel.WARN, "No known end effector. Cannot move " + direction_name)
 
-    def resolve_command_alias(self, cmd):
+    def resolve_command_alias(self, cmdorig):
+        cmd = cmdorig.lower()
         if cmd == "which":
-            cmd = "id"
+            return "id"
         if cmd == "groups":
-            cmd = "use"
-        return cmd
+            return "use"
+        return cmdorig
 
     def get_help(self):
         res = []

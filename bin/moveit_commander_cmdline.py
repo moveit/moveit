@@ -99,10 +99,10 @@ def run_interactive(group_names):
             cmd = raw_input(bcolors.OKBLUE + name + '> ' + bcolors.ENDC)
         except:
             break
-        cmd = cmd.strip()
-        if cmd == "":
+        cmdorig = cmd.strip()
+        if cmdorig == "":
             continue
-        cmd = cmd.lower()
+        cmd = cmdorig.lower()
 
         if cmd == "q" or cmd == "quit" or cmd == "exit":
             break
@@ -110,7 +110,7 @@ def run_interactive(group_names):
             print_message(MoveGroupInfoLevel.INFO, "Master is '" + os.environ['ROS_MASTER_URI'] + "'")
             continue
 
-        (level, msg) = c.execute(cmd)
+        (level, msg) = c.execute(cmdorig)
         print_message(level, msg)
         # update the set of keywords
         completer.set_options(get_context_keywords(c))
