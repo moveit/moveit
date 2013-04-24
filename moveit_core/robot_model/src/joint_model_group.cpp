@@ -85,8 +85,8 @@ bool includesParent(const JointModel *joint, const JointModelGroup *group)
 }
 
 robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
-                                                  const std::vector<const JointModel*> &unsorted_group_joints,
-                                                  const RobotModel* parent_model) :
+					      const std::vector<const JointModel*> &unsorted_group_joints,
+					      const RobotModel* parent_model) :
   parent_model_(parent_model), name_(group_name),
   variable_count_(0), is_end_effector_(false), is_chain_(false),
   default_ik_timeout_(0.5), default_ik_attempts_(2)
@@ -357,6 +357,12 @@ void robot_model::JointModelGroup::setVariableLimits(const std::vector<moveit_ms
   // the joint is part of
   for (unsigned int i = 0; i < joint_model_vector_.size(); i++)
     const_cast<JointModel*>(joint_model_vector_[i])->setVariableLimits(jlim);
+}
+
+void robot_model::JointModelGroup::setDefaultIKTimeout(double ik_timeout)
+{
+  default_ik_timeout_ = ik_timeout;
+  solver_instance_->setDefaultTimeout(ik_timeout);
 }
 
 void robot_model::JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers)
