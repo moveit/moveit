@@ -56,19 +56,27 @@ namespace kdl_kinematics_plugin
 
 KDLKinematicsPlugin::KDLKinematicsPlugin():active_(false){}
 
-void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array) const
+void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array,
+                                                 bool lock_redundancy) const
 {
   std::vector<double> jnt_array_vector(dimension_,0.0);  
   robot_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
   joint_state_group->setToRandomValues();  
   joint_state_group->getVariableValues(jnt_array_vector);
   for(std::size_t i=0; i < dimension_; ++i)
+  {
+    if(lock_redundancy)
+      for(std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
+        if(redundant_joint_indices_[j] == i)
+          continue;  
     jnt_array(i) = jnt_array_vector[i];    
+  }
 }
 
 void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state,
                                                  const std::vector<double> &consistency_limits,
-                                                 KDL::JntArray &jnt_array) const
+                                                 KDL::JntArray &jnt_array,
+                                                 bool lock_redundancy) const
 {
   std::vector<double> values, near;
   for(std::size_t i=0; i < dimension_; ++i) 
@@ -80,6 +88,10 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state
   joint_state_group->getVariableValues(values);
   for(std::size_t i=0; i < dimension_; ++i) 
   {  
+    if(lock_redundancy)
+      for(std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
+        if(redundant_joint_indices_[j] == i)
+          continue;  
     jnt_array(i) = values[i];    
   } 
 }
@@ -509,12 +521,13 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     {
       ROS_DEBUG("IK timed out");
       error_code.val = error_code.TIMED_OUT;
+      vel_solver_->unlockRedundantJoints();    
       return false;      
     }    
     int ik_valid = ik_solver_pos_->CartToJnt(jnt_pos_in_,pose_desired,jnt_pos_out_);                     
     if(!consistency_limits.empty()) 
     {
-      getRandomConfiguration(jnt_seed_state_, consistency_limits, jnt_pos_in_);
+      getRandomConfiguration(jnt_seed_state_, consistency_limits, jnt_pos_in_, lock_redundancy);
       if(ik_valid < 0 || !checkConsistency(jnt_seed_state_, consistency_limits, jnt_pos_out_))
       {
         ROS_DEBUG("Could not find IK solution");        
@@ -523,7 +536,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     }
     else
     {
-      getRandomConfiguration(jnt_pos_in_);
+      getRandomConfiguration(jnt_pos_in_, lock_redundancy);
       if(ik_valid < 0)
       {
         ROS_DEBUG("Could not find IK solution");        
@@ -541,11 +554,13 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     if(error_code.val == error_code.SUCCESS)
     {
       ROS_DEBUG_STREAM("Solved after " << counter << " iterations");
+      vel_solver_->unlockRedundantJoints();    
       return true;
     }
   }
   ROS_DEBUG("An IK that satisifes the constraints and is collision free could not be found");   
   error_code.val = error_code.NO_IK_SOLUTION;
+  vel_solver_->unlockRedundantJoints();    
   return false;
 }
 

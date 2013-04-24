@@ -187,7 +187,7 @@ namespace kdl_kinematics_plugin
 
     int getKDLSegmentIndex(const std::string &name) const;
 
-    void getRandomConfiguration(KDL::JntArray &jnt_array) const;
+    void getRandomConfiguration(KDL::JntArray &jnt_array, bool lock_redundancy) const;
 
     /** @brief Get a random configuration within joint limits close to the seed state
      *  @param seed_state Seed state
@@ -197,7 +197,8 @@ namespace kdl_kinematics_plugin
      */
     void getRandomConfiguration(const KDL::JntArray& seed_state,
                                 const std::vector<double> &consistency_limits,
-                                KDL::JntArray &jnt_array) const;
+                                KDL::JntArray &jnt_array,
+                                bool lock_redundancy) const;
     
     bool active_; /** Internal variable that indicates whether solvers are configured and ready */
 
