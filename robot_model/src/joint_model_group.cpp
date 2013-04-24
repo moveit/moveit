@@ -362,7 +362,8 @@ void robot_model::JointModelGroup::setVariableLimits(const std::vector<moveit_ms
 void robot_model::JointModelGroup::setDefaultIKTimeout(double ik_timeout)
 {
   default_ik_timeout_ = ik_timeout;
-  solver_instance_->setDefaultTimeout(ik_timeout);
+  if (solver_instance_)
+    solver_instance_->setDefaultTimeout(ik_timeout);
 }
 
 void robot_model::JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers)
