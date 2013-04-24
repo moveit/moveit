@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,22 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <ros/ros.h>
+
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "inverse_kinematics_test");
+    ros::init(argc, argv, "print_model_info_to_console");
 
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
+    robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
+    ros::Duration(0.5).sleep();
+    rml.getModel()->printModelInfo(std::cout);
+    
+    ros::shutdown();
+    return 0;
 }
