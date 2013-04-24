@@ -286,11 +286,11 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
   std::ifstream fin((path + "/manifest").c_str());
   if (!fin.good())
   {
-    logDebug("Manifest not found in folder '%s'. Not loading constraint approximations.", path.c_str());
+    logWarn("Manifest not found in folder '%s'. Not loading constraint approximations.", path.c_str());
     return;
   }
   
-  logInform("Loading constrained space approximations from '%s'", path.c_str());
+  logInform("Loading constrained space approximations from '%s'...", path.c_str());
   
   while (fin.good() && !fin.eof())
   {
@@ -305,6 +305,7 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
     if (fin.eof())
       break;
     fin >> filename;
+    logInform("Loading constraint approximation of type '%s' for group '%s' from '%s'...", state_space_parameterization.c_str(), group.c_str(), filename.c_str());
     const ModelBasedPlanningContextPtr &pc = context_manager_.getPlanningContext(group, state_space_parameterization);
     if (pc)
     {
@@ -328,10 +329,11 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
         std::size_t sum = 0;
         for (std::size_t i = 0 ; i < cass->size() ; ++i)
           sum += cass->getMetadata(i).size();
-        logInform("Loaded %lu states and %lu connections (%0.1lf per state) from %s", cass->size(), sum, (double)sum / (double)cass->size(), filename.c_str());
+        logInform("Loaded %lu states and %lu connections (%0.1lf per state) for constraint named '%s'", cass->size(), sum, (double)sum / (double)cass->size(), msg.name.c_str());
       }
     }
   }
+  logInform("Done loading constrained space approximations.");
 }
 
 void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std::string &path)
@@ -469,9 +471,9 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   pcontext->getOMPLStateSpace()->setup();
   
   // construct the constrained states
-#pragma omp parallel
+  //#pragma omp parallel
   { 
-#pragma omp master
+    //#pragma omp master
     {
 	nthreads = omp_get_num_threads();    
     }
@@ -495,7 +497,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     while (sstor->size() < samples)
     {
       ++attempts;
-#pragma omp master
+      //#pragma omp master
       {      
 	int done_now = 100 * sstor->size() / samples;
 	if (done != done_now)
@@ -521,7 +523,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp.get());
       if (kset.decide(kstate).satisfied)
       {
-#pragma omp critical
+	//#pragma omp critical
 	{
 	  if (sstor->size() < samples)
 	  {
@@ -531,7 +533,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 	}
       }
     }
-#pragma omp master
+    //#pragma omp master
     {
       result.state_sampling_time = ompl::time::seconds(ompl::time::now() - start);
       logInform("Generated %u states in %lf seconds", (unsigned int)sstor->size(), result.state_sampling_time); 
@@ -566,7 +568,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     int good = 0;
     int done = -1;
     
-#pragma omp parallel for schedule(dynamic) 
+    //#pragma omp parallel for schedule(dynamic) 
     for (std::size_t j = 0 ; j < sstor->size() ; ++j)
     {
       int threadid = omp_get_thread_num();
@@ -599,7 +601,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
             pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp);
             if (kset.decide(kstate).satisfied)
             {
-#pragma omp critical
+	      //#pragma omp critical
               {
                 cass->getMetadata(i).push_back(j);
                 cass->getMetadata(j).push_back(i);
