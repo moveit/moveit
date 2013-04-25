@@ -600,6 +600,8 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeAttachedBodyFromOctree
   bool found = false;
   for (std::size_t i = 0 ; i < attached_body->getShapes().size() ; ++i)
   {
+    if (attached_body->getShapes()[i]->type == shapes::PLANE || attached_body->getShapes()[i]->type == shapes::OCTREE)
+      continue;
     occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(attached_body->getShapes()[i]);
     if (h)
     {
@@ -627,14 +629,13 @@ void planning_scene_monitor::PlanningSceneMonitor::includeAttachedBodyInOctree(c
 
 void planning_scene_monitor::PlanningSceneMonitor::excludeWorldObjectFromOctree(const collision_detection::World::ObjectConstPtr &obj)
 {
-  if (obj->id_ == planning_scene::PlanningScene::OCTOMAP_NS)
-    return;
-  
   boost::recursive_mutex::scoped_lock _(shape_handles_lock_);
 
   bool found = false;
   for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
   {
+    if (obj->shapes_[i]->type == shapes::PLANE || obj->shapes_[i]->type == shapes::OCTREE)
+      continue;
     occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(obj->shapes_[i]);
     if (h)
     {
