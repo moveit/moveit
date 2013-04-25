@@ -148,6 +148,10 @@ public:
   /** \brief Place an object at one of the specified possible locations */
   bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations);
   
+  /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters between end effector configurations of consecutive points in the result \e trajectory  */
+  bool computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step,
+			    moveit_msgs::RobotTrajectory &trajectory);
+  
   /** \brief Stop any trajectory execution, if one is active */
   void stop();
   
