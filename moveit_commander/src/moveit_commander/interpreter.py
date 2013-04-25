@@ -32,8 +32,9 @@
 #
 # Author: Ioan Sucan
 
-import roslib
-from moveit_commander import MoveGroupCommander
+import rospy
+from moveit_commander import MoveGroupCommander, PlanningSceneInterface
+from geometry_msgs.msg import PoseStamped
 import re
 import time
 import os.path
@@ -59,6 +60,7 @@ class MoveGroupCommandInterpreter:
         self._gdict = {}
         self._group_name = ""
         self._prev_group_name = ""
+        self._planning_scene_interface = PlanningSceneInterface()
         self._last_plan = None
         self._db_host = None
         self._db_port = 33829
@@ -200,6 +202,21 @@ class MoveGroupCommandInterpreter:
 
         if cmd == "current":
             return self.command_current(g)
+
+        if cmd == "ground":
+            pose = PoseStamped()
+            pose.pose.position.x = 0
+            pose.pose.position.y = 0
+            # offset such that the box is 0.1 mm below ground (to prevent collision with the robot itself)
+            pose.pose.position.z = -0.0501
+            pose.pose.orientation.x = 0
+            pose.pose.orientation.y = 0
+            pose.pose.orientation.z = 0
+            pose.pose.orientation.w = 1
+            pose.header.stamp = rospy.get_rostime()
+            pose.header.frame_id = g.get_robot_root_link()
+            self._planning_scene_interface.attach_box(g.get_robot_root_link(), "ground", pose, (3, 3, 0.1))
+            return (MoveGroupInfoLevel.INFO, "Added ground")
 
         if cmd == "eef":
             if len(g.get_end_effector_link()) > 0:
@@ -486,10 +503,13 @@ class MoveGroupCommandInterpreter:
         res.append("  delete <name>       forget the joint values under the name <name>")
         res.append("  current             show the current state of the active group")
         res.append("  constrain <name>    use the constraint <name> as a path constraint")
+        res.append("  constrain           clear path constraints")
         res.append("  eef                 print the name of the end effector attached to the current group")
         res.append("  go <name>           plan and execute a motion to the state <name>")
         res.append("  go <dir> <dx>|      plan and execute a motion in direction up|down|left|right|forward|backward for distance <dx>")
         res.append("  go rand             plan and execute a motion to a random state")
+        res.append("  plan <name>         plan a motion to the state <name>")
+        res.append("  execute             execute a previously computed motion plan")
         res.append("  rotate <x> <y> <z>  plan and execute a motion to a specified orientation (about the X,Y,Z axes)")
         res.append("  tolerance           show the tolerance for reaching the goal region")
         res.append("  tolerance <val>     set the tolerance for reaching the goal region")
@@ -498,6 +518,7 @@ class MoveGroupCommandInterpreter:
         res.append("  x[idx] = val        assign a value to dimension idx of x")
         res.append("  x = [v1 v2...]      assign a vector of values to x")
         res.append("  trace <on|off>      enable/disable replanning or looking around")
+        res.append("  ground              add a ground plane to the planning scene")
         res.append("  allow replanning <true|false>    enable/disable replanning")
         res.append("  allow looking <true|false>       enable/disable looking around")
         return "\n".join(res)
@@ -531,4 +552,5 @@ class MoveGroupCommandInterpreter:
                 'time':[],
                 'eef':[],
                 'execute':[],
+                'ground':[],
                 'id':[]}

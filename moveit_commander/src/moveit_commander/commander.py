@@ -81,6 +81,12 @@ class MoveGroupCommander:
         """ Set the reference frame to assume for poses of end-effectors """
         self._g.set_pose_reference_frame(reference_frame)
 
+    def get_robot_root_link(self):
+        return self._g.get_robot_root_link()
+    
+    def get_planning_frame(self):
+        return self._g.get_planning_frame()
+
     def get_current_joint_values(self):
         return self._g.get_current_joint_values()
 
@@ -349,7 +355,6 @@ class MoveGroupCommander:
              multi_dof_joint_traj.points.append(multi_dof_joint_traj_point)
         plan_msg.joint_trajectory = joint_traj
         plan_msg.multi_dof_joint_trajectory = multi_dof_joint_traj
-        print str(plan_msg)
         return plan_msg    
 
     def plan(self, joints = None):
