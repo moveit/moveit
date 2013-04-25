@@ -111,7 +111,13 @@ public:
   
   /** \brief Get the name of the group this instance operates on */
   const std::string& getName() const;
-  
+
+  /** \brief Get the name of the root link of the robot */
+  const std::string& getRobotRootLink() const;
+
+  /** \brief Get the name of the frame in which the robot is planning */
+  const std::string& getPlanningFrame() const;
+
   /** \brief Get the joints this instance operates on */
   const std::vector<std::string>& getJoints() const;
 

@@ -247,6 +247,16 @@ public:
     return getName().c_str();
   }
 
+  const char* getRobotRootLinkCStr() const
+  {
+    return getRobotRootLink().c_str();
+  }
+
+  const char* getPlanningFrameCStr() const
+  {
+    return getPlanningFrame().c_str();
+  }
+
   bool executePython(bp::dict &plan_dict)
   {
     MoveGroup::Plan plan;
@@ -440,6 +450,9 @@ void wrap_move_group_interface()
   MoveGroupClass.def("compute_plan", &MoveGroupWrapper::getPlanPythonDict);
   MoveGroupClass.def("compute_cartesian_path", &MoveGroupWrapper::computeCartesianPathPython);
   MoveGroupClass.def("set_support_surface_name", &MoveGroupWrapper::setSupportSurfaceName);
+
+  MoveGroupClass.def("get_robot_root_link", &MoveGroupWrapper::getRobotRootLinkCStr);
+  MoveGroupClass.def("get_planning_frame", &MoveGroupWrapper::getPlanningFrameCStr);
 }
 
 }
