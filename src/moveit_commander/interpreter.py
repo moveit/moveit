@@ -228,6 +228,15 @@ class MoveGroupCommandInterpreter:
         if cmd == "time":
             return (MoveGroupInfoLevel.INFO, str(g.get_planning_time()))
 
+        if cmd == "execute":
+            if self._last_plan != None:
+                if g.execute(self._last_plan):
+                    return (MoveGroupInfoLevel.SUCCESS, "Plan submitted for execution")
+                else:
+                    return (MoveGroupInfoLevel.WARN, "Failed to submit plan for execution")
+            else:
+                return (MoveGroupInfoLevel.WARN, "No motion plan computed")
+
         # see if we have assignment between variables
         assign_match = re.match(r"^(\w+)\s*=\s*(\w+)$", cmd)
         if assign_match:
@@ -276,6 +285,7 @@ class MoveGroupCommandInterpreter:
         # command with one argument
         if len(clist) == 2:
             if clist[0] == "go":
+                self._last_plan = None
                 if clist[1] == "rand" or clist[1] == "random":
                     vals = g.get_random_joint_values()
                     g.set_joint_value_target(vals)
@@ -316,11 +326,13 @@ class MoveGroupCommandInterpreter:
                 else:
                     return (MoveGroupInfoLevel.FAIL, "Failed while planning to " + dest_str)
             elif clist[0] == "pick":
+                self._last_plan = None
                 if g.pick(clist[1]):
                     return (MoveGroupInfoLevel.SUCCESS, "Picked object " + clist[1])
                 else:
                     return (MoveGroupInfoLevel.FAIL, "Failed while trying to pick object " + clist[1])
             elif clist[0] == "place":
+                self._last_plan = None
                 if g.place(clist[1]):
                     return (MoveGroupInfoLevel.SUCCESS, "Placed object " + clist[1])
                 else:
@@ -381,7 +393,8 @@ class MoveGroupCommandInterpreter:
                 return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
 
         if len(clist) == 3:
-            if clist[0] == "go" and self.GO_DIRS.has_key(clist[1]):     
+            if clist[0] == "go" and self.GO_DIRS.has_key(clist[1]):
+                self._last_plan = None
                 try:
                     offset = float(clist[2])
                     (axis, factor) = self.GO_DIRS[clist[1]]
@@ -517,4 +530,5 @@ class MoveGroupCommandInterpreter:
                 'tolerance':[],
                 'time':[],
                 'eef':[],
+                'execute':[],
                 'id':[]}
