@@ -35,21 +35,24 @@
 /* Author: Ioan Sucan */
 
 #include <stdexcept>
+#include <moveit/warehouse/constraints_storage.h>
+#include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit/move_group_pick_place_capability/capability_names.h>
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
+#include <moveit_msgs/GetCartesianPath.h>
 
 #include <actionlib/client/simple_action_client.h>
-#include <moveit/warehouse/constraints_storage.h>
-#include <moveit/kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <std_msgs/String.h>
 #include <tf/transform_listener.h>
@@ -169,7 +172,7 @@ public:
         end_effector_link_ = joint_model_group->getLinkModelNames().back();
       pose_reference_frame_ = getRobotModel()->getModelFrame();
       
-      trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
+      trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
       
       current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
 
@@ -182,8 +185,9 @@ public:
       place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>(move_group::PLACE_ACTION, false));
       waitForAction(place_action_client_, wait_for_server, move_group::PLACE_ACTION);
       
-      execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
-      query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>("query_planner_interface");
+      execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
+      query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
+      cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -580,6 +584,31 @@ public:
       return false;
   }
   
+  bool computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double step,
+			    moveit_msgs::RobotTrajectory &msg)
+  {
+    moveit_msgs::GetCartesianPath::Request req;
+    moveit_msgs::GetCartesianPath::Response res;
+
+    if (considered_start_state_)
+      robot_state::robotStateToRobotStateMsg(*considered_start_state_, req.start_state);
+    req.group_name = opt_.group_name_;
+    req.header.frame_id = getRobotModel()->getModelFrame();
+    req.header.stamp = ros::Time::now();
+    req.waypoints = waypoints;
+    req.max_step = step;
+    req.jump_threshold = 0;
+    req.avoid_collisions = true;
+
+    if (cartesian_path_service_.call(req, res))
+    {
+      msg = res.solution;
+      return res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+    }
+    else
+      return false;
+  }
+
   void stop()
   {
     if (trajectory_event_publisher_)
@@ -808,6 +837,7 @@ private:
   ros::Publisher trajectory_event_publisher_;
   ros::ServiceClient execute_service_;
   ros::ServiceClient query_service_;
+  ros::ServiceClient cartesian_path_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
@@ -888,6 +918,12 @@ bool MoveGroup::place(const std::string &object)
 bool MoveGroup::place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
 {
   return impl_->place(object, locations);
+}
+
+bool MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step,
+				     moveit_msgs::RobotTrajectory &trajectory)
+{
+  return impl_->computeCartesianPath(waypoints, eef_step, trajectory);
 }
 
 void MoveGroup::stop()
