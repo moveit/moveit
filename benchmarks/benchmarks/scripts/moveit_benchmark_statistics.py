@@ -37,7 +37,8 @@
 # Author: Mark Moll, Ioan Sucan
 
 from sys import argv, exit
-from os.path import basename, splitext
+#from os.path import basename, splitext, remove
+import os
 import sqlite3
 import datetime
 import matplotlib
@@ -309,6 +310,115 @@ def save_as_mysql(dbname, mysqldump):
         mysqldump.write(line)
     mysqldump.close()
 
+def generate_csv(dbname, fname):
+    """Create a csv file with all experiments combined into one list."""
+    print("Generating CSV output...")
+    
+    # Open CSV File
+    csv = open(fname, 'w')
+    
+    # Connect to database
+    conn = sqlite3.connect(dbname)
+    cursor = conn.cursor()
+    cursor.execute('PRAGMA FOREIGN_KEYS = ON')
+
+    # Get planner tables
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    table_names = [ str(t[0]) for t in cursor.fetchall() ]
+    planner_names = [ t for t in table_names if t.startswith('planner_') ]
+
+    # Create vectors
+    attributes = []
+    types = {}
+    experiments = []
+
+    # merge possible attributes from all planners
+    for planner_name in planner_names:
+        cursor.execute('SELECT * FROM `%s` LIMIT 1' % planner_name)
+        atr = [ t[0] for t in cursor.description]
+        atr.remove('plannerid')
+        atr.remove('experimentid')
+        for attribute in atr:
+            if attribute not in attributes:
+                cursor.execute('SELECT typeof(`%s`) FROM `%s` WHERE `%s` IS NOT NULL LIMIT 1' % (attribute, planner_name, attribute))
+                attributes.append(attribute) # add this new attribute (first time seen)
+                types[attribute] = cursor.fetchone()[0]
+
+        # Find new exeperiments for this planner table and add to our experiment vector
+        cursor.execute('SELECT DISTINCT experimentid FROM `%s`' % planner_name)
+        experiment_ids = [t[0] for t in cursor.fetchall() if not t[0]==None]
+        for experiment_id in experiment_ids:
+            if experiment_id not in experiments:
+                experiments.append(experiment_id)
+
+    # Sort all found attributes
+    attributes.sort(reverse=True)
+
+    # Create header of the CSV
+    csv.write('planner_type')
+    for atr in attributes:
+        #if types[atr]=='integer' or types[atr]=='real':
+        csv.write(", %s"%atr)
+    csv.write('\n') # new line
+
+    # Start creating CSV file by polling each planner table and seperating its data into proper column
+    # format, leaving blanks where planner is missing possible attribute data
+    for planner_name in planner_names:
+        cursor.execute('SELECT * FROM `%s`' % planner_name)
+        # get this planner's attributes
+        planner_attributes = [ t[0] for t in cursor.description]
+        #print>>csv, planner_attributes
+
+        # loop through each row of the planner experiments, aka each 'run'
+        for run in cursor.fetchall():
+            # write a *simplified* planner name
+            name_short = planner_name.strip('planner')
+            name_short = name_short.strip('_OMPL_')
+            name_short = name_short.replace('[','_')
+            name_short = name_short.strip('kConfigDefault]')
+            csv.write(name_short)
+            # loop through each global attribute
+            for atr in attributes:
+                # find the global attribute in this table if it exists
+                if atr in planner_attributes:
+                    # output value
+                    index_of_attr = planner_attributes.index(atr)
+                    csv.write(", %s" %run[index_of_attr])
+                else:
+                    csv.write(", ")
+            # done with this line
+            csv.write("\n")
+
+
+    #plt.clf()
+    """
+    pagey = 0.9
+    pagex = 0.06
+    for e in experiments:
+        # get the number of runs, per planner, for this experiment
+        runcount = []
+        for p in planner_names:
+            cursor.execute('SELECT count(*) FROM `%s` WHERE experimentid = %s' % (p, e))
+            runcount.append(cursor.fetchone()[0])
+
+        # check if this number is the same for all planners
+        runs = "Number of averaged runs: "
+        if len([r for r in runcount if not r == runcount[0]]) > 0:
+            runs = runs + ", ".join([planner_names[i].replace('planner_geometric_','').replace('planner_control_','') +
+                         "=" + str(runcount[i]) for i in range(len(runcount))])
+        else:
+            runs = runs + str(runcount[0])
+
+        cursor.execute('SELECT name, timelimit FROM experiments WHERE id = %s' % e)
+        d = cursor.fetchone()
+        plt.figtext(pagex, pagey, "Experiment '%s'" % d[0])
+        plt.figtext(pagex, pagey-0.05, runs)
+        plt.figtext(pagex, pagey-0.10, "Time limit per run: %s seconds" % d[1])
+        pagey -= 0.22
+    plt.show()
+    #pp.savefig(plt.gcf())
+    #pp.close()
+    """
 
 if __name__ == "__main__":
     usage = """%prog [options] [<benchmark.log> ...]"""
@@ -319,8 +429,12 @@ if __name__ == "__main__":
         help="Compute the views for best planner configurations")
     parser.add_option("-p", "--plot", dest="plot", default=None,
         help="Create a PDF of plots")
+    parser.add_option("-c", "--csv", dest="csv", default=None,
+        help="Create a CSV of combined experiments")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
+    parser.add_option("-o", "--overwrite", action="store_true", dest="overwrite", default=True,
+        help="Use this flag to enable overwriting a previous database file with new benchmarks")
 
     if len(argv) == 1:
         parser.print_help()
@@ -328,10 +442,17 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if len(args) > 0:
+        # Check if user wants to start a new database
+        if options.overwrite:
+            os.remove(options.dbname)
+            print "done deleting file"
         read_benchmark_log(options.dbname, args)
     
     if options.plot:
         plot_statistics(options.dbname, options.plot)
+
+    if options.csv:
+        generate_csv(options.dbname, options.csv)
 
     if options.mysqldb:
         save_as_mysql(options.dbname, options.mysqldb)
