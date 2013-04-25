@@ -65,6 +65,7 @@ def read_benchmark_log(dbname, filenames):
         expname =  logfile.readline().split()[-1]
         hostname = logfile.readline().split()[-1]
         date = " ".join(logfile.readline().split()[2:])
+        goal_name = logfile.readline().split()[-1]
         logfile.readline() # skip <<<|
         expsetup = ""
         expline = logfile.readline()
@@ -108,7 +109,10 @@ def read_benchmark_log(dbname, filenames):
             # load a dictionary of properties and types
             # we keep the names of the properties in a list as well, to ensure the correct order of properties
             properties = {}
-            propNames = ['experimentid', 'plannerid']
+            basePropNames = ['experimentid', 'plannerid', 'goal_name']  # these are the ones not from the planner directly
+            basePropValues = [experiment_id, planner_id, goal_name]
+            propNames = []
+            propNames.extend(basePropNames)
             for j in range(num_properties):
                 field = logfile.readline().split()
                 ftype = field[-1]
@@ -117,7 +121,7 @@ def read_benchmark_log(dbname, filenames):
                 propNames.append(fname)
 
             # create the table, if needed
-            table_columns = "experimentid INTEGER, plannerid INTEGER"
+            table_columns = "experimentid INTEGER, plannerid INTEGER, goal_name VARCHAR(100)"
             for k, v in properties.iteritems():
                 table_columns = table_columns + ', ' + k + ' ' + v
             table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE ON UPDATE CASCADE"
@@ -134,11 +138,11 @@ def read_benchmark_log(dbname, filenames):
                     c.execute('ALTER TABLE `' + planner_table + '` ADD ' + col + ' ' + properties[col] + ';')
 
             # add measurements
-            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 2)) + ')'
+            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + len(basePropNames))) + ')'  
 
             num_runs = int(logfile.readline().split()[0])
             for j in range(num_runs):
-                run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x)
+                run = tuple(basePropValues + [None if len(x)==0 else float(x)
                     for x in logfile.readline().split('; ')[:-1]])
                 c.execute(insert_fmt_str, run)
 
@@ -433,7 +437,7 @@ if __name__ == "__main__":
         help="Create a CSV of combined experiments")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
-    parser.add_option("-o", "--overwrite", action="store_true", dest="overwrite", default=True,
+    parser.add_option("-o", "--overwrite", action="store_true", dest="overwrite", default=False,
         help="Use this flag to enable overwriting a previous database file with new benchmarks")
 
     if len(argv) == 1:
@@ -442,10 +446,9 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if len(args) > 0:
-        # Check if user wants to start a new database
+        # Check if user wants to start a new database (delete old one)
         if options.overwrite:
             os.remove(options.dbname)
-            print "done deleting file"
         read_benchmark_log(options.dbname, args)
     
     if options.plot:
