@@ -220,7 +220,7 @@ void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool 
   int_marker.controls.push_back(control);
 }
 
-void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius, const Eigen::Vector4f& color)
+void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius, const std_msgs::ColorRGBA& color)
 {
   visualization_msgs::InteractiveMarkerControl control;
   control.orientation_mode = visualization_msgs::InteractiveMarkerControl::VIEW_FACING;
@@ -234,10 +234,7 @@ void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, doub
   marker.scale.x = radius * 2.0;
   marker.scale.y = radius * 2.0;
   marker.scale.z = radius * 2.0;
-  marker.color.r = color.x();
-  marker.color.g = color.y();
-  marker.color.b = color.z();
-  marker.color.a = color.w();
+  marker.color = color;
 
   control.markers.push_back( marker );
   control.always_visible = false;

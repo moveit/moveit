@@ -32,7 +32,7 @@
 
 #include <visualization_msgs/InteractiveMarker.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <Eigen/Dense>
+#include <std_msgs/ColorRGBA.h>
 
 namespace robot_interaction
 {
@@ -63,7 +63,7 @@ void addOrientationControl(visualization_msgs::InteractiveMarker& int_marker, bo
 
 void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed = false);
 
-void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius, const Eigen::Vector4f& color);
+void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius, const std_msgs::ColorRGBA& color);
 
 }
 

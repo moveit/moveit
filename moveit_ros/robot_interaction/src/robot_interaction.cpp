@@ -763,7 +763,14 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
         if (active_eef_[i].interaction & EEF_ORIENTATION)
           addOrientationControl(im, active_eef_[i].interaction & EEF_FIXED);
         if (active_eef_[i].interaction & EEF_VIEWPLANE)
-          addViewPlaneControl(im, mscale * 0.25, Eigen::Vector4f(0,1,1,0.5));
+        {
+          std_msgs::ColorRGBA color;
+          color.r = 0;
+          color.g = 1;
+          color.b = 1;
+          color.a = 0.5;
+          addViewPlaneControl(im, mscale * 0.25, color);
+        }
       }
       if (handler && handler->getMeshesVisible())
         addEndEffectorMarkers(handler, active_eef_[i], control_to_eef_tf, im);
