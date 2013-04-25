@@ -62,6 +62,7 @@ class MoveGroupCommandInterpreter:
         self._last_plan = None
         self._db_host = None
         self._db_port = 33829
+        self._trace = False
 
     def get_active_group(self):
         if len(self._group_name) > 0:
@@ -110,6 +111,16 @@ class MoveGroupCommandInterpreter:
                             return (MoveGroupInfoLevel.DEBUG, "OK")
                         except:
                             return (MoveGroupInfoLevel.FAIL, "Unable to initialize " + clist[1])
+        elif cmdlow.startswith("trace"):
+            if cmdlow == "trace":
+                return (MoveGroupInfoLevel.INFO, "trace is on" if self._trace else "trace is off")
+            clist = cmdlow.split()
+            if clist[0] == "trace" and clist[1] == "on":
+                self._trace = True
+                return (MoveGroupInfoLevel.DEBUG, "OK")
+            if clist[0] == "trace" and clist[1] == "off":
+                self._trace = False
+                return (MoveGroupInfoLevel.DEBUG, "OK")
         elif cmdlow.startswith("load"):
             filename = self.DEFAULT_FILENAME
             clist = cmd.split()
@@ -119,13 +130,28 @@ class MoveGroupCommandInterpreter:
                 filename = clist[1]
                 if not os.path.isfile(filename):
                     filename = "cmd/" + filename
+            line_num = 0
+            line_content = ""
             try:
                 f = open(filename, 'r')
                 for line in f:
-                    self.execute(line.rstrip())
+                    line_num += 1
+                    line = line.rstrip()
+                    line_content = line
+                    if self._trace:
+                        print ("%s:%d:  %s" % (filename, line_num, line_content))
+                    comment = line.find("#")
+                    if comment != -1:
+                      line = line[0:comment].rstrip()
+                    if line != "":
+                      self.execute(line.rstrip())
+                    line_content = ""
                 return (MoveGroupInfoLevel.DEBUG, "OK")
             except:
-                return (MoveGroupInfoLevel.WARN, "Unable to load " + filename)
+                if line_num > 0:
+                    return (MoveGroupInfoLevel.WARN, "Error at %s:%d:  %s" % (filename, line_num, line_content))
+                else:
+                    return (MoveGroupInfoLevel.WARN, "Unable to load " + filename)
         elif cmdlow.startswith("save"):
             filename = self.DEFAULT_FILENAME
             clist = cmd.split()
@@ -434,31 +460,33 @@ class MoveGroupCommandInterpreter:
     def get_help(self):
         res = []
         res.append("Known commands:")
-        res.append("  help\t\t show this screen")
-        res.append("  id|which\t display the name of the group that is operated on")
-        res.append("  load [<file>]\t load a set of interpreted commands from a file")
-        res.append("  save [<file>]\t save the currently known variables as a set of commands")
-        res.append("  use <name>\t switch to using the group named <name> (and load it if necessary)")
-        res.append("  use|groups\t show the group names that are already loaded")
-        res.append("  vars\t\t display the names of the known states")
-        res.append("  show\t\t display the names and values of the known states")
-        res.append("  show <name>\t display the value of a state")
-        res.append("  record <name>\t record the current joint values under the name <name>")
-        res.append("  delete <name>\t forget the joint values under the name <name>")
-        res.append("  current\t show the current state of the active group")
-        res.append("  constrain <name>\t use the constraint <name> as a path constraint")
-        res.append("  eef\t print the name of the end effector attached to the current group")
-        res.append("  go <name>\t plan and execute a motion to the state <name>")
-        res.append("  go <dir> <dx>|\t plan and execute a motion in direction up|down|left|right|forward|backward for distance <dx>")
-        res.append("  go rand\t plan and execute a motion to a random state")
-        res.append("  rotate <x> <y> <z>\t plan and execute a motion to a specified orientation (about the X,Y,Z axes)")
-        res.append("  tolerance\t show the tolerance for reaching the goal region")
-        res.append("  tolerance <val>\t set the tolerance for reaching the goal region")
-        res.append("  allow <replanning|looking> <T|F> \t enable/disable replanning or looking around")
-        res.append("  wait <dt>\t sleep for <dt> seconds")
-        res.append("  x = y\t\t assign the value of y to x")
-        res.append("  x[idx] = val\t assign a value to dimension idx of x")
-        res.append("  x = [v1 v2...] assign a vector of values to x")
+        res.append("  help                show this screen")
+        res.append("  id|which            display the name of the group that is operated on")
+        res.append("  load [<file>]       load a set of interpreted commands from a file")
+        res.append("  save [<file>]       save the currently known variables as a set of commands")
+        res.append("  use <name>          switch to using the group named <name> (and load it if necessary)")
+        res.append("  use|groups          show the group names that are already loaded")
+        res.append("  vars                display the names of the known states")
+        res.append("  show                display the names and values of the known states")
+        res.append("  show <name>         display the value of a state")
+        res.append("  record <name>       record the current joint values under the name <name>")
+        res.append("  delete <name>       forget the joint values under the name <name>")
+        res.append("  current             show the current state of the active group")
+        res.append("  constrain <name>    use the constraint <name> as a path constraint")
+        res.append("  eef                 print the name of the end effector attached to the current group")
+        res.append("  go <name>           plan and execute a motion to the state <name>")
+        res.append("  go <dir> <dx>|      plan and execute a motion in direction up|down|left|right|forward|backward for distance <dx>")
+        res.append("  go rand             plan and execute a motion to a random state")
+        res.append("  rotate <x> <y> <z>  plan and execute a motion to a specified orientation (about the X,Y,Z axes)")
+        res.append("  tolerance           show the tolerance for reaching the goal region")
+        res.append("  tolerance <val>     set the tolerance for reaching the goal region")
+        res.append("  wait <dt>           sleep for <dt> seconds")
+        res.append("  x = y               assign the value of y to x")
+        res.append("  x[idx] = val        assign a value to dimension idx of x")
+        res.append("  x = [v1 v2...]      assign a vector of values to x")
+        res.append("  trace <on|off>      enable/disable replanning or looking around")
+        res.append("  allow replanning <true|false>    enable/disable replanning")
+        res.append("  allow looking <true|false>       enable/disable looking around")
         return "\n".join(res)
 
     def get_keywords(self):
