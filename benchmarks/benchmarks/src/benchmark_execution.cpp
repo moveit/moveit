@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2012, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2012, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, Mario Prats */
 
@@ -93,11 +93,11 @@ void checkHeader(moveit_msgs::Constraints &c, const std::string &header_frame)
 
 moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::PlanningScenePtr &scene, const std::string &host, std::size_t port) :
   planning_scene_(scene),
-  pss_(host, port), 
+  pss_(host, port),
   psws_(host, port),
   cs_(host, port),
   rs_(host, port)
-{    
+{
   // load the planning plugins
   try
   {
@@ -107,7 +107,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
   {
     ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
   }
-  
+
   const std::vector<std::string> &classes = planner_plugin_loader_->getDeclaredClasses();
   for (std::size_t i = 0 ; i < classes.size() ; ++i)
   {
@@ -123,13 +123,13 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
       ROS_ERROR_STREAM("Exception while loading planner '" << classes[i] << "': " << ex.what());
     }
   }
-  
+
   if (planner_interfaces_.empty())
     ROS_ERROR("No planning plugins have been loaded. Nothing to do for the benchmarking service.");
   else
   {
     std::stringstream ss;
-    for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
+    for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ;
          it != planner_interfaces_.end(); ++it)
       ss << it->first << " ";
     ROS_INFO("Available planner instances: %s", ss.str().c_str());
@@ -142,11 +142,11 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
   moveit_warehouse::PlanningSceneWorldWithMetadata pswwm;
   bool world_only = false;
 
-  // read the environment geometry 
+  // read the environment geometry
   if (!pss_.hasPlanningScene(opt_.scene))
   {
     if (psws_.hasPlanningSceneWorld(opt_.scene))
-    { 
+    {
       bool ok = false;
       try
       {
@@ -161,7 +161,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       world_only = true;
     }
     else
-    {  
+    {
       std::stringstream ss;
       std::vector<std::string> names;
       pss_.getPlanningSceneNames(names);
@@ -182,7 +182,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
     {
       ROS_ERROR("%s", ex.what());
     }
-    
+
     if (!ok)
     {
       ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
@@ -193,7 +193,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
   // fill in the environment geometry in the benchmark request
   BenchmarkRequest req;
   req.benchmark_type = type;
-  
+
   if (world_only)
   {
     req.scene.world = static_cast<const moveit_msgs::PlanningSceneWorld&>(*pswwm);
@@ -212,18 +212,18 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
   {
     ROS_ERROR("%s", ex.what());
   }
-  
+
   if (planning_queries_names.empty())
     ROS_INFO("Scene '%s' has no associated queries", opt_.scene.c_str());
   req.plugins = opt_.plugins;
-  
+
   unsigned int n_call = 0;
-  
-  // see if we have any start states specified; if we do, we run the benchmark for 
+
+  // see if we have any start states specified; if we do, we run the benchmark for
   // each start state; if not, we run it for one start state only: the current one saved in the loaded scene
   std::vector<std::string> start_states;
   if (!opt_.start_regex.empty())
-  {     
+  {
     boost::regex start_regex(opt_.start_regex);
     std::vector<std::string> state_names;
     rs_.getKnownRobotStates(state_names);
@@ -243,13 +243,13 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
   }
   else
     ROS_INFO("No specified start state. Running benchmark once with the default start state.");
-  
+
   bool have_more_start_states = true;
   boost::scoped_ptr<moveit_msgs::RobotState> start_state_to_use;
   while (have_more_start_states)
-  { 
+  {
     start_state_to_use.reset();
-    
+
     // if no set of start states provided, run once for the current one
     if (opt_.start_regex.empty())
       have_more_start_states = false;
@@ -269,7 +269,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       {
         ROS_ERROR("%s", ex.what());
       }
-      
+
       if (got_robot_state)
       {
         start_state_to_use.reset(new moveit_msgs::RobotState(*robot_state));
@@ -278,7 +278,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       else
         continue;
     }
-    
+
     // run benchmarks for specified queries
     // ************************************
 
@@ -288,6 +288,9 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       {
         moveit_warehouse::MotionPlanRequestWithMetadata planning_query;
         pss_.getPlanningQuery(planning_query, opt_.scene, planning_queries_names[i]);
+
+        // Save name of goal - only used for later analysis
+        req.goal_name = planning_queries_names[i];
 
         // read request from db
         req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_query);
@@ -319,8 +322,8 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
         runBenchmark(req);
       }
     }
-    
-    // if we have any goals specified as constraints, run benchmarks for those as well   
+
+    // if we have any goals specified as constraints, run benchmarks for those as well
     // *******************************************************************************
 
     if (!opt_.goal_regex.empty())
@@ -342,13 +345,16 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
 
         if (got_constraints)
         {
+          // Save name of goal - only used for later analysis
+          req.goal_name = cnames[i];
+
           // construct a planning request from the constraints message
           req.motion_plan_request = moveit_msgs::MotionPlanRequest();
           req.motion_plan_request.goal_constraints.resize(1);
           if (start_state_to_use)
             req.motion_plan_request.start_state = *start_state_to_use;
           req.motion_plan_request.goal_constraints[0] = *constr;
-          
+
           // Apply the goal offset for constraints that appear to specify IK poses
           if (constr->position_constraints.size() == 1 && constr->orientation_constraints.size() == 1 && kinematic_constraints::countIndividualConstraints(*constr) == 2 &&
               constr->position_constraints[0].constraint_region.primitive_poses.size() == 1 && constr->position_constraints[0].constraint_region.mesh_poses.empty())
@@ -358,20 +364,20 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             wMc_msg.orientation = constr->orientation_constraints[0].orientation;
             Eigen::Affine3d wMc;
             tf::poseMsgToEigen(wMc_msg, wMc);
-            
+
             Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(opt_.offsets[3], Eigen::Vector3d::UnitX()) *
                                       Eigen::AngleAxis<double>(opt_.offsets[4], Eigen::Vector3d::UnitY()) *
                                       Eigen::AngleAxis<double>(opt_.offsets[5], Eigen::Vector3d::UnitZ()));
             offset_tf.translation() = Eigen::Vector3d(opt_.offsets[0], opt_.offsets[1], opt_.offsets[2]);
-            
+
             Eigen::Affine3d wMnc = wMc * offset_tf;
             geometry_msgs::Pose wMnc_msg;
             tf::poseEigenToMsg(wMnc, wMnc_msg);
-            
+
             req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position = wMnc_msg.position;
             req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation = wMnc_msg.orientation;
           }
-          
+
           if (!opt_.group_override.empty())
             req.motion_plan_request.group_name = opt_.group_override;
           if (opt_.timeout > 0.0)
@@ -387,8 +393,8 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
         }
       }
     }
-    
-    // if we have any goals specified as trajectory constraints, run benchmarks for those as well   
+
+    // if we have any goals specified as trajectory constraints, run benchmarks for those as well
     // ******************************************************************************************
 
     if (!opt_.trajectory_regex.empty())
@@ -408,6 +414,9 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
           ROS_ERROR("%s", ex.what());
         }
 
+        // Save name of goal - only used for later analysis
+        req.goal_name = cnames[i];
+
         if (got_constraints)
         {
           // construct a planning request from the trajectory constraints message
@@ -415,15 +424,15 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
           if (start_state_to_use)
             req.motion_plan_request.start_state = *start_state_to_use;
           req.motion_plan_request.trajectory_constraints = *constr;
-          
+
           Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(opt_.offsets[3], Eigen::Vector3d::UnitX()) *
                                     Eigen::AngleAxis<double>(opt_.offsets[4], Eigen::Vector3d::UnitY()) *
                                     Eigen::AngleAxis<double>(opt_.offsets[5], Eigen::Vector3d::UnitZ()));
           offset_tf.translation() = Eigen::Vector3d(opt_.offsets[0], opt_.offsets[1], opt_.offsets[2]);
-          
+
           // Apply waypoint offsets, check fields
           for (std::size_t tc = 0; tc < constr->constraints.size(); ++tc)
-          { 
+          {
             // Apply the goal offset for constraints that appear to specify IK poses
             if (constr->constraints[tc].position_constraints.size() == 1 && constr->constraints[tc].orientation_constraints.size() == 1 && kinematic_constraints::countIndividualConstraints(constr->constraints[tc]) == 2 &&
                 constr->constraints[tc].position_constraints[0].constraint_region.primitive_poses.size() == 1 && constr->constraints[tc].position_constraints[0].constraint_region.mesh_poses.empty())
@@ -433,11 +442,11 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
               wMc_msg.orientation = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation;
               Eigen::Affine3d wMc;
               tf::poseMsgToEigen(wMc_msg, wMc);
-              
-              Eigen::Affine3d wMnc = wMc * offset_tf;   
+
+              Eigen::Affine3d wMnc = wMc * offset_tf;
               geometry_msgs::Pose wMnc_msg;
               tf::poseEigenToMsg(wMnc, wMnc_msg);
-              
+
               req.motion_plan_request.trajectory_constraints.constraints[tc].position_constraints[0].constraint_region.primitive_poses[0].position = wMnc_msg.position;
               req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation = wMnc_msg.orientation;
             }
@@ -464,7 +473,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
 bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filename)
 {
   ROS_INFO("Loading '%s'...", filename.c_str());
-  
+
   std::ifstream cfg(filename.c_str());
   if (!cfg.good())
   {
@@ -494,13 +503,13 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       ("scene.goal_offset_pitch", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in pitch")
       ("scene.goal_offset_yaw", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in yaw")
       ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
-    
+
     boost::program_options::variables_map vm;
     boost::program_options::parsed_options po = boost::program_options::parse_config_file(cfg, desc, true);
-    
+
     cfg.close();
     boost::program_options::store(po, vm);
-    
+
     std::map<std::string, std::string> declared_options;
     for (boost::program_options::variables_map::iterator it = vm.begin() ; it != vm.end() ; ++it)
       declared_options[it->first] = boost::any_cast<std::string>(vm[it->first].value());
@@ -562,7 +571,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
         ROS_WARN("%s", ex.what());
       }
     }
-    
+
     std::vector<std::string> unr = boost::program_options::collect_unrecognized(po.options, boost::program_options::exclude_positional);
     boost::scoped_ptr<PlanningPluginOptions> bpo;
     for (std::size_t i = 0 ; i < unr.size() / 2 ; ++i)
@@ -593,7 +602,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
               bpo->runs = boost::lexical_cast<std::size_t>(val);
             }
             catch(boost::bad_lexical_cast &ex)
-            {   
+            {
               ROS_WARN("%s", ex.what());
             }
           }
@@ -604,7 +613,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
           if (k == "planners")
           {
             if (bpo)
-            {   
+            {
               boost::char_separator<char> sep(" ");
               boost::tokenizer<boost::char_separator<char> > tok(val, sep);
               for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
@@ -617,13 +626,13 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
     if (bpo)
       opt_.plugins.push_back(*bpo);
   }
-  
+
   catch(...)
   {
     ROS_ERROR_STREAM("Unable to parse '" << filename << "'");
     return false;
   }
-  
+
   return true;
 }
 
@@ -635,7 +644,7 @@ void moveit_benchmarks::BenchmarkExecution::printOptions(std::ostream &out)
   if (!opt_.goal_regex.empty())
     out << "Planning requests constructed from goal constraints that match '" << opt_.goal_regex << "' will be evaluated" << std::endl;
   if (!opt_.trajectory_regex.empty())
-      out << "Planning requests constructed from trajectory constraints that match '" << opt_.trajectory_regex << "' will be evaluated" << std::endl;
+    out << "Planning requests constructed from trajectory constraints that match '" << opt_.trajectory_regex << "' will be evaluated" << std::endl;
   out << "Plugins:" << std::endl;
   for (std::size_t i = 0 ; i < opt_.plugins.size() ; ++i)
   {
@@ -656,14 +665,14 @@ void moveit_benchmarks::BenchmarkExecution::runBenchmark(BenchmarkRequest &req)
 }
 
 void moveit_benchmarks::BenchmarkExecution::collectMetrics(std::map<std::string, std::string> &rundata,
-                                                          const planning_interface::MotionPlanDetailedResponse &mp_res,
-                                                          bool solved, double total_time)
+                                                           const planning_interface::MotionPlanDetailedResponse &mp_res,
+                                                           bool solved, double total_time)
 {
   rundata["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
   rundata["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
   double L = 0.0;
   double clearance = 0.0;
-  double smoothness = 0.0;		
+  double smoothness = 0.0;
   bool correct = true;
   if (solved)
   {
@@ -675,11 +684,11 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(std::map<std::string,
       clearance = 0.0;
       smoothness = 0.0;
       const robot_trajectory::RobotTrajectory &p = *mp_res.trajectory_[j];
-      
+
       // compute path length
       for (std::size_t k = 1 ; k < p.getWayPointCount() ; ++k)
         L += p.getWayPoint(k-1).distance(p.getWayPoint(k));
-      
+
       // compute correctness and clearance
       collision_detection::CollisionRequest req;
       for (std::size_t k = 0 ; k < p.getWayPointCount() ; ++k)
@@ -695,7 +704,7 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(std::map<std::string,
           clearance += d;
       }
       clearance /= (double)p.getWayPointCount();
-      
+
       // compute smoothness
       if (p.getWayPointCount() > 2)
       {
@@ -718,7 +727,7 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(std::map<std::string,
           {
             // the smoothness is actually the outside angle of the one we compute
             double angle = (boost::math::constants::pi<double>() - acos(acosValue));
-            
+
             // and we normalize by the length of the segments
             double u = 2.0 * angle; /// (a + b);
             smoothness += u * u;
@@ -731,22 +740,22 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(std::map<std::string,
       rundata["path_" + mp_res.description_[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
       rundata["path_" + mp_res.description_[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
       rundata["path_" + mp_res.description_[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
-      rundata["path_" + mp_res.description_[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time_[j]);     
+      rundata["path_" + mp_res.description_[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time_[j]);
       process_time -= mp_res.processing_time_[j];
     }
     if (process_time <= 0.0)
       process_time = 0.0;
     rundata["process_time REAL"] = boost::lexical_cast<std::string>(process_time);
-    
+
   }
 }
 
 namespace
 {
-bool isIKSolutionCollisionFree(const planning_scene::PlanningScene *scene, 
+bool isIKSolutionCollisionFree(const planning_scene::PlanningScene *scene,
                                robot_state::JointStateGroup *group,
                                const std::vector<double> &ik_solution,
-                               bool *reachable) 
+                               bool *reachable)
 {
   group->setVariableValues(ik_solution);
   *reachable = true;
@@ -764,13 +773,13 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     for (std::size_t i = 0 ; i < req.plugins.size() ; ++i)
       if (planner_interfaces_.find(req.plugins[i].name) == planner_interfaces_.end())
         ROS_ERROR("Planning interface '%s' was not found", req.plugins[i].name.c_str());
-  
+
   std::vector<planning_interface::Planner*> planner_interfaces_to_benchmark;
   std::vector<std::vector<std::string> > planner_ids_to_benchmark_per_planner_interface;
   std::vector<std::size_t> average_count_per_planner_interface;
   planning_interface::MotionPlanRequest mp_req = req.motion_plan_request;
-  
-  for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
+
+  for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ;
        it != planner_interfaces_.end(); ++it)
   {
     int found = -1;
@@ -794,7 +803,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       average_count_per_planner_interface.resize(average_count_per_planner_interface.size() + 1, 1);
       std::vector<std::string> known;
       it->second->getPlanningAlgorithms(known);
-      
+
       if (found < 0 || req.plugins[found].planners.empty())
         planner_ids_to_benchmark_per_planner_interface.back() = known;
       else
@@ -822,22 +831,22 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
               ROS_ERROR_STREAM(" - " << known[i]);
             }
           }
-        }          
+        }
       }
-      
+
       if (planner_ids_to_benchmark_per_planner_interface.back().empty())
         ROS_ERROR("Planning interface '%s' has no planners defined", it->first.c_str());
     }
     else
       ROS_WARN_STREAM("Planning interface '" << it->second->getDescription() << "' is not able to solve the specified benchmark problem.");
   }
-  
+
   if (planner_interfaces_to_benchmark.empty())
   {
     ROS_ERROR("There are no planning interfaces to benchmark");
     return;
   }
-  
+
   // output information about tested planners
   ROS_INFO("Benchmarking planning interfaces:");
   std::stringstream sst;
@@ -851,23 +860,23 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     sst << std::endl;
   }
   ROS_INFO("\n%s", sst.str().c_str());
-  
+
   // configure planning context
-  
+
   if (req.scene.robot_model_name != planning_scene_->getRobotModel()->getName())
   {
     // if we have a different robot, use the world geometry only
-    
+
     // clear all geometry from the scene
     planning_scene_->getWorldNonConst()->clearObjects();
     planning_scene_->getCurrentStateNonConst().clearAttachedBodies();
     planning_scene_->getCurrentStateNonConst().setToDefaultValues();
-    
+
     planning_scene_->processPlanningSceneWorldMsg(req.scene.world);
   }
   else
     planning_scene_->usePlanningSceneMsg(req.scene);
-  
+
   std::size_t total_n_planners = 0;
   std::size_t total_n_runs = 0;
   for (std::size_t i = 0 ; i < planner_ids_to_benchmark_per_planner_interface.size() ; ++i)
@@ -875,7 +884,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     total_n_planners += planner_ids_to_benchmark_per_planner_interface[i].size();
     total_n_runs += planner_ids_to_benchmark_per_planner_interface[i].size() * average_count_per_planner_interface[i];
   }
-  
+
   // benchmark all the planners
   ros::WallTime startTime = ros::WallTime::now();
   boost::progress_display progress(total_n_runs, std::cout);
@@ -890,19 +899,19 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       RunData runs(average_count_per_planner_interface[i]);
       for (unsigned int c = 0 ; c < average_count_per_planner_interface[i] ; ++c)
       {
-        ++progress; 
+        ++progress;
         ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
         planning_interface::MotionPlanDetailedResponse mp_res;
         ros::WallTime start = ros::WallTime::now();
         bool solved = planner_interfaces_to_benchmark[i]->solve(planning_scene_, mp_req, mp_res);
         double total_time = (ros::WallTime::now() - start).toSec();
-        
-        // collect data   
+
+        // collect data
         start = ros::WallTime::now();
         collectMetrics(runs[c], mp_res, solved, total_time);
         double metrics_time = (ros::WallTime::now() - start).toSec();
         ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
-        
+
         // record the first solution in the response
         if (solved && first[i])
         {
@@ -912,7 +921,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       data.push_back(runs);
     }
   }
-  
+
   double duration = (ros::WallTime::now() - startTime).toSec();
   std::string host = moveit_benchmarks::getHostname();
   std::string filename = req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log") : req.filename;
@@ -920,6 +929,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   out << "Experiment " << (planning_scene_->getName().empty() ? "NO_NAME" : planning_scene_->getName()) << std::endl;
   out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
   out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
+  out << "Goal name " << (req.goal_name.empty() ? "UNKNOWN" : req.goal_name) << std::endl;
   out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
   out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
   out << duration << " seconds spent to collect the data" << std::endl;
@@ -932,7 +942,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       // in general, we could have properties specific for a planner;
       // right now, we do not include such properties
       out << "0 common properties" << std::endl;
-      
+
       // construct the list of all possible properties for all runs
       std::set<std::string> propSeen;
       for (std::size_t j = 0 ; j < data[ri].size() ; ++j)
@@ -954,6 +964,9 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
             out << it->second;
           out << "; ";
         }
+        //out << SCENE_NAME << "; ";
+
+        // end the line
         out << std::endl;
       }
       out << '.' << std::endl;
@@ -972,15 +985,15 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     planning_scene_->getWorldNonConst()->clearObjects();
     planning_scene_->getCurrentStateNonConst().clearAttachedBodies();
     planning_scene_->getCurrentStateNonConst().setToDefaultValues();
-    
+
     planning_scene_->processPlanningSceneWorldMsg(req.scene.world);
     planning_scene_->setName(req.scene.name);
   }
   else
     planning_scene_->usePlanningSceneMsg(req.scene);
-  
+
   // \todo the code below needs to be replaced with using constraint samplers;
-  
+
   if (req.motion_plan_request.goal_constraints.size() == 0 &&
       req.motion_plan_request.goal_constraints[0].position_constraints.size() == 0 &&
       req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses.size() == 0 &&
@@ -990,7 +1003,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     ROS_ERROR("Invalid goal constraints");
     return;
   }
-  
+
   bool success = false;
   bool reachable = false;
   if (req.motion_plan_request.goal_constraints.size() > 0 &&
@@ -1007,10 +1020,10 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     ik_pose.orientation.y = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.y;
     ik_pose.orientation.z = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z;
     ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
-    
+
     robot_state::RobotState robot_state(planning_scene_->getCurrentState());
     robot_state::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
-    
+
     // Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
     ros::WallTime startTime = ros::WallTime::now();
@@ -1047,7 +1060,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     out.close();
     ROS_INFO("Results saved to '%s'", filename.c_str());
   }
-  
+
   if (req.motion_plan_request.trajectory_constraints.constraints.size() > 0)
   {
     // Compute IK on trajectory constraints
@@ -1064,7 +1077,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     out << "reachable BOOLEAN" << std::endl;
     out << "collision_free BOOLEAN" << std::endl;
     out << "total_time REAL" << std::endl;
-    
+
     for (std::size_t tc = 0; tc < req.motion_plan_request.trajectory_constraints.constraints.size(); ++tc)
     {
       geometry_msgs::Pose ik_pose;
@@ -1075,10 +1088,10 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
       ik_pose.orientation.y = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.y;
       ik_pose.orientation.z = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.z;
       ik_pose.orientation.w = req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.w;
-      
+
       robot_state::RobotState robot_state(planning_scene_->getCurrentState());
       robot_state::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
-      
+
       // Compute IK
       ROS_INFO_STREAM("Processing trajectory waypoint " << req.motion_plan_request.trajectory_constraints.constraints[tc].name << " ...");
       startTime = ros::WallTime::now();
@@ -1086,7 +1099,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
         setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
                   boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, &reachable));
       double duration = (ros::WallTime::now() - startTime).toSec();
-      
+
       if (success)
       {
         ROS_INFO("  Success!");
@@ -1099,7 +1112,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
       {
         ROS_INFO("  Not reachable");
       }
-      
+
       out << reachable << "; " << success << "; " << duration << std::endl;
     }
     out.close();

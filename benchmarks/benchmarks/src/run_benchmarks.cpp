@@ -91,7 +91,7 @@ int main(int argc, char **argv)
         proc++;
       }
     }
-    std::cout << "Processed " << proc << " benchmark configuration files" << std::endl;
+    ROS_INFO_STREAM("Processed " << proc << " benchmark configuration files");
   }
   catch(mongo_ros::DbConnectException &ex)
   {
@@ -99,6 +99,7 @@ int main(int argc, char **argv)
                      << std::endl << ex.what());
   }
   
+  ROS_WARN("Ignore the following segfault, it needs to be fixed but is just an issue with the destructors");
   ros::shutdown();
   
   return 0;

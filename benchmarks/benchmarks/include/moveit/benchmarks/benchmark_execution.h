@@ -79,6 +79,9 @@ struct BenchmarkRequest
 
   // The file where to store the results
   std::string filename;
+
+  // Optional: name of goal - only used for later analysis 
+  std::string goal_name;
 };
 
 class BenchmarkExecution
