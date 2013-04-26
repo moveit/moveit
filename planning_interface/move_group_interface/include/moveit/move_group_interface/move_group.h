@@ -251,9 +251,8 @@ public:
       is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
   void setPositionTarget(double x, double y, double z, const std::string &end_effector_link = "");
   
-  /** \brief Set the goal orientation of the end-effector \e end_effector_link to be (\e x,\e y,\e z) radians about the (X,
-      Y, Z) axes. If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setOrientationTarget(double x, double y, double z, const std::string &end_effector_link = "");
+  /** \brief Set the goal orientation of the end-effector \e end_effector_link to be (\e roll,\e pitch,\e yaw) radians. If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setRPYTarget(double roll, double pitch, double yaw, const std::string &end_effector_link = "");
 
   /** \brief Set the goal orientation of the end-effector \e end_effector_link to be the quaternion (\e x,\e y,\e z,\e w).
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
@@ -368,7 +367,7 @@ public:
 
   /** \brief Get the roll-pitch-yaw (XYZ) for the end-effector \e end_effector_link. 
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
-  std::vector<double> getCurrentXYZOrientation(const std::string &end_effector_link = "");
+  std::vector<double> getCurrentRPY(const std::string &end_effector_link = "");
 
   /** \brief Get random joint values for the joints planned for by this instance (see getJoints()) */
   std::vector<double> getRandomJointValues();

@@ -154,9 +154,9 @@ public:
     tr.rotation.w = v[6];
   }
 
-  bp::list getCurrentXYZOrientationPython(const std::string &end_effector_link = "")
+  bp::list getCurrentRPYPython(const std::string &end_effector_link = "")
   {
-    return moveit_py_bindings_tools::listFromDouble(getCurrentXYZOrientation(end_effector_link));
+    return moveit_py_bindings_tools::listFromDouble(getCurrentRPY(end_effector_link));
   }
   
   bp::list getCurrentPosePython(const std::string &end_effector_link = "")
@@ -220,7 +220,7 @@ public:
     if (v.size() == 6)
     {
       setPositionTarget(v[0], v[1], v[2], end_effector_link);
-      setOrientationTarget(v[3], v[4], v[5], end_effector_link);
+      setRPYTarget(v[3], v[4], v[5], end_effector_link);
     }
     else
       if (v.size() == 7)
@@ -396,15 +396,11 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_pose_targets", &MoveGroupWrapper::setPoseTargetsPython);
 
   MoveGroupClass.def("set_position_target", &MoveGroupWrapper::setPositionTarget);
-  
-  void (MoveGroupWrapper::*setOrientationTarget_1)(double, double, double, const std::string&) = &MoveGroupWrapper::setOrientationTarget;
-  MoveGroupClass.def("set_orientation_target", setOrientationTarget_1);
-
-  void (MoveGroupWrapper::*setOrientationTarget_2)(double, double, double, double, const std::string&) = &MoveGroupWrapper::setOrientationTarget;
-  MoveGroupClass.def("set_orientation_target", setOrientationTarget_2);
+  MoveGroupClass.def("set_rpy_target", &MoveGroupWrapper::setRPYTarget);
+  MoveGroupClass.def("set_orientation_target", &MoveGroupWrapper::setOrientationTarget);
   
   MoveGroupClass.def("get_current_pose", &MoveGroupWrapper::getCurrentPosePython);
-  MoveGroupClass.def("get_current_xyz_orientation", &MoveGroupWrapper::getCurrentXYZOrientationPython);
+  MoveGroupClass.def("get_current_rpy", &MoveGroupWrapper::getCurrentRPYPython);
 
   MoveGroupClass.def("get_random_pose", &MoveGroupWrapper::getRandomPosePython);
 
