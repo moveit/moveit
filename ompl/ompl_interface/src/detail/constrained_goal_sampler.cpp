@@ -90,7 +90,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
 
     if (constraint_sampler_)
     {
-      if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
+      if (constraint_sampler_->project(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
       {
         if (kinematic_constraint_set_->decide(work_state_, verbose).satisfied)
         {
