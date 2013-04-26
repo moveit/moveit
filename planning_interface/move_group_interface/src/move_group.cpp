@@ -585,7 +585,7 @@ public:
       return false;
   }
   
-  bool computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double step,
+  bool computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double step, double jump_threshold,
 			    moveit_msgs::RobotTrajectory &msg)
   {
     moveit_msgs::GetCartesianPath::Request req;
@@ -598,7 +598,7 @@ public:
     req.header.stamp = ros::Time::now();
     req.waypoints = waypoints;
     req.max_step = step;
-    req.jump_threshold = 0;
+    req.jump_threshold = jump_threshold;
     req.avoid_collisions = true;
 
     if (cartesian_path_service_.call(req, res))
@@ -921,10 +921,10 @@ bool MoveGroup::place(const std::string &object, const std::vector<manipulation_
   return impl_->place(object, locations);
 }
 
-bool MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step,
+bool MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
 				     moveit_msgs::RobotTrajectory &trajectory)
 {
-  return impl_->computeCartesianPath(waypoints, eef_step, trajectory);
+  return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
 }
 
 void MoveGroup::stop()
