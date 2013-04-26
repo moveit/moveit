@@ -604,6 +604,8 @@ const Eigen::Affine3d& robot_state::RobotState::getFrameTransform(const std::str
   if (!id.empty() && id[0] == '/')
     return getFrameTransform(id.substr(1));
   static const Eigen::Affine3d identity_transform = Eigen::Affine3d::Identity();
+  if (id == kinematic_model_->getModelFrame())
+    return identity_transform;
   std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(id);
   if (it != link_state_map_.end())
     return it->second->getGlobalLinkTransform();
