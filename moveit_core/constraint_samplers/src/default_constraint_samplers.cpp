@@ -520,7 +520,7 @@ bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::JointSt
     ik_query.orientation.z = quat.z();
     ik_query.orientation.w = quat.w();        
     
-    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, jsg, project))
+    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, jsg, project && a == 0))
       return true; 
   }
   return false;
