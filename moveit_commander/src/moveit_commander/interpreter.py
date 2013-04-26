@@ -442,7 +442,7 @@ class MoveGroupCommandInterpreter:
         if len(clist) == 4:
             if clist[0] == "rotate":
                 try:
-                    g.set_orientation_target([float(x) for x in clist[1:]])
+                    g.set_rpy_target([float(x) for x in clist[1:]])
                     if g.go():
                         return (MoveGroupInfoLevel.SUCCESS, "Rotation complete")
                     else:
@@ -463,7 +463,7 @@ class MoveGroupCommandInterpreter:
         res = "joints = [" + " ".join([str(x) for x in g.get_current_joint_values()]) + "]"
         if len(g.get_end_effector_link()) > 0:
             res = res + "\n" + g.get_end_effector_link() + " pose = [\n" + str(g.get_current_pose()) + " ]"
-            res = res + "\n" + g.get_end_effector_link() + " XYZ orientation = " + str(g.get_current_xyz_orientation())
+            res = res + "\n" + g.get_end_effector_link() + " RPY = " + str(g.get_current_rpy())
         return (MoveGroupInfoLevel.INFO, res)
 
     def command_go_offset(self, g, offset, factor, dimension_index, direction_name):
