@@ -585,8 +585,8 @@ public:
       return false;
   }
   
-  bool computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double step, double jump_threshold,
-			    moveit_msgs::RobotTrajectory &msg)
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double step, double jump_threshold,
+			      moveit_msgs::RobotTrajectory &msg)
   {
     moveit_msgs::GetCartesianPath::Request req;
     moveit_msgs::GetCartesianPath::Response res;
@@ -603,11 +603,16 @@ public:
 
     if (cartesian_path_service_.call(req, res))
     {
-      msg = res.solution;
-      return res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+      if (res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+      {
+	msg = res.solution;
+	return res.fraction;
+      }
+      else
+	return -1.0;
     }
     else
-      return false;
+      return -1.0;
   }
 
   void stop()
@@ -921,8 +926,8 @@ bool MoveGroup::place(const std::string &object, const std::vector<manipulation_
   return impl_->place(object, locations);
 }
 
-bool MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
-				     moveit_msgs::RobotTrajectory &trajectory)
+double MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
+				       moveit_msgs::RobotTrajectory &trajectory)
 {
   return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
 }
