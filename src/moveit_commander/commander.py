@@ -414,7 +414,8 @@ class MoveGroupCommander:
         return plan
 
     def compute_cartesian_path(self, waypoints, eef_step, jump_threshold):
-        return self.__dict_to_trajectory(self._g.compute_cartesian_path([self.__pose_to_list(p) for p in waypoints], eef_step, jump_threshold))
+        (dpath, fraction) = self._g.compute_cartesian_path([self.__pose_to_list(p) for p in waypoints], eef_step, jump_threshold)
+        return (self.__dict_to_trajectory(dpath), fraction)
 
     def execute(self, plan_msg):
         """Execute a previously planned path"""
