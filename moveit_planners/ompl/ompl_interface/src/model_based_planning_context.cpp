@@ -189,7 +189,8 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   
   if (cfg.empty())
     return;
-  
+
+  // remove the 'type' parameter; the rest are parameters for the planner itself  
   it = cfg.find("type");
   if (it == cfg.end())
   {
@@ -198,7 +199,6 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   }
   else
   {
-    // remove the 'type' parameter; the rest are parameters for the planner itself
     std::string type = it->second;
     cfg.erase(it);
     ompl_simple_setup_.setPlannerAllocator(boost::bind(spec_.planner_selector_(type), _1,
@@ -206,7 +206,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     logInform("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
               name_.c_str(), type.c_str());
   }
-  
+
   // call the setParams() after setup(), so we know what the params are
   ompl_simple_setup_.getSpaceInformation()->setup();
   ompl_simple_setup_.getSpaceInformation()->params().setParams(cfg, true);
