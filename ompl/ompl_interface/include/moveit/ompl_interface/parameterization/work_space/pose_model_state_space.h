@@ -136,6 +136,7 @@ private:
   virtual void afterStateSample(ompl::base::State *sample) const;
 
   std::vector<PoseComponent> poses_;
+  double jump_factor_;
 };
 
 }

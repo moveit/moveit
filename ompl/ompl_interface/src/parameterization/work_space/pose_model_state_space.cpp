@@ -42,6 +42,7 @@ const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "
 
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec) : ModelBasedStateSpace(spec)
 {
+  jump_factor_ = 3;
   const std::pair<robot_model::SolverAllocatorFn, robot_model::SolverAllocatorMapFn>& slv = spec.joint_model_group_->getSolverAllocators();
   if (slv.first)
     poses_.push_back(PoseComponent(spec.joint_model_group_));
@@ -133,7 +134,22 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   // so we recompute IK
   state->as<StateType>()->setJointsComputed(false);
   state->as<StateType>()->setPoseComputed(true);
-  computeStateIK(state);
+  if (computeStateIK(state))
+  {
+    for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
+    {
+      double dj = jump_factor_ * components_[i]->distance(from->as<StateType>()->components[i], to->as<StateType>()->components[i]);
+      double d_from = components_[i]->distance(from->as<StateType>()->components[i], state->as<StateType>()->components[i]);
+      double d_to = components_[i]->distance(state->as<StateType>()->components[i], to->as<StateType>()->components[i]);
+      // if the joint value jumped too much
+
+      if (d_from + d_to > std::max(0.2, dj))
+      {
+	state->as<StateType>()->markInvalid();
+	break;
+      }
+    }
+  }
 }
 
 void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
