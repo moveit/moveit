@@ -57,6 +57,7 @@
 #include <std_msgs/String.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_datatypes.h>
+#include <tf_conversions/tf_eigen.h>
 #include <ros/console.h>
 #include <ros/ros.h>
 
@@ -1168,7 +1169,7 @@ void MoveGroup::setPositionTarget(double x, double y, double z, const std::strin
   setPoseTarget(target, end_effector_link);
 }
 
-void MoveGroup::setOrientationTarget(double x, double y, double z, const std::string &end_effector_link)
+void MoveGroup::setRPYTarget(double r, double p, double y, const std::string &end_effector_link)
 {
   geometry_msgs::PoseStamped target;
   if (impl_->hasPoseTarget(end_effector_link))
@@ -1184,7 +1185,7 @@ void MoveGroup::setOrientationTarget(double x, double y, double z, const std::st
     target.header.frame_id = impl_->getPoseReferenceFrame();
   }
   
-  tf::quaternionTFToMsg(tf::createQuaternionFromRPY(x, y, z), target.pose.orientation);
+  tf::quaternionTFToMsg(tf::createQuaternionFromRPY(r, p, y), target.pose.orientation);
   setPoseTarget(target, end_effector_link);
 }
 
@@ -1355,7 +1356,7 @@ geometry_msgs::PoseStamped MoveGroup::getCurrentPose(const std::string &end_effe
   return pose_msg;
 }
 
-std::vector<double> MoveGroup::getCurrentXYZOrientation(const std::string &end_effector_link)
+std::vector<double> MoveGroup::getCurrentRPY(const std::string &end_effector_link)
 {
   std::vector<double> result;
   const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
@@ -1370,10 +1371,13 @@ std::vector<double> MoveGroup::getCurrentXYZOrientation(const std::string &end_e
       if (ls)
       {
 	result.resize(3);
-	Eigen::Vector3d xyz = ls->getGlobalLinkTransform().rotation().eulerAngles(0, 1, 2);
-	result[0] = xyz.x();
-	result[1] = xyz.y();
-	result[2] = xyz.z();
+	tf::Matrix3x3 ptf;
+	tf::matrixEigenToTF(ls->getGlobalLinkTransform().rotation(), ptf);
+	tfScalar pitch, roll, yaw;
+	ptf.getRPY(roll, pitch, yaw);
+	result[0] = roll;
+	result[1] = pitch;
+	result[2] = yaw;
       }
     }
   }
