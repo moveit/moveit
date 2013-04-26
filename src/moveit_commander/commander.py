@@ -154,11 +154,11 @@ class MoveGroupCommander:
         else:
             raise "There is no end effector to get the pose of"
 
-    def get_current_xyz_orientation(self, end_effector_link = ""):
+    def get_current_rpy(self, end_effector_link = ""):
         if len(end_effector_link) > 0 or self.has_end_effector_link():
-            return self._g.get_current_xyz_orientation(end_effector_link)
+            return self._g.get_current_rpy(end_effector_link)
         else:
-            raise "There is no end effector to get the orientation of"
+            raise "There is no end effector to get the rpy of"
 
     def get_random_joint_values(self):
         return self._g.get_random_joint_values()
@@ -176,15 +176,21 @@ class MoveGroupCommander:
         else:
             self._g.set_joint_value_target(name, value)
 
-    def set_orientation_target(self, xyz, end_effector_link = ""):
+    def set_rpy_target(self, rpy, end_effector_link = ""):
         if len(end_effector_link) > 0 or self.has_end_effector_link():
-            if len(xyz) == 3:
-                self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], end_effector_link)
+            if len(rpy) == 3:
+                self._g.set_rpy_target(rpy[0], rpy[1], rpy[2], end_effector_link)
             else:
-                if len(xyz) == 4:
-                    self._g.set_orientation_target(xyz[0], xyz[1], xyz[2], xyz[3], end_effector_link)
-                else:
-                    raise "Expected either [roll, pitch, yaw] or [qx, qy, qz, qw]"
+                raise "Expected [roll, pitch, yaw]"
+        else:
+            raise "There is no end effector to set the pose for"
+
+    def set_orientation_target(self, q, end_effector_link = ""):
+        if len(end_effector_link) > 0 or self.has_end_effector_link():
+            if len(q) == 4:
+                self._g.set_orientation_target(q[0], q[1], q[2], q[3], end_effector_link)
+            else:
+                raise "Expected [qx, qy, qz, qw]"
         else:
             raise "There is no end effector to set the pose for"
 
