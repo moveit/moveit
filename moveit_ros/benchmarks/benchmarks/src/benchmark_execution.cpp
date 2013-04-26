@@ -45,9 +45,9 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/progress.hpp>
-
 
 #include <eigen_conversions/eigen_msg.h>
 #include <Eigen/Core>
@@ -98,7 +98,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
   cs_(host, port),
   rs_(host, port)
 {
-  // load the planning plugins
+  // load the pluginlib class loader
   try
   {
     planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
@@ -108,6 +108,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
     ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
   }
 
+  // load the planning plugins
   const std::vector<std::string> &classes = planner_plugin_loader_->getDeclaredClasses();
   for (std::size_t i = 0 ; i < classes.size() ; ++i)
   {
@@ -124,6 +125,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
     }
   }
 
+  // error check
   if (planner_interfaces_.empty())
     ROS_ERROR("No planning plugins have been loaded. Nothing to do for the benchmarking service.");
   else
@@ -481,6 +483,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
     return false;
   }
 
+  // "scene" options
   try
   {
     boost::program_options::options_description desc;
@@ -572,56 +575,104 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       }
     }
 
+    // Process non-scene options
     std::vector<std::string> unr = boost::program_options::collect_unrecognized(po.options, boost::program_options::exclude_positional);
+
     boost::scoped_ptr<PlanningPluginOptions> bpo;
     for (std::size_t i = 0 ; i < unr.size() / 2 ; ++i)
     {
       std::string key = boost::to_lower_copy(unr[i * 2]);
       std::string val = unr[i * 2 + 1];
-      if (key.substr(0, 7) != "plugin.")
+
+      // "plugin" options
+      if (key.substr(0, 7) == "plugin.")
       {
-        ROS_WARN("Unknown option: '%s' = '%s'", key.c_str(), val.c_str());
-        continue;
-      }
-      std::string k = key.substr(7);
-      if (k == "name")
-      {
-        if (bpo)
-          opt_.plugins.push_back(*bpo);
-        bpo.reset(new PlanningPluginOptions());
-        bpo->name = val;
-        bpo->runs = default_run_count;
-      }
-      else
-        if (k == "runs")
+        std::string k = key.substr(7);
+        if (k == "name")
         {
           if (bpo)
-          {
-            try
-            {
-              bpo->runs = boost::lexical_cast<std::size_t>(val);
-            }
-            catch(boost::bad_lexical_cast &ex)
-            {
-              ROS_WARN("%s", ex.what());
-            }
-          }
-          else
-            ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+            opt_.plugins.push_back(*bpo);
+          bpo.reset(new PlanningPluginOptions());
+          bpo->name = val;
+          bpo->runs = default_run_count;
         }
         else
-          if (k == "planners")
+          if (k == "runs")
           {
             if (bpo)
             {
-              boost::char_separator<char> sep(" ");
-              boost::tokenizer<boost::char_separator<char> > tok(val, sep);
-              for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
-                bpo->planners.push_back(*beg);
+              try
+              {
+                bpo->runs = boost::lexical_cast<std::size_t>(val);
+              }
+              catch(boost::bad_lexical_cast &ex)
+              {
+                ROS_WARN("%s", ex.what());
+              }
             }
             else
               ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
           }
+          else
+            if (k == "planners")
+            {
+              if (bpo)
+              {
+                boost::char_separator<char> sep(" ");
+                boost::tokenizer<boost::char_separator<char> > tok(val, sep);
+                for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+                  bpo->planners.push_back(*beg);
+              }
+              else
+                ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+            }
+      }
+      // parameter sweeping option
+      else if (key.substr(0, 6) == "sweep.")
+      {
+        std::string sweep_var = key.substr(6);
+        ROS_ERROR_STREAM_NAMED("temp","SWEEP key="<<sweep_var<<" val="<<val);
+
+        // Convert the string of a:b:c numbers into parsed doubles
+        std::vector<std::string> strs;
+        boost::split(strs, val, boost::is_any_of(":"));
+
+        if(strs.size() != 3)
+        {
+          ROS_WARN_STREAM("Invalid sweep parameter for key " << sweep_var << ". Expected 3 values (start, iterator, end) but only recieved " << strs.size() );
+          continue;
+        }
+
+        SweepOptions new_sweep;
+        try
+        {
+          new_sweep.start = boost::lexical_cast<double>(strs[0]);
+          new_sweep.iterator = boost::lexical_cast<double>(strs[1]);
+          new_sweep.end = boost::lexical_cast<double>(strs[2]);
+          new_sweep.key = sweep_var;
+        }
+        catch(boost::bad_lexical_cast &ex)
+        {
+          ROS_WARN("%s", ex.what());
+        }
+
+        // Error check
+        if( new_sweep.start > new_sweep.end )
+        {
+          ROS_ERROR_STREAM("Invalid sweep parameter for key " << sweep_var << ". Start is greater than end");
+          continue;
+        }
+
+        // Insert into array of all sweeps
+        sweep_options_.push_back(new_sweep);
+
+        ROS_ERROR_STREAM_NAMED("temp","SWEEP start " << new_sweep.start << " it " << new_sweep.iterator << " end " << new_sweep.end);
+      }
+      else
+      {
+        ROS_WARN("Unknown option: '%s' = '%s'", key.c_str(), val.c_str());
+        continue;
+      }
     }
     if (bpo)
       opt_.plugins.push_back(*bpo);
@@ -664,7 +715,7 @@ void moveit_benchmarks::BenchmarkExecution::runBenchmark(BenchmarkRequest &req)
     runGoalExistenceBenchmark(req);
 }
 
-void moveit_benchmarks::BenchmarkExecution::collectMetrics(std::map<std::string, std::string> &rundata,
+void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData &rundata,
                                                            const planning_interface::MotionPlanDetailedResponse &mp_res,
                                                            bool solved, double total_time)
 {
@@ -768,26 +819,40 @@ bool isIKSolutionCollisionFree(const planning_scene::PlanningScene *scene,
 
 void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkRequest &req)
 {
-  // figure out which planners to test
+  /* Dev Notes:
+   *   planner_interface => planning plugin
+   *   planner => planning algorithm within a planning plugin
+   *   planner_ids => id of a planner
+   */
+
+  // check that all requested plugins exist
   if (!req.plugins.empty())
     for (std::size_t i = 0 ; i < req.plugins.size() ; ++i)
       if (planner_interfaces_.find(req.plugins[i].name) == planner_interfaces_.end())
         ROS_ERROR("Planning interface '%s' was not found", req.plugins[i].name.c_str());
 
+  // pointer list of planning plugins
   std::vector<planning_interface::Planner*> planner_interfaces_to_benchmark;
+
+  // each planning plugin has a vector of its sub algorithms (planners) that it can run
   std::vector<std::vector<std::string> > planner_ids_to_benchmark_per_planner_interface;
-  std::vector<std::size_t> average_count_per_planner_interface;
+
+  // number of runs to execute every *algorithm* per *plugin*
+  std::vector<std::size_t> runs_per_planner_interface;  // average_count_per_planner_interface
+
   planning_interface::MotionPlanRequest mp_req = req.motion_plan_request;
 
+  // loop through each planning interface
   for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ;
        it != planner_interfaces_.end(); ++it)
   {
+    // find the plugin that the planning interface belongs to
     int found = -1;
     if (!req.plugins.empty())
     {
       for (std::size_t i = 0 ; i < req.plugins.size() ; ++i)
       {
-        if (req.plugins[i].name == it->first)
+        if (req.plugins[i].name == it->first) // this benchmark request includes this planning plugin
         {
           found = i;
           break;
@@ -796,30 +861,45 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       if (found < 0)
         continue;
     }
+
+    // Determine whether this plugin instance is able to represent this planning request
     if (it->second->canServiceRequest(mp_req))
     {
+      // copy the pointer of the planner_interface
       planner_interfaces_to_benchmark.push_back(it->second.get());
+
+      // add new rows to the "mapper" for the new planner_interface
       planner_ids_to_benchmark_per_planner_interface.resize(planner_ids_to_benchmark_per_planner_interface.size() + 1);
-      average_count_per_planner_interface.resize(average_count_per_planner_interface.size() + 1, 1);
+      runs_per_planner_interface.resize(runs_per_planner_interface.size() + 1, 1); // TODO: a vector does not need to be resized, it does so automatically right??
+
+      // get a list of all the algorithms that the planner can use
       std::vector<std::string> known;
       it->second->getPlanningAlgorithms(known);
 
       if (found < 0 || req.plugins[found].planners.empty())
+      {
+        // no algorithms found OR this benchmark request does not use this algorithm
         planner_ids_to_benchmark_per_planner_interface.back() = known;
+      }
       else
       {
-        average_count_per_planner_interface.back() = std::max<std::size_t>(1, req.plugins[found].runs);
+        runs_per_planner_interface.back() = std::max<std::size_t>(1, req.plugins[found].runs);  // TODO: change it here too
+
+        // loop through every planner(algorithm) in this plugin that the benchmark request desires
         for (std::size_t k = 0 ; k < req.plugins[found].planners.size() ; ++k)
         {
-          bool fnd = false;
+          bool planner_found = false;
           for (std::size_t q = 0 ; q < known.size() ; ++q)
+          {
+            // Check if the requested planner is actually in the plugin
             if (known[q] == req.plugins[found].planners[k] ||
                 mp_req.group_name + "[" + req.plugins[found].planners[k] + "]" == known[q])
             {
-              fnd = true;
+              planner_found = true;
               break;
             }
-          if (fnd)
+          }
+          if (planner_found)
             planner_ids_to_benchmark_per_planner_interface.back().push_back(req.plugins[found].planners[k]);
           else
           {
@@ -841,20 +921,21 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       ROS_WARN_STREAM("Planning interface '" << it->second->getDescription() << "' is not able to solve the specified benchmark problem.");
   }
 
+  // error check
   if (planner_interfaces_to_benchmark.empty())
   {
     ROS_ERROR("There are no planning interfaces to benchmark");
     return;
   }
 
-  // output information about tested planners
+  // output information about planners to be tested
   ROS_INFO("Benchmarking planning interfaces:");
   std::stringstream sst;
   for (std::size_t i = 0 ; i < planner_interfaces_to_benchmark.size() ; ++i)
   {
     if (planner_ids_to_benchmark_per_planner_interface[i].empty())
       continue;
-    sst << "  * " << planner_interfaces_to_benchmark[i]->getDescription() << " executed " << average_count_per_planner_interface[i] << " times" << std::endl;
+    sst << "  * " << planner_interfaces_to_benchmark[i]->getDescription() << " will execute " << runs_per_planner_interface[i] << " times" << std::endl;
     for (std::size_t k = 0 ; k < planner_ids_to_benchmark_per_planner_interface[i].size() ; ++k)
       sst << "    - " << planner_ids_to_benchmark_per_planner_interface[i][k] << std::endl;
     sst << std::endl;
@@ -862,7 +943,6 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   ROS_INFO("\n%s", sst.str().c_str());
 
   // configure planning context
-
   if (req.scene.robot_model_name != planning_scene_->getRobotModel()->getName())
   {
     // if we have a different robot, use the world geometry only
@@ -877,49 +957,103 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   else
     planning_scene_->usePlanningSceneMsg(req.scene);
 
+  // parameter sweeping functionality
+  std::size_t total_n_parameters = 0; 
+  for (std::size_t i = 0; i < sweep_options_.size(); ++i)
+  {
+    // How many runs are in this sweep?
+    std::size_t sweep_runs = (sweep_options_[i].end - sweep_options_[i].start) / sweep_options_[i].iterator;
+    total_n_parameters += sweep_runs;
+  }
+  if(!total_n_parameters)
+    total_n_parameters = 1; // by default we just run once for the default paremeters
+
+  // get stats on how many planners and total runs will be executed
   std::size_t total_n_planners = 0;
   std::size_t total_n_runs = 0;
   for (std::size_t i = 0 ; i < planner_ids_to_benchmark_per_planner_interface.size() ; ++i)
   {
     total_n_planners += planner_ids_to_benchmark_per_planner_interface[i].size();
-    total_n_runs += planner_ids_to_benchmark_per_planner_interface[i].size() * average_count_per_planner_interface[i];
+
+    // n = algorithms * runs * parameter_sweeps
+    total_n_runs += planner_ids_to_benchmark_per_planner_interface[i].size() *
+      runs_per_planner_interface[i] * total_n_parameters;
   }
 
   // benchmark all the planners
   ros::WallTime startTime = ros::WallTime::now();
   boost::progress_display progress(total_n_runs, std::cout);
-  typedef std::vector<std::map<std::string, std::string> > RunData;
-  std::vector<RunData> data;
+  std::vector<AlgorithmRunsData> data; // holds all of the results
   std::vector<bool> first(planner_interfaces_to_benchmark.size(), true);
+
+  // sweep tracking
+  std::size_t parameter_id = 0;
+  double parameter_value = 0.0;
+
+  // loop through the planning plugins
   for (std::size_t i = 0 ; i < planner_interfaces_to_benchmark.size() ; ++i)
   {
+    // loop through the algorithms in each plugin
     for (std::size_t j = 0 ; j < planner_ids_to_benchmark_per_planner_interface[i].size() ; ++j)
     {
       mp_req.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
-      RunData runs(average_count_per_planner_interface[i]);
-      for (unsigned int c = 0 ; c < average_count_per_planner_interface[i] ; ++c)
+      AlgorithmRunsData runs(runs_per_planner_interface[i]*total_n_parameters);
+
+      // loop through the desired parameter sweeps
+      for (std::size_t param_count = 0; param_count < total_n_parameters; ++param_count)
       {
-        ++progress;
-        ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
-        planning_interface::MotionPlanDetailedResponse mp_res;
-        ros::WallTime start = ros::WallTime::now();
-        bool solved = planner_interfaces_to_benchmark[i]->solve(planning_scene_, mp_req, mp_res);
-        double total_time = (ros::WallTime::now() - start).toSec();
+        std::cout << " ------------------------------------------------------ \n";
+        std::cout << "NEW LOOP \n";
+        std::cout << " ------------------------------------------------------ \n";
 
-        // collect data
-        start = ros::WallTime::now();
-        collectMetrics(runs[c], mp_res, solved, total_time);
-        double metrics_time = (ros::WallTime::now() - start).toSec();
-        ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
-
-        // record the first solution in the response
-        if (solved && first[i])
+        // apply the current parameter sweep, if we are using those
+        RunData parameter_data;
+        if( total_n_parameters > 1 )
         {
-          first[i] = false;
+          modifyPlannerConfiguration(planner_interfaces_to_benchmark[i], mp_req, parameter_id, parameter_value, parameter_data);
+          //ROS_ERROR_STREAM_NAMED("temp","MAIN LOOP parameter_value " << parameter_value << " parameter_id " << parameter_id);
+        }
+
+        // loop through the desired number of runs
+        for (unsigned int run_count = 0 ; run_count < runs_per_planner_interface[i] ; ++run_count)
+        {
+          // Combine two for loops into one id
+          std::size_t run_id = run_count * total_n_parameters + param_count;
+          ROS_ERROR_STREAM_NAMED("temp","Run id is " << run_id);
+
+          ++progress;
+
+          // run a single benchmark
+          ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
+          planning_interface::MotionPlanDetailedResponse mp_res;
+          ros::WallTime start = ros::WallTime::now();
+          ROS_ERROR_STREAM_NAMED("temp","benchmark_execution - calling solve()");          
+          bool solved = planner_interfaces_to_benchmark[i]->solve(planning_scene_, mp_req, mp_res);
+          double total_time = (ros::WallTime::now() - start).toSec();
+
+          // collect data
+          start = ros::WallTime::now();
+          runs[run_id].insert(parameter_data.begin(),parameter_data.end()); // initalize this run's data with the chosen parameters, if we have any
+          collectMetrics(runs[run_id], mp_res, solved, total_time);
+          double metrics_time = (ros::WallTime::now() - start).toSec();
+          ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
+
+          // record the first solution in the response
+          if (solved && first[i])
+          {
+            first[i] = false;
+          }
         }
       }
+      // this vector of runs represents all the runs*parameter sweeps
       data.push_back(runs);
     }
+  }
+
+  ROS_ERROR_STREAM_NAMED("temp","data size " << data.size());
+  for (std::size_t i = 0; i < data.size(); ++i)
+  {
+    ROS_ERROR_STREAM_NAMED("temp","map size = " << data[i].size());
   }
 
   double duration = (ros::WallTime::now() - startTime).toSec();
@@ -930,47 +1064,64 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
   out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
   out << "Goal name " << (req.goal_name.empty() ? "UNKNOWN" : req.goal_name) << std::endl;
-  out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
+  //out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
   out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
   out << duration << " seconds spent to collect the data" << std::endl;
   out << total_n_planners << " planners" << std::endl;
+
+
   std::size_t ri = 0;
+
+  // loop through the planning *plugins*
   for (std::size_t q = 0 ; q < planner_interfaces_to_benchmark.size() ; ++q)
-    for (std::size_t p = 0 ; p < planner_ids_to_benchmark_per_planner_interface[q].size() ; ++p, ++ri)
+  {
+    // loop through the planning *algorithms*
+    for (std::size_t p = 0 ; p < planner_ids_to_benchmark_per_planner_interface[q].size()*total_n_parameters; 
+         ++p, ++ri)
     {
+      // Output name of planning algorithm
       out << planner_interfaces_to_benchmark[q]->getDescription() + "_" + planner_ids_to_benchmark_per_planner_interface[q][p] << std::endl;
+
       // in general, we could have properties specific for a planner;
       // right now, we do not include such properties
       out << "0 common properties" << std::endl;
 
       // construct the list of all possible properties for all runs
-      std::set<std::string> propSeen;
+      std::set<std::string> properties_set;
       for (std::size_t j = 0 ; j < data[ri].size() ; ++j)
-        for (std::map<std::string, std::string>::const_iterator mit = data[ri][j].begin() ; mit != data[ri][j].end() ; ++mit)
-          propSeen.insert(mit->first);
+        for (RunData::const_iterator mit = data[ri][j].begin() ; mit != data[ri][j].end() ; ++mit)
+          properties_set.insert(mit->first);
+
+      // copy that set to a vector of properties
       std::vector<std::string> properties;
-      for (std::set<std::string>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
+      for (std::set<std::string>::iterator it = properties_set.begin() ; it != properties_set.end() ; ++it)
         properties.push_back(*it);
       out << properties.size() << " properties for each run" << std::endl;
+
+      // output the vector of properties to the log file
       for (unsigned int j = 0 ; j < properties.size() ; ++j)
         out << properties[j] << std::endl;
       out << data[ri].size() << " runs" << std::endl;
+
+      // output all the data to the log file
       for (std::size_t j = 0 ; j < data[ri].size() ; ++j)
       {
         for (unsigned int k = 0 ; k < properties.size() ; ++k)
         {
-          std::map<std::string, std::string>::const_iterator it = data[ri][j].find(properties[k]);
+          // check if this current row contains each property
+          RunData::const_iterator it = data[ri][j].find(properties[k]);
           if (it != data[ri][j].end())
             out << it->second;
           out << "; ";
         }
-        //out << SCENE_NAME << "; ";
 
         // end the line
         out << std::endl;
       }
       out << '.' << std::endl;
     }
+  }
+
   out.close();
   ROS_INFO("Results saved to '%s'", filename.c_str());
 }
@@ -1119,3 +1270,95 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     ROS_INFO("Results saved to '%s'", filename.c_str());
   }
 }
+
+void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_interface::Planner* planner,
+                                                                       planning_interface::MotionPlanRequest mp_req,
+                                                                       std::size_t &parameter_id, double &parameter_value,                                                                       
+                                                                       RunData &parameter_data)
+{
+  // TODO: make this work for >1 parameter
+
+  // Calculate what the next parameter and parameter value is
+  double parameter_value_new = parameter_value + sweep_options_[parameter_id].iterator;
+  
+  std::string str_parameter_value;
+
+  // Check if we are ready to move to the next parameter
+  if( parameter_value_new > sweep_options_[parameter_id].end + 0.00001 ) // rounding issues fudge factor
+  {
+    ++parameter_id;
+    ROS_ERROR_STREAM_NAMED("temp","parameter_id "<< parameter_id);
+    // error check
+    if( parameter_id >= sweep_options_.size() )
+    {
+      ROS_ERROR_STREAM("An error occured calculating the next parameter sweep value - the new value is " << parameter_value_new << " but the max is " << sweep_options_[parameter_id-1].end );
+      return;
+    }
+
+    // restart the iteration on the new parameter
+    parameter_value = sweep_options_[parameter_id].start;
+  }
+  else
+  {
+    // continue iterating
+    parameter_value = parameter_value_new;
+    
+    // convert to string
+    str_parameter_value = boost::lexical_cast<std::string>(parameter_value);
+
+    // record parameter values for logging
+    std::ostringstream ss;
+    ss << "param_" << sweep_options_[parameter_id].key << " REAL";
+    parameter_data[ss.str()] = str_parameter_value;
+  }
+
+  ROS_ERROR_STREAM_NAMED("temp","Parameter " << sweep_options_[parameter_id].key << " now has value " << parameter_value);
+
+  // Get the planner's current settings
+  std::map<std::string, planning_interface::PlanningConfigurationSettings> settings = planner->getPlanningConfigurations();
+
+  // The algorithm we want to tweak
+  const std::string& planner_id = mp_req.planner_id;
+
+  // Check if this planner_id already has settings (it should)
+  std::map<std::string, planning_interface::PlanningConfigurationSettings>::iterator settings_it = settings.find(planner_id);
+  if(settings_it != settings.end())
+  {
+    // key exists, add new value
+    try
+    {
+      settings_it->second.config[sweep_options_[parameter_id].key] = str_parameter_value;
+    }
+    catch(boost::bad_lexical_cast &ex)
+    {
+      ROS_WARN("%s", ex.what());
+    }
+  }
+  else // settings for this planner_id does not already exist
+  {
+    ROS_ERROR_STREAM("Settings for " << planner_id << " do not already exist. This should not happen"); // I think this is bad...
+    planning_interface::PlanningConfigurationSettings planner_config;
+  }
+
+  // Apply the new settings
+  planner->setPlanningConfigurations(settings);
+}
+
+/// Output to console the settings
+void moveit_benchmarks::BenchmarkExecution::printConfigurationSettings(const planning_interface::PlanningConfigurationMap &settings)
+{
+  // Debug map
+  for(planning_interface::PlanningConfigurationMap::const_iterator it = settings.begin();
+      it != settings.end(); ++it)
+  {
+    std::cout << "  - " << it->first << " => " << it->second.name << "/" << it->second.group << std::endl ;
+
+    // Debug map
+    for(std::map<std::string,std::string>::const_iterator config_it = it->second.config.begin();
+        config_it != it->second.config.end(); ++config_it)
+    {
+      std::cout << "      - " << config_it->first << " => " << config_it->second << std::endl;
+    }
+  }
+}
+

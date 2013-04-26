@@ -66,12 +66,16 @@ def read_benchmark_log(dbname, filenames):
         hostname = logfile.readline().split()[-1]
         date = " ".join(logfile.readline().split()[2:])
         goal_name = logfile.readline().split()[-1]
-        logfile.readline() # skip <<<|
+        
+        # disabled the planning request part
+        #logfile.readline() # skip <<<|
+        #expsetup = ""
+        #expline = logfile.readline()
+        #while not expline.startswith("|>>>"):
+        #    expsetup = expsetup + expline
+        #    expline = logfile.readline()
         expsetup = ""
-        expline = logfile.readline()
-        while not expline.startswith("|>>>"):
-            expsetup = expsetup + expline
-            expline = logfile.readline()
+
         timelimit = float(logfile.readline().split()[0])
         totaltime = float(logfile.readline().split()[0])
 

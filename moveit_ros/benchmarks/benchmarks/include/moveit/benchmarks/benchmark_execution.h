@@ -53,6 +53,9 @@ typedef unsigned int BenchmarkType;
 static const BenchmarkType BENCHMARK_PLANNERS = 1;
 static const BenchmarkType BENCHMARK_GOAL_EXISTANCE = 2;
 
+typedef std::map<std::string, std::string> RunData;
+typedef std::vector<RunData> AlgorithmRunsData;
+
 struct PlanningPluginOptions
 {
   std::string name;
@@ -119,10 +122,29 @@ private:
     std::vector<PlanningPluginOptions> plugins;
   };
 
+  /// Allows for parameter sweeping of the planner configuration
+  struct SweepOptions
+  {
+    std::string key;
+    double start;
+    double iterator;
+    double end;
+  };
+  /// key is name of parameter to sweep. will be applied to all algorithms in the benchmark
+  std::vector<SweepOptions> sweep_options_;
+
   void collectMetrics(std::map<std::string, std::string> &rundata,
                       const planning_interface::MotionPlanDetailedResponse &mp_res,
                       bool solved, double total_time);
   
+  void modifyPlannerConfiguration(planning_interface::Planner* planner, 
+                                  planning_interface::MotionPlanRequest mp_req, 
+                                  std::size_t &parameter_id, double &parameter_value,
+                                  RunData &parameter_data);
+
+  /// Output to console the settings
+  void printConfigurationSettings(const std::map<std::string,planning_interface::PlanningConfigurationSettings> &settings);
+
   BenchmarkOptions opt_; 
   std::vector<std::string> available_plugins_;
   planning_scene::PlanningScenePtr planning_scene_;
@@ -135,6 +157,7 @@ private:
 
   boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
   std::map<std::string, boost::shared_ptr<planning_interface::Planner> > planner_interfaces_;
+
 };
 
 
