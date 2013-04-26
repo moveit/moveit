@@ -594,7 +594,7 @@ public:
     if (considered_start_state_)
       robot_state::robotStateToRobotStateMsg(*considered_start_state_, req.start_state);
     req.group_name = opt_.group_name_;
-    req.header.frame_id = getRobotModel()->getModelFrame();
+    req.header.frame_id = getPoseReferenceFrame();
     req.header.stamp = ros::Time::now();
     req.waypoints = waypoints;
     req.max_step = step;
