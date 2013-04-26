@@ -195,10 +195,15 @@ class MoveGroupCommander:
             raise "There is no end effector to set the pose for"
 
     def set_pose_target(self, pose, end_effector_link = ""):
-        """ Set the pose of the end-effector, if one is available. The expected input is a list of 6 floats:"""
+        """ Set the pose of the end-effector, if one is available. The expected input is a Pose message, a PoseStamped message or a list of 6 floats:"""
         """ [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
-            if type(pose) is Pose:
+            if type(pose) is PoseStamped:
+                old = self.get_pose_reference_frame()
+                self.set_pose_reference_frame(pose.header.frame_id)
+                self._g.set_pose_target(self.__pose_to_list(pose.pose), end_effector_link)
+                self.set_pose_reference_frame(old)
+            elif type(pose) is Pose:
                 self._g.set_pose_target(self.__pose_to_list(pose), end_effector_link)
             else:
                 self._g.set_pose_target(pose, end_effector_link)
@@ -206,7 +211,7 @@ class MoveGroupCommander:
             raise "There is no end effector to set the pose for"
 
     def set_pose_targets(self, poses, end_effector_link = ""):
-        """ Set the pose of the end-effector, if one is available. The expected input is a list of poses. Each pose can be 6 floats: [x, y, z, rot_x, rot_y, rot_z] or 7 floats [x, y, z, qx, qy, qz, qw] """
+        """ Set the pose of the end-effector, if one is available. The expected input is a list of poses. Each pose can be a Pose message, a list of 6 floats: [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             self._g.set_pose_targets([self.__pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
         else:
