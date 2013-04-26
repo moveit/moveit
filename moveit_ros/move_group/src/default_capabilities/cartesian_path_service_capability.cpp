@@ -70,6 +70,8 @@ bool isStateValid(const planning_scene::PlanningScene *planning_scene,
 bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath::Request &req, moveit_msgs::GetCartesianPath::Response &res)
 {
   ROS_INFO("Received request to compute Cartesian path");
+  context_->planning_scene_monitor_->updateFrameTransforms();
+  
   robot_state::RobotState start_state = planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
   robot_state::robotStateMsgToRobotState(req.start_state, start_state);
   if (robot_state::JointStateGroup *jsg = start_state.getJointStateGroup(req.group_name))
@@ -124,9 +126,10 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
             kset->add(req.path_constraints); 
             constraint_fn = boost::bind(&isStateValid, req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : NULL, kset->empty() ? NULL : kset.get(), _1, _2);
           }
-          ROS_INFO("Attempting to follow %u waypoints for link '%s' using a step of %lf m and jump threshold %lf", (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold);
+	  bool global_frame = link_name != req.header.frame_id;
+          ROS_INFO("Attempting to follow %u waypoints for link '%s' using a step of %lf m and jump threshold %lf (in %s reference frame)", (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold, global_frame ? "global" : "link");
           std::vector<boost::shared_ptr<robot_state::RobotState> > traj;
-          res.fraction = jsg->computeCartesianPath(traj, link_name, waypoints, link_name != req.header.frame_id, req.max_step, req.jump_threshold, constraint_fn);
+          res.fraction = jsg->computeCartesianPath(traj, link_name, waypoints, global_frame, req.max_step, req.jump_threshold, constraint_fn);
           robot_state::robotStateToRobotStateMsg(start_state, res.start_state);
           
           robot_trajectory::RobotTrajectory rt(context_->planning_scene_monitor_->getRobotModel(), req.group_name);
