@@ -260,7 +260,7 @@ public:
   bool executePython(bp::dict &plan_dict)
   {
     MoveGroup::Plan plan;
-    convertDictToTrajectory(plan_dict, plan.trajectory_);    
+    convertDictToTrajectory(plan_dict, plan.trajectory_);
     return execute(plan);
   }
   
@@ -304,18 +304,17 @@ public:
   bp::dict convertTrajectoryToDict(moveit_msgs::RobotTrajectory &traj) const
   {
     bp::list joint_names = moveit_py_bindings_tools::listFromString(traj.joint_trajectory.joint_names);
-    bp::dict plan_dict, joint_trajectory, multi_dof_joint_trajectory;
+    bp::dict joint_trajectory, multi_dof_joint_trajectory;
     joint_trajectory["joint_names"] = joint_names;
     multi_dof_joint_trajectory["joint_names"] = joint_names;
     joint_trajectory["frame_id"] = traj.joint_trajectory.header.frame_id;
     multi_dof_joint_trajectory["frame_id"] = traj.multi_dof_joint_trajectory.header.frame_id;
     
-    bp::list joint_traj_points, multi_dof_traj_points, transforms;
-    bp::dict joint_traj_point, multi_dof_traj_point, position, orientation;
-
+    bp::list joint_traj_points;
     for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = traj.joint_trajectory.points.begin() ;
          it != traj.joint_trajectory.points.end() ; ++it)
     {
+      bp::dict joint_traj_point;
       joint_traj_point["positions"] = moveit_py_bindings_tools::listFromDouble(it->positions);
       joint_traj_point["velocities"] = moveit_py_bindings_tools::listFromDouble(it->velocities);
       joint_traj_point["accelerations"] = moveit_py_bindings_tools::listFromDouble(it->accelerations);
@@ -325,18 +324,21 @@ public:
 
     joint_trajectory["points"] = joint_traj_points;
     
+    bp::list multi_dof_traj_points;
     for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = traj.multi_dof_joint_trajectory.points.begin() ;
          it != traj.multi_dof_joint_trajectory.points.end() ; ++it)
     {
+      bp::dict multi_dof_traj_point;
+      bp::list transforms;
       for (std::vector<geometry_msgs::Transform>::const_iterator itr = it->transforms.begin() ; itr != it->transforms.end() ; ++itr)
         transforms.append(transformToList(*itr));
       multi_dof_traj_point["transforms"] = transforms;
       multi_dof_traj_point["time_from_start"] = it->time_from_start.toSec();
       multi_dof_traj_points.append(multi_dof_traj_point);
     }
-    
     multi_dof_joint_trajectory["points"] = multi_dof_traj_points;
 
+    bp::dict plan_dict;
     plan_dict["joint_trajectory"] = joint_trajectory;
     plan_dict["multi_dof_joint_trajectory"] = multi_dof_joint_trajectory;
     return plan_dict;
