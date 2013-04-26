@@ -156,9 +156,11 @@ public:
   
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. No more than \e jump_threshold
-      is allowed as change in distance in the configuration space of the robot (this is to prevent 'jumps' in IK solutions) */
-  bool computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
-			    moveit_msgs::RobotTrajectory &trajectory);
+      is allowed as change in distance in the configuration space of the robot (this is to prevent 'jumps' in IK solutions).
+      Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the waypoints.
+      Return -1.0 in case of error. */
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
+			      moveit_msgs::RobotTrajectory &trajectory);
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop();
