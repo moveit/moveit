@@ -32,7 +32,6 @@ find_package(octomap REQUIRED)
 set(THIS_PACKAGE_INCLUDE_DIRS
     collision_detection/include
     collision_detection_fcl/include
-    collision_distance_field/include
     constraint_samplers/include
     controller_manager/include
     distance_field/include
@@ -73,7 +72,6 @@ catkin_package(
     moveit_profiler
     moveit_trajectory_processing
     moveit_distance_field
-    moveit_collision_distance_field
     moveit_kinematics_metrics
     moveit_dynamics_solver
     moveit_kinematics_cache
@@ -125,7 +123,6 @@ add_subdirectory(planning_interface)
 add_subdirectory(planning_request_adapter)
 add_subdirectory(trajectory_processing)
 add_subdirectory(distance_field)
-add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 add_subdirectory(kinematics_cache)
