@@ -86,23 +86,13 @@ public:
   ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage) : 
     ob::StateSampler(space), state_storage_(state_storage)
   {
-    min_index_ = 0;
     max_index_ = state_storage_->size() - 1;
-    inv_dim_ = space->getDimension() > 0 ? 1.0 / (double)space->getDimension() : 1.0;
-  }
-  
-  ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage,
-                                      std::size_t mini, std::size_t maxi) : 
-    ob::StateSampler(space), state_storage_(state_storage)
-  {
-    min_index_ = mini;
-    max_index_ = maxi;  
     inv_dim_ = space->getDimension() > 0 ? 1.0 / (double)space->getDimension() : 1.0;
   }
   
   virtual void sampleUniform(ob::State *state)
   { 
-    space_->copyState(state, state_storage_->getState(rng_.uniformInt(min_index_, max_index_)));
+    space_->copyState(state, state_storage_->getState(rng_.uniformInt(0, max_index_)));
   }
   
   virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
@@ -119,7 +109,7 @@ public:
     }
     if (index < 0) 
     {
-      index = rng_.uniformInt(min_index_, max_index_);
+      index = rng_.uniformInt(0, max_index_);
     }
     
     double dist = space_->distance(near, state_storage_->getState(index));
@@ -141,20 +131,19 @@ protected:
   
   /** \brief The states to sample from */
   const ConstraintApproximationStateStorage *state_storage_;  
-  unsigned int min_index_;
   unsigned int max_index_;
   double inv_dim_;
 };
 
 ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::StateSpace *space, const std::vector<int> &expected_signature,
-                                                                     const ConstraintApproximationStateStorage *state_storage, std::size_t mini, std::size_t maxi)
+                                                                     const ConstraintApproximationStateStorage *state_storage)
 {
   std::vector<int> sig;
   space->computeSignature(sig);
   if (sig != expected_signature)
     return ompl::base::StateSamplerPtr();
   else
-    return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage, mini, maxi));
+    return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage));
 }
 
 }
@@ -175,72 +164,7 @@ ompl::base::StateSamplerAllocator ompl_interface::ConstraintApproximation::getSt
 {
   if (state_storage_->size() == 0)
     return ompl::base::StateSamplerAllocator();
-  std::size_t mini = 0;
-  std::size_t maxi = state_storage_->size() - 1;
-  if (parent_factory_)
-  {
-    ConstraintStateStorageDelimiterFn above = parent_factory_->getAboveDelimiterFunction(msg);
-    ConstraintStateStorageDelimiterFn below = parent_factory_->getBelowDelimiterFunction(msg);
-
-    // figure out mini & maxi
-    if (above)
-    {
-      std::size_t rangeStart = mini;
-      std::size_t rangeEnd = maxi;
-      
-      while (rangeStart < rangeEnd)
-      {
-        std::size_t mid = (rangeStart + rangeEnd) / 2;
-        if (above(state_storage_->getState(mid)))
-          rangeStart = mid + 1;
-        else
-          rangeEnd = mid;
-      }
-      if (rangeEnd < maxi)
-        mini = rangeEnd + 1;
-      else
-        mini = maxi;
-    }
-    
-    if (below)
-    {	
-      std::size_t rangeStart = mini;
-      std::size_t rangeEnd = maxi;
-      
-      while (rangeStart < rangeEnd)
-      {
-        std::size_t mid = (rangeStart + rangeEnd) / 2;
-        if (below(state_storage_->getState(mid)))
-        {
-          if (mid == 0)
-            rangeEnd = 0;
-          else
-            rangeEnd = mid - 1;
-        }
-        else
-          rangeStart = mid;
-      }
-      if (rangeStart > 0)
-        maxi = rangeStart - 1;
-      else
-        maxi = 0;
-    }
-    
-    if (mini > maxi)
-    {
-      logDebug("Empty sampling range found for constraint: %u, %u", (unsigned int)mini, (unsigned int)maxi);
-      return ompl::base::StateSamplerAllocator();
-    }
-    
-    if ((above && above(state_storage_->getState(mini))) || (below && below(state_storage_->getState(maxi))))
-    {
-      logDebug("Empty sampling range found for constraint: %u, %u", (unsigned int)mini, (unsigned int)maxi);
-      return ompl::base::StateSamplerAllocator();
-    }
-    
-    logDebug("Stored states sampling range is [%u, %u]", (unsigned int)mini, (unsigned int)maxi);
-  }
-  return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_, mini, maxi);
+  return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_);
 }
 
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const
@@ -413,15 +337,11 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
 
     std::map<std::string, ConstraintApproximationFactoryPtr>::const_iterator it = constraint_factories_.find(constr_hard.name);
     ConstraintApproximationFactory *fct = NULL;
-    ConstraintStateStorageOrderFn order;
     if (it != constraint_factories_.end())
-    {
       fct = it->second.get();
-      order = fct->getOrderFunction();
-    }
     
     ros::WallTime start = ros::WallTime::now();
-    ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, order, samples, edges_per_sample, res);
+    ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, samples, edges_per_sample, res);
     logInform("Spent %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
     if (ss)
     {
@@ -449,7 +369,6 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
 ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstraintApproximation(const ModelBasedPlanningContextPtr &pcontext,
                                                                                                  const moveit_msgs::Constraints &constr_sampling,
                                                                                                  const moveit_msgs::Constraints &constr_hard,
-                                                                                                 const ConstraintStateStorageOrderFn &order,
                                                                                                  unsigned int samples, unsigned int edges_per_sample,
                                                                                                  ConstraintApproximationConstructionResults &result)
 {
@@ -543,11 +462,6 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
         logInform("Constrained sampling rate: %lf", result.sampling_success_rate);
       }
     }
-  }
-  if (order)
-  {
-    logInform("Sorting states...");
-    sstor->sort(order);
   }
   
   if (edges_per_sample > 0)

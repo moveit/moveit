@@ -47,8 +47,6 @@ namespace ompl_interface
 {
 
 typedef ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > ConstraintApproximationStateStorage;
-typedef boost::function<bool(const ompl::base::State*, const ompl::base::State*)> ConstraintStateStorageOrderFn;
-typedef boost::function<bool(const ompl::base::State*)> ConstraintStateStorageDelimiterFn;
 
 class ConstraintApproximation;
 typedef boost::shared_ptr<ConstraintApproximation> ConstraintApproximationPtr;
@@ -137,21 +135,6 @@ public:
   {
   }
   
-  virtual ConstraintStateStorageOrderFn getOrderFunction() const
-  {
-    return ConstraintStateStorageOrderFn();    
-  }
-
-  virtual ConstraintStateStorageDelimiterFn getAboveDelimiterFunction(const moveit_msgs::Constraints &msg) const
-  {
-    return ConstraintStateStorageDelimiterFn();
-  }
-  
-  virtual ConstraintStateStorageDelimiterFn getBelowDelimiterFunction(const moveit_msgs::Constraints &msg) const
-  {
-    return ConstraintStateStorageDelimiterFn();
-  }  
-  
   virtual ConstraintApproximationPtr allocApproximation(const robot_model::RobotModelConstPtr &kinematic_model,
                                                         const std::string &group, const std::string &state_space_parameterization,
                                                         const moveit_msgs::Constraints &msg, const std::string &filename,
@@ -225,7 +208,6 @@ private:
   ompl::base::StateStoragePtr constructConstraintApproximation(const ModelBasedPlanningContextPtr &pcontext,
                                                                const moveit_msgs::Constraints &constr_sampling,
                                                                const moveit_msgs::Constraints &constr_hard,
-                                                               const ConstraintStateStorageOrderFn &order,
                                                                unsigned int samples, unsigned int edges_per_sample,
                                                                ConstraintApproximationConstructionResults &result);
   
