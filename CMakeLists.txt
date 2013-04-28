@@ -37,7 +37,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     distance_field/include
     dynamics_solver/include
     kinematics_base/include
-    kinematics_cache/include
     kinematics_metrics/include
     robot_model/include
     robot_state/include
@@ -50,7 +49,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     profiler/include
     sensor_manager/include
     trajectory_processing/include
-    kinematics_constraint_aware/include
 )
 
 catkin_package(
@@ -74,8 +72,6 @@ catkin_package(
     moveit_distance_field
     moveit_kinematics_metrics
     moveit_dynamics_solver
-    moveit_kinematics_cache
-    moveit_kinematics_constraint_aware
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     geometric_shapes
@@ -125,5 +121,3 @@ add_subdirectory(trajectory_processing)
 add_subdirectory(distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
-add_subdirectory(kinematics_cache)
-add_subdirectory(kinematics_constraint_aware)
