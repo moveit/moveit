@@ -89,6 +89,8 @@ class StartScreenWidget : public SetupScreenWidget
   QProgressBar *progress_bar_;
   QImage *right_image_;
   QLabel *right_image_label_;
+  QImage *logo_image_;
+  QLabel *logo_image_label_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
