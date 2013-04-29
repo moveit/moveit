@@ -37,17 +37,17 @@
 #include "get_planning_scene_service_capability.h"
 #include <moveit/move_group/capability_names.h>
 
-move_group::GetPlanningSceneService::GetPlanningSceneService():
+move_group::MoveGroupGetPlanningSceneService::MoveGroupGetPlanningSceneService():
   MoveGroupCapability("GetPlanningSceneService")
 {
 }
 
-void move_group::GetPlanningSceneService::initialize()
+void move_group::MoveGroupGetPlanningSceneService::initialize()
 {
-  get_scene_service_ = root_node_handle_.advertiseService(GET_PLANNING_SCENE_SERVICE_NAME, &GetPlanningSceneService::getPlanningSceneService, this);
+  get_scene_service_ = root_node_handle_.advertiseService(GET_PLANNING_SCENE_SERVICE_NAME, &MoveGroupGetPlanningSceneService::getPlanningSceneService, this);
 }
 
-bool move_group::GetPlanningSceneService::getPlanningSceneService(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res)
+bool move_group::MoveGroupGetPlanningSceneService::getPlanningSceneService(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res)
 {
   if (req.components.components & moveit_msgs::PlanningSceneComponents::TRANSFORMS)
     context_->planning_scene_monitor_->updateFrameTransforms();
@@ -57,4 +57,4 @@ bool move_group::GetPlanningSceneService::getPlanningSceneService(moveit_msgs::G
 }
 
 #include <class_loader/class_loader.h> 
-CLASS_LOADER_REGISTER_CLASS(move_group::GetPlanningSceneService, move_group::MoveGroupCapability)
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupGetPlanningSceneService, move_group::MoveGroupCapability)

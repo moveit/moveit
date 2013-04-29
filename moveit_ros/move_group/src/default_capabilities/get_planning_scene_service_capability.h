@@ -43,11 +43,11 @@
 namespace move_group
 {
 
-class GetPlanningSceneService : public MoveGroupCapability
+class MoveGroupGetPlanningSceneService : public MoveGroupCapability
 {
 public:
   
-  GetPlanningSceneService();
+  MoveGroupGetPlanningSceneService();
 
   virtual void initialize();
 
