@@ -758,18 +758,18 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, mscale);
       if (handler && handler->getControlsVisible())
       {
-        switch (active_eef_[i].interaction)
+        if (active_eef_[i].interaction & EEF_POSITION)
+          addPositionControl(im, active_eef_[i].interaction & EEF_FIXED);
+        if (active_eef_[i].interaction & EEF_ORIENTATION)
+          addOrientationControl(im, active_eef_[i].interaction & EEF_FIXED);
+        if (active_eef_[i].interaction & EEF_VIEWPLANE)
         {
-        case EEF_POSITION:
-          addPositionControl(im, false);
-          break;
-        case EEF_ORIENTATION:
-          addOrientationControl(im, false);
-          break;
-        case EEF_6DOF:
-        default:
-          add6DOFControl(im, false);
-          break;
+          std_msgs::ColorRGBA color;
+          color.r = 0;
+          color.g = 1;
+          color.b = 1;
+          color.a = 0.5;
+          addViewPlaneControl(im, mscale * 0.25, color);
         }
       }
       if (handler && handler->getMeshesVisible())

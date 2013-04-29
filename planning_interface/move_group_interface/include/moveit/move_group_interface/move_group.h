@@ -111,7 +111,13 @@ public:
   
   /** \brief Get the name of the group this instance operates on */
   const std::string& getName() const;
-  
+
+  /** \brief Get the name of the root link of the robot */
+  const std::string& getRobotRootLink() const;
+
+  /** \brief Get the name of the frame in which the robot is planning */
+  const std::string& getPlanningFrame() const;
+
   /** \brief Get the joints this instance operates on */
   const std::vector<std::string>& getJoints() const;
 
@@ -159,6 +165,14 @@ public:
 
   /** \brief Place an object at one of the specified possible locations */
   bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &locations);
+  
+  /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
+      between end effector configurations of consecutive points in the result \e trajectory. No more than \e jump_threshold
+      is allowed as change in distance in the configuration space of the robot (this is to prevent 'jumps' in IK solutions).
+      Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the waypoints.
+      Return -1.0 in case of error. */
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
+			      moveit_msgs::RobotTrajectory &trajectory);
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop();
@@ -253,9 +267,8 @@ public:
       is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
   void setPositionTarget(double x, double y, double z, const std::string &end_effector_link = "");
   
-  /** \brief Set the goal orientation of the end-effector \e end_effector_link to be (\e x,\e y,\e z) radians about the (X,
-      Y, Z) axes. If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setOrientationTarget(double x, double y, double z, const std::string &end_effector_link = "");
+  /** \brief Set the goal orientation of the end-effector \e end_effector_link to be (\e roll,\e pitch,\e yaw) radians. If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  void setRPYTarget(double roll, double pitch, double yaw, const std::string &end_effector_link = "");
 
   /** \brief Set the goal orientation of the end-effector \e end_effector_link to be the quaternion (\e x,\e y,\e z,\e w).
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
@@ -370,7 +383,7 @@ public:
 
   /** \brief Get the roll-pitch-yaw (XYZ) for the end-effector \e end_effector_link. 
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
-  std::vector<double> getCurrentXYZOrientation(const std::string &end_effector_link = "");
+  std::vector<double> getCurrentRPY(const std::string &end_effector_link = "");
 
   /** \brief Get random joint values for the joints planned for by this instance (see getJoints()) */
   std::vector<double> getRandomJointValues();

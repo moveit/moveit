@@ -160,36 +160,8 @@ void addPlanarXYControl(visualization_msgs::InteractiveMarker& int_marker, bool 
 
 void add6DOFControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed)
 {
-  visualization_msgs::InteractiveMarkerControl control;
-
-  if (orientation_fixed)
-    control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
-  control.orientation.w = 1;
-  control.orientation.x = 1;
-  control.orientation.y = 0;
-  control.orientation.z = 0;
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-  int_marker.controls.push_back(control);
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-  int_marker.controls.push_back(control);
-
-  control.orientation.w = 1;
-  control.orientation.x = 0;
-  control.orientation.y = 1;
-  control.orientation.z = 0;
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-  int_marker.controls.push_back(control);
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-  int_marker.controls.push_back(control);
-
-  control.orientation.w = 1;
-  control.orientation.x = 0;
-  control.orientation.y = 0;
-  control.orientation.z = 1;
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-  int_marker.controls.push_back(control);
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-  int_marker.controls.push_back(control);
+  addOrientationControl(int_marker, orientation_fixed);
+  addPositionControl(int_marker, orientation_fixed);
 }
 
 void addOrientationControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed)
@@ -245,6 +217,28 @@ void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool 
   control.orientation.y = 0;
   control.orientation.z = 1;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+}
+
+void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius, const std_msgs::ColorRGBA& color)
+{
+  visualization_msgs::InteractiveMarkerControl control;
+  control.orientation_mode = visualization_msgs::InteractiveMarkerControl::VIEW_FACING;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_PLANE;
+  control.independent_marker_orientation = true;
+  control.name = "move";
+
+  visualization_msgs::Marker marker;
+
+  marker.type = visualization_msgs::Marker::SPHERE;
+  marker.scale.x = radius * 2.0;
+  marker.scale.y = radius * 2.0;
+  marker.scale.z = radius * 2.0;
+  marker.color = color;
+
+  control.markers.push_back( marker );
+  control.always_visible = false;
+
   int_marker.controls.push_back(control);
 }
 

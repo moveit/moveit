@@ -42,7 +42,7 @@ namespace moveit_py_bindings_tools
 {
 
 template<typename T>
-std::vector<T> typeFromList(boost::python::list &values)
+std::vector<T> typeFromList(const boost::python::list &values)
 {
   int l = boost::python::len(values);
   std::vector<T> v(l);
@@ -60,12 +60,12 @@ boost::python::list listFromType(const std::vector<T>& v)
   return l;
 }
 
-std::vector<double> doubleFromList(boost::python::list &values)
+std::vector<double> doubleFromList(const boost::python::list &values)
 {
   return typeFromList<double>(values);
 }
 
-std::vector<std::string> stringFromList(boost::python::list &values)
+std::vector<std::string> stringFromList(const boost::python::list &values)
 { 
   return typeFromList<std::string>(values);
 }

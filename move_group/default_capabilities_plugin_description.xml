@@ -42,4 +42,10 @@
     </description>
   </class>
 
+  <class name="move_group/MoveGroupGetPlanningSceneService" type="move_group::MoveGroupGetPlanningSceneService" base_class_type="move_group::MoveGroupCapability">
+    <description>
+      Provide a ROS service that allows for querying the planning scene
+    </description>
+  </class>
+
 </library>

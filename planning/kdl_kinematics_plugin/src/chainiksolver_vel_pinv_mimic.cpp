@@ -216,7 +216,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const 
     }  
   }  
   // Reset the flag
-  redundant_joints_locked = false;  
+  // redundant_joints_locked = false;  
   //return the return value of the svd decomposition
   return ret;
 }

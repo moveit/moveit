@@ -35,25 +35,29 @@
 /* Author: Ioan Sucan */
 
 #include <stdexcept>
+#include <moveit/warehouse/constraints_storage.h>
+#include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit/move_group_pick_place_capability/capability_names.h>
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
+#include <moveit_msgs/GetCartesianPath.h>
 
 #include <actionlib/client/simple_action_client.h>
-#include <moveit/warehouse/constraints_storage.h>
-#include <moveit/kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <std_msgs/String.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_datatypes.h>
+#include <tf_conversions/tf_eigen.h>
 #include <ros/console.h>
 #include <ros/ros.h>
 
@@ -169,7 +173,7 @@ public:
         end_effector_link_ = joint_model_group->getLinkModelNames().back();
       pose_reference_frame_ = getRobotModel()->getModelFrame();
       
-      trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
+      trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
       
       current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
 
@@ -182,8 +186,9 @@ public:
       place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>(move_group::PLACE_ACTION, false));
       waitForAction(place_action_client_, wait_for_server, move_group::PLACE_ACTION);
       
-      execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
-      query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>("query_planner_interface");
+      execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
+      query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
+      cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -619,6 +624,36 @@ public:
       return false;
   }
   
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double step, double jump_threshold,
+			      moveit_msgs::RobotTrajectory &msg)
+  {
+    moveit_msgs::GetCartesianPath::Request req;
+    moveit_msgs::GetCartesianPath::Response res;
+
+    if (considered_start_state_)
+      robot_state::robotStateToRobotStateMsg(*considered_start_state_, req.start_state);
+    req.group_name = opt_.group_name_;
+    req.header.frame_id = getPoseReferenceFrame();
+    req.header.stamp = ros::Time::now();
+    req.waypoints = waypoints;
+    req.max_step = step;
+    req.jump_threshold = jump_threshold;
+    req.avoid_collisions = true;
+
+    if (cartesian_path_service_.call(req, res))
+    {
+      if (res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+      {
+	msg = res.solution;
+	return res.fraction;
+      }
+      else
+	return -1.0;
+    }
+    else
+      return -1.0;
+  }
+
   void stop()
   {
     if (trajectory_event_publisher_)
@@ -847,6 +882,7 @@ private:
   ros::Publisher trajectory_event_publisher_;
   ros::ServiceClient execute_service_;
   ros::ServiceClient query_service_;
+  ros::ServiceClient cartesian_path_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
@@ -947,6 +983,12 @@ bool MoveGroup::place(const std::string &object, const std::vector<manipulation_
 bool MoveGroup::place(const std::string &object, const manipulation_msgs::Grasp &grasp, const std::vector<geometry_msgs::PoseStamped> &poses)
 {
   return impl_->place(object, grasp, poses);
+}
+
+double MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
+				       moveit_msgs::RobotTrajectory &trajectory)
+{
+  return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
 }
 
 void MoveGroup::stop()
@@ -1191,7 +1233,7 @@ void MoveGroup::setPositionTarget(double x, double y, double z, const std::strin
   setPoseTarget(target, end_effector_link);
 }
 
-void MoveGroup::setOrientationTarget(double x, double y, double z, const std::string &end_effector_link)
+void MoveGroup::setRPYTarget(double r, double p, double y, const std::string &end_effector_link)
 {
   geometry_msgs::PoseStamped target;
   if (impl_->hasPoseTarget(end_effector_link))
@@ -1207,7 +1249,7 @@ void MoveGroup::setOrientationTarget(double x, double y, double z, const std::st
     target.header.frame_id = impl_->getPoseReferenceFrame();
   }
   
-  tf::quaternionTFToMsg(tf::createQuaternionFromRPY(x, y, z), target.pose.orientation);
+  tf::quaternionTFToMsg(tf::createQuaternionFromRPY(r, p, y), target.pose.orientation);
   setPoseTarget(target, end_effector_link);
 }
 
@@ -1378,7 +1420,7 @@ geometry_msgs::PoseStamped MoveGroup::getCurrentPose(const std::string &end_effe
   return pose_msg;
 }
 
-std::vector<double> MoveGroup::getCurrentXYZOrientation(const std::string &end_effector_link)
+std::vector<double> MoveGroup::getCurrentRPY(const std::string &end_effector_link)
 {
   std::vector<double> result;
   const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
@@ -1393,10 +1435,13 @@ std::vector<double> MoveGroup::getCurrentXYZOrientation(const std::string &end_e
       if (ls)
       {
 	result.resize(3);
-	Eigen::Vector3d xyz = ls->getGlobalLinkTransform().rotation().eulerAngles(0, 1, 2);
-	result[0] = xyz.x();
-	result[1] = xyz.y();
-	result[2] = xyz.z();
+	tf::Matrix3x3 ptf;
+	tf::matrixEigenToTF(ls->getGlobalLinkTransform().rotation(), ptf);
+	tfScalar pitch, roll, yaw;
+	ptf.getRPY(roll, pitch, yaw);
+	result[0] = roll;
+	result[1] = pitch;
+	result[2] = yaw;
       }
     }
   }
@@ -1478,6 +1523,16 @@ double MoveGroup::getPlanningTime() const
 void MoveGroup::setSupportSurfaceName(const std::string &name)
 {
   impl_->setSupportSurfaceName(name);
+}
+
+const std::string& MoveGroup::getRobotRootLink() const
+{
+  return impl_->getRobotModel()->getRootLinkName();
+}
+
+const std::string& MoveGroup::getPlanningFrame() const
+{
+  return impl_->getRobotModel()->getModelFrame();
 }
 
 }
