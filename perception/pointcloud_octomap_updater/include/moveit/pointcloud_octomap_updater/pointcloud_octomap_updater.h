@@ -84,6 +84,8 @@ private:
   double padding_;
   double max_range_;
   unsigned int point_subsample_;
+  std::string filtered_cloud_topic_;
+  ros::Publisher filtered_cloud_publisher_;
   
   message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
   tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
