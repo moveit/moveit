@@ -78,7 +78,6 @@ public:
       if (result)
         displaySolution(res.motion_plan_response);
       std::stringstream ss;
-      moveit::Profiler::Status(ss);
       ROS_INFO("%s", ss.str().c_str());
     }
     return result;
