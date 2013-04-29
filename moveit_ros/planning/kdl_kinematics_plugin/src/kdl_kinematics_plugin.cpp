@@ -54,21 +54,29 @@ CLASS_LOADER_REGISTER_CLASS(kdl_kinematics_plugin::KDLKinematicsPlugin, kinemati
 namespace kdl_kinematics_plugin
 {
 
-KDLKinematicsPlugin::KDLKinematicsPlugin():active_(false){}
+  KDLKinematicsPlugin::KDLKinematicsPlugin():active_(false), vel_solver_(NULL) {}
 
-void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array) const
+void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array,
+                                                 bool lock_redundancy) const
 {
   std::vector<double> jnt_array_vector(dimension_,0.0);  
   robot_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
   joint_state_group->setToRandomValues();  
   joint_state_group->getVariableValues(jnt_array_vector);
   for(std::size_t i=0; i < dimension_; ++i)
+  {
+    if(lock_redundancy)
+      for(std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
+        if(redundant_joint_indices_[j] == i)
+          continue;  
     jnt_array(i) = jnt_array_vector[i];    
+  }
 }
 
 void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state,
                                                  const std::vector<double> &consistency_limits,
-                                                 KDL::JntArray &jnt_array) const
+                                                 KDL::JntArray &jnt_array,
+                                                 bool lock_redundancy) const
 {
   std::vector<double> values, near;
   for(std::size_t i=0; i < dimension_; ++i) 
@@ -80,6 +88,10 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state
   joint_state_group->getVariableValues(values);
   for(std::size_t i=0; i < dimension_; ++i) 
   {  
+    if(lock_redundancy)
+      for(std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
+        if(redundant_joint_indices_[j] == i)
+          continue;  
     jnt_array(i) = values[i];    
   } 
 }
@@ -206,13 +218,9 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   // Check for mimic joints
   bool has_mimic_joints = joint_model_group->getMimicJointModels().size() > 0;  
   std::vector<unsigned int> redundant_joints_map_index;    
-  if(!has_mimic_joints)
+  if(has_mimic_joints)
   {
-    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(kdl_chain_));
-    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
-  }
-  else
-  {    
+
     std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;    
     ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), num_possible_redundant_joints_, position_ik));
     ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
@@ -262,8 +270,13 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     KDL::ChainIkSolverPos_NR_JL_Mimic* tmp_pos_solver = static_cast<KDL::ChainIkSolverPos_NR_JL_Mimic*> (ik_solver_pos_.get());
     
     vel_solver_->setMimicJoints(mimic_joints);
-    tmp_pos_solver->setMimicJoints(mimic_joints);    
-  }  
+    tmp_pos_solver->setMimicJoints(mimic_joints);
+  }
+  else
+  {    
+    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(kdl_chain_));
+    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
+  }
 
   // Setup the joint state groups that we need
   kinematic_state_.reset(new robot_state::RobotState((const robot_model::RobotModelConstPtr) kinematic_model_));
@@ -319,7 +332,8 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
   }        
   for(std::size_t i=0; i < redundant_joints_map_index.size(); ++i)
     ROS_DEBUG("Redundant joint map index: %d %d", (int) i, (int) redundant_joints_map_index[i]);
-  vel_solver_->setRedundantJointsMapIndex(redundant_joints_map_index);    
+  if (vel_solver_)
+    vel_solver_->setRedundantJointsMapIndex(redundant_joints_map_index);    
   redundant_joint_indices_ = redundant_joints;  
   return true;  
 }
@@ -477,7 +491,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     return false;        
   }  
 
-  if(lock_redundancy)
+  if(lock_redundancy && vel_solver_)
   {
     vel_solver_->lockRedundantJoints();    
   }  
@@ -509,12 +523,14 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     {
       ROS_DEBUG("IK timed out");
       error_code.val = error_code.TIMED_OUT;
+      if (vel_solver_)
+	vel_solver_->unlockRedundantJoints();    
       return false;      
     }    
     int ik_valid = ik_solver_pos_->CartToJnt(jnt_pos_in_,pose_desired,jnt_pos_out_);                     
     if(!consistency_limits.empty()) 
     {
-      getRandomConfiguration(jnt_seed_state_, consistency_limits, jnt_pos_in_);
+      getRandomConfiguration(jnt_seed_state_, consistency_limits, jnt_pos_in_, lock_redundancy);
       if(ik_valid < 0 || !checkConsistency(jnt_seed_state_, consistency_limits, jnt_pos_out_))
       {
         ROS_DEBUG("Could not find IK solution");        
@@ -523,7 +539,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     }
     else
     {
-      getRandomConfiguration(jnt_pos_in_);
+      getRandomConfiguration(jnt_pos_in_, lock_redundancy);
       if(ik_valid < 0)
       {
         ROS_DEBUG("Could not find IK solution");        
@@ -541,11 +557,15 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     if(error_code.val == error_code.SUCCESS)
     {
       ROS_DEBUG_STREAM("Solved after " << counter << " iterations");
+      if (vel_solver_)
+	vel_solver_->unlockRedundantJoints();    
       return true;
     }
   }
   ROS_DEBUG("An IK that satisifes the constraints and is collision free could not be found");   
   error_code.val = error_code.NO_IK_SOLUTION;
+  if (vel_solver_)
+    vel_solver_->unlockRedundantJoints();    
   return false;
 }
 

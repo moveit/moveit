@@ -39,6 +39,8 @@
 namespace trajectory_execution_manager
 {
 
+const std::string TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC = "trajectory_execution_event";
+
 static const ros::Duration DEFAULT_CONTROLLER_INFORMATION_VALIDITY_AGE(1.0);
 static const double DEFAULT_CONTROLLER_GOAL_DURATION_SCALING = 1.1; // allow the execution of a trajectory to take more time than expected (scaled by a value > 1)
 static const ros::Duration DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN(0.5); // allow 0.5s more than the expected execution time before triggering a trajectory cancel (applied after scaling)
@@ -112,7 +114,7 @@ void TrajectoryExecutionManager::initialize()
   // other configuration steps
   reloadControllerInformation();
   
-  event_topic_subscriber_ = root_node_handle_.subscribe("trajectory_execution_event", 100, &TrajectoryExecutionManager::receiveEvent, this);
+  event_topic_subscriber_ = root_node_handle_.subscribe(EXECUTION_EVENT_TOPIC, 100, &TrajectoryExecutionManager::receiveEvent, this);
   
   if (manage_controllers_)
     ROS_INFO("Trajectory execution is managing controllers");

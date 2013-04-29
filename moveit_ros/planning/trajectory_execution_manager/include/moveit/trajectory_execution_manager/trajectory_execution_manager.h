@@ -57,6 +57,8 @@ class TrajectoryExecutionManager
 {
 public:
 
+  static const std::string EXECUTION_EVENT_TOPIC;
+
   /// Definition of the function signature that is called when the execution of all the pushed trajectories completes. The status of the overall execution is passed as argument
   typedef boost::function<void(const moveit_controller_manager::ExecutionStatus&)> ExecutionCompleteCallback;
 

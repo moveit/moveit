@@ -63,7 +63,17 @@ public:
   static const std::string INTERACTIVE_MARKER_TOPIC;
 
   /// The different types of interaction that can be constructed for an end effector
-  enum EndEffectorInteractionStyle { EEF_6DOF, EEF_POSITION, EEF_ORIENTATION };
+  enum EndEffectorInteractionStyle
+  {
+    EEF_POSITION = 1,
+    EEF_ORIENTATION = 2,
+    EEF_VIEWPLANE = 4,
+    EEF_FIXED = 8,  // or this in to any other to make the axis fixed
+    EEF_6DOF = EEF_POSITION|EEF_ORIENTATION,
+    EEF_POSITION_AND_VIEWPLANE = EEF_POSITION|EEF_VIEWPLANE,
+    EEF_ORIENTATION_AND_VIEWPLANE = EEF_ORIENTATION|EEF_VIEWPLANE,
+    EEF_6DOF_AND_VIEWPLANE = EEF_6DOF|EEF_VIEWPLANE
+  };
 
   /// Representation of an interaction via an end-effector
   struct EndEffector

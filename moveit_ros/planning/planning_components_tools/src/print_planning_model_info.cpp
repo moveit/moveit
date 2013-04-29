@@ -34,7 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <ros/ros.h>
+
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 int main(int argc, char **argv)
 {
@@ -42,10 +45,10 @@ int main(int argc, char **argv)
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
-    
-    planning_scene_monitor::PlanningSceneMonitor psm("robot_description");
+
+    robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
     ros::Duration(0.5).sleep();
-    psm.getPlanningScene()->getRobotModel()->printModelInfo(std::cout);
+    rml.getModel()->printModelInfo(std::cout);
     
     ros::shutdown();
     return 0;

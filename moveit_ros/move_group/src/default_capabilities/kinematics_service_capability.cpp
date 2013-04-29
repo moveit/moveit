@@ -138,6 +138,8 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
 
 bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Request &req, moveit_msgs::GetPositionIK::Response &res)
 {
+  context_->planning_scene_monitor_->updateFrameTransforms();
+
   // check if the planning scene needs to be kept locked; if so, call computeIK() in the scope of the lock
   if (req.ik_request.avoid_collisions || !kinematic_constraints::isEmpty(req.ik_request.constraints))
   {
@@ -161,7 +163,9 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME;
     return true;
   }
-  
+
+  context_->planning_scene_monitor_->updateFrameTransforms();
+ 
   const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
   bool do_transform = !req.header.frame_id.empty() && req.header.frame_id != default_frame && context_->planning_scene_monitor_->getTFClient();
   bool tf_problem = false;

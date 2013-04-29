@@ -96,7 +96,7 @@ add_subdirectory(constraint_sampler_manager_loader)
 add_subdirectory(planning_pipeline)
 add_subdirectory(planning_request_adapter_plugins)
 add_subdirectory(planning_scene_monitor)
-add_subdirectory(planning_scene_monitor_tools)
+add_subdirectory(planning_components_tools)
 add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
 

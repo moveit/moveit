@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,30 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#ifndef MOVEIT_MOVE_GROUP_GET_PLANNING_SCENE_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_GET_PLANNING_SCENE_CAPABILITY_
 
-int main(int argc, char **argv)
+#include <moveit/move_group/move_group_capability.h>
+#include <moveit_msgs/GetPlanningScene.h>
+
+namespace move_group
 {
-  ros::init(argc, argv, "inverse_kinematics_test");
 
+class MoveGroupGetPlanningSceneService : public MoveGroupCapability
+{
+public:
+  
+  MoveGroupGetPlanningSceneService();
+
+  virtual void initialize();
+
+private:
+  
+  bool getPlanningSceneService(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
+  
+  ros::ServiceServer get_scene_service_;
+};
 
 }
+
+#endif
