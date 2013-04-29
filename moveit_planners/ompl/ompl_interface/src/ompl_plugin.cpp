@@ -86,7 +86,6 @@ public:
   {
     display_random_valid_states_ = false;
     bool r = ompl_interface_->solve(planning_scene, req, res);
-    moveit::Profiler::Status();
     if (!planner_data_link_name_.empty())
       displayPlannerData(planning_scene, planner_data_link_name_);
     return r;
