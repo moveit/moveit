@@ -238,7 +238,6 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             plan->trajectories_.push_back(et_approach);
 
             addGripperTrajectory(plan, plan->retreat_posture_, collision_matrix_, "grasp");
-
             plan_execution::ExecutableTrajectory et_retreat(retreat_traj, "retreat");
             et_retreat.allowed_collision_matrix_ = collision_matrix_;
             plan->trajectories_.push_back(et_retreat);

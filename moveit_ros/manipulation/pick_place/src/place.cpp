@@ -39,6 +39,7 @@
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
 #include <moveit/robot_state/conversions.h>
+#include <eigen_conversions/eigen_msg.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -46,6 +47,21 @@ namespace pick_place
 
 PlacePlan::PlacePlan(const PickPlaceConstPtr &pick_place) : PickPlacePlanBase(pick_place, "place")
 {
+}
+
+bool PlacePlan::transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose, 
+					   const robot_state::AttachedBody* attached_body,
+					   geometry_msgs::PoseStamped &place_pose)
+{
+  const EigenSTL::vector_Affine3d& fixed_transforms = attached_body->getFixedTransforms();
+  if(fixed_transforms.empty())
+    return false;
+  Eigen::Affine3d end_effector_transform;
+  tf::poseMsgToEigen(goal_pose.pose, end_effector_transform);
+  end_effector_transform = end_effector_transform * fixed_transforms[0].inverse();
+  place_pose = goal_pose;
+  tf::poseEigenToMsg(end_effector_transform, place_pose.pose);
+  return true;
 }
 
 bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal)
@@ -181,13 +197,17 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   {
     ManipulationPlanPtr p(new ManipulationPlan(const_plan_data));
     const manipulation_msgs::PlaceLocation &pl = goal.place_locations[i];
-    p->goal_pose_ = pl.place_pose;
+    // The goals are specified for the attached body 
+    // but we want to transform them into goals for the end-effector instead
+    transformToEndEffectorGoal(pl.place_pose, attached_body, p->goal_pose_);
+    //    p->goal_pose_ = pl.place_pose;
     p->approach_ = pl.approach;
     p->retreat_ = pl.retreat;
     p->retreat_posture_ = pl.post_place_posture;
     pipeline_.push(p);
   }
-  
+  ROS_INFO("Added %d place locations", (int) goal.place_locations.size());  
+
   // wait till we're done
   waitForPipeline(endtime);
   
@@ -212,6 +232,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
 PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const
 {
   PlacePlanPtr p(new PlacePlan(shared_from_this()));
+  ROS_INFO("Goal has %d place locations", goal.place_locations.size());
   if (planning_scene::PlanningScene::isEmpty(goal.planning_options.planning_scene_diff))
     p->plan(planning_scene, goal);
   else
