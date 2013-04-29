@@ -454,17 +454,49 @@ public:
     return true;
   }
 
+  /** \brief Place an object at one of the specified possible locations */
+  bool place(const std::string &object, const manipulation_msgs::Grasp &grasp, const std::vector<geometry_msgs::PoseStamped> &poses)
+  {
+    std::vector<manipulation_msgs::PlaceLocation> locations;
+    for(std::size_t i=0; i < poses.size(); ++i)
+    {
+      manipulation_msgs::PlaceLocation location;
+      location.approach.direction.vector.z = -1.0;
+      location.retreat.direction.vector.x = -1.0;
+      location.approach.direction.header.frame_id = pose_reference_frame_;
+      location.retreat.direction.header.frame_id = end_effector_link_;
+
+      location.approach.min_distance = 0.1;
+      location.approach.desired_distance = 0.2;
+      location.retreat.min_distance = 0.0;
+      location.retreat.desired_distance = 0.2;
+      location.post_place_posture = grasp.pre_grasp_posture;
+
+      location.place_pose = poses[i];
+      locations.push_back(location);
+    }
+    ROS_DEBUG("Move group interface has %d place locations", (int) locations.size());
+    return place(object, locations);
+  }
+
   bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
   {   
     if (!place_action_client_)
+    {
+      ROS_ERROR_STREAM("Place action client not found");
       return false;
+    }
     if (!place_action_client_->isServerConnected())
+    {
+      ROS_ERROR_STREAM("Place action server not connected");
       return false; 
+    }
     moveit_msgs::PlaceGoal goal;
     constructGoal(goal, object);
     goal.place_locations = locations;
     goal.planning_options.plan_only = false;
     place_action_client_->sendGoal(goal); 
+    ROS_DEBUG("Sent place goal with %d locations", (int) goal.place_locations.size());
     if (!place_action_client_->waitForResult())
     {
       ROS_INFO_STREAM("Place action returned early");
@@ -480,12 +512,18 @@ public:
     }
   }  
 
-  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
+  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps, manipulation_msgs::Grasp &result_grasp)
   {
     if (!pick_action_client_)
+    {
+      ROS_ERROR_STREAM("Pick action client not found");
       return false;
+    }
     if (!pick_action_client_->isServerConnected())
+    {
+      ROS_ERROR_STREAM("Pick action server not connected");
       return false;
+    }
     moveit_msgs::PickupGoal goal;
     constructGoal(goal, object);
     goal.possible_grasps = grasps;
@@ -497,6 +535,7 @@ public:
     }
     if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
+      result_grasp = pick_action_client_->getResult()->grasp;
       return true;
     }
     else
@@ -811,6 +850,9 @@ private:
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
+
+  // Pre-constructed default place location
+  manipulation_msgs::PlaceLocation default_place_location_;
 };
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
@@ -872,12 +914,24 @@ bool MoveGroup::plan(Plan &plan)
 
 bool MoveGroup::pick(const std::string &object)
 {
-  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>());
+  manipulation_msgs::Grasp result_grasp;
+  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>(), result_grasp);
 }
 
 bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
 {
-  return impl_->pick(object, grasps);
+  manipulation_msgs::Grasp result_grasp;
+  return impl_->pick(object, grasps, result_grasp);
+}
+
+bool MoveGroup::pick(const std::string &object, manipulation_msgs::Grasp &result_grasp)
+{
+  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>(), result_grasp);
+}
+
+bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps, manipulation_msgs::Grasp &result_grasp)
+{
+  return impl_->pick(object, grasps, result_grasp);
 }
 
 bool MoveGroup::place(const std::string &object)
@@ -888,6 +942,11 @@ bool MoveGroup::place(const std::string &object)
 bool MoveGroup::place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
 {
   return impl_->place(object, locations);
+}
+
+bool MoveGroup::place(const std::string &object, const manipulation_msgs::Grasp &grasp, const std::vector<geometry_msgs::PoseStamped> &poses)
+{
+  return impl_->place(object, grasp, poses);
 }
 
 void MoveGroup::stop()
