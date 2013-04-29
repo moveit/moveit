@@ -45,6 +45,15 @@
 namespace planning_interface
 {
 
+/// Holds settings specific for each planner, as found in i.e. ompl_planning.yaml
+struct PlanningConfigurationSettings
+{
+  std::string                        name;
+  std::string                        group;
+  std::map<std::string, std::string> config;
+};
+typedef std::map<std::string, PlanningConfigurationSettings> PlanningConfigurationMap;
+
 /** \brief Base class for a MoveIt planner */
 class Planner
 {
@@ -78,6 +87,12 @@ public:
   
   /// Determine whether this plugin instance is able to represent this planning request
   virtual bool canServiceRequest(const MotionPlanRequest &req)  const = 0;
+
+  /// Settings for planners to use for their specific algorithms
+  virtual void setPlanningConfigurations(const PlanningConfigurationMap &pcs) const = 0;
+
+  /// Get settings for planners to use for their specific algorithms, so that they can then be modified
+  virtual const PlanningConfigurationMap getPlanningConfigurations() const = 0;
   
   /// Request termination, if a solve() function is currently computing plans
   virtual void terminate() const = 0;
