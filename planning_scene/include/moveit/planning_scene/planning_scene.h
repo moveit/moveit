@@ -49,6 +49,7 @@
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/PlanningSceneComponents.h>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
@@ -362,6 +363,10 @@ public:
       exactly the same using setPlanningSceneMsg() */
   void getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const;
 
+  /** \brief Construct a message (\e scene) with the data requested in \e comp. If all options in \e comp are filled,
+      this will be a complete planning scene message */
+  void getPlanningSceneMsg(moveit_msgs::PlanningScene &scene, const moveit_msgs::PlanningSceneComponents &comp) const;
+
   /** \brief Apply changes to this planning scene as diffs, even if the message itself is not marked as being a diff (is_diff
       member). A parent is not required to exist. However, the existing data in the planning instance is not cleared. Data from
       the message is only appended (and in cases such as e.g., the robot state, is overwritten). */
@@ -594,7 +599,8 @@ private:
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
-
+  void getPlanningSceneMsgObjectColors(moveit_msgs::PlanningScene &scene_msg) const;
+  
   struct CollisionDetector;
   typedef boost::shared_ptr<CollisionDetector> CollisionDetectorPtr;
   typedef boost::shared_ptr<const CollisionDetector> CollisionDetectorConstPtr;
