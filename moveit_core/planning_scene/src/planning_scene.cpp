@@ -853,6 +853,21 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   getAllowedCollisionMatrix().getMessage(scene_msg.allowed_collision_matrix);
   getCollisionRobot()->getPadding(scene_msg.link_padding);
   getCollisionRobot()->getScale(scene_msg.link_scale);
+
+  getPlanningSceneMsgObjectColors(scene_msg);
+ 
+  // add collision objects
+  getPlanningSceneMsgCollisionObjects(scene_msg);
+
+  // get the octomap
+  getPlanningSceneMsgOctomap(scene_msg);
+
+  // get the collision map
+  getPlanningSceneMsgCollisionMap(scene_msg);
+}
+
+void planning_scene::PlanningScene::getPlanningSceneMsgObjectColors(moveit_msgs::PlanningScene &scene_msg) const
+{
   scene_msg.object_colors.clear();
 
   unsigned int i = 0;
@@ -864,15 +879,60 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
     scene_msg.object_colors[i].id = it->first;
     scene_msg.object_colors[i].color = it->second;
   }
+}
 
-  // add collision objects
-  getPlanningSceneMsgCollisionObjects(scene_msg);
+void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene_msg, const moveit_msgs::PlanningSceneComponents &comp) const
+{
+  scene_msg.is_diff = false;
+  if (comp.components & moveit_msgs::PlanningSceneComponents::SCENE_SETTINGS)
+  {
+    scene_msg.name = name_;
+    scene_msg.robot_model_root = getRobotModel()->getRootLinkName();
+    scene_msg.robot_model_name = getRobotModel()->getName();
+  }
 
+  if (comp.components & moveit_msgs::PlanningSceneComponents::TRANSFORMS)
+    getTransforms()->getTransforms(scene_msg.fixed_frame_transforms);
+
+  if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS)
+    robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, true);
+  else
+    if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE)
+      robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, false);
+
+  if (comp.components & moveit_msgs::PlanningSceneComponents::ALLOWED_COLLISION_MATRIX)
+    getAllowedCollisionMatrix().getMessage(scene_msg.allowed_collision_matrix);
+
+  if (comp.components & moveit_msgs::PlanningSceneComponents::LINK_PADDING_AND_SCALING)
+  {
+    getCollisionRobot()->getPadding(scene_msg.link_padding);
+    getCollisionRobot()->getScale(scene_msg.link_scale);
+  }
+
+  if (comp.components & moveit_msgs::PlanningSceneComponents::OBJECT_COLORS)
+    getPlanningSceneMsgObjectColors(scene_msg);
+  
+  // add collision objects   
+  if (comp.components & moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY)
+    getPlanningSceneMsgCollisionObjects(scene_msg);
+  else
+    if (comp.components & moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_NAMES)
+    {  
+      const std::vector<std::string> &ns = world_->getObjectIds();
+      scene_msg.world.collision_objects.clear();
+      scene_msg.world.collision_objects.reserve(ns.size());
+      for (std::size_t i = 0 ; i < ns.size() ; ++i)
+        if (ns[i] != COLLISION_MAP_NS && ns[i] != OCTOMAP_NS)
+        {
+          moveit_msgs::CollisionObject co;
+          co.id = ns[i];
+          scene_msg.world.collision_objects.push_back(co);
+        }
+    }
+  
   // get the octomap
-  getPlanningSceneMsgOctomap(scene_msg);
-
-  // get the collision map
-  getPlanningSceneMsgCollisionMap(scene_msg);
+  if (comp.components & moveit_msgs::PlanningSceneComponents::OCTOMAP)
+    getPlanningSceneMsgOctomap(scene_msg);
 }
 
 void planning_scene::PlanningScene::saveGeometryToStream(std::ostream &out) const
