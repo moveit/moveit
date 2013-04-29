@@ -34,23 +34,29 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
-#define MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
+#ifndef MOVEIT_MOVE_GROUP_GET_PLANNING_SCENE_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_GET_PLANNING_SCENE_CAPABILITY_
 
-#include <string>
+#include <moveit/move_group/move_group_capability.h>
+#include <moveit_msgs/GetPlanningScene.h>
 
 namespace move_group
 {
 
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_PLANNERS_SERVICE_NAME = "query_planner_interface"; // name of the advertised query planners service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string IK_SERVICE_NAME = "compute_ik"; // name of ik service
-static const std::string FK_SERVICE_NAME = "compute_fk"; // name of fk service
-static const std::string STATE_VALIDITY_SERVICE_NAME = "check_state_validity"; // name of the service that validates states
-static const std::string CARTESIAN_PATH_SERVICE_NAME = "compute_cartesian_path"; // name of the service that computes cartesian paths
-static const std::string GET_PLANNING_SCENE_SERVICE_NAME = "get_planning_scene"; // name of the service that can be used to query the planning scene
+class GetPlanningSceneService : public MoveGroupCapability
+{
+public:
+  
+  GetPlanningSceneService();
+
+  virtual void initialize();
+
+private:
+  
+  bool getPlanningSceneService(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
+  
+  ros::ServiceServer get_scene_service_;
+};
 
 }
 
