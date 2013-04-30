@@ -37,20 +37,6 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <ros/ros.h>
 
-void demoFollowConstraints(move_group_interface::MoveGroup &group)
-{
-  geometry_msgs::PoseStamped curr = group.getCurrentPose();
-  
-  std::vector<geometry_msgs::Pose> c(2);
-  c[0] = curr.pose;
-  c[1] = c[0];
-  c[1].position.x -= 0.01;
-  
-  group.followConstraints(c);
-  move_group_interface::MoveGroup::Plan p;  
-  group.plan(p); 
-}
-
 void demoPick(move_group_interface::MoveGroup &group)
 {
   std::vector<manipulation_msgs::Grasp> grasps;
