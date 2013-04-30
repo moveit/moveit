@@ -34,18 +34,15 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include <moveit/ompl_interface/ompl_interface_ros.h>
+#include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/robot_state/conversions.h>
 #include <tf/transform_listener.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit_msgs/GetMotionPlan.h>
-#include <moveit_msgs/ConstructConstraintApproximation.h>
 
 static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string CONSTRUCT_CONSTRAINT_APPROXIMATION_SERVICE_NAME="construct_constraint_approximation"; // name of the advertised service (within the ~ namespace)
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
 
 class OMPLPlannerService
@@ -56,7 +53,6 @@ public:
     nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getRobotModel()), debug_(debug)
   {
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
-    construct_ca_service_ = nh_.advertiseService(CONSTRUCT_CONSTRAINT_APPROXIMATION_SERVICE_NAME, &OMPLPlannerService::constructConstraintApproximation, this);
     if (debug_)
     {
       pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 100);
@@ -91,26 +87,7 @@ public:
     d.trajectory.resize(1, mplan_res.trajectory);
     pub_plan_.publish(d);
   }
-  
-  bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
-  {
-    planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
-    robot_state::robotStateMsgToRobotState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentStateNonConst());
-    ompl_interface::ConstraintApproximationConstructionResults ca_res = 
-      ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
-                                                                         diff_scene, req.samples, req.edges_per_sample);
-    if (ca_res.approx)
-    {
-      res.sampling_success_rate = ca_res.sampling_success_rate;
-      res.state_sampling_time = ca_res.state_sampling_time;
-      res.state_connection_time = ca_res.state_connection_time;
-      res.filename = ca_res.approx->getFilename();
-      return ompl_interface_.saveConstraintApproximations();
-    }
-    else
-      return false;
-  }
-  
+
   void status()
   {
     ompl_interface_.printStatus();
@@ -123,9 +100,8 @@ private:
   
   ros::NodeHandle                               nh_;
   planning_scene_monitor::PlanningSceneMonitor &psm_;  
-  ompl_interface::OMPLInterfaceROS              ompl_interface_;
+  ompl_interface::OMPLInterface                 ompl_interface_;
   ros::ServiceServer                            plan_service_;
-  ros::ServiceServer                            construct_ca_service_;  
   ros::ServiceServer                            display_states_service_;
   ros::Publisher                                pub_plan_;
   ros::Publisher                                pub_request_;

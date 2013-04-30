@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/ompl_interface_ros.h>
+#include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/profiler/profiler.h>
 
@@ -45,8 +45,8 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 moveit_msgs::Constraints getConstraints()
 {
   moveit_msgs::OrientationConstraint ocm;
-  ocm.link_name = "arm_wrist_3_link";
-  ocm.header.frame_id = "arm_base_link";
+  ocm.link_name = "r_wrist_roll_link";
+  ocm.header.frame_id = "torso_lift_link";
   ocm.orientation.x = 0.055;
   ocm.orientation.y = -0.724;
   ocm.orientation.z = -0.078;
@@ -65,13 +65,34 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
 	       unsigned int ns, unsigned int ne)
 {
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(robot_model));
-  ompl_interface::OMPLInterfaceROS ompl_interface(robot_model);
+  ompl_interface::OMPLInterface ompl_interface(robot_model);
   moveit_msgs::Constraints c = getConstraints(); 
   
-  ompl_interface.getConstraintsLibrary().addConstraintApproximation(c, "arm", "PoseModel", ps, ns, ne);
-  ompl_interface.getConstraintsLibrary().saveConstraintApproximations("/u/moveit/constraints_approximation_database");
+  ompl_interface.getConstraintsLibrary().addConstraintApproximation(c, "right_arm", "PoseModel", ps, ns, ne);
+  ompl_interface.getConstraintsLibrary().saveConstraintApproximations("/home/isucan/constraints_approximation_database");
   ROS_INFO("Done");
 }
+
+  /*
+  bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
+  {
+    planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
+    robot_state::robotStateMsgToRobotState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentStateNonConst());
+    ompl_interface::ConstraintApproximationConstructionResults ca_res = 
+      ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
+                                                                         diff_scene, req.samples, req.edges_per_sample);
+    if (ca_res.approx)
+    {
+      res.sampling_success_rate = ca_res.sampling_success_rate;
+      res.state_sampling_time = ca_res.state_sampling_time;
+      res.state_connection_time = ca_res.state_connection_time;
+      res.filename = ca_res.approx->getFilename();
+      return ompl_interface_.saveConstraintApproximations();
+    }
+    else
+      return false;
+  }
+  */  
 
 int main(int argc, char **argv)
 {
@@ -79,10 +100,10 @@ int main(int argc, char **argv)
   
   ros::AsyncSpinner spinner(1);
   spinner.start();
-
+  
   unsigned int nstates = 1000;
   unsigned int nedges = 0;
-
+  
   if (argc > 1)
     try
     {
@@ -91,7 +112,7 @@ int main(int argc, char **argv)
     catch(...)
     {
     }
-
+  
   if (argc > 2)
     try
     {
@@ -100,7 +121,7 @@ int main(int argc, char **argv)
     catch(...)
     {
     }
-
+  
   robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
   computeDB(rml.getModel(), nstates, nedges);
   
