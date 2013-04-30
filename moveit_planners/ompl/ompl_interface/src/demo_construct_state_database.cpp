@@ -67,8 +67,16 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(robot_model));
   ompl_interface::OMPLInterface ompl_interface(robot_model);
   moveit_msgs::Constraints c = getConstraints(); 
+  ompl_interface::ConstraintApproximationConstructionOptions opt;
+  opt.state_space_parameterization = "PoseModel";
+  opt.samples = ns;
+  opt.edges_per_sample = ne;
+  opt.explicit_motions = true;
+  opt.max_edge_length = 1.0;
+  opt.explicit_points_resolution = 0.05;
+  opt.max_explicit_points = 10;
   
-  ompl_interface.getConstraintsLibrary().addConstraintApproximation(c, "right_arm", "PoseModel", ps, ns, ne);
+  ompl_interface.getConstraintsLibrary().addConstraintApproximation(c, "right_arm", ps, opt);
   ompl_interface.getConstraintsLibrary().saveConstraintApproximations("/home/isucan/constraints_approximation_database");
   ROS_INFO("Done");
 }
