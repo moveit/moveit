@@ -223,12 +223,6 @@ class MoveGroupCommander:
         else:
             raise "There is no end effector to set poses for"
 
-    def follow_pose_sequence(self, poses, end_effector_link = ""):  
-        if len(end_effector_link) > 0 or self.has_end_effector_link():
-            self._g.follow_constraints([self.__pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
-        else:
-            raise "There is no end effector to set poses for"
-
     def shift_pose_target(self, axis, value, end_effector_link = ""):
         """ Get the current pose of the end effector, add value to the corresponding axis (0..5: X, Y, Z, R, P, Y) and set the new pose as the pose target """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
