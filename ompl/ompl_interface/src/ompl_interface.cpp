@@ -128,50 +128,10 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   context->setPlanningVolume(req.workspace_parameters);
   if (!context->setPathConstraints(req.path_constraints, error_code))
     return ModelBasedPlanningContextPtr();
-
-  if (req.trajectory_constraints.constraints.empty())
-  {
-    if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, error_code))
-      return ModelBasedPlanningContextPtr(); 
-    static const std::vector<ValidConstrainedSamplerPtr> empty;
-    context->setFollowSamplers(empty);
-  }
-  else
-  {  
-    if (req.goal_constraints.empty())
-    {
-      // if there are no goal constraints, then the goal has to satisfy the last trajectory constraint only
-      std::vector<moveit_msgs::Constraints> goal_constraints(1, req.trajectory_constraints.constraints.back());
-      if (!context->setGoalConstraints(goal_constraints, req.path_constraints, error_code))
-        return ModelBasedPlanningContextPtr();
-    }
-    else
-    {
-      // if there are goal constraints, the goal has to satisfy them as well as the path constraints and the last trajectory constraint
-      moveit_msgs::Constraints additional_constraints = kinematic_constraints::mergeConstraints(req.path_constraints, req.trajectory_constraints.constraints.back());
-      if (!context->setGoalConstraints(req.goal_constraints, additional_constraints, error_code))
-        return ModelBasedPlanningContextPtr();
-    }
-
-    // construct the valid state samplers we have to go through
-    std::size_t n1 = req.trajectory_constraints.constraints.size() - 1;
-    ROS_DEBUG("%s: Allocating %u constrained samplers.", context->getName().c_str(), (unsigned int)n1);
-    std::vector<ValidConstrainedSamplerPtr> samplers(n1);
-    for (std::size_t i = 0 ; i < n1 ; ++i)
-    {
-      constraint_samplers::ConstraintSamplerPtr cs;
-      if (constraint_sampler_manager_) 
-      {
-        moveit_msgs::Constraints combined_constraints = kinematic_constraints::mergeConstraints(req.path_constraints, req.trajectory_constraints.constraints[i]);
-        cs = constraint_sampler_manager_->selectSampler(context->getPlanningScene(), context->getJointModelGroupName(), combined_constraints);
-      }
-      
-      kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(planning_scene->getRobotModel(), planning_scene->getTransforms()));
-      ks->add(req.trajectory_constraints.constraints[i]);
-      samplers[i] = ValidConstrainedSamplerPtr(new ValidConstrainedSampler(context.get(), ks, cs));
-    }
-    context->setFollowSamplers(samplers);
-  }
+  
+  if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, error_code))
+    return ModelBasedPlanningContextPtr(); 
+  
   try
   {
     context->configure();
@@ -202,11 +162,10 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     return false;
 
   res.trajectory_.reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
-  bool follow = !req.trajectory_constraints.constraints.empty();
-  if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
+  if (context->solve(timeout, attempts))
   {
     double ptime = context->getLastPlanTime();
-    if (simplify_solutions_ && ptime < timeout && !follow)
+    if (simplify_solutions_ && ptime < timeout)
     {
       context->simplifySolution(timeout - ptime);
       ptime += context->getLastSimplifyTime();
@@ -242,8 +201,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (!context)
     return false;
 
-  bool follow = !req.trajectory_constraints.constraints.empty();
-  if (follow ? context->follow(timeout, attempts) : context->solve(timeout, attempts))
+  if (context->solve(timeout, attempts))
   {
     res.trajectory_.reserve(3);
     
@@ -256,7 +214,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     context->getSolutionPath(*res.trajectory_.back());
     
     // simplify solution if time remains
-    if (simplify_solutions_ && ptime < timeout || !follow)
+    if (simplify_solutions_ && ptime < timeout)
     {
       context->simplifySolution(timeout - ptime);
       res.processing_time_.push_back(context->getLastSimplifyTime());

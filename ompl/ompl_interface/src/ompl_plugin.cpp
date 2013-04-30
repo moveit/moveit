@@ -77,7 +77,7 @@ public:
   
   bool canServiceRequest(const moveit_msgs::MotionPlanRequest &req) const
   {
-    return true;
+    return req.trajectory_constraints.constraints.empty();
   }
   
   virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,

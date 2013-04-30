@@ -252,12 +252,7 @@ public:
   {
     spec_.constraints_library_ = constraints_library;
   }
-  
-  void setFollowSamplers(const std::vector<ValidConstrainedSamplerPtr> &samplers)
-  {
-    follow_samplers_ = samplers;
-  }
-  
+    
   void clear();
   
   bool useStateValidityCache() const
@@ -270,12 +265,6 @@ public:
      @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
   */
   bool solve(double timeout, unsigned int count);
-  
-  /* @brief Solve the planning problem in the case that requires following a specified set of trajectory constaints. Return true if the problem is solved.
-     @param timeout The time to spend on solving
-     @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
-  */
-  bool follow(double timeout, unsigned int count);
   
   /* @brief Benchmark the planning problem. Return true on succesful saving of benchmark results
      @param timeout The time to spend on solving
@@ -346,7 +335,6 @@ protected:
   kinematic_constraints::KinematicConstraintSetPtr              path_constraints_;
   moveit_msgs::Constraints                                      path_constraints_msg_;
   std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
-  std::vector<ValidConstrainedSamplerPtr>                       follow_samplers_;
   
   const ob::PlannerTerminationCondition *ptc_;
   boost::mutex ptc_lock_;
