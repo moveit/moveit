@@ -122,13 +122,18 @@ double ompl_interface::ModelBasedStateSpace::getMaximumExtent() const
 
 double ompl_interface::ModelBasedStateSpace::distance(const ompl::base::State *state1, const ompl::base::State *state2) const
 {
-  double total = 0.0;
-  for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
+  if (distance_function_)
+    return distance_function_(state1, state2);
+  else
   {
-    double d = components_[i]->distance(state1->as<StateType>()->components[i], state2->as<StateType>()->components[i]);
-    total += d * d * weights_[i];
-  }
-  return sqrt(total);
+    double total = 0.0;
+    for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
+    {
+      double d = components_[i]->distance(state1->as<StateType>()->components[i], state2->as<StateType>()->components[i]);
+      total += d * d * weights_[i];
+    }
+    return sqrt(total);
+  }  
 }
 
 void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
@@ -136,17 +141,22 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *
   // clear any cached info (such as validity known or not)
   state->as<StateType>()->clearKnownInformation();
 
-  // perform the actual interpolation
-  CompoundStateSpace::interpolate(from, to, t, state);
-  
-  // compute tag
-  if (from->as<StateType>()->tag >= 0 && t < 1.0 - tag_snap_to_segment_)
-    state->as<StateType>()->tag = from->as<StateType>()->tag;
+  if (interpolation_function_)
+    interpolation_function_(from, to, t, state);
   else
-    if (to->as<StateType>()->tag >= 0 && t > tag_snap_to_segment_)
-      state->as<StateType>()->tag = to->as<StateType>()->tag;
+  {
+    // perform the actual interpolation
+    CompoundStateSpace::interpolate(from, to, t, state);
+    
+    // compute tag
+    if (from->as<StateType>()->tag >= 0 && t < 1.0 - tag_snap_to_segment_)
+      state->as<StateType>()->tag = from->as<StateType>()->tag;
+    else
+      if (to->as<StateType>()->tag >= 0 && t > tag_snap_to_segment_)
+        state->as<StateType>()->tag = to->as<StateType>()->tag;
     else
       state->as<StateType>()->tag = -1;
+  }
 }
 
 void ompl_interface::ModelBasedStateSpace::afterStateSample(ompl::base::State *sample) const

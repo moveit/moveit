@@ -101,16 +101,12 @@ public:
     int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
     if (tag >= 0)
     {
-      const std::vector<std::size_t> &md = state_storage_->getMetadata(tag);
-      if (!md.empty() && rng_.uniform01() * md.size() > 1.0)
-      {
-        index = md[rng_.uniformInt(0, md.size() - 1)];
-      }
+      const ConstrainedStateMetadata &md = state_storage_->getMetadata(tag);
+      if (!md.first.empty())
+        index = md.first[rng_.uniformInt(0, md.first.size() - 1)];
     }
     if (index < 0) 
-    {
       index = rng_.uniformInt(0, max_index_);
-    }
     
     double dist = space_->distance(near, state_storage_->getState(index));
     if (dist > distance)
@@ -135,6 +131,33 @@ protected:
   double inv_dim_;
 };
 
+void interpolateUsingStoredStates(const ConstraintApproximationStateStorage *state_storage, const ob::State *from, const ob::State *to, const double t, ob::State *state)
+{    
+  int tag_from = from->as<ModelBasedStateSpace::StateType>()->tag;
+  int tag_to = to->as<ModelBasedStateSpace::StateType>()->tag;
+  if (tag_from == tag_to)
+    state_storage->getStateSpace()->copyState(state, to);
+  else
+    if (tag_from < tag_to)
+    {
+      const ConstrainedStateMetadata &md = state_storage->getMetadata(tag_from);
+      const std::vector<std::size_t> &istates = md.second.at(tag_to);
+      std::size_t index = (std::size_t)((istates.size() + 1) * t + 0.5);
+      if (index == 0)
+        state_storage->getStateSpace()->copyState(state, from);
+      else
+      {
+        --index;
+        if (index >= istates.size())
+          state_storage->getStateSpace()->copyState(state, to);
+        else
+          state_storage->getStateSpace()->copyState(state, state_storage->getState(istates[index]));
+      }
+    }
+    else
+      interpolateUsingStoredStates(state_storage, to, from, 1.0 - t, state);
+}
+
 ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::StateSpace *space, const std::vector<int> &expected_signature,
                                                                      const ConstraintApproximationStateStorage *state_storage)
 {
@@ -148,13 +171,11 @@ ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::S
 
 }
 
-ompl_interface::ConstraintApproximation::ConstraintApproximation(const robot_model::RobotModelConstPtr &kinematic_model,
-                                                                 const std::string &group, const std::string &state_space_parameterization,
-                                                                 const moveit_msgs::Constraints &msg, const std::string &filename,
-                                                                 const ompl::base::StateStoragePtr &storage,
-                                                                 const ConstraintApproximationFactory *parent_factory) :
-  kmodel_(kinematic_model), group_(group), state_space_parameterization_(state_space_parameterization), constraint_msg_(msg),
-  ompldb_filename_(filename), state_storage_ptr_(storage), parent_factory_(parent_factory)
+ompl_interface::ConstraintApproximation::ConstraintApproximation(const std::string &group, const std::string &state_space_parameterization,
+                                                                 bool explicit_motions, const moveit_msgs::Constraints &msg, const std::string &filename,
+                                                                 const ompl::base::StateStoragePtr &storage) :
+  group_(group), state_space_parameterization_(state_space_parameterization), explicit_motions_(explicit_motions), constraint_msg_(msg),
+  ompldb_filename_(filename), state_storage_ptr_(storage)
 {
   state_storage_ = static_cast<ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
   state_storage_->getStateSpace()->computeSignature(space_signature_);
@@ -166,7 +187,7 @@ ompl::base::StateSamplerAllocator ompl_interface::ConstraintApproximation::getSt
     return ompl::base::StateSamplerAllocator();
   return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_);
 }
-
+/*
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const
 {
   robot_state::RobotState kstate(kmodel_);
@@ -202,7 +223,8 @@ void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::s
     mk.lifetime = ros::Duration(30.0);
     arr.markers.push_back(mk);
   }
-}
+  }
+*/
 
 void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std::string &path)
 {
@@ -219,10 +241,14 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
   while (fin.good() && !fin.eof())
   {
     std::string group, state_space_parameterization, serialization, filename;
+    bool explicit_motions;
     fin >> group;
     if (fin.eof())
       break;
     fin >> state_space_parameterization;
+    if (fin.eof())
+      break;
+    fin >> explicit_motions;
     if (fin.eof())
       break;
     fin >> serialization;    
@@ -237,24 +263,16 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
       hexToMsg(serialization, msg);
       ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(pc->getOMPLSimpleSetup().getStateSpace());
       cass->load((path + "/" + filename).c_str());
-      ConstraintApproximationPtr cap;
-      if (constraint_factories_.find(msg.name) != constraint_factories_.end())
-        cap = constraint_factories_[msg.name]->allocApproximation(context_manager_.getRobotModel(),
-                                                                  group, state_space_parameterization, msg, filename, ompl::base::StateStoragePtr(cass));
-      else
-        cap.reset(new ConstraintApproximation(context_manager_.getRobotModel(),
-                                              group, state_space_parameterization, msg, filename, ompl::base::StateStoragePtr(cass)));
-      if (cap)
-      {
-        if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
-          logWarn("Overwriting constraint approximation named '%s'", cap->getName().c_str());
-        
-        constraint_approximations_[cap->getName()] = cap;
-        std::size_t sum = 0;
-        for (std::size_t i = 0 ; i < cass->size() ; ++i)
-          sum += cass->getMetadata(i).size();
-        logInform("Loaded %lu states and %lu connections (%0.1lf per state) for constraint named '%s'", cass->size(), sum, (double)sum / (double)cass->size(), msg.name.c_str());
-      }
+      ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions, msg, filename, ompl::base::StateStoragePtr(cass)));
+      if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
+        logWarn("Overwriting constraint approximation named '%s'", cap->getName().c_str());
+      
+      constraint_approximations_[cap->getName()] = cap;
+      std::size_t sum = 0;
+      for (std::size_t i = 0 ; i < cass->size() ; ++i)
+        sum += cass->getMetadata(i).first.size();
+      logInform("Loaded %lu states and %lu connections (%0.1lf per state) for constraint named '%s'%s",
+                cass->size(), sum, (double)sum / (double)cass->size(), msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
     }
   }
   logInform("Done loading constrained space approximations.");
@@ -277,6 +295,7 @@ void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std:
     {
       fout << it->second->getGroup() << std::endl;
       fout << it->second->getStateSpaceParameterization() << std::endl;
+      fout << it->second->hasExplicitMotions() << std::endl;
       std::string serialization;
       msgToHex(it->second->getConstraintsMsg(), serialization);
       fout << serialization << std::endl;
@@ -300,6 +319,7 @@ void ompl_interface::ConstraintsLibrary::printConstraintApproximations(std::ostr
   {
     out << it->second->getGroup() << std::endl;
     out << it->second->getStateSpaceParameterization() << std::endl;
+    out << it->second->hasExplicitMotions() << std::endl;
     out << it->second->getFilename() << std::endl;
     out << it->second->getConstraintsMsg() << std::endl;
   }
@@ -316,49 +336,37 @@ const ompl_interface::ConstraintApproximationPtr& ompl_interface::ConstraintsLib
 }
 
 ompl_interface::ConstraintApproximationConstructionResults
-ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &state_space_parameterization,
-                                                               const planning_scene::PlanningSceneConstPtr &scene, unsigned int samples, unsigned int edges_per_sample)
+ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, 
+                                                               const planning_scene::PlanningSceneConstPtr &scene,
+                                                               const ConstraintApproximationConstructionOptions &options)
 {
-  return addConstraintApproximation(constr, constr, group, state_space_parameterization, scene, samples, edges_per_sample);
+  return addConstraintApproximation(constr, constr, group, scene, options);
 }
 
 ompl_interface::ConstraintApproximationConstructionResults
 ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
-                                                               const std::string &group, const std::string &state_space_parameterization,
-                                                               const planning_scene::PlanningSceneConstPtr &scene, unsigned int samples, unsigned int edges_per_sample)
+                                                               const std::string &group, const planning_scene::PlanningSceneConstPtr &scene,
+                                                               const ConstraintApproximationConstructionOptions &options)
 { 
   ConstraintApproximationConstructionResults res;
-  ModelBasedPlanningContextPtr pc = context_manager_.getPlanningContext(group, state_space_parameterization);
+  ModelBasedPlanningContextPtr pc = context_manager_.getPlanningContext(group, options.state_space_parameterization);
   if (pc)
   {                                             
     pc->clear();
     pc->setPlanningScene(scene);
     pc->setCompleteInitialState(scene->getCurrentState());
-
-    std::map<std::string, ConstraintApproximationFactoryPtr>::const_iterator it = constraint_factories_.find(constr_hard.name);
-    ConstraintApproximationFactory *fct = NULL;
-    if (it != constraint_factories_.end())
-      fct = it->second.get();
     
     ros::WallTime start = ros::WallTime::now();
-    ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, samples, edges_per_sample, res);
+    ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, options, res);
     logInform("Spent %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
     if (ss)
     {
-      ConstraintApproximationPtr ca;
-      if (fct)
-        ca = fct->allocApproximation(context_manager_.getRobotModel(), group, state_space_parameterization, constr_hard, group + "_" + 
-                                     boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss);
-      else
-        ca.reset(new ConstraintApproximation(context_manager_.getRobotModel(), group, state_space_parameterization, constr_hard, group + "_" + 
-                                             boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
-      if (ca)
-      {
-        if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
-          logWarn("Overwriting constraint approximation named '%s'", ca->getName().c_str());
-        constraint_approximations_[ca->getName()] = ca;
-        res.approx = ca;
-      }
+      ConstraintApproximationPtr ca(new ConstraintApproximation(group, options.state_space_parameterization, options.explicit_motions, constr_hard, group + "_" + 
+                                                                boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
+      if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
+        logWarn("Overwriting constraint approximation named '%s'", ca->getName().c_str());
+      constraint_approximations_[ca->getName()] = ca;
+      res.approx = ca;
     }
     else
       logError("Unable to construct constraint approximation for group '%s'", group.c_str());
@@ -367,9 +375,8 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
 }
 
 ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstraintApproximation(const ModelBasedPlanningContextPtr &pcontext,
-                                                                                                 const moveit_msgs::Constraints &constr_sampling,
-                                                                                                 const moveit_msgs::Constraints &constr_hard,
-                                                                                                 unsigned int samples, unsigned int edges_per_sample,
+                                                                                                 const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
+                                                                                                 const ConstraintApproximationConstructionOptions &options,
                                                                                                  ConstraintApproximationConstructionResults &result)
 {
   // state storage structure
@@ -379,10 +386,9 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   // construct a sampler for the sampling constraints
   kinematic_constraints::KinematicConstraintSet kset(pcontext->getRobotModel(), robot_state::TransformsConstPtr(new robot_state::Transforms(pcontext->getRobotModel()->getModelFrame())));
   kset.add(constr_hard);
-
+  
   const robot_state::RobotState &default_state = pcontext->getCompleteInitialRobotState();
   
-  int nthreads = 0;
   unsigned int attempts = 0;
   
   double bounds_val = std::numeric_limits<double>::max() / 2.0 - 1.0;
@@ -390,147 +396,135 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   pcontext->getOMPLStateSpace()->setup();
   
   // construct the constrained states
-  //#pragma omp parallel
-  { 
-    //#pragma omp master
+  
+  robot_state::RobotState kstate(default_state);
+  const constraint_samplers::ConstraintSamplerManagerPtr &csmng = pcontext->getConstraintSamplerManager();
+  ConstrainedSampler *csmp = NULL;
+  if (csmng)
+  {
+    constraint_samplers::ConstraintSamplerPtr cs = csmng->selectSampler(pcontext->getPlanningScene(), pcontext->getJointModelGroup()->getName(), constr_sampling);
+    if (cs)
+      csmp = new ConstrainedSampler(pcontext.get(), cs);
+  }
+  
+  ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
+  
+  ompl::base::ScopedState<> temp(pcontext->getOMPLStateSpace());
+  int done = -1;
+  bool slow_warn = false;
+  ompl::time::point start = ompl::time::now();
+  while (sstor->size() < options.samples)
+  {
+    ++attempts;
+    int done_now = 100 * sstor->size() / options.samples;
+    if (done != done_now)
     {
-	nthreads = omp_get_num_threads();    
+      done = done_now;
+      logInform("%d%% complete (kept %0.1lf%% sampled states)", done, 100.0 * (double)sstor->size() / (double)attempts);
     }
     
-    robot_state::RobotState kstate(default_state);
-    const constraint_samplers::ConstraintSamplerManagerPtr &csmng = pcontext->getConstraintSamplerManager();
-    ConstrainedSampler *csmp = NULL;
-    if (csmng)
+    if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
     {
-      constraint_samplers::ConstraintSamplerPtr cs = csmng->selectSampler(pcontext->getPlanningScene(), pcontext->getJointModelGroup()->getName(), constr_sampling);
-      if (cs)
-        csmp = new ConstrainedSampler(pcontext.get(), cs);
+      slow_warn = true;
+      logWarn("Computation of valid state database is very slow...");
     }
     
-    ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
-    
-    ompl::base::ScopedState<> temp(pcontext->getOMPLStateSpace());
-    int done = -1;
-    bool slow_warn = false;
-    ompl::time::point start = ompl::time::now();
-    while (sstor->size() < samples)
+    if (attempts > options.samples && sstor->size() == 0)
     {
-      ++attempts;
-      //#pragma omp master
-      {      
-	int done_now = 100 * sstor->size() / samples;
-	if (done != done_now)
-	{
-	  done = done_now;
-	  logInform("%d%% complete (kept %0.1lf%% sampled states)", done, 100.0 * (double)sstor->size() / (double)attempts);
-	}
-
-	if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
-	{
-	  slow_warn = true;
-	  logWarn("Computation of valid state database is very slow...");
-	}
-      }
-
-      if (attempts > samples && sstor->size() == 0)
-      {
-	logError("Unable to generate any samples");
-	break;
-      }
-      
-      ss->sampleUniform(temp.get());
-      pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp.get());
-      if (kset.decide(kstate).satisfied)
-      {
-	//#pragma omp critical
-	{
-	  if (sstor->size() < samples)
-	  {
-	    temp->as<ModelBasedStateSpace::StateType>()->tag = sstor->size();
-	    sstor->addState(temp.get());
-	  }
-	}
-      }
+      logError("Unable to generate any samples");
+      break;
     }
-    //#pragma omp master
+    
+    ss->sampleUniform(temp.get());
+    pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp.get());
+    if (kset.decide(kstate).satisfied)
     {
-      result.state_sampling_time = ompl::time::seconds(ompl::time::now() - start);
-      logInform("Generated %u states in %lf seconds", (unsigned int)sstor->size(), result.state_sampling_time); 
-      if (csmp)
+      if (sstor->size() < options.samples)
       {
-        result.sampling_success_rate = csmp->getConstrainedSamplingRate();
-        logInform("Constrained sampling rate: %lf", result.sampling_success_rate);
+        temp->as<ModelBasedStateSpace::StateType>()->tag = sstor->size();
+        sstor->addState(temp.get());
       }
     }
   }
   
-  if (edges_per_sample > 0)
+  result.state_sampling_time = ompl::time::seconds(ompl::time::now() - start);
+  logInform("Generated %u states in %lf seconds", (unsigned int)sstor->size(), result.state_sampling_time); 
+  if (csmp)
   {
-    logInform("Computing graph connections (max %u edges per sample) ...", edges_per_sample);
-    
-    ompl::tools::SelfConfig sc(pcontext->getOMPLSimpleSetup().getSpaceInformation());
-    double range = 0.0;
-    sc.configurePlannerRange(range);
+    result.sampling_success_rate = csmp->getConstrainedSamplingRate();
+    logInform("Constrained sampling rate: %lf", result.sampling_success_rate);
+  }
+  
+  
+  if (options.edges_per_sample > 0)
+  {
+    logInform("Computing graph connections (max %u edges per sample) ...", options.edges_per_sample);
     
     // construct connexions
     const ob::StateSpacePtr &space = pcontext->getOMPLSimpleSetup().getStateSpace();
-    std::vector<robot_state::RobotState> kstates(nthreads, default_state);
-    const std::vector<const ompl::base::State*> &states = sstor->getStates();
-    std::vector<ompl::base::ScopedState<> > temps(nthreads, ompl::base::ScopedState<>(space));
+    unsigned int milestones = sstor->size();
+    std::vector<ob::State*> int_states(options.max_explicit_points, NULL);
+    pcontext->getOMPLSimpleSetup().getSpaceInformation()->allocStates(int_states);
+    robot_state::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
     
     ompl::time::point start = ompl::time::now();
     int good = 0;
     int done = -1;
-    
-    //#pragma omp parallel for schedule(dynamic) 
-    for (std::size_t j = 0 ; j < sstor->size() ; ++j)
+
+    for (std::size_t j = 0 ; j < milestones ; ++j)
     {
-      int threadid = omp_get_thread_num();
-      robot_state::RobotState &kstate = kstates[threadid];
-      robot_state::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
-      ompl::base::State *temp = temps[threadid].get();
-      int done_now = 100 * j / sstor->size();
+      int done_now = 100 * j / milestones;
       if (done != done_now)
       {
 	done = done_now;
         logInform("%d%% complete", done);
       }
       
-      for (std::size_t i = j + 1 ; i < sstor->size() ; ++i)
+      for (std::size_t i = j + 1 ; i < milestones ; ++i)
       {
-	double d = space->distance(states[j], states[i]);
-
-        if (d > range * 3.0 || d < range / 100.0)
+        const ob::State *sj = sstor->getState(j);        
+	double d = space->distance(sstor->getState(i), sj);
+        if (d >= options.max_edge_length)
           continue;
-        
-        space->interpolate(states[j], states[i], 0.5, temp);
-        pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp);
-        if (kset.decide(kstate).satisfied)
+        unsigned int isteps = std::min<unsigned int>(options.max_explicit_points, d / options.explicit_points_resolution);
+        double remain = 1.0;
+        bool ok = true;
+        for (unsigned int k = 0 ; k < isteps ; ++k)
         {
-	  space->interpolate(states[j], states[i], 0.25, temp);
-	  pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp);
-	  if (kset.decide(kstate).satisfied)
-	  {
-            space->interpolate(states[j], states[i], 0.75, temp);
-            pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp);
-            if (kset.decide(kstate).satisfied)
-            {
-	      //#pragma omp critical
-              {
-                cass->getMetadata(i).push_back(j);
-                cass->getMetadata(j).push_back(i);
-                good++;
-              }
-              if (cass->getMetadata(j).size() >= edges_per_sample)
-                break;
-            }
-	  }
+          double this_step = remain / isteps;
+          remain = 1.0 - this_step;
+          space->interpolate(k == 0 ? sstor->getState(i) : int_states[k-1], sj, this_step, int_states[k]);
+	  pcontext->getOMPLStateSpace()->copyToRobotState(kstate, int_states[k]);
+	  if (!kset.decide(kstate).satisfied)
+          {
+            ok = false;
+            break;
+          }
+        }
+        
+        if (ok)
+        {
+          cass->getMetadata(i).first.push_back(j);
+          std::vector<std::size_t> idx;
+          std::size_t base_index = sstor->size();
+          for (unsigned int k = 0 ; k < isteps ; ++k)
+          {
+            int_states[k]->as<ModelBasedStateSpace::StateType>()->tag = -1;
+            sstor->addState(int_states[k]);
+            idx.push_back(base_index + k);
+          }
+          cass->getMetadata(i).second[j].swap(idx);
+          good++;
+          if (cass->getMetadata(i).first.size() >= options.edges_per_sample)
+            break;
         }
       }
     }
+    
     result.state_connection_time = ompl::time::seconds(ompl::time::now() - start);
     logInform("Computed possible connexions in %lf seconds. Added %d connexions", result.state_connection_time, good);
+    pcontext->getOMPLSimpleSetup().getSpaceInformation()->freeStates(int_states);
+
+    return sstor;
   }
-  
-  return sstor;
 }

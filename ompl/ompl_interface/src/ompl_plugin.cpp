@@ -66,10 +66,6 @@ public:
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
     ompl_interface_.reset(new OMPLInterface(model, nh_));
-    pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
-    pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
-    pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
-
     dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle(nh_, "ompl")));
     dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
     return true;
@@ -84,13 +80,6 @@ public:
                      const planning_interface::MotionPlanRequest &req, 
                      planning_interface::MotionPlanResponse &res) const
   {
-    if (display_random_valid_states_)
-    {
-      display_random_valid_states_ = false; 
-      pub_valid_states_thread_->join();
-      pub_valid_states_thread_.reset();
-    }
-    
     bool r = ompl_interface_->solve(planning_scene, req, res);
     if (!planner_data_link_name_.empty())
       displayPlannerData(planning_scene, planner_data_link_name_);
@@ -100,14 +89,7 @@ public:
   virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                      const planning_interface::MotionPlanRequest &req, 
                      planning_interface::MotionPlanDetailedResponse &res) const
-  {   
-    if (display_random_valid_states_)
-    {
-      display_random_valid_states_ = false; 
-      pub_valid_states_thread_->join();
-      pub_valid_states_thread_.reset();
-    }
-
+  {
     bool r = ompl_interface_->solve(planning_scene, req, res);
     if (!planner_data_link_name_.empty())
       displayPlannerData(planning_scene, planner_data_link_name_);
@@ -233,12 +215,14 @@ private:
   {
     if (config.link_for_exploration_tree.empty() && !planner_data_link_name_.empty())
     {
+      pub_markers_.shutdown();
       planner_data_link_name_.clear();
       ROS_INFO("Not displaying OMPL exploration data structures.");
     }
     else   
       if (!config.link_for_exploration_tree.empty() && planner_data_link_name_.empty())
-      {
+      {    
+        pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
         planner_data_link_name_ = config.link_for_exploration_tree;
         ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
       }
@@ -251,10 +235,14 @@ private:
       display_random_valid_states_ = false;
       pub_valid_states_thread_->join();
       pub_valid_states_thread_.reset();
+      pub_valid_states_.shutdown();
+      pub_valid_traj_.shutdown();
     }
     else
       if (!display_random_valid_states_ && config.display_random_valid_states)
-      {
+      {   
+        pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
+        pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
 	display_random_valid_states_ = true; 
 	pub_valid_states_thread_.reset(new boost::thread(boost::bind(&OMPLPlanner::displayRandomValidStates, this)));
       }
@@ -263,8 +251,8 @@ private:
   ros::NodeHandle nh_;
   boost::scoped_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig> > dynamic_reconfigure_server_;
   boost::scoped_ptr<OMPLInterface> ompl_interface_;
-  mutable boost::scoped_ptr<boost::thread> pub_valid_states_thread_;
-  mutable bool display_random_valid_states_;
+  boost::scoped_ptr<boost::thread> pub_valid_states_thread_;
+  bool display_random_valid_states_;
   ros::Publisher pub_markers_;
   ros::Publisher pub_valid_states_;
   ros::Publisher pub_valid_traj_;

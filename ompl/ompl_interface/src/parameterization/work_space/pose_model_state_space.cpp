@@ -121,6 +121,9 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   // we want to interpolate in Cartesian space; we do not have a guarantee that from and to
   // have their poses computed, but this is very unlikely to happen (depends how the planner gets its input states)
   ModelBasedStateSpace::interpolate(from, to, t, state);
+  
+  // the call above may reset all flags for state; but we know the pose we want flag should be set
+  state->as<StateType>()->setPoseComputed(true);
 
   /*
   std::cout << "*********** interpolate\n";
@@ -131,9 +134,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   */
 
   // after interpolation we cannot be sure about the joint values (we use them as seed only)
-  // so we recompute IK
-  state->as<StateType>()->setJointsComputed(false);
-  state->as<StateType>()->setPoseComputed(true);
+  // so we recompute IK if needed 
   if (computeStateIK(state))
   {
     for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
@@ -141,8 +142,8 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
       double dj = jump_factor_ * components_[i]->distance(from->as<StateType>()->components[i], to->as<StateType>()->components[i]);
       double d_from = components_[i]->distance(from->as<StateType>()->components[i], state->as<StateType>()->components[i]);
       double d_to = components_[i]->distance(state->as<StateType>()->components[i], to->as<StateType>()->components[i]);
-      // if the joint value jumped too much
 
+      // if the joint value jumped too much
       if (d_from + d_to > std::max(0.2, dj))
       {
 	state->as<StateType>()->markInvalid();
