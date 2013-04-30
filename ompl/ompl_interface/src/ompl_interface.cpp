@@ -41,14 +41,16 @@
 #include <moveit/profiler/profiler.h>
 #include <fstream>
 
-ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel) :
+ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel, const ros::NodeHandle &nh) :
+  nh_(nh),
   kmodel_(kmodel),
   constraint_sampler_manager_(new  constraint_samplers::ConstraintSamplerManager()),
   context_manager_(kmodel, constraint_sampler_manager_),
   constraints_library_(new ConstraintsLibrary(context_manager_)),
   use_constraints_approximations_(true),
   simplify_solutions_(true)
-{
+{  
+  loadParams();
 }
 
 ompl_interface::OMPLInterface::~OMPLInterface()
@@ -88,7 +90,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
 
   if (!planning_scene)
   { 
-    logError("No planning scene supplied as input"); 
+    ROS_ERROR("No planning scene supplied as input"); 
     error_code->val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return ModelBasedPlanningContextPtr();
   }
@@ -106,7 +108,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   *timeout = req.allowed_planning_time;
   if (*timeout <= 0.0)
   {
-    logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.", *timeout);
+    ROS_INFO("The timeout for planning must be positive (%lf specified). Assuming one second instead.", *timeout);
     *timeout = 1.0;
   }
   
@@ -115,7 +117,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
     *attempts = req.num_planning_attempts;
   else
     if (req.num_planning_attempts < 0)
-      logError("The number of desired planning attempts should be positive. Assuming one attempt.");
+      ROS_ERROR("The number of desired planning attempts should be positive. Assuming one attempt.");
   
   context->clear();
   
@@ -153,7 +155,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
 
     // construct the valid state samplers we have to go through
     std::size_t n1 = req.trajectory_constraints.constraints.size() - 1;
-    logDebug("%s: Allocating %u constrained samplers.", context->getName().c_str(), (unsigned int)n1);
+    ROS_DEBUG("%s: Allocating %u constrained samplers.", context->getName().c_str(), (unsigned int)n1);
     std::vector<ValidConstrainedSamplerPtr> samplers(n1);
     for (std::size_t i = 0 ; i < n1 ; ++i)
     {
@@ -173,12 +175,12 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   try
   {
     context->configure();
-    logDebug("%s: New planning context is set.", context->getName().c_str());
+    ROS_DEBUG("%s: New planning context is set.", context->getName().c_str());
     error_code->val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   }
   catch (ompl::Exception &ex)
   {
-    logError("OMPL encountered an error: %s", ex.what());
+    ROS_ERROR("OMPL encountered an error: %s", ex.what());
     context.reset();
   }
   
@@ -212,7 +214,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     context->interpolateSolution();
     
     // fill the response
-    logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
+    ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
              context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
     
     context->getSolutionPath(*res.trajectory_);
@@ -221,7 +223,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   }
   else
   {
-    logInform("Unable to solve the planning problem");
+    ROS_INFO("Unable to solve the planning problem");
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
@@ -273,13 +275,13 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     context->getSolutionPath(*res.trajectory_.back());
     
     // fill the response
-    logDebug("%s: Returning successful solution with %lu states", context->getName().c_str(),
-             context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
+    ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
+              context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
     return true;
   }
   else
   {
-    logInform("Unable to solve the planning problem");
+    ROS_INFO("Unable to solve the planning problem");
     error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
@@ -303,4 +305,159 @@ void ompl_interface::OMPLInterface::terminateSolve()
   const ModelBasedPlanningContextPtr &context = getLastPlanningContext();
   if (context)
     context->terminateSolve();
+}
+
+bool ompl_interface::OMPLInterface::saveConstraintApproximations()
+{
+  std::string cpath;
+  if (nh_.getParam("constraint_approximations", cpath))
+  {
+    OMPLInterface::saveConstraintApproximations(cpath);
+    return true;
+  }
+  ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
+  return false;
+}
+
+bool ompl_interface::OMPLInterface::loadConstraintApproximations()
+{
+  std::string cpath;
+  if (nh_.getParam("constraint_approximations_path", cpath))
+  {
+    OMPLInterface::loadConstraintApproximations(cpath);
+    return true;
+  }
+  return false;
+}
+
+void ompl_interface::OMPLInterface::loadConstraintSamplers()
+{
+  constraint_sampler_manager_loader_.reset(new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader(constraint_sampler_manager_));
+}
+
+void ompl_interface::OMPLInterface::loadParams()
+{ 
+  ROS_INFO("Initializing OMPL interface using ROS parameters");
+  loadPlannerConfigurations();
+  loadConstraintApproximations();
+  loadConstraintSamplers();
+}
+
+void ompl_interface::OMPLInterface::loadPlannerConfigurations()
+{
+  const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();  
+  std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
+  // read the planning configuration for each group
+  pconfig.clear();
+  for (std::size_t i = 0 ; i < group_names.size() ; ++i)
+  {
+    // the set of planning parameters that can be specific for the group (inherited by configurations of that group)
+    static const std::string KNOWN_GROUP_PARAMS[] = {
+      "projection_evaluator", "longest_valid_segment_fraction"
+    };
+    
+    // get parameters specific for the group
+    std::map<std::string, std::string> specific_group_params;
+    for (std::size_t k = 0 ; k < sizeof(KNOWN_GROUP_PARAMS) / sizeof(std::string) ; ++k)
+    {
+      if (nh_.hasParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k]))
+      {
+	std::string value;
+	if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value))
+        {
+          if (!value.empty())
+            specific_group_params[KNOWN_GROUP_PARAMS[k]] = value;
+        }
+        else
+        {
+          double value_d;
+          if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
+            specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_d);
+          else
+          {
+            int value_i;
+            if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
+              specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_i);
+            else
+            {
+              bool value_b;
+              if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_b))
+                specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_b);
+            }
+          }
+        }
+      }
+    }
+    
+    // set the parameters (if any) for the default group configuration;
+    if (!specific_group_params.empty())
+    {
+      ompl_interface::PlanningConfigurationSettings pc;
+      pc.name = group_names[i];
+      pc.group = group_names[i];
+      pc.config = specific_group_params;
+      pconfig.push_back(pc);
+    }
+    
+    XmlRpc::XmlRpcValue config_names;
+    if (nh_.getParam(group_names[i] + "/planner_configs", config_names))
+    {
+      if (config_names.getType() == XmlRpc::XmlRpcValue::TypeArray)
+      {
+	for (int32_t j = 0; j < config_names.size() ; ++j)
+	  if (config_names[j].getType() == XmlRpc::XmlRpcValue::TypeString)
+	  {
+	    std::string planner_config = static_cast<std::string>(config_names[j]);
+	    XmlRpc::XmlRpcValue xml_config;
+	    if (nh_.getParam("planner_configs/" + planner_config, xml_config))
+	    {
+	      if (xml_config.getType() == XmlRpc::XmlRpcValue::TypeStruct)
+	      {
+		ompl_interface::PlanningConfigurationSettings pc;
+		pc.name = group_names[i] + "[" + planner_config + "]";
+		pc.group = group_names[i];
+		// inherit parameters from the group (which can be overriden)
+		pc.config = specific_group_params;
+		
+		// read parameters specific for this configuration
+		for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin() ; it != xml_config.end() ; ++it)
+		  if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
+		    pc.config[it->first] = static_cast<std::string>(it->second);
+		  else
+		    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+		      pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
+		    else
+		      if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
+			pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
+		      else
+			if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+			  pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
+		pconfig.push_back(pc);
+	      }
+	      else
+		ROS_ERROR("A planning configuration should be of type XmlRpc Struct type (for configuration '%s')", planner_config.c_str());
+	    }
+	    else
+	      ROS_ERROR("Could not find the planner configuration '%s' on the param server", planner_config.c_str());
+	  }
+	  else
+	    ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_names[i].c_str());
+      }
+      else
+	ROS_ERROR("The planner_configs argument of a group configuration should be an array of strings (for group '%s')", group_names[i].c_str());
+    }
+  }
+  
+  for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
+  {
+    ROS_DEBUG_STREAM("Parameters for configuration '"<< pconfig[i].name << "'");
+    for (std::map<std::string, std::string>::const_iterator it = pconfig[i].config.begin() ; it != pconfig[i].config.end() ; ++it)
+      ROS_DEBUG_STREAM(it->first << " = " << it->second);
+  }
+  setPlanningConfigurations(pconfig);
+}
+
+void ompl_interface::OMPLInterface::printStatus()
+{
+  ROS_INFO("OMPL ROS interface is running.");
 }

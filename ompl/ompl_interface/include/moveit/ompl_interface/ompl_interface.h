@@ -40,11 +40,13 @@
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 #include <string>
 #include <map>
+#include <ros/ros.h>
 
 /** \brief The MoveIt interface to OMPL */
 namespace ompl_interface
@@ -56,7 +58,7 @@ class OMPLInterface
 {
 public: 
   
-  OMPLInterface(const robot_model::RobotModelConstPtr &kmodel);
+  OMPLInterface(const robot_model::RobotModelConstPtr &kmodel, const ros::NodeHandle &nh = ros::NodeHandle("~"));
   virtual ~OMPLInterface();
   
   /** @brief Specify configurations for the planners.
@@ -141,8 +143,26 @@ public:
     simplify_solutions_ = true;
   }
   
+  /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint approximations to */
+  bool saveConstraintApproximations();
+  
+  /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint approximations to */
+  bool loadConstraintApproximations();
+  
+  /** @brief Print the status of this node*/
+  void printStatus();
+
 protected:
 
+  /** @brief Configure everything using the param server */
+  void loadParams();
+  
+  /** @brief Configure the planners*/
+  void loadPlannerConfigurations();
+  
+  /** @brief Load the additional plugins for sampling constraints */
+  void loadConstraintSamplers();
+  
   void configureConstraints(const ModelBasedPlanningContextPtr &context) const;
   
   /** \brief Configure the OMPL planning context for a new planning request */
@@ -150,7 +170,10 @@ protected:
                                                const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                                moveit_msgs::MoveItErrorCodes *error_code,
                                                unsigned int *attempts, double *timeout) const;
+  	
   
+  ros::NodeHandle nh_; /// The ROS node handle
+
   /** \brief The kinematic model for which motion plans are computed */
   robot_model::RobotModelConstPtr kmodel_;
   
@@ -162,6 +185,10 @@ protected:
   bool use_constraints_approximations_;
 
   bool simplify_solutions_;
+
+private:
+      
+  constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
   
 };
 

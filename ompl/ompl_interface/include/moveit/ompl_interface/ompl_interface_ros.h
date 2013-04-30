@@ -38,8 +38,8 @@
 #define MOVEIT_PLANNERS_OMPL_INTERFACE_ROS_
 
 #include <moveit/ompl_interface/ompl_interface.h>
-#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
-#include <ros/ros.h>
+
+#warning "Please include <moveit/ompl_interface/ompl_interface.h> directly."
 
 namespace ompl_interface
 {
@@ -49,33 +49,10 @@ namespace ompl_interface
     public:
       /** @brief Constructor
        *  @param scene A pointer to the planning scene*/
-      OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel, const ros::NodeHandle &nh = ros::NodeHandle("~"));
+      OMPLInterfaceROS(const robot_model::RobotModelConstPtr &kmodel, const ros::NodeHandle &nh = ros::NodeHandle("~")) : OMPLInterface(kmodel, nh)
+      {
+      }
 
-      /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint approximations to */
-      bool saveConstraintApproximations();
-      
-      /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint approximations to */
-      bool loadConstraintApproximations();
-      
-      /** @brief Print the status of this node*/
-      void printStatus();
-
-    protected:
-	
-      /** @brief Configure everything using the param server */
-      void loadParams();
-
-      /** @brief Configure the planners*/
-      void loadPlannerConfigurations();
-      
-      /** @brief Load the additional plugins for sampling constraints */
-      void loadConstraintSamplers();
-      
-      ros::NodeHandle nh_; /// The ROS node handle
-
-    private:
-      
-      constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
     };
 
 }

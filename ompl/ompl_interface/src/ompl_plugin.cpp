@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/ompl_interface_ros.h>
+#include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_state/conversions.h>
@@ -65,7 +65,7 @@ public:
   {
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
-    ompl_interface_.reset(new OMPLInterfaceROS(model, nh_));
+    ompl_interface_.reset(new OMPLInterface(model, nh_));
     pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
     pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
     pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
@@ -246,7 +246,7 @@ private:
   
   ros::NodeHandle nh_;
   boost::scoped_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig> > dynamic_reconfigure_server_;
-  boost::scoped_ptr<OMPLInterfaceROS> ompl_interface_;
+  boost::scoped_ptr<OMPLInterface> ompl_interface_;
   boost::scoped_ptr<boost::thread> pub_valid_states_thread_;
   mutable bool display_random_valid_states_;
   ros::Publisher pub_markers_;
