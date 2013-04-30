@@ -84,7 +84,13 @@ public:
                      const planning_interface::MotionPlanRequest &req, 
                      planning_interface::MotionPlanResponse &res) const
   {
-    display_random_valid_states_ = false;
+    if (display_random_valid_states_)
+    {
+      display_random_valid_states_ = false; 
+      pub_valid_states_thread_->join();
+      pub_valid_states_thread_.reset();
+    }
+    
     bool r = ompl_interface_->solve(planning_scene, req, res);
     if (!planner_data_link_name_.empty())
       displayPlannerData(planning_scene, planner_data_link_name_);
@@ -94,15 +100,24 @@ public:
   virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                      const planning_interface::MotionPlanRequest &req, 
                      planning_interface::MotionPlanDetailedResponse &res) const
-  {
-    display_random_valid_states_ = false;
+  {   
+    if (display_random_valid_states_)
+    {
+      display_random_valid_states_ = false; 
+      pub_valid_states_thread_->join();
+      pub_valid_states_thread_.reset();
+    }
+
     bool r = ompl_interface_->solve(planning_scene, req, res);
     if (!planner_data_link_name_.empty())
       displayPlannerData(planning_scene, planner_data_link_name_);
     return r;
   }
   
-  std::string getDescription() const { return "OMPL"; }
+  std::string getDescription() const
+  {
+    return "OMPL";
+  }
   
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
@@ -123,7 +138,7 @@ private:
   
   void displayRandomValidStates()
   {
-    const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_->getLastPlanningContext();
+    ompl_interface::ModelBasedPlanningContextPtr pc = ompl_interface_->getLastPlanningContext();
     if (!pc)
     {
       ROS_ERROR("No planning context to sample states for");
@@ -175,7 +190,7 @@ private:
   void displayPlannerData(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const std::string &link_name) const
   {    
-    const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_->getLastPlanningContext();
+    ompl_interface::ModelBasedPlanningContextPtr pc = ompl_interface_->getLastPlanningContext();
     if (pc)
     {
       ompl::base::PlannerData pd(pc->getOMPLSimpleSetup().getSpaceInformation());
@@ -221,11 +236,12 @@ private:
       planner_data_link_name_.clear();
       ROS_INFO("Not displaying OMPL exploration data structures.");
     }
-    else
-    {
-      planner_data_link_name_ = config.link_for_exploration_tree;
-      ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
-    }
+    else   
+      if (!config.link_for_exploration_tree.empty() && planner_data_link_name_.empty())
+      {
+        planner_data_link_name_ = config.link_for_exploration_tree;
+        ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
+      }
 
     ompl_interface_->simplifySolutions(config.simplify_solutions);
     ompl_interface_->getPlanningContextManager().setMaximumSolutionSegmentLength(config.maximum_waypoint_distance);
@@ -247,7 +263,7 @@ private:
   ros::NodeHandle nh_;
   boost::scoped_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig> > dynamic_reconfigure_server_;
   boost::scoped_ptr<OMPLInterface> ompl_interface_;
-  boost::scoped_ptr<boost::thread> pub_valid_states_thread_;
+  mutable boost::scoped_ptr<boost::thread> pub_valid_states_thread_;
   mutable bool display_random_valid_states_;
   ros::Publisher pub_markers_;
   ros::Publisher pub_valid_states_;
