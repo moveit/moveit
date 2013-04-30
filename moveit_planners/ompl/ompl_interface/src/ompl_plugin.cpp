@@ -121,7 +121,7 @@ private:
   void displayRandomValidStates()
   {
     ompl_interface::ModelBasedPlanningContextPtr pc = ompl_interface_->getLastPlanningContext();
-    if (!pc)
+    if (!pc || !pc->getPlanningScene())
     {
       ROS_ERROR("No planning context to sample states for");
       return;
@@ -149,13 +149,12 @@ private:
       {
 	robot_trajectory::RobotTrajectory traj(pc->getRobotModel(), pc->getJointModelGroupName());
 	unsigned int g = ss.getSpaceInformation()->getMotionStates(rstate1.get(), rstate2.get(), sts, 10, true, true);
-	ROS_INFO("Generated %u states", g);
+	ROS_INFO("Generated a motion with %u states", g);
 	for (std::size_t i = 0 ; i < g ; ++i)
 	{
 	  pc->getOMPLStateSpace()->copyToRobotState(kstate, sts[i]);
 	  traj.addSuffixWayPoint(kstate, 0.0);
 	}
-
         moveit_msgs::DisplayTrajectory msg;
 	msg.model_id = pc->getRobotModel()->getName();
 	msg.trajectory.resize(1);

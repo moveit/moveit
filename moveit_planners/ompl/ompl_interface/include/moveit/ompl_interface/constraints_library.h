@@ -58,7 +58,8 @@ class ConstraintApproximation
 public:
   
   ConstraintApproximation(const std::string &group, const std::string &state_space_parameterization, bool explicit_motions,
-                          const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
+                          const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage,
+                          std::size_t milestones = 0);
   
   virtual ~ConstraintApproximation()
   {
@@ -69,7 +70,9 @@ public:
     return constraint_msg_.name;
   }
   
-  virtual ompl::base::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints &msg) const;
+  ompl::base::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints &msg) const;
+  
+  InterpolationFunction getInterpolationFunction() const;
   
   const std::vector<int>& getSpaceSignature() const
   {
@@ -84,6 +87,11 @@ public:
   bool hasExplicitMotions() const
   {
     return explicit_motions_;
+  }
+  
+  std::size_t getMilestoneCount() const
+  {
+    return milestones_;
   }
   
   const std::string& getStateSpaceParameterization() const
@@ -119,6 +127,7 @@ protected:
   std::string ompldb_filename_;
   ompl::base::StateStoragePtr state_storage_ptr_;
   ConstraintApproximationStateStorage *state_storage_;
+  std::size_t milestones_;
 };
 
 struct ConstraintApproximationConstructionOptions
@@ -145,6 +154,7 @@ struct ConstraintApproximationConstructionOptions
 struct ConstraintApproximationConstructionResults
 {
   ConstraintApproximationPtr approx;
+  std::size_t                milestones;
   double                     state_sampling_time;
   double                     state_connection_time;
   double                     sampling_success_rate;

@@ -164,6 +164,13 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   res.trajectory_.reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
   if (context->solve(timeout, attempts))
   {
+    /*
+    ompl::base::PlannerData pd(context->getOMPLSimpleSetup().getSpaceInformation());
+    context->getOMPLSimpleSetup().getPlannerData(pd);
+    for (unsigned int k = 0 ; k < pd.numVertices() ; ++k)
+      context->getOMPLSimpleSetup().getSpaceInformation()->printState(pd.getVertex(k).getState());
+    */    
+
     double ptime = context->getLastPlanTime();
     if (simplify_solutions_ && ptime < timeout)
     {
@@ -265,12 +272,25 @@ void ompl_interface::OMPLInterface::terminateSolve()
     context->terminateSolve();
 }
 
+void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::string &path)
+{
+  constraints_library_->loadConstraintApproximations(path);   
+  std::stringstream ss;
+  constraints_library_->printConstraintApproximations(ss);
+  ROS_INFO_STREAM(ss.str());
+}
+
+void ompl_interface::OMPLInterface::saveConstraintApproximations(const std::string &path)
+{
+  constraints_library_->saveConstraintApproximations(path);
+}
+
 bool ompl_interface::OMPLInterface::saveConstraintApproximations()
 {
   std::string cpath;
-  if (nh_.getParam("constraint_approximations", cpath))
+  if (nh_.getParam("constraint_approximations_path", cpath))
   {
-    OMPLInterface::saveConstraintApproximations(cpath);
+    saveConstraintApproximations(cpath);
     return true;
   }
   ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
@@ -282,7 +302,7 @@ bool ompl_interface::OMPLInterface::loadConstraintApproximations()
   std::string cpath;
   if (nh_.getParam("constraint_approximations_path", cpath))
   {
-    OMPLInterface::loadConstraintApproximations(cpath);
+    loadConstraintApproximations(cpath);
     return true;
   }
   return false;

@@ -83,10 +83,10 @@ class ConstraintApproximationStateSampler : public ob::StateSampler
 {
 public:
   
-  ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage) : 
+  ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage, std::size_t milestones) : 
     ob::StateSampler(space), state_storage_(state_storage)
   {
-    max_index_ = state_storage_->size() - 1;
+    max_index_ = milestones - 1;
     inv_dim_ = space->getDimension() > 0 ? 1.0 / (double)space->getDimension() : 1.0;
   }
   
@@ -131,18 +131,66 @@ protected:
   double inv_dim_;
 };
 
-void interpolateUsingStoredStates(const ConstraintApproximationStateStorage *state_storage, const ob::State *from, const ob::State *to, const double t, ob::State *state)
-{    
+bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage *state_storage, const ob::State *from, const ob::State *to, const double t, ob::State *state)
+{
   int tag_from = from->as<ModelBasedStateSpace::StateType>()->tag;
   int tag_to = to->as<ModelBasedStateSpace::StateType>()->tag;
+  //  logInform("connect from %d to %d", tag_from, tag_to); 
+  
+  if (tag_from < 0 || tag_to < 0)
+    return false;
+  
   if (tag_from == tag_to)
     state_storage->getStateSpace()->copyState(state, to);
   else
     if (tag_from < tag_to)
     {
       const ConstrainedStateMetadata &md = state_storage->getMetadata(tag_from);
+
+      /*
+      std::cout << "metadata of from = " << tag_from << std::endl;
+      for (std::size_t k = 0 ; k < md.first.size() ; ++k)
+        std::cout << md.first[k] << " ";
+      std::cout << std::endl;
+
+      for (std::map<std::size_t, std::vector<std::size_t> >::const_iterator it = md.second.begin() ; it != md.second.end() ; ++it)
+      {
+        std::cout << it->first << ": ";
+        for (std::size_t k = 0 ; k < it->second.size() ; ++k)
+          std::cout << it->second[k] << " ";
+        std::cout << std::endl;
+      }      
+
+      std::cout << "metadata end" << std::endl;
+
+
+
+
+
+      const ConstrainedStateMetadata &md2 = state_storage->getMetadata(tag_to);
+      std::cout << "metadata of to = " << tag_to << std::endl;
+      for (std::size_t k = 0 ; k < md2.first.size() ; ++k)
+        std::cout << md2.first[k] << " ";
+      std::cout << std::endl;
+
+      for (std::map<std::size_t, std::vector<std::size_t> >::const_iterator it = md2.second.begin() ; it != md2.second.end() ; ++it)
+      {
+       std::cout <<  it->first << ": ";
+        for (std::size_t k = 0 ; k < it->second.size() ; ++k)
+          std::cout << it->second[k] << " ";
+        std::cout << std::endl;
+      }      
+
+      std::cout << "metadata end" << std::endl;
+
+      */
+      
       const std::vector<std::size_t> &istates = md.second.at(tag_to);
+      if (istates.empty())
+        return false;
       std::size_t index = (std::size_t)((istates.size() + 1) * t + 0.5);
+      //      std::cout << index << std::endl;
+      
       if (index == 0)
         state_storage->getStateSpace()->copyState(state, from);
       else
@@ -155,37 +203,47 @@ void interpolateUsingStoredStates(const ConstraintApproximationStateStorage *sta
       }
     }
     else
-      interpolateUsingStoredStates(state_storage, to, from, 1.0 - t, state);
+      return interpolateUsingStoredStates(state_storage, to, from, 1.0 - t, state);
+  return true;
+}
+
+ompl_interface::InterpolationFunction ompl_interface::ConstraintApproximation::getInterpolationFunction() const
+{
+  if (explicit_motions_ && milestones_ > 0 && milestones_ < state_storage_->size())
+    return boost::bind(&interpolateUsingStoredStates, state_storage_, _1, _2, _3, _4);
+  return InterpolationFunction();
 }
 
 ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::StateSpace *space, const std::vector<int> &expected_signature,
-                                                                     const ConstraintApproximationStateStorage *state_storage)
+                                                                     const ConstraintApproximationStateStorage *state_storage, std::size_t milestones)
 {
   std::vector<int> sig;
   space->computeSignature(sig);
   if (sig != expected_signature)
     return ompl::base::StateSamplerPtr();
   else
-    return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage));
+    return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage, milestones));
 }
 
 }
 
 ompl_interface::ConstraintApproximation::ConstraintApproximation(const std::string &group, const std::string &state_space_parameterization,
                                                                  bool explicit_motions, const moveit_msgs::Constraints &msg, const std::string &filename,
-                                                                 const ompl::base::StateStoragePtr &storage) :
+                                                                 const ompl::base::StateStoragePtr &storage, std::size_t milestones) :
   group_(group), state_space_parameterization_(state_space_parameterization), explicit_motions_(explicit_motions), constraint_msg_(msg),
-  ompldb_filename_(filename), state_storage_ptr_(storage)
+  ompldb_filename_(filename), state_storage_ptr_(storage), milestones_(milestones)
 {
   state_storage_ = static_cast<ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
   state_storage_->getStateSpace()->computeSignature(space_signature_);
+  if (milestones_ == 0)
+    milestones_ = state_storage_->size();
 }
 
 ompl::base::StateSamplerAllocator ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_msgs::Constraints &msg) const
 {
   if (state_storage_->size() == 0)
     return ompl::base::StateSamplerAllocator();
-  return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_);
+  return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_, milestones_);
 }
 /*
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const
@@ -242,6 +300,7 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
   {
     std::string group, state_space_parameterization, serialization, filename;
     bool explicit_motions;
+    unsigned int milestones;
     fin >> group;
     if (fin.eof())
       break;
@@ -249,6 +308,9 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
     if (fin.eof())
       break;
     fin >> explicit_motions;
+    if (fin.eof())
+      break;
+    fin >> milestones;
     if (fin.eof())
       break;
     fin >> serialization;    
@@ -263,16 +325,16 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
       hexToMsg(serialization, msg);
       ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(pc->getOMPLSimpleSetup().getStateSpace());
       cass->load((path + "/" + filename).c_str());
-      ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions, msg, filename, ompl::base::StateStoragePtr(cass)));
+      ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions, msg, filename,
+                                                                 ompl::base::StateStoragePtr(cass), milestones));
       if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
         logWarn("Overwriting constraint approximation named '%s'", cap->getName().c_str());
-      
       constraint_approximations_[cap->getName()] = cap;
       std::size_t sum = 0;
       for (std::size_t i = 0 ; i < cass->size() ; ++i)
-        sum += cass->getMetadata(i).first.size();
-      logInform("Loaded %lu states and %lu connections (%0.1lf per state) for constraint named '%s'%s",
-                cass->size(), sum, (double)sum / (double)cass->size(), msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
+        sum += cass->getMetadata(i).first.size();  
+      logInform("Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) for constraint named '%s'%s",
+                cass->size(), cap->getMilestoneCount(), sum, (double)sum / (double)cap->getMilestoneCount(), msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
     }
   }
   logInform("Done loading constrained space approximations.");
@@ -296,6 +358,7 @@ void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std:
       fout << it->second->getGroup() << std::endl;
       fout << it->second->getStateSpaceParameterization() << std::endl;
       fout << it->second->hasExplicitMotions() << std::endl;
+      fout << it->second->getMilestoneCount() << std::endl;
       std::string serialization;
       msgToHex(it->second->getConstraintsMsg(), serialization);
       fout << serialization << std::endl;
@@ -320,6 +383,7 @@ void ompl_interface::ConstraintsLibrary::printConstraintApproximations(std::ostr
     out << it->second->getGroup() << std::endl;
     out << it->second->getStateSpaceParameterization() << std::endl;
     out << it->second->hasExplicitMotions() << std::endl;
+    out << it->second->getMilestoneCount() << std::endl;
     out << it->second->getFilename() << std::endl;
     out << it->second->getConstraintsMsg() << std::endl;
   }
@@ -362,7 +426,8 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
     if (ss)
     {
       ConstraintApproximationPtr ca(new ConstraintApproximation(group, options.state_space_parameterization, options.explicit_motions, constr_hard, group + "_" + 
-                                                                boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
+                                                                boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb",
+                                                                ss, res.milestones));
       if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
         logWarn("Overwriting constraint approximation named '%s'", ca->getName().c_str());
       constraint_approximations_[ca->getName()] = ca;
@@ -455,7 +520,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     logInform("Constrained sampling rate: %lf", result.sampling_success_rate);
   }
   
-  
+  result.milestones = sstor->size();
   if (options.edges_per_sample > 0)
   {
     logInform("Computing graph connections (max %u edges per sample) ...", options.edges_per_sample);

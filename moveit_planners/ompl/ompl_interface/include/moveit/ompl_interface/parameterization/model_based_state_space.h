@@ -44,7 +44,7 @@
 namespace ompl_interface
 {
 
-typedef boost::function<void(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state)> InterpolationFunction;
+typedef boost::function<bool(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state)> InterpolationFunction;
 typedef boost::function<double(const ompl::base::State *state1, const ompl::base::State *state2)> DistanceFunction;
 
 struct ModelBasedStateSpaceSpecification
@@ -183,7 +183,11 @@ public:
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
   virtual double distance(const ompl::base::State *state1, const ompl::base::State *state2) const;
   virtual double getMaximumExtent() const;
-  
+
+  virtual unsigned int getSerializationLength() const;
+  virtual void serialize(void *serialization, const ompl::base::State *state) const;
+  virtual void deserialize(ompl::base::State *state, const void *serialization) const;
+
   virtual ompl::base::StateSamplerPtr allocStateSampler() const;  
   virtual ompl::base::StateSamplerPtr allocSubspaceStateSampler(const ompl::base::StateSpace *subspace) const;
 

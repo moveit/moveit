@@ -47,13 +47,13 @@ moveit_msgs::Constraints getConstraints()
   moveit_msgs::OrientationConstraint ocm;
   ocm.link_name = "r_wrist_roll_link";
   ocm.header.frame_id = "torso_lift_link";
-  ocm.orientation.x = 0.055;
-  ocm.orientation.y = -0.724;
-  ocm.orientation.z = -0.078;
-  ocm.orientation.w = 0.683;
-  ocm.absolute_x_axis_tolerance = boost::math::constants::pi<double>();
+  ocm.orientation.x = 0;
+  ocm.orientation.y = 0;
+  ocm.orientation.z = 0;
+  ocm.orientation.w = 1.0;
+  ocm.absolute_x_axis_tolerance = 0.1;
   ocm.absolute_y_axis_tolerance = 0.1;
-  ocm.absolute_z_axis_tolerance = 0.1;
+  ocm.absolute_z_axis_tolerance = boost::math::constants::pi<double>();
   ocm.weight = 1.0;
   moveit_msgs::Constraints cmsg;
   cmsg.orientation_constraints.resize(1, ocm);
@@ -71,7 +71,7 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
   opt.state_space_parameterization = "PoseModel";
   opt.samples = ns;
   opt.edges_per_sample = ne;
-  opt.explicit_motions = true;
+  opt.explicit_motions = false;
   opt.max_edge_length = 1.0;
   opt.explicit_points_resolution = 0.05;
   opt.max_explicit_points = 10;
