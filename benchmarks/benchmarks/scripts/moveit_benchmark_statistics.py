@@ -398,35 +398,6 @@ def generate_csv(dbname, fname):
             csv.write("\n")
 
 
-    #plt.clf()
-    """
-    pagey = 0.9
-    pagex = 0.06
-    for e in experiments:
-        # get the number of runs, per planner, for this experiment
-        runcount = []
-        for p in planner_names:
-            cursor.execute('SELECT count(*) FROM `%s` WHERE experimentid = %s' % (p, e))
-            runcount.append(cursor.fetchone()[0])
-
-        # check if this number is the same for all planners
-        runs = "Number of averaged runs: "
-        if len([r for r in runcount if not r == runcount[0]]) > 0:
-            runs = runs + ", ".join([planner_names[i].replace('planner_geometric_','').replace('planner_control_','') +
-                         "=" + str(runcount[i]) for i in range(len(runcount))])
-        else:
-            runs = runs + str(runcount[0])
-
-        cursor.execute('SELECT name, timelimit FROM experiments WHERE id = %s' % e)
-        d = cursor.fetchone()
-        plt.figtext(pagex, pagey, "Experiment '%s'" % d[0])
-        plt.figtext(pagex, pagey-0.05, runs)
-        plt.figtext(pagex, pagey-0.10, "Time limit per run: %s seconds" % d[1])
-        pagey -= 0.22
-    plt.show()
-    #pp.savefig(plt.gcf())
-    #pp.close()
-    """
 
 if __name__ == "__main__":
     usage = """%prog [options] [<benchmark.log> ...]"""
@@ -452,7 +423,10 @@ if __name__ == "__main__":
     if len(args) > 0:
         # Check if user wants to start a new database (delete old one)
         if options.overwrite:
-            os.remove(options.dbname)
+            try:
+                os.remove(options.dbname)
+            except OSError:
+                pass
         read_benchmark_log(options.dbname, args)
     
     if options.plot:
