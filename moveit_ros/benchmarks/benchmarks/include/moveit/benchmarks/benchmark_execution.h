@@ -120,32 +120,52 @@ private:
     double timeout;
     
     std::vector<PlanningPluginOptions> plugins;
+
+    moveit_msgs::WorkspaceParameters workspace_parameters;
   };
 
   /// Allows for parameter sweeping of the planner configuration
   struct SweepOptions
   {
     std::string key;
+    std::string log_key;
     double start;
     double iterator;
     double end;
   };
-  /// key is name of parameter to sweep. will be applied to all algorithms in the benchmark
-  std::vector<SweepOptions> sweep_options_;
+  
+  /// Contains the parameter combination for one test
+  typedef std::map<std::string,double> SweepInstance;
 
   void collectMetrics(std::map<std::string, std::string> &rundata,
                       const planning_interface::MotionPlanDetailedResponse &mp_res,
                       bool solved, double total_time);
   
+  /**
+   * @brief Called within the benchmarking solve loop to allow parameters to be swept/tested
+   * @param planner - pointer to the current planner we are about to use
+   * @param planner_id - name of planner we are about to use
+   * @param sweep_combinations_id_ - keeps track of what parameter combo we are currently iterating on
+   * @param parameter_data - used for outputting log information to file (results)
+   */ 
   void modifyPlannerConfiguration(planning_interface::Planner* planner, 
-                                  planning_interface::MotionPlanRequest mp_req, 
-                                  std::size_t &parameter_id, double &parameter_value,
+                                  const std::string& planner_id, 
+                                  std::size_t sweep_combinations_id_,
                                   RunData &parameter_data);
+
+  /// Generates all the combinations of parameters to be tested
+  std::size_t generateSweepCombinations();
+
+  /// Recursively generates all the combinations of parameters to be tested
+  void recursiveSweepCombinations(int options_id, SweepInstance sweep_instance);
 
   /// Output to console the settings
   void printConfigurationSettings(const std::map<std::string,planning_interface::PlanningConfigurationSettings> &settings);
 
-  BenchmarkOptions opt_; 
+  BenchmarkOptions options_; 
+  std::vector<SweepOptions> sweep_options_;
+  std::vector<SweepInstance> sweep_combinations_;
+
   std::vector<std::string> available_plugins_;
   planning_scene::PlanningScenePtr planning_scene_;
 

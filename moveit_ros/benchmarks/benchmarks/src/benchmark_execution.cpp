@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Mario Prats */
+/* Author: Ioan Sucan, Mario Prats, Dave Coleman */
 
 #include <moveit/benchmarks/benchmark_execution.h>
 #include <moveit/benchmarks/benchmarks_utils.h>
@@ -145,14 +145,14 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
   bool world_only = false;
 
   // read the environment geometry
-  if (!pss_.hasPlanningScene(opt_.scene))
+  if (!pss_.hasPlanningScene(options_.scene))
   {
-    if (psws_.hasPlanningSceneWorld(opt_.scene))
+    if (psws_.hasPlanningSceneWorld(options_.scene))
     {
       bool ok = false;
       try
       {
-        ok = psws_.getPlanningSceneWorld(pswwm, opt_.scene);
+        ok = psws_.getPlanningSceneWorld(pswwm, options_.scene);
       }
       catch (std::runtime_error &ex)
       {
@@ -169,7 +169,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       pss_.getPlanningSceneNames(names);
       for (std::size_t i = 0 ; i < names.size() ; ++i)
         ss << names[i] << " ";
-      ROS_ERROR("Scene '%s' not found in warehouse. Available names: ", opt_.scene.c_str(), ss.str().c_str());
+      ROS_ERROR("Scene '%s' not found in warehouse. Available names: ", options_.scene.c_str(), ss.str().c_str());
       return;
     }
   }
@@ -178,7 +178,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
     bool ok = false;
     try
     {
-      ok = pss_.getPlanningScene(pswm, opt_.scene);
+      ok = pss_.getPlanningScene(pswm, options_.scene);
     }
     catch (std::runtime_error &ex)
     {
@@ -187,7 +187,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
 
     if (!ok)
     {
-      ROS_ERROR("Scene '%s' not found in warehouse", opt_.scene.c_str());
+      ROS_ERROR("Scene '%s' not found in warehouse", options_.scene.c_str());
       return;
     }
   }
@@ -204,29 +204,29 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
   else
     req.scene = static_cast<const moveit_msgs::PlanningScene&>(*pswm);
 
-  req.scene.name = opt_.scene;
+  // check if this scene has associated queries
+  req.scene.name = options_.scene;
   std::vector<std::string> planning_queries_names;
   try
   {
-    pss_.getPlanningQueriesNames(opt_.query_regex, planning_queries_names, opt_.scene);
+    pss_.getPlanningQueriesNames(options_.query_regex, planning_queries_names, options_.scene);
   }
   catch (std::runtime_error &ex)
   {
     ROS_ERROR("%s", ex.what());
   }
-
   if (planning_queries_names.empty())
-    ROS_INFO("Scene '%s' has no associated queries", opt_.scene.c_str());
-  req.plugins = opt_.plugins;
+    ROS_DEBUG("Scene '%s' has no associated queries", options_.scene.c_str());
 
-  unsigned int n_call = 0;
+  // fill in the plugins option
+  req.plugins = options_.plugins;
 
   // see if we have any start states specified; if we do, we run the benchmark for
   // each start state; if not, we run it for one start state only: the current one saved in the loaded scene
   std::vector<std::string> start_states;
-  if (!opt_.start_regex.empty())
+  if (!options_.start_regex.empty())
   {
-    boost::regex start_regex(opt_.start_regex);
+    boost::regex start_regex(options_.start_regex);
     std::vector<std::string> state_names;
     rs_.getKnownRobotStates(state_names);
     for (std::size_t i = 0 ; i < state_names.size() ; ++i)
@@ -237,7 +237,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
     }
     if (start_states.empty())
     {
-      ROS_WARN("No stored states matched the provided regex: '%s'", opt_.start_regex.c_str());
+      ROS_WARN("No stored states matched the provided regex: '%s'", options_.start_regex.c_str());
       return;
     }
     else
@@ -246,6 +246,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
   else
     ROS_INFO("No specified start state. Running benchmark once with the default start state.");
 
+  unsigned int n_call = 0;
   bool have_more_start_states = true;
   boost::scoped_ptr<moveit_msgs::RobotState> start_state_to_use;
   while (have_more_start_states)
@@ -253,7 +254,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
     start_state_to_use.reset();
 
     // if no set of start states provided, run once for the current one
-    if (opt_.start_regex.empty())
+    if (options_.start_regex.empty())
       have_more_start_states = false;
     else
     {
@@ -284,12 +285,12 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
     // run benchmarks for specified queries
     // ************************************
 
-    if (!opt_.query_regex.empty())
+    if (!options_.query_regex.empty())
     {
       for (std::size_t i = 0 ; i < planning_queries_names.size() ; ++i)
       {
         moveit_warehouse::MotionPlanRequestWithMetadata planning_query;
-        pss_.getPlanningQuery(planning_query, opt_.scene, planning_queries_names[i]);
+        pss_.getPlanningQuery(planning_query, options_.scene, planning_queries_names[i]);
 
         // Save name of goal - only used for later analysis
         req.goal_name = planning_queries_names[i];
@@ -297,27 +298,30 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
         // read request from db
         req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_query);
 
+        // set the workspace bounds
+        req.motion_plan_request.workspace_parameters = options_.workspace_parameters;
+
         // update request given .cfg options
         if (start_state_to_use)
           req.motion_plan_request.start_state = *start_state_to_use;
-        req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
-        if (!opt_.group_override.empty())
-          req.motion_plan_request.group_name = opt_.group_override;
+        req.filename = options_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+        if (!options_.group_override.empty())
+          req.motion_plan_request.group_name = options_.group_override;
 
-        if (opt_.timeout > 0.0)
-          req.motion_plan_request.allowed_planning_time = opt_.timeout;
+        if (options_.timeout > 0.0)
+          req.motion_plan_request.allowed_planning_time = options_.timeout;
 
-        if (!opt_.default_constrained_link.empty())
+        if (!options_.default_constrained_link.empty())
         {
-          checkConstrainedLink(req.motion_plan_request.path_constraints, opt_.default_constrained_link);
+          checkConstrainedLink(req.motion_plan_request.path_constraints, options_.default_constrained_link);
           for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
-            checkConstrainedLink(req.motion_plan_request.goal_constraints[j], opt_.default_constrained_link);
+            checkConstrainedLink(req.motion_plan_request.goal_constraints[j], options_.default_constrained_link);
         }
-        if (!opt_.planning_frame.empty())
+        if (!options_.planning_frame.empty())
         {
-          checkHeader(req.motion_plan_request.path_constraints, opt_.planning_frame);
+          checkHeader(req.motion_plan_request.path_constraints, options_.planning_frame);
           for (std::size_t j = 0 ; j < req.motion_plan_request.goal_constraints.size() ; ++j)
-            checkHeader(req.motion_plan_request.goal_constraints[j], opt_.planning_frame);
+            checkHeader(req.motion_plan_request.goal_constraints[j], options_.planning_frame);
         }
 
         ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i+1, (int)planning_queries_names.size());
@@ -328,10 +332,10 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
     // if we have any goals specified as constraints, run benchmarks for those as well
     // *******************************************************************************
 
-    if (!opt_.goal_regex.empty())
+    if (!options_.goal_regex.empty())
     {
       std::vector<std::string> cnames;
-      cs_.getKnownConstraints(opt_.goal_regex, cnames);
+      cs_.getKnownConstraints(options_.goal_regex, cnames);
       for (std::size_t i = 0 ; i < cnames.size() ; ++i)
       {
         moveit_warehouse::ConstraintsWithMetadata constr;
@@ -357,6 +361,9 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             req.motion_plan_request.start_state = *start_state_to_use;
           req.motion_plan_request.goal_constraints[0] = *constr;
 
+          // set the workspace bounds
+          req.motion_plan_request.workspace_parameters = options_.workspace_parameters;
+
           // Apply the goal offset for constraints that appear to specify IK poses
           if (constr->position_constraints.size() == 1 && constr->orientation_constraints.size() == 1 && kinematic_constraints::countIndividualConstraints(*constr) == 2 &&
               constr->position_constraints[0].constraint_region.primitive_poses.size() == 1 && constr->position_constraints[0].constraint_region.mesh_poses.empty())
@@ -367,10 +374,10 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             Eigen::Affine3d wMc;
             tf::poseMsgToEigen(wMc_msg, wMc);
 
-            Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(opt_.offsets[3], Eigen::Vector3d::UnitX()) *
-                                      Eigen::AngleAxis<double>(opt_.offsets[4], Eigen::Vector3d::UnitY()) *
-                                      Eigen::AngleAxis<double>(opt_.offsets[5], Eigen::Vector3d::UnitZ()));
-            offset_tf.translation() = Eigen::Vector3d(opt_.offsets[0], opt_.offsets[1], opt_.offsets[2]);
+            Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
+                                      Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
+                                      Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
+            offset_tf.translation() = Eigen::Vector3d(options_.offsets[0], options_.offsets[1], options_.offsets[2]);
 
             Eigen::Affine3d wMnc = wMc * offset_tf;
             geometry_msgs::Pose wMnc_msg;
@@ -380,15 +387,15 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation = wMnc_msg.orientation;
           }
 
-          if (!opt_.group_override.empty())
-            req.motion_plan_request.group_name = opt_.group_override;
-          if (opt_.timeout > 0.0)
-            req.motion_plan_request.allowed_planning_time = opt_.timeout;
-          if (!opt_.default_constrained_link.empty())
-            checkConstrainedLink(req.motion_plan_request.goal_constraints[0], opt_.default_constrained_link);
-          if (!opt_.planning_frame.empty())
-            checkHeader(req.motion_plan_request.goal_constraints[0], opt_.planning_frame);
-          req.filename = opt_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
+          if (!options_.group_override.empty())
+            req.motion_plan_request.group_name = options_.group_override;
+          if (options_.timeout > 0.0)
+            req.motion_plan_request.allowed_planning_time = options_.timeout;
+          if (!options_.default_constrained_link.empty())
+            checkConstrainedLink(req.motion_plan_request.goal_constraints[0], options_.default_constrained_link);
+          if (!options_.planning_frame.empty())
+            checkHeader(req.motion_plan_request.goal_constraints[0], options_.planning_frame);
+          req.filename = options_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
 
           ROS_INFO("Benckmarking goal '%s' (%d of %d)", cnames[i].c_str(), (int)i+1, (int)cnames.size());
           runBenchmark(req);
@@ -399,10 +406,10 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
     // if we have any goals specified as trajectory constraints, run benchmarks for those as well
     // ******************************************************************************************
 
-    if (!opt_.trajectory_regex.empty())
+    if (!options_.trajectory_regex.empty())
     {
       std::vector<std::string> cnames;
-      tcs_.getKnownTrajectoryConstraints(opt_.trajectory_regex, cnames);
+      tcs_.getKnownTrajectoryConstraints(options_.trajectory_regex, cnames);
       for (std::size_t i = 0 ; i < cnames.size() ; ++i)
       {
         moveit_warehouse::TrajectoryConstraintsWithMetadata constr;
@@ -427,10 +434,13 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             req.motion_plan_request.start_state = *start_state_to_use;
           req.motion_plan_request.trajectory_constraints = *constr;
 
-          Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(opt_.offsets[3], Eigen::Vector3d::UnitX()) *
-                                    Eigen::AngleAxis<double>(opt_.offsets[4], Eigen::Vector3d::UnitY()) *
-                                    Eigen::AngleAxis<double>(opt_.offsets[5], Eigen::Vector3d::UnitZ()));
-          offset_tf.translation() = Eigen::Vector3d(opt_.offsets[0], opt_.offsets[1], opt_.offsets[2]);
+          // set the workspace bounds
+          req.motion_plan_request.workspace_parameters = options_.workspace_parameters;
+
+          Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
+                                    Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
+                                    Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
+          offset_tf.translation() = Eigen::Vector3d(options_.offsets[0], options_.offsets[1], options_.offsets[2]);
 
           // Apply waypoint offsets, check fields
           for (std::size_t tc = 0; tc < constr->constraints.size(); ++tc)
@@ -452,17 +462,17 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
               req.motion_plan_request.trajectory_constraints.constraints[tc].position_constraints[0].constraint_region.primitive_poses[0].position = wMnc_msg.position;
               req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation = wMnc_msg.orientation;
             }
-            if (!opt_.default_constrained_link.empty())
-              checkConstrainedLink(req.motion_plan_request.trajectory_constraints.constraints[tc], opt_.default_constrained_link);
-            if (!opt_.planning_frame.empty())
-              checkHeader(req.motion_plan_request.trajectory_constraints.constraints[tc], opt_.planning_frame);
+            if (!options_.default_constrained_link.empty())
+              checkConstrainedLink(req.motion_plan_request.trajectory_constraints.constraints[tc], options_.default_constrained_link);
+            if (!options_.planning_frame.empty())
+              checkHeader(req.motion_plan_request.trajectory_constraints.constraints[tc], options_.planning_frame);
           }
 
-          if (!opt_.group_override.empty())
-            req.motion_plan_request.group_name = opt_.group_override;
-          if (opt_.timeout > 0.0)
-            req.motion_plan_request.allowed_planning_time = opt_.timeout;
-          req.filename = opt_.output + ".trajectory." + boost::lexical_cast<std::string>(i+1) + ".log";
+          if (!options_.group_override.empty())
+            req.motion_plan_request.group_name = options_.group_override;
+          if (options_.timeout > 0.0)
+            req.motion_plan_request.allowed_planning_time = options_.timeout;
+          req.filename = options_.output + ".trajectory." + boost::lexical_cast<std::string>(i+1) + ".log";
 
           ROS_INFO("Benckmarking trajectory '%s' (%d of %d)", cnames[i].c_str(), (int)i+1, (int)cnames.size());
           runBenchmark(req);
@@ -505,7 +515,9 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       ("scene.goal_offset_roll", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in roll")
       ("scene.goal_offset_pitch", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in pitch")
       ("scene.goal_offset_yaw", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in yaw")
-      ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
+      ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file")
+      ("scene.workspace", boost::program_options::value<std::string>(), "Bounding box of workspace to plan in - min_x, min_y, min_z, max_x, max_y, max_z")
+      ("scene.workspace_frame", boost::program_options::value<std::string>(), "Frame id of bounding box of workspace to plan in");
 
     boost::program_options::variables_map vm;
     boost::program_options::parsed_options po = boost::program_options::parse_config_file(cfg, desc, true);
@@ -516,39 +528,79 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
     std::map<std::string, std::string> declared_options;
     for (boost::program_options::variables_map::iterator it = vm.begin() ; it != vm.end() ; ++it)
       declared_options[it->first] = boost::any_cast<std::string>(vm[it->first].value());
-    opt_.scene = declared_options["scene.name"];
-    opt_.output = declared_options["scene.output"];
-    opt_.start_regex = declared_options["scene.start"];
-    opt_.query_regex = declared_options["scene.query"];
-    opt_.goal_regex = declared_options["scene.goal"];
-    opt_.trajectory_regex = declared_options["scene.trajectory"];
-    opt_.group_override = declared_options["scene.group"];
-    opt_.default_constrained_link = declared_options["scene.default_constrained_link"];
-    opt_.planning_frame = declared_options["scene.planning_frame"];
+
+    options_.scene = declared_options["scene.name"];
+    options_.start_regex = declared_options["scene.start"];
+    options_.query_regex = declared_options["scene.query"];
+    options_.goal_regex = declared_options["scene.goal"];
+    options_.trajectory_regex = declared_options["scene.trajectory"];
+    options_.group_override = declared_options["scene.group"];
+    options_.default_constrained_link = declared_options["scene.default_constrained_link"];
+    options_.planning_frame = declared_options["scene.planning_frame"];
     try
     {
-      memset(opt_.offsets, 0, 6*sizeof(double));
+      memset(options_.offsets, 0, 6*sizeof(double));
       if (!declared_options["scene.goal_offset_x"].empty())
-        opt_.offsets[0] = boost::lexical_cast<double>(declared_options["scene.goal_offset_x"]);
+        options_.offsets[0] = boost::lexical_cast<double>(declared_options["scene.goal_offset_x"]);
       if (!declared_options["scene.goal_offset_y"].empty())
-        opt_.offsets[1] = boost::lexical_cast<double>(declared_options["scene.goal_offset_y"]);
+        options_.offsets[1] = boost::lexical_cast<double>(declared_options["scene.goal_offset_y"]);
       if (!declared_options["scene.goal_offset_z"].empty())
-        opt_.offsets[2] = boost::lexical_cast<double>(declared_options["scene.goal_offset_z"]);
+        options_.offsets[2] = boost::lexical_cast<double>(declared_options["scene.goal_offset_z"]);
       if (!declared_options["scene.goal_offset_roll"].empty())
-        opt_.offsets[3] = boost::lexical_cast<double>(declared_options["scene.goal_offset_roll"]);
+        options_.offsets[3] = boost::lexical_cast<double>(declared_options["scene.goal_offset_roll"]);
       if (!declared_options["scene.goal_offset_pitch"].empty())
-        opt_.offsets[4] = boost::lexical_cast<double>(declared_options["scene.goal_offset_pitch"]);
+        options_.offsets[4] = boost::lexical_cast<double>(declared_options["scene.goal_offset_pitch"]);
       if (!declared_options["scene.goal_offset_yaw"].empty())
-        opt_.offsets[5] = boost::lexical_cast<double>(declared_options["scene.goal_offset_yaw"]);
+        options_.offsets[5] = boost::lexical_cast<double>(declared_options["scene.goal_offset_yaw"]);
     }
     catch(boost::bad_lexical_cast &ex)
     {
       ROS_WARN("%s", ex.what());
     }
 
-    if (opt_.output.empty())
-      opt_.output = filename;
-    opt_.plugins.clear();
+    // Workspace bounds
+    if (!declared_options["scene.workspace"].empty())
+    {
+      std::vector<std::string> strings;
+      boost::split(strings, declared_options["scene.workspace"], boost::is_any_of(","));
+
+      if (strings.size() != 6)
+      {
+        ROS_WARN_STREAM("Invalid number of workspace parameters. Expected 6, recieved " << strings.size());
+      }
+      else if (declared_options["scene.workspace_frame"].empty())
+      {
+        ROS_WARN_STREAM("No workspace_frame parameter provided, required with the workspace frame");
+      }
+      else
+      {
+        try
+        {
+          // add workspace bounds if specified in the .cfg file
+          options_.workspace_parameters.header.frame_id = declared_options["scene.workspace_frame"];
+          options_.workspace_parameters.header.stamp = ros::Time::now();
+          options_.workspace_parameters.min_corner.x = boost::lexical_cast<double>(strings[0]);
+          options_.workspace_parameters.min_corner.y = boost::lexical_cast<double>(strings[1]);
+          options_.workspace_parameters.min_corner.z = boost::lexical_cast<double>(strings[2]);
+          options_.workspace_parameters.max_corner.x = boost::lexical_cast<double>(strings[3]);
+          options_.workspace_parameters.max_corner.y = boost::lexical_cast<double>(strings[4]);
+          options_.workspace_parameters.max_corner.z = boost::lexical_cast<double>(strings[5]);
+        }
+        catch(boost::bad_lexical_cast &ex)
+        {
+          ROS_WARN("%s", ex.what());
+        }
+      }
+    }
+
+    // Filename
+    options_.output = declared_options["scene.output"];
+    if (options_.output.empty())
+      options_.output = filename;
+
+    options_.plugins.clear();
+
+    // Runs
     std::size_t default_run_count = 1;
     if (!declared_options["scene.runs"].empty())
     {
@@ -561,13 +613,15 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
         ROS_WARN("%s", ex.what());
       }
     }
-    opt_.default_run_count = default_run_count;
-    opt_.timeout = 0.0;
+    options_.default_run_count = default_run_count;
+
+    // Timeout
+    options_.timeout = 0.0;
     if (!declared_options["scene.timeout"].empty())
     {
       try
       {
-        opt_.timeout = boost::lexical_cast<double>(declared_options["scene.timeout"]);
+        options_.timeout = boost::lexical_cast<double>(declared_options["scene.timeout"]);
       }
       catch(boost::bad_lexical_cast &ex)
       {
@@ -591,7 +645,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
         if (k == "name")
         {
           if (bpo)
-            opt_.plugins.push_back(*bpo);
+            options_.plugins.push_back(*bpo);
           bpo.reset(new PlanningPluginOptions());
           bpo->name = val;
           bpo->runs = default_run_count;
@@ -634,22 +688,26 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
         ROS_ERROR_STREAM_NAMED("temp","SWEEP key="<<sweep_var<<" val="<<val);
 
         // Convert the string of a:b:c numbers into parsed doubles
-        std::vector<std::string> strs;
-        boost::split(strs, val, boost::is_any_of(":"));
+        std::vector<std::string> strings;
+        boost::split(strings, val, boost::is_any_of(":"));
 
-        if(strs.size() != 3)
+        if(strings.size() != 3)
         {
-          ROS_WARN_STREAM("Invalid sweep parameter for key " << sweep_var << ". Expected 3 values (start, iterator, end) but only recieved " << strs.size() );
+          ROS_WARN_STREAM("Invalid sweep parameter for key " << sweep_var << ". Expected 3 values (start, iterator, end) but only recieved " << strings.size() );
           continue;
         }
 
         SweepOptions new_sweep;
         try
         {
-          new_sweep.start = boost::lexical_cast<double>(strs[0]);
-          new_sweep.iterator = boost::lexical_cast<double>(strs[1]);
-          new_sweep.end = boost::lexical_cast<double>(strs[2]);
+          new_sweep.start = boost::lexical_cast<double>(strings[0]);
+          new_sweep.iterator = boost::lexical_cast<double>(strings[1]);
+          new_sweep.end = boost::lexical_cast<double>(strings[2]);
           new_sweep.key = sweep_var;
+          // for logging to file:
+          std::ostringstream ss;
+          ss << "param_" << sweep_var << " REAL";
+          new_sweep.log_key = ss.str();
         }
         catch(boost::bad_lexical_cast &ex)
         {
@@ -666,7 +724,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
         // Insert into array of all sweeps
         sweep_options_.push_back(new_sweep);
 
-        ROS_ERROR_STREAM_NAMED("temp","SWEEP start " << new_sweep.start << " it " << new_sweep.iterator << " end " << new_sweep.end);
+        //ROS_ERROR_STREAM_NAMED("temp","SWEEP start " << new_sweep.start << " it " << new_sweep.iterator << " end " << new_sweep.end);
       }
       else
       {
@@ -675,7 +733,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       }
     }
     if (bpo)
-      opt_.plugins.push_back(*bpo);
+      options_.plugins.push_back(*bpo);
   }
 
   catch(...)
@@ -689,20 +747,20 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
 
 void moveit_benchmarks::BenchmarkExecution::printOptions(std::ostream &out)
 {
-  out << "Benchmark for scene '" << opt_.scene << "' to be saved at location '" << opt_.output << "'" << std::endl;
-  if (!opt_.query_regex.empty())
-    out << "Planning requests associated to the scene that match '" << opt_.query_regex << "' will be evaluated" << std::endl;
-  if (!opt_.goal_regex.empty())
-    out << "Planning requests constructed from goal constraints that match '" << opt_.goal_regex << "' will be evaluated" << std::endl;
-  if (!opt_.trajectory_regex.empty())
-    out << "Planning requests constructed from trajectory constraints that match '" << opt_.trajectory_regex << "' will be evaluated" << std::endl;
+  out << "Benchmark for scene '" << options_.scene << "' to be saved at location '" << options_.output << "'" << std::endl;
+  if (!options_.query_regex.empty())
+    out << "Planning requests associated to the scene that match '" << options_.query_regex << "' will be evaluated" << std::endl;
+  if (!options_.goal_regex.empty())
+    out << "Planning requests constructed from goal constraints that match '" << options_.goal_regex << "' will be evaluated" << std::endl;
+  if (!options_.trajectory_regex.empty())
+    out << "Planning requests constructed from trajectory constraints that match '" << options_.trajectory_regex << "' will be evaluated" << std::endl;
   out << "Plugins:" << std::endl;
-  for (std::size_t i = 0 ; i < opt_.plugins.size() ; ++i)
+  for (std::size_t i = 0 ; i < options_.plugins.size() ; ++i)
   {
-    out << "   * name: " << opt_.plugins[i].name << " (to be run " << opt_.plugins[i].runs << " times for each planner)" << std::endl;
+    out << "   * name: " << options_.plugins[i].name << " (to be run " << options_.plugins[i].runs << " times for each planner)" << std::endl;
     out << "   * planners:";
-    for (std::size_t j = 0 ; j < opt_.plugins[i].planners.size() ; ++j)
-      out << ' ' << opt_.plugins[i].planners[j];
+    for (std::size_t j = 0 ; j < options_.plugins[i].planners.size() ; ++j)
+      out << ' ' << options_.plugins[i].planners[j];
     out << std::endl;
   }
 }
@@ -958,15 +1016,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     planning_scene_->usePlanningSceneMsg(req.scene);
 
   // parameter sweeping functionality
-  std::size_t total_n_parameters = 0; 
-  for (std::size_t i = 0; i < sweep_options_.size(); ++i)
-  {
-    // How many runs are in this sweep?
-    std::size_t sweep_runs = (sweep_options_[i].end - sweep_options_[i].start) / sweep_options_[i].iterator;
-    total_n_parameters += sweep_runs;
-  }
-  if(!total_n_parameters)
-    total_n_parameters = 1; // by default we just run once for the default paremeters
+  std::size_t n_parameter_sets = generateSweepCombinations();
 
   // get stats on how many planners and total runs will be executed
   std::size_t total_n_planners = 0;
@@ -977,7 +1027,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
     // n = algorithms * runs * parameter_sweeps
     total_n_runs += planner_ids_to_benchmark_per_planner_interface[i].size() *
-      runs_per_planner_interface[i] * total_n_parameters;
+      runs_per_planner_interface[i] * n_parameter_sets;
   }
 
   // benchmark all the planners
@@ -986,10 +1036,6 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   std::vector<AlgorithmRunsData> data; // holds all of the results
   std::vector<bool> first(planner_interfaces_to_benchmark.size(), true);
 
-  // sweep tracking
-  std::size_t parameter_id = 0;
-  double parameter_value = 0.0;
-
   // loop through the planning plugins
   for (std::size_t i = 0 ; i < planner_interfaces_to_benchmark.size() ; ++i)
   {
@@ -997,43 +1043,54 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     for (std::size_t j = 0 ; j < planner_ids_to_benchmark_per_planner_interface[i].size() ; ++j)
     {
       mp_req.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
-      AlgorithmRunsData runs(runs_per_planner_interface[i]*total_n_parameters);
+      AlgorithmRunsData runs(runs_per_planner_interface[i]*n_parameter_sets);
+
+      // sweep tracking
+      std::size_t sweep_combinations_id_ = 0;
 
       // loop through the desired parameter sweeps
-      for (std::size_t param_count = 0; param_count < total_n_parameters; ++param_count)
+      for (std::size_t param_count = 0; param_count < n_parameter_sets; ++param_count)
       {
+        RunData parameter_data;
+
         std::cout << " ------------------------------------------------------ \n";
         std::cout << "NEW LOOP \n";
         std::cout << " ------------------------------------------------------ \n";
 
         // apply the current parameter sweep, if we are using those
-        RunData parameter_data;
-        if( total_n_parameters > 1 )
+        if( n_parameter_sets > 1 )
         {
-          modifyPlannerConfiguration(planner_interfaces_to_benchmark[i], mp_req, parameter_id, parameter_value, parameter_data);
-          //ROS_ERROR_STREAM_NAMED("temp","MAIN LOOP parameter_value " << parameter_value << " parameter_id " << parameter_id);
+          modifyPlannerConfiguration(planner_interfaces_to_benchmark[i], mp_req.planner_id, sweep_combinations_id_, parameter_data);
+          ++sweep_combinations_id_;
         }
 
         // loop through the desired number of runs
         for (unsigned int run_count = 0 ; run_count < runs_per_planner_interface[i] ; ++run_count)
         {
           // Combine two for loops into one id
-          std::size_t run_id = run_count * total_n_parameters + param_count;
-          ROS_ERROR_STREAM_NAMED("temp","Run id is " << run_id);
+          std::size_t run_id = run_count * n_parameter_sets + param_count;
 
           ++progress;
+
+          //ROS_ERROR_STREAM_NAMED("temp","Request:\n" << mp_req);
 
           // run a single benchmark
           ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
           planning_interface::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
-          ROS_ERROR_STREAM_NAMED("temp","benchmark_execution - calling solve()");          
+
           bool solved = planner_interfaces_to_benchmark[i]->solve(planning_scene_, mp_req, mp_res);
           double total_time = (ros::WallTime::now() - start).toSec();
 
           // collect data
           start = ros::WallTime::now();
           runs[run_id].insert(parameter_data.begin(),parameter_data.end()); // initalize this run's data with the chosen parameters, if we have any
+
+          // Debug map
+          ROS_ERROR_STREAM_NAMED("temp","Static parameter data map:");
+          for(std::map<std::string,std::string>::const_iterator it = parameter_data.begin(); it != parameter_data.end(); ++it)
+            std::cout << "  - '" << it->first << "' => " << it->second << std::endl;
+
           collectMetrics(runs[run_id], mp_res, solved, total_time);
           double metrics_time = (ros::WallTime::now() - start).toSec();
           ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
@@ -1047,14 +1104,9 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       }
       // this vector of runs represents all the runs*parameter sweeps
       data.push_back(runs);
-    }
-  }
 
-  ROS_ERROR_STREAM_NAMED("temp","data size " << data.size());
-  for (std::size_t i = 0; i < data.size(); ++i)
-  {
-    ROS_ERROR_STREAM_NAMED("temp","map size = " << data[i].size());
-  }
+    } // end j - planning algoritms
+  } // end i - planning plugins
 
   double duration = (ros::WallTime::now() - startTime).toSec();
   std::string host = moveit_benchmarks::getHostname();
@@ -1069,16 +1121,17 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   out << duration << " seconds spent to collect the data" << std::endl;
   out << total_n_planners << " planners" << std::endl;
 
-
-  std::size_t ri = 0;
+  // tracks iteration location in data[] vector
+  std::size_t run_id = 0;
 
   // loop through the planning *plugins*
   for (std::size_t q = 0 ; q < planner_interfaces_to_benchmark.size() ; ++q)
   {
-    // loop through the planning *algorithms*
-    for (std::size_t p = 0 ; p < planner_ids_to_benchmark_per_planner_interface[q].size()*total_n_parameters; 
-         ++p, ++ri)
+    // loop through the planning *algorithms* times the # parameter combinations
+    for (std::size_t p = 0 ; p < planner_ids_to_benchmark_per_planner_interface[q].size(); ++p)
     {
+      ROS_DEBUG_STREAM_NAMED("temp","q="<<q<<" p="<<p<<" run_id="<<run_id);
+
       // Output name of planning algorithm
       out << planner_interfaces_to_benchmark[q]->getDescription() + "_" + planner_ids_to_benchmark_per_planner_interface[q][p] << std::endl;
 
@@ -1088,9 +1141,18 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
       // construct the list of all possible properties for all runs
       std::set<std::string> properties_set;
-      for (std::size_t j = 0 ; j < data[ri].size() ; ++j)
-        for (RunData::const_iterator mit = data[ri][j].begin() ; mit != data[ri][j].end() ; ++mit)
+      for (std::size_t j = 0 ; j < data[run_id].size() ; ++j)
+      {
+
+        ROS_DEBUG_STREAM_NAMED("","j  =" << j);
+        ROS_DEBUG_STREAM_NAMED("","size = " << data.size() << " size[run_id] " << data[run_id].size());
+        ROS_DEBUG_STREAM_NAMED("temp","total n parameters " << n_parameter_sets);
+
+        for (RunData::const_iterator mit = data[run_id][j].begin() ; mit != data[run_id][j].end() ; ++mit)
+        {
           properties_set.insert(mit->first);
+        }
+      }
 
       // copy that set to a vector of properties
       std::vector<std::string> properties;
@@ -1101,16 +1163,16 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       // output the vector of properties to the log file
       for (unsigned int j = 0 ; j < properties.size() ; ++j)
         out << properties[j] << std::endl;
-      out << data[ri].size() << " runs" << std::endl;
+      out << data[run_id].size() << " runs" << std::endl;
 
       // output all the data to the log file
-      for (std::size_t j = 0 ; j < data[ri].size() ; ++j)
+      for (std::size_t j = 0 ; j < data[run_id].size() ; ++j)
       {
         for (unsigned int k = 0 ; k < properties.size() ; ++k)
         {
           // check if this current row contains each property
-          RunData::const_iterator it = data[ri][j].find(properties[k]);
-          if (it != data[ri][j].end())
+          RunData::const_iterator it = data[run_id][j].find(properties[k]);
+          if (it != data[run_id][j].end())
             out << it->second;
           out << "; ";
         }
@@ -1119,6 +1181,8 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
         out << std::endl;
       }
       out << '.' << std::endl;
+
+      ++run_id;
     }
   }
 
@@ -1272,66 +1336,40 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
 }
 
 void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_interface::Planner* planner,
-                                                                       planning_interface::MotionPlanRequest mp_req,
-                                                                       std::size_t &parameter_id, double &parameter_value,                                                                       
+                                                                       const std::string& planner_id,
+                                                                       std::size_t sweep_combinations_id_,
                                                                        RunData &parameter_data)
 {
-  // TODO: make this work for >1 parameter
-
-  // Calculate what the next parameter and parameter value is
-  double parameter_value_new = parameter_value + sweep_options_[parameter_id].iterator;
-  
-  std::string str_parameter_value;
-
-  // Check if we are ready to move to the next parameter
-  if( parameter_value_new > sweep_options_[parameter_id].end + 0.00001 ) // rounding issues fudge factor
-  {
-    ++parameter_id;
-    ROS_ERROR_STREAM_NAMED("temp","parameter_id "<< parameter_id);
-    // error check
-    if( parameter_id >= sweep_options_.size() )
-    {
-      ROS_ERROR_STREAM("An error occured calculating the next parameter sweep value - the new value is " << parameter_value_new << " but the max is " << sweep_options_[parameter_id-1].end );
-      return;
-    }
-
-    // restart the iteration on the new parameter
-    parameter_value = sweep_options_[parameter_id].start;
-  }
-  else
-  {
-    // continue iterating
-    parameter_value = parameter_value_new;
-    
-    // convert to string
-    str_parameter_value = boost::lexical_cast<std::string>(parameter_value);
-
-    // record parameter values for logging
-    std::ostringstream ss;
-    ss << "param_" << sweep_options_[parameter_id].key << " REAL";
-    parameter_data[ss.str()] = str_parameter_value;
-  }
-
-  ROS_ERROR_STREAM_NAMED("temp","Parameter " << sweep_options_[parameter_id].key << " now has value " << parameter_value);
-
   // Get the planner's current settings
   std::map<std::string, planning_interface::PlanningConfigurationSettings> settings = planner->getPlanningConfigurations();
-
-  // The algorithm we want to tweak
-  const std::string& planner_id = mp_req.planner_id;
 
   // Check if this planner_id already has settings (it should)
   std::map<std::string, planning_interface::PlanningConfigurationSettings>::iterator settings_it = settings.find(planner_id);
   if(settings_it != settings.end())
   {
-    // key exists, add new value
-    try
+    // key exists, loop through all values in this sweep instance
+    std::string str_parameter_value;
+    for (std::size_t i = 0; i < sweep_options_.size(); ++i)
     {
-      settings_it->second.config[sweep_options_[parameter_id].key] = str_parameter_value;
-    }
-    catch(boost::bad_lexical_cast &ex)
-    {
-      ROS_WARN("%s", ex.what());
+      // convert from double to string
+      try
+      {
+        const double& value = sweep_combinations_[sweep_combinations_id_][sweep_options_[i].key];
+        str_parameter_value = boost::lexical_cast<std::string>(value);
+      }
+      catch(boost::bad_lexical_cast &ex)
+      {
+        ROS_WARN("%s", ex.what());
+      }
+
+      // record parameter values for logging
+      parameter_data[sweep_options_[i].log_key] = str_parameter_value;
+
+      // record parameter to planner config
+      settings_it->second.config[sweep_options_[i].key] = str_parameter_value;
+
+      // debug
+      ROS_ERROR_STREAM_NAMED("temp","Parameter " << sweep_options_[i].key << " now has value " << str_parameter_value);
     }
   }
   else // settings for this planner_id does not already exist
@@ -1340,8 +1378,71 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
     planning_interface::PlanningConfigurationSettings planner_config;
   }
 
+  // Debug map
+  for(std::map<std::string,std::string>::const_iterator config_it = settings_it->second.config.begin();
+      config_it != settings_it->second.config.end(); ++config_it)
+  {
+    std::cout << "      - " << config_it->first << " => " << config_it->second << std::endl;
+  }
+
   // Apply the new settings
   planner->setPlanningConfigurations(settings);
+}
+
+std::size_t moveit_benchmarks::BenchmarkExecution::generateSweepCombinations()
+{
+  if (!sweep_options_.size())
+    return 1; // by default there are no sweep parameters, so the sweep loop runs once
+
+  // Create initial sweep instance of all min values for the parameters
+  SweepInstance sweep_instance;
+  for (std::size_t i = 0; i < sweep_options_.size(); ++i)
+  {
+    // start = min value
+    sweep_instance[ sweep_options_[i].key ] = sweep_options_[i].start;
+  }
+
+  // call recusive function for every sweep option available
+  int initial_options_id = 0;
+  recursiveSweepCombinations(initial_options_id, sweep_instance);
+
+  // DEBUG
+  for (std::size_t i = 0; i < sweep_combinations_.size(); ++i)
+  {
+    ROS_WARN_STREAM_NAMED("temp","Sweep instance:");
+    // Debug map
+    for(std::map<std::string,double>::const_iterator it = sweep_combinations_[i].begin(); it != sweep_combinations_[i].end(); ++it)
+      std::cout << "  - "" << it->first << "" => " << it->second << std::endl;
+  }
+
+  // Total number of parameters
+  return sweep_combinations_.size();
+}
+
+void moveit_benchmarks::BenchmarkExecution::recursiveSweepCombinations(int options_id, SweepInstance sweep_instance)
+{
+  // Get a pointer to current sweeping parameter
+  const SweepOptions& sweep_option = sweep_options_[options_id];
+
+  do
+  {
+    // Call the next sweep parameter if one exists
+    if( sweep_options_.size() > options_id + 1 )
+    {
+      recursiveSweepCombinations(options_id + 1, sweep_instance);
+    }
+    else // we are the end of the recursive call, so we can add this sweep_instance to the vector
+    {
+      sweep_combinations_.push_back(sweep_instance);
+    }
+
+    // Increment this value
+    sweep_instance[sweep_option.key] += sweep_option.iterator;
+
+    // Continue adding iteration amount until value equals end
+  } while( sweep_instance[sweep_option.key] <= sweep_option.end + 0.00001 ); // rounding issues fudge factor
+
+  return;
 }
 
 /// Output to console the settings
