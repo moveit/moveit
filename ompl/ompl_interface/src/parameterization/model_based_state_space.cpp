@@ -109,6 +109,23 @@ void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State *destinat
   destination->as<StateType>()->distance = source->as<StateType>()->distance;
 }
 
+unsigned int ompl_interface::ModelBasedStateSpace::getSerializationLength() const
+{
+  return CompoundStateSpace::getSerializationLength() + sizeof(int);
+}
+
+void ompl_interface::ModelBasedStateSpace::serialize(void *serialization, const ompl::base::State *state) const
+{
+  *reinterpret_cast<int*>(serialization) = state->as<StateType>()->tag;
+  CompoundStateSpace::serialize(reinterpret_cast<char*>(serialization) + sizeof(int) , state);
+}
+
+void ompl_interface::ModelBasedStateSpace::deserialize(ompl::base::State *state, const void *serialization) const
+{   
+  state->as<StateType>()->tag = *reinterpret_cast<const int*>(serialization);
+  CompoundStateSpace::deserialize(state, reinterpret_cast<const char*>(serialization) + sizeof(int));
+}
+
 double ompl_interface::ModelBasedStateSpace::getMaximumExtent() const
 { 
   double total = 0.0;
@@ -140,10 +157,8 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *
 {  
   // clear any cached info (such as validity known or not)
   state->as<StateType>()->clearKnownInformation();
-
-  if (interpolation_function_)
-    interpolation_function_(from, to, t, state);
-  else
+  
+  if (!interpolation_function_ || !interpolation_function_(from, to, t, state))
   {
     // perform the actual interpolation
     CompoundStateSpace::interpolate(from, to, t, state);

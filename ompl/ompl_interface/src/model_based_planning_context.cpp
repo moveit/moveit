@@ -138,7 +138,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
           ompl::base::StateSamplerPtr res = c_ssa(ss);
           if (res)
           {
-            logDebug("Using precomputed state sampler (approximated constraint space)");
+            logInform("%s: Using precomputed state sampler (approximated constraint space) for constraint '%s'", name_.c_str(), path_constraints_msg_.name.c_str());
             return res;
           }
         }
@@ -151,7 +151,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
     
     if (cs)
     {
-      logDebug("%s: Allocating specialized state sampler for state space", name_.c_str());
+      logInform("%s: Allocating specialized state sampler for state space", name_.c_str());
       return ob::StateSamplerPtr(new ConstrainedSampler(this, cs));
     }
   }
@@ -166,7 +166,17 @@ void ompl_interface::ModelBasedPlanningContext::configure()
   spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
   ompl_simple_setup_.setStartState(ompl_start_state);
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
-    
+
+  if (path_constraints_ && spec_.constraints_library_)
+  {
+    const ConstraintApproximationPtr &ca = spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
+    if (ca)
+    {
+      getOMPLStateSpace()->setInterpolationFunction(ca->getInterpolationFunction());
+      logInform("Using precomputed interpolation states");
+    }
+  }
+  
   useConfig();  
   if (ompl_simple_setup_.getGoal())
     ompl_simple_setup_.setup();
@@ -312,6 +322,7 @@ void ompl_interface::ModelBasedPlanningContext::clear()
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr());
   path_constraints_.reset();
   goal_constraints_.clear();
+  getOMPLStateSpace()->setInterpolationFunction(InterpolationFunction());
 }
 
 bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_msgs::Constraints &path_constraints,

@@ -128,15 +128,9 @@ public:
     return use_constraints_approximations_;
   }
 
-  void loadConstraintApproximations(const std::string &path)
-  {
-    constraints_library_->loadConstraintApproximations(path);
-  }
+  void loadConstraintApproximations(const std::string &path);
 
-  void saveConstraintApproximations(const std::string &path)
-  {
-    constraints_library_->saveConstraintApproximations(path);
-  }
+  void saveConstraintApproximations(const std::string &path);
   
   void simplifySolutions(bool flag)
   {
