@@ -200,6 +200,7 @@ private:
 static void attachedBodyToMsg(const AttachedBody &attached_body, moveit_msgs::AttachedCollisionObject &aco)
 {
   aco.link_name = attached_body.getAttachedLinkName();
+  aco.attach_posture = attached_body.getAttachPosture();
   const std::set<std::string> &touch_links = attached_body.getTouchLinks();
   for (std::set<std::string>::const_iterator it = touch_links.begin() ; it != touch_links.end() ; ++it)
     aco.touch_links.push_back(*it);
@@ -317,7 +318,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
             logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                       aco.object.id.c_str(), aco.link_name.c_str());
           std::set<std::string> touch_links(aco.touch_links.begin(), aco.touch_links.end());
-          state.attachBody(aco.object.id, shapes, poses, touch_links, aco.link_name);
+          state.attachBody(aco.object.id, shapes, poses, touch_links, aco.link_name, aco.attach_posture);
           logDebug("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
       }

@@ -39,6 +39,7 @@
 
 #include <moveit/robot_state/link_state.h>
 #include <eigen_stl_containers/eigen_stl_containers.h>
+#include <sensor_msgs/JointState.h>
 #include <set>
 
 namespace robot_state
@@ -61,7 +62,8 @@ public:
   AttachedBody(const robot_model::LinkModel *link, const std::string &id,
                const std::vector<shapes::ShapeConstPtr> &shapes,
                const EigenSTL::vector_Affine3d &attach_trans,
-               const std::set<std::string> &touch_links);
+               const std::set<std::string> &touch_links,
+               const sensor_msgs::JointState &attach_posture);
   
   ~AttachedBody();
   
@@ -95,6 +97,13 @@ public:
   const std::set<std::string>& getTouchLinks() const
   {
     return touch_links_;
+  }
+ 
+  /** \brief Return the posture of the links holding the object (if any). This is useful for example when storing
+      the configuration of a gripper holding an object */
+  const sensor_msgs::JointState& getAttachPosture() const
+  {
+    return attach_posture_;
   }
   
   const EigenSTL::vector_Affine3d& getFixedTransforms() const
@@ -133,7 +142,11 @@ private:
 
   /** \brief The set of links this body is allowed to touch */
   std::set<std::string>              touch_links_;
-    
+  
+  /** \brief Posture of links holding the object (if any). This is useful for example when storing
+      the configuration of a gripper holding an object */
+  sensor_msgs::JointState            attach_posture_;
+  
   /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
   EigenSTL::vector_Affine3d          global_collision_body_transforms_;
 };

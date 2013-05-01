@@ -40,12 +40,14 @@ robot_state::AttachedBody::AttachedBody(const robot_model::LinkModel *parent_lin
                                         const std::string &id, 
                                         const std::vector<shapes::ShapeConstPtr> &shapes,
                                         const EigenSTL::vector_Affine3d &attach_trans,
-                                        const std::set<std::string> &touch_links) :
+                                        const std::set<std::string> &touch_links,
+                                        const sensor_msgs::JointState &attach_posture) :
   parent_link_model_(parent_link_model),
   id_(id),
   shapes_(shapes),
   attach_trans_(attach_trans),
-  touch_links_(touch_links)
+  touch_links_(touch_links),
+  attach_posture_(attach_posture)
 {
   global_collision_body_transforms_.resize(attach_trans.size());
   for(std::size_t i = 0 ; i < global_collision_body_transforms_.size() ; ++i)
