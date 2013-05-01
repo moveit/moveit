@@ -374,12 +374,7 @@ public:
     ROS_ERROR("Poses for end effector '%s' are not known.", eef.c_str());
     return empty;
   }
-
-  void followConstraints(const std::vector<moveit_msgs::Constraints> &constraints)
-  {
-    follow_constraints_ = constraints;
-  }
-  
+ 
   void setPoseReferenceFrame(const std::string &pose_reference_frame)
   {
     pose_reference_frame_ = pose_reference_frame;
@@ -404,12 +399,7 @@ public:
   {
     active_target_ = POSE;
   }
-  
-  void useFollowTarget()
-  {
-    active_target_ = FOLLOW;
-  }
-  
+    
   void allowLooking(bool flag)
   {
     can_look_ = flag;
@@ -723,12 +713,7 @@ public:
         }
       }
       else
-        if (active_target_ == FOLLOW)
-        {
-          goal.request.trajectory_constraints.constraints = follow_constraints_;
-        }
-        else
-          ROS_ERROR("Unable to construct goal representation");
+        ROS_ERROR("Unable to construct goal representation");
     
     if (path_constraints_)
       goal.request.path_constraints = *path_constraints_;
@@ -908,7 +893,7 @@ private:
   
   enum ActiveTarget
   {
-    JOINT, POSE, FOLLOW
+    JOINT, POSE
   };
   
   Options opt_;
@@ -934,9 +919,6 @@ private:
 
   // pose goal
   std::map<std::string, std::vector<geometry_msgs::PoseStamped> > pose_targets_;
-
-  // follow trajectory goal
-  std::vector<moveit_msgs::Constraints> follow_constraints_;
 
   // common properties for goals
   ActiveTarget active_target_;
@@ -1329,54 +1311,6 @@ void MoveGroup::setOrientationTarget(double x, double y, double z, double w, con
   target.pose.orientation.z = z;
   target.pose.orientation.w = w;
   setPoseTarget(target, end_effector_link);
-}
-
-void MoveGroup::followConstraints(const std::vector<moveit_msgs::Constraints> &constraints)
-{
-  impl_->followConstraints(constraints); 
-  impl_->useFollowTarget();
-}
-
-void MoveGroup::followConstraints(const std::vector<geometry_msgs::PoseStamped> &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
-{
-  const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
-  if (eef.empty())
-    ROS_ERROR("No end-effector to specify trajectory following constraints for");
-  else
-  {
-    std::vector<moveit_msgs::Constraints> constraints(poses.size());
-    for (std::size_t i = 0 ; i < poses.size() ; ++i)
-      constraints[i] = kinematic_constraints::constructGoalConstraints(eef, poses[i], tolerance_pos, tolerance_angle);
-    followConstraints(constraints);
-  }
-}
-
-void MoveGroup::followConstraints(const std::vector<geometry_msgs::Pose> &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
-{ 
-  std::vector<geometry_msgs::PoseStamped> pose_msgs(poses.size()); 
-  const std::string &frame_id = getPoseReferenceFrame();
-  ros::Time tm = ros::Time(0);
-  for (std::size_t i = 0 ; i < poses.size() ; ++i)
-  {
-    pose_msgs[i].pose = poses[i]; 
-    pose_msgs[i].header.frame_id = frame_id;
-    pose_msgs[i].header.stamp = tm;
-  }  
-  followConstraints(pose_msgs, tolerance_pos, tolerance_angle, end_effector_link);
-}
-
-void MoveGroup::followConstraints(const EigenSTL::vector_Affine3d &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
-{
-  std::vector<geometry_msgs::PoseStamped> pose_msgs(poses.size()); 
-  const std::string &frame_id = getPoseReferenceFrame();
-  ros::Time tm = ros::Time(0);
-  for (std::size_t i = 0 ; i < poses.size() ; ++i)
-  {
-    tf::poseEigenToMsg(poses[i], pose_msgs[i].pose);
-    pose_msgs[i].header.frame_id = frame_id;
-    pose_msgs[i].header.stamp = tm;
-  }
-  followConstraints(pose_msgs, tolerance_pos, tolerance_angle, end_effector_link);
 }
 
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)

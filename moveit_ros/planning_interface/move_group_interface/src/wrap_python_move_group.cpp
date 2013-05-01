@@ -207,13 +207,6 @@ public:
     setPoseTargets(msg, end_effector_link);
   }
 
-  void followConstraintsPython(bp::list &poses, const std::string &end_effector_link = "")
-  {
-    std::vector<geometry_msgs::Pose> msg;
-    convertListToArrayOfPoses(poses, msg);
-    followConstraints(msg, 1e-3, 1e-2, end_effector_link);
-  }
-  
   void setPoseTargetPython(bp::list &pose, const std::string &end_effector_link = "")
   {
     std::vector<double> v = moveit_py_bindings_tools::doubleFromList(pose);
@@ -419,8 +412,6 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget); 
   MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget); 
 
-  MoveGroupClass.def("follow_constraints", &MoveGroupWrapper::followConstraintsPython);
-  
   void (MoveGroupWrapper::*rememberJointValues_2)(const std::string&) = &MoveGroupWrapper::rememberJointValues;
   MoveGroupClass.def("remember_joint_values", rememberJointValues_2);
   
