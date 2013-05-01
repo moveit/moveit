@@ -99,11 +99,11 @@ public:
     return touch_links_;
   }
  
-  /** \brief Return the posture of the links holding the object (if any). This is useful for example when storing
+  /** \brief Return the posture that is necessary for the object to be released, (if any). This is useful for example when storing
       the configuration of a gripper holding an object */
-  const sensor_msgs::JointState& getAttachPosture() const
+  const sensor_msgs::JointState& getDetachPosture() const
   {
-    return attach_posture_;
+    return detach_posture_;
   }
   
   const EigenSTL::vector_Affine3d& getFixedTransforms() const
@@ -143,9 +143,9 @@ private:
   /** \brief The set of links this body is allowed to touch */
   std::set<std::string>              touch_links_;
   
-  /** \brief Posture of links holding the object (if any). This is useful for example when storing
+  /** \brief Posture of links for releasing the object (if any). This is useful for example when storing
       the configuration of a gripper holding an object */
-  sensor_msgs::JointState            attach_posture_;
+  sensor_msgs::JointState            detach_posture_;
   
   /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
   EigenSTL::vector_Affine3d          global_collision_body_transforms_;
