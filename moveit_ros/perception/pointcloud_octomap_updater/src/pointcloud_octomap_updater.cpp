@@ -49,7 +49,8 @@ PointCloudOctomapUpdater::PointCloudOctomapUpdater() : OccupancyMapUpdater("Poin
                                                        max_range_(std::numeric_limits<double>::infinity()),
                                                        point_subsample_(1),
                                                        point_cloud_subscriber_(NULL),
-                                                       point_cloud_filter_(NULL)
+                                                       point_cloud_filter_(NULL),
+						       private_nh_("~")
 {
 }
 
@@ -88,7 +89,7 @@ bool PointCloudOctomapUpdater::initialize()
   shape_mask_.reset(new point_containment_filter::ShapeMask());
   shape_mask_->setTransformCallback(boost::bind(&PointCloudOctomapUpdater::getShapeTransform, this, _1, _2));
   if (!filtered_cloud_topic_.empty())
-    filtered_cloud_publisher_ = root_nh_.advertise<sensor_msgs::PointCloud2>(filtered_cloud_topic_, 10, false);
+    filtered_cloud_publisher_ = private_nh_.advertise<sensor_msgs::PointCloud2>(filtered_cloud_topic_, 10, false);
   return true;
 }
 

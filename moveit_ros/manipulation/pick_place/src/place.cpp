@@ -51,7 +51,7 @@ PlacePlan::PlacePlan(const PickPlaceConstPtr &pick_place) : PickPlacePlanBase(pi
 
 bool PlacePlan::transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose, 
 					   const robot_state::AttachedBody* attached_body,
-					   geometry_msgs::PoseStamped &place_pose)
+					   geometry_msgs::PoseStamped &place_pose) const
 {
   const EigenSTL::vector_Affine3d& fixed_transforms = attached_body->getFixedTransforms();
   if(fixed_transforms.empty())
@@ -232,7 +232,6 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
 PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal) const
 {
   PlacePlanPtr p(new PlacePlan(shared_from_this()));
-  ROS_INFO("Goal has %d place locations", goal.place_locations.size());
   if (planning_scene::PlanningScene::isEmpty(goal.planning_options.planning_scene_diff))
     p->plan(planning_scene, goal);
   else

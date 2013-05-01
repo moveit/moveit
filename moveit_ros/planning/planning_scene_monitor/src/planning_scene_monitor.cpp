@@ -479,6 +479,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
 {
   if (scene_)
   {
+    updateFrameTransforms();
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();

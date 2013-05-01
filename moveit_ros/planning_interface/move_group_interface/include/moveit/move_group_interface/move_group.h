@@ -148,12 +148,6 @@ public:
   /** \brief Pick up an object given possible grasp poses */
   bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps);
 
-  /** \brief Pick up an object */
-  bool pick(const std::string &object, manipulation_msgs::Grasp &result_grasp);
-
-  /** \brief Pick up an object given possible grasp poses */
-  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps, manipulation_msgs::Grasp &result_grasp);
-
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
   bool place(const std::string &object);
 
@@ -161,10 +155,7 @@ public:
   bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations);
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const manipulation_msgs::Grasp &grasp, const std::vector<geometry_msgs::PoseStamped> &poses);
-
-  /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &locations);
+  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
   
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. No more than \e jump_threshold
@@ -437,6 +428,19 @@ public:
   void clearPathConstraints();
 
   /**@}*/
+
+  /**
+   * \defgroup move_group_interface_world_management Manage the world
+   */
+  /**@{*/
+  
+  /** \brief Get the names of all recognized objects in the world */
+  std::vector<std::string> getRecognizedObjectNames();
+
+  /** \brief Get the names of all recognized objects in the world */
+  std::vector<std::string> getRecognizedObjectsInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz);
+  /**@}*/
+
 
 private:
 

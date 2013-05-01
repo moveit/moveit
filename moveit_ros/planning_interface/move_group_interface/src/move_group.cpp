@@ -51,6 +51,7 @@
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
 #include <moveit_msgs/GetCartesianPath.h>
+#include <moveit_msgs/GetPlanningScene.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -189,6 +190,8 @@ public:
       execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
       query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
       cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
+
+      planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -460,7 +463,7 @@ public:
   }
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const manipulation_msgs::Grasp &grasp, const std::vector<geometry_msgs::PoseStamped> &poses)
+  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
   {
     std::vector<manipulation_msgs::PlaceLocation> locations;
     for(std::size_t i=0; i < poses.size(); ++i)
@@ -475,7 +478,7 @@ public:
       location.approach.desired_distance = 0.2;
       location.retreat.min_distance = 0.0;
       location.retreat.desired_distance = 0.2;
-      location.post_place_posture = grasp.pre_grasp_posture;
+      location.post_place_posture = pre_grasp_posture_;
 
       location.place_pose = poses[i];
       locations.push_back(location);
@@ -517,7 +520,7 @@ public:
     }
   }  
 
-  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps, manipulation_msgs::Grasp &result_grasp)
+  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
   {
     if (!pick_action_client_)
     {
@@ -540,12 +543,14 @@ public:
     }
     if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      result_grasp = pick_action_client_->getResult()->grasp;
+      pre_grasp_posture_ = pick_action_client_->getResult()->grasp.pre_grasp_posture;
       return true;
     }
     else
     {
       ROS_WARN_STREAM("Fail: " << pick_action_client_->getState().toString() << ": " << pick_action_client_->getState().getText());
+      pre_grasp_posture_.name.clear();
+      pre_grasp_posture_.position.clear();
       return false;
     }
   }
@@ -822,6 +827,68 @@ public:
     workspace_parameters_.max_corner.y = maxy;
     workspace_parameters_.max_corner.z = maxz;    
   }
+
+  std::vector<std::string> getRecognizedObjectNames()
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    std::vector<std::string> result;
+    request.components.components = request.components.WORLD_OBJECT_NAMES;
+    if(!planning_scene_service_.call(request, response))
+      return result;
+    for(std::size_t i=0; i < response.scene.world.collision_objects.size(); ++i)
+    {
+      if(!response.scene.world.collision_objects[i].type.key.empty())
+	result.push_back(response.scene.world.collision_objects[i].id);
+    }
+    return result;
+  }
+
+  std::vector<std::string> getRecognizedObjectsInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz)
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    std::vector<std::string> result;
+    request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
+    if(!planning_scene_service_.call(request, response))
+    {
+      ROS_INFO("Service call failed");
+      return result;
+    }
+    ROS_DEBUG("Got %d objects in world", (int) response.scene.world.collision_objects.size());
+    for(std::size_t i=0; i < response.scene.world.collision_objects.size(); ++i)
+    {
+      if(!response.scene.world.collision_objects[i].type.key.empty())
+      {
+	//check where the object is
+	if(!response.scene.world.collision_objects[i].mesh_poses.empty())
+	{
+	  if(response.scene.world.collision_objects[i].mesh_poses[0].position.x >= minx &&
+	     response.scene.world.collision_objects[i].mesh_poses[0].position.x <= maxx &&
+	     response.scene.world.collision_objects[i].mesh_poses[0].position.y >= miny &&
+	     response.scene.world.collision_objects[i].mesh_poses[0].position.y <= maxy &&
+	     response.scene.world.collision_objects[i].mesh_poses[0].position.z >= minz &&
+	     response.scene.world.collision_objects[i].mesh_poses[0].position.z <= maxz)
+	    {	
+	      result.push_back(response.scene.world.collision_objects[i].id);
+	    }
+	  else
+	    ROS_DEBUG("Object: %d with id: %s outside ROI with position %s: %f %f %f", 
+		      (int) i, 
+		      response.scene.world.collision_objects[i].id.c_str(),
+		      response.scene.world.collision_objects[i].header.frame_id.c_str(),
+		      response.scene.world.collision_objects[i].mesh_poses[0].position.x,
+		      response.scene.world.collision_objects[i].mesh_poses[0].position.y,
+		      response.scene.world.collision_objects[i].mesh_poses[0].position.z);
+	}
+	else
+	  ROS_ERROR("No mesh poses for object: %d", (int) i);
+      }
+      else
+	ROS_DEBUG("Type is empty for object: %d with id: %s", (int) i, response.scene.world.collision_objects[i].id.c_str());
+    }
+    return result;
+  }
   
 private:
   
@@ -878,17 +945,17 @@ private:
   std::string pose_reference_frame_; 
   std::string support_surface_;
   
+  sensor_msgs::JointState pre_grasp_posture_;
+
   // ROS communication
   ros::Publisher trajectory_event_publisher_;
   ros::ServiceClient execute_service_;
   ros::ServiceClient query_service_;
   ros::ServiceClient cartesian_path_service_;
+  ros::ServiceClient planning_scene_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
-
-  // Pre-constructed default place location
-  manipulation_msgs::PlaceLocation default_place_location_;
 };
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
@@ -950,24 +1017,12 @@ bool MoveGroup::plan(Plan &plan)
 
 bool MoveGroup::pick(const std::string &object)
 {
-  manipulation_msgs::Grasp result_grasp;
-  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>(), result_grasp);
+  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>());
 }
 
 bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
 {
-  manipulation_msgs::Grasp result_grasp;
-  return impl_->pick(object, grasps, result_grasp);
-}
-
-bool MoveGroup::pick(const std::string &object, manipulation_msgs::Grasp &result_grasp)
-{
-  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>(), result_grasp);
-}
-
-bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps, manipulation_msgs::Grasp &result_grasp)
-{
-  return impl_->pick(object, grasps, result_grasp);
+  return impl_->pick(object, grasps);
 }
 
 bool MoveGroup::place(const std::string &object)
@@ -980,9 +1035,9 @@ bool MoveGroup::place(const std::string &object, const std::vector<manipulation_
   return impl_->place(object, locations);
 }
 
-bool MoveGroup::place(const std::string &object, const manipulation_msgs::Grasp &grasp, const std::vector<geometry_msgs::PoseStamped> &poses)
+bool MoveGroup::place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
 {
-  return impl_->place(object, grasp, poses);
+  return impl_->place(object, poses);
 }
 
 double MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
@@ -1533,6 +1588,16 @@ const std::string& MoveGroup::getRobotRootLink() const
 const std::string& MoveGroup::getPlanningFrame() const
 {
   return impl_->getRobotModel()->getModelFrame();
+}
+
+std::vector<std::string> MoveGroup::getRecognizedObjectNames()
+{
+  return impl_->getRecognizedObjectNames();
+}
+
+std::vector<std::string> MoveGroup::getRecognizedObjectsInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz)
+{
+  return impl_->getRecognizedObjectsInROI(minx, miny, minz, maxx, maxy, maxz);
 }
 
 }
