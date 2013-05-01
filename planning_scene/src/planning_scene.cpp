@@ -1489,7 +1489,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         if (kstate_->clearAttachedBody(object.object.id))
           logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                     object.object.id.c_str(), object.link_name.c_str());
-        kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name, object.attach_posture);
+        kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name, object.detach_posture);
         logInform("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       }
       else
@@ -1497,13 +1497,13 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         const robot_state::AttachedBody *ab = kstate_->getAttachedBody(object.object.id);
         shapes.insert(shapes.end(), ab->getShapes().begin(), ab->getShapes().end());
         poses.insert(poses.end(), ab->getFixedTransforms().begin(), ab->getFixedTransforms().end());
-        sensor_msgs::JointState attach_posture = object.attach_posture.name.empty() ? ab->getAttachPosture() : object.attach_posture;
+        sensor_msgs::JointState detach_posture = object.detach_posture.name.empty() ? ab->getDetachPosture() : object.detach_posture;
         std::set<std::string> ab_touch_links = ab->getTouchLinks();
         kstate_->clearAttachedBody(object.object.id);
         if (object.touch_links.empty()) 
-          kstate_->attachBody(object.object.id, shapes, poses, ab_touch_links, object.link_name, attach_posture);
+          kstate_->attachBody(object.object.id, shapes, poses, ab_touch_links, object.link_name, detach_posture);
         else
-          kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name, attach_posture);
+          kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name, detach_posture);
         logInform("Added shapes to object '%s' attached to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       }
       
