@@ -59,7 +59,7 @@ bool PlacePlan::transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goa
   Eigen::Affine3d end_effector_transform;
   tf::poseMsgToEigen(goal_pose.pose, end_effector_transform);
   end_effector_transform = end_effector_transform * fixed_transforms[0].inverse();
-  place_pose = goal_pose;
+  place_pose.header = goal_pose.header;
   tf::poseEigenToMsg(end_effector_transform, place_pose.pose);
   return true;
 }
@@ -200,11 +200,6 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     // The goals are specified for the attached body 
     // but we want to transform them into goals for the end-effector instead
     transformToEndEffectorGoal(pl.place_pose, attached_body, p->goal_pose_);
-
-    // \todo the above line seems incorrect to me; it assumes frames that may not be as expected;
-    // maybe there is a bug elsewhere?
-
-    //    p->goal_pose_ = pl.place_pose;
     p->approach_ = pl.approach;
     p->retreat_ = pl.retreat;
     p->retreat_posture_ = pl.post_place_posture;
