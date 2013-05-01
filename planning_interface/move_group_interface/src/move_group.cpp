@@ -468,7 +468,7 @@ public:
       location.approach.desired_distance = 0.2;
       location.retreat.min_distance = 0.0;
       location.retreat.desired_distance = 0.2;
-      location.post_place_posture = pre_grasp_posture_;
+      // location.post_place_posture is filled by the pick&place lib with the getDetachPosture from the AttachedBody
 
       location.place_pose = poses[i];
       locations.push_back(location);
@@ -533,14 +533,11 @@ public:
     }
     if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      pre_grasp_posture_ = pick_action_client_->getResult()->grasp.pre_grasp_posture;
       return true;
     }
     else
     {
       ROS_WARN_STREAM("Fail: " << pick_action_client_->getState().toString() << ": " << pick_action_client_->getState().getText());
-      pre_grasp_posture_.name.clear();
-      pre_grasp_posture_.position.clear();
       return false;
     }
   }
@@ -819,13 +816,12 @@ public:
     moveit_msgs::GetPlanningScene::Response response;
     std::vector<std::string> result;
     request.components.components = request.components.WORLD_OBJECT_NAMES;
-    if(!planning_scene_service_.call(request, response))
+    if (!planning_scene_service_.call(request, response))
       return result;
-    for(std::size_t i=0; i < response.scene.world.collision_objects.size(); ++i)
-    {
-      if(!response.scene.world.collision_objects[i].type.key.empty())
+    for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
+      if (!response.scene.world.collision_objects[i].type.key.empty())
 	result.push_back(response.scene.world.collision_objects[i].id);
-    }
+    
     return result;
   }
 
@@ -835,30 +831,27 @@ public:
     moveit_msgs::GetPlanningScene::Response response;
     std::vector<std::string> result;
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
-    if(!planning_scene_service_.call(request, response))
-    {
-      ROS_INFO("Service call failed");
+    if (!planning_scene_service_.call(request, response))
       return result;
-    }
-    ROS_DEBUG("Got %d objects in world", (int) response.scene.world.collision_objects.size());
-    for(std::size_t i=0; i < response.scene.world.collision_objects.size(); ++i)
+    ROS_DEBUG("Got %u objects in world", (unsigned int)response.scene.world.collision_objects.size());
+    for (std::size_t i=0; i < response.scene.world.collision_objects.size(); ++i)
     {
-      if(!response.scene.world.collision_objects[i].type.key.empty())
+      if (!response.scene.world.collision_objects[i].type.key.empty())
       {
 	//check where the object is
-	if(!response.scene.world.collision_objects[i].mesh_poses.empty())
+	if (!response.scene.world.collision_objects[i].mesh_poses.empty())
 	{
-	  if(response.scene.world.collision_objects[i].mesh_poses[0].position.x >= minx &&
-	     response.scene.world.collision_objects[i].mesh_poses[0].position.x <= maxx &&
-	     response.scene.world.collision_objects[i].mesh_poses[0].position.y >= miny &&
-	     response.scene.world.collision_objects[i].mesh_poses[0].position.y <= maxy &&
-	     response.scene.world.collision_objects[i].mesh_poses[0].position.z >= minz &&
-	     response.scene.world.collision_objects[i].mesh_poses[0].position.z <= maxz)
-	    {	
-	      result.push_back(response.scene.world.collision_objects[i].id);
-	    }
+	  if (response.scene.world.collision_objects[i].mesh_poses[0].position.x >= minx &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.x <= maxx &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.y >= miny &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.y <= maxy &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.z >= minz &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.z <= maxz)
+          {	
+            result.push_back(response.scene.world.collision_objects[i].id);
+          }
 	  else
-	    ROS_DEBUG("Object: %d with id: %s outside ROI with position %s: %f %f %f", 
+	    ROS_DEBUG("Object: %d with id: %s outside ROI with position %s: %lf %lf %lf", 
 		      (int) i, 
 		      response.scene.world.collision_objects[i].id.c_str(),
 		      response.scene.world.collision_objects[i].header.frame_id.c_str(),
@@ -892,9 +885,9 @@ private:
   }
   
   enum ActiveTarget
-  {
-    JOINT, POSE
-  };
+    {
+      JOINT, POSE
+    };
   
   Options opt_;
   ros::NodeHandle node_handle_;
@@ -927,8 +920,6 @@ private:
   std::string pose_reference_frame_; 
   std::string support_surface_;
   
-  sensor_msgs::JointState pre_grasp_posture_;
-
   // ROS communication
   ros::Publisher trajectory_event_publisher_;
   ros::ServiceClient execute_service_;
