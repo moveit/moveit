@@ -76,6 +76,7 @@ private:
   void stopHelper();
 
   ros::NodeHandle root_nh_; 
+  ros::NodeHandle private_nh_;
   boost::shared_ptr<tf::Transformer> tf_;
   
   /* params */

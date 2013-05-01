@@ -108,9 +108,12 @@ public:
   
   PlacePlan(const PickPlaceConstPtr &pick_place);
   bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
+
+private:
+
   bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose, 
 				  const robot_state::AttachedBody* body,
-				  geometry_msgs::PoseStamped &place_pose);
+				  geometry_msgs::PoseStamped &place_pose) const;
 };
 
 typedef boost::shared_ptr<PlacePlan> PlacePlanPtr;
