@@ -145,6 +145,9 @@ public:
   /** \brief Pick up an object */
   bool pick(const std::string &object);
 
+  /** \brief Pick up an object given a grasp pose */
+  bool pick(const std::string &object, const manipulation_msgs::Grasp &grasp);
+
   /** \brief Pick up an object given possible grasp poses */
   bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps);
 

@@ -456,12 +456,12 @@ public:
   bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
   {
     std::vector<manipulation_msgs::PlaceLocation> locations;
-    for(std::size_t i=0; i < poses.size(); ++i)
+    for (std::size_t i = 0; i < poses.size(); ++i)
     {
       manipulation_msgs::PlaceLocation location;
       location.approach.direction.vector.z = -1.0;
       location.retreat.direction.vector.x = -1.0;
-      location.approach.direction.header.frame_id = pose_reference_frame_;
+      location.approach.direction.header.frame_id = getRobotModel()->getModelFrame();
       location.retreat.direction.header.frame_id = end_effector_link_;
 
       location.approach.min_distance = 0.1;
@@ -473,7 +473,7 @@ public:
       location.place_pose = poses[i];
       locations.push_back(location);
     }
-    ROS_DEBUG("Move group interface has %d place locations", (int) locations.size());
+    ROS_DEBUG("Move group interface has %u place locations", (unsigned int) locations.size());
     return place(object, locations);
   }
 
@@ -1000,6 +1000,11 @@ bool MoveGroup::plan(Plan &plan)
 bool MoveGroup::pick(const std::string &object)
 {
   return impl_->pick(object, std::vector<manipulation_msgs::Grasp>());
+}
+
+bool MoveGroup::pick(const std::string &object, const manipulation_msgs::Grasp &grasp)
+{ 
+  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>(1, grasp));
 }
 
 bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
