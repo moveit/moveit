@@ -99,7 +99,7 @@ int main(int argc, char **argv)
                      << std::endl << ex.what());
   }
   
-  ROS_WARN("Ignore the following segfault, it needs to be fixed but is just an issue with the destructors");
+  ROS_INFO("Benchmarks complete! Shutting down ROS..."); // because sometimes there are segfaults after this
   ros::shutdown();
   
   return 0;
