@@ -36,6 +36,7 @@
 
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/ompl_interface/detail/constrained_sampler.h>
+#include <moveit/profiler/profiler.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
@@ -91,12 +92,12 @@ public:
   }
   
   virtual void sampleUniform(ob::State *state)
-  { 
+  {     
     space_->copyState(state, state_storage_->getState(rng_.uniformInt(0, max_index_)));
   }
   
   virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
-  {
+  { 
     int index = -1;
     int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
     
@@ -104,12 +105,24 @@ public:
     {
       const ConstrainedStateMetadata &md = state_storage_->getMetadata(tag);
       if (!md.first.empty())
-        index = md.first[rng_.uniformInt(0, md.first.size() - 1)];
+      {
+        std::size_t matt = md.first.size() / 3;
+        std::size_t att = 0;
+        do 
+        {
+          index = md.first[rng_.uniformInt(0, md.first.size() - 1)];
+        } while (dirty_.find(index) != dirty_.end() && ++att < matt);
+        if (att >= matt)
+          index = -1;
+        else
+          dirty_.insert(index);
+      }
     }
     if (index < 0) 
       index = rng_.uniformInt(0, max_index_);
     
     double dist = space_->distance(near, state_storage_->getState(index));
+    
     if (dist > distance)
     {      
       double d = pow(rng_.uniform01(), inv_dim_) * distance;
@@ -128,6 +141,7 @@ protected:
   
   /** \brief The states to sample from */
   const ConstraintApproximationStateStorage *state_storage_;  
+  std::set<std::size_t> dirty_;
   unsigned int max_index_;
   double inv_dim_;
 };
@@ -136,7 +150,6 @@ bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage *sta
 {
   int tag_from = from->as<ModelBasedStateSpace::StateType>()->tag;
   int tag_to = to->as<ModelBasedStateSpace::StateType>()->tag;
-  //  logInform("connect from %d to %d", tag_from, tag_to); 
   
   if (tag_from < 0 || tag_to < 0)
     return false;
@@ -146,46 +159,12 @@ bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage *sta
   else
   {
     const ConstrainedStateMetadata &md = state_storage->getMetadata(tag_from);
-    /*    
-    std::cout << "metadata of from = " << tag_from << std::endl;
-    for (std::size_t k = 0 ; k < md.first.size() ; ++k)
-      std::cout << md.first[k] << " ";
-    std::cout << std::endl;
-    
-    for (std::map<std::size_t, std::pair<std::size_t, std::size_t> >::const_iterator it = md.second.begin() ; it != md.second.end() ; ++it)
-    {
-      std::cout << it->first << ": ";
-      std::cout << it->second.first << " " << it->second.second;
-      std::cout << std::endl;
-    }      
-    
-    std::cout << "metadata end" << std::endl;
-    
-    
-    
-    
-    
-    const ConstrainedStateMetadata &md2 = state_storage->getMetadata(tag_to);
-    std::cout << "metadata of to = " << tag_to << std::endl;
-    for (std::size_t k = 0 ; k < md2.first.size() ; ++k)
-      std::cout << md2.first[k] << " ";
-    std::cout << std::endl;
-    
-    for (std::map<std::size_t, std::pair<std::size_t, std::size_t> >::const_iterator it = md2.second.begin() ; it != md2.second.end() ; ++it)
-    {
-      std::cout <<  it->first << ": "; 
-      std::cout << it->second.first << " " << it->second.second;
-      std::cout << std::endl;
-    }      
-    
-    std::cout << "metadata end" << std::endl;
-    */
+
     std::map<std::size_t, std::pair<std::size_t, std::size_t> >::const_iterator it = md.second.find(tag_to);
     if (it == md.second.end())
       return false;
     const std::pair<std::size_t, std::size_t> &istates = it->second;
     std::size_t index = (std::size_t)((istates.second - istates.first + 2) * t + 0.5);
-    //    std::cout << "index = " << index << std::endl;
     
     if (index == 0)
       state_storage->getStateSpace()->copyState(state, from);
