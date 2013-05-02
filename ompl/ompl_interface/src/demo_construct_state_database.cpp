@@ -71,8 +71,8 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
   opt.state_space_parameterization = "PoseModel";
   opt.samples = ns;
   opt.edges_per_sample = ne;
-  opt.explicit_motions = false;
-  opt.max_edge_length = 1.0;
+  opt.explicit_motions = true;
+  opt.max_edge_length = 0.2;
   opt.explicit_points_resolution = 0.05;
   opt.max_explicit_points = 10;
   

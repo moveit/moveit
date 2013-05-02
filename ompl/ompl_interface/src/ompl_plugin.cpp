@@ -134,37 +134,38 @@ private:
     ob::ScopedState<> rstate2(ss.getStateSpace());
     ros::WallDuration wait(2);
     unsigned int n = 0;
-    std::vector<ob::State*> sts;
-    while (display_random_valid_states_)
-    {
-      if (!vss->sample(rstate1.get()))
-	continue;
-      pc->getOMPLStateSpace()->copyToRobotState(kstate, rstate1.get());
-      kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
-      moveit_msgs::DisplayRobotState state_msg;
-      robot_state::robotStateToRobotStateMsg(kstate, state_msg.state);
-      pub_valid_states_.publish(state_msg);
-      n = (n + 1) % 2;
-      if (n == 0)
+    std::vector<ob::State*> sts;  
+    if (vss->sample(rstate2.get()))
+      while (display_random_valid_states_)
       {
-	robot_trajectory::RobotTrajectory traj(pc->getRobotModel(), pc->getJointModelGroupName());
-	unsigned int g = ss.getSpaceInformation()->getMotionStates(rstate1.get(), rstate2.get(), sts, 10, true, true);
-	ROS_INFO("Generated a motion with %u states", g);
-	for (std::size_t i = 0 ; i < g ; ++i)
-	{
-	  pc->getOMPLStateSpace()->copyToRobotState(kstate, sts[i]);
-	  traj.addSuffixWayPoint(kstate, 0.0);
-	}
-        moveit_msgs::DisplayTrajectory msg;
-	msg.model_id = pc->getRobotModel()->getName();
-	msg.trajectory.resize(1);
-	traj.getRobotTrajectoryMsg(msg.trajectory[0]);
-	robot_state::robotStateToRobotStateMsg(traj.getFirstWayPoint(), msg.trajectory_start);
-	pub_valid_traj_.publish(msg);
+        if (!vss->sampleNear(rstate1.get(), rstate2.get(), 10000000))
+          continue;
+        pc->getOMPLStateSpace()->copyToRobotState(kstate, rstate1.get());
+        kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
+        moveit_msgs::DisplayRobotState state_msg;
+        robot_state::robotStateToRobotStateMsg(kstate, state_msg.state);
+        pub_valid_states_.publish(state_msg);
+        n = (n + 1) % 2;
+        if (n == 0)
+        {
+          robot_trajectory::RobotTrajectory traj(pc->getRobotModel(), pc->getJointModelGroupName());
+          unsigned int g = ss.getSpaceInformation()->getMotionStates(rstate1.get(), rstate2.get(), sts, 10, true, true);
+          ROS_INFO("Generated a motion with %u states", g);
+          for (std::size_t i = 0 ; i < g ; ++i)
+          {
+            pc->getOMPLStateSpace()->copyToRobotState(kstate, sts[i]);
+            traj.addSuffixWayPoint(kstate, 0.0);
+          }
+          moveit_msgs::DisplayTrajectory msg;
+          msg.model_id = pc->getRobotModel()->getName();
+          msg.trajectory.resize(1);
+          traj.getRobotTrajectoryMsg(msg.trajectory[0]);
+          robot_state::robotStateToRobotStateMsg(traj.getFirstWayPoint(), msg.trajectory_start);
+          pub_valid_traj_.publish(msg);
+        }
+        rstate2 = rstate1;
+        wait.sleep();
       }
-      rstate2 = rstate1;
-      wait.sleep();
-    }
     
   }
   
