@@ -697,7 +697,8 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
           continue;
         }
 
-        SweepOptions new_sweep;
+        FactorOptions new_sweep;
+        new_sweep.isSweep = true; // not a fractional factorial analaysis
         try
         {
           new_sweep.start = boost::lexical_cast<double>(strings[0]);
@@ -722,7 +723,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
         }
 
         // Insert into array of all sweeps
-        sweep_options_.push_back(new_sweep);
+        factor_options_.push_back(new_sweep);
 
         //ROS_ERROR_STREAM_NAMED("temp","SWEEP start " << new_sweep.start << " it " << new_sweep.iterator << " end " << new_sweep.end);
       }
@@ -1015,8 +1016,9 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   else
     planning_scene_->usePlanningSceneMsg(req.scene);
 
-  // parameter sweeping functionality
-  std::size_t n_parameter_sets = generateSweepCombinations();
+  // parameter factoring functionality
+  //std::size_t n_parameter_sets = generateFactorCombinations(); // this is for parameter sweeping
+  std::size_t n_parameter_sets = generateFactorCombinationsHack(); // this is for fractional factorial analysis
 
   // get stats on how many planners and total runs will be executed
   std::size_t total_n_planners = 0;
@@ -1025,7 +1027,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   {
     total_n_planners += planner_ids_to_benchmark_per_planner_interface[i].size();
 
-    // n = algorithms * runs * parameter_sweeps
+    // n = algorithms * runs * parameter_factors
     total_n_runs += planner_ids_to_benchmark_per_planner_interface[i].size() *
       runs_per_planner_interface[i] * n_parameter_sets;
   }
@@ -1045,23 +1047,24 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       mp_req.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
       AlgorithmRunsData runs(runs_per_planner_interface[i]*n_parameter_sets);
 
-      // sweep tracking
-      std::size_t sweep_combinations_id_ = 0;
+      // factor tracking
+      std::size_t factor_combinations_id_ = 0;
 
-      // loop through the desired parameter sweeps
+      // loop through the desired parameter factors
       for (std::size_t param_count = 0; param_count < n_parameter_sets; ++param_count)
       {
+        // Check if ROS is still alive
+        if( !ros::ok() )
+          return;
+        
+        // Create new instance of the chosen parameters
         RunData parameter_data;
 
-        std::cout << " ------------------------------------------------------ \n";
-        std::cout << "NEW LOOP \n";
-        std::cout << " ------------------------------------------------------ \n";
-
-        // apply the current parameter sweep, if we are using those
+        // apply the current parameter factor, if we are using those
         if( n_parameter_sets > 1 )
         {
-          modifyPlannerConfiguration(planner_interfaces_to_benchmark[i], mp_req.planner_id, sweep_combinations_id_, parameter_data);
-          ++sweep_combinations_id_;
+          modifyPlannerConfiguration(planner_interfaces_to_benchmark[i], mp_req.planner_id, factor_combinations_id_, parameter_data);
+          ++factor_combinations_id_;
         }
 
         // loop through the desired number of runs
@@ -1070,7 +1073,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
           // Combine two for loops into one id
           std::size_t run_id = run_count * n_parameter_sets + param_count;
 
-          ++progress;
+          ++progress; // this outputs asterisks
 
           //ROS_ERROR_STREAM_NAMED("temp","Request:\n" << mp_req);
 
@@ -1086,11 +1089,6 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
           start = ros::WallTime::now();
           runs[run_id].insert(parameter_data.begin(),parameter_data.end()); // initalize this run's data with the chosen parameters, if we have any
 
-          // Debug map
-          ROS_ERROR_STREAM_NAMED("temp","Static parameter data map:");
-          for(std::map<std::string,std::string>::const_iterator it = parameter_data.begin(); it != parameter_data.end(); ++it)
-            std::cout << "  - '" << it->first << "' => " << it->second << std::endl;
-
           collectMetrics(runs[run_id], mp_res, solved, total_time);
           double metrics_time = (ros::WallTime::now() - start).toSec();
           ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
@@ -1102,7 +1100,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
           }
         }
       }
-      // this vector of runs represents all the runs*parameter sweeps
+      // this vector of runs represents all the runs*parameter factors
       data.push_back(runs);
 
     } // end j - planning algoritms
@@ -1130,7 +1128,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     // loop through the planning *algorithms* times the # parameter combinations
     for (std::size_t p = 0 ; p < planner_ids_to_benchmark_per_planner_interface[q].size(); ++p)
     {
-      ROS_DEBUG_STREAM_NAMED("temp","q="<<q<<" p="<<p<<" run_id="<<run_id);
+      //ROS_DEBUG_STREAM_NAMED("temp","q="<<q<<" p="<<p<<" run_id="<<run_id);
 
       // Output name of planning algorithm
       out << planner_interfaces_to_benchmark[q]->getDescription() + "_" + planner_ids_to_benchmark_per_planner_interface[q][p] << std::endl;
@@ -1144,9 +1142,9 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       for (std::size_t j = 0 ; j < data[run_id].size() ; ++j)
       {
 
-        ROS_DEBUG_STREAM_NAMED("","j  =" << j);
-        ROS_DEBUG_STREAM_NAMED("","size = " << data.size() << " size[run_id] " << data[run_id].size());
-        ROS_DEBUG_STREAM_NAMED("temp","total n parameters " << n_parameter_sets);
+        //ROS_DEBUG_STREAM_NAMED("","j  =" << j);
+        //ROS_DEBUG_STREAM_NAMED("","size = " << data.size() << " size[run_id] " << data[run_id].size());
+        //ROS_DEBUG_STREAM_NAMED("temp","total n parameters " << n_parameter_sets);
 
         for (RunData::const_iterator mit = data[run_id][j].begin() ; mit != data[run_id][j].end() ; ++mit)
         {
@@ -1164,7 +1162,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       for (unsigned int j = 0 ; j < properties.size() ; ++j)
         out << properties[j] << std::endl;
       out << data[run_id].size() << " runs" << std::endl;
-
+ 
       // output all the data to the log file
       for (std::size_t j = 0 ; j < data[run_id].size() ; ++j)
       {
@@ -1337,7 +1335,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
 
 void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_interface::Planner* planner,
                                                                        const std::string& planner_id,
-                                                                       std::size_t sweep_combinations_id_,
+                                                                       std::size_t factor_combinations_id_,
                                                                        RunData &parameter_data)
 {
   // Get the planner's current settings
@@ -1347,14 +1345,14 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
   std::map<std::string, planning_interface::PlanningConfigurationSettings>::iterator settings_it = settings.find(planner_id);
   if(settings_it != settings.end())
   {
-    // key exists, loop through all values in this sweep instance
+    // key exists, loop through all values in this factor instance
     std::string str_parameter_value;
-    for (std::size_t i = 0; i < sweep_options_.size(); ++i)
+    for (std::size_t i = 0; i < factor_options_.size(); ++i)
     {
       // convert from double to string
       try
       {
-        const double& value = sweep_combinations_[sweep_combinations_id_][sweep_options_[i].key];
+        const double& value = factor_combinations_[factor_combinations_id_][factor_options_[i].key];
         str_parameter_value = boost::lexical_cast<std::string>(value);
       }
       catch(boost::bad_lexical_cast &ex)
@@ -1363,13 +1361,13 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
       }
 
       // record parameter values for logging
-      parameter_data[sweep_options_[i].log_key] = str_parameter_value;
+      parameter_data[factor_options_[i].log_key] = str_parameter_value;
 
       // record parameter to planner config
-      settings_it->second.config[sweep_options_[i].key] = str_parameter_value;
+      settings_it->second.config[factor_options_[i].key] = str_parameter_value;
 
       // debug
-      ROS_ERROR_STREAM_NAMED("temp","Parameter " << sweep_options_[i].key << " now has value " << str_parameter_value);
+      ROS_ERROR_STREAM_NAMED("temp","Parameter " << factor_options_[i].key << " now has value " << str_parameter_value);
     }
   }
   else // settings for this planner_id does not already exist
@@ -1389,58 +1387,188 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
   planner->setPlanningConfigurations(settings);
 }
 
-std::size_t moveit_benchmarks::BenchmarkExecution::generateSweepCombinations()
+std::size_t moveit_benchmarks::BenchmarkExecution::generateFactorCombinationsHack()
 {
-  if (!sweep_options_.size())
-    return 1; // by default there are no sweep parameters, so the sweep loop runs once
+  // Note: this is a hack because the factors are TRRT specific and hard coded in
+  // In the future it should be added to the .cfg file when someone has time
 
-  // Create initial sweep instance of all min values for the parameters
-  SweepInstance sweep_instance;
-  for (std::size_t i = 0; i < sweep_options_.size(); ++i)
+  // Create All Factor Options ------------------------------------------------------
+  const int num_factors = 7;
+  FactorOptions opt;
+
+  // Factor 1
+  opt.key = "max_states_failed";
+  opt.low = 1;
+  opt.high = 2;
+  factor_options_.push_back(opt);
+
+  // Factor 2
+  opt.key = "temp_change_factor";
+  opt.low = 2;
+  opt.high = 50;
+  factor_options_.push_back(opt);
+
+  // Factor 3
+  opt.key = "range";
+  opt.low = 0.37;
+  opt.high = 0.50;
+  factor_options_.push_back(opt);
+
+  // Factor 4
+  opt.key = "min_temperature";
+  opt.low = 1e-9;
+  opt.high = 1e-11;
+  factor_options_.push_back(opt);
+
+  // Factor 5
+  opt.key = "frontier_threshold";
+  opt.low = 0.107622;
+  opt.high = 0.2;
+  factor_options_.push_back(opt);
+
+  // Factor 6
+  opt.key = "frontier_node_ratio";
+  opt.low = 0.05;
+  opt.high = 0.1;
+  factor_options_.push_back(opt);
+
+  // Factor 7
+  opt.key = "k_constant";
+  opt.low  = 0.000428155;
+  opt.high = 0.001;
+  factor_options_.push_back(opt);
+
+  // Set things for all options automatically here
+  for (std::size_t i = 0; i < factor_options_.size(); ++i)
   {
-    // start = min value
-    sweep_instance[ sweep_options_[i].key ] = sweep_options_[i].start;
+    // Set key name for database
+    std::ostringstream ss;
+    ss << "param_" << factor_options_[i].key << " REAL";
+    factor_options_[i].log_key = ss.str();
+
+    // set as not sweep
+    factor_options_[i].isSweep = false;
   }
 
-  // call recusive function for every sweep option available
+  // Eight-Run Plackett-Burman Design with 7 Factors ------------------------------------------------
+  const int num_tests = 8;
+
+  const int test1[] = {1, 0, 0, 1, 0, 1, 1};
+  const int test2[] = {1, 1, 0, 0, 1, 0, 1};
+  const int test3[] = {1, 1, 1, 0, 0, 1, 0};
+  const int test4[] = {0, 1, 1, 1, 0, 0, 1};
+  const int test5[] = {1, 0, 1, 1, 1, 0, 0};
+  const int test6[] = {0, 1, 0, 1, 1, 1, 0};
+  const int test7[] = {0, 0, 1, 0, 1, 1, 1};
+  const int test8[] = {0, 0, 0, 0, 0, 0, 0};
+
+  // Copy to 2d array
+  int tests[num_tests][num_factors];
+  memcpy(tests[0], test1, num_factors*sizeof(int));
+  memcpy(tests[1], test2, num_factors*sizeof(int));
+  memcpy(tests[2], test3, num_factors*sizeof(int));
+  memcpy(tests[3], test4, num_factors*sizeof(int));
+  memcpy(tests[4], test5, num_factors*sizeof(int));
+  memcpy(tests[5], test6, num_factors*sizeof(int));
+  memcpy(tests[6], test7, num_factors*sizeof(int));
+  memcpy(tests[7], test8, num_factors*sizeof(int));
+
+  // Create factor combinations ------------------------------------------------------
+  for (std::size_t i = 0; i < num_tests; ++i) // loop tests
+  {
+    FactorInstance factor_instance;
+
+    // Populate factor instance
+    for (std::size_t j = 0; j < num_factors; ++j) // loop factors
+    {      
+      //ROS_DEBUG_STREAM_NAMED("temp","i="<<i<<" j="<<j<<" key="<<factor_options_[j].key<<" val="<<tests[i][j]);
+      if (tests[i][j] == 1) // use high value
+      {
+        // Assign string,double pair to factor instance
+        factor_instance[factor_options_[j].key] = factor_options_[j].high;
+      }
+      else // use low value
+      {
+        // Assign string,double pair to factor instance
+        factor_instance[factor_options_[j].key] = factor_options_[j].low;
+      }
+    }
+
+    factor_combinations_.push_back(factor_instance);
+  }
+
+  // Debug output
+  if (true)
+  {
+    ROS_DEBUG_STREAM("generateFactorCombinationsHack Output:");
+    // DEBUG
+    for (std::size_t i = 0; i < factor_combinations_.size(); ++i)
+    {
+      ROS_DEBUG_STREAM_NAMED("temp","Factor instance:");
+      // Debug map
+      for(std::map<std::string,double>::const_iterator it = factor_combinations_[i].begin(); it != factor_combinations_[i].end(); ++it)
+        std::cout << "  - " << it->first << " => " << it->second << std::endl;
+    }
+  }
+
+  ROS_DEBUG_STREAM("Generated " << factor_combinations_.size() << " factor combinations to test");
+
+  // Total number of parameters
+  return factor_combinations_.size();
+}
+
+std::size_t moveit_benchmarks::BenchmarkExecution::generateFactorCombinations()
+{
+  if (!factor_options_.size())
+    return 1; // by default there are no factor parameters, so the factor loop runs once
+
+  // Create initial factor instance of all min values for the parameters
+  FactorInstance factor_instance;
+  for (std::size_t i = 0; i < factor_options_.size(); ++i)
+  {
+    // start = min value
+    factor_instance[ factor_options_[i].key ] = factor_options_[i].start;
+  }
+
+  // call recusive function for every factor option available
   int initial_options_id = 0;
-  recursiveSweepCombinations(initial_options_id, sweep_instance);
+  recursiveFactorCombinations(initial_options_id, factor_instance);
 
   // DEBUG
-  for (std::size_t i = 0; i < sweep_combinations_.size(); ++i)
+  for (std::size_t i = 0; i < factor_combinations_.size(); ++i)
   {
-    ROS_WARN_STREAM_NAMED("temp","Sweep instance:");
+    ROS_WARN_STREAM_NAMED("temp","Factor instance:");
     // Debug map
-    for(std::map<std::string,double>::const_iterator it = sweep_combinations_[i].begin(); it != sweep_combinations_[i].end(); ++it)
-      std::cout << "  - "" << it->first << "" => " << it->second << std::endl;
+    for(std::map<std::string,double>::const_iterator it = factor_combinations_[i].begin(); it != factor_combinations_[i].end(); ++it)
+      std::cout << "  - " << it->first << " => " << it->second << std::endl;
   }
 
   // Total number of parameters
-  return sweep_combinations_.size();
+  return factor_combinations_.size();
 }
 
-void moveit_benchmarks::BenchmarkExecution::recursiveSweepCombinations(int options_id, SweepInstance sweep_instance)
+void moveit_benchmarks::BenchmarkExecution::recursiveFactorCombinations(int options_id, FactorInstance factor_instance)
 {
-  // Get a pointer to current sweeping parameter
-  const SweepOptions& sweep_option = sweep_options_[options_id];
+  // Get a pointer to current factoring parameter
+  const FactorOptions& factor_option = factor_options_[options_id];
 
   do
   {
-    // Call the next sweep parameter if one exists
-    if( sweep_options_.size() > options_id + 1 )
+    // Call the next factor parameter if one exists
+    if( factor_options_.size() > options_id + 1 )
     {
-      recursiveSweepCombinations(options_id + 1, sweep_instance);
+      recursiveFactorCombinations(options_id + 1, factor_instance);
     }
-    else // we are the end of the recursive call, so we can add this sweep_instance to the vector
+    else // we are the end of the recursive call, so we can add this factor_instance to the vector
     {
-      sweep_combinations_.push_back(sweep_instance);
+      factor_combinations_.push_back(factor_instance);
     }
 
     // Increment this value
-    sweep_instance[sweep_option.key] += sweep_option.iterator;
+    factor_instance[factor_option.key] += factor_option.iterator;
 
     // Continue adding iteration amount until value equals end
-  } while( sweep_instance[sweep_option.key] <= sweep_option.end + 0.00001 ); // rounding issues fudge factor
+  } while( factor_instance[factor_option.key] <= factor_option.end + 0.00001 ); // rounding issues fudge factor
 
   return;
 }
