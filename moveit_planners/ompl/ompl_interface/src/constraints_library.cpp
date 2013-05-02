@@ -99,6 +99,7 @@ public:
   {
     int index = -1;
     int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
+    
     if (tag >= 0)
     {
       const ConstrainedStateMetadata &md = state_storage_->getMetadata(tag);
@@ -110,7 +111,7 @@ public:
     
     double dist = space_->distance(near, state_storage_->getState(index));
     if (dist > distance)
-    {
+    {      
       double d = pow(rng_.uniform01(), inv_dim_) * distance;
       space_->interpolate(near, state_storage_->getState(index), d / dist, state);
     }
@@ -143,67 +144,60 @@ bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage *sta
   if (tag_from == tag_to)
     state_storage->getStateSpace()->copyState(state, to);
   else
-    if (tag_from < tag_to)
+  {
+    const ConstrainedStateMetadata &md = state_storage->getMetadata(tag_from);
+    /*    
+    std::cout << "metadata of from = " << tag_from << std::endl;
+    for (std::size_t k = 0 ; k < md.first.size() ; ++k)
+      std::cout << md.first[k] << " ";
+    std::cout << std::endl;
+    
+    for (std::map<std::size_t, std::pair<std::size_t, std::size_t> >::const_iterator it = md.second.begin() ; it != md.second.end() ; ++it)
     {
-      const ConstrainedStateMetadata &md = state_storage->getMetadata(tag_from);
-
-      /*
-      std::cout << "metadata of from = " << tag_from << std::endl;
-      for (std::size_t k = 0 ; k < md.first.size() ; ++k)
-        std::cout << md.first[k] << " ";
+      std::cout << it->first << ": ";
+      std::cout << it->second.first << " " << it->second.second;
       std::cout << std::endl;
-
-      for (std::map<std::size_t, std::vector<std::size_t> >::const_iterator it = md.second.begin() ; it != md.second.end() ; ++it)
-      {
-        std::cout << it->first << ": ";
-        for (std::size_t k = 0 ; k < it->second.size() ; ++k)
-          std::cout << it->second[k] << " ";
-        std::cout << std::endl;
-      }      
-
-      std::cout << "metadata end" << std::endl;
-
-
-
-
-
-      const ConstrainedStateMetadata &md2 = state_storage->getMetadata(tag_to);
-      std::cout << "metadata of to = " << tag_to << std::endl;
-      for (std::size_t k = 0 ; k < md2.first.size() ; ++k)
-        std::cout << md2.first[k] << " ";
+    }      
+    
+    std::cout << "metadata end" << std::endl;
+    
+    
+    
+    
+    
+    const ConstrainedStateMetadata &md2 = state_storage->getMetadata(tag_to);
+    std::cout << "metadata of to = " << tag_to << std::endl;
+    for (std::size_t k = 0 ; k < md2.first.size() ; ++k)
+      std::cout << md2.first[k] << " ";
+    std::cout << std::endl;
+    
+    for (std::map<std::size_t, std::pair<std::size_t, std::size_t> >::const_iterator it = md2.second.begin() ; it != md2.second.end() ; ++it)
+    {
+      std::cout <<  it->first << ": "; 
+      std::cout << it->second.first << " " << it->second.second;
       std::cout << std::endl;
-
-      for (std::map<std::size_t, std::vector<std::size_t> >::const_iterator it = md2.second.begin() ; it != md2.second.end() ; ++it)
-      {
-       std::cout <<  it->first << ": ";
-        for (std::size_t k = 0 ; k < it->second.size() ; ++k)
-          std::cout << it->second[k] << " ";
-        std::cout << std::endl;
-      }      
-
-      std::cout << "metadata end" << std::endl;
-
-      */
-      
-      const std::vector<std::size_t> &istates = md.second.at(tag_to);
-      if (istates.empty())
-        return false;
-      std::size_t index = (std::size_t)((istates.size() + 1) * t + 0.5);
-      //      std::cout << index << std::endl;
-      
-      if (index == 0)
-        state_storage->getStateSpace()->copyState(state, from);
-      else
-      {
-        --index;
-        if (index >= istates.size())
-          state_storage->getStateSpace()->copyState(state, to);
-        else
-          state_storage->getStateSpace()->copyState(state, state_storage->getState(istates[index]));
-      }
-    }
+    }      
+    
+    std::cout << "metadata end" << std::endl;
+    */
+    std::map<std::size_t, std::pair<std::size_t, std::size_t> >::const_iterator it = md.second.find(tag_to);
+    if (it == md.second.end())
+      return false;
+    const std::pair<std::size_t, std::size_t> &istates = it->second;
+    std::size_t index = (std::size_t)((istates.second - istates.first + 2) * t + 0.5);
+    //    std::cout << "index = " << index << std::endl;
+    
+    if (index == 0)
+      state_storage->getStateSpace()->copyState(state, from);
     else
-      return interpolateUsingStoredStates(state_storage, to, from, 1.0 - t, state);
+    {
+      --index;
+      if (index >= istates.second - istates.first)
+        state_storage->getStateSpace()->copyState(state, to);
+      else
+        state_storage->getStateSpace()->copyState(state, state_storage->getState(istates.first + index));
+    }
+  }
   return true;
 }
 
@@ -544,21 +538,27 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 	done = done_now;
         logInform("%d%% complete", done);
       }
-      
+      if (cass->getMetadata(j).first.size() >= options.edges_per_sample)
+        continue;
+
+      const ob::State *sj = sstor->getState(j);
+
       for (std::size_t i = j + 1 ; i < milestones ; ++i)
-      {
-        const ob::State *sj = sstor->getState(j);        
+      {   
+        if (cass->getMetadata(i).first.size() >= options.edges_per_sample)
+          continue;
 	double d = space->distance(sstor->getState(i), sj);
         if (d >= options.max_edge_length)
           continue;
         unsigned int isteps = std::min<unsigned int>(options.max_explicit_points, d / options.explicit_points_resolution);
+        double step = 1.0 / (double)isteps;
         double remain = 1.0;
         bool ok = true;
-        for (unsigned int k = 0 ; k < isteps ; ++k)
+        space->interpolate(sstor->getState(i), sj, step, int_states[0]);
+        for (unsigned int k = 1 ; k < isteps ; ++k)
         {
-          double this_step = remain / isteps;
-          remain = 1.0 - this_step;
-          space->interpolate(k == 0 ? sstor->getState(i) : int_states[k-1], sj, this_step, int_states[k]);
+          double this_step = step / (1.0 - (k - 1) * step);
+          space->interpolate(int_states[k-1], sj, this_step, int_states[k]);
 	  pcontext->getOMPLStateSpace()->copyToRobotState(kstate, int_states[k]);
 	  if (!kset.decide(kstate).satisfied)
           {
@@ -570,18 +570,23 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
         if (ok)
         {
           cass->getMetadata(i).first.push_back(j);
-          std::vector<std::size_t> idx;
-          std::size_t base_index = sstor->size();
-          for (unsigned int k = 0 ; k < isteps ; ++k)
+          cass->getMetadata(j).first.push_back(i);
+          
+          if (options.explicit_motions)
           {
-            int_states[k]->as<ModelBasedStateSpace::StateType>()->tag = -1;
-            sstor->addState(int_states[k]);
-            idx.push_back(base_index + k);
+            cass->getMetadata(i).second[j].first = sstor->size();
+            for (unsigned int k = 0 ; k < isteps ; ++k)
+            {
+              int_states[k]->as<ModelBasedStateSpace::StateType>()->tag = -1;
+              sstor->addState(int_states[k]);
+            }
+            cass->getMetadata(i).second[j].second = sstor->size();
+            cass->getMetadata(j).second[i] = cass->getMetadata(i).second[j];
           }
-          cass->getMetadata(i).second[j].swap(idx);
+          
           good++;
-          if (cass->getMetadata(i).first.size() >= options.edges_per_sample)
-            break;
+          if (cass->getMetadata(j).first.size() >= options.edges_per_sample)
+            break;     
         }
       }
     }
