@@ -68,7 +68,7 @@ private:
                                 const std::vector<moveit_msgs::JointLimits>& limits,
                                 std::vector<double> &time_diff) const;
 
-  void applyAccelerationConstraints(const trajectory_msgs::JointTrajectory& trajectory,
+  void applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
                                     const std::vector<moveit_msgs::JointLimits>& limits,
                                     std::vector<double> & time_diff,
                                     const std::map<std::string, double>& velocity_map) const;

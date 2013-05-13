@@ -325,13 +325,28 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
 
 
 // Applies Acceleration constraints
-void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const trajectory_msgs::JointTrajectory& trajectory,
+void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
                                                                           const std::vector<moveit_msgs::JointLimits>& limits,
                                                                           std::vector<double> & time_diff,
                                                                           const std::map<std::string, double>& velocity_map) const
 {
-  const unsigned int num_points = trajectory.points.size();
-  const unsigned int num_joints = trajectory.joint_names.size();
+  robot_state::RobotStatePtr prev_waypoint;
+  robot_state::RobotStatePtr curr_waypoint;
+  robot_state::RobotStatePtr next_waypoint;
+  std::map<std::string, double> prev_state_values;
+  std::map<std::string, double> curr_state_values;
+  std::map<std::string, double> next_state_values;
+  std::vector<std::string> active_joints;
+
+  const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
+  const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
+
+  // I save the names of the active joints.
+  for (int i=0; i < jnt.size(); i++)
+    active_joints.push_back(jnt[i]->getName());
+
+  const unsigned int num_points = rob_trajectory.getWayPointCount();
+  const unsigned int num_joints = group->getVariableCount();
   int num_updates = 0;
   int iteration = 0;
   bool backwards = false;
@@ -370,6 +385,21 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
             index = (num_points-1)-i;
           }
 
+          curr_waypoint = rob_trajectory.getWayPointPtr(index);
+          curr_waypoint->getStateValues(curr_state_values);
+
+          if (index > 0)
+          {
+            prev_waypoint = rob_trajectory.getWayPointPtr(index-1);
+            prev_waypoint->getStateValues(prev_state_values);
+          }
+
+          if (index < num_points-1)
+          {
+            next_waypoint = rob_trajectory.getWayPointPtr(index+1);
+            next_waypoint->getStateValues(next_state_values);
+          }
+
           // Get acceleration limits
           double a_max = 1.0;
           if( limits[j].has_acceleration_limits )
@@ -379,26 +409,29 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
 
           if(index==0)
           {     // First point
-            q1 = trajectory.points[index+1].positions[j];
-            q2 = trajectory.points[index].positions[j];
-            q3 = trajectory.points[index+1].positions[j];
+            q1 = next_state_values[active_joints[j]];
+            q2 = curr_state_values[active_joints[j]];
+            q3 = next_state_values[active_joints[j]];
+
             dt1 = time_diff[index];
             dt2 = time_diff[index];
             assert(!backwards);
           }
           else if(index < num_points-1)
           { // middle points
-            q1 = trajectory.points[index-1].positions[j];
-            q2 = trajectory.points[index].positions[j];
-            q3 = trajectory.points[index+1].positions[j];
+            q1 = prev_state_values[active_joints[j]];
+            q2 = curr_state_values[active_joints[j]];
+            q3 = next_state_values[active_joints[j]];
+
             dt1 = time_diff[index-1];
             dt2 = time_diff[index];
           }
           else
           { // last point - careful, there are only numpoints-1 time intervals
-            q1 = trajectory.points[index-1].positions[j];
-            q2 = trajectory.points[index].positions[j];
-            q3 = trajectory.points[index-1].positions[j];
+            q1 = prev_state_values[active_joints[j]];
+            q2 = curr_state_values[active_joints[j]];
+            q3 = prev_state_values[active_joints[j]];
+
             dt1 = time_diff[index-1];
             dt2 = time_diff[index-1];
             assert(backwards);
@@ -412,7 +445,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(const 
             bool start_velocity = false;
             if(index==0 && has_start_velocity)
             {
-              std::map<std::string, double>::const_iterator it = velocity_map.find(trajectory.joint_names[j]);
+              std::map<std::string, double>::const_iterator it = velocity_map.find(active_joints[j]);
               if(it != velocity_map.end())
               {
                 start_velocity = true;
@@ -485,7 +518,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
   }
 
   applyVelocityConstraints(trajectory, rob_trajectory, limits, time_diff);
-  applyAccelerationConstraints(trajectory, limits, time_diff, velocity_map);
+  applyAccelerationConstraints(rob_trajectory, limits, time_diff, velocity_map);
 
   updateTrajectory(trajectory, time_diff, velocity_map);
   //  printStats(trajectory, limits);
