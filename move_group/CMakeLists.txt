@@ -50,6 +50,7 @@ add_library(moveit_move_group_default_capabilities
   src/default_capabilities/kinematics_service_capability.cpp
   src/default_capabilities/state_validation_service_capability.cpp
   src/default_capabilities/cartesian_path_service_capability.cpp
+  src/default_capabilities/get_planning_scene_service_capability.cpp
   )
 
 target_link_libraries(move_group ${catkin_LIBRARIES} ${Boost_LIBRARIES})

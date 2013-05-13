@@ -97,7 +97,9 @@ void planning_pipeline::PlanningPipeline::configure()
     ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
   }
 
-  const std::vector<std::string> &classes = planner_plugin_loader_->getDeclaredClasses();
+  std::vector<std::string> classes;
+  if (planner_plugin_loader_)
+    classes = planner_plugin_loader_->getDeclaredClasses();
   if (planner_plugin_name_.empty() && classes.size() == 1)
   {
     planner_plugin_name_ = classes[0];
@@ -134,20 +136,21 @@ void planning_pipeline::PlanningPipeline::configure()
       ROS_ERROR_STREAM("Exception while creating planning plugin loader " << ex.what());
     }
     
-    for (std::size_t i = 0 ; i < adapter_plugin_names_.size() ; ++i)
-    {
-      planning_request_adapter::PlanningRequestAdapterConstPtr ad;
-      try
+    if (adapter_plugin_loader_)
+      for (std::size_t i = 0 ; i < adapter_plugin_names_.size() ; ++i)
       {
-        ad.reset(adapter_plugin_loader_->createUnmanagedInstance(adapter_plugin_names_[i]));
+        planning_request_adapter::PlanningRequestAdapterConstPtr ad;
+        try
+        {
+          ad.reset(adapter_plugin_loader_->createUnmanagedInstance(adapter_plugin_names_[i]));
+        }
+        catch (pluginlib::PluginlibException& ex)
+        {
+          ROS_ERROR_STREAM("Exception while loading planning adapter plugin '" << adapter_plugin_names_[i] << "': " << ex.what());
+        }
+        if (ad)
+          ads.push_back(ad);
       }
-      catch (pluginlib::PluginlibException& ex)
-      {
-        ROS_ERROR_STREAM("Exception while loading planning adapter plugin '" << adapter_plugin_names_[i] << "': " << ex.what());
-      }
-      if (ad)
-        ads.push_back(ad);
-    }
     if (!ads.empty())
     {
       adapter_chain_.reset(new planning_request_adapter::PlanningRequestAdapterChain());
