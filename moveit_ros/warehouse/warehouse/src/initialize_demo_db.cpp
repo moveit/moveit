@@ -122,14 +122,14 @@ int main(int argc, char **argv)
         
         moveit_msgs::OrientationConstraint ocm;
         ocm.link_name = lnames.back();
-        ocm.header.frame_id = psm.getRobotModel()->getModelFrame();
-        ocm.orientation.x = 0;
-        ocm.orientation.y = 0;
-        ocm.orientation.z = 0;
-        ocm.orientation.w = 1.0;
-        ocm.absolute_x_axis_tolerance = 0.05;
-        ocm.absolute_y_axis_tolerance = 0.05;
-        ocm.absolute_z_axis_tolerance = boost::math::constants::pi<double>();
+        ocm.header.frame_id = "arm_base_link";
+        ocm.orientation.x = -0.635;
+        ocm.orientation.y = -0.326;
+	ocm.orientation.z = 0.183;
+	ocm.orientation.w = 0.676;
+        ocm.absolute_x_axis_tolerance = 0.2;
+        ocm.absolute_y_axis_tolerance = boost::math::constants::pi<double>();
+        ocm.absolute_z_axis_tolerance = 0.2;
         ocm.weight = 1.0;
         moveit_msgs::Constraints cmsg;
         cmsg.orientation_constraints.resize(1, ocm);
