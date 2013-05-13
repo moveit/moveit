@@ -51,7 +51,7 @@ ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::Plann
   max_goal_count_(5),
   max_fail_(3),
   max_step_(0.02),
-  jump_factor_(2.0)
+  jump_factor_(2.0) /// \todo make these params
 {
 }
 
@@ -104,30 +104,31 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
   return false;
 }
 
-bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_data, const plan_execution::ExecutableMotionPlan *motion_plan)
+bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_data, const sensor_msgs::JointState &detach_posture, const plan_execution::ExecutableMotionPlan *motion_plan)
 {
   ROS_DEBUG("Applying attached object diff to maintained planning scene");
   bool ok = false;
   {
     planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan->planning_scene_monitor_);
-    ok = ps->processAttachedCollisionObjectMsg(shared_plan_data->diff_attached_object_);
+    moveit_msgs::AttachedCollisionObject msg = shared_plan_data->diff_attached_object_;
+    msg.detach_posture = detach_posture;
+    ok = ps->processAttachedCollisionObjectMsg(msg);
   }
   motion_plan->planning_scene_monitor_->triggerSceneUpdateEvent((planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType)
                                                                 (planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY + planning_scene_monitor::PlanningSceneMonitor::UPDATE_STATE));
   return ok;
 }
 
-void addGripperTrajectory(const ManipulationPlanPtr &plan, const sensor_msgs::JointState &grasp_posture,
-                          const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix, const std::string &name)
+void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix, const std::string &name)
 {
-  if (!grasp_posture.name.empty())
+  if (!plan->retreat_posture_.name.empty())
   {
     robot_state::RobotStatePtr state(new robot_state::RobotState(plan->trajectories_.back().trajectory_->getLastWayPoint()));
-    state->setStateValues(grasp_posture);
+    state->setStateValues(plan->retreat_posture_);
     robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_));
     traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan_execution::ExecutableTrajectory et(traj, name);
-    et.effect_on_success_ = boost::bind(&executeAttachObject, plan->shared_data_, _1);
+    et.effect_on_success_ = boost::bind(&executeAttachObject, plan->shared_data_, plan->approach_posture_, _1);
     et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
   }
@@ -237,8 +238,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             et_approach.allowed_collision_matrix_ = collision_matrix_;
             plan->trajectories_.push_back(et_approach);
 
-            addGripperTrajectory(plan, plan->retreat_posture_, collision_matrix_, "grasp");
-
+            addGripperTrajectory(plan, collision_matrix_, "grasp");
             plan_execution::ExecutableTrajectory et_retreat(retreat_traj, "retreat");
             et_retreat.allowed_collision_matrix_ = collision_matrix_;
             plan->trajectories_.push_back(et_retreat);
@@ -261,7 +261,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           et_approach.allowed_collision_matrix_ = collision_matrix_;
           plan->trajectories_.push_back(et_approach);
 
-          addGripperTrajectory(plan, plan->retreat_posture_, collision_matrix_, "grasp");
+          addGripperTrajectory(plan, collision_matrix_, "grasp");
           plan->approach_state_ = approach_states.front();
 
           return true;

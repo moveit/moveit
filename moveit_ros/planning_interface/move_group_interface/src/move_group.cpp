@@ -51,6 +51,7 @@
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
 #include <moveit_msgs/GetCartesianPath.h>
+#include <moveit_msgs/GetPlanningScene.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -189,6 +190,8 @@ public:
       execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
       query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
       cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
+
+      planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -371,12 +374,7 @@ public:
     ROS_ERROR("Poses for end effector '%s' are not known.", eef.c_str());
     return empty;
   }
-
-  void followConstraints(const std::vector<moveit_msgs::Constraints> &constraints)
-  {
-    follow_constraints_ = constraints;
-  }
-  
+ 
   void setPoseReferenceFrame(const std::string &pose_reference_frame)
   {
     pose_reference_frame_ = pose_reference_frame;
@@ -401,12 +399,7 @@ public:
   {
     active_target_ = POSE;
   }
-  
-  void useFollowTarget()
-  {
-    active_target_ = FOLLOW;
-  }
-  
+    
   void allowLooking(bool flag)
   {
     can_look_ = flag;
@@ -459,17 +452,49 @@ public:
     return true;
   }
 
+  /** \brief Place an object at one of the specified possible locations */
+  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
+  {
+    std::vector<manipulation_msgs::PlaceLocation> locations;
+    for (std::size_t i = 0; i < poses.size(); ++i)
+    {
+      manipulation_msgs::PlaceLocation location;
+      location.approach.direction.vector.z = -1.0;
+      location.retreat.direction.vector.x = -1.0;
+      location.approach.direction.header.frame_id = getRobotModel()->getModelFrame();
+      location.retreat.direction.header.frame_id = end_effector_link_;
+
+      location.approach.min_distance = 0.1;
+      location.approach.desired_distance = 0.2;
+      location.retreat.min_distance = 0.0;
+      location.retreat.desired_distance = 0.2;
+      // location.post_place_posture is filled by the pick&place lib with the getDetachPosture from the AttachedBody
+
+      location.place_pose = poses[i];
+      locations.push_back(location);
+    }
+    ROS_DEBUG("Move group interface has %u place locations", (unsigned int) locations.size());
+    return place(object, locations);
+  }
+
   bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
   {   
     if (!place_action_client_)
+    {
+      ROS_ERROR_STREAM("Place action client not found");
       return false;
+    }
     if (!place_action_client_->isServerConnected())
+    {
+      ROS_ERROR_STREAM("Place action server not connected");
       return false; 
+    }
     moveit_msgs::PlaceGoal goal;
     constructGoal(goal, object);
     goal.place_locations = locations;
     goal.planning_options.plan_only = false;
     place_action_client_->sendGoal(goal); 
+    ROS_DEBUG("Sent place goal with %d locations", (int) goal.place_locations.size());
     if (!place_action_client_->waitForResult())
     {
       ROS_INFO_STREAM("Place action returned early");
@@ -488,9 +513,15 @@ public:
   bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
   {
     if (!pick_action_client_)
+    {
+      ROS_ERROR_STREAM("Pick action client not found");
       return false;
+    }
     if (!pick_action_client_->isServerConnected())
+    {
+      ROS_ERROR_STREAM("Pick action server not connected");
       return false;
+    }
     moveit_msgs::PickupGoal goal;
     constructGoal(goal, object);
     goal.possible_grasps = grasps;
@@ -679,12 +710,7 @@ public:
         }
       }
       else
-        if (active_target_ == FOLLOW)
-        {
-          goal.request.trajectory_constraints.constraints = follow_constraints_;
-        }
-        else
-          ROS_ERROR("Unable to construct goal representation");
+        ROS_ERROR("Unable to construct goal representation");
     
     if (path_constraints_)
       goal.request.path_constraints = *path_constraints_;
@@ -783,6 +809,64 @@ public:
     workspace_parameters_.max_corner.y = maxy;
     workspace_parameters_.max_corner.z = maxz;    
   }
+
+  std::vector<std::string> getRecognizedObjectNames()
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    std::vector<std::string> result;
+    request.components.components = request.components.WORLD_OBJECT_NAMES;
+    if (!planning_scene_service_.call(request, response))
+      return result;
+    for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
+      if (!response.scene.world.collision_objects[i].type.key.empty())
+	result.push_back(response.scene.world.collision_objects[i].id);
+    
+    return result;
+  }
+
+  std::vector<std::string> getRecognizedObjectsInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz)
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    std::vector<std::string> result;
+    request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
+    if (!planning_scene_service_.call(request, response))
+      return result;
+    ROS_DEBUG("Got %u objects in world", (unsigned int)response.scene.world.collision_objects.size());
+    for (std::size_t i=0; i < response.scene.world.collision_objects.size(); ++i)
+    {
+      if (!response.scene.world.collision_objects[i].type.key.empty())
+      {
+	//check where the object is
+	if (!response.scene.world.collision_objects[i].mesh_poses.empty())
+	{
+	  if (response.scene.world.collision_objects[i].mesh_poses[0].position.x >= minx &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.x <= maxx &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.y >= miny &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.y <= maxy &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.z >= minz &&
+              response.scene.world.collision_objects[i].mesh_poses[0].position.z <= maxz)
+          {	
+            result.push_back(response.scene.world.collision_objects[i].id);
+          }
+	  else
+	    ROS_DEBUG("Object: %d with id: %s outside ROI with position %s: %lf %lf %lf", 
+		      (int) i, 
+		      response.scene.world.collision_objects[i].id.c_str(),
+		      response.scene.world.collision_objects[i].header.frame_id.c_str(),
+		      response.scene.world.collision_objects[i].mesh_poses[0].position.x,
+		      response.scene.world.collision_objects[i].mesh_poses[0].position.y,
+		      response.scene.world.collision_objects[i].mesh_poses[0].position.z);
+	}
+	else
+	  ROS_ERROR("No mesh poses for object: %d", (int) i);
+      }
+      else
+	ROS_DEBUG("Type is empty for object: %d with id: %s", (int) i, response.scene.world.collision_objects[i].id.c_str());
+    }
+    return result;
+  }
   
 private:
   
@@ -801,9 +885,9 @@ private:
   }
   
   enum ActiveTarget
-  {
-    JOINT, POSE, FOLLOW
-  };
+    {
+      JOINT, POSE
+    };
   
   Options opt_;
   ros::NodeHandle node_handle_;
@@ -829,9 +913,6 @@ private:
   // pose goal
   std::map<std::string, std::vector<geometry_msgs::PoseStamped> > pose_targets_;
 
-  // follow trajectory goal
-  std::vector<moveit_msgs::Constraints> follow_constraints_;
-
   // common properties for goals
   ActiveTarget active_target_;
   boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
@@ -844,6 +925,7 @@ private:
   ros::ServiceClient execute_service_;
   ros::ServiceClient query_service_;
   ros::ServiceClient cartesian_path_service_;
+  ros::ServiceClient planning_scene_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
@@ -911,6 +993,11 @@ bool MoveGroup::pick(const std::string &object)
   return impl_->pick(object, std::vector<manipulation_msgs::Grasp>());
 }
 
+bool MoveGroup::pick(const std::string &object, const manipulation_msgs::Grasp &grasp)
+{ 
+  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>(1, grasp));
+}
+
 bool MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
 {
   return impl_->pick(object, grasps);
@@ -924,6 +1011,11 @@ bool MoveGroup::place(const std::string &object)
 bool MoveGroup::place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
 {
   return impl_->place(object, locations);
+}
+
+bool MoveGroup::place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
+{
+  return impl_->place(object, poses);
 }
 
 double MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
@@ -1217,54 +1309,6 @@ void MoveGroup::setOrientationTarget(double x, double y, double z, double w, con
   setPoseTarget(target, end_effector_link);
 }
 
-void MoveGroup::followConstraints(const std::vector<moveit_msgs::Constraints> &constraints)
-{
-  impl_->followConstraints(constraints); 
-  impl_->useFollowTarget();
-}
-
-void MoveGroup::followConstraints(const std::vector<geometry_msgs::PoseStamped> &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
-{
-  const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
-  if (eef.empty())
-    ROS_ERROR("No end-effector to specify trajectory following constraints for");
-  else
-  {
-    std::vector<moveit_msgs::Constraints> constraints(poses.size());
-    for (std::size_t i = 0 ; i < poses.size() ; ++i)
-      constraints[i] = kinematic_constraints::constructGoalConstraints(eef, poses[i], tolerance_pos, tolerance_angle);
-    followConstraints(constraints);
-  }
-}
-
-void MoveGroup::followConstraints(const std::vector<geometry_msgs::Pose> &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
-{ 
-  std::vector<geometry_msgs::PoseStamped> pose_msgs(poses.size()); 
-  const std::string &frame_id = getPoseReferenceFrame();
-  ros::Time tm = ros::Time(0);
-  for (std::size_t i = 0 ; i < poses.size() ; ++i)
-  {
-    pose_msgs[i].pose = poses[i]; 
-    pose_msgs[i].header.frame_id = frame_id;
-    pose_msgs[i].header.stamp = tm;
-  }  
-  followConstraints(pose_msgs, tolerance_pos, tolerance_angle, end_effector_link);
-}
-
-void MoveGroup::followConstraints(const EigenSTL::vector_Affine3d &poses, double tolerance_pos, double tolerance_angle, const std::string &end_effector_link)
-{
-  std::vector<geometry_msgs::PoseStamped> pose_msgs(poses.size()); 
-  const std::string &frame_id = getPoseReferenceFrame();
-  ros::Time tm = ros::Time(0);
-  for (std::size_t i = 0 ; i < poses.size() ; ++i)
-  {
-    tf::poseEigenToMsg(poses[i], pose_msgs[i].pose);
-    pose_msgs[i].header.frame_id = frame_id;
-    pose_msgs[i].header.stamp = tm;
-  }
-  followConstraints(pose_msgs, tolerance_pos, tolerance_angle, end_effector_link);
-}
-
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
 {
   impl_->setPoseReferenceFrame(pose_reference_frame);
@@ -1474,6 +1518,16 @@ const std::string& MoveGroup::getRobotRootLink() const
 const std::string& MoveGroup::getPlanningFrame() const
 {
   return impl_->getRobotModel()->getModelFrame();
+}
+
+std::vector<std::string> MoveGroup::getRecognizedObjectNames()
+{
+  return impl_->getRecognizedObjectNames();
+}
+
+std::vector<std::string> MoveGroup::getRecognizedObjectsInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz)
+{
+  return impl_->getRecognizedObjectsInROI(minx, miny, minz, maxx, maxy, maxz);
 }
 
 }
