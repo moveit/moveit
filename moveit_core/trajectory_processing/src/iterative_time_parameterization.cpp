@@ -209,8 +209,21 @@ double IterativeParabolicTimeParameterization::findT2(const double dq1,
   return dt2;
 }
 
+//Updates the time difference between timestamps in the trajectory.
+void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory, std::vector<double> time_diff)
+{
+  int num_points = rob_trajectory.getWayPointCount();
+  for (int i; i < num_points; i++)
+  {
+    rob_trajectory.setWayPointDurationFromPrevious(i, time_diff[i]);
+  }
+}
+
+
 // Takes the time differences, and updates the values in the trajectory.
+// I think that all the velocity and acceleration thing is deprecated.
 void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
+                      robot_trajectory::RobotTrajectory& rob_trajectory,
                       const std::vector<double>& time_diff,
                       const std::map<std::string, double>& velocity_map)
 {
@@ -218,8 +231,24 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
   // aleeper: Where does this magic number (0.2) come from?
   //          Let's try only building in a delay if we aren't doing stamped execution.
   double time_sum = velocity_map.empty() ? 0.2 : 0.0;
-  unsigned int num_joints = trajectory.joint_names.size();
-  const unsigned int num_points = trajectory.points.size();
+
+  robot_state::RobotStatePtr prev_waypoint;
+  robot_state::RobotStatePtr curr_waypoint;
+  robot_state::RobotStatePtr next_waypoint;
+  std::map<std::string, double> prev_state_values;
+  std::map<std::string, double> curr_state_values;
+  std::map<std::string, double> next_state_values;
+  std::vector<std::string> active_joints;
+
+  const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
+  const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
+
+  // I save the names of the active joints.
+  for (int i=0; i < jnt.size(); i++)
+    active_joints.push_back(jnt[i]->getName());
+
+  unsigned int num_points = rob_trajectory.getWayPointCount();
+  const unsigned int num_joints = group->getVariableCount();
 
   // Error check
   if(time_diff.size() < 1)
@@ -236,7 +265,7 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
   }
 
   // Return if there is only one point in the trajectory!
-  if(trajectory.points.size() <= 1) return;
+  if(num_points <= 1) return;
 
   /*
   // Velocities
@@ -262,6 +291,22 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
   // Accelerations
   for (unsigned int i=0; i<num_points; ++i)
   {
+    curr_waypoint = rob_trajectory.getWayPointPtr(i);
+    curr_waypoint->getStateValues(curr_state_values);
+
+    if (i > 0)
+    {
+      prev_waypoint = rob_trajectory.getWayPointPtr(i-1);
+      prev_waypoint->getStateValues(prev_state_values);
+    }
+
+    if (i < num_points-1)
+    {
+      next_waypoint = rob_trajectory.getWayPointPtr(i+1);
+      next_waypoint->getStateValues(next_state_values);
+    }
+
+
     for (unsigned int j=0; j<num_joints; ++j)
     {
       double q1;
@@ -272,25 +317,28 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
 
       if(i==0)
       { // First point
-        q1 = trajectory.points[i+1].positions[j];
-        q2 = trajectory.points[i].positions[j];
-        q3 = trajectory.points[i+1].positions[j];
+        q1 = next_state_values[active_joints[j]];
+        q2 = curr_state_values[active_joints[j]];
+        q3 = next_state_values[active_joints[j]];
+
         dt1 = time_diff[i];
         dt2 = time_diff[i];
       }
       else if(i < num_points-1)
       { // middle points
-        q1 = trajectory.points[i-1].positions[j];
-        q2 = trajectory.points[i].positions[j];
-        q3 = trajectory.points[i+1].positions[j];
+        q1 = prev_state_values[active_joints[j]];
+        q2 = curr_state_values[active_joints[j]];
+        q3 = next_state_values[active_joints[j]];
+
         dt1 = time_diff[i-1];
         dt2 = time_diff[i];
       }
       else
       { // last point
-        q1 = trajectory.points[i-1].positions[j];
-        q2 = trajectory.points[i].positions[j];
-        q3 = trajectory.points[i-1].positions[j];
+        q1 = prev_state_values[active_joints[j]];
+        q2 = curr_state_values[active_joints[j]];
+        q3 = prev_state_values[active_joints[j]];
+
         dt1 = time_diff[i-1];
         dt2 = time_diff[i-1];
       }
@@ -305,7 +353,7 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
       } else {
         if(i==0 && has_start_velocity)
         {
-          std::map<std::string, double>::const_iterator it = velocity_map.find(trajectory.joint_names[j]);
+          std::map<std::string, double>::const_iterator it = velocity_map.find(active_joints[j]);
           if(it != velocity_map.end())
           {
             start_velocity = true;
@@ -317,12 +365,26 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
         v2 = start_velocity ? v1 : (q3-q2)/dt2; // Needed to ensure continuous velocity for first point
         a = 2*(v2-v1)/(dt1+dt2);
       }
+      curr_waypoint = rob_trajectory.getWayPointPtr(i);
+      curr_waypoint->getStateValues(curr_state_values);
+      robot_state::JointState *jst;
+      std::map<std::string, unsigned int> joint_vars;
+
+      jst = curr_waypoint->getJointState(active_joints[2]);
+      for(std::map<std::string, double>::iterator it = curr_state_values.begin(); it != curr_state_values.end(); ++it) {
+        jst = curr_waypoint->getJointState(it->first);
+        //std::cout << it->first << "\n";
+      }
+      //jst->setVariableValue("hola", 2);
+      joint_vars = jst->getVariableIndexMap();
+      for(std::map<std::string, unsigned int>::iterator ot = joint_vars.begin(); ot != joint_vars.end(); ++ot) {
+        //std::cout << ot->first << "\n";
+      }
       trajectory.points[i].velocities[j] = (v2+v1)/2;
       trajectory.points[i].accelerations[j] = a;
     }
   }
 }
-
 
 // Applies Acceleration constraints
 void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
@@ -520,8 +582,9 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
   applyVelocityConstraints(trajectory, rob_trajectory, limits, time_diff);
   applyAccelerationConstraints(rob_trajectory, limits, time_diff, velocity_map);
 
-  updateTrajectory(trajectory, time_diff, velocity_map);
-  //  printStats(trajectory, limits);
+  //updateTrajectory(trajectory, rob_trajectory, time_diff, velocity_map);
+  updateTrajectory(rob_trajectory, time_diff);
+  //printStats(trajectory, limits);
   return success;
 }
 
