@@ -209,21 +209,9 @@ double IterativeParabolicTimeParameterization::findT2(const double dq1,
   return dt2;
 }
 
-//Updates the time difference between timestamps in the trajectory.
-void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory, std::vector<double> time_diff)
-{
-  int num_points = rob_trajectory.getWayPointCount();
-  for (int i; i < num_points; i++)
-  {
-    rob_trajectory.setWayPointDurationFromPrevious(i, time_diff[i]);
-  }
-}
-
-
-// Takes the time differences, and updates the values in the trajectory.
-// I think that all the velocity and acceleration thing is deprecated.
-void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
-                      robot_trajectory::RobotTrajectory& rob_trajectory,
+// Takes the time differences, and updates the timestamps, velocities and accelerations
+// in the trajectory.
+void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
                       const std::vector<double>& time_diff,
                       const std::map<std::string, double>& velocity_map)
 {
@@ -239,6 +227,7 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
   std::map<std::string, double> curr_state_values;
   std::map<std::string, double> next_state_values;
   std::vector<std::string> active_joints;
+  robot_state::JointState *jst;
 
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
@@ -257,11 +246,11 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
   bool has_start_velocity = !velocity_map.empty();
 
   // Times
-  trajectory.points[0].time_from_start = ros::Duration(time_sum);
   for (unsigned int i=1; i<num_points; ++i)
   {
-    time_sum += time_diff[i-1];
-    trajectory.points[i].time_from_start = ros::Duration(time_sum);
+    // Update the time between the waypoints in the robot_trajectory.
+    // I add the time_sum because it sometines adds a 0.2 offset.
+    rob_trajectory.setWayPointDurationFromPrevious(i, time_diff[i]+time_sum);
   }
 
   // Return if there is only one point in the trajectory!
@@ -365,23 +354,16 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory,
         v2 = start_velocity ? v1 : (q3-q2)/dt2; // Needed to ensure continuous velocity for first point
         a = 2*(v2-v1)/(dt1+dt2);
       }
-      curr_waypoint = rob_trajectory.getWayPointPtr(i);
-      curr_waypoint->getStateValues(curr_state_values);
-      robot_state::JointState *jst;
-      std::map<std::string, unsigned int> joint_vars;
 
-      jst = curr_waypoint->getJointState(active_joints[2]);
-      for(std::map<std::string, double>::iterator it = curr_state_values.begin(); it != curr_state_values.end(); ++it) {
-        jst = curr_waypoint->getJointState(it->first);
-        //std::cout << it->first << "\n";
-      }
-      //jst->setVariableValue("hola", 2);
-      joint_vars = jst->getVariableIndexMap();
-      for(std::map<std::string, unsigned int>::iterator ot = joint_vars.begin(); ot != joint_vars.end(); ++ot) {
-        //std::cout << ot->first << "\n";
-      }
-      trajectory.points[i].velocities[j] = (v2+v1)/2;
-      trajectory.points[i].accelerations[j] = a;
+      curr_waypoint = rob_trajectory.getWayPointPtr(i);
+
+      jst = curr_waypoint->getJointState(active_joints[j]);
+      // Update the velocities
+      jst->getVelocities().resize(1);
+      jst->getVelocities()[0] = (v2+v1)/2;
+      // Update the accelerations
+      jst->getAccelerations().resize(1);
+      jst->getAccelerations()[0] = a;
     }
   }
 }
@@ -582,8 +564,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::
   applyVelocityConstraints(trajectory, rob_trajectory, limits, time_diff);
   applyAccelerationConstraints(rob_trajectory, limits, time_diff, velocity_map);
 
-  //updateTrajectory(trajectory, rob_trajectory, time_diff, velocity_map);
-  updateTrajectory(rob_trajectory, time_diff);
+  updateTrajectory(rob_trajectory, time_diff, velocity_map);
   //printStats(trajectory, limits);
   return success;
 }
