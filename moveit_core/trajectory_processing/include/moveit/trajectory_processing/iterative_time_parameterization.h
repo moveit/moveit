@@ -58,13 +58,24 @@ public:
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                          const moveit_msgs::RobotState& start_state) const;
 
+  /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
+  /// points that exceed the velocity or acceleration bounds. This method makes a series of
+  /// message conversions which makes it slower. Should be avoided.
+  bool computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
+                         const std::vector<moveit_msgs::JointLimits>& limits) const;
+
+  /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
+  /// points that exceed the velocity or acceleration bounds. Uses velocities from the start_state.
+  /// This method makes a series of message conversions which makes it slower. Should be avoided.
+  bool computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
+                         const std::vector<moveit_msgs::JointLimits>& limits,
+                         const moveit_msgs::RobotState& start_state) const;
 private:
 
   unsigned int max_iterations_;         /// @brief maximum number of iterations to find solution
   double max_time_change_per_it_;       /// @brief maximum allowed time change per iteration in seconds
 
-  void applyVelocityConstraints(trajectory_msgs::JointTrajectory& trajectory,
-                                robot_trajectory::RobotTrajectory& rob_trajectory,
+  void applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
                                 const std::vector<moveit_msgs::JointLimits>& limits,
                                 std::vector<double> &time_diff) const;
 
@@ -78,20 +89,6 @@ private:
   void printStats(const trajectory_msgs::JointTrajectory& trajectory,
                   const std::vector<moveit_msgs::JointLimits>& limits) const;
   void printPoint(const trajectory_msgs::JointTrajectoryPoint& point, unsigned int i) const;
-
-  /// Old methods with JointTrajectory argument made private to ensure that nobody uses it.
-  /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
-  /// points that exceed the velocity or acceleration bounds.
-  bool computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
-                         robot_trajectory::RobotTrajectory& rob_trajectory,
-                         const std::vector<moveit_msgs::JointLimits>& limits) const;
-
-  /// \brief Calculates a smooth trajectory by iteratively incrementing the time between
-  /// points that exceed the velocity or acceleration bounds. Uses velocities from the start_state.
-  bool computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
-                         robot_trajectory::RobotTrajectory& rob_trajectory,
-                         const std::vector<moveit_msgs::JointLimits>& limits,
-                         const moveit_msgs::RobotState& start_state) const;
 };
 
 }
