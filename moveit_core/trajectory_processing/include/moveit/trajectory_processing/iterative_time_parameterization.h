@@ -76,10 +76,12 @@ private:
   double max_time_change_per_it_;       /// @brief maximum allowed time change per iteration in seconds
 
   void applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
+                                std::vector<std::string>& active_joints,
                                 const std::vector<moveit_msgs::JointLimits>& limits,
                                 std::vector<double> &time_diff) const;
 
   void applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
+                                    std::vector<std::string>& active_joints,
                                     const std::vector<moveit_msgs::JointLimits>& limits,
                                     std::vector<double> & time_diff,
                                     const std::map<std::string, double>& velocity_map) const;
