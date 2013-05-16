@@ -100,6 +100,7 @@ void IterativeParabolicTimeParameterization::printStats(const trajectory_msgs::J
 
 // Applies velocity
 void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
+                                                                      std::vector<std::string>& active_joints,
                                                                       const std::vector<moveit_msgs::JointLimits>& limits,
                                                                       std::vector<double> &time_diff) const
 {
@@ -111,14 +112,9 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
   robot_state::RobotStatePtr next_waypoint;
   std::map<std::string, double> curr_state_values;
   std::map<std::string, double> next_state_values;
-  std::vector<std::string> active_joints;
 
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
-
-  // I save the names of the active joints.
-  for (int i=0; i < jnt.size(); i++)
-    active_joints.push_back(jnt[i]->getName());
 
   const unsigned int num_points = rob_trajectory.getWayPointCount();
   const unsigned int num_joints = group->getVariableCount();
@@ -201,6 +197,7 @@ double IterativeParabolicTimeParameterization::findT2(const double dq1,
 // Takes the time differences, and updates the timestamps, velocities and accelerations
 // in the trajectory.
 void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
+                      std::vector<std::string>& active_joints,
                       const std::vector<double>& time_diff,
                       const std::map<std::string, double>& velocity_map)
 {
@@ -215,15 +212,10 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
   std::map<std::string, double> prev_state_values;
   std::map<std::string, double> curr_state_values;
   std::map<std::string, double> next_state_values;
-  std::vector<std::string> active_joints;
   robot_state::JointState *jst;
 
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
-
-  // I save the names of the active joints.
-  for (int i=0; i < jnt.size(); i++)
-    active_joints.push_back(jnt[i]->getName());
 
   unsigned int num_points = rob_trajectory.getWayPointCount();
   const unsigned int num_joints = group->getVariableCount();
@@ -344,8 +336,6 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
         a = 2*(v2-v1)/(dt1+dt2);
       }
 
-      curr_waypoint = rob_trajectory.getWayPointPtr(i);
-
       jst = curr_waypoint->getJointState(active_joints[j]);
       // Update the velocities
       jst->getVelocities().resize(1);
@@ -359,6 +349,7 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
 
 // Applies Acceleration constraints
 void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
+                                                                          std::vector<std::string>& active_joints,
                                                                           const std::vector<moveit_msgs::JointLimits>& limits,
                                                                           std::vector<double> & time_diff,
                                                                           const std::map<std::string, double>& velocity_map) const
@@ -369,14 +360,9 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
   std::map<std::string, double> prev_state_values;
   std::map<std::string, double> curr_state_values;
   std::map<std::string, double> next_state_values;
-  std::vector<std::string> active_joints;
 
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
-
-  // I save the names of the active joints.
-  for (int i=0; i < jnt.size(); i++)
-    active_joints.push_back(jnt[i]->getName());
 
   const unsigned int num_points = rob_trajectory.getWayPointCount();
   const unsigned int num_joints = group->getVariableCount();
@@ -531,6 +517,11 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
 bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                                const moveit_msgs::RobotState& start_state) const
 {
+  bool success = true;
+  std::vector<std::string> active_joints;
+  robot_state::RobotStatePtr curr_waypoint;
+  const robot_state::JointState *jst;
+
   if (trajectory.empty())
     return true;
 
@@ -540,14 +531,13 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
     return false;
   }
 
-  // \todo this lib does not actually work properly when angles wrap around, so we need to unwind the path first
-  trajectory.unwind();
-  bool success = true;
-  std::vector<std::string> active_joints;
-  robot_state::RobotStatePtr curr_waypoint;
-  const robot_state::JointState *jst;
+
   const robot_model::JointModelGroup *group = trajectory.getGroup();
   const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
+  const std::vector<moveit_msgs::JointLimits> &limits = trajectory.getGroup()->getVariableLimits();
+
+  // \todo this lib does not actually work properly when angles wrap around, so we need to unwind the path first
+  trajectory.unwind();
 
   for (int i=0; i < jnt.size(); i++)
     active_joints.push_back(jnt[i]->getName());
@@ -568,12 +558,11 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
         velocity_map[active_joints[j]] = jst->getVelocities()[0];
     }
   }
-  const std::vector<moveit_msgs::JointLimits> &limits = trajectory.getGroup()->getVariableLimits();
 
-  applyVelocityConstraints(trajectory, limits, time_diff);
-  applyAccelerationConstraints(trajectory, limits, time_diff, velocity_map);
+  applyVelocityConstraints(trajectory, active_joints, limits, time_diff);
+  applyAccelerationConstraints(trajectory, active_joints, limits, time_diff, velocity_map);
 
-  updateTrajectory(trajectory, time_diff, velocity_map);
+  updateTrajectory(trajectory, active_joints, time_diff, velocity_map);
   return success;
 }
 
