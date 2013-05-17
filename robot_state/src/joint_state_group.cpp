@@ -313,6 +313,18 @@ bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, un
   return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint, lock_redundant_joints);
 }
 
+bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts, double timeout, bool lock_redundant_joints)
+{
+  const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
+  if (!solver)
+  {
+    logError("No kinematics solver instantiated for this group");    
+    return false;
+  }  
+  static StateValidityCallbackFn constraint = StateValidityCallbackFn();  
+  return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint, lock_redundant_joints);
+}
+
 bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, bool lock_redundant_joints)
 {
   Eigen::Affine3d mat;
@@ -336,6 +348,26 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
 {
   static std::vector<double> consistency_limits;  
   return setFromIK(pose_in, tip_in, consistency_limits, attempts, timeout, constraint, lock_redundant_joints);  
+}
+
+bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, bool lock_redundant_joints)
+{
+  static std::vector<double> consistency_limits;  
+  static StateValidityCallbackFn constraint = StateValidityCallbackFn();  
+  return setFromIK(pose_in, tip_in, consistency_limits, attempts, timeout, constraint, lock_redundant_joints);  
+}
+
+bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, unsigned int attempts, double timeout, bool lock_redundant_joints)
+{
+  static std::vector<double> consistency_limits;  
+  static StateValidityCallbackFn constraint = StateValidityCallbackFn();  
+  const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
+  if (!solver)
+  {
+    logError("No kinematics solver instantiated for this group");    
+    return false;
+  }  
+  return setFromIK(pose_in, solver->getTipFrame(), consistency_limits, attempts, timeout, constraint, lock_redundant_joints);  
 }
 
 bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, const std::vector<double> &consistency_limits, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, bool lock_redundant_joints)
@@ -451,7 +483,9 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
         if (!red_joints.empty())
         {
           for(std::size_t i = 0 ; i < red_joints.size(); ++i)
+          {
             seed[bij[red_joints[i]]] = initial_values[red_joints[i]];
+          }                    
         }      
       }      
     }

@@ -263,7 +263,8 @@ TEST_F(LoadPlanningModelsPr2, FullTest)
   poses.push_back(Eigen::Affine3d::Identity());
   std::set<std::string> touch_links;
 
-  robot_state::AttachedBody attached_body(ks.getLinkState("r_gripper_palm_link")->getLinkModel(), "box", shapes, poses, touch_links);
+  sensor_msgs::JointState empty_state;  
+  robot_state::AttachedBody attached_body(ks.getLinkState("r_gripper_palm_link")->getLinkModel(), "box", shapes, poses, touch_links, empty_state);
   
   ks.attachBody(&attached_body);
 
