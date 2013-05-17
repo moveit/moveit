@@ -31,7 +31,7 @@
 namespace KDL
 {
 
-ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, const JntArray& _q_min, const JntArray& _q_max, ChainFkSolverPos& _fksolver, ChainIkSolverVel& _iksolver, unsigned int _maxiter, double _eps): chain(_chain), q_min(_q_min), q_max(_q_max), q_temp(chain.getNrOfJoints()), fksolver(_fksolver), iksolver(_iksolver), delta_q(_chain.getNrOfJoints()), maxiter(_maxiter), eps(_eps), q_min_mimic(chain.getNrOfJoints()), q_max_mimic(chain.getNrOfJoints())
+ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, const JntArray& _q_min, const JntArray& _q_max, ChainFkSolverPos& _fksolver, ChainIkSolverVel& _iksolver, unsigned int _maxiter, double _eps, bool _position_ik): chain(_chain), q_min(_q_min), q_max(_q_max), q_temp(chain.getNrOfJoints()), fksolver(_fksolver), iksolver(_iksolver), delta_q(_chain.getNrOfJoints()), maxiter(_maxiter), eps(_eps), q_min_mimic(chain.getNrOfJoints()), q_max_mimic(chain.getNrOfJoints()), position_ik(_position_ik)
 {  
   mimic_joints.resize(chain.getNrOfJoints());
   for(std::size_t i=0; i < mimic_joints.size(); ++i)
@@ -99,11 +99,17 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
     fksolver.JntToCart(q_temp,f);
     delta_twist = diff(f,p_in);
 
-    //    if(Equal(delta_twist,Twist::Zero(),eps))
-    //      break;
-    if(fabs(delta_twist(0)) < eps && fabs(delta_twist(1)) < eps && fabs(delta_twist(2)) < eps)
-       break;
-
+    if(position_ik)
+    {
+      if(fabs(delta_twist(0)) < eps && fabs(delta_twist(1)) < eps && fabs(delta_twist(2)) < eps)
+        break;
+    }    
+    else
+    {
+      if(Equal(delta_twist,Twist::Zero(),eps))
+        break;
+    }
+    
     ROS_DEBUG_STREAM("delta_twist");
     for(std::size_t i=0; i < 6; ++i)
       ROS_DEBUG("%d: %f",(int) i, delta_twist(i));

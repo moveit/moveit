@@ -199,6 +199,8 @@ namespace kdl_kinematics_plugin
                                 const std::vector<double> &consistency_limits,
                                 KDL::JntArray &jnt_array,
                                 bool lock_redundancy) const;
+
+    bool isRedundantJoint(unsigned int index) const;    
     
     bool active_; /** Internal variable that indicates whether solvers are configured and ready */
 
@@ -230,6 +232,13 @@ namespace kdl_kinematics_plugin
     KDL::ChainIkSolverVel_pinv_mimic* vel_solver_;//pointer to the actual velocity solver
 
     int num_possible_redundant_joints_;
+
+    // Storage required for when the set of redundant joints is reset
+    bool position_ik_; //whether this solver is only being used for position ik    
+    robot_model::JointModelGroup* joint_model_group_;    
+    double max_solver_iterations_;
+    double epsilon_;
+    std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints_;           
     
   };
 }

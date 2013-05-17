@@ -66,11 +66,18 @@ void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array,
   for(std::size_t i=0; i < dimension_; ++i)
   {
     if(lock_redundancy)
-      for(std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
-        if(redundant_joint_indices_[j] == i)
-          continue;  
+      if(isRedundantJoint(i))
+        continue;            
     jnt_array(i) = jnt_array_vector[i];    
   }
+}
+
+bool KDLKinematicsPlugin::isRedundantJoint(unsigned int index) const
+{   
+  for(std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
+    if(redundant_joint_indices_[j] == index)
+      return true;
+  return false;  
 }
 
 void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state,
@@ -218,69 +225,68 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   // Check for mimic joints
   bool has_mimic_joints = joint_model_group->getMimicJointModels().size() > 0;  
   std::vector<unsigned int> redundant_joints_map_index;    
-  if(has_mimic_joints)
-  {
 
-    std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;    
-    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), num_possible_redundant_joints_, position_ik));
-    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
-    unsigned int joint_counter = 0;    
-    for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
+  std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;    
+  ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group->getMimicJointModels().size(), num_possible_redundant_joints_, position_ik));
+  ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon, position_ik));
+  unsigned int joint_counter = 0;    
+  for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
+  {
+    //first check whether it belongs to the set of active joints in the group
+    if(joint_model_group->isActiveDOF(kdl_chain_.segments[i].getJoint().getName()))
     {
-      //first check whether it belongs to the set of active joints in the group
-      if(joint_model_group->isActiveDOF(kdl_chain_.segments[i].getJoint().getName()))
+      kdl_kinematics_plugin::JointMimic mimic_joint;
+      mimic_joint.reset(joint_counter);
+      mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();        
+      mimic_joint.active = true;        
+      mimic_joints.push_back(mimic_joint);        
+      ++joint_counter;
+      continue;        
+    }
+    if(joint_model_group->hasJointModel(kdl_chain_.segments[i].getJoint().getName()))
+    {
+      if(joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimic())
       {
         kdl_kinematics_plugin::JointMimic mimic_joint;
         mimic_joint.reset(joint_counter);
-        mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();        
-        mimic_joint.active = true;        
+        mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
+        mimic_joint.offset = joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimicOffset();
+        mimic_joint.multiplier = joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimicFactor();       
         mimic_joints.push_back(mimic_joint);        
-        ++joint_counter;
-        continue;        
-      }
-      if(joint_model_group->hasJointModel(kdl_chain_.segments[i].getJoint().getName()))
-      {
-        if(joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimic())
-        {
-          kdl_kinematics_plugin::JointMimic mimic_joint;
-          mimic_joint.reset(joint_counter);
-          mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
-          mimic_joint.offset = joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimicOffset();
-          mimic_joint.multiplier = joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimicFactor();       
-          mimic_joints.push_back(mimic_joint);        
-          continue;                  
-        }  
-      }          
-    }    
-    for(std::size_t i=0; i < mimic_joints.size(); ++i)
+        continue;                  
+      }  
+    }          
+  }    
+  for(std::size_t i=0; i < mimic_joints.size(); ++i)
+  {
+    if(!mimic_joints[i].active)
     {
-      if(!mimic_joints[i].active)
+      const robot_model::JointModel* joint_model = joint_model_group->getJointModel(mimic_joints[i].joint_name)->getMimic();
+      for(std::size_t j=0; j < mimic_joints.size(); ++j)
       {
-        const robot_model::JointModel* joint_model = joint_model_group->getJointModel(mimic_joints[i].joint_name)->getMimic();
-        for(std::size_t j=0; j < mimic_joints.size(); ++j)
+        if(mimic_joints[j].joint_name == joint_model->getName())
         {
-          if(mimic_joints[j].joint_name == joint_model->getName())
-          {
-            mimic_joints[i].map_index = mimic_joints[j].map_index;
-          }          
-        }        
-      }
+          mimic_joints[i].map_index = mimic_joints[j].map_index;
+        }          
+      }        
     }
-    vel_solver_ = static_cast<KDL::ChainIkSolverVel_pinv_mimic*> (ik_solver_vel_.get());
-    KDL::ChainIkSolverPos_NR_JL_Mimic* tmp_pos_solver = static_cast<KDL::ChainIkSolverPos_NR_JL_Mimic*> (ik_solver_pos_.get());
-    
-    vel_solver_->setMimicJoints(mimic_joints);
-    tmp_pos_solver->setMimicJoints(mimic_joints);
   }
-  else
-  {    
-    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(kdl_chain_));
-    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations, epsilon));
-  }
-
+  vel_solver_ = static_cast<KDL::ChainIkSolverVel_pinv_mimic*> (ik_solver_vel_.get());
+  KDL::ChainIkSolverPos_NR_JL_Mimic* tmp_pos_solver = static_cast<KDL::ChainIkSolverPos_NR_JL_Mimic*> (ik_solver_pos_.get());
+  
+  vel_solver_->setMimicJoints(mimic_joints);
+  tmp_pos_solver->setMimicJoints(mimic_joints);
+  mimic_joints_ = mimic_joints;  
+  
   // Setup the joint state groups that we need
   kinematic_state_.reset(new robot_state::RobotState((const robot_model::RobotModelConstPtr) kinematic_model_));
   kinematic_state_2_.reset(new robot_state::RobotState((const robot_model::RobotModelConstPtr) kinematic_model_));  
+
+  // Store things for when the set of redundant joints may change
+  position_ik_ = position_ik;
+  joint_model_group_ = joint_model_group;
+  max_solver_iterations_ = max_solver_iterations;
+  epsilon_ = epsilon;
 
   active_ = true;  
   ROS_DEBUG("KDL solver initialized");  
@@ -294,7 +300,7 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
     ROS_ERROR("This group cannot have redundant joints");
     return false;
   }
-  if(redundant_joints.size() != num_possible_redundant_joints_)
+  if(redundant_joints.size() > num_possible_redundant_joints_)
   {
     ROS_ERROR("This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;
@@ -332,8 +338,22 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
   }        
   for(std::size_t i=0; i < redundant_joints_map_index.size(); ++i)
     ROS_DEBUG("Redundant joint map index: %d %d", (int) i, (int) redundant_joints_map_index[i]);
+
+  ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv_mimic(kdl_chain_, joint_model_group_->getMimicJointModels().size(), redundant_joints.size(), position_ik_));
+  ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL_Mimic(kdl_chain_, joint_min_, joint_max_,*fk_solver_, *ik_solver_vel_, max_solver_iterations_, epsilon_, position_ik_));
+  vel_solver_ = static_cast<KDL::ChainIkSolverVel_pinv_mimic*> (ik_solver_vel_.get());
+  KDL::ChainIkSolverPos_NR_JL_Mimic* tmp_pos_solver = static_cast<KDL::ChainIkSolverPos_NR_JL_Mimic*> (ik_solver_pos_.get());    
+  vel_solver_->setMimicJoints(mimic_joints_);
+  tmp_pos_solver->setMimicJoints(mimic_joints_);
+
   if (vel_solver_)
-    vel_solver_->setRedundantJointsMapIndex(redundant_joints_map_index);    
+  {    
+    if (!vel_solver_->setRedundantJointsMapIndex(redundant_joints_map_index))
+    {
+      ROS_ERROR("Could not set redundant joints");
+      return false;      
+    }
+  }  
   redundant_joint_indices_ = redundant_joints;  
   return true;  
 }
@@ -528,18 +548,23 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
       return false;      
     }    
     int ik_valid = ik_solver_pos_->CartToJnt(jnt_pos_in_,pose_desired,jnt_pos_out_);                     
+    ROS_DEBUG("IK valid: %d", ik_valid);    
     if(!consistency_limits.empty()) 
     {
       getRandomConfiguration(jnt_seed_state_, consistency_limits, jnt_pos_in_, lock_redundancy);
       if(ik_valid < 0 || !checkConsistency(jnt_seed_state_, consistency_limits, jnt_pos_out_))
       {
-        ROS_DEBUG("Could not find IK solution");        
+        ROS_DEBUG("Could not find IK solution: does not match consistency limits");        
         continue;
       } 
     }
     else
     {
       getRandomConfiguration(jnt_pos_in_, lock_redundancy);
+      ROS_DEBUG("New random configuration");      
+      for(unsigned int j=0; j < dimension_; j++)
+        ROS_DEBUG("%d %f", j, jnt_pos_in_(j));
+      
       if(ik_valid < 0)
       {
         ROS_DEBUG("Could not find IK solution");        
