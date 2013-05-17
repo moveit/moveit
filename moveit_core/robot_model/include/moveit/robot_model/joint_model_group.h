@@ -323,6 +323,13 @@ public:
 
   bool canSetStateFromIK(const std::string &tip) const;
 
+  bool setRedundantJoints(const std::vector<unsigned int> &joints)
+  {
+    if(solver_instance_)
+      return (solver_instance_->setRedundantJoints(joints));
+    return false;    
+  }
+
   /** \brief Get the default IK timeout */
   double getDefaultIKTimeout() const
   {

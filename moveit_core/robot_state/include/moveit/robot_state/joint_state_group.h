@@ -246,6 +246,13 @@ public:
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, unsigned int attempts = 0, double timeout = 0.0, 
                  const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+
+  /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
+      The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
+      @param pose The pose the last link in the chain needs to achieve 
+      @param attempts The number of times IK is attempted
+      @param timeout The timeout passed to the kinematics solver on each attempt */  
+  bool setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts = 0, double timeout = 0.0, bool lock_redundant_joints = false);
   
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -264,6 +271,21 @@ public:
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const Eigen::Affine3d &pose, unsigned int attempts = 0, double timeout = 0.0, 
                  const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+
+  /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
+      The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
+      @param pose The pose the last link in the chain needs to achieve 
+      @param tip The name of the link the pose is specified for
+      @param attempts The number of times IK is attempted
+      @param timeout The timeout passed to the kinematics solver on each attempt */  
+  bool setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, bool lock_redundant_joints);
+
+  /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
+      The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
+      @param pose The pose the last link in the chain needs to achieve 
+      @param attempts The number of times IK is attempted
+      @param timeout The timeout passed to the kinematics solver on each attempt */  
+  bool setFromIK(const Eigen::Affine3d &pose_in, unsigned int attempts, double timeout, bool lock_redundant_joints);  
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
