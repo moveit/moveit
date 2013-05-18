@@ -7,7 +7,7 @@ import sys
 import os
 import signal 
 
-from optparse import OptionParser, OptionGroup
+import argparse
 from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel, roscpp_initialize, roscpp_shutdown
 
 class bcolors:
@@ -77,10 +77,10 @@ def get_context_keywords(interpreter):
     kw["quit"] = []
     return kw
 
-def run_interactive(group_names):
+def run_interactive(group_name):
     c = MoveGroupCommandInterpreter()
-    for g in group_names:
-        c.execute( "use " + g)
+    if len(group_name) > 0:
+        c.execute("use " + group_name)
     completer = SimpleCompleter(get_context_keywords(c))
     readline.set_completer(completer.complete)
 
@@ -115,10 +115,10 @@ def run_interactive(group_names):
         # update the set of keywords
         completer.set_options(get_context_keywords(c))
             
-def run_service(group_names): 
+def run_service(group_name): 
     c = MoveGroupCommandInterpreter()
-    for g in group_names:
-        c.execute("use " + g)
+    if len(group_name) > 0:
+        c.execute("use " + group_name)
     # add service stuff
     print "Running ROS service"
     rospy.spin()
@@ -140,18 +140,20 @@ if __name__=='__main__':
 
     rospy.init_node('move_group_interface_cmdline', anonymous=True, disable_signals=True)
 
-    usage = """%prog [options] <group_name_1> [<group_name_2> ...]"""
-    parser = OptionParser(usage)
-    parser.add_option("-i", "--interactive", action="store_true", dest="interactive", default=True,
-                      help="Run the command processing script in interactive mode")
-    parser.add_option("-s", "--service", action="store_true", dest="service", default=False,
-                      help="Run the command processing script as a ROS service")
-    (options, args) = parser.parse_args()
+    parser = argparse.ArgumentParser(usage = """%(prog)s [options] [<group_name>]""",
+                                     description = "Command Line Interface to MoveIt!")
+    parser.add_argument("-i", "--interactive", action="store_true", dest="interactive", default=True,
+                        help="Run the command processing script in interactive mode (default)")
+    parser.add_argument("-s", "--service", action="store_true", dest="service", default=False,
+                        help="Run the command processing script as a ROS service")
+    parser.add_argument("group_name", type=str, default="", nargs='?', help="Group name to initialize the CLI for.")
+    
+    opt = parser.parse_args(rospy.myargv()[1:])
 
-    if options.service:
-        run_service(args)
+    if opt.service:
+        run_service(opt.group_name)
     else:
-        run_interactive(args)
+        run_interactive(opt.group_name)
 
     stop_ros("Done")
 
