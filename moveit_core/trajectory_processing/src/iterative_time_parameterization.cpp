@@ -229,12 +229,13 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
 
   bool has_start_velocity = !velocity_map.empty();
 
+  rob_trajectory.setWayPointDurationFromPrevious(0, time_sum);
+
   // Times
   for (unsigned int i=1; i<num_points; ++i)
   {
     // Update the time between the waypoints in the robot_trajectory.
-    // I add the time_sum because it sometines adds a 0.2 offset.
-    rob_trajectory.setWayPointDurationFromPrevious(i, time_diff[i]+time_sum);
+    rob_trajectory.setWayPointDurationFromPrevious(i, time_diff[i-1]);
   }
 
   // Return if there is only one point in the trajectory!
@@ -319,17 +320,20 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
       double v1, v2, a;
 
       bool start_velocity = false;
-      if(dt1 == 0.0 || dt2 == 0.0) {
+      if(dt1 == 0.0 || dt2 == 0.0) 
+      {
         v1 = 0.0;
         v2 = 0.0;
         a = 0.0;
-      } else {
+      } 
+      else 
+      {
         if(i==0 && has_start_velocity)
-        {
-          std::map<std::string, double>::const_iterator it = velocity_map.find(active_joints[j]);
-          if(it != velocity_map.end())
-          {
-            start_velocity = true;
+	{
+	  std::map<std::string, double>::const_iterator it = velocity_map.find(active_joints[j]);
+	  if(it != velocity_map.end())
+	  {
+	    start_velocity = true;
             v1 = it->second;
           }
         }
@@ -537,7 +541,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
 
   const std::size_t num_points = trajectory.getWayPointCount();
 
-  std::vector<double> time_diff(num_points, 0.0);       // the time difference between adjacent points
+  std::vector<double> time_diff(num_points-1, 0.0);       // the time difference between adjacent points
 
   // We still create the velocity map. It should be possible to access the
   // velocities directly when needed and avoid this map.
