@@ -407,8 +407,8 @@ class MoveGroupCommander:
         plan["multi_dof_joint_trajectory"]["points"] = multi_dof_joint_trajectory_points
         return plan
 
-    def compute_cartesian_path(self, waypoints, eef_step, jump_threshold):
-        (dpath, fraction) = self._g.compute_cartesian_path([self.__pose_to_list(p) for p in waypoints], eef_step, jump_threshold)
+    def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions = True):
+        (dpath, fraction) = self._g.compute_cartesian_path([self.__pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions)
         return (self.__dict_to_trajectory(dpath), fraction)
 
     def execute(self, plan_msg):

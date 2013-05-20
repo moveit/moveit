@@ -66,6 +66,7 @@ class PlanningSceneInterface:
         Add a sphere to the planning scene 
         """
         self._pub_co.publish(self.make_sphere(name, pose, radius))
+        rospy.sleep(1.0)
 
     def make_box(self, name, pose, size):
         co = CollisionObject()
@@ -110,12 +111,14 @@ class PlanningSceneInterface:
         Add a mesh to the planning scene
         """
         self._pub_co.publish(self.make_mesh(name, pose, filename))
+        rospy.sleep(1.0)
 
     def add_box(self, name, pose, size = (1, 1, 1)):
         """
         Add a box to the planning scene 
         """
         self._pub_co.publish(self.make_box(name, pose, size))
+        rospy.sleep(1.0)
 
     def add_plane(self, name, pose, normal = (0, 0, 1), offset = 0):
         """ Add a plane to the planning scene """
@@ -129,6 +132,7 @@ class PlanningSceneInterface:
         co.planes = [p]
         co.plane_poses = [pose.pose]
         self._pub_co.publish(co)
+        rospy.sleep(1.0)
         
     def attach_mesh(self, link, name, pose, filename, touch_links = []):
         aco = AttachedCollisionObject()
@@ -138,6 +142,7 @@ class PlanningSceneInterface:
         if len(touch_links) > 0:
             aco.touch_links = touch_links
         self._pub_aco.publish(aco)
+        rospy.sleep(1.0)
 
     def attach_box(self, link, name, pose, size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
@@ -147,21 +152,26 @@ class PlanningSceneInterface:
         if len(touch_links) > 0:
             aco.touch_links = touch_links
         self._pub_aco.publish(aco)
+        rospy.sleep(1.0)
 
-    def remove_world_object(self, name):
+    def remove_world_object(self, name, world_link = '/odom_combined'):
         """
         Remove object from planning scene         
         """
         co = CollisionObject()
+        co.header.frame_id = world_link
         co.operation = CollisionObject.REMOVE
         co.id = name
         self._pub_co.publish(co)
+        rospy.sleep(1.0)
 
-    def remove_attached_object(self, name):
+    def remove_attached_object(self, link, name = ''):
         """
         Remove object from planning scene         
         """
         aco = AttachedCollisionObject()
         aco.object.operation = CollisionObject.REMOVE
+        aco.link_name = link
         aco.object.id = name
         self._pub_aco.publish(aco)
+        rospy.sleep(1.0)
