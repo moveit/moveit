@@ -100,7 +100,7 @@ void IterativeParabolicTimeParameterization::printStats(const trajectory_msgs::J
 
 // Applies velocity
 void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
-                                                                      std::vector<std::string>& active_joints,
+                                                                      const std::vector<std::string>& active_joints,
                                                                       const std::vector<moveit_msgs::JointLimits>& limits,
                                                                       std::vector<double> &time_diff) const
 {
@@ -194,10 +194,13 @@ double IterativeParabolicTimeParameterization::findT2(const double dq1,
   return dt2;
 }
 
+namespace
+{
+
 // Takes the time differences, and updates the timestamps, velocities and accelerations
 // in the trajectory.
 void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
-                      std::vector<std::string>& active_joints,
+                      const std::vector<std::string>& active_joints,
                       const std::vector<double>& time_diff,
                       const std::map<std::string, double>& velocity_map)
 {
@@ -346,10 +349,11 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
     }
   }
 }
+}
 
 // Applies Acceleration constraints
 void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
-                                                                          std::vector<std::string>& active_joints,
+                                                                          const std::vector<std::string>& active_joints,
                                                                           const std::vector<moveit_msgs::JointLimits>& limits,
                                                                           std::vector<double> & time_diff,
                                                                           const std::map<std::string, double>& velocity_map) const
@@ -508,17 +512,9 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
   } while(num_updates > 0 && iteration < max_iterations_);
 }
 
-bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& rob_trajectory) const
-{
-  static const moveit_msgs::RobotState start_state;
-  return computeTimeStamps(rob_trajectory, start_state);
-}
-
-bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
-                                                               const moveit_msgs::RobotState& start_state) const
+bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory) const
 {
   bool success = true;
-  std::vector<std::string> active_joints;
   robot_state::RobotStatePtr curr_waypoint;
   const robot_state::JointState *jst;
 
@@ -533,14 +529,11 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
 
 
   const robot_model::JointModelGroup *group = trajectory.getGroup();
-  const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
   const std::vector<moveit_msgs::JointLimits> &limits = trajectory.getGroup()->getVariableLimits();
-
-  // \todo this lib does not actually work properly when angles wrap around, so we need to unwind the path first
+  const std::vector<std::string> &active_joints = group->getJointModelNames();
+  
+  // this lib does not actually work properly when angles wrap around, so we need to unwind the path first
   trajectory.unwind();
-
-  for (int i=0; i < jnt.size(); i++)
-    active_joints.push_back(jnt[i]->getName());
 
   const std::size_t num_points = trajectory.getWayPointCount();
 
@@ -565,18 +558,5 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
   updateTrajectory(trajectory, active_joints, time_diff, velocity_map);
   return success;
 }
-
-bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
-                                                               const std::vector<moveit_msgs::JointLimits>& limits) const
-  {
-    return false;
-  }
-
-bool IterativeParabolicTimeParameterization::computeTimeStamps(trajectory_msgs::JointTrajectory& trajectory,
-                                                               const std::vector<moveit_msgs::JointLimits>& limits,
-                                                               const moveit_msgs::RobotState& start_state) const
-  {
-    return false;
-  }
 
 }
