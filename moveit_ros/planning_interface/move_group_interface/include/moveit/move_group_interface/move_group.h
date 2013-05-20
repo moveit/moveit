@@ -312,7 +312,7 @@ public:
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the waypoints.
       Return -1.0 in case of error. */
   double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
-			      moveit_msgs::RobotTrajectory &trajectory);
+			      moveit_msgs::RobotTrajectory &trajectory,  bool avoid_collisions = true);
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop();
@@ -322,6 +322,33 @@ public:
 
   /** \brief Specify whether the robot is allowed to replan if it detects changes in the environment */
   void allowReplanning(bool flag);
+  
+  /**@}*/
+
+  /**
+   * \defgroup follow_existing_traj Follow an existing sequence of constraints
+   */
+  /**@{*/
+
+  /** \brief Follow the specified sequence of constraints */
+  void followConstraints(const std::vector<moveit_msgs::Constraints> &constraints);
+
+  /** \brief Follow a trajectory that takes the specified end-effector link through the specified sequence of poses.
+      The tolerance for achieving the position is \e tolerance_pos and the tolerance for achieving the orientation is \e tolerance_angle.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  void followConstraints(const std::vector<geometry_msgs::PoseStamped> &poses,  double tolerance_pos = 1e-3, double tolerance_angle = 1e-2, const std::string &end_effector_link = "");
+
+  /** \brief Follow a trajectory that takes the specified end-effector link through the specified sequence of poses. The
+      reference frame for the poses is assumed to be that returned by getPoseReferenceFrame().
+      The tolerance for achieving the position is \e tolerance_pos and the tolerance for achieving the orientation is \e tolerance_angle.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  void followConstraints(const std::vector<geometry_msgs::Pose> &poses,  double tolerance_pos = 1e-3, double tolerance_angle = 1e-2, const std::string &end_effector_link = "");
+  
+  /** \brief Follow a trajectory that takes the specified end-effector link through the specified sequence of poses. The
+      reference frame for the poses is assumed to be that returned by getPoseReferenceFrame().
+      The tolerance for achieving the position is \e tolerance_pos and the tolerance for achieving the orientation is \e tolerance_angle.
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  void followConstraints(const EigenSTL::vector_Affine3d &poses, double tolerance_pos = 1e-3, double tolerance_angle = 1e-2, const std::string &end_effector_link = "");
   
   /**@}*/
 
