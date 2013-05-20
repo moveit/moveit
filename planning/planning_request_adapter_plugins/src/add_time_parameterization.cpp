@@ -155,9 +155,9 @@ public:
   { 
     bool result = planner(planning_scene, req, res);
     if (result && res.trajectory_)
-    {  
+    {
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      time_param_.computeTimeStamps(*res.trajectory_, req.start_state);
+      time_param_.computeTimeStamps(*res.trajectory_);
     }
     
     return result;
