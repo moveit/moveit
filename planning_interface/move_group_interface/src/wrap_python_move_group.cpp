@@ -344,12 +344,12 @@ public:
     return convertTrajectoryToDict(plan.trajectory_);
   }
 
-  bp::tuple computeCartesianPathPython(const bp::list &waypoints, double eef_step, double jump_threshold)
+  bp::tuple computeCartesianPathPython(const bp::list &waypoints, double eef_step, double jump_threshold, bool avoid_collisions)
   {
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
-    double fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory);
+    double fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory, avoid_collisions);
     return bp::make_tuple(convertTrajectoryToDict(trajectory), fraction);
   }
 

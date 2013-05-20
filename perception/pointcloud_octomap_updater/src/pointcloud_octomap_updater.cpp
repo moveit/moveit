@@ -206,7 +206,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   shape_mask_->maskContainment(cloud, sensor_origin_eigen, 0.0, max_range_, mask_);
   updateMask(cloud, sensor_origin_eigen, mask_);
   
-  octomap::KeySet free_cells, occupied_cells, model_cells;
+  octomap::KeySet free_cells, occupied_cells, model_cells, clip_cells;
   boost::scoped_ptr<pcl::PointCloud<pcl::PointXYZ> > filtered_cloud;
   if (!filtered_cloud_topic_.empty())
     filtered_cloud.reset(new pcl::PointCloud<pcl::PointXYZ>());
@@ -222,8 +222,8 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
       unsigned int row_c = row * cloud.width;
       for (unsigned int col = 0; col < cloud.width; col += point_subsample_)
       {
-        if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
-          continue;
+        //if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
+        //  continue;
         const pcl::PointXYZ &p = cloud(col, row);
         
         /* check for NaN */
@@ -236,6 +236,8 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 	     isn't on a part of the robot*/
 	  if (mask_[row_c + col] == point_containment_filter::ShapeMask::INSIDE)
 	    model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+	  else if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
+	    clip_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
 	  else
           {
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
@@ -253,6 +255,11 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 
     /* compute the free cells along each ray that ends at a model cell */
     for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
+      if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(*it), key_ray_))
+        free_cells.insert(key_ray_.begin(), key_ray_.end());
+
+    /* compute the free cells along each ray that ends at a clipped cell */
+    for (octomap::KeySet::iterator it = clip_cells.begin(), end = clip_cells.end(); it != end; ++it)
       if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(*it), key_ray_))
         free_cells.insert(key_ray_.begin(), key_ray_.end());
   }
