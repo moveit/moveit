@@ -95,9 +95,9 @@ protected:
   rviz::DisplayContext* context_;
   Ui::MotionPlanningUI *ui_;
   
-  boost::shared_ptr<move_group_interface::MoveGroup> move_group_;
+  boost::shared_ptr<moveit::planning_interface::MoveGroup> move_group_;
 
-  boost::shared_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
+  boost::shared_ptr<moveit::planning_interface::MoveGroup::Plan> current_plan_;
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
   boost::shared_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::shared_ptr<moveit_warehouse::RobotStateStorage> robot_state_storage_;

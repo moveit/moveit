@@ -49,7 +49,9 @@
 #include <tf/tf.h>
 
 /** \brief Simple interface to the MoveGroup action */
-namespace move_group_interface
+namespace moveit
+{
+namespace planning_interface
 {
 
 /** \brief Client class for the MoveGroup action. This class includes many default settings to make things easy to use. */
@@ -82,7 +84,7 @@ public:
     std::string robot_description_;
 
     /// Optionally, an instance of the RobotModel to use can be also specified
-    robot_model::RobotModelConstPtr kinematic_model_;
+    robot_model::RobotModelConstPtr robot_model_;
   };
 
   /// The representation of a motion plan (as ROS messasges)
@@ -172,7 +174,7 @@ public:
 
   /** \brief Set the joint state goal from corresponding joint values from the specified state.
       Values from state for joints not in this MoveGroup's group are ignored. */
-  void setJointValueTarget(const robot_state::RobotState &kinematic_state);
+  void setJointValueTarget(const robot_state::RobotState &robot_state);
 
   /** \brief Set the joint state goal from corresponding joint values from the specified group.
       joint_state_group must represent the same group as this MoveGroup. */
@@ -278,7 +280,7 @@ public:
       If there are multiple end-effectors, one of them is returned. If no end-effector is known, the empty string is returned. */
   const std::string& getEndEffector() const;
   
-  /** \brief Get the reference frame set by setPoseReferenceFrame(). By default this is the reference frame of the kinematic model */
+  /** \brief Get the reference frame set by setPoseReferenceFrame(). By default this is the reference frame of the robot model */
   const std::string& getPoseReferenceFrame() const;
 
   /**@}*/
@@ -424,20 +426,6 @@ public:
 
   /**@}*/
 
-  /**
-   * \defgroup move_group_interface_world_management Manage the world
-   */
-  /**@{*/
-  
-  /** \brief Get the names of all known objects in the world. If \e with_type is set to true, only return objects that have a known type. */
-  std::vector<std::string> getKnownObjectNames(bool with_type = false);
-
-  /** \brief Get the names of known objects in the world that are located within a bounding region (specified in the frame reported by getPlanningFrame()).
-      If \e with_type is set to true, only return objects that have a known type. */
-  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type = false);
-  
-  /**@}*/
-  
 private:
 
   std::map<std::string, std::vector<double> > remembered_joint_values_;
@@ -447,4 +435,8 @@ private:
 };
 
 }
+}
+// for backward compatibility; remove in hydro
+namespace move_group_interface=moveit::planning_interface;
+
 #endif

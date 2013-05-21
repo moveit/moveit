@@ -90,7 +90,7 @@ void MotionPlanningFrame::computePlanButtonClicked()
   if (!move_group_)
     return;
   configureForPlanning();
-  current_plan_.reset(new move_group_interface::MoveGroup::Plan());
+  current_plan_.reset(new moveit::planning_interface::MoveGroup::Plan());
   if (move_group_->plan(*current_plan_))
     ui_->execute_button->setEnabled(true);
   else
