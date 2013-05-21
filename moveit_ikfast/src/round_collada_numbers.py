@@ -67,7 +67,7 @@ if __name__ == '__main__':
         input_file = sys.argv[1]
         output_file = sys.argv[2]
         decimal_places = int(sys.argv[3])
-        assert( len(sys.argv) < 4 )   # invalid num-arguments
+        assert( len(sys.argv) < 5 )   # invalid num-arguments
     except:
         print '\nUsage: round_collada_numbers.py <input_dae> <output_dae> <decimal places>'
         print 'Rounds all the numbers to <decimal places> places\n'
