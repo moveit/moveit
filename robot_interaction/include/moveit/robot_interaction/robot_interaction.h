@@ -256,7 +256,7 @@ public:
 
 
     void setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh);
-    bool getMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh);
+    const boost::shared_ptr<interactive_markers::MenuHandler>& getMenuHandler();
     void clearMenuHandler();
     
     /** \brief Get the last interactive_marker command pose for the end-effector
@@ -332,7 +332,6 @@ public:
     mutable boost::condition_variable state_available_condition_;
     boost::mutex pose_map_lock_;
     boost::mutex offset_map_lock_;
-    boost::mutex menu_handler_lock_;
 
     void setup();
   };

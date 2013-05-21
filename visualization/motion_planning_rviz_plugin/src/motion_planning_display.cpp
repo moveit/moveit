@@ -1018,7 +1018,7 @@ void MotionPlanningDisplay::setQueryStateHelper(robot_interaction::RobotInteract
 {
   robot_state::RobotState state = *(ih->getState());
 
-  std::string v = "<"+state_name+">";
+  std::string v = "<" + state_name + ">";
 
   if (v == "<random>")
   {
@@ -1080,6 +1080,18 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   state_names.push_back("current");
   state_names.push_back("same as start");
   state_names.push_back("same as goal");
+
+  // @adam: 
+  // * instead of a loop over the vector of menu handlers,
+  //   i think we should define a function for configuring menu handlers
+  //   and the call it;
+  // * In the callback to setQueryStateHelper we need to pass a bool
+  //   that tells whether it was called by start or goal.
+  //   This will allow us to call setQueryStartState() and setQueryGoalState() 
+  //   functions instead of ih->setState(); (which may not update everything it needs to)
+  // * I think changing the group should not be an option in the menu; 
+  //   since we cannot change the group for start only (or goal only) this is a bit confusing
+  //   and the option is available elswhere too; we should also remove the changePlanningGroup() function
 
   std::vector< boost::shared_ptr<immh> > menu_handlers;
   menu_handlers.push_back(menu_handler_start_);

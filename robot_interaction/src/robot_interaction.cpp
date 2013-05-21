@@ -173,30 +173,18 @@ void RobotInteraction::InteractionHandler::clearLastMarkerPoses()
 
 void RobotInteraction::InteractionHandler::setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh)
 {
-  boost::mutex::scoped_lock slock(menu_handler_lock_);
   menu_handler_ = mh;
 }
 
-bool RobotInteraction::InteractionHandler::getMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh)
+const boost::shared_ptr<interactive_markers::MenuHandler>& RobotInteraction::InteractionHandler::getMenuHandler()
 {
-  boost::mutex::scoped_lock slock(menu_handler_lock_);
-  mh = menu_handler_;
-  return (mh) ? true : false;
+  return menu_handler_;
 }
-
 
 void RobotInteraction::InteractionHandler::clearMenuHandler()
 {
-  boost::mutex::scoped_lock slock(menu_handler_lock_);
   menu_handler_.reset();
 }
-
-//void RobotInteraction::InteractionHandler::clearMenuHandlers()
-//{
-//  boost::mutex::scoped_lock slock(menu_handler_lock_);
-//  menu_handler_map_.clear();
-//}
-
 
 robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState() const
 {
@@ -840,8 +828,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     int_marker_server_->setCallback(ims[i].name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
 
     // Add menu handler to all markers that this interaction handler creates.
-    boost::shared_ptr<interactive_markers::MenuHandler> mh;
-    if (handler->getMenuHandler(mh))
+    if (boost::shared_ptr<interactive_markers::MenuHandler> mh = handler->getMenuHandler())
       mh->apply(*int_marker_server_, ims[i].name);
   }
 }
