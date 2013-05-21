@@ -58,8 +58,9 @@ class MoveGroupWrapper : protected py_bindings_tools::ROScppInitializer,
 public:
 
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
-  MoveGroupWrapper(const std::string &group_name) : py_bindings_tools::ROScppInitializer(),
-                                                    MoveGroup(group_name, boost::shared_ptr<tf::Transformer>(), ros::Duration(5, 0))
+  MoveGroupWrapper(const std::string &group_name, const std::string &robot_description) :
+    py_bindings_tools::ROScppInitializer(),
+    MoveGroup(Options(group_name, robot_description), boost::shared_ptr<tf::Transformer>(), ros::Duration(5, 0))
   {
   }
   
@@ -353,7 +354,7 @@ public:
   
 static void wrap_move_group_interface()
 {
-  bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string>());
+  bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string, std::string>());
 
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
   MoveGroupClass.def("move", &MoveGroupWrapper::move);
