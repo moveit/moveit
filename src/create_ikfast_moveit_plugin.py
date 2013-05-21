@@ -110,7 +110,7 @@ if __name__ == '__main__':
    # Select manipulator arm group
    planning_group = None
    for g in groups:
-      foundName  = (g.get('name').lower() == planning_group_name)
+      foundName  = (g.get('name').lower() == planning_group_name.lower())
 
       if (foundName):
          planning_group = g
