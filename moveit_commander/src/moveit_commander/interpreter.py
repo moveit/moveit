@@ -46,7 +46,7 @@ class MoveGroupInfoLevel:
     INFO = 4
     DEBUG = 5
 
-class MoveGroupCommandInterpreter:
+class MoveGroupCommandInterpreter(object):
     """
     Interpreter for simple commands
     """
