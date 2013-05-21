@@ -34,6 +34,7 @@
 
 /** \author E. Gil Jones */
 
+#include <moveit/test_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/transforms.h>
@@ -54,11 +55,12 @@
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
 
-static std::string urdf_file("../../../src/moveit_resources/test/urdf/robot.xml");
-static std::string srdf_file("../../../src/moveit_resources/test/srdf/robot.xml");
-static std::string kinect_dae_file("../../../src/moveit_resources/test/urdf/meshes/sensors/kinect_v0/kinect.dae");
+static std::string urdf_file = (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/robot.xml").string();
+static std::string srdf_file = (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "srdf/robot.xml").string();
+static std::string kinect_dae_file = (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/meshes/sensors/kinect_v0/kinect.dae").string();
 
-class FclCollisionDetectionTester : public testing::Test{
+class FclCollisionDetectionTester : public testing::Test
+{
 
 protected:
 

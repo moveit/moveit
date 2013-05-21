@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/test_resources/config.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/constraint_samplers/default_constraint_samplers.h>
@@ -50,6 +51,7 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <boost/bind.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include "pr2_arm_kinematics_plugin.h"
 
@@ -74,8 +76,8 @@ protected:
   virtual void SetUp()
   {
     srdf_model.reset(new srdf::Model());
-    std::string xml_string;
-    std::fstream xml_file("../kinematic_state/test/urdf/robot.xml", std::fstream::in);
+    std::string xml_string; 
+    std::fstream xml_file((boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -87,7 +89,7 @@ protected:
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, "../kinematic_state/test/srdf/robot.xml");
+    srdf_model->initFile(*urdf_model, (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "srdf/robot.xml").string());
     kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
