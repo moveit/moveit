@@ -52,7 +52,7 @@ static std::string& ROScppNodeName()
   return node_name;
 }
 
-void moveit_py_bindings_tools::roscpp_set_arguments(const std::string &node_name, boost::python::list &argv)
+void moveit::py_bindings_tools::roscpp_set_arguments(const std::string &node_name, boost::python::list &argv)
 {
   ROScppNodeName() = node_name;
   ROScppArgs() = stringFromList(argv);
@@ -120,39 +120,39 @@ static void roscpp_init_or_stop(bool init)
   }
 }
 
-void moveit_py_bindings_tools::roscpp_init()
+void moveit::py_bindings_tools::roscpp_init()
 {
-  roscpp_init_or_stop(true);  
+  roscpp_init_or_stop(true);
 }
 
-void moveit_py_bindings_tools::roscpp_init(const std::string &node_name, boost::python::list &argv)
+void moveit::py_bindings_tools::roscpp_init(const std::string &node_name, boost::python::list &argv)
 {
   roscpp_set_arguments(node_name, argv);
   roscpp_init();
 }
 
-void moveit_py_bindings_tools::roscpp_init(boost::python::list &argv)
+void moveit::py_bindings_tools::roscpp_init(boost::python::list &argv)
 {
   ROScppArgs() = stringFromList(argv);
   roscpp_init();
 }
 
-void moveit_py_bindings_tools::roscpp_shutdown()
+void moveit::py_bindings_tools::roscpp_shutdown()
 {
   roscpp_init_or_stop(false);
 }
 
-moveit_py_bindings_tools::ROScppInitializer::ROScppInitializer()
+moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer()
 {
   roscpp_init();
 }
 
-moveit_py_bindings_tools::ROScppInitializer::ROScppInitializer(boost::python::list &argv)
+moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer(boost::python::list &argv)
 {
   roscpp_init(argv);
 }
 
-moveit_py_bindings_tools::ROScppInitializer::ROScppInitializer(const std::string &node_name, boost::python::list &argv)
+moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer(const std::string &node_name, boost::python::list &argv)
 {
   roscpp_init(node_name, argv);
 }

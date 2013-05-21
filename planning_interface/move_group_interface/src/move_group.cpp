@@ -40,10 +40,9 @@
 #include <moveit/move_group/capability_names.h>
 #include <moveit/move_group_pick_place_capability/capability_names.h>
 #include <moveit/move_group_interface/move_group.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
-
+#include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/PickupAction.h>
@@ -51,7 +50,6 @@
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
 #include <moveit_msgs/GetCartesianPath.h>
-#include <moveit_msgs/GetPlanningScene.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -62,7 +60,9 @@
 #include <ros/console.h>
 #include <ros/ros.h>
 
-namespace move_group_interface
+namespace moveit
+{
+namespace planning_interface
 {
 
 const std::string MoveGroup::ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
@@ -70,70 +70,6 @@ const std::string MoveGroup::JOINT_STATE_TOPIC = "joint_states";    // name of t
 
 namespace
 {
-
-struct SharedStorage
-{
-  SharedStorage()
-  {
-  }
-
-  ~SharedStorage()
-  {
-    tf_.reset();
-    state_monitors_.clear();
-    model_loaders_.clear(); 
-  }
-  
-  boost::mutex lock_;
-  boost::shared_ptr<tf::Transformer> tf_;
-  std::map<std::string, robot_model_loader::RobotModelLoaderPtr> model_loaders_;
-  std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors_;
-};
-
-SharedStorage& getSharedStorage()
-{
-  static SharedStorage storage;
-  return storage;
-}
-
-boost::shared_ptr<tf::Transformer> getSharedTF()
-{
-  SharedStorage &s = getSharedStorage();
-  boost::mutex::scoped_lock slock(s.lock_);
-  if (!s.tf_)
-    s.tf_.reset(new tf::TransformListener());
-  return s.tf_;
-}
-
-robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_description)
-{ 
-  SharedStorage &s = getSharedStorage();
-  boost::mutex::scoped_lock slock(s.lock_);
-  if (s.model_loaders_.find(robot_description) != s.model_loaders_.end())
-    return s.model_loaders_[robot_description]->getModel();
-  else
-  {
-    robot_model_loader::RobotModelLoader::Options opt(robot_description);
-    opt.load_kinematics_solvers_ = false;
-    robot_model_loader::RobotModelLoaderPtr loader(new robot_model_loader::RobotModelLoader(opt));
-    s.model_loaders_[robot_description] = loader;
-    return loader->getModel();
-  }
-} 
-
-static planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
-{  
-  SharedStorage &s = getSharedStorage();
-  boost::mutex::scoped_lock slock(s.lock_);
-  if (s.state_monitors_.find(kmodel->getName()) != s.state_monitors_.end())
-    return s.state_monitors_[kmodel->getName()];
-  else
-  {
-    planning_scene_monitor::CurrentStateMonitorPtr monitor(new planning_scene_monitor::CurrentStateMonitor(kmodel, tf));
-    s.state_monitors_[kmodel->getName()] = monitor;
-    return monitor;
-  }
-}
 
 enum ActiveTargetType
 {
@@ -148,7 +84,7 @@ public:
   
   MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server) : opt_(opt), tf_(tf)
   {
-    kinematic_model_ = opt.kinematic_model_ ? opt.kinematic_model_ : getSharedRobotModel(opt.robot_description_);
+    robot_model_ = opt.robot_model_ ? opt.robot_model_ : getSharedRobotModel(opt.robot_description_);
     if (!getRobotModel())
     {
       std::string error = "Unable to construct robot model. Please make sure all needed information is on the parameter server.";
@@ -182,7 +118,7 @@ public:
       
       trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
       
-      current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
+      current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_);
 
       move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>(move_group::MOVE_ACTION, false));
       waitForAction(move_action_client_, wait_for_server, move_group::MOVE_ACTION);
@@ -196,8 +132,7 @@ public:
       execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
       query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
       cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
-
-      planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
+      
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -260,7 +195,7 @@ public:
   
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return kinematic_model_;
+    return robot_model_;
   }
 
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc)
@@ -784,7 +719,7 @@ public:
     if (constraints_storage_)
     {
       moveit_warehouse::ConstraintsWithMetadata msg_m;
-      if (constraints_storage_->getConstraints(msg_m, constraint, kinematic_model_->getName(), opt_.group_name_))
+      if (constraints_storage_->getConstraints(msg_m, constraint, robot_model_->getName(), opt_.group_name_))
       {
         path_constraints_.reset(new moveit_msgs::Constraints(static_cast<moveit_msgs::Constraints>(*msg_m)));
 	return true;
@@ -811,7 +746,7 @@ public:
 
     std::vector<std::string> c;
     if (constraints_storage_)
-      constraints_storage_->getKnownConstraints(c, kinematic_model_->getName(), opt_.group_name_);
+      constraints_storage_->getKnownConstraints(c, robot_model_->getName(), opt_.group_name_);
 
     return c;
   }
@@ -836,72 +771,6 @@ public:
     workspace_parameters_.max_corner.z = maxz;    
   }
 
-  std::vector<std::string> getKnownObjectNames(bool with_type)
-  {
-    moveit_msgs::GetPlanningScene::Request request;
-    moveit_msgs::GetPlanningScene::Response response;
-    std::vector<std::string> result;
-    request.components.components = request.components.WORLD_OBJECT_NAMES;
-    if (!planning_scene_service_.call(request, response))
-      return result;
-    if (with_type)
-    {
-      for (std::size_t i = 0 ; i < response.scene.world.collision_objects.size() ; ++i)
-        if (!response.scene.world.collision_objects[i].type.key.empty())
-          result.push_back(response.scene.world.collision_objects[i].id);
-    }
-    else
-    {
-      for (std::size_t i = 0 ; i < response.scene.world.collision_objects.size() ; ++i)
-        result.push_back(response.scene.world.collision_objects[i].id);
-    }
-    return result;
-  }
-
-  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type)
-  {
-    moveit_msgs::GetPlanningScene::Request request;
-    moveit_msgs::GetPlanningScene::Response response;
-    std::vector<std::string> result;
-    request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
-    if (!planning_scene_service_.call(request, response))
-      return result;
-    for (std::size_t i = 0; i < response.scene.world.collision_objects.size() ; ++i)
-    {
-      if (with_type && !response.scene.world.collision_objects[i].type.key.empty())
-        continue;   
-      if (response.scene.world.collision_objects[i].mesh_poses.empty() && 
-          response.scene.world.collision_objects[i].primitive_poses.empty())
-        continue;
-      bool good = true;
-      for (std::size_t j = 0 ; j < response.scene.world.collision_objects[i].mesh_poses.size() ; ++j)
-        if (!(response.scene.world.collision_objects[i].mesh_poses[j].position.x >= minx &&
-              response.scene.world.collision_objects[i].mesh_poses[j].position.x <= maxx &&
-              response.scene.world.collision_objects[i].mesh_poses[j].position.y >= miny &&
-              response.scene.world.collision_objects[i].mesh_poses[j].position.y <= maxy &&
-              response.scene.world.collision_objects[i].mesh_poses[j].position.z >= minz &&
-              response.scene.world.collision_objects[i].mesh_poses[j].position.z <= maxz))
-        {
-          good = false;
-          break;
-        }
-      for (std::size_t j = 0 ; j < response.scene.world.collision_objects[i].primitive_poses.size() ; ++j)
-        if (!(response.scene.world.collision_objects[i].primitive_poses[j].position.x >= minx &&
-              response.scene.world.collision_objects[i].primitive_poses[j].position.x <= maxx &&
-              response.scene.world.collision_objects[i].primitive_poses[j].position.y >= miny &&
-              response.scene.world.collision_objects[i].primitive_poses[j].position.y <= maxy &&
-              response.scene.world.collision_objects[i].primitive_poses[j].position.z >= minz &&
-              response.scene.world.collision_objects[i].primitive_poses[j].position.z <= maxz))
-        {
-          good = false;
-          break;
-        }
-      if (good)
-        result.push_back(response.scene.world.collision_objects[i].id);
-    }
-    return result;
-  }
-  
 private:
   
   void initializeConstraintsStorageThread(const std::string &host, unsigned int port)
@@ -921,7 +790,7 @@ private:
   Options opt_;
   ros::NodeHandle node_handle_;
   boost::shared_ptr<tf::Transformer> tf_;
-  robot_model::RobotModelConstPtr kinematic_model_;
+  robot_model::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
@@ -956,7 +825,6 @@ private:
   ros::ServiceClient execute_service_;
   ros::ServiceClient query_service_;
   ros::ServiceClient cartesian_path_service_;
-  ros::ServiceClient planning_scene_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
@@ -1554,14 +1422,5 @@ const std::string& MoveGroup::getPlanningFrame() const
   return impl_->getRobotModel()->getModelFrame();
 }
 
-std::vector<std::string> MoveGroup::getKnownObjectNames(bool with_type)
-{
-  return impl_->getKnownObjectNames(with_type);
 }
-
-std::vector<std::string> MoveGroup::getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type)
-{
-  return impl_->getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type);
-}
-
 }

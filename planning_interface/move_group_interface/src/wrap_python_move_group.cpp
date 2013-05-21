@@ -53,28 +53,30 @@
 
 namespace bp = boost::python;
 
-namespace move_group_interface
+namespace moveit
+{
+namespace planning_interface
 {
 
-class MoveGroupWrapper : protected moveit_py_bindings_tools::ROScppInitializer,
+class MoveGroupWrapper : protected py_bindings_tools::ROScppInitializer,
                          public MoveGroup
 {
 public:
 
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
-  MoveGroupWrapper(const std::string &group_name) : moveit_py_bindings_tools::ROScppInitializer(),
+  MoveGroupWrapper(const std::string &group_name) : py_bindings_tools::ROScppInitializer(),
                                                     MoveGroup(group_name, boost::shared_ptr<tf::Transformer>(), ros::Duration(5, 0))
   {
   }
   
   void setJointValueTargetPerJointPythonList(const std::string &joint, bp::list &values)
   {
-    setJointValueTarget(joint, moveit_py_bindings_tools::doubleFromList(values));
+    setJointValueTarget(joint, py_bindings_tools::doubleFromList(values));
   }
   
   void setJointValueTargetPythonList(bp::list &values)
   {
-    setJointValueTarget(moveit_py_bindings_tools::doubleFromList(values));
+    setJointValueTarget(py_bindings_tools::doubleFromList(values));
   }
 
   void setJointValueTargetPythonDict(bp::dict &values)
@@ -89,22 +91,22 @@ public:
   
   void rememberJointValuesFromPythonList(const std::string &string, bp::list &values)
   {
-    rememberJointValues(string, moveit_py_bindings_tools::doubleFromList(values));
+    rememberJointValues(string, py_bindings_tools::doubleFromList(values));
   }
 
   bp::list getJointsList() const
   {
-    return moveit_py_bindings_tools::listFromString(getJoints());
+    return py_bindings_tools::listFromString(getJoints());
   }
 
   bp::list getCurrentJointValuesList() 
   {
-    return moveit_py_bindings_tools::listFromDouble(getCurrentJointValues());
+    return py_bindings_tools::listFromDouble(getCurrentJointValues());
   }
   
   bp::list getRandomJointValuesList() 
   {
-    return moveit_py_bindings_tools::listFromDouble(getRandomJointValues());
+    return py_bindings_tools::listFromDouble(getRandomJointValues());
   }
   
   bp::dict getRememberedJointValuesPython() const
@@ -112,7 +114,7 @@ public:
     const std::map<std::string, std::vector<double> > &rv = getRememberedJointValues();
     bp::dict d;
     for (std::map<std::string, std::vector<double> >::const_iterator it = rv.begin() ; it != rv.end() ; ++it)
-      d[it->first] = moveit_py_bindings_tools::listFromDouble(it->second);
+      d[it->first] = py_bindings_tools::listFromDouble(it->second);
     return d;
   }
   
@@ -126,7 +128,7 @@ public:
     v[4] = pose.orientation.y;
     v[5] = pose.orientation.z;
     v[6] = pose.orientation.w;
-    return moveit_py_bindings_tools::listFromDouble(v);
+    return moveit::py_bindings_tools::listFromDouble(v);
   }
 
   bp::list transformToList(const geometry_msgs::Transform &tr) const
@@ -139,12 +141,12 @@ public:
     v[4] = tr.rotation.y;
     v[5] = tr.rotation.z;
     v[6] = tr.rotation.w;
-    return moveit_py_bindings_tools::listFromDouble(v);
+    return py_bindings_tools::listFromDouble(v);
   }
 
   void convertListToTransform(const bp::list &l, geometry_msgs::Transform &tr) const
   {
-    std::vector<double> v = moveit_py_bindings_tools::doubleFromList(l);
+    std::vector<double> v = py_bindings_tools::doubleFromList(l);
     tr.translation.x =  v[0];
     tr.translation.y = v[1];
     tr.translation.z = v[2];
@@ -156,7 +158,7 @@ public:
 
   bp::list getCurrentRPYPython(const std::string &end_effector_link = "")
   {
-    return moveit_py_bindings_tools::listFromDouble(getCurrentRPY(end_effector_link));
+    return py_bindings_tools::listFromDouble(getCurrentRPY(end_effector_link));
   }
   
   bp::list getCurrentPosePython(const std::string &end_effector_link = "")
@@ -173,7 +175,7 @@ public:
 
   bp::list getKnownConstraintsList() const
   {
-    return moveit_py_bindings_tools::listFromString(getKnownConstraints());
+    return py_bindings_tools::listFromString(getKnownConstraints());
   }
 
   void convertListToArrayOfPoses(const bp::list &poses, std::vector<geometry_msgs::Pose> &msg)
@@ -182,7 +184,7 @@ public:
     for (int i = 0; i < l ; ++i)
     {
       const bp::list &pose = bp::extract<bp::list>(poses[i]);
-      std::vector<double> v = moveit_py_bindings_tools::doubleFromList(pose);
+      std::vector<double> v = py_bindings_tools::doubleFromList(pose);
       if (v.size() == 6 || v.size() == 7)
       {
         Eigen::Affine3d p = v.size() == 6 ? 
@@ -209,7 +211,7 @@ public:
 
   void setPoseTargetPython(bp::list &pose, const std::string &end_effector_link = "")
   {
-    std::vector<double> v = moveit_py_bindings_tools::doubleFromList(pose);
+    std::vector<double> v = py_bindings_tools::doubleFromList(pose);
     if (v.size() == 6)
     {
       setPositionTarget(v[0], v[1], v[2], end_effector_link);
@@ -259,8 +261,8 @@ public:
   
   void convertDictToTrajectory(const bp::dict &plan, moveit_msgs::RobotTrajectory &traj) const
   {
-    traj.joint_trajectory.joint_names = moveit_py_bindings_tools::stringFromList(bp::extract<bp::list>(plan["joint_trajectory"]["joint_names"]));
-    traj.multi_dof_joint_trajectory.joint_names = moveit_py_bindings_tools::stringFromList(bp::extract<bp::list>(plan["multi_dof_joint_trajectory"]["joint_names"]));
+    traj.joint_trajectory.joint_names = py_bindings_tools::stringFromList(bp::extract<bp::list>(plan["joint_trajectory"]["joint_names"]));
+    traj.multi_dof_joint_trajectory.joint_names = py_bindings_tools::stringFromList(bp::extract<bp::list>(plan["multi_dof_joint_trajectory"]["joint_names"]));
     traj.joint_trajectory.header.frame_id = bp::extract<std::string>(plan["joint_trajectory"]["frame_id"]);
     traj.multi_dof_joint_trajectory.header.frame_id = bp::extract<std::string>(plan["multi_dof_joint_trajectory"]["frame_id"]);
 
@@ -269,9 +271,9 @@ public:
     for (int i = 0 ; i < l ; ++i)
     {
       trajectory_msgs::JointTrajectoryPoint pt;
-      pt.positions = moveit_py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["positions"]));
-      pt.velocities = moveit_py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["velocities"]));
-      pt.accelerations = moveit_py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["accelerations"]));
+      pt.positions = py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["positions"]));
+      pt.velocities = py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["velocities"]));
+      pt.accelerations = py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["accelerations"]));
       pt.time_from_start = ros::Duration(bp::extract<double>(joint_trajectory_points[i]["time_from_start"]));
       traj.joint_trajectory.points.push_back(pt);       
     }
@@ -296,7 +298,7 @@ public:
   
   bp::dict convertTrajectoryToDict(moveit_msgs::RobotTrajectory &traj) const
   {
-    bp::list joint_names = moveit_py_bindings_tools::listFromString(traj.joint_trajectory.joint_names);
+    bp::list joint_names = py_bindings_tools::listFromString(traj.joint_trajectory.joint_names);
     bp::dict joint_trajectory, multi_dof_joint_trajectory;
     joint_trajectory["joint_names"] = joint_names;
     multi_dof_joint_trajectory["joint_names"] = joint_names;
@@ -308,9 +310,9 @@ public:
          it != traj.joint_trajectory.points.end() ; ++it)
     {
       bp::dict joint_traj_point;
-      joint_traj_point["positions"] = moveit_py_bindings_tools::listFromDouble(it->positions);
-      joint_traj_point["velocities"] = moveit_py_bindings_tools::listFromDouble(it->velocities);
-      joint_traj_point["accelerations"] = moveit_py_bindings_tools::listFromDouble(it->accelerations);
+      joint_traj_point["positions"] = py_bindings_tools::listFromDouble(it->positions);
+      joint_traj_point["velocities"] = py_bindings_tools::listFromDouble(it->velocities);
+      joint_traj_point["accelerations"] = py_bindings_tools::listFromDouble(it->accelerations);
       joint_traj_point["time_from_start"] = it->time_from_start.toSec();
       joint_traj_points.append(joint_traj_point);
     }
@@ -355,12 +357,8 @@ public:
 
 };  
   
-void wrap_move_group_interface()
+static void wrap_move_group_interface()
 {
-  void (*init_fn)(const std::string&, bp::list&) = &moveit_py_bindings_tools::roscpp_init;
-  bp::def("roscpp_init", init_fn);
-  bp::def("roscpp_shutdown", &moveit_py_bindings_tools::roscpp_shutdown);
-
   bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string>());
 
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
@@ -442,15 +440,13 @@ void wrap_move_group_interface()
 
   MoveGroupClass.def("get_robot_root_link", &MoveGroupWrapper::getRobotRootLinkCStr);
   MoveGroupClass.def("get_planning_frame", &MoveGroupWrapper::getPlanningFrameCStr);
-
-  MoveGroupClass.def("get_known_object_names", &MoveGroupWrapper::getKnownObjectNames);  
-  MoveGroupClass.def("get_known_object_names_in_roi", &MoveGroupWrapper::getKnownObjectNamesInROI);
 }
 
+}
 }
 
 BOOST_PYTHON_MODULE(_moveit_move_group_interface)
 {
-  using namespace move_group_interface;
+  using namespace moveit::planning_interface;
   wrap_move_group_interface();
 }

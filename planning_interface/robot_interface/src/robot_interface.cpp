@@ -1,13 +1,15 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2013, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
 *
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
@@ -30,60 +32,32 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PY_BINDINGS_TOOLS_PY_CONVERSIONS_
-#define MOVEIT_PY_BINDINGS_TOOLS_PY_CONVERSIONS_
-
-#include <boost/python.hpp>
-#include <string>
-#include <vector>
+#include <moveit/robot_interface/robot_interface.h>
 
 namespace moveit
 {
-namespace py_bindings_tools
+namespace planning_interface
 {
 
-template<typename T>
-std::vector<T> typeFromList(const boost::python::list &values)
+class RobotInterface::RobotInterfaceImpl
 {
-  int l = boost::python::len(values);
-  std::vector<T> v(l);
-  for (int i = 0; i < l ; ++i)
-    v[i] = boost::python::extract<T>(values[i]);
-  return v;
-}
+public:
+  
+};
 
-template<typename T>
-boost::python::list listFromType(const std::vector<T>& v)
+RobotInterface::RobotInterface()
 {
-  boost::python::list l;
-  for (std::size_t i = 0 ; i < v.size() ; ++i)
-    l.append(v[i]);
-  return l;
+  impl_ = new RobotInterfaceImpl();  
 }
 
-std::vector<double> doubleFromList(const boost::python::list &values)
+RobotInterface::~RobotInterface()
 {
-  return typeFromList<double>(values);
+  delete impl_;
 }
 
-std::vector<std::string> stringFromList(const boost::python::list &values)
-{ 
-  return typeFromList<std::string>(values);
-}
-
-boost::python::list listFromDouble(const std::vector<double>& v)
-{
-  return listFromType<double>(v);
-}
-
-boost::python::list listFromString(const std::vector<std::string>& v)
-{
-  return listFromType<std::string>(v);
-}
 
 }
 }
 
-
-#endif
