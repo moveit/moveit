@@ -120,6 +120,8 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   
   std::string getCurrentPlanningGroup() const;
 
+  void changePlanningGroup(const std::string& group);
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -192,6 +194,8 @@ protected:
   float getStateDisplayTime();
   void updateBackgroundJobProgressBar();
   void backgroundJobUpdate(BackgroundProcessing::JobEvent event);
+
+  void setQueryStateHelper(robot_interaction::RobotInteraction::InteractionHandlerPtr& ih, const std::string &v);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -228,6 +232,8 @@ protected:
   robot_interaction::RobotInteractionPtr robot_interaction_;
   robot_interaction::RobotInteraction::InteractionHandlerPtr query_start_state_;
   robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
+  boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_start_;
+  boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_goal_;
   std::map<std::string, int> collision_links_start_;
   std::map<std::string, int> collision_links_goal_;
   /// Hold the names of the groups for which the query states have been updated (and should not be altered when new info is received from the planning scene)
