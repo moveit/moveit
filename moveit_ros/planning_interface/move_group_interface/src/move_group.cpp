@@ -135,6 +135,11 @@ static planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(cons
   }
 }
 
+enum ActiveTargetType
+{
+  JOINT, POSE, POSITION, ORIENTATION
+};
+
 }
 
 class MoveGroup::MoveGroupImpl
@@ -163,6 +168,7 @@ public:
     active_target_ = JOINT;
     can_look_ = false;
     can_replan_ = false;
+    replan_delay_ = 2.0;
     goal_tolerance_ = 1e-4;
     planning_time_ = 5.0;
     initializing_constraints_ = false;
@@ -390,26 +396,9 @@ public:
     return pose_reference_frame_;
   }
   
-  void useJointStateTarget()
+  void setTargetType(ActiveTargetType type)
   {
-    active_target_ = JOINT;    
-  }
-  
-  void usePoseTarget()
-  {
-    active_target_ = POSE;
-  }
-    
-  void allowLooking(bool flag)
-  {
-    can_look_ = flag;
-    ROS_INFO("Looking around: %s", can_look_ ? "yes" : "no");
-  }
-
-  void allowReplanning(bool flag)
-  {
-    can_replan_ = flag;
-    ROS_INFO("Replanning: %s", can_replan_ ? "yes" : "no");
+    active_target_ = type;
   }
   
   bool getCurrentState(robot_state::RobotStatePtr &current_state)
@@ -584,8 +573,8 @@ public:
     goal.planning_options.plan_only = false;
     goal.planning_options.look_around = can_look_;
     goal.planning_options.replan = can_replan_;
-    goal.planning_options.replan_delay = 2.0; // this should become a parameter
-
+    goal.planning_options.replan_delay = replan_delay_;
+    
     move_action_client_->sendGoal(goal);
     if (!wait)
       return true;
@@ -677,6 +666,29 @@ public:
     return planning_time_;
   }
 
+  void allowLooking(bool flag)
+  {
+    can_look_ = flag;
+    ROS_INFO("Looking around: %s", can_look_ ? "yes" : "no");
+  }
+
+  void allowReplanning(bool flag)
+  {
+    can_replan_ = flag;
+    ROS_INFO("Replanning: %s", can_replan_ ? "yes" : "no");
+  }
+  
+  void setReplanningDelay(double delay)
+  {
+    if (delay >= 0.0)
+      replan_delay_ = delay;
+  }
+  
+  double getReplanningDelay() const
+  {
+    return replan_delay_;
+  }
+  
   void constructGoal(moveit_msgs::MoveGroupGoal &goal_out)
   {
     moveit_msgs::MoveGroupGoal goal;
@@ -695,18 +707,32 @@ public:
       goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget(), goal_tolerance_);
     }
     else
-      if (active_target_ == POSE)
+      if (active_target_ == POSE || active_target_ == POSITION || active_target_ == ORIENTATION)
       {
+        // find out how many goals are specified
+        std::size_t goal_count = 0;
+        for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin() ;
+             it != pose_targets_.end() ; ++it)
+          goal_count = std::max(goal_count, it->second.size());
+
+        // start filling the goals; 
+        // each end effector has a number of possible poses (K) as valid goals
+        // but there could be multiple end effectors specified, so we want each end effector
+        // to reach the goal that corresponds to the goals of the other end effectors
+        goal.request.goal_constraints.resize(goal_count);
+        
         for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin() ;
              it != pose_targets_.end() ; ++it)
         {
-          moveit_msgs::Constraints g;
           for (std::size_t i = 0 ; i < it->second.size() ; ++i)
           {
             moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(it->first, it->second[i], goal_tolerance_);
-            g = kinematic_constraints::mergeConstraints(g, c);
+            if (active_target_ == ORIENTATION)
+              c.position_constraints.clear();
+            if (active_target_ == POSITION)
+              c.orientation_constraints.clear();
+            goal.request.goal_constraints[i] = kinematic_constraints::mergeConstraints(goal.request.goal_constraints[i], c);
           }
-          goal.request.goal_constraints.push_back(g);
         }
       }
       else
@@ -810,7 +836,7 @@ public:
     workspace_parameters_.max_corner.z = maxz;    
   }
 
-  std::vector<std::string> getRecognizedObjectNames()
+  std::vector<std::string> getKnownObjectNames(bool with_type)
   {
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
@@ -818,14 +844,21 @@ public:
     request.components.components = request.components.WORLD_OBJECT_NAMES;
     if (!planning_scene_service_.call(request, response))
       return result;
-    for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
-      if (!response.scene.world.collision_objects[i].type.key.empty())
-	result.push_back(response.scene.world.collision_objects[i].id);
-    
+    if (with_type)
+    {
+      for (std::size_t i = 0 ; i < response.scene.world.collision_objects.size() ; ++i)
+        if (!response.scene.world.collision_objects[i].type.key.empty())
+          result.push_back(response.scene.world.collision_objects[i].id);
+    }
+    else
+    {
+      for (std::size_t i = 0 ; i < response.scene.world.collision_objects.size() ; ++i)
+        result.push_back(response.scene.world.collision_objects[i].id);
+    }
     return result;
   }
 
-  std::vector<std::string> getRecognizedObjectsInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz)
+  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type)
   {
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
@@ -833,37 +866,38 @@ public:
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
     if (!planning_scene_service_.call(request, response))
       return result;
-    ROS_DEBUG("Got %u objects in world", (unsigned int)response.scene.world.collision_objects.size());
-    for (std::size_t i=0; i < response.scene.world.collision_objects.size(); ++i)
+    for (std::size_t i = 0; i < response.scene.world.collision_objects.size() ; ++i)
     {
-      if (!response.scene.world.collision_objects[i].type.key.empty())
-      {
-	//check where the object is
-	if (!response.scene.world.collision_objects[i].mesh_poses.empty())
-	{
-	  if (response.scene.world.collision_objects[i].mesh_poses[0].position.x >= minx &&
-              response.scene.world.collision_objects[i].mesh_poses[0].position.x <= maxx &&
-              response.scene.world.collision_objects[i].mesh_poses[0].position.y >= miny &&
-              response.scene.world.collision_objects[i].mesh_poses[0].position.y <= maxy &&
-              response.scene.world.collision_objects[i].mesh_poses[0].position.z >= minz &&
-              response.scene.world.collision_objects[i].mesh_poses[0].position.z <= maxz)
-          {	
-            result.push_back(response.scene.world.collision_objects[i].id);
-          }
-	  else
-	    ROS_DEBUG("Object: %d with id: %s outside ROI with position %s: %lf %lf %lf", 
-		      (int) i, 
-		      response.scene.world.collision_objects[i].id.c_str(),
-		      response.scene.world.collision_objects[i].header.frame_id.c_str(),
-		      response.scene.world.collision_objects[i].mesh_poses[0].position.x,
-		      response.scene.world.collision_objects[i].mesh_poses[0].position.y,
-		      response.scene.world.collision_objects[i].mesh_poses[0].position.z);
-	}
-	else
-	  ROS_ERROR("No mesh poses for object: %d", (int) i);
-      }
-      else
-	ROS_DEBUG("Type is empty for object: %d with id: %s", (int) i, response.scene.world.collision_objects[i].id.c_str());
+      if (with_type && !response.scene.world.collision_objects[i].type.key.empty())
+        continue;   
+      if (response.scene.world.collision_objects[i].mesh_poses.empty() && 
+          response.scene.world.collision_objects[i].primitive_poses.empty())
+        continue;
+      bool good = true;
+      for (std::size_t j = 0 ; j < response.scene.world.collision_objects[i].mesh_poses.size() ; ++j)
+        if (!(response.scene.world.collision_objects[i].mesh_poses[j].position.x >= minx &&
+              response.scene.world.collision_objects[i].mesh_poses[j].position.x <= maxx &&
+              response.scene.world.collision_objects[i].mesh_poses[j].position.y >= miny &&
+              response.scene.world.collision_objects[i].mesh_poses[j].position.y <= maxy &&
+              response.scene.world.collision_objects[i].mesh_poses[j].position.z >= minz &&
+              response.scene.world.collision_objects[i].mesh_poses[j].position.z <= maxz))
+        {
+          good = false;
+          break;
+        }
+      for (std::size_t j = 0 ; j < response.scene.world.collision_objects[i].primitive_poses.size() ; ++j)
+        if (!(response.scene.world.collision_objects[i].primitive_poses[j].position.x >= minx &&
+              response.scene.world.collision_objects[i].primitive_poses[j].position.x <= maxx &&
+              response.scene.world.collision_objects[i].primitive_poses[j].position.y >= miny &&
+              response.scene.world.collision_objects[i].primitive_poses[j].position.y <= maxy &&
+              response.scene.world.collision_objects[i].primitive_poses[j].position.z >= minz &&
+              response.scene.world.collision_objects[i].primitive_poses[j].position.z <= maxz))
+        {
+          good = false;
+          break;
+        }
+      if (good)
+        result.push_back(response.scene.world.collision_objects[i].id);
     }
     return result;
   }
@@ -884,11 +918,6 @@ private:
     initializing_constraints_ = false;
   }
   
-  enum ActiveTarget
-    {
-      JOINT, POSE
-    };
-  
   Options opt_;
   ros::NodeHandle node_handle_;
   boost::shared_ptr<tf::Transformer> tf_;
@@ -906,15 +935,17 @@ private:
   double goal_tolerance_;
   bool can_look_;
   bool can_replan_;
+  double replan_delay_;
   
   // joint state goal
   robot_state::RobotStatePtr joint_state_target_;
 
-  // pose goal
+  // pose goal;
+  // for each link we have a set of possible goal locations;
   std::map<std::string, std::vector<geometry_msgs::PoseStamped> > pose_targets_;
 
   // common properties for goals
-  ActiveTarget active_target_;
+  ActiveTargetType active_target_;
   boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
   std::string end_effector_link_;
   std::string pose_reference_frame_; 
@@ -1042,7 +1073,7 @@ void MoveGroup::setStartStateToCurrentState()
 void MoveGroup::setRandomTarget()
 { 
   impl_->getJointStateTarget()->setToRandomValues();
-  impl_->useJointStateTarget();
+  impl_->setTargetType(JOINT);
 }
 
 bool MoveGroup::setNamedTarget(const std::string &name)
@@ -1057,7 +1088,7 @@ bool MoveGroup::setNamedTarget(const std::string &name)
   {
     if (impl_->getJointStateTarget()->setToDefaultState(name))
     {
-      impl_->useJointStateTarget();
+      impl_->setTargetType(JOINT);
       return true;
     }
     return false;
@@ -1067,13 +1098,13 @@ bool MoveGroup::setNamedTarget(const std::string &name)
 void MoveGroup::setJointValueTarget(const std::vector<double> &joint_values)
 {
   impl_->getJointStateTarget()->setVariableValues(joint_values);
-  impl_->useJointStateTarget();
+  impl_->setTargetType(JOINT);
 }
 
 void MoveGroup::setJointValueTarget(const std::map<std::string, double> &joint_values)
 {
   impl_->getJointStateTarget()->setVariableValues(joint_values);
-  impl_->useJointStateTarget();
+  impl_->setTargetType(JOINT);
 }
 
 void MoveGroup::setJointValueTarget(const robot_state::RobotState &kinematic_state)
@@ -1105,13 +1136,13 @@ void MoveGroup::setJointValueTarget(const std::string &joint_name, const std::ve
   if (joint_state)
     if (!joint_state->setVariableValues(values))
       ROS_ERROR("Unable to set target");
-  impl_->useJointStateTarget();
+  impl_->setTargetType(JOINT);
 }
 
 void MoveGroup::setJointValueTarget(const sensor_msgs::JointState &state)
 {
   impl_->getJointStateTarget()->setVariableValues(state); 
-  impl_->useJointStateTarget();
+  impl_->setTargetType(JOINT);
 }
 
 const robot_state::JointStateGroup& MoveGroup::getJointValueTarget() const
@@ -1132,7 +1163,7 @@ const std::string& MoveGroup::getEndEffector() const
 void MoveGroup::setEndEffectorLink(const std::string &link_name)
 {
   impl_->setEndEffectorLink(link_name);  
-  impl_->usePoseTarget();
+  impl_->setTargetType(POSE);
 }
 
 void MoveGroup::setEndEffector(const std::string &eef_name)
@@ -1211,7 +1242,7 @@ void MoveGroup::setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &ta
   else
   {
     impl_->setPoseTargets(target, end_effector_link);
-    impl_->usePoseTarget();
+    impl_->setTargetType(POSE);
   }
 }
 
@@ -1263,7 +1294,8 @@ void MoveGroup::setPositionTarget(double x, double y, double z, const std::strin
   target.pose.position.x = x;
   target.pose.position.y = y;
   target.pose.position.z = z;
-  setPoseTarget(target, end_effector_link);
+  setPoseTarget(target, end_effector_link); 
+  impl_->setTargetType(POSITION);
 }
 
 void MoveGroup::setRPYTarget(double r, double p, double y, const std::string &end_effector_link)
@@ -1284,6 +1316,7 @@ void MoveGroup::setRPYTarget(double r, double p, double y, const std::string &en
   
   tf::quaternionTFToMsg(tf::createQuaternionFromRPY(r, p, y), target.pose.orientation);
   setPoseTarget(target, end_effector_link);
+  impl_->setTargetType(ORIENTATION);
 }
 
 void MoveGroup::setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link)
@@ -1306,7 +1339,8 @@ void MoveGroup::setOrientationTarget(double x, double y, double z, double w, con
   target.pose.orientation.y = y;
   target.pose.orientation.z = z;
   target.pose.orientation.w = w;
-  setPoseTarget(target, end_effector_link);
+  setPoseTarget(target, end_effector_link); 
+  impl_->setTargetType(ORIENTATION);
 }
 
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
@@ -1520,14 +1554,14 @@ const std::string& MoveGroup::getPlanningFrame() const
   return impl_->getRobotModel()->getModelFrame();
 }
 
-std::vector<std::string> MoveGroup::getRecognizedObjectNames()
+std::vector<std::string> MoveGroup::getKnownObjectNames(bool with_type)
 {
-  return impl_->getRecognizedObjectNames();
+  return impl_->getKnownObjectNames(with_type);
 }
 
-std::vector<std::string> MoveGroup::getRecognizedObjectsInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz)
+std::vector<std::string> MoveGroup::getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type)
 {
-  return impl_->getRecognizedObjectsInROI(minx, miny, minz, maxx, maxy, maxz);
+  return impl_->getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type);
 }
 
 }

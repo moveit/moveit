@@ -307,7 +307,8 @@ public:
   bool execute(const Plan &plan);
 
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
-      between end effector configurations of consecutive points in the result \e trajectory. No more than \e jump_threshold
+      between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the 
+      waypoints is that specified by setPoseReferenceFrame(). No more than \e jump_threshold
       is allowed as change in distance in the configuration space of the robot (this is to prevent 'jumps' in IK solutions).
       Collisions are avoided if \e avoid_collisions is set to true. If collisions cannot be avoided, the function fails.
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the waypoints.
@@ -428,14 +429,15 @@ public:
    */
   /**@{*/
   
-  /** \brief Get the names of all recognized objects in the world */
-  std::vector<std::string> getRecognizedObjectNames();
+  /** \brief Get the names of all known objects in the world. If \e with_type is set to true, only return objects that have a known type. */
+  std::vector<std::string> getKnownObjectNames(bool with_type = false);
 
-  /** \brief Get the names of all recognized objects in the world */
-  std::vector<std::string> getRecognizedObjectsInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz);
+  /** \brief Get the names of known objects in the world that are located within a bounding region (specified in the frame reported by getPlanningFrame()).
+      If \e with_type is set to true, only return objects that have a known type. */
+  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type = false);
+  
   /**@}*/
-
-
+  
 private:
 
   std::map<std::string, std::vector<double> > remembered_joint_values_;
