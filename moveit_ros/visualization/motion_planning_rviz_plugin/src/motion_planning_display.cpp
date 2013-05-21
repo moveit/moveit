@@ -79,7 +79,9 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   frame_dock_(NULL),
   animating_path_(false),
   int_marker_display_(NULL),
-  private_handle_("~")
+  private_handle_("~"),
+  menu_handler_start_(new interactive_markers::MenuHandler),
+  menu_handler_goal_(new interactive_markers::MenuHandler)
 {
   // Category Groups
   plan_category_  = new rviz::Property( "Planning Request",   QVariant(), "", this );
@@ -931,6 +933,21 @@ void MotionPlanningDisplay::updateLinkColors()
   }
 }
 
+void MotionPlanningDisplay::changePlanningGroup(const std::string& group)
+{
+  if (!getRobotModel() || !robot_interaction_)
+    return;
+
+  if (getRobotModel()->hasJointModelGroup(group))
+  {
+    planning_group_property_->setStdString(group);
+    changedPlanningGroup();
+  }
+  else {
+    ROS_ERROR("Group [%s] not found in the robot model.", group.c_str());
+  }
+}
+
 void MotionPlanningDisplay::changedPlanningGroup()
 {
   if (!getRobotModel() || !robot_interaction_)
@@ -996,6 +1013,45 @@ void MotionPlanningDisplay::changedDisplayPathCollisionEnabled()
   }
 }
 
+void MotionPlanningDisplay::setQueryStateHelper(robot_interaction::RobotInteraction::InteractionHandlerPtr& ih,
+                                                const std::string &state_name)
+{
+  robot_state::RobotState state = *(ih->getState());
+
+  std::string v = "<"+state_name+">";
+
+  if (v == "<random>")
+  {
+    if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(getCurrentPlanningGroup()))
+      jsg->setToRandomValues();
+  }
+  else
+    if (v == "<current>")
+    {
+      const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
+      if (ps)
+        state = ps->getCurrentState();
+    }
+    else
+      if (v == "<same as goal>")
+      {
+        state = *getQueryGoalState();
+      }
+      else
+        if (v == "<same as start>")
+        {
+          state = *getQueryStartState();
+        }
+        else
+        {
+          // maybe it is a named state
+          if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(getCurrentPlanningGroup()))
+            jsg->setToDefaultState(v);
+        }
+
+  ih->setState(state);
+}
+
 void MotionPlanningDisplay::onRobotModelLoaded()
 {
   PlanningSceneDisplay::onRobotModelLoaded();
@@ -1013,6 +1069,55 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1, _2));
   query_start_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
   query_goal_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
+
+  // --------------------------------------------------------------------------
+  // Testing for menu stuff  - - - - - - - - - - - - - -
+  // --------------------------------------------------------------------------
+  typedef interactive_markers::MenuHandler immh;
+  const std::vector<std::string>& group_names = getRobotModel()->getJointModelGroupNames();
+  std::vector<std::string> state_names;
+  state_names.push_back("random");
+  state_names.push_back("current");
+  state_names.push_back("same as start");
+  state_names.push_back("same as goal");
+
+  std::vector< boost::shared_ptr<immh> > menu_handlers;
+  menu_handlers.push_back(menu_handler_start_);
+  menu_handlers.push_back(menu_handler_goal_);
+  std::vector< boost::shared_ptr<immh> >::iterator it = menu_handlers.begin();
+
+  // Menu handlers need to be constructed separately because some of the callbacks will
+  // be different depending on the handler.
+  for(; it != menu_handlers.end() ; ++it)
+  {
+    // hacky way to distinguish between the start and goal handlers...
+    robot_interaction::RobotInteraction::InteractionHandlerPtr& ih = it == menu_handlers.begin() ?
+                                                                       query_start_state_ : query_goal_state_;
+
+    // Group commands, which end up being the same for both interaction handlers
+    immh::EntryHandle menu_groups = (*it)->insert("Planning Group", immh::FeedbackCallback());
+    for (int i = 0; i < group_names.size(); ++i )
+      (*it)->insert(menu_groups, group_names[i],
+                    boost::bind( &MotionPlanningDisplay::changePlanningGroup, this, group_names[i]));
+
+    // Commands for changing the state, which are different for each interaction handler
+    immh::EntryHandle menu_states = (*it)->insert("Set State to", immh::FeedbackCallback());
+    for (int i = 0; i < state_names.size(); ++i )
+    {
+      // Don't add "same as start" to the start state handler, and vice versa.
+      if(    (state_names[i] == "same as start" && it == menu_handlers.begin())
+          || (state_names[i] == "same as goal"  && it != menu_handlers.begin()))
+        continue;
+      (*it)->insert(menu_states, state_names[i],
+                    boost::bind( &MotionPlanningDisplay::setQueryStateHelper, this, ih, state_names[i] ));
+    }
+  }
+
+  // Add the menu handlers to the interaction handlers
+  query_start_state_->setMenuHandler(menu_handler_start_);
+  query_goal_state_->setMenuHandler(menu_handler_goal_);
+
+  // --------------------------------------------------------------------------
 
   if (!planning_group_property_->getStdString().empty())
     if (!getRobotModel()->hasJointModelGroup(planning_group_property_->getStdString()))

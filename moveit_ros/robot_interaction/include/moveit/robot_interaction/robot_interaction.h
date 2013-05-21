@@ -34,6 +34,7 @@
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <visualization_msgs/InteractiveMarker.h>
+#include <interactive_markers/menu_handler.h>
 #include <moveit/robot_state/robot_state.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
@@ -252,6 +253,11 @@ public:
 
     bool getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m);
     bool getPoseOffset(const RobotInteraction::Joint& vj, geometry_msgs::Pose& m);
+
+
+    void setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh);
+    bool getMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh);
+    void clearMenuHandler();
     
     /** \brief Get the last interactive_marker command pose for the end-effector
      * @param The end-effector in question.
@@ -302,6 +308,8 @@ public:
     std::set<std::string> error_state_;
     std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
     std::map<std::string, geometry_msgs::Pose> offset_map_;
+    //std::map<std::string, boost::shared_ptr<interactive_markers::MenuHandler> > menu_handler_map_;
+    boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_;
 
     // Called when the RobotState maintained by the handler changes.  The caller may, for example, redraw the robot at the new state.
     // handler is the handler that changed.
@@ -324,6 +332,7 @@ public:
     mutable boost::condition_variable state_available_condition_;
     boost::mutex pose_map_lock_;
     boost::mutex offset_map_lock_;
+    boost::mutex menu_handler_lock_;
 
     void setup();
   };
