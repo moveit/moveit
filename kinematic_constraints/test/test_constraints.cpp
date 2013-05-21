@@ -34,11 +34,13 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
+#include <moveit/test_resources/config.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <gtest/gtest.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <eigen_conversions/eigen_msg.h>
+#include <boost/filesystem/path.hpp>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -48,7 +50,7 @@ protected:
   {
     srdf_model.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file("../kinematic_state/test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file((boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -60,7 +62,7 @@ protected:
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, "../kinematic_state/test/srdf/robot.xml");
+    srdf_model->initFile(*urdf_model, (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "srdf/robot.xml").string());
     kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
   };
   

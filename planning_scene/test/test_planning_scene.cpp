@@ -38,15 +38,14 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
-
+#include <moveit/test_resources/config.h>
+#include <boost/filesystem/path.hpp>
 
 
 boost::shared_ptr<urdf::ModelInterface> loadRobotModel()
 {
-  std::string xml_string;
-  std::fstream xml_file("../../../src/moveit_resources/test/urdf/robot.xml", std::fstream::in);
-  if (!xml_file.is_open())
-    xml_file.open("../src/moveit_resources/test/urdf/robot.xml", std::fstream::in);
+  std::string xml_string; 
+  std::fstream xml_file((boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/robot.xml").string().c_str(), std::fstream::in);
   EXPECT_TRUE(xml_file.is_open());
   while ( xml_file.good() )
   {
