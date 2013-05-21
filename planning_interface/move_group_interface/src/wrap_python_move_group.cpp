@@ -39,17 +39,11 @@
 #include <moveit/py_bindings_tools/py_conversions.h>
 #include <eigen_conversions/eigen_msg.h>
 
-#include <boost/function.hpp>
 #include <boost/python.hpp>
-#include <boost/python/return_value_policy.hpp>
-#include <boost/python/stl_iterator.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/suite/indexing/map_indexing_suite.hpp>
-
 #include <boost/shared_ptr.hpp>
 #include <Python.h>
-#include <ros/ros.h>
-#include <boost/thread.hpp>
+
+/** @cond IGNORE */
 
 namespace bp = boost::python;
 
@@ -450,3 +444,5 @@ BOOST_PYTHON_MODULE(_moveit_move_group_interface)
   using namespace moveit::planning_interface;
   wrap_move_group_interface();
 }
+
+/** @endcond */
