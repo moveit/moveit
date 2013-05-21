@@ -575,13 +575,6 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
   }
 }
 
-//void RobotInteraction::decideActiveMenuHandlers(const std::string &group)
-//{
-
-
-//}
-
-
 void RobotInteraction::decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style)
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
@@ -846,10 +839,8 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
     int_marker_server_->insert(ims[i]);
     int_marker_server_->setCallback(ims[i].name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
 
-    // not sure if "get" should lock internally. Is there danger of a deadlock?
+    // Add menu handler to all markers that this interaction handler creates.
     boost::shared_ptr<interactive_markers::MenuHandler> mh;
-//    if(handler->getMenuHandler(ims[i].name, mh))
-//      mh->apply(*int_marker_server_, ims[i].name);
     if (handler->getMenuHandler(mh))
       mh->apply(*int_marker_server_, ims[i].name);
   }
