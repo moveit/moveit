@@ -1,4 +1,5 @@
 from roscpp_initializer import *
-from commander import *
 from planning_scene_interface import *
+from commander import *
+from robot import *
 from interpreter import *
