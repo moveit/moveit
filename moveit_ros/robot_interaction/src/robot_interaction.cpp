@@ -33,6 +33,7 @@
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
 #include <moveit/robot_state/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
+#include <interactive_markers/menu_handler.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
 #include <boost/lexical_cast.hpp>
@@ -169,6 +170,32 @@ void RobotInteraction::InteractionHandler::clearLastMarkerPoses()
   boost::mutex::scoped_lock slock(pose_map_lock_);
   pose_map_.clear();
 }
+
+void RobotInteraction::InteractionHandler::setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh)
+{
+  boost::mutex::scoped_lock slock(menu_handler_lock_);
+  menu_handler_ = mh;
+}
+
+bool RobotInteraction::InteractionHandler::getMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh)
+{
+  boost::mutex::scoped_lock slock(menu_handler_lock_);
+  mh = menu_handler_;
+  return (mh) ? true : false;
+}
+
+
+void RobotInteraction::InteractionHandler::clearMenuHandler()
+{
+  boost::mutex::scoped_lock slock(menu_handler_lock_);
+  menu_handler_.reset();
+}
+
+//void RobotInteraction::InteractionHandler::clearMenuHandlers()
+//{
+//  boost::mutex::scoped_lock slock(menu_handler_lock_);
+//  menu_handler_map_.clear();
+//}
 
 
 robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState() const
@@ -548,6 +575,13 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
   }
 }
 
+//void RobotInteraction::decideActiveMenuHandlers(const std::string &group)
+//{
+
+
+//}
+
+
 void RobotInteraction::decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style)
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
@@ -811,6 +845,13 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
   {
     int_marker_server_->insert(ims[i]);
     int_marker_server_->setCallback(ims[i].name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
+
+    // not sure if "get" should lock internally. Is there danger of a deadlock?
+    boost::shared_ptr<interactive_markers::MenuHandler> mh;
+//    if(handler->getMenuHandler(ims[i].name, mh))
+//      mh->apply(*int_marker_server_, ims[i].name);
+    if (handler->getMenuHandler(mh))
+      mh->apply(*int_marker_server_, ims[i].name);
   }
 }
 
