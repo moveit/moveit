@@ -442,6 +442,9 @@ void wrap_move_group_interface()
 
   MoveGroupClass.def("get_robot_root_link", &MoveGroupWrapper::getRobotRootLinkCStr);
   MoveGroupClass.def("get_planning_frame", &MoveGroupWrapper::getPlanningFrameCStr);
+
+  MoveGroupClass.def("get_known_object_names", &MoveGroupWrapper::getKnownObjectNames);  
+  MoveGroupClass.def("get_known_object_names_in_roi", &MoveGroupWrapper::getKnownObjectNamesInROI);
 }
 
 }
