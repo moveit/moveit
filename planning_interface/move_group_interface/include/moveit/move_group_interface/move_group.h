@@ -68,9 +68,11 @@ public:
   /** \brief Specification of options to use when constructing the MoveGroup client class */
   struct Options
   {
-    Options(const std::string &group_name) : group_name_(group_name),
-                                             joint_state_topic_(JOINT_STATE_TOPIC),
-                                             robot_description_(ROBOT_DESCRIPTION)
+    Options(const std::string &group_name,
+            const std::string &desc = ROBOT_DESCRIPTION) :
+      group_name_(group_name),
+      joint_state_topic_(JOINT_STATE_TOPIC),
+      robot_description_(desc)
     {
     }
 

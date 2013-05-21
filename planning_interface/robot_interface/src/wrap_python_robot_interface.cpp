@@ -61,9 +61,45 @@ public:
     return py_bindings_tools::listFromString(robot_model_->getJointModelNames());
   }
   
+  bp::list getLinkNames() const
+  {
+    return py_bindings_tools::listFromString(robot_model_->getLinkModelNames());
+  }
+  
   bp::list getGroupNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getJointModelGroupNames());
+  }
+  
+  bp::list getJointLimits(const std::string &name) const
+  {
+    bp::list result;
+    const robot_model::JointModel *jm = robot_model_->getJointModel(name);
+    if (jm)
+    {
+      const std::vector<moveit_msgs::JointLimits> &lim = jm->getVariableLimits();
+      for (std::size_t i = 0 ; i < lim.size() ; ++i)
+      {
+        bp::list l;
+        l.append(lim[i].min_position);
+        l.append(lim[i].max_position);
+        result.append(l);
+      }
+    }
+    return result;    
+  }
+  
+  const char* getPlanningFrame() const
+  {
+    return robot_model_->getModelFrame().c_str();
+  }
+  
+  bp::list getLinkPose() const
+  {
+  }
+  
+  bp::dict getCurrentJointValues() const
+  {
   }
   
 private:
@@ -79,6 +115,11 @@ static void wrap_robot_interface()
 
   RobotClass.def("get_joint_names", &RobotInterfacePython::getJointNames);
   RobotClass.def("get_group_names", &RobotInterfacePython::getGroupNames);
+  RobotClass.def("get_link_names", &RobotInterfacePython::getLinkNames);
+  RobotClass.def("get_joint_limits", &RobotInterfacePython::getJointLimits);
+  RobotClass.def("get_link_pose", &RobotInterfacePython::getLinkPose);
+  RobotClass.def("get_planning_frame", &RobotInterfacePython::getPlanningFrame);
+  RobotClass.def("get_current_joint_values", &RobotInterfacePython::getCurrentJointValues);
 }
 
 BOOST_PYTHON_MODULE(_moveit_robot_interface)
