@@ -662,7 +662,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
     ROS_DEBUG_STREAM("Checking for " << package_path.make_preferred().native());
     
     // Check if the files exist
-    if( fs::is_regular_file( package_path ) )
+    if( fs::is_regular_file( package_path ) || fs::is_regular_file( sub_path / "manifest.xml" ))
     {
       // now generate the relative path
       for( size_t relative_count = segment_length; relative_count < path_parts.size(); ++relative_count )
