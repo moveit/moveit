@@ -49,7 +49,7 @@ class PlanningSceneInterface(object):
         self._pub_co = rospy.Publisher('/collision_object', CollisionObject)
         self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject)
 
-    def make_sphere(self, name, pose, radius):
+    def __make_sphere(self, name, pose, radius):
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
@@ -65,9 +65,9 @@ class PlanningSceneInterface(object):
         """
         Add a sphere to the planning scene 
         """
-        self._pub_co.publish(self.make_sphere(name, pose, radius))
+        self._pub_co.publish(self.__make_sphere(name, pose, radius))
 
-    def make_box(self, name, pose, size):
+    def __make_box(self, name, pose, size):
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
@@ -79,11 +79,11 @@ class PlanningSceneInterface(object):
         co.primitive_poses = [pose.pose]
         return co
     
-    def make_mesh(self, name, pose, filename):
+    def __make_mesh(self, name, pose, filename):
         co = CollisionObject()
         scene = pyassimp.load(filename)
         if not scene.meshes:
-            raise "There are no meshes in the file"
+            raise MoveItCommanderException("There are no meshes in the file")
         co.operation = CollisionObject.ADD
         co.id = name
         co.header = pose.header
@@ -109,13 +109,13 @@ class PlanningSceneInterface(object):
         """
         Add a mesh to the planning scene
         """
-        self._pub_co.publish(self.make_mesh(name, pose, filename))
+        self._pub_co.publish(self.__make_mesh(name, pose, filename))
 
     def add_box(self, name, pose, size = (1, 1, 1)):
         """
         Add a box to the planning scene 
         """
-        self._pub_co.publish(self.make_box(name, pose, size))
+        self._pub_co.publish(self.__make_box(name, pose, size))
 
     def add_plane(self, name, pose, normal = (0, 0, 1), offset = 0):
         """ Add a plane to the planning scene """
@@ -132,7 +132,7 @@ class PlanningSceneInterface(object):
         
     def attach_mesh(self, link, name, pose, filename, touch_links = []):
         aco = AttachedCollisionObject()
-        aco.object = self.make_mesh(name, pose, filename)
+        aco.object = self.__make_mesh(name, pose, filename)
         aco.link_name = link
         aco.touch_links = [link]
         if len(touch_links) > 0:
@@ -141,11 +141,12 @@ class PlanningSceneInterface(object):
 
     def attach_box(self, link, name, pose, size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
-        aco.object = self.make_box(name, pose, size)
+        aco.object = self.__make_box(name, pose, size)
         aco.link_name = link
-        aco.touch_links = [link]
         if len(touch_links) > 0:
             aco.touch_links = touch_links
+        else:
+            aco.touch_links = [link]
         self._pub_aco.publish(aco)
 
     def remove_world_object(self, name):
