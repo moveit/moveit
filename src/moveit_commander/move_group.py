@@ -312,6 +312,14 @@ class MoveGroupCommander(object):
         """Pick the named object"""
         return self._g.pick(object_name)
 
-    def place(self, object_name):
-        """Place the named object"""
-        return self._g.place(object_name)
+    def place(self, object_name, pose):
+        """Place the named object at a particular location in the environment"""
+        result = False
+        if type(pose) is PoseStamped:
+            old = self.get_pose_reference_frame()
+            self.set_pose_reference_frame(pose.header.frame_id)
+            result = self._g.place(object_name, conversions.pose_to_list(pose.pose))
+            self.set_pose_reference_frame(old)
+        else:
+            result = self._g.place(object_name, conversions.pose_to_list(pose))
+        return result
