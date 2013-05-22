@@ -66,7 +66,6 @@ namespace planning_interface
 {
 
 const std::string MoveGroup::ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
-const std::string MoveGroup::JOINT_STATE_TOPIC = "joint_states";    // name of the topic where joint states are published
 
 namespace
 {
@@ -142,7 +141,7 @@ public:
   template<typename T>
   void waitForAction(const T &action, const ros::Duration &wait_for_server, const std::string &name)
   {
-    ROS_INFO("Waiting for MoveGroup action server (%s)...", name.c_str());
+    ROS_DEBUG("Waiting for MoveGroup action server (%s)...", name.c_str());
     
     // in case ROS time is published, wait for the time data to arrive
     ros::Time start_time = ros::Time::now();
@@ -174,7 +173,7 @@ public:
     if (!action->isServerConnected())
       throw std::runtime_error("Unable to connect to action server within allotted time");
     else
-      ROS_INFO("Connected to '%s'", name.c_str());
+      ROS_DEBUG("Connected to '%s'", name.c_str());
   }
   
   ~MoveGroupImpl()
@@ -343,34 +342,13 @@ public:
       ROS_ERROR("Unable to get current robot state");
       return false;
     }
-        
+    
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
-    {
-      current_state_monitor_->startStateMonitor(opt_.joint_state_topic_);
-      double slept_time = 0.0;
-      static const double sleep_step = 0.05;
-      while (!current_state_monitor_->haveCompleteState() && slept_time < 1.0)
-      {
-        ros::Duration(sleep_step).sleep();
-        slept_time += sleep_step;
-      }      
-    }
+      current_state_monitor_->startStateMonitor();
     
-    // check to see if we have a fully known state for the joints we want to record
-    std::vector<std::string> missing_joints;
-    if (!current_state_monitor_->haveCompleteState(missing_joints))
-    {
-      std::set<std::string> mj;
-      mj.insert(missing_joints.begin(), missing_joints.end());
-      const std::vector<std::string> &names= getJointStateTarget()->getJointNames();
-      bool ok = true;
-      for (std::size_t i = 0 ; ok && i < names.size() ; ++i)
-        if (mj.find(names[i]) != mj.end())
-          ok = false;
-      if (!ok)
-        ROS_WARN("Joint values for monitored state are requested but the full state is not known");
-    }
+    if (!current_state_monitor_->waitForCurrentState(opt_.group_name_, 1.0))
+      ROS_WARN("Joint values for monitored state are requested but the full state is not known");
     
     current_state = current_state_monitor_->getCurrentState();
     return true;
@@ -1338,6 +1316,11 @@ std::vector<double> MoveGroup::getCurrentRPY(const std::string &end_effector_lin
 const std::vector<std::string>& MoveGroup::getJoints() const
 {
   return impl_->getJointStateTarget()->getJointModelGroup()->getJointModelNames();
+}
+
+unsigned int MoveGroup::getVariableCount() const
+{
+  return impl_->getJointStateTarget()->getJointModelGroup()->getVariableCount();
 }
 
 robot_state::RobotStatePtr MoveGroup::getCurrentState()

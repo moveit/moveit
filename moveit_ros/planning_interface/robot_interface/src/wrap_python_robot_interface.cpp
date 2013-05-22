@@ -53,7 +53,8 @@ public:
   RobotInterfacePython(const std::string &robot_description) : 
     py_bindings_tools::ROScppInitializer()
   {
-    robot_model_ = planning_interface::getSharedRobotModel(robot_description);
+    robot_model_ = planning_interface::getSharedRobotModel(robot_description); 
+    current_state_monitor_ = planning_interface::getSharedStateMonitor(robot_model_, planning_interface::getSharedTF());
   }
   
   bp::list getJointNames() const
@@ -94,16 +95,102 @@ public:
     return robot_model_->getModelFrame().c_str();
   }
   
-  bp::list getLinkPose() const
-  {
+  bp::list getLinkPose(const std::string &name)
+  {  
+    bp::list l;
+    if (!ensureCurrentState())
+      return l;
+    robot_state::RobotStatePtr state = current_state_monitor_->getCurrentState();
+    const robot_state::LinkState *ls = state->getLinkState(name);
+    if (ls)
+    {
+      const Eigen::Affine3d &t = ls->getGlobalLinkTransform();
+      std::vector<double> v(7);
+      v[0] = t.translation().x();
+      v[1] = t.translation().y();
+      v[2] = t.translation().z();
+      Eigen::Quaterniond q(t.rotation());
+      v[3] = q.x();
+      v[4] = q.y();
+      v[5] = q.z();
+      v[6] = q.w();
+      l = py_bindings_tools::listFromDouble(v);
+    }
+    return l;   
   }
   
-  bp::dict getCurrentJointValues() const
+  bp::list getCurrentJointValues(const std::string &name)
   {
+    bp::list l;
+    if (!ensureCurrentState())
+      return l;
+    robot_state::RobotStatePtr state = current_state_monitor_->getCurrentState();
+    const robot_state::JointState *js = state->getJointState(name);
+    if (js)
+      l = py_bindings_tools::listFromDouble(js->getVariableValues());
+    return l;    
+  }
+
+  bool ensureCurrentState()
+  {  
+    if (!current_state_monitor_)
+    {
+      ROS_ERROR("Unable to get current robot state");
+      return false;
+    }
+    
+    // if needed, start the monitor and wait up to 1 second for a full robot state
+    if (!current_state_monitor_->isActive())
+    {
+      current_state_monitor_->startStateMonitor();
+      if (!current_state_monitor_->waitForCurrentState(1.0))
+        ROS_WARN("Joint values for monitored state are requested but the full state is not known");
+    }
+    return true;
+  }  
+  
+  bp::dict getCurrentVariableValues()
+  {
+    bp::dict d;
+    if (!current_state_monitor_)
+    {
+      ROS_ERROR("Unable to get current robot state");
+      return d;
+    }
+    
+    // if needed, start the monitor and wait up to 1 second for a full robot state
+    if (!current_state_monitor_->isActive())
+      current_state_monitor_->startStateMonitor();
+    
+    if (!current_state_monitor_->waitForCurrentState(1.0))
+      ROS_WARN("Joint values for monitored state are requested but the full state is not known");
+    
+    const std::map<std::string, double> &vars = current_state_monitor_->getCurrentStateValues();
+    for (std::map<std::string, double>::const_iterator it = vars.begin() ; it != vars.end() ; ++it)
+      d[it->first] = it->second;
+    
+    return d;
+  }
+
+  const char* findMinContainingGroup(const std::string &joint_name) const
+  {
+    const std::vector<std::string> &gnames = robot_model_->getJointModelGroupNames();
+    const robot_model::JointModelGroup *group = NULL;
+    for (std::size_t i = 0 ; i < gnames.size() ; ++i)
+    {
+      const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(gnames[i]);
+      if (jmg->hasJointModel(joint_name))
+      {
+        if (group == NULL || group->getVariableCount() > jmg->getVariableCount())
+          group = jmg;
+      }
+    }
+    return group ? group->getName().c_str() : NULL;
   }
   
 private:
   robot_model::RobotModelConstPtr robot_model_;
+  planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
 };
 }
 
@@ -119,7 +206,9 @@ static void wrap_robot_interface()
   RobotClass.def("get_joint_limits", &RobotInterfacePython::getJointLimits);
   RobotClass.def("get_link_pose", &RobotInterfacePython::getLinkPose);
   RobotClass.def("get_planning_frame", &RobotInterfacePython::getPlanningFrame);
-  RobotClass.def("get_current_joint_values", &RobotInterfacePython::getCurrentJointValues);
+  RobotClass.def("get_current_variable_values", &RobotInterfacePython::getCurrentVariableValues);
+  RobotClass.def("get_current_joint_values",  &RobotInterfacePython::getCurrentJointValues);
+  RobotClass.def("find_min_containing_group",  &RobotInterfacePython::findMinContainingGroup);
 }
 
 BOOST_PYTHON_MODULE(_moveit_robot_interface)
