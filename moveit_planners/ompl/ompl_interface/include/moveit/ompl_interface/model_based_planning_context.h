@@ -97,6 +97,11 @@ public:
     return spec_;
   }
 
+  std::map<std::string, std::string>& getSpecificationConfig()
+  {
+    return spec_.config_;
+  }
+
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return spec_.state_space_->getRobotModel();

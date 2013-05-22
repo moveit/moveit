@@ -63,9 +63,16 @@ public:
   
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
-  void setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig)
+  void setPlanningConfigurations(const PlanningConfigurationMap &pconfig)
   {
     context_manager_.setPlanningConfigurations(pconfig);
+  }
+
+  /** @brief Get the configurations for the planners that are already loaded
+      @param pconfig Configurations for the different planners */
+  const PlanningConfigurationMap& getPlanningConfigurations()
+  {
+    return context_manager_.getPlanningConfigurations();
   }
   
   /** @brief Solve the planning problem */
