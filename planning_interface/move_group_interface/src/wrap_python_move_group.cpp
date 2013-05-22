@@ -113,7 +113,7 @@ public:
     return d;
   }
   
-  bp::list poseToList(const geometry_msgs::Pose &pose) const
+  bp::list convertPoseToList(const geometry_msgs::Pose &pose) const
   {
     std::vector<double> v(7);
     v[0] = pose.position.x;
@@ -126,7 +126,7 @@ public:
     return moveit::py_bindings_tools::listFromDouble(v);
   }
 
-  bp::list transformToList(const geometry_msgs::Transform &tr) const
+  bp::list convertTransformToList(const geometry_msgs::Transform &tr) const
   {
     std::vector<double> v(7);
     v[0] = tr.translation.x;
@@ -151,6 +151,18 @@ public:
     tr.rotation.w = v[6];
   }
 
+  void convertListToPose(const bp::list &l, geometry_msgs::Pose &p) const
+  {
+    std::vector<double> v = py_bindings_tools::doubleFromList(l);
+    p.position.x =  v[0];
+    p.position.y = v[1];
+    p.position.z = v[2];
+    p.orientation.x = v[3];
+    p.orientation.y = v[4];
+    p.orientation.z = v[5];
+    p.orientation.w = v[6];
+  }
+  
   bp::list getCurrentRPYPython(const std::string &end_effector_link = "")
   {
     return py_bindings_tools::listFromDouble(getCurrentRPY(end_effector_link));
@@ -159,20 +171,29 @@ public:
   bp::list getCurrentPosePython(const std::string &end_effector_link = "")
   {
     geometry_msgs::PoseStamped pose = getCurrentPose(end_effector_link);
-    return poseToList(pose.pose);
+    return convertPoseToList(pose.pose);
   }
 
   bp::list getRandomPosePython(const std::string &end_effector_link = "")
   {
     geometry_msgs::PoseStamped pose = getRandomPose(end_effector_link);
-    return poseToList(pose.pose);
+    return convertPoseToList(pose.pose);
   }
-
+  
   bp::list getKnownConstraintsList() const
   {
     return py_bindings_tools::listFromString(getKnownConstraints());
   }
-
+  
+  bool placePython(const std::string &object_name, const bp::list &pose)
+  {
+    geometry_msgs::PoseStamped msg;
+    convertListToPose(pose, msg.pose);
+    msg.header.frame_id = getPoseReferenceFrame();
+    msg.header.stamp = ros::Time::now();
+    return place(object_name, msg);
+  }
+  
   void convertListToArrayOfPoses(const bp::list &poses, std::vector<geometry_msgs::Pose> &msg)
   { 
     int l = bp::len(poses);
@@ -207,19 +228,26 @@ public:
   void setPoseTargetPython(bp::list &pose, const std::string &end_effector_link = "")
   {
     std::vector<double> v = py_bindings_tools::doubleFromList(pose);
+    geometry_msgs::Pose msg;
     if (v.size() == 6)
-    {
-      setPositionTarget(v[0], v[1], v[2], end_effector_link);
-      setRPYTarget(v[3], v[4], v[5], end_effector_link);
-    }
+      tf::quaternionTFToMsg(tf::createQuaternionFromRPY(v[3], v[4], v[5]), msg.orientation);
     else
       if (v.size() == 7)
       {
-        setPositionTarget(v[0], v[1], v[2], end_effector_link);
-        setOrientationTarget(v[3], v[4], v[5], v[6], end_effector_link);
+        msg.orientation.x = v[3];
+        msg.orientation.y = v[4];
+        msg.orientation.z = v[5];  
+        msg.orientation.w = v[6];  
       }
       else
+      {
         ROS_ERROR("Pose description expected to consist of either 6 or 7 values");
+        return;
+      }
+    msg.position.x = v[0];
+    msg.position.y = v[1];
+    msg.position.z = v[2];      
+    setPoseTarget(msg, end_effector_link);
   }
 
   const char* getEndEffectorLinkCStr() const
@@ -321,7 +349,7 @@ public:
       bp::dict multi_dof_traj_point;
       bp::list transforms;
       for (std::vector<geometry_msgs::Transform>::const_iterator itr = it->transforms.begin() ; itr != it->transforms.end() ; ++itr)
-        transforms.append(transformToList(*itr));
+        transforms.append(convertTransformToList(*itr));
       multi_dof_traj_point["transforms"] = transforms;
       multi_dof_traj_point["time_from_start"] = it->time_from_start.toSec();
       multi_dof_traj_points.append(multi_dof_traj_point);
@@ -361,8 +389,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython); 
   bool (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
-  bool (MoveGroupWrapper::*place_1)(const std::string&) = &MoveGroupWrapper::place;
-  MoveGroupClass.def("place", place_1);
+  MoveGroupClass.def("place", &MoveGroupWrapper::placePython);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
   MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);

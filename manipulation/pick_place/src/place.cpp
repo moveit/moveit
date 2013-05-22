@@ -152,6 +152,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   plan_data->timeout_ = endtime;
   plan_data->path_constraints_ = goal.path_constraints;
   plan_data->planner_id_ = goal.planner_id;
+  plan_data->minimize_object_distance_ = false;
   plan_data->max_goal_sampling_attempts_ = std::max(2u, jmg->getDefaultIKAttempts());
   moveit_msgs::AttachedCollisionObject &detach_object_msg = plan_data->diff_attached_object_;
 

@@ -115,10 +115,11 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   ManipulationPlanSharedDataConstPtr const_plan_data = plan_data;
   plan_data->planning_group_ = planning_group;
   plan_data->end_effector_group_ = eef->getName();
-  plan_data->ik_link_name_ = ik_link;    
+  plan_data->ik_link_name_ = ik_link;
   plan_data->timeout_ = endtime;
   plan_data->path_constraints_ = goal.path_constraints;
   plan_data->planner_id_ = goal.planner_id;
+  plan_data->minimize_object_distance_ = goal.minimize_object_distance;
   plan_data->max_goal_sampling_attempts_ = std::max(2u, planning_scene->getRobotModel()->getJointModelGroup(planning_group)->getDefaultIKAttempts());
   moveit_msgs::AttachedCollisionObject &attach_object_msg = plan_data->diff_attached_object_;
   

@@ -64,6 +64,8 @@ struct ManipulationPlanSharedData
 
   std::string planner_id_;
   
+  bool minimize_object_distance_;
+  
   moveit_msgs::Constraints path_constraints_;
 
   moveit_msgs::AttachedCollisionObject diff_attached_object_;

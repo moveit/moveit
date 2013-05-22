@@ -348,7 +348,10 @@ public:
   bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations);
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
+  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses); 
+
+  /** \brief Place an object at one of the specified possible location */
+  bool place(const std::string &object, const geometry_msgs::PoseStamped &pose);
 
   /**@}*/
 

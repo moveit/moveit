@@ -895,6 +895,11 @@ bool MoveGroup::place(const std::string &object, const std::vector<geometry_msgs
   return impl_->place(object, poses);
 }
 
+bool MoveGroup::place(const std::string &object, const geometry_msgs::PoseStamped &pose)
+{  
+  return impl_->place(object, std::vector<geometry_msgs::PoseStamped>(1, pose));
+}
+
 double MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
 				       moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions)
 {
