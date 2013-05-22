@@ -62,25 +62,18 @@ public:
   /** \brief Default ROS parameter name from where to read the robot's URDF. Set to 'robot_description' */
   static const std::string ROBOT_DESCRIPTION;
   
-  /** \brief Default ROS topic from where to read the robot's joint states. Set to 'joint_states' */
-  static const std::string JOINT_STATE_TOPIC;
-
   /** \brief Specification of options to use when constructing the MoveGroup client class */
   struct Options
   {
     Options(const std::string &group_name,
             const std::string &desc = ROBOT_DESCRIPTION) :
       group_name_(group_name),
-      joint_state_topic_(JOINT_STATE_TOPIC),
       robot_description_(desc)
     {
     }
 
     /// The group to construct the class instance for
     std::string group_name_;
-
-    /// The joint states topic (if different from default)
-    std::string joint_state_topic_;
 
     /// The robot description parameter name (if different from default)
     std::string robot_description_;
@@ -125,6 +118,9 @@ public:
   /** \brief Get the joints this instance operates on */
   const std::vector<std::string>& getJoints() const;
 
+  /** \brief Get the number of variables used to describe the state of this group. This is larger or equal to the number of DOF. */
+  unsigned int getVariableCount() const;
+  
   /** \brief Get the description of the planning plugin loaded by the action server */
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc);
   
