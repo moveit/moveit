@@ -94,7 +94,7 @@ private:
   }
   
   PlanningSceneMonitor *owner_;
-  dynamic_reconfigure::Server<planning_scene_monitor::PlanningSceneMonitorDynamicReconfigureConfig> dynamic_reconfigure_server_;
+  dynamic_reconfigure::Server<PlanningSceneMonitorDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
 }
