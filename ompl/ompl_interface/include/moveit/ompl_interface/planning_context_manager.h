@@ -55,6 +55,7 @@ struct PlanningConfigurationSettings
   std::string                        group;
   std::map<std::string, std::string> config;
 };
+typedef std::map<std::string, PlanningConfigurationSettings> PlanningConfigurationMap;
 
 class PlanningContextManager
 {
@@ -65,7 +66,7 @@ public:
   
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
-  void setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig);
+  void setPlanningConfigurations(const PlanningConfigurationMap &pconfig);
 
   /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
   unsigned int getMaximumStateSamplingAttempts() const
@@ -171,7 +172,7 @@ public:
   
   ConfiguredPlannerSelector getPlannerSelector() const;
 
-  const std::map<std::string, PlanningConfigurationSettings>& getPlanningConfigurations() const
+  const PlanningConfigurationMap& getPlanningConfigurations() const
   {
     return planner_configs_;
   }
@@ -221,7 +222,7 @@ protected:
 
   /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if needed)
   unsigned int                                          minimum_waypoint_count_;
-  
+
 private:
   
   class LastPlanningContext;
