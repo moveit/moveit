@@ -123,7 +123,13 @@ public:
   /** @brief Get the current state values as a map from joint names to joint state values
    *  @return Returns the map from joint names to joint state values*/
   std::map<std::string, double> getCurrentStateValues() const;
-  
+
+  /** @brief Wait for at most \e wait_time seconds until the complete current state is known. Return true if the full state is known */
+  bool waitForCurrentState(double wait_time) const;
+
+  /** @brief Wait for at most \e wait_time seconds until the joint values from the group \e group are known. Return true if values for all joints in \e group are known */
+  bool waitForCurrentState(const std::string &group, double wait_time) const;
+
   /** @brief Get the time point when the monitor was started */
   const ros::Time& getMonitorStartTime() const
   {

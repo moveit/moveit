@@ -240,6 +240,46 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
   return result;
 }
 
+bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const 
+{
+  double slept_time = 0.0;
+  double sleep_step_s = std::min(0.05, wait_time / 10.0);
+  ros::Duration sleep_step(sleep_step_s);
+  while (!haveCompleteState() && slept_time < wait_time)
+  {
+    sleep_step.sleep();
+    slept_time += sleep_step_s;
+  }
+  return haveCompleteState();
+}
+
+bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const std::string &group, double wait_time) const
+{
+  if (waitForCurrentState(wait_time))
+    return true;
+  bool ok = true;
+
+  // check to see if we have a fully known state for the joints we want to record
+  std::vector<std::string> missing_joints;
+  if (!haveCompleteState(missing_joints))
+  {
+    const robot_model::JointModelGroup *jmg = kmodel_->getJointModelGroup(group);
+    if (jmg)
+    {
+      std::set<std::string> mj;
+      mj.insert(missing_joints.begin(), missing_joints.end());
+      const std::vector<std::string> &names= jmg->getJointModelNames();
+      bool ok = true;
+      for (std::size_t i = 0 ; ok && i < names.size() ; ++i)
+        if (mj.find(names[i]) != mj.end())
+          ok = false;
+    }
+    else
+      ok = false;
+  }
+  return ok;
+}
+
 void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state)
 {
   if (joint_state->name.size() != joint_state->position.size())
