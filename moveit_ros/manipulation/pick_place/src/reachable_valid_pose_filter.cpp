@@ -82,6 +82,18 @@ bool ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr &p
   planning_scene_->checkCollision(req, res, token_state, *collision_matrix_);
   return res.collision == false;
 }
+namespace
+{
+bool sameFrames(const std::string& frame1, const std::string& frame2)
+{
+  // Remove preceeding '/' from frame names, eg /base_link
+  if (!frame1.empty() && frame1[0] == '/')
+    return sameFrames(frame1.substr(1), frame2);
+  if (!frame2.empty() && frame2[0] == '/')
+    return sameFrames(frame1, frame2.substr(1));
+  return frame1 == frame2;
+}
+}
 
 bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) const
 {   
@@ -92,7 +104,7 @@ bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) cons
     // update the goal pose message if anything has changed; this is because the name of the frame in the input goal pose
     // can be that of objects in the collision world but most components are unaware of those transforms,
     // so we convert to a frame that is certainly known 
-    if (planning_scene_->getPlanningFrame() != plan->goal_pose_.header.frame_id)
+    if (sameFrames(planning_scene_->getPlanningFrame(), plan->goal_pose_.header.frame_id))
     {
       tf::poseEigenToMsg(plan->transformed_goal_pose_, plan->goal_pose_.pose);
       plan->goal_pose_.header.frame_id = planning_scene_->getPlanningFrame();
