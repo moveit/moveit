@@ -320,6 +320,9 @@ protected:
   /** @brief Callback for a new collision object msg*/
   void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj);
 
+  /** @brief Callback for a new collision object msg that failed to pass the TF filter */
+  void collisionObjectFailTFCallback(const moveit_msgs::CollisionObjectConstPtr &obj, tf::filter_failure_reasons::FilterFailureReason reason);
+  
   /** @brief Callback for a new planning scene world*/
   void newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr &world);
 

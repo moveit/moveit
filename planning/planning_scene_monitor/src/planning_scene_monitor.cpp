@@ -475,6 +475,13 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
   }
 }
 
+void planning_scene_monitor::PlanningSceneMonitor::collisionObjectFailTFCallback(const moveit_msgs::CollisionObjectConstPtr &obj, tf::filter_failure_reasons::FilterFailureReason reason)
+{
+  // if we just want to remove objects, the frame does not matter
+  if (reason == tf::filter_failure_reasons::EmptyFrameID && obj->operation == moveit_msgs::CollisionObject::REMOVE)
+    collisionObjectCallback(obj);
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj)
 {
   if (scene_)
@@ -801,6 +808,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     {
       collision_object_filter_ .reset(new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024));
       collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
+      collision_object_filter_->registerFailureCallback(boost::bind(&PlanningSceneMonitor::collisionObjectFailTFCallback, this, _1, _2));
       ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
     }
     else
