@@ -430,60 +430,41 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
   manipulation_msgs::GraspPlanning::Request request;
   manipulation_msgs::GraspPlanning::Response response;
-
-  std::vector<std::string> object_ids = lscene->getWorld()->getObjectIds();
-  for(std::size_t i=0; i < object_ids.size(); ++i)
-  {
-    ROS_INFO("Collision world has object: %s", object_ids[i].c_str());
-  }
   
-  if (lscene->hasObjectType(goal.target_name))
+  if (grasp_planning_service_ && lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
   {
-    if(!lscene->getObjectType(goal.target_name).key.empty())
+    collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
+    if (object && !object->shape_poses_.empty())
     {
-      if(lscene->getWorld()->getObject(goal.target_name))
-      {
-	if(!lscene->getWorld()->getObject(goal.target_name)->shape_poses_.empty())
-	{
-	  request.arm_name = goal.group_name;    
-	  request.target.reference_frame_id = lscene->getPlanningFrame();
-	  
-	  household_objects_database_msgs::DatabaseModelPose dbp;    
-	  dbp.pose.header.frame_id = lscene->getPlanningFrame();
-	  dbp.pose.header.stamp = ros::Time::now();
-	  tf::poseEigenToMsg(lscene->getWorld()->getObject(goal.target_name)->shape_poses_[0], dbp.pose.pose);
-
-	  ROS_DEBUG("Object pose: %f %f %f", dbp.pose.pose.position.x, dbp.pose.pose.position.y, dbp.pose.pose.position.z);
-	  ROS_DEBUG("In frame: %s", dbp.pose.header.frame_id.c_str());
-
-	  dbp.type = lscene->getObjectType(goal.target_name);    
-	  std::stringstream dbp_type(dbp.type.key);
-	  dbp_type >> dbp.model_id;
-	  ROS_DEBUG("Asking database for grasps for %s with model id: %d", dbp.type.key.c_str(), dbp.model_id);
-	  request.target.potential_models.push_back(dbp);
-	}
-	else
-	{
-	  ROS_ERROR("Object has no meshes");
-	}
-	if (grasp_planning_service_)
-	{
-	  if(grasp_planning_service_.call(request, response))
-	  {
-	    ROS_INFO("Grasp planning successful");        
-	    goal.possible_grasps = response.grasps;
-	  }      
-	}        
-      }         
-    } 
+      request.arm_name = goal.group_name;    
+      request.target.reference_frame_id = lscene->getPlanningFrame();
+      
+      household_objects_database_msgs::DatabaseModelPose dbp;    
+      dbp.pose.header.frame_id = lscene->getPlanningFrame();
+      dbp.pose.header.stamp = ros::Time::now();
+      tf::poseEigenToMsg(object->shape_poses_[0], dbp.pose.pose);
+      
+      dbp.type = lscene->getObjectType(goal.target_name);    
+      std::stringstream dbp_type(dbp.type.key);
+      dbp_type >> dbp.model_id;
+      ROS_DEBUG("Asking database for grasps for %s with model id: %d", dbp.type.key.c_str(), dbp.model_id);
+      request.target.potential_models.push_back(dbp);
+    }
     else
     {
-      ROS_WARN("Object is not a recognized object");
+      ROS_ERROR("Object has no geometry");
     }
-  }
 
+    ROS_DEBUG("Calling grasp planner...");    
+    if (grasp_planning_service_.call(request, response))
+      goal.possible_grasps = response.grasps;
+  }
+  
   if (goal.possible_grasps.empty())
   {
+    ROS_DEBUG("Using default grasp poses");
+    goal.minimize_object_distance = true;
+    
     // add a number of default grasp points
     // \todo add more!
     manipulation_msgs::Grasp g;
@@ -496,15 +477,16 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     g.grasp_pose.pose.orientation.z = 0.0;
     g.grasp_pose.pose.orientation.w = 1.0;
     
+    g.approach.direction.header.frame_id = lscene->getPlanningFrame();
     g.approach.direction.vector.x = 1.0;
     g.approach.min_distance = 0.1;
-    g.approach.desired_distance = 0.3;
+    g.approach.desired_distance = 0.2;
     
-    g.retreat.direction.vector.z = 1.0;
     g.retreat.direction.header.frame_id = lscene->getPlanningFrame();
+    g.retreat.direction.vector.z = 1.0;
     g.retreat.min_distance = 0.1;
-    g.retreat.desired_distance = 0.3;
-    
+    g.retreat.desired_distance = 0.2;
+
     if (lscene->getRobotModel()->hasEndEffector(goal.end_effector))
     {
       g.pre_grasp_posture.name = lscene->getRobotModel()->getEndEffector(goal.end_effector)->getJointModelNames();
