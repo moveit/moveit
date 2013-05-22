@@ -202,6 +202,7 @@ static void attachedBodyToMsg(const AttachedBody &attached_body, moveit_msgs::At
   aco.link_name = attached_body.getAttachedLinkName();
   aco.detach_posture = attached_body.getDetachPosture();
   const std::set<std::string> &touch_links = attached_body.getTouchLinks();
+  aco.touch_links.clear();
   for (std::set<std::string>::const_iterator it = touch_links.begin() ; it != touch_links.end() ; ++it)
     aco.touch_links.push_back(*it);
   aco.object.header.frame_id = aco.link_name;
