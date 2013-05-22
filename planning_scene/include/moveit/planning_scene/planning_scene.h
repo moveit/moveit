@@ -125,13 +125,25 @@ public:
    *
    * This does nothing if this type of collision detector has already been added.
    * 
-   * A new PlanningScene contains an FCL collision detector.  This FCL collision detector will always be available unless it is removed by calling setActiveCollisionDetector() with exclusive=true. */
+   * A new PlanningScene contains an FCL collision detector.  This FCL
+   * collision detector will always be available unless it is removed by
+   * calling setActiveCollisionDetector() with exclusive=true.
+   *
+   * example: to add FCL collision detection (normally not necessary) call
+   *   planning_scene->addCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
+   *
+   * */
   void addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator);
 
   /** \brief Set the type of collision detector to use.
    * Calls addCollisionDetector() to add it if it has not already been added.
    *
-   * If exclusive is true then all other collision detectors will be removed and only this one will be available. */
+   * If exclusive is true then all other collision detectors will be removed
+   * and only this one will be available.
+   *
+   * example: to use FCL collision call
+   *   planning_scene->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
+   */
   void setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
                                   bool exclusive = false);
 
