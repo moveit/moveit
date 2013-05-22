@@ -172,15 +172,14 @@ public:
       solved = planner(planning_scene, req, res);
 
     // re-add the prefix state, if it was constructed
-    if (prefix_state && res.trajectory_)
+    if (prefix_state && res.trajectory_ && !res.trajectory_->empty())
     {    
-      if (!res.trajectory_->empty())
-        // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-        res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
+      // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
+      res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
       res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
       added_path_index.push_back(0);
     }
-
+    
     return solved;
   }
   
