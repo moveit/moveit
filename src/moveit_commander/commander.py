@@ -61,6 +61,10 @@ class MoveGroupCommander(object):
         """ Get the joints of this group """
         return self._g.get_joints()
 
+    def get_variable_count(self):
+        """ Return the number of variables used to parameterize a state in this group (larger or equal to number of DOF)"""
+        return self._g.get_variable_count()
+
     def has_end_effector_link(self):
         """ Check if this group has a link that is considered to be an end effector """
         return len(self._g.get_end_effector_link()) > 0
