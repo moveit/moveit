@@ -683,7 +683,7 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
   
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = false;
-  m_control.interaction_mode = m_control.MOVE_ROTATE;
+  m_control.interaction_mode = m_control.MOVE_ROTATE_3D;
   
   std_msgs::ColorRGBA marker_color;
   const float *color = handler->inError(eef) ? END_EFFECTOR_UNREACHABLE_COLOR : END_EFFECTOR_REACHABLE_COLOR;
