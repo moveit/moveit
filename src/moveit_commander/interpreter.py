@@ -33,7 +33,7 @@
 # Author: Ioan Sucan
 
 import rospy
-from moveit_commander import MoveGroupCommander, PlanningSceneInterface
+from moveit_commander import RobotCommander, MoveGroupCommander, PlanningSceneInterface
 from geometry_msgs.msg import PoseStamped
 import re
 import time
@@ -61,6 +61,7 @@ class MoveGroupCommandInterpreter(object):
         self._group_name = ""
         self._prev_group_name = ""
         self._planning_scene_interface = PlanningSceneInterface()
+        self._robot = RobotCommander()
         self._last_plan = None
         self._db_host = None
         self._db_port = 33829
@@ -529,7 +530,7 @@ class MoveGroupCommandInterpreter(object):
         if self.get_active_group() != None:
             known_vars = self.get_active_group().get_remembered_joint_values().keys()
             known_constr = self.get_active_group().get_known_constraints()
-        groups = self.get_loaded_groups()
+        groups = self._robot.get_group_names()
         return {'go':['up', 'down', 'left', 'right', 'backward', 'forward', 'random'] + known_vars,
                 'help':[],
                 'record':known_vars,
