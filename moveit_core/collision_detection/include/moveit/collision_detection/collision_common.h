@@ -135,7 +135,6 @@ namespace collision_detection
   {
     CollisionResult() : collision(false),
                         distance(std::numeric_limits<double>::max()),
-                        direction(0.0, 0.0, 0.0),
                         contact_count(0)
     {
     }
@@ -148,7 +147,6 @@ namespace collision_detection
     {
       collision = false;
       distance = std::numeric_limits<double>::max();
-      direction.x() = direction.y() = direction.z() = 0.0;
       contact_count = 0;
       contacts.clear();
       cost_sources.clear();
@@ -159,9 +157,6 @@ namespace collision_detection
     
     /** \brief Closest distance between two bodies */
     double               distance;
-    
-    /** \brief Gradient vector associated with collision (ONLY when there is contact!) */
-    Eigen::Vector3d      direction;
     
     /** \brief Number of contacts returned */
     std::size_t          contact_count;
