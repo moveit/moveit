@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Adam Leeper */
 
 #ifndef MOVEIT_ROBOT_TRAJECTORY_KINEMATIC_TRAJECTORY_
 #define MOVEIT_ROBOT_TRAJECTORY_KINEMATIC_TRAJECTORY_
