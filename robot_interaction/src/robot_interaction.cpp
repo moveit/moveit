@@ -31,7 +31,6 @@
 
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
-#include <moveit/robot_state/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
 #include <eigen_conversions/eigen_msg.h>
