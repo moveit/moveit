@@ -5,13 +5,13 @@ find_package(catkin REQUIRED)
 
 catkin_package()
 
-file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/test" MOVEIT_TEST_RESOURCES_DIR)
+set(MOVEIT_TEST_RESOURCES_DIR_INSTALL "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/test")
+set(MOVEIT_TEST_RESOURCES_DIR_LOCAL "${CMAKE_CURRENT_SOURCE_DIR}/test")
 
-if(WIN32)
-    # Correct directory separator for Windows
-    string(REPLACE "\\" "\\\\" MOVEIT_TEST_RESOURCES_DIR "${MOVEIT_TEST_RESOURCES_DIR}")
-endif(WIN32)
-configure_file("include/moveit/test_resources/config.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/include/moveit/test_resources/config.h")
+configure_file("include/moveit/test_resources/config.h.in" "include/moveit/test_resources/config.h")
+configure_file("include/moveit/test_resources/config_install.h.in" "installconfig/config_install.h")
 
 install(DIRECTORY test DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*.h")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/installconfig/config_install.h"
+  DESTINATION "include/moveit/test_resources"
+  RENAME "config.h")
