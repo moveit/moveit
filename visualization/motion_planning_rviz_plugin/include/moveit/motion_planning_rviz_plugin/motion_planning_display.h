@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan, Dave Coleman */
+/* Author: Ioan Sucan, Dave Coleman, Adam Leeper */
 
 #ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_DISPLAY_
 #define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_DISPLAY_
@@ -195,7 +195,8 @@ protected:
   void updateBackgroundJobProgressBar();
   void backgroundJobUpdate(BackgroundProcessing::JobEvent event);
 
-  void setQueryStateHelper(robot_interaction::RobotInteraction::InteractionHandlerPtr& ih, const std::string &v);
+  void setQueryStateHelper(bool use_start_state, const std::string &v);
+  void populateMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh);
   
   // overrides from Display  
   virtual void onInitialize();
