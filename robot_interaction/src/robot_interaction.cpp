@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Adam Leeper */
 
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
@@ -93,10 +93,22 @@ void RobotInteraction::InteractionHandler::setPoseOffset(const RobotInteraction:
   offset_map_[eef.eef_group] = m;
 }
 
+void RobotInteraction::InteractionHandler::setPoseOffset(const RobotInteraction::Joint& vj, const geometry_msgs::Pose& m)
+{
+  boost::mutex::scoped_lock slock(offset_map_lock_);
+  offset_map_[vj.joint_name] = m;
+}
+
 void RobotInteraction::InteractionHandler::clearPoseOffset(const RobotInteraction::EndEffector& eef)
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_.erase(eef.eef_group);
+}
+
+void RobotInteraction::InteractionHandler::clearPoseOffset(const RobotInteraction::Joint& vj)
+{
+  boost::mutex::scoped_lock slock(offset_map_lock_);
+  offset_map_.erase(vj.joint_name);
 }
 
 void RobotInteraction::InteractionHandler::clearPoseOffsets()

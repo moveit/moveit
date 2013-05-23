@@ -27,7 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Adam Leeper */
+
 
 #ifndef MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
 #define MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
@@ -245,30 +246,78 @@ public:
       return display_controls_;
     }
 
-    void setPoseOffset(const EndEffector& eef, const geometry_msgs::Pose& m);
+    /** \brief Set the offset for drawing the interactive marker controls for an end-effector,
+     *         expressed in the frame of the end-effector parent.
+     * @param  The target end-effector.
+     * @param  The desired pose offset. */
+    void setPoseOffset(const RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& m);
 
-    void clearPoseOffset(const RobotInteraction::EndEffector& eef);
+    /** \brief Set the offset for drawing the interactive marker controls for a joint,
+     *         expressed in the frame of the joint parent.
+     * @param  The target joint.
+     * @param  The desired pose offset. */
+    void setPoseOffset(const RobotInteraction::Joint& eef, const geometry_msgs::Pose& m);
 
-    void clearPoseOffsets();
-
+    /** \brief Get the offset for the interactive marker controls for an end-effector,
+     *         expressed in the frame of the end-effector parent.
+     * @param  The target end-effector.
+     * @param  The pose offset (only valid if return value is true).
+     * @return True if an offset was found for the given end-effector, false otherwise. */
     bool getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m);
+
+    /** \brief Get the offset for the interactive marker controls for a joint,
+     *         expressed in the frame of the joint parent.
+     * @param  The target joint.
+     * @param  The pose offset (only valid if return value is true).
+     * @return True if an offset was found for the given joint, false otherwise. */
     bool getPoseOffset(const RobotInteraction::Joint& vj, geometry_msgs::Pose& m);
 
+    /** \brief Clear the interactive marker pose offset for the given end-effector.
+     * @param  The target end-effector. */
+    void clearPoseOffset(const RobotInteraction::EndEffector& eef);
 
+    /** \brief Clear the interactive marker pose offset for the given joint.
+     * @param  The target joint. */
+    void clearPoseOffset(const RobotInteraction::Joint& vj);
+
+    /** \brief Clear the pose offset for all end-effectors and virtual joints. */
+    void clearPoseOffsets();
+
+    /** \brief Set the menu handler that defines menus and callbacks for all
+     *         interactive markers drawn by this interaction handler.
+     * @param  A menu handler. */
     void setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh);
+
+
+    /** \brief Get the menu handler that defines menus and callbacks for all
+     *         interactive markers drawn by this interaction handler.
+     * @return  The menu handler. */
     const boost::shared_ptr<interactive_markers::MenuHandler>& getMenuHandler();
+
+    /** \brief Remove the menu handler for this interaction handler. */
     void clearMenuHandler();
     
-    /** \brief Get the last interactive_marker command pose for the end-effector
+    /** \brief Get the last interactive_marker command pose for an end-effector.
      * @param The end-effector in question.
-     * @param A PoseStamped message containing the last (offset-adjusted) pose commanded for the end-effector.
-     * @return True if a pose for that end-effector was found, false otherwise.
-     */
+     * @param A PoseStamped message containing the last (offset-removed) pose commanded for the end-effector.
+     * @return True if a pose for that end-effector was found, false otherwise. */
     bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
+
+    /** \brief Get the last interactive_marker command pose for a joint.
+     * @param The joint in question.
+     * @param A PoseStamped message containing the last (offset-removed) pose commanded for the joint.
+     * @return True if a pose for that joint was found, false otherwise. */
     bool getLastJointMarkerPose(const RobotInteraction::Joint& vj, geometry_msgs::PoseStamped& pose);
 
+    /** \brief Clear the last interactive_marker command pose for the given end-effector.
+     * @param  The target end-effector. */
     void clearLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef);
+
+    /** \brief Clear the last interactive_marker command pose for the given joint.
+     * @param  The target joint. */
     void clearLastJointMarkerPose(const RobotInteraction::Joint& vj);
+
+    /** \brief Clear the last interactive_marker command poses for all end-effectors and joints. */
     void clearLastMarkerPoses();
 
     /** \brief Update the internal state maintained by the handler using
@@ -306,9 +355,25 @@ public:
     robot_state::RobotStatePtr kstate_;
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
-    std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
+
+    // Contains the (user-programmable) pose offset between the end-effector
+    // parent link (or a virtual joint) and the desired control frame for the
+    // interactive marker. The offset is expressed in the frame of the parent
+    // link or virtual joint. For example, on a PR2 an offset of +0.20 along
+    // the x-axis will move the center of the 6-DOF interactive marker from
+    // the wrist to the finger tips.
     std::map<std::string, geometry_msgs::Pose> offset_map_;
-    //std::map<std::string, boost::shared_ptr<interactive_markers::MenuHandler> > menu_handler_map_;
+
+    // Contains the most recent poses received from interactive marker feedback,
+    // with the offset removed (e.g. in theory, coinciding with the end-effector
+    // parent or virtual joint). This allows a user application to query for the
+    // interactive marker pose (which could be useful for robot control using
+    // gradient-based methods) even when the IK solver failed to find a valid
+    // robot state that satisfies the feedback pose.
+    std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
+
+    // For adding menus (and associated callbacks) to all the
+    // end-effector and virtual-joint interactive markers
     boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_;
 
     // Called when the RobotState maintained by the handler changes.  The caller may, for example, redraw the robot at the new state.
