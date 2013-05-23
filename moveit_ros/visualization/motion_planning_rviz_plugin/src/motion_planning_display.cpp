@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan, Dave Coleman */
+/* Author: Ioan Sucan, Dave Coleman, Adam Leeper */
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 #include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
@@ -1013,10 +1013,11 @@ void MotionPlanningDisplay::changedDisplayPathCollisionEnabled()
   }
 }
 
-void MotionPlanningDisplay::setQueryStateHelper(robot_interaction::RobotInteraction::InteractionHandlerPtr& ih,
+void MotionPlanningDisplay::setQueryStateHelper(bool use_start_state,
                                                 const std::string &state_name)
 {
-  robot_state::RobotState state = *(ih->getState());
+
+  robot_state::RobotState state = use_start_state ? *getQueryStartState() : *getQueryGoalState();
 
   std::string v = "<" + state_name + ">";
 
@@ -1049,7 +1050,40 @@ void MotionPlanningDisplay::setQueryStateHelper(robot_interaction::RobotInteract
             jsg->setToDefaultState(v);
         }
 
-  ih->setState(state);
+  use_start_state ? setQueryStartState(state) : setQueryGoalState(state);
+}
+
+void MotionPlanningDisplay::populateMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh)
+{
+  typedef interactive_markers::MenuHandler immh;
+  std::vector<std::string> state_names;
+  state_names.push_back("random");
+  state_names.push_back("current");
+  state_names.push_back("same as start");
+  state_names.push_back("same as goal");
+
+  // hacky way to distinguish between the start and goal handlers...
+  bool is_start = (mh.get() == menu_handler_start_.get());
+
+  // Commands for changing the state
+  immh::EntryHandle menu_states = mh->insert( is_start ? "Set start state to" : "Set goal state to" ,
+                                              immh::FeedbackCallback());
+  for (int i = 0; i < state_names.size(); ++i )
+  {
+    // Don't add "same as start" to the start state handler, and vice versa.
+    if ((state_names[i] == "same as start" && is_start) || (state_names[i] == "same as goal"  && !is_start))
+      continue;
+    mh->insert(menu_states, state_names[i],
+               boost::bind( &MotionPlanningDisplay::setQueryStateHelper, this, is_start, state_names[i] ));
+  }
+
+//  // Group commands, which end up being the same for both interaction handlers
+//  const std::vector<std::string>& group_names = getRobotModel()->getJointModelGroupNames();
+//  immh::EntryHandle menu_groups = mh->insert("Planning Group", immh::FeedbackCallback());
+//  for (int i = 0; i < group_names.size(); ++i )
+//    mh->insert(menu_groups, group_names[i],
+//               boost::bind( &MotionPlanningDisplay::changePlanningGroup, this, group_names[i]));
+
 }
 
 void MotionPlanningDisplay::onRobotModelLoaded()
@@ -1070,66 +1104,11 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   query_start_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
   query_goal_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
 
-  // --------------------------------------------------------------------------
-  // Testing for menu stuff  - - - - - - - - - - - - - -
-  // --------------------------------------------------------------------------
-  typedef interactive_markers::MenuHandler immh;
-  const std::vector<std::string>& group_names = getRobotModel()->getJointModelGroupNames();
-  std::vector<std::string> state_names;
-  state_names.push_back("random");
-  state_names.push_back("current");
-  state_names.push_back("same as start");
-  state_names.push_back("same as goal");
-
-  // @adam: 
-  // * instead of a loop over the vector of menu handlers,
-  //   i think we should define a function for configuring menu handlers
-  //   and the call it;
-  // * In the callback to setQueryStateHelper we need to pass a bool
-  //   that tells whether it was called by start or goal.
-  //   This will allow us to call setQueryStartState() and setQueryGoalState() 
-  //   functions instead of ih->setState(); (which may not update everything it needs to)
-  // * I think changing the group should not be an option in the menu; 
-  //   since we cannot change the group for start only (or goal only) this is a bit confusing
-  //   and the option is available elswhere too; we should also remove the changePlanningGroup() function
-
-  std::vector< boost::shared_ptr<immh> > menu_handlers;
-  menu_handlers.push_back(menu_handler_start_);
-  menu_handlers.push_back(menu_handler_goal_);
-  std::vector< boost::shared_ptr<immh> >::iterator it = menu_handlers.begin();
-
-  // Menu handlers need to be constructed separately because some of the callbacks will
-  // be different depending on the handler.
-  for(; it != menu_handlers.end() ; ++it)
-  {
-    // hacky way to distinguish between the start and goal handlers...
-    robot_interaction::RobotInteraction::InteractionHandlerPtr& ih = it == menu_handlers.begin() ?
-                                                                       query_start_state_ : query_goal_state_;
-
-    // Group commands, which end up being the same for both interaction handlers
-    immh::EntryHandle menu_groups = (*it)->insert("Planning Group", immh::FeedbackCallback());
-    for (int i = 0; i < group_names.size(); ++i )
-      (*it)->insert(menu_groups, group_names[i],
-                    boost::bind( &MotionPlanningDisplay::changePlanningGroup, this, group_names[i]));
-
-    // Commands for changing the state, which are different for each interaction handler
-    immh::EntryHandle menu_states = (*it)->insert("Set State to", immh::FeedbackCallback());
-    for (int i = 0; i < state_names.size(); ++i )
-    {
-      // Don't add "same as start" to the start state handler, and vice versa.
-      if(    (state_names[i] == "same as start" && it == menu_handlers.begin())
-          || (state_names[i] == "same as goal"  && it != menu_handlers.begin()))
-        continue;
-      (*it)->insert(menu_states, state_names[i],
-                    boost::bind( &MotionPlanningDisplay::setQueryStateHelper, this, ih, state_names[i] ));
-    }
-  }
-
-  // Add the menu handlers to the interaction handlers
+  // Interactive marker menus
+  populateMenuHandler(menu_handler_start_);
+  populateMenuHandler(menu_handler_goal_);
   query_start_state_->setMenuHandler(menu_handler_start_);
   query_goal_state_->setMenuHandler(menu_handler_goal_);
-
-  // --------------------------------------------------------------------------
 
   if (!planning_group_property_->getStdString().empty())
     if (!getRobotModel()->hasJointModelGroup(planning_group_property_->getStdString()))
