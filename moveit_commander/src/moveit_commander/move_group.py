@@ -213,10 +213,28 @@ class MoveGroupCommander(object):
         self._g.forget_joint_values(name)
 
     def get_goal_tolerance(self):
-        return self._g.get_goal_tolerance()
+        return (self.get_goal_joint_tolerance(), self.get_goal_position_tolerance(), self.get_goal_orientation_tolerance())
+
+    def get_goal_joint_tolerance(self):
+        return self._g.get_goal_joint_tolerance()
+
+    def get_goal_position_tolerance(self):
+        return self._g.get_goal_position_tolerance()
+
+    def get_goal_orientation_tolerance(self):
+        return self._g.get_goal_orientation_tolerance()
 
     def set_goal_tolerance(self, value):
         self._g.set_goal_tolerance(value)
+
+    def set_goal_joint_tolerance(self, value):
+        self._g.set_goal_joint_tolerance(value)
+
+    def set_goal_position_tolerance(self, value):
+        self._g.set_goal_position_tolerance(value)
+
+    def set_goal_orientation_tolerance(self, value):
+        self._g.set_goal_orientation_tolerance(value)
 
     def allow_looking(self, value):
         self._g.allow_looking(value)
