@@ -104,7 +104,9 @@ public:
     can_look_ = false;
     can_replan_ = false;
     replan_delay_ = 2.0;
-    goal_tolerance_ = 1e-4;
+    goal_joint_tolerance_ = 1e-4;
+    goal_position_tolerance_ = 1e-4; // 0.1 mm
+    goal_orientation_tolerance_ = 1e-3; // ~0.1 deg
     planning_time_ = 5.0;
     initializing_constraints_ = false;
     
@@ -335,6 +337,11 @@ public:
     active_target_ = type;
   }
   
+  ActiveTargetType getTargetType() const
+  {
+    return active_target_;
+  }
+  
   bool getCurrentState(robot_state::RobotStatePtr &current_state)
   {
     if (!current_state_monitor_)
@@ -558,16 +565,36 @@ public:
     }
   }
   
-  double getGoalTolerance() const
+  double getGoalPositionTolerance() const
   {
-    return goal_tolerance_;
-  }
-  
-  void setGoalTolerance(double tolerance)
-  {
-    goal_tolerance_ = tolerance;
+    return goal_position_tolerance_;
   }
 
+  double getGoalOrientationTolerance() const
+  {
+    return goal_orientation_tolerance_;
+  }
+
+  double getGoalJointTolerance() const
+  {
+    return goal_joint_tolerance_;
+  }
+  
+  void setGoalJointTolerance(double tolerance)
+  {
+    goal_joint_tolerance_ = tolerance;
+  }
+  
+  void setGoalPositionTolerance(double tolerance)
+  {
+    goal_position_tolerance_ = tolerance;
+  }
+  
+  void setGoalOrientationTolerance(double tolerance)
+  {
+    goal_orientation_tolerance_ = tolerance;
+  }
+  
   void setPlanningTime(double seconds)
   {
     if (seconds > 0.0)
@@ -617,7 +644,7 @@ public:
     if (active_target_ == JOINT)
     {    
       goal.request.goal_constraints.resize(1);
-      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget(), goal_tolerance_);
+      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget(), goal_joint_tolerance_);
     }
     else
       if (active_target_ == POSE || active_target_ == POSITION || active_target_ == ORIENTATION)
@@ -639,7 +666,7 @@ public:
         {
           for (std::size_t i = 0 ; i < it->second.size() ; ++i)
           {
-            moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(it->first, it->second[i], goal_tolerance_);
+            moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(it->first, it->second[i], goal_position_tolerance_, goal_orientation_tolerance_);
             if (active_target_ == ORIENTATION)
               c.position_constraints.clear();
             if (active_target_ == POSITION)
@@ -779,7 +806,9 @@ private:
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   double planning_time_;
   std::string planner_id_;
-  double goal_tolerance_;
+  double goal_joint_tolerance_;
+  double goal_position_tolerance_;
+  double goal_orientation_tolerance_;
   bool can_look_;
   bool can_replan_;
   double replan_delay_;
@@ -1204,14 +1233,41 @@ const std::string& MoveGroup::getPoseReferenceFrame() const
   return impl_->getPoseReferenceFrame();
 }
 
-double MoveGroup::getGoalTolerance() const
-{
-  return impl_->getGoalTolerance();
+double MoveGroup::getGoalJointTolerance() const
+{  
+  return impl_->getGoalJointTolerance();
+}
+
+double MoveGroup::getGoalPositionTolerance() const
+{  
+  return impl_->getGoalPositionTolerance();   
+}
+
+double MoveGroup::getGoalOrientationTolerance() const
+{  
+  return impl_->getGoalOrientationTolerance();
 }
 
 void MoveGroup::setGoalTolerance(double tolerance)
 {
-  impl_->setGoalTolerance(tolerance);
+  setGoalJointTolerance(tolerance);
+  setGoalPositionTolerance(tolerance);
+  setGoalOrientationTolerance(tolerance);
+}
+
+void MoveGroup::setGoalJointTolerance(double tolerance)
+{ 
+  impl_->setGoalJointTolerance(tolerance);
+}
+
+void MoveGroup::setGoalPositionTolerance(double tolerance)
+{ 
+  impl_->setGoalPositionTolerance(tolerance);
+}
+
+void MoveGroup::setGoalOrientationTolerance(double tolerance)
+{ 
+  impl_->setGoalOrientationTolerance(tolerance);
 }
 
 void MoveGroup::rememberJointValues(const std::string &name)
