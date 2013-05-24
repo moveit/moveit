@@ -219,6 +219,18 @@ public:
     return is_valid_;
   }
   
+  /** \brief Check if the sampler is set to verbose mode */
+  bool getVerbose() const
+  {
+    return verbose_;
+  }
+  
+  /** \brief Enable/disable verbose mode for sampler */
+  void setVerbose(bool flag)
+  {
+    verbose_ = flag;
+  }
+  
 protected:
   
   /** 
@@ -227,12 +239,13 @@ protected:
    */
   virtual void clear();
 
-  bool                                     is_valid_;  /**< \brief  Holds the value for validity */
+  bool                                  is_valid_;  /**< \brief  Holds the value for validity */
 
-  planning_scene::PlanningSceneConstPtr    scene_; /**< \brief Holds the planning scene */
-  const robot_model::JointModelGroup  *jmg_; /**< \brief Holds the joint model group associated with this constraint */
-  std::vector<std::string>                 frame_depends_; /**< \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
-  robot_state::StateValidityCallbackFn state_validity_callback_; /**< \brief Holds the callback for state validity */
+  planning_scene::PlanningSceneConstPtr scene_; /**< \brief Holds the planning scene */
+  const robot_model::JointModelGroup   *jmg_; /**< \brief Holds the joint model group associated with this constraint */
+  std::vector<std::string>              frame_depends_; /**< \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
+  robot_state::StateValidityCallbackFn  state_validity_callback_; /**< \brief Holds the callback for state validity */
+  bool                                  verbose_; /**< \brief True if verbosity is on */
 };
 
 typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr; /**< \brief boost shared_ptr to a ConstraintSampler */
