@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,37 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
-#define MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
+#include <moveit/transforms/transforms.h>
+#include <urdf_parser/urdf_parser.h>
+#include <fstream>
+#include <gtest/gtest.h>
 
-#include <moveit_msgs/RobotTrajectory.h>
-
-namespace trajectory_processing
+TEST(Transforms, Simple)
 {
+  robot_state::Transforms tf("global");
 
-bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory);
-std::size_t trajectoryWaypointCount(const moveit_msgs::RobotTrajectory &trajectory);
+  Eigen::Affine3d t1;
+  t1.setIdentity();
+  t1.translation() = Eigen::Vector3d(10.0, 1.0, 0.0);
+  tf.setTransform(t1, "some_frame_1");
 
+  Eigen::Affine3d t2(Eigen::Translation3d(10.0, 1.0, 0.0) * Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitY()));
+  tf.setTransform(t2, "some_frame_2");
+
+  Eigen::Affine3d t3;
+  t3.setIdentity();
+  t3.translation() = Eigen::Vector3d(0.0, 1.0, -1.0);
+  tf.setTransform(t3, "some_frame_3");
+
+
+  EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
+  EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
+  EXPECT_TRUE(tf.isFixedFrame("global"));
 }
 
-#endif
 
+int main(int argc, char **argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

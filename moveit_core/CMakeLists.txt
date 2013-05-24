@@ -39,6 +39,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     kinematics_base/include
     kinematics_metrics/include
     robot_model/include
+    transforms/include
     robot_state/include
     robot_trajectory/include
     kinematic_constraints/include
@@ -58,6 +59,7 @@ catkin_package(
   LIBRARIES
     moveit_kinematics_base
     moveit_robot_model
+    moveit_transforms
     moveit_robot_state
     moveit_robot_trajectory
     moveit_planning_interface
@@ -117,6 +119,7 @@ add_subdirectory(kinematics_base)
 add_subdirectory(controller_manager)
 add_subdirectory(sensor_manager)
 add_subdirectory(robot_model)
+add_subdirectory(transforms)
 add_subdirectory(robot_state)
 add_subdirectory(robot_trajectory)
 add_subdirectory(collision_detection)

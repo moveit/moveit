@@ -41,6 +41,10 @@
 namespace robot_state
 {
 
+// ********************************************
+// * Internal (hidden) functions
+// ********************************************
+
 namespace
 {
 
@@ -299,17 +303,20 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
         if (aco.object.header.frame_id != aco.link_name)
         {
           Eigen::Affine3d t0;
-          if (tf)
-            t0 = tf->getTransform(state, aco.object.header.frame_id);
+          if (state.knowsFrameTransform(aco.object.header.frame_id))
+            t0 = state.getFrameTransform(aco.object.header.frame_id);
           else
-          {
-            t0.setIdentity();
-            logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect", aco.object.header.frame_id.c_str());
-          }
+            if (tf && tf->canTransform(aco.object.header.frame_id))
+              t0 = tf->getTransform(aco.object.header.frame_id);
+            else
+            {
+              t0.setIdentity();
+              logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect", aco.object.header.frame_id.c_str());
+            }
           Eigen::Affine3d t = ls->getGlobalLinkTransform().inverse() * t0;
           for (std::size_t i = 0 ; i < poses.size() ; ++i)
             poses[i] = t * poses[i];
-        }        
+        }
         
         if (shapes.empty())
           logError("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(), aco.object.id.c_str());
@@ -371,26 +378,33 @@ static bool robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_m
 }
 
 }
-}
 
-bool robot_state::jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state)
+// ********************************************
+
+
+
+// ********************************************
+// * Exposed functions
+// ********************************************
+
+bool jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state)
 {
   bool result = jointStateToRobotState(joint_state, state, NULL);
   state.updateLinkTransforms();
   return result;
 }
 
-bool robot_state::robotStateMsgToRobotState(const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
+bool robotStateMsgToRobotState(const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
 {
   return robotStateMsgToRobotStateHelper(NULL, robot_state, state, copy_attached_bodies);
 }
 
-bool robot_state::robotStateMsgToRobotState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
+bool robotStateMsgToRobotState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
 {
   return robotStateMsgToRobotStateHelper(&tf, robot_state, state, copy_attached_bodies);
 }
 
-void robot_state::robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies)
+void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies)
 {
   robotStateToJointStateMsg(state, robot_state.joint_state);
   robotStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
@@ -404,7 +418,7 @@ void robot_state::robotStateToRobotStateMsg(const RobotState& state, moveit_msgs
   }
 }
 
-void robot_state::robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState &joint_state)
+void robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState &joint_state)
 {
   const std::vector<JointState*> &js = state.getJointStateVector();
   joint_state = sensor_msgs::JointState();
@@ -425,3 +439,4 @@ void robot_state::robotStateToJointStateMsg(const RobotState& state, sensor_msgs
   joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
 }
 
+}
