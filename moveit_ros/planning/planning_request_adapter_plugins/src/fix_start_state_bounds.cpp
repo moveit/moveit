@@ -83,7 +83,7 @@ public:
     
     // get the specified start state
     robot_state::RobotState start_state = planning_scene->getCurrentState();
-    robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
 
     const std::vector<robot_state::JointState*> &jstates = 
       planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ? 

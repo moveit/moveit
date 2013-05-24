@@ -99,8 +99,8 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
   // evaluate constraints
   if (!kinematic_constraints::isEmpty(req.constraints))
   {
-    kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel(), ls->getTransforms());
-    kset.add(req.constraints); 
+    kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel());
+    kset.add(req.constraints, ls->getTransforms());
     std::vector<kinematic_constraints::ConstraintEvaluationResult> kres;
     kinematic_constraints::ConstraintEvaluationResult total_result = kset.decide(rs, kres);
     if (!total_result.satisfied)

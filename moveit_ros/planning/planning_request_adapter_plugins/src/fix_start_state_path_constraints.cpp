@@ -64,7 +64,7 @@ public:
     
     // get the specified start state
     robot_state::RobotState start_state = planning_scene->getCurrentState();
-    robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
     
     // if the start state is otherwise valid but does not meet path constraints
     if (planning_scene->isStateValid(start_state, req.group_name) && 

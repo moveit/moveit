@@ -469,7 +469,7 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     // \todo add more!
     manipulation_msgs::Grasp g;
     g.grasp_pose.header.frame_id = goal.target_name;
-    g.grasp_pose.pose.position.x = 0.0;
+    g.grasp_pose.pose.position.x = -0.2;
     g.grasp_pose.pose.position.y = 0.0;
     g.grasp_pose.pose.position.z = 0.0;
     g.grasp_pose.pose.orientation.x = 0.0;

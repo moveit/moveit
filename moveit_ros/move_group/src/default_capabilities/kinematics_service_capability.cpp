@@ -144,8 +144,8 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
   if (req.ik_request.avoid_collisions || !kinematic_constraints::isEmpty(req.ik_request.constraints))
   {
     planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
-    kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel(), ls->getTransforms());
-    kset.add(req.ik_request.constraints);
+    kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel());
+    kset.add(req.ik_request.constraints, ls->getTransforms());
     computeIK(req.ik_request, res.solution, res.error_code, boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
                                                                         static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() : NULL, kset.empty() ? NULL : &kset, _1, _2));
   }

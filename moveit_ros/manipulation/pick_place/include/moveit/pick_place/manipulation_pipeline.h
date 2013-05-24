@@ -74,8 +74,10 @@ public:
   const ManipulationStagePtr& getLastStage() const;
   void reset();
   
+  void setVerbose(bool flag);
+  
   void signalStop();
-  void start();  
+  void start();
   void stop();  
   
   void push(const ManipulationPlanPtr &grasp);
@@ -90,13 +92,16 @@ public:
   {
     return failed_;
   }
-  
+
+  void reprocessLastFailure();
+
 protected:
   
   void processingThread(unsigned int index);
   
-  std::string name_;  
+  std::string name_;
   unsigned int nthreads_;
+  bool verbose_;  
   std::vector<ManipulationStagePtr> stages_;
   
   std::deque<ManipulationPlanPtr> queue_;

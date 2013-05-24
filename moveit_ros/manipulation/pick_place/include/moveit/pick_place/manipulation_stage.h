@@ -49,7 +49,8 @@ public:
   
   ManipulationStage(const std::string &name) :
     name_(name),
-    signal_stop_(false)
+    signal_stop_(false),
+    verbose_(false)
   {
   }
   
@@ -60,6 +61,11 @@ public:
   const std::string& getName() const
   {
     return name_;
+  }
+  
+  void setVerbose(bool flag)
+  {
+    verbose_ = flag;
   }
   
   virtual void resetStopSignal()
@@ -78,6 +84,7 @@ protected:
   
   std::string name_;
   bool signal_stop_;
+  bool verbose_;
 };
 
 typedef boost::shared_ptr<ManipulationStage> ManipulationStagePtr;

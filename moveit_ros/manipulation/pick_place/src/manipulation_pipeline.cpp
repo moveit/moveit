@@ -43,6 +43,7 @@ namespace pick_place
 ManipulationPipeline::ManipulationPipeline(const std::string &name, unsigned int nthreads) :
   name_(name),
   nthreads_(nthreads),
+  verbose_(false),
   stop_processing_(true)
 {
   processing_threads_.resize(nthreads, NULL);
@@ -55,6 +56,7 @@ ManipulationPipeline::~ManipulationPipeline()
 
 ManipulationPipeline& ManipulationPipeline::addStage(const ManipulationStagePtr &next)
 {
+  next->setVerbose(verbose_);
   stages_.push_back(next);
   return *this;
 } 
@@ -85,6 +87,13 @@ void ManipulationPipeline::reset()
 {
   clear();
   stages_.clear();
+}
+
+void ManipulationPipeline::setVerbose(bool flag)
+{
+  verbose_ = flag;
+  for (std::size_t i = 0 ; i < stages_.size() ; ++i)
+    stages_[i]->setVerbose(flag);
 }
 
 void ManipulationPipeline::clear()
@@ -207,6 +216,19 @@ void ManipulationPipeline::push(const ManipulationPlanPtr &plan)
   boost::mutex::scoped_lock slock(queue_access_lock_);
   queue_.push_back(plan);
   ROS_INFO_STREAM("Added plan for pipeline '" << name_ << "'. Queue is now of size " << queue_.size());
+  queue_access_cond_.notify_all();
+}
+
+void ManipulationPipeline::reprocessLastFailure()
+{
+  boost::mutex::scoped_lock slock(queue_access_lock_);
+  if (failed_.empty())
+    return;
+  ManipulationPlanPtr plan = failed_.back();
+  failed_.pop_back();
+  plan->clear();
+  queue_.push_back(plan);
+  ROS_INFO_STREAM("Re-added last failed plan for pipeline '" << name_ << "'. Queue is now of size " << queue_.size());
   queue_access_cond_.notify_all();
 }
 

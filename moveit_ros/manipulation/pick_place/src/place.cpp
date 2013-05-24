@@ -224,7 +224,21 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     if (last_plan_time_ > timeout)
       error_code_.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
     else
+    {
       error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+      if (goal.place_locations.size() > 0)
+      {
+        ROS_WARN("All supplied place locations failed. Retrying last location in verbose mode.");
+        // everything failed. we now start the pipeline again in verbose mode for one grasp
+        initialize();
+        pipeline_.setVerbose(true);
+        pipeline_.start();
+        pipeline_.reprocessLastFailure();
+        waitForPipeline(ros::WallTime::now() + ros::WallDuration(1.0));
+        pipeline_.stop();
+        pipeline_.setVerbose(false);
+      }
+    }
   }
   ROS_INFO("Place completed after %lf seconds", last_plan_time_);
   
