@@ -70,6 +70,7 @@ bool SRDFWriter::initString( const urdf::ModelInterface &robot_model, const std:
 
   // Copy all read-only data from srdf model to this object
   disabled_collisions_ = srdf_model_->getDisabledCollisionPairs();
+  link_sphere_approximations_ = srdf_model_->getLinkSphereApproximations();
   groups_ = srdf_model_->getGroups();
   virtual_joints_ = srdf_model_->getVirtualJoints();
   end_effectors_ = srdf_model_->getEndEffectors();
@@ -160,6 +161,9 @@ TiXmlDocument SRDFWriter::generateSRDF()
   // Add Passive Joints
   createPassiveJointsXML( robot_root );  
 
+  // Add Link Sphere approximations
+  createLinkSphereApproximationsXML( robot_root );
+
   // Add Disabled Collisions
   createDisabledCollisionsXML( robot_root );
 
@@ -235,6 +239,46 @@ void SRDFWriter::createGroupsXML( TiXmlElement *root )
       group->LinkEndChild( subgroup );
     }
            
+  }
+}
+
+// ******************************************************************************************
+// Generate XML for SRDF link collision spheres
+// ******************************************************************************************
+void SRDFWriter::createLinkSphereApproximationsXML( TiXmlElement *root )
+{
+  if( link_sphere_approximations_.empty() ) // skip it if there are none
+    return;
+
+  // Convenience comments
+  TiXmlComment *comment = new TiXmlComment();
+  comment->SetValue( "COLLISION SPHERES: Purpose: Define a set of spheres that bounds a link." );
+  root->LinkEndChild( comment );  
+
+
+  for ( std::vector<srdf::Model::LinkSpheres>::const_iterator link_sphere_it = link_sphere_approximations_.begin();
+        link_sphere_it != link_sphere_approximations_.end() ; ++link_sphere_it)
+  {
+    if (link_sphere_it->spheres_.empty())  // skip if no spheres for this link
+      continue;
+
+    // Create new element for the link
+    TiXmlElement *link = new TiXmlElement("link_sphere_approximation");
+    link->SetAttribute("link", link_sphere_it->link_);
+    root->LinkEndChild( link );
+
+    // Add all spheres for the link
+    for( std::vector<srdf::Model::Sphere>::const_iterator sphere_it = link_sphere_it->spheres_.begin();
+         sphere_it != link_sphere_it->spheres_.end(); ++sphere_it )
+    {
+      TiXmlElement *sphere = new TiXmlElement("sphere");
+      std::stringstream center;
+      center.precision(20);
+      center << sphere_it->center_x_ << " " << sphere_it->center_y_ << " " << sphere_it->center_z_;
+      sphere->SetAttribute("center", center.str() );
+      sphere->SetDoubleAttribute("radius", sphere_it->radius_ );
+      link->LinkEndChild( sphere );
+    }
   }
 }
 
