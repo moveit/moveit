@@ -166,7 +166,7 @@ void robot_model::RobotModel::buildModel(const boost::shared_ptr<const urdf::Mod
     const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
     if (root_link_ptr)
     {
-      model_frame_ = root_link;
+      model_frame_ = '/' + root_link;
 
       std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map;
       std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map;
@@ -800,7 +800,7 @@ robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf
         {
           // for fixed frames we still use the robot root link
           if (vjoints[i].type_ != "fixed")
-            model_frame_ = vjoints[i].parent_frame_;
+            model_frame_ = '/' + vjoints[i].parent_frame_;
           break;
         }
       }

@@ -81,9 +81,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+    robot_state::Transforms tf(kmodel->getModelFrame());
 
-    kinematic_constraints::JointConstraint jc(kmodel, tf);
+    kinematic_constraints::JointConstraint jc(kmodel);
     moveit_msgs::JointConstraint jcm;
     jcm.joint_name = "head_pan_joint";
     jcm.position = 0.4;
@@ -153,7 +153,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     EXPECT_FALSE(jc.decide(ks).satisfied);
  
     //testing equality
-    kinematic_constraints::JointConstraint jc2(kmodel, tf);
+    kinematic_constraints::JointConstraint jc2(kmodel);
     EXPECT_TRUE(jc2.configure(jcm));
     EXPECT_TRUE(jc2.enabled());
     EXPECT_TRUE(jc.equal(jc2, 1e-12));
@@ -196,9 +196,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+    robot_state::Transforms tf(kmodel->getModelFrame());
 
-    kinematic_constraints::JointConstraint jc(kmodel, tf);
+    kinematic_constraints::JointConstraint jc(kmodel);
     moveit_msgs::JointConstraint jcm;
 
     jcm.joint_name = "l_wrist_roll_joint";
@@ -315,7 +315,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
     //should wrap to close and test to be near
     moveit_msgs::JointConstraint jcm2 = jcm;    
     jcm2.position = -6.28;
-    kinematic_constraints::JointConstraint jc2(kmodel, tf);
+    kinematic_constraints::JointConstraint jc2(kmodel);
     EXPECT_TRUE(jc.configure(jcm2));
     jc.equal(jc2, .02);
 
@@ -325,9 +325,8 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
 
-    kinematic_constraints::JointConstraint jc(kmodel, tf);
+    kinematic_constraints::JointConstraint jc(kmodel);
     moveit_msgs::JointConstraint jcm;
     jcm.joint_name = "world_joint";
     jcm.position = 3.14;
@@ -377,13 +376,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+    robot_state::Transforms tf(kmodel->getModelFrame());
 
-    kinematic_constraints::PositionConstraint pc(kmodel, tf);
+    kinematic_constraints::PositionConstraint pc(kmodel);
     moveit_msgs::PositionConstraint pcm;
 
     //empty certainly means false
-    EXPECT_FALSE(pc.configure(pcm));    
+    EXPECT_FALSE(pc.configure(pcm, tf));
 
     pcm.link_name = "l_wrist_roll_link";
     pcm.target_point_offset.x = 0;
@@ -393,13 +392,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
 
     //no dimensions, so no valid regions
-    EXPECT_FALSE(pc.configure(pcm));
+    EXPECT_FALSE(pc.configure(pcm, tf));
 
     pcm.constraint_region.primitives[0].dimensions.resize(1);
     pcm.constraint_region.primitives[0].dimensions[0] = 0.2;
 
     //no pose, so no valid region
-    EXPECT_FALSE(pc.configure(pcm));
+    EXPECT_FALSE(pc.configure(pcm, tf));
 
     pcm.constraint_region.primitive_poses.resize(1);
     pcm.constraint_region.primitive_poses[0].position.x = 0.55;
@@ -412,10 +411,10 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.weight = 1.0;
 
     //intentionally leaving header frame blank to test behavior
-    EXPECT_FALSE(pc.configure(pcm));
+    EXPECT_FALSE(pc.configure(pcm, tf));
 
     pcm.header.frame_id = kmodel->getModelFrame();
-    EXPECT_TRUE(pc.configure(pcm));
+    EXPECT_TRUE(pc.configure(pcm, tf));
     EXPECT_FALSE(pc.mobileReferenceFrame());
 
     EXPECT_TRUE(pc.decide(ks).satisfied);
@@ -431,7 +430,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = .15;
 
-    EXPECT_TRUE(pc.configure(pcm));    
+    EXPECT_TRUE(pc.configure(pcm, tf));    
     EXPECT_TRUE(pc.hasLinkOffset());
     EXPECT_TRUE(pc.decide(ks).satisfied); 
 
@@ -444,7 +443,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
     pcm.constraint_region.primitive_poses[0].orientation.w = 0.0;
 
-    EXPECT_TRUE(pc.configure(pcm));
+    EXPECT_TRUE(pc.configure(pcm, tf));
     EXPECT_TRUE(pc.decide(ks).satisfied); 
 }
 
@@ -452,9 +451,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+    robot_state::Transforms tf(kmodel->getModelFrame());
 
-    kinematic_constraints::PositionConstraint pc(kmodel, tf);
+    kinematic_constraints::PositionConstraint pc(kmodel);
     moveit_msgs::PositionConstraint pcm;
 
     pcm.link_name = "l_wrist_roll_link";
@@ -479,8 +478,8 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
     pcm.weight = 1.0;
 
-    EXPECT_FALSE(tf->isFixedFrame(pcm.link_name));
-    EXPECT_TRUE(pc.configure(pcm));
+    EXPECT_FALSE(tf.isFixedFrame(pcm.link_name));
+    EXPECT_TRUE(pc.configure(pcm, tf));
     EXPECT_TRUE(pc.mobileReferenceFrame());
 
     EXPECT_TRUE(pc.decide(ks).satisfied);
@@ -490,7 +489,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.1;
     pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.1;
     pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1;
-    EXPECT_TRUE(pc.configure(pcm));
+    EXPECT_TRUE(pc.configure(pcm, tf));
 
     std::map<std::string, double> jvals;
     jvals["l_shoulder_pan_joint"] = 0.4;
@@ -518,7 +517,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.1;
     pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.1;
     pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1;
-    EXPECT_TRUE(pc.configure(pcm));
+    EXPECT_TRUE(pc.configure(pcm, tf));
     EXPECT_TRUE(pc.decide(ks, false).satisfied);
 }
 
@@ -526,10 +525,10 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+    robot_state::Transforms tf(kmodel->getModelFrame());
 
-    kinematic_constraints::PositionConstraint pc(kmodel, tf);
-    kinematic_constraints::PositionConstraint pc2(kmodel, tf);
+    kinematic_constraints::PositionConstraint pc(kmodel);
+    kinematic_constraints::PositionConstraint pc2(kmodel);
     moveit_msgs::PositionConstraint pcm;
 
     pcm.link_name = "l_wrist_roll_link";
@@ -559,8 +558,8 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
     pcm.constraint_region.primitive_poses[1].orientation.w = 1.0;
     pcm.weight = 1.0;
 
-    EXPECT_TRUE(pc.configure(pcm));
-    EXPECT_TRUE(pc2.configure(pcm));
+    EXPECT_TRUE(pc.configure(pcm, tf));
+    EXPECT_TRUE(pc2.configure(pcm, tf));
 
     EXPECT_TRUE(pc.equal(pc2, .001));
     EXPECT_TRUE(pc2.equal(pc, .001));
@@ -573,13 +572,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
     pcm2.constraint_region.primitive_poses[0] = pcm.constraint_region.primitive_poses[1];
     pcm2.constraint_region.primitive_poses[1] = pcm.constraint_region.primitive_poses[0];
 
-    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_TRUE(pc2.configure(pcm2, tf));
     EXPECT_TRUE(pc.equal(pc2, .001));
     EXPECT_TRUE(pc2.equal(pc, .001));
 
     //messing with one value breaks it
     pcm2.constraint_region.primitive_poses[0].position.z = .01;
-    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_TRUE(pc2.configure(pcm2, tf));
     EXPECT_FALSE(pc.equal(pc2, .001));
     EXPECT_FALSE(pc2.equal(pc, .001));
     EXPECT_TRUE(pc.equal(pc2, .1));
@@ -591,20 +590,20 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
     pcm2.constraint_region.primitive_poses.resize(3);
     pcm2.constraint_region.primitives[2] = pcm2.constraint_region.primitives[0];
     pcm2.constraint_region.primitive_poses[2] = pcm2.constraint_region.primitive_poses[0];
-    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_TRUE(pc2.configure(pcm2, tf));
     EXPECT_TRUE(pc.equal(pc2, .001));
     EXPECT_TRUE(pc2.equal(pc, .001));
 
     //but if we change it, it's not
     pcm2.constraint_region.primitives[2].dimensions[0] = 3.0;
-    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_TRUE(pc2.configure(pcm2, tf));
     EXPECT_FALSE(pc.equal(pc2, .001));
     EXPECT_FALSE(pc2.equal(pc, .001));
 
     //changing the shape also changes it
     pcm2.constraint_region.primitives[2].dimensions[0] = pcm2.constraint_region.primitives[0].dimensions[0];
     pcm2.constraint_region.primitives[2].type = shape_msgs::SolidPrimitive::SPHERE;
-    EXPECT_TRUE(pc2.configure(pcm2));
+    EXPECT_TRUE(pc2.configure(pcm2, tf));
     EXPECT_FALSE(pc.equal(pc2, .001));
 }
 
@@ -613,17 +612,17 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+    robot_state::Transforms tf(kmodel->getModelFrame());
 
-    kinematic_constraints::OrientationConstraint oc(kmodel, tf);
+    kinematic_constraints::OrientationConstraint oc(kmodel);
     moveit_msgs::OrientationConstraint ocm;
 
-    EXPECT_FALSE(oc.configure(ocm));
+    EXPECT_FALSE(oc.configure(ocm, tf));
     
     ocm.link_name = "r_wrist_roll_link";
 
     //all we currently have to specify is the link name to get a valid constraint
-    EXPECT_TRUE(oc.configure(ocm));    
+    EXPECT_TRUE(oc.configure(ocm, tf));    
 
     ocm.header.frame_id = kmodel->getModelFrame();
     ocm.orientation.x = 0.0;
@@ -635,13 +634,13 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     ocm.absolute_z_axis_tolerance = 0.1;
     ocm.weight = 1.0;
 
-    EXPECT_TRUE(oc.configure(ocm));
+    EXPECT_TRUE(oc.configure(ocm, tf));
     EXPECT_FALSE(oc.mobileReferenceFrame());
     
     EXPECT_FALSE(oc.decide(ks).satisfied);
 
     ocm.header.frame_id = ocm.link_name;
-    EXPECT_TRUE(oc.configure(ocm));
+    EXPECT_TRUE(oc.configure(ocm, tf));
     EXPECT_TRUE(oc.decide(ks).satisfied);  
     EXPECT_TRUE(oc.equal(oc, 1e-12));
     EXPECT_TRUE(oc.mobileReferenceFrame());
@@ -653,7 +652,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
     ocm.orientation = p.orientation;
     ocm.header.frame_id = kmodel->getModelFrame();
-    EXPECT_TRUE(oc.configure(ocm));
+    EXPECT_TRUE(oc.configure(ocm, tf));
     EXPECT_TRUE(oc.decide(ks).satisfied);  
 
     std::map<std::string, double> jvals;
@@ -670,12 +669,12 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
-    robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+    robot_state::Transforms tf(kmodel->getModelFrame());
 
-    kinematic_constraints::VisibilityConstraint vc(kmodel, tf);
+    kinematic_constraints::VisibilityConstraint vc(kmodel);
     moveit_msgs::VisibilityConstraint vcm;
 
-    EXPECT_FALSE(vc.configure(vcm));
+    EXPECT_FALSE(vc.configure(vcm, tf));
 
     vcm.sensor_pose.header.frame_id = "base_footprint";
     vcm.sensor_pose.pose.position.z = -1.0;
@@ -693,26 +692,26 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
     vcm.sensor_view_direction = moveit_msgs::VisibilityConstraint::SENSOR_Z;
     vcm.weight = 1.0;
 
-    EXPECT_TRUE(vc.configure(vcm));
+    EXPECT_TRUE(vc.configure(vcm, tf));
     //sensor and target are perfectly lined up
     EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
     vcm.max_view_angle = .1;
 
     //true, even with view angle
-    EXPECT_TRUE(vc.configure(vcm));
+    EXPECT_TRUE(vc.configure(vcm, tf));
     EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
     //very slight angle, so still ok
     vcm.target_pose.pose.orientation.y = 0.03;
     vcm.target_pose.pose.orientation.w = .9995;
-    EXPECT_TRUE(vc.configure(vcm));
+    EXPECT_TRUE(vc.configure(vcm, tf));
     EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
     //a little bit more puts it over
     vcm.target_pose.pose.orientation.y = 0.06;
     vcm.target_pose.pose.orientation.w = .9981;
-    EXPECT_TRUE(vc.configure(vcm));
+    EXPECT_TRUE(vc.configure(vcm, tf));
     EXPECT_FALSE(vc.decide(ks, true).satisfied);
 }
 
@@ -721,9 +720,9 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
 
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+  robot_state::Transforms tf(kmodel->getModelFrame());
   
-  kinematic_constraints::VisibilityConstraint vc(kmodel, tf);
+  kinematic_constraints::VisibilityConstraint vc(kmodel);
   moveit_msgs::VisibilityConstraint vcm;
 
   vcm.sensor_pose.header.frame_id = "narrow_stereo_optical_frame";
@@ -741,12 +740,12 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
   vcm.weight = 1.0;
 
   //false because target radius is 0.0
-  EXPECT_FALSE(vc.configure(vcm));
+  EXPECT_FALSE(vc.configure(vcm, tf));
 
 
   //this is all fine
   vcm.target_radius = .05;
-  EXPECT_TRUE(vc.configure(vcm));
+  EXPECT_TRUE(vc.configure(vcm, tf));
   EXPECT_TRUE(vc.decide(ks, true).satisfied);  
 
 
@@ -780,12 +779,12 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
   vcm.target_radius = .01;
   vcm.target_pose.pose.position.z = 0.00;
   vcm.target_pose.pose.position.x = 0.035;
-  EXPECT_TRUE(vc.configure(vcm));
+  EXPECT_TRUE(vc.configure(vcm, tf));
   EXPECT_TRUE(vc.decide(ks, true).satisfied);  
  
   //larger target means it also hits finger
   vcm.target_radius = .05;
-  EXPECT_TRUE(vc.configure(vcm));
+  EXPECT_TRUE(vc.configure(vcm, tf));
   EXPECT_FALSE(vc.decide(ks, true).satisfied);  
 }
 
@@ -793,9 +792,9 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+  robot_state::Transforms tf(kmodel->getModelFrame());
 
-  kinematic_constraints::KinematicConstraintSet kcs(kmodel, tf);
+  kinematic_constraints::KinematicConstraintSet kcs(kmodel);
   EXPECT_TRUE(kcs.empty());
 
   moveit_msgs::JointConstraint jcm;
@@ -858,10 +857,10 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSetEquality)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
-  robot_state::TransformsPtr tf(new robot_state::Transforms(kmodel->getModelFrame()));
+  robot_state::Transforms tf(kmodel->getModelFrame());
 
-  kinematic_constraints::KinematicConstraintSet kcs(kmodel, tf);
-  kinematic_constraints::KinematicConstraintSet kcs2(kmodel, tf);
+  kinematic_constraints::KinematicConstraintSet kcs(kmodel);
+  kinematic_constraints::KinematicConstraintSet kcs2(kmodel);
 
   moveit_msgs::JointConstraint jcm;
   jcm.joint_name = "head_pan_joint";
@@ -900,10 +899,10 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSetEquality)
 
   std::vector<moveit_msgs::PositionConstraint> pcv;
   pcv.push_back(pcm);
-  EXPECT_TRUE(kcs.add(pcv));
+  EXPECT_TRUE(kcs.add(pcv, tf));
 
   //now adding in reverse order
-  EXPECT_TRUE(kcs2.add(pcv));
+  EXPECT_TRUE(kcs2.add(pcv, tf));
   EXPECT_TRUE(kcs2.add(jcv));
 
   //should be true
