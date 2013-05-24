@@ -985,18 +985,18 @@ void planning_scene_monitor::PlanningSceneMonitor::setPlanningScenePublishingFre
   ROS_DEBUG("Maximum frquency for publishing a planning scene is now %lf Hz", publish_planning_scene_frequency_);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms)
+void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped> &transforms)
 {
-  const std::string &target = kmodel->getModelFrame();
+  const std::string &target = scene_->getPlanningFrame();
   
   std::vector<std::string> all_frame_names;
   tf_->getFrameStrings(all_frame_names);
   for (std::size_t i = 0 ; i < all_frame_names.size() ; ++i)
   {
-    if (!all_frame_names[i].empty() && all_frame_names[i][0] == '/')
-      all_frame_names[i].erase(all_frame_names[i].begin());
+    const std::string &frame_no_slash = (!all_frame_names[i].empty() && all_frame_names[i][0] == '/') ? all_frame_names[i].substr(1) : all_frame_names[i];
+    const std::string &frame_with_slash = (!all_frame_names[i].empty() && all_frame_names[i][0] != '/') ? '/' + all_frame_names[i] : all_frame_names[i];
     
-    if (all_frame_names[i] == target || kmodel->hasLinkModel(all_frame_names[i]))
+    if (frame_with_slash == target || getRobotModel()->hasLinkModel(frame_no_slash))
       continue;
     
     ros::Time stamp(0);
@@ -1020,7 +1020,7 @@ void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(con
       continue;
     }
     geometry_msgs::TransformStamped f;
-    f.header.frame_id = all_frame_names[i];
+    f.header.frame_id = frame_with_slash;
     f.child_frame_id = target;
     f.transform.translation.x = t.getOrigin().x();
     f.transform.translation.y = t.getOrigin().y();
@@ -1042,10 +1042,10 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
   if (scene_)
   {
     std::vector<geometry_msgs::TransformStamped> transforms;
-    getUpdatedFrameTransforms(scene_->getRobotModel(), transforms);
+    getUpdatedFrameTransforms(transforms);
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
-      scene_->getTransformsNonConst()->setTransforms(transforms);
+      scene_->getTransformsNonConst().setTransforms(transforms);
       last_update_time_ = ros::Time::now();
     }
     triggerSceneUpdateEvent(UPDATE_TRANSFORMS);

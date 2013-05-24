@@ -98,7 +98,7 @@ public:
 
     // get the specified start state
     robot_state::RobotState start_state = planning_scene->getCurrentState();
-    robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
+    robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
 
     collision_detection::CollisionRequest creq;
     creq.group_name = req.group_name;

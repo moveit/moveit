@@ -76,7 +76,7 @@ private:
     max_step_ = config.cartesian_motion_step_size;
     jump_factor_ = config.jump_factor;
   }
-  
+
   dynamic_reconfigure::Server<PickPlaceDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
@@ -100,6 +100,7 @@ namespace
 
 bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
                           const collision_detection::AllowedCollisionMatrix *collision_matrix,
+                          bool verbose,
                           const sensor_msgs::JointState *grasp_posture,
                           robot_state::JointStateGroup *joint_state_group,
                           const std::vector<double> &joint_group_variable_values)
@@ -109,6 +110,7 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   joint_state_group->getRobotState()->setStateValues(*grasp_posture);
 
   collision_detection::CollisionRequest req;
+  req.verbose = verbose;
   collision_detection::CollisionResult res;
   req.group_name = joint_state_group->getName();
   planning_scene->checkCollision(req, res, *joint_state_group->getRobotState(), *collision_matrix);
@@ -125,7 +127,7 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
   robot_state::JointStateGroup *jsg = token_state->getJointStateGroup(plan->shared_data_->planning_group_);
   for (unsigned int j = 0 ; j < attempts ; ++j)
   {
-    double min_d = std::numeric_limits<double>::infinity();
+    double min_d = std::numeric_limits<double>::infinity();  
     if (plan->goal_sampler_->sample(jsg, *token_state, plan->shared_data_->max_goal_sampling_attempts_))
     {
       for (std::size_t i = 0 ; i < plan->possible_goal_states_.size() ; ++i)
@@ -219,20 +221,22 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
   robot_state::StateValidityCallbackFn approach_validCallback = boost::bind(&isStateCollisionFree, planning_scene_.get(),
-                                                                            collision_matrix_.get(), &plan->approach_posture_, _1, _2);
+                                                                            collision_matrix_.get(), verbose_, &plan->approach_posture_, _1, _2);
+  plan->goal_sampler_->setVerbose(verbose_);
   std::size_t attempted_possible_goal_states = 0;
   do
   {
     for (std::size_t i = attempted_possible_goal_states ; i < plan->possible_goal_states_.size() && !signal_stop_ ; ++i, ++attempted_possible_goal_states)
     {
-      // if we are trying to get as close as possible to the goal
+      // if we are trying to get as close as possible to the goal (maximum one meter)
       if (plan->shared_data_->minimize_object_distance_)
-      {     
+      {
+        static const double MAX_CLOSE_UP_DIST = 1.0;
         robot_state::RobotStatePtr close_up_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
         std::vector<robot_state::RobotStatePtr> close_up_states;
         double d_close_up = close_up_state->getJointStateGroup(plan->shared_data_->planning_group_)->
           computeCartesianPath(close_up_states, plan->shared_data_->ik_link_name_,
-                               approach_direction, approach_direction_is_global_frame, std::numeric_limits<double>::infinity(),
+                               approach_direction, approach_direction_is_global_frame, MAX_CLOSE_UP_DIST,
                                max_step_, jump_factor_, approach_validCallback);
         ROS_ERROR("close up = %lf", d_close_up);
         // if progress towards the object was made, update the desired goal state
@@ -265,7 +269,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
 
           // state validity checking during the retreat after the grasp must ensure the gripper posture is that of the actual grasp
           robot_state::StateValidityCallbackFn retreat_validCallback = boost::bind(&isStateCollisionFree, planning_scene_after_approach.get(),
-                                                                                   collision_matrix_.get(), &plan->retreat_posture_, _1, _2);
+                                                                                   collision_matrix_.get(), verbose_, &plan->retreat_posture_, _1, _2);
 
           // try to compute a straight line path that moves from the goal in a desired direction
           robot_state::RobotStatePtr last_retreat_state(new robot_state::RobotState(planning_scene_after_approach->getCurrentState()));

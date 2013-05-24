@@ -63,6 +63,7 @@ bool ReachableAndValidPoseFilter::isStateCollisionFree(const ManipulationPlan *m
   
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
+  req.verbose = verbose_;
   req.group_name = manipulation_plan->shared_data_->planning_group_;
   planning_scene_->checkCollision(req, res, *joint_state_group->getRobotState(), *collision_matrix_);
   if (res.collision == false)
@@ -77,22 +78,11 @@ bool ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr &p
   plan->transformed_goal_pose_ = planning_scene_->getFrameTransform(token_state, plan->goal_pose_.header.frame_id) * plan->transformed_goal_pose_;
   token_state.updateStateWithLinkAt(plan->shared_data_->ik_link_name_, plan->transformed_goal_pose_);
   collision_detection::CollisionRequest req;
+  req.verbose = verbose_;
   collision_detection::CollisionResult res;
   req.group_name = plan->shared_data_->end_effector_group_;
   planning_scene_->checkCollision(req, res, token_state, *collision_matrix_);
   return res.collision == false;
-}
-namespace
-{
-bool sameFrames(const std::string& frame1, const std::string& frame2)
-{
-  // Remove preceeding '/' from frame names, eg /base_link
-  if (!frame1.empty() && frame1[0] == '/')
-    return sameFrames(frame1.substr(1), frame2);
-  if (!frame2.empty() && frame2[0] == '/')
-    return sameFrames(frame1, frame2.substr(1));
-  return frame1 == frame2;
-}
 }
 
 bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) const
@@ -104,7 +94,7 @@ bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) cons
     // update the goal pose message if anything has changed; this is because the name of the frame in the input goal pose
     // can be that of objects in the collision world but most components are unaware of those transforms,
     // so we convert to a frame that is certainly known 
-    if (sameFrames(planning_scene_->getPlanningFrame(), plan->goal_pose_.header.frame_id))
+    if (robot_state::Transforms::sameFrame(planning_scene_->getPlanningFrame(), plan->goal_pose_.header.frame_id))
     {
       tf::poseEigenToMsg(plan->transformed_goal_pose_, plan->goal_pose_.pose);
       plan->goal_pose_.header.frame_id = planning_scene_->getPlanningFrame();
@@ -121,11 +111,15 @@ bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) cons
     if (plan->goal_sampler_)
     {
       plan->goal_sampler_->setStateValidityCallback(boost::bind(&ReachableAndValidPoseFilter::isStateCollisionFree, this, plan.get(), _1, _2));
+      plan->goal_sampler_->setVerbose(verbose_);
       if (plan->goal_sampler_->sample(token_state->getJointStateGroup(planning_group), *token_state, plan->shared_data_->max_goal_sampling_attempts_))
       {
         plan->possible_goal_states_.push_back(token_state);
         return true;
       }
+      else
+        if (verbose_)
+          ROS_INFO("Sampler failed to produce a state");
     }
     else
       ROS_ERROR_THROTTLE(1, "No sampler was constructed");

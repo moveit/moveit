@@ -419,7 +419,7 @@ protected:
 
 private:
 
-  void getUpdatedFrameTransforms(const robot_model::RobotModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms); 
+  void getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped> &transforms); 
 
   void scenePublishingThread();
   

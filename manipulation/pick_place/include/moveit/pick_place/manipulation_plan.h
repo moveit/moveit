@@ -84,6 +84,16 @@ struct ManipulationPlan
   {
   }
   
+  /// Restore this plan to a state that makes it look like it never was processed by the manipulation pipeline
+  void clear()
+  {
+    goal_sampler_.reset();
+    trajectories_.clear();
+    approach_state_.reset();
+    possible_goal_states_.clear();
+    processing_stage_ = 0;
+  }
+  
   // Shared data between manipulation plans (set at initialization)
   ManipulationPlanSharedDataConstPtr shared_data_;
   

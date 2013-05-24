@@ -122,12 +122,13 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
           if (req.avoid_collisions || !kinematic_constraints::isEmpty(req.path_constraints))
           {
             ls.reset(new planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_));
-            kset.reset(new kinematic_constraints::KinematicConstraintSet((*ls)->getRobotModel(), (*ls)->getTransforms()));
-            kset->add(req.path_constraints); 
+            kset.reset(new kinematic_constraints::KinematicConstraintSet((*ls)->getRobotModel()));
+            kset->add(req.path_constraints, (*ls)->getTransforms()); 
             constraint_fn = boost::bind(&isStateValid, req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : NULL, kset->empty() ? NULL : kset.get(), _1, _2);
           }
 	  bool global_frame = link_name != req.header.frame_id;
-          ROS_INFO("Attempting to follow %u waypoints for link '%s' using a step of %lf m and jump threshold %lf (in %s reference frame)", (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold, global_frame ? "global" : "link");
+          ROS_INFO("Attempting to follow %u waypoints for link '%s' using a step of %lf m and jump threshold %lf (in %s reference frame)",
+                   (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold, global_frame ? "global" : "link");
           std::vector<boost::shared_ptr<robot_state::RobotState> > traj;
           res.fraction = jsg->computeCartesianPath(traj, link_name, waypoints, global_frame, req.max_step, req.jump_threshold, constraint_fn);
           robot_state::robotStateToRobotStateMsg(start_state, res.start_state);
