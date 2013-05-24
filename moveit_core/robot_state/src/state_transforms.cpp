@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2010, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,28 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
-#define MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
+#include <moveit/robot_state/state_transforms.h>
+#include <moveit/robot_state/robot_state.h>
 
-#include <moveit_msgs/RobotTrajectory.h>
-
-namespace trajectory_processing
+robot_state::StateTransforms::StateTransforms(const std::string &target_frame, const RobotStateConstPtr &state) : 
+  Transforms(target_frame),
+  state_(state)
 {
-
-bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory);
-std::size_t trajectoryWaypointCount(const moveit_msgs::RobotTrajectory &trajectory);
-
+  if (state_ && !sameFrame(state_->getRobotModel()->getModelFrame(), target_frame_))
+    logError("Target frame is assumed to be '%s' but the model of the robot state places the robot in frame '%s'",
+             target_frame_.c_str(), state_->getRobotModel()->getModelFrame().c_str());
 }
 
-#endif
+bool robot_state::StateTransforms::canTransform(const std::string &from_frame) const
+{
+  if (state_ && state_->knowsFrameTransform(from_frame))
+    return true;
+  return Transforms::canTransform(from_frame);
+}
 
+const Eigen::Affine3d& robot_state::StateTransforms::getTransform(const std::string &from_frame) const
+{
+  if (state_ && state_->knowsFrameTransform(from_frame))
+    return state_->getFrameTransform(from_frame);
+  return Transforms::getTransform(from_frame);
+}
