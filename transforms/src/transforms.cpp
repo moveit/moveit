@@ -153,7 +153,7 @@ void robot_state::Transforms::setTransforms(const std::vector<geometry_msgs::Tra
     setTransform(transforms[i]);
 }
 
-void robot_state::Transforms::getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const
+void robot_state::Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;

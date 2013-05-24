@@ -698,7 +698,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
   scene_msg.is_diff = true;
 
   if (ftf_)
-    ftf_->getTransforms(scene_msg.fixed_frame_transforms);
+    ftf_->copyTransforms(scene_msg.fixed_frame_transforms);
   else
     scene_msg.fixed_frame_transforms.clear();
 
@@ -897,7 +897,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   scene_msg.is_diff = false;
   scene_msg.robot_model_root = getRobotModel()->getRootLinkName();
   scene_msg.robot_model_name = getRobotModel()->getName();
-  getTransforms().getTransforms(scene_msg.fixed_frame_transforms);
+  getTransforms().copyTransforms(scene_msg.fixed_frame_transforms);
 
   robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state);
   getAllowedCollisionMatrix().getMessage(scene_msg.allowed_collision_matrix);
@@ -942,7 +942,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   }
 
   if (comp.components & moveit_msgs::PlanningSceneComponents::TRANSFORMS)
-    getTransforms().getTransforms(scene_msg.fixed_frame_transforms);
+    getTransforms().copyTransforms(scene_msg.fixed_frame_transforms);
 
   if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS)
     robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, true);

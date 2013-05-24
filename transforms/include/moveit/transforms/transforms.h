@@ -93,7 +93,7 @@ public:
    * @brief Get a vector of all the transforms as ROS messages
    * @param transforms The output transforms
    */
-  void getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const;
+  void copyTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const;
   
   /**
    * @brief Set a transform in the transform tree (adding it if necessary)
