@@ -112,6 +112,13 @@ public:
   void createGroupsXML( TiXmlElement *root );
 
   /** 
+   * Generate XML for SRDF link collision spheres
+   * 
+   * @param root  - TinyXML root element to attach sub elements to
+   */
+  void createLinkSphereApproximationsXML( TiXmlElement *root );
+
+  /** 
    * Generate XML for SRDF disabled collisions of robot link pairs
    * 
    * @param root  - TinyXML root element to attach sub elements to
@@ -154,11 +161,12 @@ public:
   std::vector<srdf::Model::GroupState>        group_states_;
   std::vector<srdf::Model::VirtualJoint>      virtual_joints_;
   std::vector<srdf::Model::EndEffector>       end_effectors_;
+  std::vector<srdf::Model::LinkSpheres>       link_sphere_approximations_;
   std::vector<srdf::Model::DisabledCollision> disabled_collisions_;
   std::vector<srdf::Model::PassiveJoint>      passive_joints_;
 
   // Store the SRDF Model for updating the kinematic_model
-  boost::shared_ptr<srdf::Model>              srdf_model_;
+  boost::shared_ptr<srdf::Model>                 srdf_model_;
 
   // Robot name
   std::string robot_name_;
