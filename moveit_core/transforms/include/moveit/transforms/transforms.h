@@ -172,15 +172,14 @@ public:
   /**@}*/
 
   /**
-   * @brief Check whether a particular frame is a fixed frame (not part of the robot model)
-   * @return True if the frame is fixed, false otherwise
-   */
-  virtual bool isFixedFrame(const std::string &frame) const;
-
-  /**
    * @brief Check whether data can be transformed from a particular frame
    */  
   virtual bool canTransform(const std::string &from_frame) const;
+
+  /**
+   * @brief Check whether a frame stays constant as the state of the robot model changes
+   */  
+  virtual bool isFixedFrame(const std::string &frame) const;
 
   /**
    * @brief Get transform for from_frame (w.r.t target frame)

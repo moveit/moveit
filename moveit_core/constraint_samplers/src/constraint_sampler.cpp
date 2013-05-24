@@ -36,10 +36,11 @@
 
 #include <moveit/constraint_samplers/constraint_sampler.h>
 
-constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name)
+constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name) : 
+  scene_(scene),
+  verbose_(false)
 {
   jmg_ = scene->getRobotModel()->getJointModelGroup(group_name);
-  scene_ = scene;
   if (!jmg_)
   {
     logError("A JointModelGroup should have been specified for the constraint sampler");

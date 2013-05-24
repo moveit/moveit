@@ -61,19 +61,37 @@ public:
   
   virtual bool canTransform(const std::string &from_frame) const
   {
-    if (scene_->knowsFrameTransform(from_frame))
+    return scene_->knowsFrameTransform(from_frame);
+  }
+  
+  virtual bool isFixedFrame(const std::string &frame) const
+  {
+    if (frame.empty())
+      return false;
+    if (Transforms::isFixedFrame(frame))
       return true;
-    return Transforms::canTransform(from_frame);
+    if (frame[0] == '/')
+      return knowsObject(frame.substr(1));
+    else
+      return knowsObject(frame);
   }
   
   virtual const Eigen::Affine3d& getTransform(const std::string &from_frame) const
-  {
-    if (scene_->knowsFrameTransform(from_frame))
-      return scene_->getFrameTransform(from_frame);
-    return Transforms::getTransform(from_frame);
+  {  // the call below also calls Transforms::getTransform() too
+    return scene_->getFrameTransform(from_frame);
   }
   
-protected:
+private:
+
+  bool knowsObject(const std::string &id) const
+  {
+    if (scene_->getWorld()->hasObject(id))
+    {
+      collision_detection::World::ObjectConstPtr obj = scene_->getWorld()->getObject(id);
+      return obj->shape_poses_.size() == 1;
+    }
+    return false;
+  }
   
   const PlanningScene *scene_;
 };
@@ -1758,11 +1776,8 @@ const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const ro
     else
       if (obj->shape_poses_.size() == 1)
         return obj->shape_poses_[0];
-  }
-  logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a known frame, a link name, an attached body id or a collision object).",
-           id.c_str(), getPlanningFrame().c_str(), id.c_str());
-  static const Eigen::Affine3d identity_transform = Eigen::Affine3d::Identity();
-  return identity_transform;
+  } 
+  return getTransforms().Transforms::getTransform(id);
 }
 
 bool planning_scene::PlanningScene::knowsFrameTransform(const std::string &id) const
@@ -1781,7 +1796,7 @@ bool planning_scene::PlanningScene::knowsFrameTransform(const robot_state::Robot
     collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(id);
     return obj->shape_poses_.size() == 1;
   }
-  return false;
+  return getTransforms().Transforms::canTransform(id);
 }
 
 bool planning_scene::PlanningScene::hasObjectType(const std::string &id) const

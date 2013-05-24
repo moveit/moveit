@@ -47,8 +47,10 @@ robot_state::Transforms::Transforms(const std::string &target_frame) : target_fr
   else
   {
     if (target_frame_[0] != '/')
+    {
       logWarn("Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.", target_frame_.c_str(), target_frame_.c_str());
-    target_frame_ = '/' + target_frame_;
+      target_frame_ = '/' + target_frame_;
+    }
     transforms_[target_frame_] = Eigen::Affine3d::Identity();
   }
 }
@@ -109,13 +111,10 @@ const Eigen::Affine3d& robot_state::Transforms::getTransform(const std::string &
 
 bool robot_state::Transforms::canTransform(const std::string &from_frame) const
 {
-  if (!from_frame.empty())
-  {
-    FixedTransformsMap::const_iterator it = (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame));
-    if (it != transforms_.end())
-      return true;
-  }
-  return false;
+  if (from_frame.empty())
+    return false;
+  else
+    return (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame)) != transforms_.end();
 }
 
 void robot_state::Transforms::setTransform(const Eigen::Affine3d &t, const std::string &from_frame)
