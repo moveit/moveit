@@ -39,7 +39,7 @@
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_state/transforms.h>
+#include <moveit/transforms/transforms.h>
 #include <moveit/collision_detection/collision_detector_allocator.h>
 #include <moveit/collision_detection/world_diff.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
@@ -211,6 +211,9 @@ public:
   /** \brief Get the state at which the robot is assumed to be. */
   robot_state::RobotState& getCurrentStateNonConst();
 
+  /** \brief Get a copy of the current state with components overwritten by the state message \e update */
+  robot_state::RobotStatePtr getCurrentStateUpdated(const moveit_msgs::RobotState &update) const;
+  
   /** \brief Get the allowed collision matrix */
   const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix() const
   {
@@ -220,13 +223,13 @@ public:
   collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrixNonConst();
 
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
-  const robot_state::TransformsConstPtr& getTransforms() const
+  const robot_state::Transforms& getTransforms() const
   {
     // if we have updated transforms, return those
-    return (ftf_const_ || !parent_) ? ftf_const_ : parent_->getTransforms();
+    return (ftf_ || !parent_) ? *ftf_ : parent_->getTransforms();
   }
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
-  const robot_state::TransformsPtr& getTransformsNonConst();
+  robot_state::Transforms& getTransformsNonConst();
   
   /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
       Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
@@ -596,15 +599,13 @@ private:
   PlanningScene(const PlanningSceneConstPtr &parent);
 
   /* Initialize the scene.  This should only be called by the constructors.
-   * Requires a valid kmodel_ */
+   * Requires a valid robot_model_ */
   void initialize();
 
   /* helper function to create a RobotModel from a urdf/srdf. */
-  static robot_model::RobotModelPtr createRobotModel(
-      const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-      const boost::shared_ptr<const srdf::Model> &srdf_model,
-      const std::string &root_link);
-
+  static robot_model::RobotModelPtr createRobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+                                                     const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                                     const std::string &root_link);
   void setRootLink(const std::string& root_link);
 
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
@@ -662,7 +663,6 @@ private:
   robot_state::AttachedBodyCallback              current_state_attached_body_callback_; // called when changes are made to attached bodies
 
   robot_state::TransformsPtr                     ftf_;          // if NULL use parent's
-  robot_state::TransformsConstPtr                ftf_const_;    // copy of ftf_
 
   collision_detection::WorldPtr                  world_;        // never NULL, never shared with parent/child
   collision_detection::WorldConstPtr             world_const_;  // copy of world_
