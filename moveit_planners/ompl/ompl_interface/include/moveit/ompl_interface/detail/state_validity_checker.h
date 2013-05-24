@@ -33,7 +33,7 @@
 *********************************************************************/
 
 /* Author: Ioan Sucan */
-
+ 
 #ifndef MOVEIT_OMPL_INTERFACE_DETAIL_STATE_VALIDITY_CHECKER_
 #define MOVEIT_OMPL_INTERFACE_DETAIL_STATE_VALIDITY_CHECKER_
 

@@ -95,9 +95,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
     return ModelBasedPlanningContextPtr();
   }
   
-  robot_state::RobotState start_state = planning_scene->getCurrentState();
-  robot_state::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.start_state, start_state);
-
+  robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);  
   ModelBasedPlanningContextPtr context = getPlanningContext(req);
   if (!context)
   {
@@ -123,7 +121,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   
   // set the planning scene
   context->setPlanningScene(planning_scene);
-  context->setCompleteInitialState(start_state);
+  context->setCompleteInitialState(*start_state);
   
   context->setPlanningVolume(req.workspace_parameters);
   if (!context->setPathConstraints(req.path_constraints, error_code))
