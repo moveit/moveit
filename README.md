@@ -21,11 +21,11 @@ If your robot is not in this format we recommend you create a ROS [URDF](http://
 
 Often floating point issues arrise in converting a URDF file to Collada file, so a script has been created to round all the numbers down to x decimal places in your .dae file. From experience we recommend 5 decimal places, but if the OpenRave ikfast generator takes to long to find a solution, lowering the number of decimal places should help.
 
-      rosrun moveit_ikfast_converter round_collada_numbers.py <input_dae> <output_dae> <decimal places>
+      rosrun moveit_ikfast round_collada_numbers.py <input_dae> <output_dae> <decimal places>
 
 For example
 
-      rosrun moveit_ikfast_converter round_collada_numbers.py YOURROBOT.dae YOURROBOT.rounded.dae 5
+      rosrun moveit_ikfast round_collada_numbers.py YOURROBOT.dae YOURROBOT.rounded.dae 5
 
 To see the links in your newly generated Collada file (assuming you have openrave installed):
 
@@ -54,7 +54,7 @@ Build your workspace so the new package is detected (can be 'roscd')
 
 Create the plugin source code:
 
-       rosrun moveit_ikfast_converter create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_ik_plugin_pkg> <ikfast_output_path>
+       rosrun moveit_ikfast create_ikfast_moveit_plugin.py <yourobot_name> <planning_group_name> <moveit_ik_plugin_pkg> <ikfast_output_path>
 
 Or without ROS:
 

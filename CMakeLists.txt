@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(moveit_ikfast_converter)
+project(moveit_ikfast)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -13,30 +13,6 @@ find_package(catkin REQUIRED)
 ## modules and scripts declared therein get installed
 # catkin_python_setup()
 
-#######################################
-## Declare ROS messages and services ##
-#######################################
-
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
-
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
-
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
-
 ###################################################
 ## Declare things to be passed to other projects ##
 ###################################################
@@ -46,7 +22,7 @@ find_package(catkin REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   #  INCLUDE_DIRS include
-  #  LIBRARIES moveit_ikfast_converter
+  #  LIBRARIES moveit_ikfast
   #  CATKIN_DEPENDS other_catkin_pkg
   #  DEPENDS system_lib
   )
@@ -59,18 +35,18 @@ catkin_package(
 # include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 ## Declare a cpp library
-# add_library(moveit_ikfast_converter
-#   src/${PROJECT_NAME}/moveit_ikfast_converter.cpp
+# add_library(moveit_ikfast
+#   src/${PROJECT_NAME}/moveit_ikfast.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(moveit_ikfast_converter_node src/moveit_ikfast_converter_node.cpp)
+# add_executable(moveit_ikfast_node src/moveit_ikfast_node.cpp)
 
 ## Add dependencies to the executable
-# add_dependencies(moveit_ikfast_converter_node ${PROJECT_NAME})
+# add_dependencies(moveit_ikfast_node ${PROJECT_NAME})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(moveit_ikfast_converter_node
+# target_link_libraries(moveit_ikfast_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -96,7 +72,7 @@ install(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS moveit_ikfast_converter moveit_ikfast_converter_node
+# install(TARGETS moveit_ikfast moveit_ikfast_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -115,16 +91,3 @@ install(
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-
-#############
-## Testing ##
-#############
-
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_moveit_ikfast_converter.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)

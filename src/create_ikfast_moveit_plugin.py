@@ -51,7 +51,7 @@ import yaml
 from lxml import etree
 import shutil
 
-plugin_gen_pkg = 'moveit_ikfast_converter'  # package containing this file
+plugin_gen_pkg = 'moveit_ikfast'  # package containing this file
 
 if __name__ == '__main__':
    # Check input arguments
