@@ -70,7 +70,7 @@ class MoveGroupCommander(object):
         return len(self._g.get_end_effector_link()) > 0
 
     def get_end_effector_link(self):
-        """ Get the name of the link that is considered to be an end effector """
+        """ Get the name of the link that is considered to be an end-effector. Return an empty string if there is no end-effector. """
         return self._g.get_end_effector_link()
 
     def set_end_effector_link(self, link_name):
@@ -86,21 +86,26 @@ class MoveGroupCommander(object):
         self._g.set_pose_reference_frame(reference_frame)
 
     def get_robot_root_link(self):
+        """ Get the name of the root link of the robot model """
         return self._g.get_robot_root_link()
     
     def get_planning_frame(self):
+        """ Get the name of the frame where all planning is performed """
         return self._g.get_planning_frame()
 
     def get_current_joint_values(self):
+        """ Get the current configuration of the group (as published on JointState) """
         return self._g.get_current_joint_values()
 
     def get_current_pose(self, end_effector_link = ""):
+        """ Get the current pose of the end-effector of the group. Throws an exception if there is not end-effector. """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             return conversions.list_to_pose_stamped(self._g.get_current_pose(end_effector_link), self.get_planning_frame())
         else:
             raise MoveItCommanderException("There is no end effector to get the pose of")
 
     def get_current_rpy(self, end_effector_link = ""):
+        """ Get a list of 3 elements defining the [roll, pitch, yaw] of the end-effector. Throws an exception if there is not end-effector. """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             return self._g.get_current_rpy(end_effector_link)
         else:
@@ -116,6 +121,7 @@ class MoveGroupCommander(object):
             raise MoveItCommanderException("There is no end effector to get the pose of")
 
     def set_joint_value_target(self, name, value = None):
+        """ Specify a target joint configuration for the group."""
         if value == None:
             value = name
             self._g.set_joint_value_target(value)
@@ -123,6 +129,7 @@ class MoveGroupCommander(object):
             self._g.set_joint_value_target(name, value)
 
     def set_rpy_target(self, rpy, end_effector_link = ""):
+        """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if len(rpy) == 3:
                 self._g.set_rpy_target(rpy[0], rpy[1], rpy[2], end_effector_link)
@@ -132,6 +139,7 @@ class MoveGroupCommander(object):
             raise MoveItCommanderException("There is no end effector to set the pose for")
 
     def set_orientation_target(self, q, end_effector_link = ""):
+        """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if len(q) == 4:
                 self._g.set_orientation_target(q[0], q[1], q[2], q[3], end_effector_link)
@@ -141,6 +149,7 @@ class MoveGroupCommander(object):
             raise MoveItCommanderException("There is no end effector to set the pose for")
 
     def set_position_target(self, xyz, end_effector_link = ""):
+        """ Specify a target position for the end-effector. Any orientation of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             self._g.set_position_target(xyz[0], xyz[1], xyz[2], end_effector_link)
         else:
@@ -195,57 +204,74 @@ class MoveGroupCommander(object):
         self._g.clear_pose_targets()
 
     def set_random_target(self):
+        """ Set a random joint configuration target """
         self._g.set_random_target()
 
     def set_named_target(self, name):
+        """ Set a joint configuration by name. The name can be a name previlusy remembered with remember_joint_values() or a configuration specified in the SRDF. """
         if not self._g.set_named_target(name):
             raise MoveItCommanderException("Unable to set target " + name)
 
     def remember_joint_values(self, name, values = None):
+        """ Record the specified joint configuration of the group under the specified name. If no values are specified, the current state of the group is recorded. """
         if values == None:
             values = self.get_current_joint_values()
         self._g.remember_joint_values(name, values)
 
     def get_remembered_joint_values(self):
+        """ Get a dictionary that maps names to joint configurations for the group """
         return self._g.get_remembered_joint_values()
     
     def forget_joint_values(self, name):
+        """ Forget a stored joint configuration """
         self._g.forget_joint_values(name)
 
     def get_goal_tolerance(self):
+        """ Return a tuple of goal tolerances: joint, position and orientation. """
         return (self.get_goal_joint_tolerance(), self.get_goal_position_tolerance(), self.get_goal_orientation_tolerance())
 
     def get_goal_joint_tolerance(self):
+        """ Get the tolerance for achieving a joint goal (distance for each joint variable) """
         return self._g.get_goal_joint_tolerance()
 
     def get_goal_position_tolerance(self):
+        """ When moving to a position goal or to a pose goal, the tolerance for the goal position is specified as the radius a sphere around the target origin of the end-effector """
         return self._g.get_goal_position_tolerance()
 
     def get_goal_orientation_tolerance(self):
+        """ When moving to an orientation goal or to a pose goal, the tolerance for the goal orientation is specified as the distance (roll, pitch, yaw) to the target origin of the end-effector """
         return self._g.get_goal_orientation_tolerance()
 
     def set_goal_tolerance(self, value):
+        """ Set the joint, position and orientation goal tolerances simultaneously """
         self._g.set_goal_tolerance(value)
 
     def set_goal_joint_tolerance(self, value):
+        """ Set the tolerance for a target joint configuration """
         self._g.set_goal_joint_tolerance(value)
 
     def set_goal_position_tolerance(self, value):
+        """ Set the tolerance for a target end-effector position """
         self._g.set_goal_position_tolerance(value)
 
     def set_goal_orientation_tolerance(self, value):
+        """ Set the tolerance for a target end-effector orientation """
         self._g.set_goal_orientation_tolerance(value)
 
     def allow_looking(self, value):
+        """ Enable/disable looking around for motion planning """
         self._g.allow_looking(value)
 
     def allow_replanning(self, value):
+        """ Enable/disable replanning """
         self._g.allow_replanning(value)
         
     def get_known_constraints(self):
+        """ Get a list of names for the constraints specific for this group, as read from the warehouse """
         return self._g.get_known_constraints()
 
     def set_path_constraints(self, value):
+        """ Specify the path constraints to be used (as read from the database) """
         if value == None:
             self.clear_path_constraints()
         else:
@@ -253,18 +279,23 @@ class MoveGroupCommander(object):
                 raise MoveItCommanderException("Unable to set path constraints " + value)
 
     def clear_path_constraints(self):
+        """ Specify that no path constraints are to be used during motion planning """
         self._g.clear_path_constraints()
 
     def set_constraints_database(self, host, port):
+        """ Specify which database to connect to for loading possible path constraints """
         self._g.set_constraints_database(host, port)
 
     def set_planning_time(self, seconds):
+        """ Specify the amount of time to be used for motion planning. """
         self._g.set_planning_time(seconds)
 
     def get_planning_time(self):
+        """ Specify the amount of time to be used for motion planning. """
         return self._g.get_planning_time()
 
     def set_planner_id(self, planner_id):
+        """ Specify which planner to use when motion planning """
         self._g.set_planner_id(planner_id)
 
     def set_workspace(self, ws):
@@ -319,6 +350,7 @@ class MoveGroupCommander(object):
         return conversions.dict_to_trajectory(plan)
 
     def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions = True):
+        """ Compute a sequence of waypoints that make the end-effector move in straight line segments that follow the poses specified as waypoints. Configurations are computed for every eef_step meters; The jump_threshold specifies the maximum distance in configuration space between consecutive points in the resultingpath. The return value is a tuple: a fraction of how much of the path was followed, the actual RobotTrajectory. """
         (dpath, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions)
         return (conversions.dict_to_trajectory(dpath), fraction)
 
