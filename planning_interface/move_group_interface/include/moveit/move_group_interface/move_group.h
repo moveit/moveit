@@ -179,30 +179,30 @@ public:
   /**@{*/
 
   /** \brief Given a vector of real values in the same order as expected by the group, set those as the joint state goal */
-  void setJointValueTarget(const std::vector<double> &group_variable_values);
+  bool setJointValueTarget(const std::vector<double> &group_variable_values);
 
   /** \brief Given a map of joint names to real values, set those as the joint state goal */
-  void setJointValueTarget(const std::map<std::string, double> &variable_values);
+  bool setJointValueTarget(const std::map<std::string, double> &variable_values);
 
   /** \brief Set the joint state goal from corresponding joint values from the specified state.
       Values from state for joints not in this MoveGroup's group are ignored. */
-  void setJointValueTarget(const robot_state::RobotState &robot_state);
+  bool setJointValueTarget(const robot_state::RobotState &robot_state);
 
   /** \brief Set the joint state goal from corresponding joint values from the specified group.
       joint_state_group must represent the same group as this MoveGroup. */
-  void setJointValueTarget(const robot_state::JointStateGroup &joint_state_group);
+  bool setJointValueTarget(const robot_state::JointStateGroup &joint_state_group);
   
   /** \brief Set the joint state goal for a particular joint */
-  void setJointValueTarget(const robot_state::JointState &joint_state);
+  bool setJointValueTarget(const robot_state::JointState &joint_state);
 
   /** \brief Set the joint state goal for a particular joint */
-  void setJointValueTarget(const std::string &joint_name, const std::vector<double> &values);
+  bool setJointValueTarget(const std::string &joint_name, const std::vector<double> &values);
 
   /** \brief Set the joint state goal for a particular joint */
-  void setJointValueTarget(const std::string &joint_name, double value);
+  bool setJointValueTarget(const std::string &joint_name, double value);
   
   /** \brief Set the joint state goal for a particular joint */
-  void setJointValueTarget(const sensor_msgs::JointState &state);
+  bool setJointValueTarget(const sensor_msgs::JointState &state);
 
   /** \brief Set the joint state goal to a random joint configuration */
   void setRandomTarget();
@@ -224,47 +224,47 @@ public:
 
   /** \brief Set the goal position of the end-effector \e end_effector_link to be (\e x, \e y, \e z). If \e end_effector_link
       is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
-  void setPositionTarget(double x, double y, double z, const std::string &end_effector_link = "");
+  bool setPositionTarget(double x, double y, double z, const std::string &end_effector_link = "");
   
   /** \brief Set the goal orientation of the end-effector \e end_effector_link to be (\e roll,\e pitch,\e yaw) radians. If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setRPYTarget(double roll, double pitch, double yaw, const std::string &end_effector_link = "");
+  bool setRPYTarget(double roll, double pitch, double yaw, const std::string &end_effector_link = "");
 
   /** \brief Set the goal orientation of the end-effector \e end_effector_link to be the quaternion (\e x,\e y,\e z,\e w).
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link = "");
+  bool setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link = "");
   
   /** \brief Set the goal pose of the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setPoseTarget(const Eigen::Affine3d &end_effector_pose, const std::string &end_effector_link = "");
+  bool setPoseTarget(const Eigen::Affine3d &end_effector_pose, const std::string &end_effector_link = "");
   
   /** \brief Set the goal pose of the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setPoseTarget(const geometry_msgs::Pose &target, const std::string &end_effector_link = "");
+  bool setPoseTarget(const geometry_msgs::Pose &target, const std::string &end_effector_link = "");
 
   /** \brief Set the goal pose of the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link = "");
+  bool setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link = "");
 
   /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setPoseTargets(const EigenSTL::vector_Affine3d &end_effector_pose, const std::string &end_effector_link = "");
+  bool setPoseTargets(const EigenSTL::vector_Affine3d &end_effector_pose, const std::string &end_effector_link = "");
   
   /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setPoseTargets(const std::vector<geometry_msgs::Pose> &target, const std::string &end_effector_link = "");
+  bool setPoseTargets(const std::vector<geometry_msgs::Pose> &target, const std::string &end_effector_link = "");
 
   /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
-  void setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &target, const std::string &end_effector_link = "");
+  bool setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &target, const std::string &end_effector_link = "");
 
   /// Specify which reference frame to assume for poses specified without a reference frame.
   void setPoseReferenceFrame(const std::string &pose_reference_frame);
 
   /// Specify the link the end-effector to be considered is attached to
-  void setEndEffectorLink(const std::string &link_name);
+  bool setEndEffectorLink(const std::string &link_name);
 
   /// Specify the name of the end-effector to use
-  void setEndEffector(const std::string &eef_name);
+  bool setEndEffector(const std::string &eef_name);
   
   /// Forget pose specified for the end-effector \e end_effector_link
   void clearPoseTarget(const std::string &end_effector_link = "");

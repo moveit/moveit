@@ -61,10 +61,28 @@ public:
   {
     return py_bindings_tools::listFromString(robot_model_->getJointModelNames());
   }
+
+  bp::list getGroupJointNames(const std::string &group) const
+  {
+    const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
+    if (jmg)
+      return py_bindings_tools::listFromString(jmg->getJointModelNames());
+    else
+      return bp::list();
+  }
   
   bp::list getLinkNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getLinkModelNames());
+  } 
+
+  bp::list getGroupLinkNames(const std::string &group) const
+  {
+    const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
+    if (jmg)
+      return py_bindings_tools::listFromString(jmg->getLinkModelNames());
+    else
+      return bp::list();
   }
   
   bp::list getGroupNames() const
@@ -171,21 +189,15 @@ public:
     
     return d;
   }
-
-  const char* findMinContainingGroup(const std::string &joint_name) const
+  
+  const char* getRobotRootLink() const
   {
-    const std::vector<std::string> &gnames = robot_model_->getJointModelGroupNames();
-    const robot_model::JointModelGroup *group = NULL;
-    for (std::size_t i = 0 ; i < gnames.size() ; ++i)
-    {
-      const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(gnames[i]);
-      if (jmg->hasJointModel(joint_name))
-      {
-        if (group == NULL || group->getVariableCount() > jmg->getVariableCount())
-          group = jmg;
-      }
-    }
-    return group ? group->getName().c_str() : NULL;
+    return robot_model_->getRootLinkName().c_str();
+  }
+
+  bool hasGroup(const std::string &group) const
+  {
+    return robot_model_->hasJointModelGroup(group);
   }
   
 private:
@@ -201,14 +213,17 @@ static void wrap_robot_interface()
   bp::class_<RobotInterfacePython> RobotClass("RobotInterface", bp::init<std::string>());
 
   RobotClass.def("get_joint_names", &RobotInterfacePython::getJointNames);
+  RobotClass.def("get_group_joint_names", &RobotInterfacePython::getGroupJointNames);
   RobotClass.def("get_group_names", &RobotInterfacePython::getGroupNames);
   RobotClass.def("get_link_names", &RobotInterfacePython::getLinkNames);
+  RobotClass.def("get_group_link_names", &RobotInterfacePython::getGroupLinkNames);
   RobotClass.def("get_joint_limits", &RobotInterfacePython::getJointLimits);
   RobotClass.def("get_link_pose", &RobotInterfacePython::getLinkPose);
   RobotClass.def("get_planning_frame", &RobotInterfacePython::getPlanningFrame);
   RobotClass.def("get_current_variable_values", &RobotInterfacePython::getCurrentVariableValues);
   RobotClass.def("get_current_joint_values",  &RobotInterfacePython::getCurrentJointValues);
-  RobotClass.def("find_min_containing_group",  &RobotInterfacePython::findMinContainingGroup);
+  RobotClass.def("get_robot_root_link", &RobotInterfacePython::getRobotRootLink);
+  RobotClass.def("has_group", &RobotInterfacePython::hasGroup);
 }
 
 BOOST_PYTHON_MODULE(_moveit_robot_interface)
