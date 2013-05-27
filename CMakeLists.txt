@@ -29,7 +29,12 @@ COMPONENTS
 
 find_package(octomap REQUIRED)
 
-set(THIS_PACKAGE_INCLUDE_DIRS
+# This is where the version file will be generated
+set(VERSION_FILE_PATH "${CMAKE_CURRENT_BINARY_DIR}/version")
+file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
+
+set(THIS_PACKAGE_INCLUDE_DIRS 
+    ${VERSION_FILE_PATH}
     collision_detection/include
     collision_detection_fcl/include
     constraint_samplers/include
@@ -104,15 +109,26 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
+# Generate and install version.h
+string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${moveit_core_VERSION}")
+string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_MINOR "${moveit_core_VERSION}")
+string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH "${moveit_core_VERSION}")
+set(MOVEIT_VERSION_EXTRA "Alpha")
+set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
+message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
+configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
+install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION include/moveit)
+
 # If the resources package is present, the tests can be built
 set(BUILD_MOVEIT_TESTS FALSE)
 find_package(moveit_resources QUIET)
 if (${moveit_resources_FOUND})
-  message(STATUS "Building MoveIt! Tests")
+  message(STATUS " *** Building MoveIt! Tests ***")
   include_directories(${moveit_resources_INCLUDE_DIRS})
   set(BUILD_MOVEIT_TESTS TRUE)
 endif()
 
+add_subdirectory(version)
 add_subdirectory(macros)
 add_subdirectory(profiler)
 add_subdirectory(kinematics_base)
