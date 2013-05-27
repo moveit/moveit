@@ -265,11 +265,14 @@ public:
     return empty;
   }
 
-  void setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &poses, const std::string &end_effector_link)
+  bool setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &poses, const std::string &end_effector_link)
   {  
     const std::string &eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link;
     if (eef.empty())
+    {
       ROS_ERROR("No end-effector to set the pose for");
+      return false;
+    }
     else
     {
       pose_targets_[eef] = poses;
@@ -278,6 +281,7 @@ public:
       for (std::size_t i = 0 ; i < stored_poses.size() ; ++i)
         stored_poses[i].header.stamp = ros::Time(0);
     }
+    return true;
   }
   
   bool hasPoseTarget(const std::string &end_effector_link) const
@@ -961,8 +965,7 @@ bool MoveGroup::setNamedTarget(const std::string &name)
   std::map<std::string, std::vector<double> >::const_iterator it = remembered_joint_values_.find(name);
   if (it != remembered_joint_values_.end())
   {
-    setJointValueTarget(it->second);
-    return true;
+    return setJointValueTarget(it->second);
   }
   else
   {
@@ -975,54 +978,60 @@ bool MoveGroup::setNamedTarget(const std::string &name)
   }
 }
 
-void MoveGroup::setJointValueTarget(const std::vector<double> &joint_values)
+bool MoveGroup::setJointValueTarget(const std::vector<double> &joint_values)
 {
-  impl_->getJointStateTarget()->setVariableValues(joint_values);
   impl_->setTargetType(JOINT);
+  if (impl_->getJointStateTarget()->setVariableValues(joint_values))
+    return impl_->getJointStateTarget()->satisfiesBounds(impl_->getGoalJointTolerance());
+  else
+    return false;
 }
 
-void MoveGroup::setJointValueTarget(const std::map<std::string, double> &joint_values)
+bool MoveGroup::setJointValueTarget(const std::map<std::string, double> &joint_values)
 {
-  impl_->getJointStateTarget()->setVariableValues(joint_values);
   impl_->setTargetType(JOINT);
+  impl_->getJointStateTarget()->setVariableValues(joint_values); 
+  return impl_->getJointStateTarget()->satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
-void MoveGroup::setJointValueTarget(const robot_state::RobotState &kinematic_state)
+bool MoveGroup::setJointValueTarget(const robot_state::RobotState &kinematic_state)
 {
-  setJointValueTarget(*kinematic_state.getJointStateGroup(getName()));
+  return setJointValueTarget(*kinematic_state.getJointStateGroup(getName()));
 }
 
-void MoveGroup::setJointValueTarget(const robot_state::JointStateGroup &joint_state_group)
+bool MoveGroup::setJointValueTarget(const robot_state::JointStateGroup &joint_state_group)
 {  
   std::map<std::string, double> variable_values;
   joint_state_group.getVariableValues(variable_values);
-  setJointValueTarget(variable_values);
+  return setJointValueTarget(variable_values);
 }
 
-void MoveGroup::setJointValueTarget(const robot_state::JointState &joint_state)
+bool MoveGroup::setJointValueTarget(const robot_state::JointState &joint_state)
 {
-  setJointValueTarget(joint_state.getName(), joint_state.getVariableValues());
+  return setJointValueTarget(joint_state.getName(), joint_state.getVariableValues());
 }
 
-void MoveGroup::setJointValueTarget(const std::string &joint_name, double value)
+bool MoveGroup::setJointValueTarget(const std::string &joint_name, double value)
 { 
   std::vector<double> values(1, value);
-  setJointValueTarget(joint_name, values);
+  return setJointValueTarget(joint_name, values);
 }
 
-void MoveGroup::setJointValueTarget(const std::string &joint_name, const std::vector<double> &values)
+bool MoveGroup::setJointValueTarget(const std::string &joint_name, const std::vector<double> &values)
 { 
+  impl_->setTargetType(JOINT);
   robot_state::JointState *joint_state = impl_->getJointStateTarget()->getJointState(joint_name);
   if (joint_state)
-    if (!joint_state->setVariableValues(values))
-      ROS_ERROR("Unable to set target");
-  impl_->setTargetType(JOINT);
+    if (joint_state->setVariableValues(values))
+      return true;
+  return false;
 }
 
-void MoveGroup::setJointValueTarget(const sensor_msgs::JointState &state)
+bool MoveGroup::setJointValueTarget(const sensor_msgs::JointState &state)
 {
-  impl_->getJointStateTarget()->setVariableValues(state); 
   impl_->setTargetType(JOINT);
+  impl_->getJointStateTarget()->setVariableValues(state); 
+  return impl_->getJointStateTarget()->satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
 const robot_state::JointStateGroup& MoveGroup::getJointValueTarget() const
@@ -1040,17 +1049,21 @@ const std::string& MoveGroup::getEndEffector() const
   return impl_->getEndEffector();
 }
 
-void MoveGroup::setEndEffectorLink(const std::string &link_name)
+bool MoveGroup::setEndEffectorLink(const std::string &link_name)
 {
+  if (impl_->getEndEffectorLink().empty() || link_name.empty())
+    return false;
   impl_->setEndEffectorLink(link_name);  
   impl_->setTargetType(POSE);
+  return true;
 }
 
-void MoveGroup::setEndEffector(const std::string &eef_name)
+bool MoveGroup::setEndEffector(const std::string &eef_name)
 {
   const robot_model::JointModelGroup *jmg = impl_->getRobotModel()->getEndEffector(eef_name);
   if (jmg)
-    setEndEffectorLink(jmg->getEndEffectorParentGroup().second);
+    return setEndEffectorLink(jmg->getEndEffectorParentGroup().second);
+  return false;
 }
 
 void MoveGroup::clearPoseTarget(const std::string &end_effector_link)
@@ -1063,31 +1076,31 @@ void MoveGroup::clearPoseTargets()
   impl_->clearPoseTargets();
 }
 
-void MoveGroup::setPoseTarget(const Eigen::Affine3d &pose, const std::string &end_effector_link)
+bool MoveGroup::setPoseTarget(const Eigen::Affine3d &pose, const std::string &end_effector_link)
 {
   std::vector<geometry_msgs::PoseStamped> pose_msg(1);
   tf::poseEigenToMsg(pose, pose_msg[0].pose);
   pose_msg[0].header.frame_id = getPoseReferenceFrame();
   pose_msg[0].header.stamp = ros::Time::now();
-  setPoseTargets(pose_msg, end_effector_link);
+  return setPoseTargets(pose_msg, end_effector_link);
 }
 
-void MoveGroup::setPoseTarget(const geometry_msgs::Pose &target, const std::string &end_effector_link)
+bool MoveGroup::setPoseTarget(const geometry_msgs::Pose &target, const std::string &end_effector_link)
 {
   std::vector<geometry_msgs::PoseStamped> pose_msg(1);
   pose_msg[0].pose = target;
   pose_msg[0].header.frame_id = getPoseReferenceFrame();
   pose_msg[0].header.stamp = ros::Time::now();
-  setPoseTargets(pose_msg, end_effector_link);
+  return setPoseTargets(pose_msg, end_effector_link);
 }
 
-void MoveGroup::setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link)
+bool MoveGroup::setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link)
 {
   std::vector<geometry_msgs::PoseStamped> targets(1, target);
-  setPoseTargets(targets, end_effector_link);
+  return setPoseTargets(targets, end_effector_link);
 }
 
-void MoveGroup::setPoseTargets(const EigenSTL::vector_Affine3d &target, const std::string &end_effector_link)
+bool MoveGroup::setPoseTargets(const EigenSTL::vector_Affine3d &target, const std::string &end_effector_link)
 {  
   std::vector<geometry_msgs::PoseStamped> pose_out(target.size());
   ros::Time tm = ros::Time::now();
@@ -1098,10 +1111,10 @@ void MoveGroup::setPoseTargets(const EigenSTL::vector_Affine3d &target, const st
     pose_out[i].header.stamp = tm;
     pose_out[i].header.frame_id = frame_id;
   }
-  setPoseTargets(pose_out, end_effector_link);
+  return setPoseTargets(pose_out, end_effector_link);
 }
 
-void MoveGroup::setPoseTargets(const std::vector<geometry_msgs::Pose> &target, const std::string &end_effector_link)
+bool MoveGroup::setPoseTargets(const std::vector<geometry_msgs::Pose> &target, const std::string &end_effector_link)
 {
   std::vector<geometry_msgs::PoseStamped> target_stamped(target.size());
   ros::Time tm = ros::Time::now();
@@ -1112,17 +1125,20 @@ void MoveGroup::setPoseTargets(const std::vector<geometry_msgs::Pose> &target, c
     target_stamped[i].header.stamp = tm;
     target_stamped[i].header.frame_id = frame_id;
   }
-  setPoseTargets(target_stamped, end_effector_link);
+  return setPoseTargets(target_stamped, end_effector_link);
 }
 
-void MoveGroup::setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &target, const std::string &end_effector_link)
+bool MoveGroup::setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &target, const std::string &end_effector_link)
 {
   if (target.empty())
+  {
     ROS_ERROR("No pose specified as goal target");
+    return false;
+  }
   else
   {
-    impl_->setPoseTargets(target, end_effector_link);
     impl_->setTargetType(POSE);
+    return impl_->setPoseTargets(target, end_effector_link);
   }
 }
 
@@ -1154,7 +1170,7 @@ inline void transformPose(const tf::Transformer& tf, const std::string &desired_
 }
 }
 
-void MoveGroup::setPositionTarget(double x, double y, double z, const std::string &end_effector_link)
+bool MoveGroup::setPositionTarget(double x, double y, double z, const std::string &end_effector_link)
 {
   geometry_msgs::PoseStamped target;
   if (impl_->hasPoseTarget(end_effector_link))
@@ -1174,11 +1190,12 @@ void MoveGroup::setPositionTarget(double x, double y, double z, const std::strin
   target.pose.position.x = x;
   target.pose.position.y = y;
   target.pose.position.z = z;
-  setPoseTarget(target, end_effector_link); 
+  bool result = setPoseTarget(target, end_effector_link); 
   impl_->setTargetType(POSITION);
+  return result;
 }
 
-void MoveGroup::setRPYTarget(double r, double p, double y, const std::string &end_effector_link)
+bool MoveGroup::setRPYTarget(double r, double p, double y, const std::string &end_effector_link)
 {
   geometry_msgs::PoseStamped target;
   if (impl_->hasPoseTarget(end_effector_link))
@@ -1195,11 +1212,12 @@ void MoveGroup::setRPYTarget(double r, double p, double y, const std::string &en
   }
   
   tf::quaternionTFToMsg(tf::createQuaternionFromRPY(r, p, y), target.pose.orientation);
-  setPoseTarget(target, end_effector_link);
+  bool result = setPoseTarget(target, end_effector_link);
   impl_->setTargetType(ORIENTATION);
+  return result;
 }
 
-void MoveGroup::setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link)
+bool MoveGroup::setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link)
 {
   geometry_msgs::PoseStamped target;
   if (impl_->hasPoseTarget(end_effector_link))
@@ -1219,8 +1237,9 @@ void MoveGroup::setOrientationTarget(double x, double y, double z, double w, con
   target.pose.orientation.y = y;
   target.pose.orientation.z = z;
   target.pose.orientation.w = w;
-  setPoseTarget(target, end_effector_link); 
+  bool result = setPoseTarget(target, end_effector_link); 
   impl_->setTargetType(ORIENTATION);
+  return result;
 }
 
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
@@ -1454,11 +1473,6 @@ double MoveGroup::getPlanningTime() const
 void MoveGroup::setSupportSurfaceName(const std::string &name)
 {
   impl_->setSupportSurfaceName(name);
-}
-
-const std::string& MoveGroup::getRobotRootLink() const
-{
-  return impl_->getRobotModel()->getRootLinkName();
 }
 
 const std::string& MoveGroup::getPlanningFrame() const

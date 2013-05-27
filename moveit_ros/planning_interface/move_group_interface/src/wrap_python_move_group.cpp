@@ -64,24 +64,24 @@ public:
   {
   }
   
-  void setJointValueTargetPerJointPythonList(const std::string &joint, bp::list &values)
+  bool setJointValueTargetPerJointPythonList(const std::string &joint, bp::list &values)
   {
-    setJointValueTarget(joint, py_bindings_tools::doubleFromList(values));
+    return setJointValueTarget(joint, py_bindings_tools::doubleFromList(values));
   }
   
-  void setJointValueTargetPythonList(bp::list &values)
+  bool setJointValueTargetPythonList(bp::list &values)
   {
-    setJointValueTarget(py_bindings_tools::doubleFromList(values));
+    return setJointValueTarget(py_bindings_tools::doubleFromList(values));
   }
 
-  void setJointValueTargetPythonDict(bp::dict &values)
+  bool setJointValueTargetPythonDict(bp::dict &values)
   {
     bp::list k = values.keys(); 
     int l = bp::len(k);
     std::map<std::string, double> v;
     for (int i = 0; i < l ; ++i)
       v[bp::extract<std::string>(k[i])] = bp::extract<double>(values[k[i]]);
-    setJointValueTarget(v);
+    return setJointValueTarget(v);
   }
   
   void rememberJointValuesFromPythonList(const std::string &string, bp::list &values)
@@ -218,14 +218,14 @@ public:
     }
   }
   
-  void setPoseTargetsPython(bp::list &poses, const std::string &end_effector_link = "")
+  bool setPoseTargetsPython(bp::list &poses, const std::string &end_effector_link = "")
   {
     std::vector<geometry_msgs::Pose> msg;
     convertListToArrayOfPoses(poses, msg);
-    setPoseTargets(msg, end_effector_link);
+    return setPoseTargets(msg, end_effector_link);
   }
 
-  void setPoseTargetPython(bp::list &pose, const std::string &end_effector_link = "")
+  bool setPoseTargetPython(bp::list &pose, const std::string &end_effector_link = "")
   {
     std::vector<double> v = py_bindings_tools::doubleFromList(pose);
     geometry_msgs::Pose msg;
@@ -242,12 +242,12 @@ public:
       else
       {
         ROS_ERROR("Pose description expected to consist of either 6 or 7 values");
-        return;
+        return false;
       }
     msg.position.x = v[0];
     msg.position.y = v[1];
     msg.position.z = v[2];      
-    setPoseTarget(msg, end_effector_link);
+    return setPoseTarget(msg, end_effector_link);
   }
 
   const char* getEndEffectorLinkCStr() const
@@ -263,11 +263,6 @@ public:
   const char* getNameCStr() const
   {
     return getName().c_str();
-  }
-
-  const char* getRobotRootLinkCStr() const
-  {
-    return getRobotRootLink().c_str();
   }
 
   const char* getPlanningFrameCStr() const
@@ -424,10 +419,10 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonList);
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPerJointPythonList);
-  void (MoveGroupWrapper::*setJointValueTarget_4)(const std::string&, double) = &MoveGroupWrapper::setJointValueTarget;
+  bool (MoveGroupWrapper::*setJointValueTarget_4)(const std::string&, double) = &MoveGroupWrapper::setJointValueTarget;
   MoveGroupClass.def("set_joint_value_target", setJointValueTarget_4);
 
-  void (MoveGroupWrapper::*setJointValueTarget_5)(const sensor_msgs::JointState &) = &MoveGroupWrapper::setJointValueTarget;
+  bool (MoveGroupWrapper::*setJointValueTarget_5)(const sensor_msgs::JointState &) = &MoveGroupWrapper::setJointValueTarget;
   MoveGroupClass.def("set_joint_value_target", setJointValueTarget_5);
 
   MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget); 
@@ -467,7 +462,6 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("compute_cartesian_path", &MoveGroupWrapper::computeCartesianPathPython);
   MoveGroupClass.def("set_support_surface_name", &MoveGroupWrapper::setSupportSurfaceName);
 
-  MoveGroupClass.def("get_robot_root_link", &MoveGroupWrapper::getRobotRootLinkCStr);
   MoveGroupClass.def("get_planning_frame", &MoveGroupWrapper::getPlanningFrameCStr);
 }
 
