@@ -75,7 +75,8 @@ class MoveGroupCommander(object):
 
     def set_end_effector_link(self, link_name):
         """ Set the name of the link to be considered as an end effector """
-        self._g.set_end_effector_link(link_name)
+        if not self._g.set_end_effector_link(link_name):
+            raise MoveItCommanderException("Unable to set end efector link")
 
     def get_pose_reference_frame(self):
         """ Get the reference frame assumed for poses of end-effectors """
@@ -84,10 +85,6 @@ class MoveGroupCommander(object):
     def set_pose_reference_frame(self, reference_frame):
         """ Set the reference frame to assume for poses of end-effectors """
         self._g.set_pose_reference_frame(reference_frame)
-
-    def get_robot_root_link(self):
-        """ Get the name of the root link of the robot model """
-        return self._g.get_robot_root_link()
     
     def get_planning_frame(self):
         """ Get the name of the frame where all planning is performed """
@@ -124,15 +121,18 @@ class MoveGroupCommander(object):
         """ Specify a target joint configuration for the group."""
         if value == None:
             value = name
-            self._g.set_joint_value_target(value)
+            if not self._g.set_joint_value_target(value):
+                raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
         else:
-            self._g.set_joint_value_target(name, value)
+            if not self._g.set_joint_value_target(name, value):
+                raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
 
     def set_rpy_target(self, rpy, end_effector_link = ""):
         """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if len(rpy) == 3:
-                self._g.set_rpy_target(rpy[0], rpy[1], rpy[2], end_effector_link)
+                if not self._g.set_rpy_target(rpy[0], rpy[1], rpy[2], end_effector_link):
+                    raise MoveItCommanderException("Unable to set orientation target")
             else:
                 raise MoveItCommanderException("Expected [roll, pitch, yaw]")
         else:
@@ -142,7 +142,8 @@ class MoveGroupCommander(object):
         """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if len(q) == 4:
-                self._g.set_orientation_target(q[0], q[1], q[2], q[3], end_effector_link)
+                if not self._g.set_orientation_target(q[0], q[1], q[2], q[3], end_effector_link):
+                    raise MoveItCommanderException("Unable to set orientation target")
             else:
                 raise MoveItCommanderException("Expected [qx, qy, qz, qw]")
         else:
@@ -151,7 +152,8 @@ class MoveGroupCommander(object):
     def set_position_target(self, xyz, end_effector_link = ""):
         """ Specify a target position for the end-effector. Any orientation of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
-            self._g.set_position_target(xyz[0], xyz[1], xyz[2], end_effector_link)
+            if not self._g.set_position_target(xyz[0], xyz[1], xyz[2], end_effector_link):
+                raise MoveItCommanderException("Unable to set position target")
         else:
             raise MoveItCommanderException("There is no end effector to set the pose for")
 
@@ -159,22 +161,26 @@ class MoveGroupCommander(object):
         """ Set the pose of the end-effector, if one is available. The expected input is a Pose message, a PoseStamped message or a list of 6 floats:"""
         """ [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
+            ok = False
             if type(pose) is PoseStamped:
                 old = self.get_pose_reference_frame()
                 self.set_pose_reference_frame(pose.header.frame_id)
-                self._g.set_pose_target(conversions.pose_to_list(pose.pose), end_effector_link)
+                ok = self._g.set_pose_target(conversions.pose_to_list(pose.pose), end_effector_link)
                 self.set_pose_reference_frame(old)
             elif type(pose) is Pose:
-                self._g.set_pose_target(conversions.pose_to_list(pose), end_effector_link)
+                ok = self._g.set_pose_target(conversions.pose_to_list(pose), end_effector_link)
             else:
-                self._g.set_pose_target(pose, end_effector_link)
+                ok = self._g.set_pose_target(pose, end_effector_link)
+            if not ok:
+                raise MoveItCommanderException("Unable to set target pose")
         else:
             raise MoveItCommanderException("There is no end effector to set the pose for")
 
     def set_pose_targets(self, poses, end_effector_link = ""):
         """ Set the pose of the end-effector, if one is available. The expected input is a list of poses. Each pose can be a Pose message, a list of 6 floats: [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
-            self._g.set_pose_targets([conversions.pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link)
+            if not self._g.set_pose_targets([conversions.pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link):
+                raise MoveItCommanderException("Unable to set target poses")
         else:
             raise MoveItCommanderException("There is no end effector to set poses for")
 
@@ -189,7 +195,7 @@ class MoveGroupCommander(object):
                 pose = [pose[0], pose[1], pose[2], r, p, y]
             if axis >= 0 and axis < 6:
                 pose[axis] = pose[axis] + value
-                self._g.set_pose_target(pose, end_effector_link)
+                self.set_pose_target(pose, end_effector_link)
             else:
                 raise MoveItCommanderException("An axis value between 0 and 5 expected")
         else:
@@ -210,7 +216,7 @@ class MoveGroupCommander(object):
     def set_named_target(self, name):
         """ Set a joint configuration by name. The name can be a name previlusy remembered with remember_joint_values() or a configuration specified in the SRDF. """
         if not self._g.set_named_target(name):
-            raise MoveItCommanderException("Unable to set target " + name)
+            raise MoveItCommanderException("Unable to set target %s. Is the target within bounds?" % name)
 
     def remember_joint_values(self, name, values = None):
         """ Record the specified joint configuration of the group under the specified name. If no values are specified, the current state of the group is recorded. """
@@ -318,7 +324,7 @@ class MoveGroupCommander(object):
             joints = None
 
         elif type(joints) is JointState:
-            self._g.set_joint_value_target(joints.position)
+            self.set_joint_value_target(joints.position)
 
         elif type(joints) is Pose:
             self.set_pose_target(joints)
@@ -336,7 +342,7 @@ class MoveGroupCommander(object):
     def plan(self, joints = None):
         """ Return a motion plan (a RobotTrajectory) to the set goal state (or specified by the joints argument) """
         if type(joints) is JointState:
-            self._g.set_joint_value_target(joints.position)
+            self.set_joint_value_target(joints.position)
 
         elif type(joints) is Pose:
             self.set_pose_target(joints)
