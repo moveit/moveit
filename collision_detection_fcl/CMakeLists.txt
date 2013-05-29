@@ -15,8 +15,5 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 install(DIRECTORY include/
   DESTINATION include)
   
-find_package(moveit_resources QUIET)
-include_directories (${moveit_resources_BINARY_DIR}/include)
-#message(STATUS "=============== ${moveit_resources_BINARY_DIR}; ${moveit_resources_SOURCE_DIR} ================")
 catkin_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
 target_link_libraries(test_fcl_collision_detection  ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})

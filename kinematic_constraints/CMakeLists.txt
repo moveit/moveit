@@ -16,7 +16,5 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 install(DIRECTORY include/
   DESTINATION include)
 
-find_package(moveit_resources QUIET)
-include_directories (${moveit_resources_BINARY_DIR}/include)
 catkin_add_gtest(test_constraints test/test_constraints.cpp)
 target_link_libraries(test_constraints  ${MOVEIT_LIB_NAME})
