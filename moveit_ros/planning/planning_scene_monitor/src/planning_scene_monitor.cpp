@@ -144,6 +144,7 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
   scene_const_.reset();
   scene_.reset();
   parent_scene_.reset();
+  robot_model_.reset();
   rm_loader_.reset();
 }
 
@@ -157,6 +158,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   robot_description_ = rm_loader_->getRobotDescription();
   if (rm_loader_->getModel())
   {
+    robot_model_ = rm_loader_->getModel();
     scene_ = scene;
     if (!scene_)
     {
@@ -348,14 +350,6 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
   while (publish_planning_scene_);
 }
 
-const robot_model::RobotModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getRobotModel() const
-{
-  if (scene_)
-    return scene_->getRobotModel();
-  static const robot_model::RobotModelConstPtr empty;
-  return empty;
-}
-
 void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vector<std::string> &topics) const
 {
   topics.clear();
@@ -418,6 +412,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
       last_update_time_ = ros::Time::now();
       old_scene_name = scene_->getName();
       scene_->usePlanningSceneMsg(*scene);
+      robot_model_ = scene_->getRobotModel();
       
       // if we just reset the scene completely but we were maintaining diffs, we need to fix that
       if (!scene->is_diff && parent_scene_)
@@ -881,7 +876,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
   if (scene_)
   {
     if (!current_state_monitor_)
-      current_state_monitor_.reset(new CurrentStateMonitor(scene_->getRobotModel(), tf_));
+      current_state_monitor_.reset(new CurrentStateMonitor(getRobotModel(), tf_));
     current_state_monitor_->addUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
     current_state_monitor_->startStateMonitor(joint_states_topic);
     
@@ -987,7 +982,7 @@ void planning_scene_monitor::PlanningSceneMonitor::setPlanningScenePublishingFre
 
 void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped> &transforms)
 {
-  const std::string &target = scene_->getPlanningFrame();
+  const std::string &target = getRobotModel()->getModelFrame();
   
   std::vector<std::string> all_frame_names;
   tf_->getFrameStrings(all_frame_names);
