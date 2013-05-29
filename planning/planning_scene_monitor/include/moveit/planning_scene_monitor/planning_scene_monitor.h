@@ -131,7 +131,10 @@ public:
     return rm_loader_;
   }
   
-  const robot_model::RobotModelConstPtr& getRobotModel() const;
+  const robot_model::RobotModelConstPtr& getRobotModel() const
+  {
+    return robot_model_;
+  }
   
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
@@ -433,7 +436,8 @@ private:
   ros::WallTime last_state_update_;
   
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
-
+  robot_model::RobotModelConstPtr robot_model_;
+  
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;  
 };
