@@ -18,11 +18,6 @@ find_package(catkin COMPONENTS
   actionlib
   roscpp
   rosconsole
-#  urdf
-#  kdl_parser
-#  tf
-#  tf_conversions
-#  eigen_conversions
   control_msgs
   REQUIRED)
 

@@ -35,6 +35,9 @@
 
 /* Author: Michael Ferguson, Ioan Sucan, E. Gil Jones */
 
+#ifndef MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
+#define MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
+
 #include <moveit/controller_manager/controller_manager.h>
 #include <actionlib/client/simple_action_client.h>
 
@@ -149,7 +152,7 @@ protected:
   moveit_controller_manager::ExecutionStatus last_exec_;
   bool done_;
 
-  /* the controller namespace, for instance, topics are typically /controller_name/controller_ns/goal, etc. */
+  /* the controller namespace, for instance, topics will map to name/ns/goal, name/ns/result, etc */
   std::string namespace_;
 
   /* the joints controlled by this controller */
@@ -161,3 +164,5 @@ protected:
 
 
 } // end namespace moveit_simple_controller_manager
+
+#endif // MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
