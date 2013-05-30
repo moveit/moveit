@@ -197,23 +197,16 @@ public:
   }
 
   /*
-   * Controllers are all loaded, active, and default -- that's what makes this thing simple.
+   * Controllers are all active and default -- that's what makes this thing simple.
    */
   virtual moveit_controller_manager::MoveItControllerManager::ControllerState getControllerState(const std::string &name)
   {
     moveit_controller_manager::MoveItControllerManager::ControllerState state;
-    state.loaded_ = true;
     state.active_ = true;
     state.default_ = true;
     return state;
   }
-  
-  /* All of our controllers are already loaded. */
-  virtual bool loadController(const std::string &name) { return true; }
-  
-  /* Cannot unload our controllers */
-  virtual bool unloadController(const std::string &name) { return false; }
-  
+
   /* Cannot switch our controllers */
   virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate) { return false; }
   
