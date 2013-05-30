@@ -1310,9 +1310,6 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
         {
           ControllerInformation &ci = known_controllers_[controllers_to_activate[a]];
           ci.last_update_ = ros::Time();
-          if (!ci.state_.loaded_)
-            if (!controller_manager_->loadController(controllers_to_activate[a]))
-              return false;
         }
         // reset the state update cache
         for (std::size_t a = 0 ; a < controllers_to_deactivate.size() ; ++a)  
