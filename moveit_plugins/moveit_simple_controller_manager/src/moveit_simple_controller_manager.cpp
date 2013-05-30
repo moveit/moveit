@@ -1,8 +1,8 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
+*  Copyright (c) 2013, Unbounded Robotics Inc.
 *  Copyright (c) 2012, Willow Garage, Inc.
-*  Copyright (c) 2013, Michael E. Ferguson
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -33,159 +33,18 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, E. Gil Jones, Michael Ferguson */
-/* This is a simplified controller manager which uses control_msgs
- * actions. It is based off the earlier pr2_controller_manager. */
+/* Author: Michael Ferguson, Ioan Sucan, E. Gil Jones */
 
 #include <ros/ros.h>
 #include <moveit_simple_controller_manager/action_based_controller_handle.h>
-#include <control_msgs/FollowJointTrajectoryAction.h>
-#include <control_msgs/GripperCommandAction.h>
+#include <moveit_simple_controller_manager/gripper_controller_handle.h>
+#include <moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h>
 #include <pluginlib/class_list_macros.h>
 #include <algorithm>
 #include <map>
 
 namespace moveit_simple_controller_manager
 {
-
-/*
- * The gripper ...
- */
-class GripperControllerHandle : public ActionBasedControllerHandle<control_msgs::GripperCommandAction>
-{
-public:
-  /* Topics will map to name/ns/goal, name/ns/result, etc */
-  GripperControllerHandle(const std::string &name, const std::string &ns  = "gripper_action") :
-    ActionBasedControllerHandle<control_msgs::GripperCommandAction>(name, ns),
-    closing_(false)
-  {
-  }
-
-  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &trajectory)
-  {
-    ROS_INFO_STREAM("new trajectory to " << name_);
-    if (!controller_action_client_)
-      return false;
-    if (!trajectory.multi_dof_joint_trajectory.points.empty())
-    {
-      ROS_ERROR("The simple gripper controller cannot execute multi-dof trajectories.");
-      return false;
-    }
-    
-    if (trajectory.joint_trajectory.points.size() != 1)
-    {
-      ROS_ERROR("The simple gripper controller expects a joint trajectory with one point only, but %u provided)", (unsigned int)trajectory.joint_trajectory.points.size());
-      return false;
-    }
-
-    if (trajectory.joint_trajectory.points[0].positions.empty())
-    {
-      ROS_ERROR("The simple gripper controller expects a joint trajectory with one point that specifies at least one position, but 0 positions provided)");
-      return false;
-    }
-    
-    /* TODO: currently sending velocity as effort, make this better. */
-    control_msgs::GripperCommandGoal goal;
-    if (!trajectory.joint_trajectory.points[0].velocities.empty())
-      goal.command.max_effort = trajectory.joint_trajectory.points[0].velocities[0];
-    goal.command.position = trajectory.joint_trajectory.points[0].positions[0];
-    controller_action_client_->sendGoal(goal,
-                    boost::bind(&GripperControllerHandle::controllerDoneCallback, this, _1, _2),
-                    boost::bind(&GripperControllerHandle::controllerActiveCallback, this),
-                    boost::bind(&GripperControllerHandle::controllerFeedbackCallback, this, _1));
-    done_ = false;
-    last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
-    return true;
-  }
-  
-private:
-
-  void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
-                              const control_msgs::GripperCommandResultConstPtr& result)
-  {
-    // the gripper action reports failure when closing the gripper and an object is inside
-    //if (state == actionlib::SimpleClientGoalState::ABORTED && closing_)
-      finishControllerExecution(actionlib::SimpleClientGoalState::SUCCEEDED);
-    //else
-      //finishControllerExecution(state);
-  }
-  
-  void controllerActiveCallback() 
-  {
-    ROS_DEBUG_STREAM("Controller " << name_ << " started execution");
-  }
-  
-  void controllerFeedbackCallback(const control_msgs::GripperCommandFeedbackConstPtr& feedback)
-  {
-  }
-  
-  bool closing_;
-};
-
-/*
- * This is generally used for arms, but could also be used for multi-dof hands.
- */
-class SimpleFollowJointTrajectoryControllerHandle : public ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>
-{
-public:
-  
-  SimpleFollowJointTrajectoryControllerHandle(const std::string &name, const std::string &ns = "follow_joint_trajectory") :
-    ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>(name, ns)
-  {  
-  }
-  
-  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &trajectory)
-  {
-    ROS_INFO_STREAM("new trajectory to " << name_);
-    if (!controller_action_client_)
-      return false;
-    if (!trajectory.multi_dof_joint_trajectory.points.empty())
-    {
-      ROS_ERROR("The FollowJointTrajectory controller cannot execute multi-dof trajectories.");
-      return false;
-    }
-    if (done_)
-      ROS_DEBUG_STREAM("Sending trajectory to FollowJointTrajectory action for controller " << name_);
-    else
-      ROS_DEBUG_STREAM("Sending continuation for the currently executed trajectory to FollowJointTrajectory action for controller " << name_);
-    control_msgs::FollowJointTrajectoryGoal goal;
-    goal.trajectory = trajectory.joint_trajectory;
-    controller_action_client_->sendGoal(goal,
-                    boost::bind(&SimpleFollowJointTrajectoryControllerHandle::controllerDoneCallback, this, _1, _2),
-                    boost::bind(&SimpleFollowJointTrajectoryControllerHandle::controllerActiveCallback, this),
-                    boost::bind(&SimpleFollowJointTrajectoryControllerHandle::controllerFeedbackCallback, this, _1));
-    done_ = false;
-    last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
-    return true;
-  }
-  
-protected:
-
-  void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
-                              const control_msgs::FollowJointTrajectoryResultConstPtr& result)
-  {
-    finishControllerExecution(state);
-  }
-  
-  void controllerActiveCallback() 
-  {
-    ROS_DEBUG_STREAM("Controller " << name_ << " started execution");
-  }
-  
-  void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback)
-  {
-  }
-};
-
-
-
-
-
-
-
-
-
-
 
 
 class MoveItSimpleControllerManager : public moveit_controller_manager::MoveItControllerManager
@@ -239,27 +98,35 @@ public:
 
         std::string type = std::string(controller_list[i]["type"]);
 
-        //moveit_controller_manager::MoveItControllerHandlePtr new_handle;
         ActionBasedControllerHandleBasePtr new_handle;
         if ( type == "GripperCommand" )
         {
           new_handle.reset(ns.empty() ? new GripperControllerHandle(name) : new GripperControllerHandle(name, ns));
           if (static_cast<GripperControllerHandle*>(new_handle.get())->isConnected())
           {
+            if (controller_list[i].hasMember("command_joint"))
+                static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["command_joint"]);                
+            else
+                static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["joints"][0]);
+
+            if (controller_list[i].hasMember("allow_failure"))
+                static_cast<GripperControllerHandle*>(new_handle.get())->allowFailure(true);
+
             ROS_INFO_STREAM("MoveitSimpleControllerManager: Added GripperCommand controller for " << name );
             controllers_[name] = new_handle;
           }
         }
         else if ( type == "FollowJointTrajectory" )
         {
-          new_handle.reset(ns.empty() ? new SimpleFollowJointTrajectoryControllerHandle(name) : new SimpleFollowJointTrajectoryControllerHandle(name, ns));
-          if (static_cast<SimpleFollowJointTrajectoryControllerHandle*>(new_handle.get())->isConnected())
+          new_handle.reset(ns.empty() ? new FollowJointTrajectoryControllerHandle(name) : new FollowJointTrajectoryControllerHandle(name, ns));
+          if (static_cast<FollowJointTrajectoryControllerHandle*>(new_handle.get())->isConnected())
           {
             ROS_INFO_STREAM("MoveitSimpleControllerManager: Added FollowJointTrajectory controller for " << name );
             controllers_[name] = new_handle;
           }
         }
 
+        /* add list of joints, used by controller manager and moveit */
         for (int j = 0 ; j < controller_list[i]["joints"].size() ; ++j)
           controllers_[name]->addJoint(std::string(controller_list[i]["joints"][j]));
       }
@@ -279,7 +146,7 @@ public:
    */
   virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string &name)
   {
-    std::map<std::string, ActionBasedControllerHandleBasePtr /*moveit_controller_manager::MoveItControllerHandlePtr*/>::const_iterator it = controllers_.find(name);
+    std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.find(name);
     if (it != controllers_.end())
       return static_cast<moveit_controller_manager::MoveItControllerHandlePtr>(it->second);
     else
@@ -291,7 +158,7 @@ public:
    */
   virtual void getControllersList(std::vector<std::string> &names)
   {    
-    for (std::map<std::string, ActionBasedControllerHandleBasePtr /*moveit_controller_manager::MoveItControllerHandlePtr*/>::const_iterator it = controllers_.begin() ; it != controllers_.end() ; ++it)
+    for (std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.begin() ; it != controllers_.end() ; ++it)
       names.push_back(it->first);
     ROS_INFO_STREAM("Returned " << names.size() << " controllers in list");
   }
@@ -317,7 +184,7 @@ public:
    */
   virtual void getControllerJoints(const std::string &name, std::vector<std::string> &joints)
   {
-    std::map<std::string, ActionBasedControllerHandleBasePtr /*moveit_controller_manager::MoveItControllerHandlePtr*/>::const_iterator it = controllers_.find(name);
+    std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.find(name);
     if (it != controllers_.end())
     {
       it->second->getJoints(joints);
@@ -353,10 +220,10 @@ public:
 protected:
   
   ros::NodeHandle node_handle_;
-  std::map<std::string, ActionBasedControllerHandleBasePtr/*moveit_controller_manager::MoveItControllerHandlePtr*/> controllers_;
+  std::map<std::string, ActionBasedControllerHandleBasePtr> controllers_;
 };
 
-}
+} // end namespace moveit_simple_controller_manager
 
 PLUGINLIB_EXPORT_CLASS(moveit_simple_controller_manager::MoveItSimpleControllerManager,
                        moveit_controller_manager::MoveItControllerManager);
