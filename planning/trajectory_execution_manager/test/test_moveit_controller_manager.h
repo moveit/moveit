@@ -73,18 +73,17 @@ public:
 class TestMoveItControllerManager : public moveit_controller_manager::MoveItControllerManager
 {
 public:
-  static const int LOADED = 1;
-  static const int ACTIVE = 2;
-  static const int DEFAULT = 4;
+  static const int ACTIVE = 1;
+  static const int DEFAULT = 2;
   
   TestMoveItControllerManager()
   {
     controllers_["right_arm"] = DEFAULT;
-    controllers_["left_arm"] = LOADED + ACTIVE + DEFAULT;
-    controllers_["arms"] = LOADED;
+    controllers_["left_arm"] = ACTIVE + DEFAULT;
+    controllers_["arms"] = 0;
     controllers_["base"] = DEFAULT;
     controllers_["head"] = 0;
-    controllers_["left_arm_head"] = LOADED;
+    controllers_["left_arm_head"] = 0;
     
     controller_joints_["right_arm"].push_back("rj1");
     controller_joints_["right_arm"].push_back("rj2");
@@ -123,14 +122,6 @@ public:
         names.push_back(it->first);
   }
   
-  virtual void getLoadedControllers(std::vector<std::string> &names)
-  {
-    names.clear();
-    for (std::map<std::string, int>::const_iterator it = controllers_.begin() ; it != controllers_.end() ; ++it)
-      if (it->second & LOADED)
-        names.push_back(it->first);
-  }
-  
   virtual void getControllerJoints(const std::string &name, std::vector<std::string> &joints)
   {
     joints = controller_joints_[name];
@@ -140,39 +131,20 @@ public:
   {
     moveit_controller_manager::MoveItControllerManager::ControllerState state;
     state.active_ = controllers_[name] & ACTIVE;
-    state.loaded_ = controllers_[name] & LOADED;
     state.default_ = false;
     return state;
   }
   
-  /// Load a controller, but do not activate it by default
-  virtual bool loadController(const std::string &name)
-  {
-    std::cout << "Loaded controller " << name << std::endl;
-    controllers_[name] |= LOADED;
-    return true;
-  }
-  
-  virtual bool unloadController(const std::string &name)
-  {
-    std::cout << "Unloaded controller " << name << std::endl;
-    controllers_[name] &= ~LOADED;
-    return true;
-  }
   
   virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate)
   {
     for (std::size_t i = 0 ; i < deactivate.size() ; ++i)
     {
-      if (!(controllers_[deactivate[i]] & LOADED))
-        std::cout << "ERROR: Controller " << deactivate[i] << " is not loaded" << std::endl;
       controllers_[deactivate[i]] &= ~ACTIVE;
       std::cout << "Deactivated controller " << deactivate[i] << std::endl;
     }
     for (std::size_t i = 0 ; i < activate.size() ; ++i)
     {
-      if (!(controllers_[activate[i]] & LOADED))
-        std::cout << "ERROR: Controller " << activate[i] << " is not loaded" << std::endl;
       controllers_[activate[i]] |= ACTIVE;
       std::cout << "Activated controller " << activate[i] << std::endl;
     }    
