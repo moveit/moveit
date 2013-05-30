@@ -367,6 +367,34 @@ void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::s
     names.push_back(it->first);
 }
 
+const collision_detection::CollisionWorldConstPtr& planning_scene::PlanningScene::getCollisionWorld(
+      const std::string& collision_detector_name) const
+{
+  CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
+  const CollisionDetectorPtr& detector = (it == collision_.end()) ? active_collision_ : it->second;
+
+  return detector->cworld_const_;
+}
+
+const collision_detection::CollisionRobotConstPtr& planning_scene::PlanningScene::getCollisionRobot(
+      const std::string& collision_detector_name) const
+{
+  CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
+  const CollisionDetectorPtr& detector = (it == collision_.end()) ? active_collision_ : it->second;
+
+  return detector->getCollisionRobot();
+}
+
+const collision_detection::CollisionRobotConstPtr& planning_scene::PlanningScene::getCollisionRobotUnpadded(
+      const std::string& collision_detector_name) const
+{
+  CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
+  const CollisionDetectorPtr& detector = (it == collision_.end()) ? active_collision_ : it->second;
+
+  return detector->getCollisionRobotUnpadded();
+}
+
+
 void planning_scene::PlanningScene::clearDiffs()
 {
   if (!parent_)
