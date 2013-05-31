@@ -788,7 +788,7 @@ robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf
   {
     const std::vector<srdf::Model::VirtualJoint> &vjoints = srdf_model.getVirtualJoints();
     for (std::size_t i = 0 ; i < vjoints.size() ; ++i)
-      if (vjoints[i].child_link_ == child_link->name)
+      if (vjoints[i].child_link_ == child_link->name && !vjoints[i].parent_frame_.empty())
       {
         if (vjoints[i].type_ == "fixed")
           result = new FixedJointModel(vjoints[i].name_);
@@ -800,7 +800,11 @@ robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf
         {
           // for fixed frames we still use the robot root link
           if (vjoints[i].type_ != "fixed")
-            model_frame_ = '/' + vjoints[i].parent_frame_;
+          {
+            model_frame_ = vjoints[i].parent_frame_;
+            if (model_frame_[0] != '/')
+              model_frame_ = '/' + model_frame_;
+          }
           break;
         }
       }
