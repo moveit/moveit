@@ -15,7 +15,6 @@ COMPONENTS
   urdfdom_headers
   srdfdom
   fcl
-  orocos_kdl
   kdl_parser
   geometric_shapes
   shape_tools
@@ -86,7 +85,6 @@ catkin_package(
     eigen_stl_containers
     eigen_conversions
     random_numbers
-    console_bridge
     moveit_msgs
     kdl_parser
     srdfdom
@@ -95,6 +93,7 @@ catkin_package(
     Eigen
     urdfdom
     urdfdom_headers
+    console_bridge
     )
 
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
