@@ -55,17 +55,27 @@ void robot_state::LinkState::updateGivenGlobalLinkTransform(const Eigen::Affine3
   updateAttachedBodies();
 }
 
+void robot_state::LinkState::computeTransformForward(const Eigen::Affine3d& parent_transform)
+{
+  global_link_transform_ = parent_transform * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
+  computeGeometryTransforms();
+}
+
+void robot_state::LinkState::computeTransformBackward(const Eigen::Affine3d& child_transform)
+{
+  global_link_transform_ = child_transform * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
+  computeGeometryTransforms();
+}
+
+void robot_state::LinkState::computeGeometryTransforms()
+{
+  global_collision_body_transform_ = global_link_transform_ * link_model_->getCollisionOriginTransform();
+  updateAttachedBodies();
+}
+
 void robot_state::LinkState::computeTransform()
 {
-  /*
-  if (link_model_->isJointReversed())
-    global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
-  */
-
-  global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
-  global_collision_body_transform_ = global_link_transform_ * link_model_->getCollisionOriginTransform();
-  
-  updateAttachedBodies();
+  computeTransformForward(parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform());
 }
 
 void robot_state::LinkState::updateAttachedBodies()

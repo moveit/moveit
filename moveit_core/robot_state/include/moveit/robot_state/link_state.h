@@ -83,6 +83,11 @@ public:
   
   /** \brief Recompute global_collision_body_transform and global_link_transform */
   void computeTransform();
+
+  void computeTransformForward(const Eigen::Affine3d& parent_transform);  
+  void computeTransformBackward(const Eigen::Affine3d& child_transform);
+  
+  void computeGeometryTransforms();
   
   /** \brief Update all attached bodies given set link transforms */
   void updateAttachedBodies();
