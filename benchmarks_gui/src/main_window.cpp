@@ -94,7 +94,15 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
   if ( scene_display_ )
   {
-    configure();
+    if (waitForPlanningSceneMonitor(scene_display_))
+    {
+      configure();
+    }
+    else
+    {
+      ROS_INFO("Couldn't find a valid robot description in the parameter server. Please load a robot on the GUI.");
+    }
+
     if (ui_.planning_group_combo->count() > 0)
     {
       planningGroupChanged(ui_.planning_group_combo->currentText());
@@ -190,6 +198,20 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+}
+
+bool MainWindow::waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay *scene_display)
+{
+  //Wait until the planning scene monitor is up
+  ros::Time tstart = ros::Time::now();
+  static const double psm_waiting_timeout = 10.0;
+  while (! scene_display->getPlanningSceneMonitor() && (ros::Time::now() - tstart) < ros::Duration(psm_waiting_timeout))
+  {
+    ROS_INFO_ONCE("Waiting for the planning scene monitor...");
+    scene_display->update(0.1, 0.1);
+  }
+
+  return scene_display->getPlanningSceneMonitor();
 }
 
 void MainWindow::exitActionTriggered(bool)
@@ -295,28 +317,36 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     old_scene_name = scene_display_->getPlanningSceneRO()->getName();
   scene_display_->reset();
 
-  if (configure())
+  if (waitForPlanningSceneMonitor(scene_display_))
   {
-    //Reload the scene geometry if one scene was already loaded
-    load_robot_ui_.status_label->setText(QString("Reloading scene... "));
-    load_robot_ui_.load_progress_bar->setValue(90);
-    QList<QListWidgetItem *> found_items = ui_.planning_scene_list->findItems(QString::fromStdString(old_scene_name), Qt::MatchExactly);
-    if (found_items.size() > 0)
+    if (configure())
     {
-      found_items[0]->setSelected(true);
-      loadSceneButtonClicked();
-    }
+      //Reload the scene geometry if one scene was already loaded
+      load_robot_ui_.status_label->setText(QString("Reloading scene... "));
+      load_robot_ui_.load_progress_bar->setValue(90);
+      QList<QListWidgetItem *> found_items = ui_.planning_scene_list->findItems(QString::fromStdString(old_scene_name), Qt::MatchExactly);
+      if (found_items.size() > 0)
+      {
+        found_items[0]->setSelected(true);
+        loadSceneButtonClicked();
+      }
 
-    //Reload the goals
-    load_robot_ui_.status_label->setText(QString("Reloading goals... "));
-    load_robot_ui_.load_progress_bar->setValue(95);
-    if (ui_.goal_poses_list->count() > 0)
-    {
-      loadGoalsFromDBButtonClicked();
+      //Reload the goals
+      load_robot_ui_.status_label->setText(QString("Reloading goals... "));
+      load_robot_ui_.load_progress_bar->setValue(95);
+      if (ui_.goal_poses_list->count() > 0)
+      {
+        loadGoalsFromDBButtonClicked();
+      }
+      load_robot_ui_.status_label->setText(QString(""));
+      load_robot_ui_.load_progress_bar->setValue(100);
     }
-    load_robot_ui_.status_label->setText(QString(""));
-    load_robot_ui_.load_progress_bar->setValue(100);
   }
+  else
+  {
+    ROS_INFO("Couldn't find a valid robot description in the parameter server. Please load a robot on the GUI.");
+  }
+
   robot_loader_dialog_->close();
   load_robot_ui_.load_progress_bar->setValue(0);
   QApplication::restoreOverrideCursor();
