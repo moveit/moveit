@@ -146,6 +146,7 @@ private:
   rviz::VisualizationManager *visualization_manager_;
   moveit_rviz_plugin::PlanningSceneDisplay *scene_display_;
 
+  bool waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay *scene_display);
   void scheduleStateUpdate();
   void scheduleStateUpdateBackgroundJob();
   bool isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution);
