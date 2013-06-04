@@ -98,7 +98,7 @@ private Q_SLOTS:
   
 protected:
 
-  void loadRobotModel(const std::string &root_link);
+  void loadRobotModel();
 
   /**
    * \brief Set the scene node's position, given the target frame and the planning frame

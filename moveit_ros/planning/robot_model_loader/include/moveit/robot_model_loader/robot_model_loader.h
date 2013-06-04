@@ -85,9 +85,6 @@ public:
 
     /** @brief The parsed XML content of the URDF and SRDF documents. */
     TiXmlDocument *urdf_doc_, *srdf_doc_;
-
-    /** @brief The name of the link to consider as root of the model. By default (\e root_link is empty) the root will be the one specified in the URDF. However, it is possible to re-parent the tree using this argument. */
-    std::string root_link_;
         
     /** @brief Flag indicating whether the kinematics solvers should be loaded as well, using specified ROS parameters */
     bool load_kinematics_solvers_;

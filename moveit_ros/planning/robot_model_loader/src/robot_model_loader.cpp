@@ -94,10 +94,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
   if (rdf_loader_->getURDF())
   {
     const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
-    if (opt.root_link_.empty())
-      model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
-    else
-      model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf, opt.root_link_));
+    model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
   }
 
   if (model_ && !rdf_loader_->getRobotDescription().empty())

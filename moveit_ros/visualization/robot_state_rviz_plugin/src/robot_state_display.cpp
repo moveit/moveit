@@ -120,7 +120,7 @@ void RobotStateDisplay::reset()
   robot_->clear();
   rdf_loader_.reset();
 
-  loadRobotModel("");
+  loadRobotModel();
   Display::reset();
   
   changedEnableVisualVisible();
@@ -302,7 +302,7 @@ void RobotStateDisplay::changedRobotStateTopic()
   robot_state_subscriber_.shutdown();
   robot_state_subscriber_ = root_nh_.subscribe(robot_state_topic_property_->getStdString(), 10, &RobotStateDisplay::newRobotStateCallback, this);
   robot_->clear();
-  loadRobotModel("");
+  loadRobotModel();
 }
 
 void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotStateConstPtr &state_msg)
@@ -348,7 +348,7 @@ void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& li
 // ******************************************************************************************
 // Load
 // ******************************************************************************************
-void RobotStateDisplay::loadRobotModel(const std::string &root_link)
+void RobotStateDisplay::loadRobotModel()
 {
   if (!rdf_loader_)
     rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
@@ -356,10 +356,7 @@ void RobotStateDisplay::loadRobotModel(const std::string &root_link)
   if (rdf_loader_->getURDF())
   {
     const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
-    if (root_link.empty())
-      kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
-    else
-      kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf, root_link));
+    kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
     robot_->load(*kmodel_->getURDF());
     kstate_.reset(new robot_state::RobotState(kmodel_));
     kstate_->setToDefaultValues();
@@ -378,7 +375,7 @@ void RobotStateDisplay::loadRobotModel(const std::string &root_link)
 void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
-  loadRobotModel("");
+  loadRobotModel();
   if (robot_)
   {
     changedEnableVisualVisible();
