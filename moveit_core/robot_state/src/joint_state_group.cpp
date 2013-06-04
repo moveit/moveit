@@ -94,14 +94,6 @@ bool robot_state::JointStateGroup::hasJointState(const std::string &joint) const
   return joint_state_map_.find(joint) != joint_state_map_.end();
 }
 
-bool robot_state::JointStateGroup::updatesLinkState(const std::string& link) const
-{
-  for (std::size_t i = 0 ; i < updated_links_.size() ; ++i)
-    if (updated_links_[i]->getName() == link)
-      return true;
-  return false;
-}
-
 bool robot_state::JointStateGroup::setVariableValues(const std::vector<double> &joint_state_values)
 {
   if (joint_state_values.size() != getVariableCount())
