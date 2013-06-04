@@ -40,6 +40,7 @@
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit/exceptions/exceptions.h>
 #include <octomap_msgs/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <set>
@@ -130,14 +131,14 @@ planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf:
   world_const_(world)
 {
   if (!urdf_model)
-    throw ConstructException("The URDF model cannot be NULL");
+    throw moveit::ConstructException("The URDF model cannot be NULL");
 
   if (!srdf_model)
-    throw ConstructException("The SRDF model cannot be NULL");
+    throw moveit::ConstructException("The SRDF model cannot be NULL");
 
   kmodel_ = createRobotModel(urdf_model, srdf_model);
   if (!kmodel_)
-    throw ConstructException("Could not create RobotModel");
+    throw moveit::ConstructException("Could not create RobotModel");
 
   initialize();
 }
@@ -185,7 +186,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   parent_(parent)
 {
   if (!parent_)
-    throw ConstructException("NULL parent pointer");
+    throw moveit::ConstructException("NULL parent pointer for planning scene");
 
   if (!parent_->getName().empty())
     name_ = parent_->getName() + "+";
@@ -2153,11 +2154,3 @@ void planning_scene::PlanningScene::printKnownObjects(std::ostream& out) const
     out << "\t " << attached_bodies[i]->getName() << "\n";
   }
 }
-
-planning_scene::PlanningScene::ConstructException::ConstructException(const std::string& what_arg) :
-  std::runtime_error(what_arg)
-{
-  logError("Error during construction of PlanningScene: %s.  Exception thrown.",
-           what_arg.c_str());
-}
-

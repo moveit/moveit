@@ -586,12 +586,6 @@ public:
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
 
-  /** this may be thrown during construction if errors occur */
-  struct ConstructException : public std::runtime_error
-  {
-    explicit ConstructException(const std::string& what_arg);
-  };
-
 private:
 
   /* Private constructor used by the diff() methods. */
