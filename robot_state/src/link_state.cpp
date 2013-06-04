@@ -57,10 +57,12 @@ void robot_state::LinkState::updateGivenGlobalLinkTransform(const Eigen::Affine3
 
 void robot_state::LinkState::computeTransform()
 {
+  /*
   if (link_model_->isJointReversed())
     global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
-  else
-    global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
+  */
+
+  global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
   global_collision_body_transform_ = global_link_transform_ * link_model_->getCollisionOriginTransform();
   
   updateAttachedBodies();
