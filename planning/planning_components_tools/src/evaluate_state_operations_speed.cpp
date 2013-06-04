@@ -54,15 +54,15 @@ int main(int argc, char **argv)
     robot_model::RobotModelConstPtr robot_model = rml.getModel();
     if (robot_model)
     {
-      static const int N = 1000;
+      static const int N = 10000;
       robot_state::RobotState state(robot_model);
 
-      ROS_INFO("Testing model '%s':", robot_model->getName().c_str());
+      printf("Evaluating model '%s' using %d trials for each test\n", robot_model->getName().c_str(), N);
       
       moveit::Profiler::Clear();
       moveit::Profiler::Start();
       
-      ROS_INFO("Evaluating FK Default ...");
+      printf("Evaluating FK Default ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
         moveit::Profiler::Begin("FK Default");
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
         moveit::Profiler::End("FK Default");
       }
 
-      ROS_INFO("Evaluating FK Random ...");
+      printf("Evaluating FK Random ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
         moveit::Profiler::Begin("FK Random");
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
         moveit::Profiler::End("FK Random");
       } 
       std::vector<robot_state::RobotState*> copies(N, NULL);  
-      ROS_INFO("Evaluating Copy State ...");
+      printf("Evaluating Copy State ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
         moveit::Profiler::Begin("Copy State");
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
         moveit::Profiler::End("Copy State");
       }
 
-      ROS_INFO("Evaluating Free State ...");
+      printf("Evaluating Free State ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
         moveit::Profiler::Begin("Free State");
@@ -97,8 +97,9 @@ int main(int argc, char **argv)
       const std::vector<std::string> &groups = robot_model->getJointModelGroupNames();
       for (std::size_t j = 0 ; j < groups.size() ; ++j)
       {
+        printf("\n");
         robot_state::JointStateGroup *jsg = state.getJointStateGroup(groups[j]);
-        ROS_INFO("%s: Evaluating FK Default ...", groups[j].c_str());
+        printf("%s: Evaluating FK Default ...\n", groups[j].c_str());
         std::string pname = groups[j] + ":FK Default";
         for (int i = 0 ; i < N ; ++i)
         {
@@ -107,7 +108,7 @@ int main(int argc, char **argv)
           moveit::Profiler::End(pname);
         }
         
-        ROS_INFO("%s: Evaluating FK Random ...", groups[j].c_str());
+        printf("%s: Evaluating FK Random ...\n", groups[j].c_str());
         pname = groups[j] + ":FK Random";
         for (int i = 0 ; i < N ; ++i)
         {
