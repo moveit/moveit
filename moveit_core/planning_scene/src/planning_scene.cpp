@@ -125,7 +125,6 @@ planning_scene::PlanningScene::PlanningScene(const robot_model::RobotModelPtr &r
 
 planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                              const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                             const std::string &root_link,
                                              collision_detection::WorldPtr world) :
   world_(world),
   world_const_(world)
@@ -136,7 +135,7 @@ planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf:
   if (!srdf_model)
     throw ConstructException("The SRDF model cannot be NULL");
 
-  kmodel_ = createRobotModel(urdf_model, srdf_model, root_link);
+  kmodel_ = createRobotModel(urdf_model, srdf_model);
   if (!kmodel_)
     throw ConstructException("Could not create RobotModel");
 
@@ -173,53 +172,13 @@ void planning_scene::PlanningScene::initialize()
 
 /* return NULL on failure */
 robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                                                           const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                                                           const std::string &root_link)
+                                                                           const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
-  robot_model::RobotModelPtr robot_model;
-  const urdf::Link *root_link_ptr = NULL;
-  if (!root_link.empty())
-  {
-    root_link_ptr = urdf_model->getLink(root_link).get();
-    if (!root_link_ptr)
-      logError("Link '%s' (to be used as root) was not found in model '%s'. "
-               "Attempting to construct model with default root link instead.",
-               root_link.c_str(), urdf_model->getName().c_str());
-  }
-  if (root_link_ptr)
-    robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model, root_link));
-  else
-    robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
-
+  robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model, srdf_model));
   if (!robot_model || !robot_model->getRoot())
     return robot_model::RobotModelPtr();
-
+  
   return robot_model;
-}
-
-void planning_scene::PlanningScene::setRootLink(const std::string& root_link)
-{
-  robot_model::RobotModelPtr new_robot_model;
-  new_robot_model = createRobotModel(getRobotModel()->getURDF(), getRobotModel()->getSRDF(), root_link);
-
-  if (!new_robot_model || new_robot_model->getRootLinkName() != root_link)
-  {
-    logError("Unable to set root_link to '%s'", root_link.c_str());
-    return;
-  }
-
-  kmodel_ = new_robot_model;
-
-  ftf_.reset(new SceneTransforms(this));
-
-  if (kstate_)
-  {
-    std::map<std::string, double> jsv;
-    kstate_->getStateValues(jsv);
-    kstate_.reset(new robot_state::RobotState(kmodel_));
-    kstate_->setStateValues(jsv);
-    kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
-  }
 }
 
 planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) :
@@ -693,7 +652,6 @@ robot_state::Transforms& planning_scene::PlanningScene::getTransformsNonConst()
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene_msg) const
 {
   scene_msg.name = name_;
-  scene_msg.robot_model_root = getRobotModel()->getRootLinkName();
   scene_msg.robot_model_name = getRobotModel()->getName();
   scene_msg.is_diff = true;
 
@@ -895,7 +853,6 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 {
   scene_msg.name = name_;
   scene_msg.is_diff = false;
-  scene_msg.robot_model_root = getRobotModel()->getRootLinkName();
   scene_msg.robot_model_name = getRobotModel()->getName();
   getTransforms().copyTransforms(scene_msg.fixed_frame_transforms);
 
@@ -937,7 +894,6 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   if (comp.components & moveit_msgs::PlanningSceneComponents::SCENE_SETTINGS)
   {
     scene_msg.name = name_;
-    scene_msg.robot_model_root = getRobotModel()->getRootLinkName();
     scene_msg.robot_model_name = getRobotModel()->getName();
   }
 
@@ -1176,9 +1132,6 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   if (!scene_msg.robot_model_name.empty() && scene_msg.robot_model_name != getRobotModel()->getName())
     logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene_msg.robot_model_name.c_str(), getRobotModel()->getName().c_str());
 
-  if (!scene_msg.robot_model_root.empty() && scene_msg.robot_model_root != getRobotModel()->getRootLinkName())
-    logWarn("Setting scene with robot model root '%s' but the current planning scene uses link '%s' as root.", scene_msg.robot_model_root.c_str(), getRobotModel()->getRootLinkName().c_str());
-
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
   if (!scene_msg.fixed_frame_transforms.empty())
@@ -1243,10 +1196,6 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 
   if (parent_)
     decoupleParent();
-
-  // re-parent the robot model if needed
-  if (!scene_msg.robot_model_root.empty() && scene_msg.robot_model_root != getRobotModel()->getRootLinkName())
-    setRootLink(scene_msg.robot_model_root);
 
   object_types_.reset();
   ftf_->setTransforms(scene_msg.fixed_frame_transforms);

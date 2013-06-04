@@ -95,7 +95,6 @@ public:
    * A RobotModel for the PlanningScene will be created using the urdf and srdf. */
   PlanningScene(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                 const boost::shared_ptr<const srdf::Model> &srdf_model,
-                const std::string &root_link = "",
                 collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
 
   static const std::string COLLISION_MAP_NS;
@@ -604,9 +603,7 @@ private:
 
   /* helper function to create a RobotModel from a urdf/srdf. */
   static robot_model::RobotModelPtr createRobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                                     const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                                     const std::string &root_link);
-  void setRootLink(const std::string& root_link);
+                                                     const boost::shared_ptr<const srdf::Model> &srdf_model);
 
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
