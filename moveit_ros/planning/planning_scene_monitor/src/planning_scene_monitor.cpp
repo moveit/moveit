@@ -36,6 +36,7 @@
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/exceptions/exceptions.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <moveit_ros_planning/PlanningSceneMonitorDynamicReconfigureConfig.h>
@@ -173,7 +174,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
         scene_->getCollisionRobotNonConst()->setScale(default_robot_scale_);
         scene_->propogateRobotPadding();
       }
-      catch (planning_scene::PlanningScene::ConstructException &e)
+      catch (moveit::ConstructException &e)
       {
         ROS_ERROR("Configuration of planning scene failed");
         scene_.reset();
