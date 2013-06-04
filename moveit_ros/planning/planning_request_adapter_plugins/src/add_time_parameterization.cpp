@@ -157,7 +157,8 @@ public:
     if (result && res.trajectory_)
     {
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      time_param_.computeTimeStamps(*res.trajectory_);
+      if (!time_param_.computeTimeStamps(*res.trajectory_))
+        ROS_WARN("Time parametrization for the solution path failed.");
     }
     
     return result;
