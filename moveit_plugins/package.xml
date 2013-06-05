@@ -1,0 +1,17 @@
+<package>
+  <name>moveit_plugins</name>
+  <version>0.1.0</version>
+  <description>Metapackage for moveit plugins.</description>
+  <author>Michael Ferguson</author>
+  <maintainer email="fergs@unboundedrobotics.com">Michael Ferguson</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>moveit_simple_controller_manager</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

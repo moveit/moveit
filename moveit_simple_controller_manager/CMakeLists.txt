@@ -5,9 +5,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Eigen REQUIRED)
-include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
-
 find_package(Boost REQUIRED thread)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
@@ -17,7 +14,6 @@ find_package(catkin COMPONENTS
   pluginlib
   actionlib
   roscpp
-  rosconsole
   control_msgs
   REQUIRED)
 
