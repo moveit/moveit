@@ -48,7 +48,7 @@ namespace robot_state
 namespace
 {
 
-static bool jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state, std::set<std::string> *missing)
+static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state, std::set<std::string> *missing)
 {
   if (joint_state.name.size() != joint_state.position.size())
   {
@@ -346,7 +346,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
 static bool robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
 {
   std::set<std::string> missing;
-  bool result1 = jointStateToRobotState(robot_state.joint_state, state, &missing);
+  bool result1 = _jointStateToRobotState(robot_state.joint_state, state, &missing);
   bool result2 = multiDOFJointsToRobotState(robot_state.multi_dof_joint_state, state, tf);
   state.updateLinkTransforms();
   
@@ -391,7 +391,7 @@ static bool robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_m
 
 bool robot_state::jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state)
 {
-  bool result = jointStateToRobotState(joint_state, state, NULL);
+  bool result = _jointStateToRobotState(joint_state, state, NULL);
   state.updateLinkTransforms();
   return result;
 }
