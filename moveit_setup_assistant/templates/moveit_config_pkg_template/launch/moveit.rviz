@@ -345,8 +345,8 @@ Visualization Manager:
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: left_arm
-        Query Goal State: false
-        Query Start State: true
+        Query Goal State: true
+        Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
         Start State Color: 0; 255; 0
@@ -648,7 +648,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: /odom_combined
+    Fixed Frame: [PLANNING_FRAME]
   Name: root
   Tools:
     - Class: rviz/Interact
@@ -667,7 +667,7 @@ Visualization Manager:
       Name: Current View
       Near Clip Distance: 0.01
       Pitch: 0.509797
-      Target Frame: /base_link
+      Target Frame: /[ROBOT_ROOT_LINK]
       Value: XYOrbit (rviz)
       Yaw: 5.65995
     Saved: ~

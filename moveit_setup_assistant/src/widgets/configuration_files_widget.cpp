@@ -834,12 +834,12 @@ bool ConfigurationFilesWidget::noGroupsEmpty()
 void ConfigurationFilesWidget::loadTemplateStrings()
 {
   // Pair 1
-  addTemplateString("[GENERATED_PACKAGE_NAME]", new_package_name_ );
+  addTemplateString("[GENERATED_PACKAGE_NAME]", new_package_name_);
 
   // Pair 2
   if (config_data_->urdf_pkg_name_.empty())
   {
-    addTemplateString("[URDF_LOCATION]", config_data_->urdf_path_ );
+    addTemplateString("[URDF_LOCATION]", config_data_->urdf_path_);
   }
   else
   {
@@ -847,9 +847,15 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   }
 
   // Pair 3
-  addTemplateString("[ROBOT_NAME]", config_data_->srdf_->robot_name_ );
+  addTemplateString("[ROBOT_NAME]", config_data_->srdf_->robot_name_);
 
   // Pair 4
+  addTemplateString("[ROBOT_ROOT_LINK]", config_data_->getRobotModel()->getRootLinkName());
+
+  // Pair 5
+  addTemplateString("[PLANNING_FRAME]", config_data_->getRobotModel()->getModelFrame());
+
+  // Pair 6
   std::stringstream vjb;
   for (std::size_t i = 0 ; i < config_data_->srdf_->virtual_joints_.size(); ++i)
   {
@@ -859,7 +865,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   }
   addTemplateString("[VIRTUAL_JOINT_BROADCASTER]", vjb.str());
 
-  // Pair 5 - Add dependencies to package.xml if the robot.urdf file is relative to a ROS package
+  // Pair 7 - Add dependencies to package.xml if the robot.urdf file is relative to a ROS package
   if (config_data_->urdf_pkg_name_.empty())
   {
     addTemplateString("[OTHER_DEPENDENCIES",""); // not relative to a ROS package
