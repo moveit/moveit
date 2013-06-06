@@ -122,6 +122,11 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
 
   void changePlanningGroup(const std::string& group);
 
+  void addStatusText(const std::string &text);
+  void addStatusText(const std::vector<std::string> &text);
+  void setStatusTextColor(const QColor &color);
+  void resetStatusTextColor();
+                                                    
 private Q_SLOTS:
 
   // ******************************************************************************************

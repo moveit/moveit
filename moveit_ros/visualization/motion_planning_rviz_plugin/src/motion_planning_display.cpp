@@ -261,6 +261,9 @@ void MotionPlanningDisplay::onInitialize()
 
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
   frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : NULL);
+  resetStatusTextColor();
+  addStatusText("Initialized.");
+
   if (window_context)
     frame_dock_ = window_context->addPane("Motion Planning", frame_);
 
@@ -303,7 +306,7 @@ void MotionPlanningDisplay::reset()
   query_robot_start_->setVisible( query_start_state_property_->getBool() );
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
-  display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
+  display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(false);
 }
 
@@ -674,10 +677,27 @@ void MotionPlanningDisplay::drawQueryStartState()
       collision_links_start_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
         collision_links_start_[collision_links[i]] = 0;
+      if (!collision_links.empty())
+      {
+        setStatusTextColor(query_start_color_property_->getColor());
+        addStatusText("Start state colliding links:");
+        addStatusText(collision_links);
+      }
+      std::vector<std::string> outside_bounds;
       const std::vector<robot_state::JointState*> &jstates = state->getJointStateVector();
       for (std::size_t i = 0 ; i < jstates.size() ; ++i)
         if (!jstates[i]->satisfiesBounds(jstates[i]->getJointModel()->getMaximumExtent() * 1e-2))
-          collision_links_start_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
+        {
+          outside_bounds.push_back(jstates[i]->getJointModel()->getChildLinkModel()->getName());
+          collision_links_start_[outside_bounds.back()] = 1;
+        }
+      if (!outside_bounds.empty())
+      {
+        setStatusTextColor(query_start_color_property_->getColor());
+        addStatusText("Links descending from joints that are outside bounds in start state:");
+        addStatusText(outside_bounds);
+      }
+
       updateLinkColors();
       // update metrics text
       displayMetrics(true);
@@ -686,6 +706,29 @@ void MotionPlanningDisplay::drawQueryStartState()
   else
     query_robot_start_->setVisible(false);
   context_->queueRender();
+}
+
+void MotionPlanningDisplay::resetStatusTextColor()
+{
+  setStatusTextColor(Qt::darkGray);
+}
+
+void MotionPlanningDisplay::setStatusTextColor(const QColor &color)
+{
+  if (frame_)
+    frame_->ui_->status_text->setTextColor(color);
+}
+
+void MotionPlanningDisplay::addStatusText(const std::string &text)
+{
+  if (frame_)
+    frame_->ui_->status_text->append(QString::fromStdString(text));
+}
+
+void MotionPlanningDisplay::addStatusText(const std::vector<std::string> &text)
+{
+  for (std::size_t i = 0 ; i < text.size() ; ++i)
+    addStatusText(text[i]);
 }
 
 void MotionPlanningDisplay::recomputeQueryStartStateMetrics()
@@ -706,7 +749,8 @@ void MotionPlanningDisplay::changedQueryStartState()
 {
   if (!planning_scene_monitor_)
     return;
-
+  setStatusTextColor(query_start_color_property_->getColor());
+  addStatusText("Changed start state");
   drawQueryStartState();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, true), "publishInteractiveMarkers");
 }
@@ -715,7 +759,8 @@ void MotionPlanningDisplay::changedQueryGoalState()
 {
   if (!planning_scene_monitor_)
     return;
-
+  setStatusTextColor(query_goal_color_property_->getColor());
+  addStatusText("Changed goal state");
   drawQueryGoalState();
   addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, true), "publishInteractiveMarkers");
 }
@@ -740,12 +785,29 @@ void MotionPlanningDisplay::drawQueryGoalState()
       collision_links_goal_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
         collision_links_goal_[collision_links[i]] = 0;
+      if (!collision_links.empty())
+      {
+        setStatusTextColor(query_goal_color_property_->getColor());
+        addStatusText("Goal state colliding links:");
+        addStatusText(collision_links);
+      }
 
-      const std::vector<robot_state::JointState*> &jstates = state->getJointStateVector();
+      const std::vector<robot_state::JointState*> &jstates = state->getJointStateVector();   
+      std::vector<std::string> outside_bounds;
       for (std::size_t i = 0 ; i < jstates.size() ; ++i)
         if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
-          collision_links_goal_[jstates[i]->getJointModel()->getChildLinkModel()->getName()] = 1;
+        {
+          outside_bounds.push_back(jstates[i]->getJointModel()->getChildLinkModel()->getName());
+          collision_links_goal_[outside_bounds.back()] = 1;
+        }
       
+      if (!outside_bounds.empty())
+      {
+        setStatusTextColor(query_goal_color_property_->getColor());
+        addStatusText("Links descending from joints that are outside bounds in goal state:");
+        addStatusText(outside_bounds);
+      }
+
       updateLinkColors();
 
       // update metrics text
