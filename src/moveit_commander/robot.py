@@ -147,7 +147,7 @@ class RobotCommander(object):
 
     def get_group(self, name):
         if not self._groups.has_key(name): 
-            if not self.has_group():
+            if not self.has_group(name):
                 raise MoveItCommanderException("There is no group named %s" % name)
             self._groups[name] = MoveGroupCommander(name)
         return self._groups[name]
