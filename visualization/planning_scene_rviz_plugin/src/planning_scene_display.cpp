@@ -125,13 +125,7 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   if (show_scene_robot)
   {
     robot_category_  = new rviz::Property( "Scene Robot",   QVariant(), "", this );
-    
-    root_link_name_property_ =
-      new rviz::StringProperty( "Robot Root Link", "", "Shows the name of the root link for the robot model",
-                                robot_category_,
-                                SLOT( changedRootLinkName() ), this );
-    root_link_name_property_->setReadOnly(true);
-    
+        
     scene_robot_enabled_property_ =
       new rviz::BoolProperty( "Show Scene Robot", true, "Indicates whether the robot state specified by the planning scene should be displayed",
                               robot_category_,
@@ -151,7 +145,6 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   else
   {
     robot_category_ = NULL;
-    root_link_name_property_ = NULL;
     scene_robot_enabled_property_ = NULL;
     robot_alpha_property_ = NULL;
     attached_body_color_property_ = NULL;
@@ -299,12 +292,6 @@ void PlanningSceneDisplay::changedSceneName()
   planning_scene_monitor::LockedPlanningSceneRW ps = getPlanningSceneRW();
   if (ps)
     ps->setName(scene_name_property_->getStdString());
-}
-
-void PlanningSceneDisplay::changedRootLinkName()
-{
-  if (getRobotModel() && root_link_name_property_)
-    root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
 }
 
 void PlanningSceneDisplay::renderPlanningScene()
@@ -513,13 +500,6 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   bool oldState = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(ps->getName());
   scene_name_property_->blockSignals(oldState);
-
-  if (root_link_name_property_)
-  {
-    oldState = root_link_name_property_->blockSignals(true);
-    root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
-    root_link_name_property_->blockSignals(oldState);
-  }
 }
 
 void PlanningSceneDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
@@ -532,10 +512,6 @@ void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::
   bool oldState = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(getPlanningSceneRO()->getName());
   scene_name_property_->blockSignals(oldState);
-
-  oldState = root_link_name_property_->blockSignals(true);
-  root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
-  root_link_name_property_->blockSignals(oldState);
   
   planning_scene_needs_render_ = true;
 }
