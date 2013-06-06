@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         state.setToRandomValues();
         moveit::Profiler::End("FK Random");
       } 
-      std::vector<robot_state::RobotState*> copies(N, NULL);  
+      std::vector<robot_state::RobotState*> copies(N, (robot_state::RobotState*)NULL);  
       printf("Evaluating Copy State ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
