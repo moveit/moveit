@@ -155,11 +155,13 @@ static unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scen
  * \param link_pairs List of all unique link pairs and each pair's properties
  * \param req A reference to a collision request that is already initialized
  * \param links_seen_colliding Set of links that have at some point been seen in collision
+ * \param min_collision_fraction If collisions are found between a pair of links >= this fraction, the are assumed "always" in collision
  * \return number of always in collision links found and disabled
  */
 static unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, LinkPairMap &link_pairs, 
                                              collision_detection::CollisionRequest &req, 
-                                             StringPairSet &links_seen_colliding);
+                                             StringPairSet &links_seen_colliding,
+                                             double min_collision_faction = 0.95);
 
 /**
  * \brief Get the pairs of links that are never in collision
@@ -184,7 +186,8 @@ static void disableNeverInCollisionThread(ThreadComputation tc);
 // ******************************************************************************************
 LinkPairMap
 computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int * progress, 
-                         const bool include_never_colliding, const unsigned int num_trials, const bool verbose)
+                         const bool include_never_colliding, const unsigned int num_trials, const double min_collision_fraction,
+                         const bool verbose)
 {
   // Create new instance of planning scene using pointer
   planning_scene::PlanningScenePtr scene = parent_scene->diff();
@@ -235,7 +238,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
 
   // 5. ALWAYS IN COLLISION --------------------------------------------------------------------
   // Compute the links that are always in collision
-  unsigned int num_always = disableAlwaysInCollision(*scene, link_pairs, req, links_seen_colliding);
+  unsigned int num_always = disableAlwaysInCollision(*scene, link_pairs, req, links_seen_colliding, min_collision_fraction);
   //ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
   *progress = 8; // Progress bar feedback
 
@@ -486,11 +489,12 @@ unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, Link
 // Compute the links that are always in collision
 // ******************************************************************************************
 unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, LinkPairMap &link_pairs, 
-                                      collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding)
+                                      collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding,
+                                      double min_collision_faction)
 {
   // Trial count variables
   static const unsigned int small_trial_count = 200;
-  static const unsigned int small_trial_limit = (unsigned int)((double)small_trial_count * 0.95);
+  static const unsigned int small_trial_limit = (unsigned int)((double)small_trial_count * min_collision_faction);
   
   bool done = false;
   unsigned int num_disabled = 0;
@@ -526,8 +530,8 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Link
       }
     }
 
-    // >= 95% OF TIME IN COLLISION DISABLE -----------------------------------------------------
-    // Disable collision checking for links that are >= 95% of the time in collision
+    // >= XX% OF TIME IN COLLISION DISABLE -----------------------------------------------------
+    // Disable collision checking for links that are >= XX% of the time in collision (XX% = 95% by default)
     int found = 0;
 
     // Loop through every pair of link collisions and disable if it meets the threshold

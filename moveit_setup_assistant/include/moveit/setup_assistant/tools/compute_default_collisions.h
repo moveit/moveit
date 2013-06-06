@@ -67,13 +67,14 @@ typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap
 /**
  * \brief Generate an adjacency list of links that are always and never in collision, to speed up collision detection
  * \param parent_scene A reference to the robot in the planning scene
- * \param include_never_colliding Optional flag to disable the check for links that are never in collision
+ * \param include_never_colliding Flag to disable the check for links that are never in collision
  * \param trials Set the number random collision checks that are made. Increase the probability of correctness
+ * \param min_collision_fraction If collisions are found between a pair of links >= this fraction, the are assumed "always" in collision
  * \return Adj List of unique set of pairs of links in string-based form
  */
 LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress, 
-                                     const bool include_never_colliding = true, const unsigned int trials = 10000, 
-                                     const bool verbose = false);
+                                     const bool include_never_colliding, const unsigned int trials, 
+                                     const double min_collision_faction, const bool verbose);
 
 /**
  * \brief Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically. n choose 2 pairs

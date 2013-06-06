@@ -46,6 +46,7 @@
 #include <QGroupBox>
 #include <QProgressBar>
 #include <QCheckBox>
+#include <QSpinBox>
 #include <boost/thread.hpp>
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
@@ -144,6 +145,8 @@ private:
   QLabel *progress_label_;
   QCheckBox *collision_checkbox_;
   QGroupBox *controls_box_bottom_;
+  QLabel *fraction_label_;
+  QSpinBox *fraction_spinbox_;
   QTimer *update_timer_;
 
   // ******************************************************************************************
