@@ -181,8 +181,20 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   collision_checkbox_->setText("Show Non-Disabled Link Pairs");
   connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(collisionCheckboxToggle()));
   controls_box_bottom_layout->addWidget(collision_checkbox_);
-  controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
 
+  fraction_label_ = new QLabel(this);
+  fraction_label_->setText("Min. collisions for \"always\"-colliding pairs:");
+
+  controls_box_bottom_layout->addWidget(fraction_label_);
+  
+  fraction_spinbox_ = new QSpinBox(this);
+  fraction_spinbox_->setRange(1, 100);
+  fraction_spinbox_->setValue(95);
+  fraction_spinbox_->setSuffix("%");
+  controls_box_bottom_layout->addWidget(fraction_spinbox_);
+
+  controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
+  
   setLayout(layout_);
 
   setWindowTitle("Default Collision Matrix");
@@ -255,7 +267,8 @@ void DefaultCollisionsWidget::generateCollisionTable()
 void DefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collision_progress )
 {
   unsigned int num_trials = density_slider_->value() * 1000 + 1000; // scale to trials amount
-
+  double min_frac = (double)fraction_spinbox_->value() / 100.0;
+  
   const bool verbose = true; // Output benchmarking and statistics
   const bool include_never_colliding = true;
 
@@ -263,7 +276,7 @@ void DefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collis
   link_pairs_ = 
     moveit_setup_assistant::computeDefaultCollisions( config_data_->getPlanningScene(), 
                                                       collision_progress, include_never_colliding, num_trials, 
-                                                      verbose);
+                                                      min_frac, verbose);
 
   // Copy data changes to srdf_writer object
   linkPairsToSRDF();
