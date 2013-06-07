@@ -87,6 +87,8 @@ set( sources
 )
 
 catkin_package(
+  INCLUDE_DIRS
+    include
   LIBRARIES
     ${PROJECT_NAME}_tools 
   CATKIN_DEPENDS
