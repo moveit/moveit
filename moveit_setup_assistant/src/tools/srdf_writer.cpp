@@ -62,10 +62,27 @@ SRDFWriter::~SRDFWriter()
 // ******************************************************************************************
 bool SRDFWriter::initString( const urdf::ModelInterface &robot_model, const std::string &srdf_string )
 {
-  // Error check
+  // Parse string into srdf_model_ and Error check
   if( !srdf_model_->initString( robot_model, srdf_string ) )
   {
     return false; // error loading file. improper format?
+  }
+
+  // copy fields into this object
+  initModel( robot_model, *srdf_model_ );
+
+  return true;
+}
+
+// ******************************************************************************************
+// Load SRDF data from a pre-populated string
+// ******************************************************************************************
+void SRDFWriter::initModel( const urdf::ModelInterface &robot_model, const srdf::Model &srdf_model )
+{
+  // copy to internal srdf_model_
+  if (srdf_model_.get() != &srdf_model)
+  {
+    *srdf_model_ = srdf_model;
   }
 
   // Copy all read-only data from srdf model to this object
@@ -79,8 +96,6 @@ bool SRDFWriter::initString( const urdf::ModelInterface &robot_model, const std:
 
   // Copy the robot name b/c the root xml element requires this attribute
   robot_name_ = robot_model.getName();
-
-  return true;
 }
 
 // ******************************************************************************************
