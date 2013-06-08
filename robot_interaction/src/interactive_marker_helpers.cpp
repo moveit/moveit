@@ -224,7 +224,7 @@ void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, doub
 {
   visualization_msgs::InteractiveMarkerControl control;
   control.orientation_mode = visualization_msgs::InteractiveMarkerControl::VIEW_FACING;
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_PLANE;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D;
   control.independent_marker_orientation = true;
   control.name = "move";
 
