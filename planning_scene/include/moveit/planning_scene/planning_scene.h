@@ -277,6 +277,15 @@ public:
     return active_collision_->getCollisionRobotUnpadded();
   }
 
+  /** \brief Get a specific collision detector for the world.  If not found return active CollisionWorld. */
+  const collision_detection::CollisionWorldConstPtr& getCollisionWorld(const std::string& collision_detector_name) const;
+
+  /** \brief Get a specific collision detector for the padded robot.  If no found return active CollisionRobot. */
+  const collision_detection::CollisionRobotConstPtr& getCollisionRobot(const std::string& collision_detector_name) const;
+
+  /** \brief Get a specific collision detector for the unpadded robot.  If no found return active unpadded CollisionRobot. */
+  const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded(const std::string& collision_detector_name) const;
+
   /** \brief Get the representation of the collision robot
    * This can be used to set padding and link scale on the active collision_robot.
    * NOTE: After modifying padding and scale on the active robot call
