@@ -76,6 +76,14 @@ public:
   bool initString( const urdf::ModelInterface &robot_model, const std::string &srdf_string );
 
   /** 
+   * Initialize the SRDF writer with an exisiting SRDF model (optional)
+   * 
+   * @param urdf_model a preloaded urdf model reference
+   * @param srdf_model a preloaded srdf model reference
+   */
+  void initModel( const urdf::ModelInterface &robot_model, const srdf::Model &srdf_model );
+
+  /** 
    * Update the SRDF Model class using a new SRDF string
    * 
    * @param robot_model a loaded URDF model
