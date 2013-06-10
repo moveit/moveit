@@ -354,7 +354,9 @@ bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string
   }
   else
   {
-    logError("No collision detector named %s has been added to PlanningScene", collision_detector_name.c_str());
+    logError("Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene.  Keeping existing active collision detector '%s'",
+      collision_detector_name.c_str(),
+      active_collision_->alloc_->getName().c_str());
     return false;
   }
 }
@@ -371,27 +373,45 @@ const collision_detection::CollisionWorldConstPtr& planning_scene::PlanningScene
       const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
-  const CollisionDetectorPtr& detector = (it == collision_.end()) ? active_collision_ : it->second;
+  if (it == collision_.end())
+  {
+    logError("Could not get CollisionWorld named '%s'.  Returning active CollisionWorld '%s' instead",
+      collision_detector_name.c_str(),
+      active_collision_->alloc_->getName().c_str());
+    return active_collision_->cworld_const_;
+  }
 
-  return detector->cworld_const_;
+  return it->second->cworld_const_;
 }
 
 const collision_detection::CollisionRobotConstPtr& planning_scene::PlanningScene::getCollisionRobot(
       const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
-  const CollisionDetectorPtr& detector = (it == collision_.end()) ? active_collision_ : it->second;
+  if (it == collision_.end())
+  {
+    logError("Could not get CollisionRobot named '%s'.  Returning active CollisionRobot '%s' instead",
+      collision_detector_name.c_str(),
+      active_collision_->alloc_->getName().c_str());
+    return active_collision_->getCollisionRobot();
+  }
 
-  return detector->getCollisionRobot();
+  return it->second->getCollisionRobot();
 }
 
 const collision_detection::CollisionRobotConstPtr& planning_scene::PlanningScene::getCollisionRobotUnpadded(
       const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
-  const CollisionDetectorPtr& detector = (it == collision_.end()) ? active_collision_ : it->second;
+  if (it == collision_.end())
+  {
+    logError("Could not get CollisionRobotUnpadded named '%s'.  Returning active CollisionRobotUnpadded '%s' instead",
+      collision_detector_name.c_str(),
+      active_collision_->alloc_->getName().c_str());
+    return active_collision_->getCollisionRobotUnpadded();
+  }
 
-  return detector->getCollisionRobotUnpadded();
+  return it->second->getCollisionRobotUnpadded();
 }
 
 
