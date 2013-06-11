@@ -90,6 +90,34 @@ public:
   virtual ~VoxelGrid();
 
   /**
+   * \brief Default constructor for the VoxelGrid.
+   *
+   * This is only useful if resize() is called after construction to set the
+   * size and resolution of the VoxelGrid.
+   */
+  VoxelGrid();
+
+  /**
+   * \brief Resize the VoxelGrid.
+   *
+   * This discards all the data in the voxel grid and reinitializes
+   * it with a new size and resolution.  This is mainly useful if the size or
+   * resolution is not known until after the voxelgrid is constructed.
+   *
+   * @param [in] size_x Size of the X axis in meters
+   * @param [in] size_y Size of the Y axis in meters
+   * @param [in] size_z Size of the Z axis in meters
+   *
+   * @param [in] resolution Resolution of a single cell in meters
+   *
+   * @param [in] origin_x Minimum point along the X axis of the volume
+   * @param [in] origin_y Minimum point along the Y axis of the volume
+   * @param [in] origin_z Minimum point along the Z axis of the volume
+   */
+  void resize(double size_x, double size_y, double size_z, double resolution,
+    double origin_x, double origin_y, double origin_z, T default_object);
+
+  /**
    * \brief Operator that gets the value of the given location (x, y,
    * z) given the discretization of the volume.  The location
    * represents a location in the original coordinate frame used to
@@ -141,7 +169,7 @@ public:
    * @param [in] z The Z index of the desired cell
    * @param [out] obj The data to place into the given cell
    */
-  void setCell(int x, int y, int z, T& obj);
+  void setCell(int x, int y, int z, const T& obj);
 
   /**
    * The const version of the the function in \ref VoxelGrid::getCell(int x, int y, int z).
@@ -305,7 +333,34 @@ protected:
 template<typename T>
 VoxelGrid<T>::VoxelGrid(double size_x, double size_y, double size_z, double resolution,
     double origin_x, double origin_y, double origin_z, T default_object)
+  : data_(NULL)
 {
+  resize(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z, default_object);
+}
+
+template<typename T>
+VoxelGrid<T>::VoxelGrid()
+  : data_(NULL)
+{
+  for (int i=DIM_X; i<=DIM_Z; ++i)
+  {
+    size_[i] = 0;
+    origin_[i] = 0;
+    resolution_[i] = 1.0;
+    num_cells_[i] = 0;
+  }
+  num_cells_total_ = 0;
+  stride1_ = 0;
+  stride2_ = 0;
+}
+
+template<typename T>
+void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double resolution,
+    double origin_x, double origin_y, double origin_z, T default_object)
+{
+  delete[] data_;
+  data_ = NULL;
+
   size_[DIM_X] = size_x;
   size_[DIM_Y] = size_y;
   size_[DIM_Z] = size_z;
@@ -319,14 +374,15 @@ VoxelGrid<T>::VoxelGrid(double size_x, double size_y, double size_z, double reso
     num_cells_[i] = size_[i] / resolution_[i];
     num_cells_total_ *= num_cells_[i];
   }
+
   default_object_ = default_object;
 
   stride1_ = num_cells_[DIM_Y]*num_cells_[DIM_Z];
   stride2_ = num_cells_[DIM_Z];
 
   // initialize the data:
-  data_ = new T[num_cells_total_];
-
+  if (num_cells_total_ > 0)
+    data_ = new T[num_cells_total_];
 }
 
 template<typename T>
@@ -404,7 +460,7 @@ inline const T& VoxelGrid<T>::getCell(int x, int y, int z) const
 }
 
 template<typename T>
-inline void VoxelGrid<T>::setCell(int x, int y, int z, T& obj)
+inline void VoxelGrid<T>::setCell(int x, int y, int z, const T& obj)
 {
   data_[ref(x,y,z)] = obj;
 }
