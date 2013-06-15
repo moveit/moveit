@@ -286,6 +286,7 @@ protected:
   double resolution_;           /**< \brief The resolution of each dimension in meters (in Dimension order) */
   double oo_resolution_;        /**< \brief 1.0/resolution_ */
   double origin_[3];            /**< \brief The origin (minumum point) of each dimension in meters (in Dimension order) */
+  double origin_minus_[3];       /**< \brief origin - 0.5/resolution */
   int num_cells_[3];            /**< \brief The number of cells in each dimension (in Dimension order) */
   int num_cells_total_;         /**< \brief The total number of voxels in the grid */
   int stride1_;                 /**< \brief The step to take when stepping between consecutive X members in the 1D array */
@@ -347,6 +348,7 @@ VoxelGrid<T>::VoxelGrid()
   {
     size_[i] = 0;
     origin_[i] = 0;
+    origin_minus_[i] = 0;
     num_cells_[i] = 0;
   }
   resolution_ = 1.0;
@@ -369,6 +371,9 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
   origin_[DIM_X] = origin_x;
   origin_[DIM_Y] = origin_y;
   origin_[DIM_Z] = origin_z;
+  origin_minus_[DIM_X] = origin_x - 0.5 * resolution;
+  origin_minus_[DIM_Y] = origin_y - 0.5 * resolution;
+  origin_minus_[DIM_Z] = origin_z - 0.5 * resolution;
   num_cells_total_ = 1;
   resolution_ = resolution;
   oo_resolution_ = 1.0 / resolution_;
@@ -471,7 +476,21 @@ inline void VoxelGrid<T>::setCell(int x, int y, int z, const T& obj)
 template<typename T>
 inline int VoxelGrid<T>::getCellFromLocation(Dimension dim, double loc) const
 {
-  return int(floor((loc - origin_[dim]) * oo_resolution_ + 0.5));
+  // This implements
+  //
+  //      (  loc - origin         )
+  // floor(  ------------  + 0.5  )
+  //      (   resolution          )
+  //
+  // In other words, the rounded quantized location.
+  //
+  // For speed implemented like this:
+  //
+  // floor( ( loc - origin_minus ) * oo_resolution )
+  //
+  // where  origin_minus = origin - 0.5*resolution
+  //
+  return int(floor((loc - origin_minus_[dim]) * oo_resolution_));
 }
 
 template<typename T>
