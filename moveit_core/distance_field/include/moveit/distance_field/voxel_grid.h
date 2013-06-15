@@ -283,7 +283,7 @@ protected:
   T default_object_;            /**< \brief The default object to return in case of out-of-bounds query */
   T*** data_ptrs_;              /**< \brief 3D array of pointers to the data elements */
   double size_[3];              /**< \brief The size of each dimension in meters (in Dimension order) */
-  double resolution_[3];        /**< \brief The resolution of each dimension in meters (in Dimension order) */
+  double resolution_;           /**< \brief The resolution of each dimension in meters (in Dimension order) */
   double origin_[3];            /**< \brief The origin (minumum point) of each dimension in meters (in Dimension order) */
   int num_cells_[3];            /**< \brief The number of cells in each dimension (in Dimension order) */
   int num_cells_total_;         /**< \brief The total number of voxels in the grid */
@@ -346,9 +346,9 @@ VoxelGrid<T>::VoxelGrid()
   {
     size_[i] = 0;
     origin_[i] = 0;
-    resolution_[i] = 1.0;
     num_cells_[i] = 0;
   }
+  resolution_ = 1.0;
   num_cells_total_ = 0;
   stride1_ = 0;
   stride2_ = 0;
@@ -368,10 +368,10 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
   origin_[DIM_Y] = origin_y;
   origin_[DIM_Z] = origin_z;
   num_cells_total_ = 1;
+  resolution_ = resolution;
   for (int i=DIM_X; i<=DIM_Z; ++i)
   {
-    resolution_[i] = resolution;
-    num_cells_[i] = size_[i] / resolution_[i];
+    num_cells_[i] = size_[i] / resolution_;
     num_cells_total_ *= num_cells_[i];
   }
 
@@ -421,7 +421,7 @@ inline double VoxelGrid<T>::getSize(Dimension dim) const
 template<typename T>
 inline double VoxelGrid<T>::getResolution(Dimension dim) const
 {
-  return resolution_[dim];
+  return resolution_;
 }
 
 template<typename T>
@@ -468,13 +468,13 @@ inline void VoxelGrid<T>::setCell(int x, int y, int z, const T& obj)
 template<typename T>
 inline int VoxelGrid<T>::getCellFromLocation(Dimension dim, double loc) const
 {
-  return int(floor((loc-origin_[dim])/resolution_[dim] + 0.5));
+  return int(floor((loc-origin_[dim])/resolution_ + 0.5));
 }
 
 template<typename T>
 inline double VoxelGrid<T>::getLocationFromCell(Dimension dim, int cell) const
 {
-  return origin_[dim] + resolution_[dim]*(double(cell));
+  return origin_[dim] + resolution_*(double(cell));
 }
 
 
