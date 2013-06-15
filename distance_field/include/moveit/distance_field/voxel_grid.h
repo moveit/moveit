@@ -284,6 +284,7 @@ protected:
   T*** data_ptrs_;              /**< \brief 3D array of pointers to the data elements */
   double size_[3];              /**< \brief The size of each dimension in meters (in Dimension order) */
   double resolution_;           /**< \brief The resolution of each dimension in meters (in Dimension order) */
+  double oo_resolution_;        /**< \brief 1.0/resolution_ */
   double origin_[3];            /**< \brief The origin (minumum point) of each dimension in meters (in Dimension order) */
   int num_cells_[3];            /**< \brief The number of cells in each dimension (in Dimension order) */
   int num_cells_total_;         /**< \brief The total number of voxels in the grid */
@@ -349,6 +350,7 @@ VoxelGrid<T>::VoxelGrid()
     num_cells_[i] = 0;
   }
   resolution_ = 1.0;
+  oo_resolution_ = 1.0 / resolution_;
   num_cells_total_ = 0;
   stride1_ = 0;
   stride2_ = 0;
@@ -369,9 +371,10 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
   origin_[DIM_Z] = origin_z;
   num_cells_total_ = 1;
   resolution_ = resolution;
+  oo_resolution_ = 1.0 / resolution_;
   for (int i=DIM_X; i<=DIM_Z; ++i)
   {
-    num_cells_[i] = size_[i] / resolution_;
+    num_cells_[i] = size_[i] * oo_resolution_;
     num_cells_total_ *= num_cells_[i];
   }
 
@@ -468,20 +471,20 @@ inline void VoxelGrid<T>::setCell(int x, int y, int z, const T& obj)
 template<typename T>
 inline int VoxelGrid<T>::getCellFromLocation(Dimension dim, double loc) const
 {
-  return int(floor((loc-origin_[dim])/resolution_ + 0.5));
+  return int(floor((loc - origin_[dim]) * oo_resolution_ + 0.5));
 }
 
 template<typename T>
 inline double VoxelGrid<T>::getLocationFromCell(Dimension dim, int cell) const
 {
-  return origin_[dim] + resolution_*(double(cell));
+  return origin_[dim] + resolution_ * (double(cell));
 }
 
 
 template<typename T>
 inline void VoxelGrid<T>::reset(const T& initial)
 {
-  std::fill(data_, data_+num_cells_total_, initial);
+  std::fill(data_, data_ + num_cells_total_, initial);
 }
 
 template<typename T>
