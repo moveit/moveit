@@ -254,7 +254,7 @@ void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vec
 
   for(unsigned int i = 0; i < voxel_points.size(); i++) {
     PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
-    Eigen::Vector3i loc = voxel_points[i];
+    const Eigen::Vector3i &loc = voxel_points[i];
     voxel.distance_square_ = 0;
     voxel.closest_point_ = loc;
     voxel.update_direction_ = initial_update_direction;
@@ -408,9 +408,10 @@ void PropagationDistanceField::propagatePositive()
   for (unsigned int i=0; i<bucket_queue_.size(); ++i)
   {
     std::vector<Eigen::Vector3i>::iterator list_it = bucket_queue_[i].begin();
-    while(list_it!=bucket_queue_[i].end())
+    std::vector<Eigen::Vector3i>::iterator list_end = bucket_queue_[i].end();
+    for ( ; list_it != list_end ; ++list_it)
     {
-      Eigen::Vector3i loc = *list_it;
+      const Eigen::Vector3i& loc = *list_it;
       PropDistanceFieldVoxel* vptr = &voxel_grid_->getCell(loc.x(), loc.y(), loc.z());
 
       // select the neighborhood list based on the update direction:
@@ -423,7 +424,6 @@ void PropagationDistanceField::propagatePositive()
       if (vptr->update_direction_<0 || vptr->update_direction_>26)
       {
         logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
-        ++list_it;
         continue;
       }
 
@@ -455,8 +455,6 @@ void PropagationDistanceField::propagatePositive()
           bucket_queue_[new_distance_sq].push_back(nloc);
         }
       }
-
-      ++list_it;
     }
     bucket_queue_[i].clear();
   }
@@ -469,9 +467,10 @@ void PropagationDistanceField::propagateNegative()
   for (unsigned int i=0; i<negative_bucket_queue_.size(); ++i)
   {
     std::vector<Eigen::Vector3i>::iterator list_it = negative_bucket_queue_[i].begin();
-    while(list_it!=negative_bucket_queue_[i].end())
+    std::vector<Eigen::Vector3i>::iterator list_end = negative_bucket_queue_[i].end();
+    for ( ; list_it != list_end ; ++list_it)
     {
-      Eigen::Vector3i loc = *list_it;
+      const Eigen::Vector3i& loc = *list_it;
       PropDistanceFieldVoxel* vptr = &voxel_grid_->getCell(loc.x(), loc.y(), loc.z());
 
       // select the neighborhood list based on the update direction:
@@ -484,7 +483,6 @@ void PropagationDistanceField::propagateNegative()
       if (vptr->negative_update_direction_<0 || vptr->negative_update_direction_>26)
       {
         logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
-        ++list_it;
         continue;
       }
 
@@ -516,8 +514,6 @@ void PropagationDistanceField::propagateNegative()
           negative_bucket_queue_[new_distance_sq].push_back(nloc);
         }
       }
-
-      ++list_it;
     }
     negative_bucket_queue_[i].clear();
   }
