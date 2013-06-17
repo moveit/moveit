@@ -443,10 +443,10 @@ public:
   //  - each floating joint
   //  - each planar joint
   // If no end effector exists in the robot then adds an interactive marker for the last link in the chain.
-  void decideActiveComponents(const std::string &group, EndEffectorInteractionStyle style = EEF_6DOF_NOSPHERE);
+  void decideActiveComponents(const std::string &group, EndEffectorInteractionStyle style = EEF_6DOF);
 
   /// called by decideActiveComponents(); add markers for end effectors
-  void decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style = EEF_6DOF_NOSPHERE);
+  void decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style = EEF_6DOF);
 
   /// called by decideActiveComponents(); add markers for planar and floating joints
   void decideActiveJoints(const std::string &group);
