@@ -65,16 +65,33 @@ public:
   static const std::string INTERACTIVE_MARKER_TOPIC;
 
   /// The different types of interaction that can be constructed for an end effector
+  // This is a bitmask so OR together the parts you want.
   enum EndEffectorInteractionStyle
   {
-    EEF_POSITION = 1,
-    EEF_ORIENTATION = 2,
-    EEF_VIEWPLANE = 4,
-    EEF_FIXED = 8,  // or this in to any other to make the axis fixed
-    EEF_6DOF = EEF_POSITION|EEF_ORIENTATION,
-    EEF_POSITION_AND_VIEWPLANE = EEF_POSITION|EEF_VIEWPLANE,
-    EEF_ORIENTATION_AND_VIEWPLANE = EEF_ORIENTATION|EEF_VIEWPLANE,
-    EEF_6DOF_AND_VIEWPLANE = EEF_6DOF|EEF_VIEWPLANE
+    EEF_POSITION_ARROWS = 1,      // arrow handles to change position
+    EEF_ORIENTATION_CIRCLES = 2,  // circle handles to change orientation
+    EEF_POSITION_SPHERE = 4,      // a sphere which can be dragged to change position
+    EEF_ORIENTATION_SPHERE = 8,   // a sphere which can be dragged to change orientation
+    EEF_POSITION_EEF = 16,        // drag end effector to change position
+    EEF_ORIENTATION_EEF = 32,     // drag end effector to change orientation
+    EEF_FIXED = 64,               // keep arrow and circle axis fixed
+ 
+    EEF_POSITION = EEF_POSITION_ARROWS |
+                   EEF_POSITION_SPHERE |
+                   EEF_POSITION_EEF,
+    EEF_ORIENTATION = EEF_ORIENTATION_CIRCLES |
+                      EEF_ORIENTATION_SPHERE |
+                      EEF_ORIENTATION_EEF,
+    EEF_6DOF = EEF_POSITION |
+               EEF_ORIENTATION,
+    EEF_6DOF_SPHERE = EEF_POSITION_SPHERE |
+                      EEF_ORIENTATION_SPHERE,
+    EEF_POSITION_NOSPHERE = EEF_POSITION_ARROWS |
+                            EEF_POSITION_EEF,
+    EEF_ORIENTATION_NOSPHERE = EEF_ORIENTATION_CIRCLES |
+                               EEF_ORIENTATION_EEF,
+    EEF_6DOF_NOSPHERE = EEF_POSITION_NOSPHERE |
+                        EEF_ORIENTATION_NOSPHERE
   };
 
   /// Representation of an interaction via an end-effector
@@ -467,8 +484,8 @@ private:
   void computeMarkerPose(const InteractionHandlerPtr &handler, const EndEffector &eef, const robot_state::RobotState &robot_state,
                          geometry_msgs::Pose &pose, geometry_msgs::Pose &control_to_eef_tf) const;
   
-  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const EndEffector& eef, visualization_msgs::InteractiveMarker& im);
-  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const EndEffector& eef, const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im);
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const EndEffector& eef, visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
+  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const EndEffector& eef, const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void processingThread();
   void clearInteractiveMarkersUnsafe();

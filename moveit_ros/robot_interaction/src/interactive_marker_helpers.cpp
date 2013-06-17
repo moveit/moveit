@@ -220,11 +220,16 @@ void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool 
   int_marker.controls.push_back(control);
 }
 
-void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius, const std_msgs::ColorRGBA& color)
+void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius, const std_msgs::ColorRGBA& color, bool position, bool orientation)
 {
   visualization_msgs::InteractiveMarkerControl control;
   control.orientation_mode = visualization_msgs::InteractiveMarkerControl::VIEW_FACING;
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D;
+  if (position && orientation)
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D;
+  else if (orientation)
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_3D;
+  else
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_3D;
   control.independent_marker_orientation = true;
   control.name = "move";
 
