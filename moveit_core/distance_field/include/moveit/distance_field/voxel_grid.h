@@ -193,12 +193,13 @@ public:
   double getSize(Dimension dim) const;
 
   /**
-   * \brief Gets the resolution of the indicated dimension in arbitrary consistent units
-   *
-   * @param [in] dim The dimension for the query
+   * \brief Gets the resolution in arbitrary consistent units
    *
    * @return The resolution in meters
    */
+  double getResolution() const;
+
+  /** \brief deprecated.  Use the version with no arguments. */
   double getResolution(Dimension dim) const;
 
   /**
@@ -424,6 +425,12 @@ template<typename T>
 inline double VoxelGrid<T>::getSize(Dimension dim) const
 {
   return size_[dim];
+}
+
+template<typename T>
+inline double VoxelGrid<T>::getResolution() const
+{
+  return resolution_;
 }
 
 template<typename T>
