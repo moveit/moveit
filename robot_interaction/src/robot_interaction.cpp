@@ -679,22 +679,31 @@ void RobotInteraction::clearInteractiveMarkersUnsafe()
 }
 
 void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
-                                             visualization_msgs::InteractiveMarker& im)
+                                             visualization_msgs::InteractiveMarker& im,
+                                             bool position,
+                                             bool orientation)
 {
   geometry_msgs::Pose pose;
   pose.orientation.w = 1;
-  addEndEffectorMarkers(handler, eef, pose, im);
+  addEndEffectorMarkers(handler, eef, pose, im, position, orientation);
 }
 
 void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handler, const RobotInteraction::EndEffector& eef,
-                                             const geometry_msgs::Pose& im_to_eef, visualization_msgs::InteractiveMarker& im)
+                                             const geometry_msgs::Pose& im_to_eef, visualization_msgs::InteractiveMarker& im,
+                                             bool position,
+                                             bool orientation)
 {
   if (eef.parent_group == eef.eef_group || !robot_model_->hasLinkModel(eef.parent_link))
     return;
   
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = false;
-  m_control.interaction_mode = m_control.MOVE_ROTATE_3D;
+  if (position && orientation)
+    m_control.interaction_mode = m_control.MOVE_ROTATE_3D;
+  else if (orientation)
+    m_control.interaction_mode = m_control.ROTATE_3D;
+  else
+    m_control.interaction_mode = m_control.MOVE_3D;
   
   std_msgs::ColorRGBA marker_color;
   const float *color = handler->inError(eef) ? END_EFFECTOR_UNREACHABLE_COLOR : END_EFFECTOR_REACHABLE_COLOR;
@@ -784,22 +793,31 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, mscale);
       if (handler && handler->getControlsVisible())
       {
-        if (active_eef_[i].interaction & EEF_POSITION)
+        if (active_eef_[i].interaction & EEF_POSITION_ARROWS)
           addPositionControl(im, active_eef_[i].interaction & EEF_FIXED);
-        if (active_eef_[i].interaction & EEF_ORIENTATION)
+        if (active_eef_[i].interaction & EEF_ORIENTATION_CIRCLES)
           addOrientationControl(im, active_eef_[i].interaction & EEF_FIXED);
-        if (active_eef_[i].interaction & EEF_VIEWPLANE)
+        if (active_eef_[i].interaction & (EEF_POSITION_SPHERE|EEF_ORIENTATION_SPHERE))
         {
           std_msgs::ColorRGBA color;
           color.r = 0;
           color.g = 1;
           color.b = 1;
           color.a = 0.5;
-          addViewPlaneControl(im, mscale * 0.25, color);
+          addViewPlaneControl(im, 
+                              mscale * 0.25, 
+                              color, 
+                              active_eef_[i].interaction&EEF_POSITION_SPHERE, 
+                              active_eef_[i].interaction&EEF_ORIENTATION_SPHERE);
         }
       }
-      if (handler && handler->getMeshesVisible())
-        addEndEffectorMarkers(handler, active_eef_[i], control_to_eef_tf, im);
+      if (handler && handler->getMeshesVisible() && (active_eef_[i].interaction & (EEF_POSITION_EEF|EEF_ORIENTATION_EEF)))
+        addEndEffectorMarkers(handler,
+                              active_eef_[i],
+                              control_to_eef_tf,
+                              im,
+                              active_eef_[i].interaction & EEF_POSITION_EEF,
+                              active_eef_[i].interaction & EEF_ORIENTATION_EEF);
       ims.push_back(im);
       ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), mscale);
     }
