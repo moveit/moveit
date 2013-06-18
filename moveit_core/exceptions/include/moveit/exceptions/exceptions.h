@@ -39,6 +39,7 @@
 
 #include <stdexcept>
 
+/** \brief Main namespace for MoveIt! */
 namespace moveit
 {
 
