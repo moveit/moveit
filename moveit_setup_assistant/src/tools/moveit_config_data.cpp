@@ -215,60 +215,21 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
 
   emitter << YAML::Value << YAML::BeginMap;
 
-  // Add Planner
-  emitter << YAML::Key << "SBLkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::SBL";
-  emitter << YAML::EndMap;
-
-  // Add Planner
-  emitter << YAML::Key << "LBKPIECEkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::LBKPIECE";
-  emitter << YAML::EndMap;
-
-  // Add Planner
-  emitter << YAML::Key << "RRTkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::RRT";
-  emitter << YAML::EndMap;
-
-  // Add Planner
-  emitter << YAML::Key << "RRTConnectkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::RRTConnect";
-  emitter << YAML::EndMap;
-
-  // Add Planner
-  emitter << YAML::Key << "LazyRRTkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::LazyRRT";
-  emitter << YAML::EndMap;
-
-  // Add Planner
-  emitter << YAML::Key << "ESTkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::EST";
-  emitter << YAML::EndMap;
-
-  // Add Planner
-  emitter << YAML::Key << "KPIECEkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::KPIECE";
-  emitter << YAML::EndMap;
-
-  // Add Planner
-  emitter << YAML::Key << "RRTStarkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::RRTstar";
-  emitter << YAML::EndMap;
-
-  // Add Planner
-  emitter << YAML::Key << "BKPIECEkConfigDefault";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "type" << YAML::Value << "geometric::BKPIECE";
-  emitter << YAML::EndMap;
-
+  // Add Planners
+  static const std::string planners[] = 
+    {"SBL", "EST", "LBKPIECE", "BKPIECE", "KPIECE", "RRT", "RRTConnect", "RRTstar", "PRM", "PRMstar" };
+  
+  std::vector<std::string> pconfigs;
+  for (std::size_t i = 0 ; i < sizeof(planners) / sizeof(std::string) ; ++i)
+  {  
+    std::string defaultconfig = planners[i] + "kConfigDefault";
+    emitter << YAML::Key << defaultconfig;
+    emitter << YAML::Value << YAML::BeginMap;
+    emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planners[i];
+    emitter << YAML::EndMap;
+    pconfigs.push_back(defaultconfig);
+  }
+  
   // End of every avail planner
   emitter << YAML::EndMap;
 
@@ -281,10 +242,10 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
     // Output associated planners
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
-    emitter << "SBLkConfigDefault" << "LBKPIECEkConfigDefault" << "RRTkConfigDefault"
-            << "RRTConnectkConfigDefault" << "ESTkConfigDefault" << "KPIECEkConfigDefault"
-            << "BKPIECEkConfigDefault" << "RRTStarkConfigDefault" << YAML::EndSeq;
-
+    for (std::size_t i = 0 ; i < pconfigs.size() ; ++i)
+      emitter << pconfigs[i];
+    emitter << YAML::EndSeq;
+    
     // Output projection_evaluator
     std::string projection_joints = decideProjectionJoints( group_it->name_ );
     if( !projection_joints.empty() )
