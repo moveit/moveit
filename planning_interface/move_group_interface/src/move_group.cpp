@@ -1475,5 +1475,10 @@ void MoveGroup::setSupportSurfaceName(const std::string &name)
   impl_->setSupportSurfaceName(name);
 }
 
+const std::string& MoveGroup::getPlanningFrame() const
+{
+  return impl_->getRobotModel()->getModelFrame();
+}
+
 }
 }
