@@ -13,7 +13,7 @@
   <arg name="allow_trajectory_execution" default="true"/>
   <arg name="max_safe_path_cost" default="1"/>
   <arg name="jiggle_fraction" default="0.05" />
-  <arg name="publish_monitored_planning_scene" default="false"/>
+  <arg name="publish_monitored_planning_scene" default="true"/>
 
   <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch">
     <arg name="pipeline" value="ompl" />
