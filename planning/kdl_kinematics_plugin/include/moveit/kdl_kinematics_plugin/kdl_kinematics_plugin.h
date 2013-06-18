@@ -70,7 +70,7 @@
 namespace kdl_kinematics_plugin                        
 {
 /**
- * @class Specific implementation of kinematics using KDL. This version can be used with any robot.
+ * @brief Specific implementation of kinematics using KDL. This version can be used with any robot.
  */
   class KDLKinematicsPlugin : public kinematics::KinematicsBase
   {
