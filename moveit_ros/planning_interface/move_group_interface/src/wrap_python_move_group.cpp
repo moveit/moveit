@@ -88,7 +88,12 @@ public:
   {
     rememberJointValues(string, py_bindings_tools::doubleFromList(values));
   }
-
+  
+  const char* getPlanningFrameCStr() const
+  {
+    return getPlanningFrame().c_str();
+  }
+  
   bp::list getJointsList() const
   {
     return py_bindings_tools::listFromString(getJoints());
@@ -383,6 +388,8 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
   MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);
+  MoveGroupClass.def("get_planning_frame", &MoveGroupWrapper::getPlanningFrameCStr);
+  
   MoveGroupClass.def("get_joints", &MoveGroupWrapper::getJointsList);
   MoveGroupClass.def("get_variable_count", &MoveGroupWrapper::getVariableCount);
   MoveGroupClass.def("allow_looking", &MoveGroupWrapper::allowLooking);
