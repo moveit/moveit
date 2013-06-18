@@ -103,7 +103,7 @@ class RobotCommander(object):
 
     def get_root_link(self):
         """Get the name of the root link of the robot model """
-        return self._r.get_root_link()
+        return self._r.get_robot_root_link()
 
     def get_joint_names(self, group = None):
         """Get the names of all the movable joints that make up a group (mimic joints and fixed joints are excluded). If no group name is specified, all joints in the robot model are returned, including fixed and mimic joints """

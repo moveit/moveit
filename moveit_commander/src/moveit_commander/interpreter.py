@@ -222,8 +222,8 @@ class MoveGroupCommandInterpreter(object):
             pose.pose.orientation.z = 0
             pose.pose.orientation.w = 1
             pose.header.stamp = rospy.get_rostime()
-            pose.header.frame_id = g.get_robot_root_link()
-            self._planning_scene_interface.attach_box(g.get_robot_root_link(), "ground", pose, (3, 3, 0.1))
+            pose.header.frame_id = self._robot.get_root_link()
+            self._planning_scene_interface.attach_box(self._robot.get_root_link(), "ground", pose, (3, 3, 0.1))
             return (MoveGroupInfoLevel.INFO, "Added ground")
 
         if cmd == "eef":
