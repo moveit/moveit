@@ -3,7 +3,7 @@
   <arg name="load_robot_description" default="false"/>
 
   <!-- Load universal robotic description format (URDF) -->
-  <param if="$(arg load_robot_description)" name="robot_description" textfile="[URDF_LOCATION]" />
+  <param if="$(arg load_robot_description)" name="robot_description" command="$(find xacro)/xacro.py '[URDF_LOCATION]'" />
       
   <!-- The semantic description that corresponds to the URDF -->
   <param name="robot_description_semantic" textfile="$(find [GENERATED_PACKAGE_NAME])/config/[ROBOT_NAME].srdf" />
