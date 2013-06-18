@@ -48,9 +48,10 @@
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
 
-/** \brief Simple interface to the MoveGroup action */
 namespace moveit
 {
+
+/** \brief Simple interface to MoveIt! components */
 namespace planning_interface
 {
 
