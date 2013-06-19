@@ -204,7 +204,7 @@ public:
 private:
   
   /** \brief The joint model this state corresponds to */
-  const robot_model::JointModel  *joint_model_;
+  const robot_model::JointModel      *joint_model_;
   
   /** \brief Tthe local transform (computed by forward kinematics) */
   Eigen::Affine3d                     variable_transform_;
