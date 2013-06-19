@@ -206,7 +206,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
 void DefaultCollisionsWidget::generateCollisionTable()
 {
   // Confirm the user wants to overwrite the current disabled collisions
-  if( link_pairs_.size() )
+  if( !link_pairs_.empty() )
   {
     if( QMessageBox::question( this, "Confirm Disabled Collision Overwrite",
                                "Are you sure you want to overwrite the current default collisions matrix with a newly generated one?",
@@ -272,6 +272,9 @@ void DefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collis
   const bool verbose = true; // Output benchmarking and statistics
   const bool include_never_colliding = true;
 
+  // clear previously loaded collision matrix entries
+  config_data_->getPlanningScene()->getAllowedCollisionMatrixNonConst().clear();
+  
   // Find the default collision matrix - all links that are allowed to collide
   link_pairs_ = 
     moveit_setup_assistant::computeDefaultCollisions( config_data_->getPlanningScene(), 
@@ -307,7 +310,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
   collision_table_->clearContents();
 
   // Check if there are no disabled collisions (unprobable?)
-  if(link_pairs_.size() == 0)
+  if(link_pairs_.empty())
   {
     collision_table_->setRowCount(1);
     QTableWidgetItem* no_collide = new QTableWidgetItem("No Link Pairs Of This Kind");
