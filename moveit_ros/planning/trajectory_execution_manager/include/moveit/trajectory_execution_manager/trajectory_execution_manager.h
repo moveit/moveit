@@ -185,6 +185,14 @@ public:
   /// Clear the trajectories to execute
   void clear();
   
+  /// Enable or disable the monitoring of trajectory execution duration. If a controller takes
+  /// longer than expected, the trajectory is canceled
+  void enableExecutionDurationMonitoring(bool flag);
+  
+  /// When determining the expected duration of a trajectory, this multiplicative factor is applied
+  /// to get the allowed duration of execution
+  void setExecutionDurationScaling(double scaling);
+
 private:
 
   struct ControllerInformation
@@ -269,6 +277,12 @@ private:
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
 
   bool verbose_;
+
+  class DynamicReconfigureImpl;
+  DynamicReconfigureImpl *reconfigure_impl_; 
+  
+  bool execution_duration_monitoring_;
+  double execution_duration_scaling_;
 };
 
 typedef boost::shared_ptr<TrajectoryExecutionManager> TrajectoryExecutionManagerPtr;

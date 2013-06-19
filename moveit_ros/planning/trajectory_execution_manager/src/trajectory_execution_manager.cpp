@@ -35,6 +35,8 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+#include <moveit_ros_planning/TrajectoryExecutionDynamicReconfigureConfig.h>
+#include <dynamic_reconfigure/server.h>
 
 namespace trajectory_execution_manager
 {
@@ -42,8 +44,32 @@ namespace trajectory_execution_manager
 const std::string TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC = "trajectory_execution_event";
 
 static const ros::Duration DEFAULT_CONTROLLER_INFORMATION_VALIDITY_AGE(1.0);
-static const double DEFAULT_CONTROLLER_GOAL_DURATION_SCALING = 1.1; // allow the execution of a trajectory to take more time than expected (scaled by a value > 1)
 static const ros::Duration DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN(0.5); // allow 0.5s more than the expected execution time before triggering a trajectory cancel (applied after scaling)
+static const double DEFAULT_CONTROLLER_GOAL_DURATION_SCALING = 1.1; // allow the execution of a trajectory to take more time than expected (scaled by a value > 1)
+
+using namespace moveit_ros_planning;
+
+class TrajectoryExecutionManager::DynamicReconfigureImpl
+{ 
+public:
+  
+  DynamicReconfigureImpl(TrajectoryExecutionManager *owner) : owner_(owner),
+                                                              dynamic_reconfigure_server_(ros::NodeHandle("~/trajectory_execution"))
+  {
+    dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
+  }
+  
+private:
+  
+  void dynamicReconfigureCallback(TrajectoryExecutionDynamicReconfigureConfig &config, uint32_t level)
+  {   
+    owner_->enableExecutionDurationMonitoring(config.execution_duration_monitoring);
+    owner_->setExecutionDurationScaling(config.execution_duration_scaling);
+  }
+  
+  TrajectoryExecutionManager *owner_;
+  dynamic_reconfigure::Server<TrajectoryExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
+};
 
 TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel) : 
   kinematic_model_(kmodel), node_handle_("~")
@@ -63,16 +89,20 @@ TrajectoryExecutionManager::~TrajectoryExecutionManager()
 {
   run_continuous_execution_thread_ = false;
   stopExecution(true);
+  delete reconfigure_impl_;  
 }
 
 void TrajectoryExecutionManager::initialize()
-{
+{ 
+  reconfigure_impl_ = NULL;
   verbose_ = false;
   execution_complete_ = true;
   stop_continuous_execution_ = false;
   current_context_ = -1;
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   run_continuous_execution_thread_ = true;
+  execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
+  execution_duration_monitoring_ = true;
   
   // load the controller manager plugin
   try
@@ -115,11 +145,23 @@ void TrajectoryExecutionManager::initialize()
   reloadControllerInformation();
   
   event_topic_subscriber_ = root_node_handle_.subscribe(EXECUTION_EVENT_TOPIC, 100, &TrajectoryExecutionManager::receiveEvent, this);
+
+  reconfigure_impl_ = new DynamicReconfigureImpl(this);
   
   if (manage_controllers_)
     ROS_INFO("Trajectory execution is managing controllers");
   else
     ROS_INFO("Trajectory execution is not managing controllers");
+}
+
+void TrajectoryExecutionManager::enableExecutionDurationMonitoring(bool flag)
+{
+  execution_duration_monitoring_ = flag;
+}
+
+void TrajectoryExecutionManager::setExecutionDurationScaling(double scaling)
+{
+  execution_duration_scaling_ = scaling;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -1110,9 +1152,9 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
       expected_trajectory_duration = std::max(d, expected_trajectory_duration);
     }
     // add 10% + 0.5s to the expected duration; this is just to allow things to finish propery
-    expected_trajectory_duration = expected_trajectory_duration * DEFAULT_CONTROLLER_GOAL_DURATION_SCALING + DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
-
-
+    
+    expected_trajectory_duration = expected_trajectory_duration * execution_duration_scaling_ + DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
+    
     if (longest_part >= 0)
     {  
       boost::mutex::scoped_lock slock(time_index_mutex_);
@@ -1139,18 +1181,24 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
     bool result = true;
     for (std::size_t i = 0 ; i < handles.size() ; ++i)
     {
-      if (!handles[i]->waitForExecution(expected_trajectory_duration))
-        if (!execution_complete_ && ros::Time::now() - current_time > expected_trajectory_duration)
-        {
-          ROS_ERROR("Controller is taking too long to execute trajectory (the expected upper bound for the trajectory execution was %lf seconds). Stopping trajectory.", expected_trajectory_duration.toSec());
+      if (execution_duration_monitoring_)
+      {
+        if (!handles[i]->waitForExecution(expected_trajectory_duration))
+          if (!execution_complete_ && ros::Time::now() - current_time > expected_trajectory_duration)
           {
-            boost::mutex::scoped_lock slock(execution_state_mutex_);
-            stopExecutionInternal(); // this is trally tricky. we can't call stopExecution() here, so we call the internal function only
+            ROS_ERROR("Controller is taking too long to execute trajectory (the expected upper bound for the trajectory execution was %lf seconds). Stopping trajectory.", expected_trajectory_duration.toSec());
+            {
+              boost::mutex::scoped_lock slock(execution_state_mutex_);
+              stopExecutionInternal(); // this is trally tricky. we can't call stopExecution() here, so we call the internal function only
+            }
+            last_execution_status_ = moveit_controller_manager::ExecutionStatus::TIMED_OUT; 
+            result = false;
+            break;
           }
-          last_execution_status_ = moveit_controller_manager::ExecutionStatus::TIMED_OUT; 
-          result = false;
-          break;
-        }
+      }
+      else
+        handles[i]->waitForExecution();
+      
       // if something made the trajectory stop, we stop this thread too
       if (execution_complete_)
       {

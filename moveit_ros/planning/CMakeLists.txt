@@ -44,6 +44,7 @@ set(MSG_FILES
 
 generate_dynamic_reconfigure_options(
   "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"
+  "trajectory_execution_manager/cfg/TrajectoryExecutionDynamicReconfigure.cfg"
   "plan_execution/cfg/PlanExecutionDynamicReconfigure.cfg"
   "plan_execution/cfg/SenseForPlanDynamicReconfigure.cfg")
 
