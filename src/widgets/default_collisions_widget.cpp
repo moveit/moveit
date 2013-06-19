@@ -206,7 +206,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
 void DefaultCollisionsWidget::generateCollisionTable()
 {
   // Confirm the user wants to overwrite the current disabled collisions
-  if( !link_pairs_.empty() )
+  if( !config_data_->srdf_->disabled_collisions_.empty() )
   {
     if( QMessageBox::question( this, "Confirm Disabled Collision Overwrite",
                                "Are you sure you want to overwrite the current default collisions matrix with a newly generated one?",
