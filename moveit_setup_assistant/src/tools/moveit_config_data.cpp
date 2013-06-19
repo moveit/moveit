@@ -340,11 +340,11 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   emitter << YAML::Value << YAML::BeginMap;
 
   // Union all the joints in groups
-  std::set<std::string> joints;
+  std::set<const robot_model::JointModel*> joints;
 
   // Loop through groups
-  for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
-       group_it != srdf_->groups_.end();  ++group_it )
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
+       group_it != srdf_->groups_.end();  ++group_it)
   {
     // Get list of associated joints
     const robot_model::JointModelGroup *joint_model_group =
@@ -353,30 +353,33 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
     std::vector<const robot_model::JointModel*> joint_models = joint_model_group->getJointModels();
 
     // Iterate through the joints
-    for( std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
-         joint_it < joint_models.end(); ++joint_it )
+    for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
+         joint_it != joint_models.end(); ++joint_it)
     {
       // Check that this joint only represents 1 variable.
-      if( (*joint_it)->getVariableCount() == 1 )
-      {
-        joints.insert( (*joint_it)->getName() );
-      }
+      if ((*joint_it)->getVariableCount() == 1)
+        joints.insert(*joint_it);
     }
   }
 
   // Add joints to yaml file, if no more than 1 dof
-  for ( std::set<std::string>::iterator joint_it = joints.begin() ; joint_it != joints.end() ; ++joint_it )
+  for ( std::set<const robot_model::JointModel*>::iterator joint_it = joints.begin() ; joint_it != joints.end() ; ++joint_it )
   {
-    emitter << YAML::Key << *joint_it;
+    emitter << YAML::Key << (*joint_it)->getName();
     emitter << YAML::Value << YAML::BeginMap;
-
+    
+    double vel = (*joint_it)->getMaximumVelocity();
+    
     // Output property
     emitter << YAML::Key << "has_velocity_limits";
-    emitter << YAML::Value << "true";
-
+    if (vel > std::numeric_limits<double>::epsilon())
+      emitter << YAML::Value << "true";
+    else
+      emitter << YAML::Value << "false";
+    
     // Output property
     emitter << YAML::Key << "max_velocity";
-    emitter << YAML::Value << "1.0";
+    emitter << YAML::Value << (*joint_it)->getMaximumVelocity();
 
     // Output property
     emitter << YAML::Key << "has_acceleration_limits";
@@ -384,8 +387,8 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
 
     // Output property
     emitter << YAML::Key << "max_acceleration";
-    emitter << YAML::Value << "1.0";
-
+    emitter << YAML::Value << (*joint_it)->getMaximumVelocity() / 5.0;
+    
     emitter << YAML::EndMap;
   }
 
