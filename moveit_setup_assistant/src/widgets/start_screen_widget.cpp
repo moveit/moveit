@@ -500,22 +500,28 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
     return false;
   }
   std::string urdf_string;
+  bool xacro = false;
   
-  if(urdf_file_path.find(".xacro") != std::string::npos)
-  {
+  if (urdf_file_path.find(".xacro") != std::string::npos)
+  { 
     std::string cmd("rosrun xacro xacro.py ");
     cmd += urdf_file_path;
+    ROS_INFO( "Running '%s'...", cmd.c_str() );
+    
     FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe){
+    if (!pipe)
+    {
       QMessageBox::warning( this, "Error Loading Files", QString( "XACRO file or parser not found: " ).append( urdf_file_path.c_str() ) );
       return false;
     }
-    char buffer[128];
-    while(!feof(pipe)) {
-        if(fgets(buffer, 128, pipe) != NULL)
-                urdf_string += buffer;
+    char buffer[128] = {0};
+    while (!feof(pipe))
+    {
+      if (fgets(buffer, sizeof(buffer), pipe) != NULL)
+        urdf_string += buffer;
     }
     pclose(pipe);
+    xacro = true;
   }
   else
   {
@@ -533,7 +539,8 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
                           "URDF/COLLADA file is not a valid robot model. Is the URDF still in XACRO format?" );
     return false;
   }
-
+  config_data_->urdf_from_xacro_ = xacro;
+  
   ROS_INFO_STREAM( "Loaded " << config_data_->urdf_model_->getName() << " robot model." );
 
   // Load the robot model to the parameter server

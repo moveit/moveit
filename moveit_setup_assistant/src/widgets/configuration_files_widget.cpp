@@ -837,45 +837,47 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   addTemplateString("[GENERATED_PACKAGE_NAME]", new_package_name_);
 
   // Pair 2
-  if (config_data_->urdf_pkg_name_.empty())
-  {
-    addTemplateString("[URDF_LOCATION]", config_data_->urdf_path_);
-  }
-  else
-  {
-    addTemplateString("[URDF_LOCATION]", "$(find " + config_data_->urdf_pkg_name_ + ")/" + config_data_->urdf_pkg_relative_path_);
-  }
+  std::string urdf_location = config_data_->urdf_pkg_name_.empty() ? config_data_->urdf_path_ : 
+    "$(find " + config_data_->urdf_pkg_name_ + ")/" + config_data_->urdf_pkg_relative_path_;
+  addTemplateString("[URDF_LOCATION]", urdf_location);
 
   // Pair 3
-  addTemplateString("[ROBOT_NAME]", config_data_->srdf_->robot_name_);
+  if (config_data_->urdf_from_xacro_)
+    addTemplateString("[URDF_LOAD_ATTRIBUTE]", "command=\"$(find xacro)/xacro.py '" + urdf_location + "'\"");
+  else
+    addTemplateString("[URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
 
   // Pair 4
-  addTemplateString("[ROBOT_ROOT_LINK]", config_data_->getRobotModel()->getRootLinkName());
+  addTemplateString("[ROBOT_NAME]", config_data_->srdf_->robot_name_);
 
   // Pair 5
-  addTemplateString("[PLANNING_FRAME]", config_data_->getRobotModel()->getModelFrame());
+  addTemplateString("[ROBOT_ROOT_LINK]", config_data_->getRobotModel()->getRootLinkName());
 
   // Pair 6
+  addTemplateString("[PLANNING_FRAME]", config_data_->getRobotModel()->getModelFrame());
+
+  // Pair 7
   std::stringstream vjb;
   for (std::size_t i = 0 ; i < config_data_->srdf_->virtual_joints_.size(); ++i)
   {
     const srdf::Model::VirtualJoint &vj = config_data_->srdf_->virtual_joints_[i];
     if (vj.type_ != "fixed")
-      vjb << "  <node pkg=\"tf\" type=\"static_transform_publisher\" name=\"virtual_joint_broadcaster_" << i << "\" args=\"0 0 0 0 0 0 " << vj.parent_frame_ << " " << vj.child_link_ << " 100\" />" << std::endl;
+      vjb << "  <node pkg=\"tf\" type=\"static_transform_publisher\" name=\"virtual_joint_broadcaster_" << i << "\" args=\"0 0 0 0 0 0 "
+          << vj.parent_frame_ << " " << vj.child_link_ << " 100\" />" << std::endl;
   }
   addTemplateString("[VIRTUAL_JOINT_BROADCASTER]", vjb.str());
 
-  // Pair 7 - Add dependencies to package.xml if the robot.urdf file is relative to a ROS package
+  // Pair 8 - Add dependencies to package.xml if the robot.urdf file is relative to a ROS package
   if (config_data_->urdf_pkg_name_.empty())
   {
-    addTemplateString("[OTHER_DEPENDENCIES",""); // not relative to a ROS package
+    addTemplateString("[OTHER_DEPENDENCIES", ""); // not relative to a ROS package
   }
   else
   {
     std::stringstream deps;
     deps << "<build_depend>" << config_data_->urdf_pkg_name_ << "</build_depend>\n";
     deps << "  <run_depend>" << config_data_->urdf_pkg_name_ << "</run_depend>\n";
-    addTemplateString("[OTHER_DEPENDENCIES]",deps.str() ); // not relative to a ROS package
+    addTemplateString("[OTHER_DEPENDENCIES]", deps.str()); // not relative to a ROS package
   }
 }
 
