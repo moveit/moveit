@@ -64,7 +64,7 @@ private:
   void dynamicReconfigureCallback(TrajectoryExecutionDynamicReconfigureConfig &config, uint32_t level)
   {   
     owner_->enableExecutionDurationMonitoring(config.execution_duration_monitoring);
-    owner_->setExecutionDurationScaling(config.execution_duration_scaling);
+    owner_->setAllowedExecutionDurationScaling(config.allowed_execution_duration_scaling);
   }
   
   TrajectoryExecutionManager *owner_;
@@ -101,8 +101,9 @@ void TrajectoryExecutionManager::initialize()
   current_context_ = -1;
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   run_continuous_execution_thread_ = true;
-  execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
+  allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
   execution_duration_monitoring_ = true;
+  execution_velocity_scaling_ = 1.0;
   
   // load the controller manager plugin
   try
@@ -159,9 +160,14 @@ void TrajectoryExecutionManager::enableExecutionDurationMonitoring(bool flag)
   execution_duration_monitoring_ = flag;
 }
 
-void TrajectoryExecutionManager::setExecutionDurationScaling(double scaling)
+void TrajectoryExecutionManager::setAllowedExecutionDurationScaling(double scaling)
 {
-  execution_duration_scaling_ = scaling;
+  allowed_execution_duration_scaling_ = scaling;
+}
+
+void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
+{
+  execution_velocity_scaling_ = scaling;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -802,7 +808,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
           {
             parts[i].joint_trajectory.points[j].velocities.resize(bijection.size());
             for (std::size_t k = 0 ; k < bijection.size() ; ++k)
-              parts[i].joint_trajectory.points[j].velocities[k] = trajectory.joint_trajectory.points[j].velocities[bijection[k]];
+              parts[i].joint_trajectory.points[j].velocities[k] = trajectory.joint_trajectory.points[j].velocities[bijection[k]] * execution_velocity_scaling_;
           }
           if (!trajectory.joint_trajectory.points[j].accelerations.empty())
           {
@@ -1153,7 +1159,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
     }
     // add 10% + 0.5s to the expected duration; this is just to allow things to finish propery
     
-    expected_trajectory_duration = expected_trajectory_duration * execution_duration_scaling_ + DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
+    expected_trajectory_duration = expected_trajectory_duration * allowed_execution_duration_scaling_ + DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
     
     if (longest_part >= 0)
     {  

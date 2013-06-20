@@ -191,8 +191,12 @@ public:
   
   /// When determining the expected duration of a trajectory, this multiplicative factor is applied
   /// to get the allowed duration of execution
-  void setExecutionDurationScaling(double scaling);
+  void setAllowedExecutionDurationScaling(double scaling);
 
+  /// Before sending a trajectory to a controller, scale the velocities by the factor specified.
+  /// By default, this is 1.0
+  void setExecutionVelocityScaling(double scaling);
+  
 private:
 
   struct ControllerInformation
@@ -282,7 +286,8 @@ private:
   DynamicReconfigureImpl *reconfigure_impl_; 
   
   bool execution_duration_monitoring_;
-  double execution_duration_scaling_;
+  double allowed_execution_duration_scaling_;
+  double execution_velocity_scaling_;
 };
 
 typedef boost::shared_ptr<TrajectoryExecutionManager> TrajectoryExecutionManagerPtr;
