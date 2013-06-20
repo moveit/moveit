@@ -443,7 +443,7 @@ void RobotInteraction::decideActiveComponents(const std::string &group, EndEffec
   decideActiveEndEffectors(group, style);
   decideActiveJoints(group);
   if (active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
-    ROS_WARN_NAMED("robot_interaction", "No active joints or end effectors found. Make sure you have defined an end effector in your SRDF file and that kinematics.yaml is loaded in this node's namespace.");
+    ROS_INFO_NAMED("robot_interaction", "No active joints or end effectors found for group '%s'. Make sure you have defined an end effector in your SRDF file and that kinematics.yaml is loaded in this node's namespace.", group.c_str());
 }
 
 void RobotInteraction::addActiveComponent(const InteractiveMarkerConstructorFn &construct,
