@@ -6,14 +6,22 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Eigen REQUIRED)
-find_package(Boost REQUIRED thread date_time system filesystem program_options python)
-find_package(PythonLibs)
+find_package(Boost REQUIRED COMPONENTS
+  date_time
+  filesystem
+  program_options
+  python
+  system
+  thread
+)
+find_package(PythonLibs REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
   moveit_ros_manipulation
   moveit_ros_move_group
   eigen_conversions
+  tf_conversions
   tf
   roscpp
   actionlib

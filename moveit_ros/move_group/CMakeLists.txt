@@ -26,7 +26,6 @@ catkin_package(
 )
 
 include_directories(include)
-include_directories(sec/default_capabilities)
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM
                     ${Boost_INCLUDE_DIRS}
@@ -54,6 +53,7 @@ add_library(moveit_move_group_default_capabilities
   src/default_capabilities/cartesian_path_service_capability.cpp
   src/default_capabilities/get_planning_scene_service_capability.cpp
   )
+
 
 target_link_libraries(move_group moveit_move_group_capabilities_base ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 target_link_libraries(moveit_move_group_default_capabilities moveit_move_group_capabilities_base ${catkin_LIBRARIES} ${Boost_LIBRARIES})
