@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   interactive_markers
   eigen_conversions
+  tf_conversions
   tf
   roscpp
 )

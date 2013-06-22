@@ -36,6 +36,7 @@
 
 #include <moveit/benchmarks/benchmark_execution.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <boost/program_options.hpp>
 #include <ros/ros.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)

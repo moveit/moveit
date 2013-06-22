@@ -10,7 +10,7 @@ find_package(Boost REQUIRED thread system filesystem date_time program_options)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning
-  moveit_ros_move_group 
+  moveit_ros_move_group
   dynamic_reconfigure
   roscpp
   rosconsole
