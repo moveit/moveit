@@ -1017,8 +1017,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     planning_scene_->usePlanningSceneMsg(req.scene);
 
   // parameter factoring functionality
-  //std::size_t n_parameter_sets = generateFactorCombinations(); // this is for parameter sweeping
-  std::size_t n_parameter_sets = generateFactorCombinationsHack(); // this is for fractional factorial analysis
+  std::size_t n_parameter_sets = generateFactorCombinations(); // this is for parameter sweeping
 
   // get stats on how many planners and total runs will be executed
   std::size_t total_n_planners = 0;
@@ -1385,136 +1384,6 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
 
   // Apply the new settings
   planner->setPlanningConfigurations(settings);
-}
-
-std::size_t moveit_benchmarks::BenchmarkExecution::generateFactorCombinationsHack()
-{
-  // Note: this is a hack because the factors are TRRT specific and hard coded in
-  // In the future it should be added to the .cfg file when someone has time
-
-  // Create All Factor Options ------------------------------------------------------
-  const int num_factors = 7;
-  FactorOptions opt;
-
-  // Factor 1
-  opt.key = "max_states_failed";
-  opt.low = 1;
-  opt.high = 2;
-  factor_options_.push_back(opt);
-
-  // Factor 2
-  opt.key = "temp_change_factor";
-  opt.low = 2;
-  opt.high = 50;
-  factor_options_.push_back(opt);
-
-  // Factor 3
-  opt.key = "range";
-  opt.low = 0.37;
-  opt.high = 0.50;
-  factor_options_.push_back(opt);
-
-  // Factor 4
-  opt.key = "min_temperature";
-  opt.low = 1e-9;
-  opt.high = 1e-11;
-  factor_options_.push_back(opt);
-
-  // Factor 5
-  opt.key = "frontier_threshold";
-  opt.low = 0.107622;
-  opt.high = 0.2;
-  factor_options_.push_back(opt);
-
-  // Factor 6
-  opt.key = "frontier_node_ratio";
-  opt.low = 0.05;
-  opt.high = 0.1;
-  factor_options_.push_back(opt);
-
-  // Factor 7
-  opt.key = "k_constant";
-  opt.low  = 0.000428155;
-  opt.high = 0.001;
-  factor_options_.push_back(opt);
-
-  // Set things for all options automatically here
-  for (std::size_t i = 0; i < factor_options_.size(); ++i)
-  {
-    // Set key name for database
-    std::ostringstream ss;
-    ss << "param_" << factor_options_[i].key << " REAL";
-    factor_options_[i].log_key = ss.str();
-
-    // set as not sweep
-    factor_options_[i].isSweep = false;
-  }
-
-  // Eight-Run Plackett-Burman Design with 7 Factors ------------------------------------------------
-  const int num_tests = 8;
-
-  const int test1[] = {1, 0, 0, 1, 0, 1, 1};
-  const int test2[] = {1, 1, 0, 0, 1, 0, 1};
-  const int test3[] = {1, 1, 1, 0, 0, 1, 0};
-  const int test4[] = {0, 1, 1, 1, 0, 0, 1};
-  const int test5[] = {1, 0, 1, 1, 1, 0, 0};
-  const int test6[] = {0, 1, 0, 1, 1, 1, 0};
-  const int test7[] = {0, 0, 1, 0, 1, 1, 1};
-  const int test8[] = {0, 0, 0, 0, 0, 0, 0};
-
-  // Copy to 2d array
-  int tests[num_tests][num_factors];
-  memcpy(tests[0], test1, num_factors*sizeof(int));
-  memcpy(tests[1], test2, num_factors*sizeof(int));
-  memcpy(tests[2], test3, num_factors*sizeof(int));
-  memcpy(tests[3], test4, num_factors*sizeof(int));
-  memcpy(tests[4], test5, num_factors*sizeof(int));
-  memcpy(tests[5], test6, num_factors*sizeof(int));
-  memcpy(tests[6], test7, num_factors*sizeof(int));
-  memcpy(tests[7], test8, num_factors*sizeof(int));
-
-  // Create factor combinations ------------------------------------------------------
-  for (std::size_t i = 0; i < num_tests; ++i) // loop tests
-  {
-    FactorInstance factor_instance;
-
-    // Populate factor instance
-    for (std::size_t j = 0; j < num_factors; ++j) // loop factors
-    {      
-      //ROS_DEBUG_STREAM_NAMED("temp","i="<<i<<" j="<<j<<" key="<<factor_options_[j].key<<" val="<<tests[i][j]);
-      if (tests[i][j] == 1) // use high value
-      {
-        // Assign string,double pair to factor instance
-        factor_instance[factor_options_[j].key] = factor_options_[j].high;
-      }
-      else // use low value
-      {
-        // Assign string,double pair to factor instance
-        factor_instance[factor_options_[j].key] = factor_options_[j].low;
-      }
-    }
-
-    factor_combinations_.push_back(factor_instance);
-  }
-
-  // Debug output
-  if (true)
-  {
-    ROS_DEBUG_STREAM("generateFactorCombinationsHack Output:");
-    // DEBUG
-    for (std::size_t i = 0; i < factor_combinations_.size(); ++i)
-    {
-      ROS_DEBUG_STREAM_NAMED("temp","Factor instance:");
-      // Debug map
-      for(std::map<std::string,double>::const_iterator it = factor_combinations_[i].begin(); it != factor_combinations_[i].end(); ++it)
-        std::cout << "  - " << it->first << " => " << it->second << std::endl;
-    }
-  }
-
-  ROS_DEBUG_STREAM("Generated " << factor_combinations_.size() << " factor combinations to test");
-
-  // Total number of parameters
-  return factor_combinations_.size();
 }
 
 std::size_t moveit_benchmarks::BenchmarkExecution::generateFactorCombinations()

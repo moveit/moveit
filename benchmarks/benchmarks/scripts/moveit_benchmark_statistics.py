@@ -37,7 +37,6 @@
 # Author: Mark Moll, Ioan Sucan
 
 from sys import argv, exit
-#from os.path import basename, splitext, remove
 import os
 import sqlite3
 import datetime
