@@ -422,8 +422,9 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   ob::StateStoragePtr sstor(cass);
   
   // construct a sampler for the sampling constraints
-  kinematic_constraints::KinematicConstraintSet kset(pcontext->getRobotModel(), robot_state::TransformsConstPtr(new robot_state::Transforms(pcontext->getRobotModel()->getModelFrame())));
-  kset.add(constr_hard);
+  kinematic_constraints::KinematicConstraintSet kset(pcontext->getRobotModel());
+  robot_state::Transforms no_transforms(pcontext->getRobotModel()->getModelFrame());
+  kset.add(constr_hard, no_transforms);
   
   const robot_state::RobotState &default_state = pcontext->getCompleteInitialRobotState();
   
