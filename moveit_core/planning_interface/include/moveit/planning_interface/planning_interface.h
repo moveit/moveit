@@ -45,11 +45,17 @@
 namespace planning_interface
 {
 
-/// Holds settings specific for each planner, as found in i.e. ompl_planning.yaml
+/*
+    Policy: Settings with unknown keys are ignored. Settings for unknown groups are ignored   
+*/
 struct PlanningConfigurationSettings
 {
+  // \brief name can  of the form "group_name[config_name]" if there are particular configurations 
+  //        specified for a group, or of the form "group_name" if default settings are to be used.
   std::string                        name;
+  // \brief group ?
   std::string                        group;
+  // \brief config key-value pairs of settings
   std::map<std::string, std::string> config;
 };
 typedef std::map<std::string, PlanningConfigurationSettings> PlanningConfigurationMap;
