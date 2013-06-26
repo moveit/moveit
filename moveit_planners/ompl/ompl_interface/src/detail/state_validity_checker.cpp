@@ -37,15 +37,12 @@
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
-#include <ros/ros.h> // DTC
-#include <math.h> // DTC
+#include <ros/ros.h> 
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
   group_name_(pc->getJointModelGroupName()), tss_(pc->getCompleteInitialRobotState()), verbose_(false)
 {
-  ROS_ERROR_STREAM_NAMED("temp","Initialized");
-
   specs_.clearanceComputationType = ompl::base::StateValidityCheckerSpecs::APPROXIMATE;
   specs_.hasValidDirectionComputation = false;
 
@@ -115,7 +112,6 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state
     {
       // get abs of difference in each joint value
       value = fabs(prev_joint_values[i] - new_joint_values[i]);
-      //ROS_DEBUG_STREAM_NAMED("temp","difference is " << value << " old: " << prev_joint_values[i] << " new: " << new_joint_values[i]);
     }
 
     cost += value;
@@ -124,7 +120,6 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state
     prev_joint_values[i] = new_joint_values[i];
   }
 
-  //ROS_ERROR_STREAM_NAMED("temp",boost::this_thread::get_id() << ": state_validity_checker->cost() c=" << c);
   return cost;
 
   /*

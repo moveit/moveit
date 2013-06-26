@@ -58,6 +58,8 @@
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
 
+//typedef std::map<std::string, ompl_interface::PlanningConfigurationSettings> PlanningConfigurationMap; // TODO: remove this!
+
 namespace ompl_interface
 {
 class PlanningContextManager::LastPlanningContext
@@ -95,7 +97,7 @@ struct PlanningContextManager::CachedContexts
 boost::mutex                                         lock_;
 };
 
-}
+} // namespace ompl_interface
 
 ompl_interface::PlanningContextManager::PlanningContextManager(const robot_model::RobotModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
   kmodel_(kmodel), constraint_sampler_manager_(csm),
@@ -139,7 +141,7 @@ static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si,
   return planner;
 }
 
-}
+} // namespace ompl_interface
 
 ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManager::plannerSelector(const std::string &planner) const
 {
@@ -181,7 +183,7 @@ ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager
   return boost::bind(&PlanningContextManager::plannerSelector, this, _1);
 }
 
-void ompl_interface::PlanningContextManager::setPlanningConfigurations(const PlanningConfigurationMap &pconfig)
+void ompl_interface::PlanningContextManager::setPlanningConfigurations(const ompl_interface::PlanningConfigurationMap &pconfig)
 {
   planner_configs_.clear();
   planner_configs_.insert(pconfig.begin(), pconfig.end());  // copy the map to this map
@@ -201,7 +203,7 @@ void ompl_interface::PlanningContextManager::setPlanningConfigurations(const Pla
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const std::string &config, const std::string& factory_type) const
 {
-  PlanningConfigurationMap::const_iterator pc = planner_configs_.find(config);
+  ompl_interface::PlanningConfigurationMap::const_iterator pc = planner_configs_.find(config);
 
   if (pc != planner_configs_.end())
   {

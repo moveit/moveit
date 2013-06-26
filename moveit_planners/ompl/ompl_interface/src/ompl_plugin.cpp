@@ -90,7 +90,8 @@ public:
                      const planning_interface::MotionPlanRequest &req,
                      planning_interface::MotionPlanDetailedResponse &res) const
   {
-    display_random_valid_states_ = false;
+    // \todo re-enable this, I got error: assignment of member ‘ompl_interface::OMPLPlanner::display_random_valid_states_’ in read-only object
+    // display_random_valid_states_ = false;
 
     bool r = ompl_interface_->solve(planning_scene, req, res);
     if (!planner_data_link_name_.empty())
