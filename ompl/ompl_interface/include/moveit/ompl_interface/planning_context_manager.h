@@ -66,6 +66,7 @@ public:
   
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
+  //void setPlanningConfigurations(const PlanningConfigurationMap &pconfig);
   void setPlanningConfigurations(const PlanningConfigurationMap &pconfig);
 
   /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
