@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Dave Coleman */
 
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>

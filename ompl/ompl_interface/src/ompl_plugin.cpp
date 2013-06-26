@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Dave Coleman */
 
 #include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
