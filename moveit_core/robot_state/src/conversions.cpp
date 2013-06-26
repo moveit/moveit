@@ -41,10 +41,14 @@
 namespace robot_state
 {
 
+// ********************************************
+// * Internal (hidden) functions
+// ********************************************
+
 namespace
 {
 
-static bool jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state, std::set<std::string> *missing)
+static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state, std::set<std::string> *missing)
 {
   if (joint_state.name.size() != joint_state.position.size())
   {
@@ -299,17 +303,20 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
         if (aco.object.header.frame_id != aco.link_name)
         {
           Eigen::Affine3d t0;
-          if (tf)
-            t0 = tf->getTransform(state, aco.object.header.frame_id);
+          if (state.knowsFrameTransform(aco.object.header.frame_id))
+            t0 = state.getFrameTransform(aco.object.header.frame_id);
           else
-          {
-            t0.setIdentity();
-            logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect", aco.object.header.frame_id.c_str());
-          }
+            if (tf && tf->canTransform(aco.object.header.frame_id))
+              t0 = tf->getTransform(aco.object.header.frame_id);
+            else
+            {
+              t0.setIdentity();
+              logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect", aco.object.header.frame_id.c_str());
+            }
           Eigen::Affine3d t = ls->getGlobalLinkTransform().inverse() * t0;
           for (std::size_t i = 0 ; i < poses.size() ; ++i)
             poses[i] = t * poses[i];
-        }        
+        }
         
         if (shapes.empty())
           logError("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(), aco.object.id.c_str());
@@ -339,7 +346,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
 static bool robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
 {
   std::set<std::string> missing;
-  bool result1 = jointStateToRobotState(robot_state.joint_state, state, &missing);
+  bool result1 = _jointStateToRobotState(robot_state.joint_state, state, &missing);
   bool result2 = multiDOFJointsToRobotState(robot_state.multi_dof_joint_state, state, tf);
   state.updateLinkTransforms();
   
@@ -373,9 +380,18 @@ static bool robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_m
 }
 }
 
+
+// ********************************************
+
+
+
+// ********************************************
+// * Exposed functions
+// ********************************************
+
 bool robot_state::jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state)
 {
-  bool result = jointStateToRobotState(joint_state, state, NULL);
+  bool result = _jointStateToRobotState(joint_state, state, NULL);
   state.updateLinkTransforms();
   return result;
 }
@@ -424,4 +440,3 @@ void robot_state::robotStateToJointStateMsg(const RobotState& state, sensor_msgs
   
   joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
 }
-

@@ -133,13 +133,11 @@ public:
   struct ControllerState
   {
     ControllerState() : active_(false),
-                        loaded_(false),
                         default_(false)
     {
     }
     
     bool active_;
-    bool loaded_;
     bool default_;
   };
       
@@ -155,16 +153,11 @@ public:
   
   virtual void getControllersList(std::vector<std::string> &names) = 0;
   virtual void getActiveControllers(std::vector<std::string> &names) = 0;
-  virtual void getLoadedControllers(std::vector<std::string> &names) = 0;
 
   virtual void getControllerJoints(const std::string &name, std::vector<std::string> &joints) = 0;
   virtual ControllerState getControllerState(const std::string &name) = 0;
 
-  /// Load a controller, but do not activate it by default
-  virtual bool loadController(const std::string &name) = 0;
-  virtual bool unloadController(const std::string &name) = 0;
-
-  /// Activate and deactivate loaded controllers
+  /// Activate and deactivate controllers
   virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate) = 0;
 };
 

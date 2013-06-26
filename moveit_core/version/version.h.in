@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2013, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,14 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+#ifndef MOVEIT_VERSION_
+#define MOVEIT_VERSION_
 
-#ifndef MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
-#define MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
+#define MOVEIT_VERSION "@MOVEIT_VERSION@"
 
-#include <moveit_msgs/RobotTrajectory.h>
-
-namespace trajectory_processing
-{
-
-bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory);
-std::size_t trajectoryWaypointCount(const moveit_msgs::RobotTrajectory &trajectory);
-
-}
+#define MOVEIT_VERSION_MAJOR @MOVEIT_VERSION_MAJOR@
+#define MOVEIT_VERSION_MINOR @MOVEIT_VERSION_MINOR@
+#define MOVEIT_VERSION_PATCH @MOVEIT_VERSION_PATCH@
+#define MOVEIT_VERSION_EXTRA "@MOVEIT_VERSION_EXTRA@"
 
 #endif
-

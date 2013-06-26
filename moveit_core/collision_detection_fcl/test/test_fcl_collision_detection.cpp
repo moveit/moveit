@@ -37,7 +37,6 @@
 #include <moveit/test_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_state/transforms.h>
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 
@@ -109,11 +108,8 @@ protected:
 
   boost::shared_ptr<urdf::ModelInterface>  urdf_model_;
   boost::shared_ptr<srdf::Model>           srdf_model_;
-  
-  robot_model::RobotModelPtr             kmodel_;
-  
-  robot_state::TransformsPtr                 ftf_;
-  robot_state::TransformsConstPtr            ftf_const_;
+    
+  robot_model::RobotModelPtr               kmodel_;
   
   boost::shared_ptr<collision_detection::CollisionRobot>        crobot_;
   boost::shared_ptr<collision_detection::CollisionWorld>        cworld_;

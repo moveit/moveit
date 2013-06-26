@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of Willow Garage, Inc. nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,18 +34,29 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
-#define MOVEIT_TRAJECTORY_PROCESSING_TRAJECTORY_TOOLS_
+#ifndef MOVEIT_ROBOT_STATE_STATE_TRANSFORMS_
+#define MOVEIT_ROBOT_STATE_STATE_TRANSFORMS_
 
-#include <moveit_msgs/RobotTrajectory.h>
+#include <moveit/transforms/transforms.h>
 
-namespace trajectory_processing
+namespace robot_state
 {
 
-bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory);
-std::size_t trajectoryWaypointCount(const moveit_msgs::RobotTrajectory &trajectory);
+MOVEIT_CLASS_FORWARD(RobotState);
+
+class StateTransforms : public Transforms
+{
+public:
+  StateTransforms(const std::string &target_frame, const RobotStateConstPtr &state);
+
+  virtual bool canTransform(const std::string &from_frame) const;  
+  virtual const Eigen::Affine3d& getTransform(const std::string &from_frame) const;
+
+protected:
+  
+  RobotStateConstPtr state_;
+};
 
 }
 
 #endif
-

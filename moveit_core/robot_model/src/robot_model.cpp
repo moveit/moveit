@@ -51,23 +51,7 @@ robot_model::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInt
   root_joint_ = NULL;
   urdf_ = urdf_model;
   srdf_ = srdf_model;
-  if (urdf_model->getRoot())
-  {
-    const urdf::Link *root = urdf_model->getRoot().get();
-    buildModel(urdf_model, srdf_model, root->name);
-  }
-  else
-    logWarn("No root link found");
-}
-
-robot_model::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                    const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                    const std::string &root_link)
-{
-  root_joint_ = NULL;
-  urdf_ = urdf_model;
-  srdf_ = srdf_model;
-  buildModel(urdf_model, srdf_model, root_link);
+  buildModel(*urdf_model, *srdf_model);
 }
 
 robot_model::RobotModel::~RobotModel()
@@ -80,116 +64,33 @@ robot_model::RobotModel::~RobotModel()
     delete link_model_vector_[i];
 }
 
-void robot_model::RobotModel::computeTreeStructure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model, const std::string &root_link,
-                                                   std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
-                                                   std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map)
-{
-  // construct a bidirectional graph that represents the URDF tree
-  std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > graph;
-  std::queue<const urdf::Link*> q;
-  q.push(urdf_model->getRoot().get());
-  while (!q.empty())
-  {
-    const urdf::Link *l = q.front();
-    q.pop();
-    for (unsigned int i = 0 ; i < l->child_links.size() ; ++i)
-    {
-      graph[l][l->child_links[i].get()] = graph[l->child_links[i].get()][l] = l->child_links[i]->parent_joint.get();
-      q.push(l->child_links[i].get());
-    }
-  }
-
-  // construct a tree from the graph such that the root is root_link
-  class NewParentTree
-  {
-  public:
-    NewParentTree(const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph) : graph_(graph)
-    {
-    }
-
-    void constructTree(const urdf::Link *current, const urdf::Link *parent)
-    {
-      if (graph_->find(current) == graph_->end())
-        return;
-      const std::map<const urdf::Link*, const urdf::Joint*> &child = graph_->at(current);
-      for (std::map<const urdf::Link*, const urdf::Joint*>::const_iterator it = child.begin() ; it != child.end() ; ++it)
-        if (it->first != parent)
-        {
-          constructTree(it->first, current);
-          parent_map_[it->first] = std::make_pair(current, it->second);
-          child_map_[current].push_back(it->first);
-        }
-    }
-
-    const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& getParentMap() const
-    {
-      return parent_map_;
-    }
-
-    const std::map<const urdf::Link*, std::vector<const urdf::Link*> >& getChildMap() const
-    {
-      return child_map_;
-    }
-
-  private:
-    const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph_;
-    std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map_;
-    std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map_;
-  };
-
-  NewParentTree npt(&graph);
-  const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
-  if (root_link_ptr)
-  {
-    npt.constructTree(root_link_ptr, NULL);
-    parent_map = npt.getParentMap();
-    child_map = npt.getChildMap();
-  }
-  else
-  {
-    parent_map.clear();
-    child_map.clear();
-  }
-}
-
-void robot_model::RobotModel::buildModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                         const boost::shared_ptr<const srdf::Model> &srdf_model,
-                                         const std::string &root_link)
+void robot_model::RobotModel::buildModel(const urdf::ModelInterface &urdf_model, const srdf::Model &srdf_model)
 {
   moveit::Profiler::ScopedStart prof_start;
   moveit::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
 
   root_joint_ = NULL;
-  model_name_ = urdf_model->getName();
-  if (urdf_model->getRoot())
+  model_name_ = urdf_model.getName();
+  if (urdf_model.getRoot())
   {
-    const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
-    if (root_link_ptr)
-    {
-      model_frame_ = root_link;
-
-      std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map;
-      std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map;
-      computeTreeStructure(urdf_model, root_link, parent_map, child_map);
-
-      root_joint_ = buildRecursive(NULL, root_link_ptr, parent_map, child_map, *srdf_model);
-      root_link_ = link_model_map_[root_link];
-      buildMimic(urdf_model);
-      buildJointInfo();
-
-      if (link_models_with_collision_geometry_vector_.empty())
-        logWarn("No geometry is associated to any robot links");
-
-      // build groups
-      buildGroups(srdf_model);
-      buildGroupStates(srdf_model);
-
-      std::stringstream ss;
-      printModelInfo(ss);
-      logDebug("%s", ss.str().c_str());
-    }
-    else
-      logError("Link '%s' (to be used as root) was not found in model '%s'. Cannot construct model", root_link.c_str(), model_name_.c_str());
+    const urdf::Link *root_link_ptr = urdf_model.getRoot().get();
+    model_frame_ = '/' + root_link_ptr->name;
+    
+    root_joint_ = buildRecursive(NULL, root_link_ptr, srdf_model);
+    root_link_ = root_joint_->child_link_model_;
+    buildMimic(urdf_model);
+    buildJointInfo();
+    
+    if (link_models_with_collision_geometry_vector_.empty())
+      logWarn("No geometry is associated to any robot links");
+    
+    // build groups
+    buildGroups(srdf_model);
+    buildGroupStates(srdf_model);
+    
+    std::stringstream ss;
+    printModelInfo(ss);
+    logDebug("%s", ss.str().c_str());
   }
   else
     logWarn("No root link found");
@@ -249,10 +150,10 @@ void robot_model::RobotModel::buildJointInfo()
   }
 }
 
-void robot_model::RobotModel::buildGroupStates(const boost::shared_ptr<const srdf::Model> &srdf_model)
+void robot_model::RobotModel::buildGroupStates(const srdf::Model &srdf_model)
 {
   // copy the default states to the groups
-  const std::vector<srdf::Model::GroupState> &ds = srdf_model->getGroupStates();
+  const std::vector<srdf::Model::GroupState> &ds = srdf_model.getGroupStates();
   for (std::size_t i = 0 ; i < ds.size() ; ++i)
   {
     std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(ds[i].group_);
@@ -279,12 +180,12 @@ void robot_model::RobotModel::buildGroupStates(const boost::shared_ptr<const srd
   }
 }
 
-void robot_model::RobotModel::buildMimic(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model)
+void robot_model::RobotModel::buildMimic(const urdf::ModelInterface &urdf_model)
 {
   // compute mimic joints
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
   {
-    const urdf::Joint *jm = urdf_model->getJoint(joint_model_vector_[i]->getName()).get();
+    const urdf::Joint *jm = urdf_model.getJoint(joint_model_vector_[i]->getName()).get();
     if (jm)
       if (jm->mimic)
       {
@@ -390,9 +291,9 @@ robot_model::JointModelGroup* robot_model::RobotModel::getJointModelGroup(const 
   return it->second;
 }
 
-void robot_model::RobotModel::buildGroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
+void robot_model::RobotModel::buildGroups(const srdf::Model &srdf_model)
 {
-  const std::vector<srdf::Model::Group>& group_configs = srdf_model->getGroups();
+  const std::vector<srdf::Model::Group>& group_configs = srdf_model.getGroups();
 
   //the only thing tricky is dealing with subgroups
   std::vector<bool> processed(group_configs.size(), false);
@@ -432,7 +333,7 @@ void robot_model::RobotModel::buildGroups(const boost::shared_ptr<const srdf::Mo
   buildGroupsInfo_EndEffectors(srdf_model);
 }
 
-void robot_model::RobotModel::buildGroupsInfo_Subgroups(const boost::shared_ptr<const srdf::Model> &srdf_model)
+void robot_model::RobotModel::buildGroupsInfo_Subgroups(const srdf::Model &srdf_model)
 {
   // compute subgroups
   for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
@@ -458,10 +359,10 @@ void robot_model::RobotModel::buildGroupsInfo_Subgroups(const boost::shared_ptr<
   }
 }
 
-void robot_model::RobotModel::buildGroupsInfo_EndEffectors(const boost::shared_ptr<const srdf::Model> &srdf_model)
+void robot_model::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model &srdf_model)
 {
   // set the end-effector flags
-  const std::vector<srdf::Model::EndEffector> &eefs = srdf_model->getEndEffectors();
+  const std::vector<srdf::Model::EndEffector> &eefs = srdf_model.getEndEffectors();
   for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
   {
     // check if this group is a known end effector
@@ -654,15 +555,17 @@ bool robot_model::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   return true;
 }
 
-robot_model::JointModel* robot_model::RobotModel::buildRecursive(LinkModel *parent, const urdf::Link *link,
-                                                                 const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
-                                                                 const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
+robot_model::JointModel* robot_model::RobotModel::buildRecursive(LinkModel *parent, const urdf::Link *urdf_link,
                                                                  const srdf::Model &srdf_model)
 {
-  std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >::const_iterator pmi = parent_map.find(link);
-  JointModel *joint = (pmi != parent_map.end()) ? constructJointModel(pmi->second.second, link, srdf_model) : constructJointModel(NULL, link, srdf_model);
+  // construct the joint
+  JointModel *joint = urdf_link->parent_joint ?
+    constructJointModel(urdf_link->parent_joint.get(), urdf_link, srdf_model) :
+    constructJointModel(NULL, urdf_link, srdf_model);
   if (joint == NULL)
     return NULL;
+  
+  // bookkeeping for the joint
   joint_model_map_[joint->name_] = joint;
   joint->tree_index_ = joint_model_vector_.size();
   joint_model_vector_.push_back(joint);
@@ -671,26 +574,31 @@ robot_model::JointModel* robot_model::RobotModel::buildRecursive(LinkModel *pare
   if (joint->getType() == JointModel::REVOLUTE && static_cast<const RevoluteJointModel*>(joint)->isContinuous())
     continuous_joint_model_vector_const_.push_back(joint);
   joint->parent_link_model_ = parent;
-  joint->child_link_model_ = constructLinkModel(link, parent_map);
-  link_model_map_[joint->child_link_model_->name_] = joint->child_link_model_;
-  joint->child_link_model_->tree_index_ = link_model_vector_.size();
-  link_model_vector_.push_back(joint->child_link_model_);
-  link_model_vector_const_.push_back(joint->child_link_model_);
-  link_model_names_vector_.push_back(link_model_vector_.back()->getName());
-  if (joint->child_link_model_->shape_)
+
+  // construct the link
+  LinkModel *link = constructLinkModel(urdf_link);
+  joint->child_link_model_ = link;
+  
+  // bookkeeping for the link
+  link_model_map_[joint->child_link_model_->name_] = link;
+  link->tree_index_ = link_model_vector_.size();
+  link_model_vector_.push_back(link);
+  link_model_vector_const_.push_back(link);
+  link_model_names_vector_.push_back(link->getName());
+  if (link->shape_)
   {
-    link_models_with_collision_geometry_vector_.push_back(joint->child_link_model_);
-    link_model_names_with_collision_geometry_vector_.push_back(link_models_with_collision_geometry_vector_.back()->getName());
+    link_models_with_collision_geometry_vector_.push_back(link);
+    link_model_names_with_collision_geometry_vector_.push_back(link->getName());
   }
-  joint->child_link_model_->parent_joint_model_ = joint;
-  std::map<const urdf::Link*, std::vector<const urdf::Link*> >::const_iterator cmi = child_map.find(link);
-  if (cmi != child_map.end())
-    for (unsigned int i = 0 ; i < cmi->second.size() ; ++i)
-    {
-      JointModel* jm = buildRecursive(joint->child_link_model_, cmi->second[i], parent_map, child_map, srdf_model);
-      if (jm)
-        joint->child_link_model_->child_joint_models_.push_back(jm);
-    }
+  link->parent_joint_model_ = joint;
+
+  // recursively build child links (and joints)
+  for (std::size_t i = 0 ; i < urdf_link->child_links.size() ; ++i)
+  {
+    JointModel* jm = buildRecursive(link, urdf_link->child_links[i].get(), srdf_model);
+    if (jm)
+      link->child_joint_models_.push_back(jm);
+  }
   return joint;
 }
 
@@ -788,7 +696,7 @@ robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf
   {
     const std::vector<srdf::Model::VirtualJoint> &vjoints = srdf_model.getVirtualJoints();
     for (std::size_t i = 0 ; i < vjoints.size() ; ++i)
-      if (vjoints[i].child_link_ == child_link->name)
+      if (vjoints[i].child_link_ == child_link->name && !vjoints[i].parent_frame_.empty())
       {
         if (vjoints[i].type_ == "fixed")
           result = new FixedJointModel(vjoints[i].name_);
@@ -800,7 +708,11 @@ robot_model::JointModel* robot_model::RobotModel::constructJointModel(const urdf
         {
           // for fixed frames we still use the robot root link
           if (vjoints[i].type_ != "fixed")
+          {
             model_frame_ = vjoints[i].parent_frame_;
+            if (model_frame_[0] != '/')
+              model_frame_ = '/' + model_frame_;
+          }
           break;
         }
       }
@@ -842,7 +754,7 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
 
 }
 
-robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::Link *urdf_link, const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map)
+robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::Link *urdf_link)
 {
   LinkModel *result = new LinkModel();
   result->name_ = urdf_link->name;
@@ -904,28 +816,11 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
       }
     }
   
-  std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >::const_iterator pmi = parent_map.find(urdf_link);
-  if (pmi != parent_map.end())
-  {
-    // if we consider the kinematic tree as in the URDF, then we just take the transform as is
-    if (urdf_link->parent_joint.get() == pmi->second.second)
-    {
-      result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
-      result->reverse_joint_ = false;
-    }
-    else
-    {
-      // if not, it means we are viewing the transform in reverse, so we take the inverse:
-      result->joint_origin_transform_ = urdfPose2Affine3d(pmi->second.second->parent_to_joint_origin_transform);
-      result->reverse_joint_ = true;
-    }
-  }
+  if (urdf_link->parent_joint)
+    result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
   else
-  {
     result->joint_origin_transform_.setIdentity();
-    result->reverse_joint_ = false;
-  }
-
+  
   return result;
 }
 

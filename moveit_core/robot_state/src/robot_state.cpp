@@ -253,21 +253,15 @@ void robot_state::RobotState::updateLinkTransforms()
     link_state_vector_[i]->computeTransform();
 }
 
-bool robot_state::RobotState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform)
+bool robot_state::RobotState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool backward)
 {
   if (!hasLinkState(link_name))
     return false;
   
-  link_state_map_[link_name]->updateGivenGlobalLinkTransform(transform);
-  std::vector<const robot_model::LinkModel*> child_link_models;
-  kinematic_model_->getChildLinkModels(kinematic_model_->getLinkModel(link_name), child_link_models);
-  // the zeroith link will be the link itself, which shouldn't be updated, so we start at 1
-  for(unsigned int i = 1 ; i < child_link_models.size() ; ++i)
-    link_state_map_[child_link_models[i]->getName()]->computeTransform();
-  
-  const robot_model::LinkModel::AssociatedFixedTransformMap& assoc = kinematic_model_->getLinkModel(link_name)->getAssociatedFixedTransforms();
-  for (robot_model::LinkModel::AssociatedFixedTransformMap::const_iterator it = assoc.begin() ; it != assoc.end() ; ++it)
-    link_state_map_[it->first->getName()]->updateGivenGlobalLinkTransform(transform * it->second);
+  if (backward)
+    link_state_map_[link_name]->computeTransformBackward(transform);
+  else
+    link_state_map_[link_name]->computeTransformForward(transform);
   
   return true;
 }

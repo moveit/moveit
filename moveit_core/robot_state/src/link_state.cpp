@@ -48,22 +48,73 @@ robot_state::LinkState::~LinkState()
 {
 }
 
-void robot_state::LinkState::updateGivenGlobalLinkTransform(const Eigen::Affine3d& transform)
+void robot_state::LinkState::computeTransformForward(const Eigen::Affine3d& parent_transform)
 {
-  global_link_transform_ = transform;
+  global_link_transform_ = parent_transform;
+  
+  // do fwd transforms 
+  const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
+  for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
+    robot_state_->getLinkState(child_jmodels[i]->getChildLinkModel()->getName())->computeTransformForward(this);
+  
+  computeGeometryTransforms();
+}
+
+void robot_state::LinkState::computeTransformForward(const LinkState *parent_link)
+{
+  global_link_transform_ = parent_link->global_link_transform_ * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
+
+  // do fwd transforms 
+  const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
+  for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
+    robot_state_->getLinkState(child_jmodels[i]->getChildLinkModel()->getName())->computeTransformForward(this);
+  
+  computeGeometryTransforms();
+}
+
+void robot_state::LinkState::computeTransformBackward(const LinkState *child_link)
+{
+  global_link_transform_ = child_link->global_link_transform_ * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
+  if (parent_link_state_)
+    parent_link_state_->computeTransformBackward(this);
+
+  // do fwd transforms 
+  const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
+  for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
+  {
+    LinkState *child = robot_state_->getLinkState(child_jmodels[i]->getChildLinkModel()->getName());
+    if (child != child_link)
+      child->computeTransformForward(this);
+  }
+  
+  computeGeometryTransforms();
+}
+
+void robot_state::LinkState::computeTransformBackward(const Eigen::Affine3d& child_transform)
+{
+  global_link_transform_ = child_transform;
+  if (parent_link_state_)
+    parent_link_state_->computeTransformBackward(this);
+
+  // do fwd transforms 
+  const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
+  for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
+    robot_state_->getLinkState(child_jmodels[i]->getChildLinkModel()->getName())->computeTransformForward(this);
+  
+  computeGeometryTransforms();
+}
+
+void robot_state::LinkState::computeGeometryTransforms()
+{
   global_collision_body_transform_ = global_link_transform_ * link_model_->getCollisionOriginTransform();
   updateAttachedBodies();
 }
 
 void robot_state::LinkState::computeTransform()
-{
-  if (link_model_->isJointReversed())
-    global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
-  else
-    global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform()) * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
-  global_collision_body_transform_ = global_link_transform_ * link_model_->getCollisionOriginTransform();
-  
-  updateAttachedBodies();
+{ 
+  global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform())
+    * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
+  computeGeometryTransforms();
 }
 
 void robot_state::LinkState::updateAttachedBodies()

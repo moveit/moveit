@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Adam Leeper */
 
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/robot_state/conversions.h>
