@@ -156,7 +156,8 @@ public:
 
       // Copy config map
       planning_config.config.clear();
-      planning_config.config.insert(pconfig_it->second.config.begin(),pconfig_it->second.config.end());
+      planning_config.config.insert(pconfig_it->second.config.begin(),
+        pconfig_it->second.config.end());
 
       // Add to the map
       planning_pconfig[pconfig_it->first] = planning_config;
