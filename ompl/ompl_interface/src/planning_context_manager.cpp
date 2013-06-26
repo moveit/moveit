@@ -186,7 +186,7 @@ ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager
 void ompl_interface::PlanningContextManager::setPlanningConfigurations(const ompl_interface::PlanningConfigurationMap &pconfig)
 {
   planner_configs_.clear();
-  planner_configs_.insert(pconfig.begin(), pconfig.end());  // copy the map to this map
+  planner_configs_ = pconfig;
 
   // construct default configurations
   const std::map<std::string, robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
@@ -233,11 +233,11 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       for (std::size_t i = 0 ; i < cc->second.size() ; ++i)
         if (cc->second[i].unique())
         {
-          logInform("Reusing cached planning context");
+          logDebug("Reusing cached planning context");
           context = cc->second[i];
 
           // Update the context with our current planner configurations - needed for parameter sweeping
-          context->getSpecificationConfig() = config.config;
+          context->setSpecificationConfig(config.config);
 
           break;
         }
