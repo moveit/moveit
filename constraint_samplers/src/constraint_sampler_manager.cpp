@@ -75,7 +75,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     std::vector<kinematic_constraints::JointConstraint> jc;
     for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
     {
-      kinematic_constraints::JointConstraint j(scene->getRobotModel(), scene->getTransforms());
+      kinematic_constraints::JointConstraint j(scene->getRobotModel());
       if (j.configure(constr.joint_constraints[i]))
       {
         if (joint_coverage.find(j.getJointVariableName()) != joint_coverage.end())
@@ -141,9 +141,9 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
         if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
         {
-          boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel(), scene->getTransforms()));
-          boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel(), scene->getTransforms()));
-          if (pc->configure(constr.position_constraints[p]) && oc->configure(constr.orientation_constraints[o]))
+          boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel()));
+          boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel()));
+          if (pc->configure(constr.position_constraints[p], scene->getTransforms()) && oc->configure(constr.orientation_constraints[o], scene->getTransforms()))
           {        
             boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
             if(iks->configure(IKSamplingPose(pc, oc))) {
@@ -170,8 +170,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       if (usedL_fullPose.find(constr.position_constraints[p].link_name) != usedL_fullPose.end())
         continue;
       
-      boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel(), scene->getTransforms()));
-      if (pc->configure(constr.position_constraints[p]))
+      boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel()));
+      if (pc->configure(constr.position_constraints[p], scene->getTransforms()))
       {
         boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
         if(iks->configure(IKSamplingPose(pc))) 
@@ -196,8 +196,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       if (usedL_fullPose.find(constr.orientation_constraints[o].link_name) != usedL_fullPose.end())
         continue;
       
-      boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel(), scene->getTransforms()));
-      if (oc->configure(constr.orientation_constraints[o]))
+      boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel()));
+      if (oc->configure(constr.orientation_constraints[o], scene->getTransforms()))
       {
         boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
         if(iks->configure(IKSamplingPose(oc))) 

@@ -37,6 +37,8 @@
 #ifndef MOVEIT_COLLISION_DETECTION_COLLISION_WORLD_
 #define MOVEIT_COLLISION_DETECTION_COLLISION_WORLD_
 
+#include <boost/utility.hpp>
+
 #include <moveit/collision_detection/collision_matrix.h>
 #include <moveit/collision_detection/collision_robot.h>
 #include <moveit/collision_detection/world.h>

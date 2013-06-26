@@ -97,14 +97,6 @@ public:
     return joint_origin_transform_;
   }
   
-  /** \brief If the kinematic model was constructed with a root other
-      than the one in the URDF, some joints need to be applied in
-      reverse. This flag indicates whether the joint connecting from
-      the parent link should be reversed or not.*/
-  bool isJointReversed() const
-  {
-    return reverse_joint_;
-  }
   
   /** \brief In addition to the link transform, the geometry
       of a link that is used for collision checking may have
@@ -169,9 +161,6 @@ private:
   
   /** \brief The constant transform applied to the collision geometry of the link (local) */
   Eigen::Affine3d           collision_origin_transform_;
-  
-  /** \brief Flag indicating whether the joint is used in reverse or not */
-  bool                      reverse_joint_;
   
   /** \brief The collision geometry of the link */
   shapes::ShapeConstPtr     shape_;

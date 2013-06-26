@@ -77,12 +77,14 @@ public:
   {
     return robot_state_;
   }
-  
-  /** @brief Set the link state to the input transform */
-  void updateGivenGlobalLinkTransform(const Eigen::Affine3d& transform);
-  
+   
   /** \brief Recompute global_collision_body_transform and global_link_transform */
   void computeTransform();
+
+  void computeTransformForward(const Eigen::Affine3d& transform);  
+  void computeTransformBackward(const Eigen::Affine3d& transform);
+  
+  void computeGeometryTransforms();
   
   /** \brief Update all attached bodies given set link transforms */
   void updateAttachedBodies();
@@ -127,15 +129,18 @@ public:
   }
   
 private:
-  
+    
+  void computeTransformForward(const LinkState *parent_link);  
+  void computeTransformBackward(const LinkState *child_link);
+
   /** \brief The robot state this link is part of */
   RobotState                          *robot_state_;
   
   const robot_model::LinkModel        *link_model_;
   
-  const JointState                    *parent_joint_state_;
+  JointState                          *parent_joint_state_;
   
-  const LinkState                     *parent_link_state_;
+  LinkState                           *parent_link_state_;
   
   std::map<std::string, AttachedBody*> attached_body_map_;
   

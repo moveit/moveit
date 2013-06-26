@@ -48,11 +48,7 @@ robot_state::JointStateGroup::JointStateGroup(RobotState *state,
   const std::vector<const robot_model::JointModel*>& joint_model_vector = jmg->getJointModels();
   for (std::size_t i = 0; i < joint_model_vector.size() ; ++i)
   {
-    if (!kinematic_state_->hasJointState(joint_model_vector[i]->getName()))
-    {
-      logError("No joint state for group joint name '%s'", joint_model_vector[i]->getName().c_str());
-      continue;
-    }
+    assert(kinematic_state_->hasJointState(joint_model_vector[i]->getName()));
     JointState* js = kinematic_state_->getJointState(joint_model_vector[i]->getName());
     joint_state_vector_.push_back(js);
     joint_state_map_[joint_model_vector[i]->getName()] = js;
@@ -60,11 +56,7 @@ robot_state::JointStateGroup::JointStateGroup(RobotState *state,
   const std::vector<const robot_model::LinkModel*>& link_model_vector = jmg->getUpdatedLinkModels();
   for (unsigned int i = 0; i < link_model_vector.size(); i++)
   {
-    if (!kinematic_state_->hasLinkState(link_model_vector[i]->getName()))
-    {
-      logError("No link state for link joint name '%s'", link_model_vector[i]->getName().c_str());
-      continue;
-    }
+    assert(kinematic_state_->hasLinkState(link_model_vector[i]->getName()));
     LinkState* ls = kinematic_state_->getLinkState(link_model_vector[i]->getName());
     updated_links_.push_back(ls);
   }
@@ -92,14 +84,6 @@ random_numbers::RandomNumberGenerator& robot_state::JointStateGroup::getRandomNu
 bool robot_state::JointStateGroup::hasJointState(const std::string &joint) const
 {
   return joint_state_map_.find(joint) != joint_state_map_.end();
-}
-
-bool robot_state::JointStateGroup::updatesLinkState(const std::string& link) const
-{
-  for (std::size_t i = 0 ; i < updated_links_.size() ; ++i)
-    if (updated_links_[i]->getName() == link)
-      return true;
-  return false;
 }
 
 bool robot_state::JointStateGroup::setVariableValues(const std::vector<double> &joint_state_values)

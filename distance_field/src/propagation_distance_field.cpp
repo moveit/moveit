@@ -254,7 +254,7 @@ void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vec
 
   for(unsigned int i = 0; i < voxel_points.size(); i++) {
     PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
-    Eigen::Vector3i loc = voxel_points[i];
+    const Eigen::Vector3i &loc = voxel_points[i];
     voxel.distance_square_ = 0;
     voxel.closest_point_ = loc;
     voxel.update_direction_ = initial_update_direction;
@@ -293,19 +293,23 @@ void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vec
           //our closest non-obstacle cell has become an obstacle
           if( closest_point_voxel.negative_distance_square_ != 0 )
           {
+            // find all neigbors inside pre-existing obstacles whose
+            // closest_negative_point_ is now an obstacle.  These must all be
+            // set to max_distance_sq_ so they will be re-propogated with a new
+            // closest_negative_point_ that is outside the obstacle.
             if( nvoxel.negative_distance_square_!=max_distance_sq_)
             {
               nvoxel.negative_distance_square_ = max_distance_sq_;
               nvoxel.closest_negative_point_.x() = PropDistanceFieldVoxel::UNINITIALIZED;
               nvoxel.closest_negative_point_.y() = PropDistanceFieldVoxel::UNINITIALIZED;
               nvoxel.closest_negative_point_.z() = PropDistanceFieldVoxel::UNINITIALIZED;
-              nvoxel.update_direction_ = initial_update_direction;
               negative_stack.push_back(nloc);
             }
           }
           else
           {
             //this cell still has a valid non-obstacle cell, so we need to propogate from it
+            nvoxel.negative_update_direction_ = initial_update_direction;
             negative_bucket_queue_[0].push_back(nloc);
           }
         }
@@ -341,7 +345,7 @@ void PropagationDistanceField::removeObstacleVoxels(const std::vector<Eigen::Vec
     PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
     voxel.distance_square_ = max_distance_sq_;
     voxel.closest_point_ = voxel_points[i];
-    voxel.update_direction_ = initial_update_direction;
+    voxel.update_direction_ = initial_update_direction; // not needed?
     stack.push_back(voxel_points[i]);
     if(propagate_negative_) {
       voxel.negative_distance_square_ = 0.0;
@@ -378,12 +382,13 @@ void PropagationDistanceField::removeObstacleVoxels(const std::vector<Eigen::Vec
           {
             nvoxel.distance_square_ = max_distance_sq_;
             nvoxel.closest_point_ = nloc;
-            nvoxel.update_direction_ = initial_update_direction;
+            nvoxel.update_direction_ = initial_update_direction;  // not needed?
             stack.push_back(nloc);
           }
         }
         else
         {       // add to queue so we can propagate the values
+          nvoxel.update_direction_ = initial_update_direction;
           bucket_queue_[0].push_back(nloc);
         }
       }
@@ -403,9 +408,10 @@ void PropagationDistanceField::propagatePositive()
   for (unsigned int i=0; i<bucket_queue_.size(); ++i)
   {
     std::vector<Eigen::Vector3i>::iterator list_it = bucket_queue_[i].begin();
-    while(list_it!=bucket_queue_[i].end())
+    std::vector<Eigen::Vector3i>::iterator list_end = bucket_queue_[i].end();
+    for ( ; list_it != list_end ; ++list_it)
     {
-      Eigen::Vector3i loc = *list_it;
+      const Eigen::Vector3i& loc = *list_it;
       PropDistanceFieldVoxel* vptr = &voxel_grid_->getCell(loc.x(), loc.y(), loc.z());
 
       // select the neighborhood list based on the update direction:
@@ -413,11 +419,11 @@ void PropagationDistanceField::propagatePositive()
       int D = i;
       if (D>1)
         D=1;
-      // avoid a possible segfault situation:
+
+      // This will never happen.  update_direction_ is always set before voxel is added to bucket queue.
       if (vptr->update_direction_<0 || vptr->update_direction_>26)
       {
-        //     ROS_WARN("Invalid update direction detected: %d", vptr->update_direction_);
-        ++list_it;
+        logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
         continue;
       }
 
@@ -436,6 +442,8 @@ void PropagationDistanceField::propagatePositive()
         int new_distance_sq = eucDistSq(vptr->closest_point_, nloc);
         if (new_distance_sq > max_distance_sq_)
           continue;
+
+
         if (new_distance_sq < neighbor->distance_square_)
         {
           // update the neighboring voxel
@@ -447,8 +455,6 @@ void PropagationDistanceField::propagatePositive()
           bucket_queue_[new_distance_sq].push_back(nloc);
         }
       }
-
-      ++list_it;
     }
     bucket_queue_[i].clear();
   }
@@ -460,11 +466,11 @@ void PropagationDistanceField::propagateNegative()
   // now process the queue:
   for (unsigned int i=0; i<negative_bucket_queue_.size(); ++i)
   {
-
     std::vector<Eigen::Vector3i>::iterator list_it = negative_bucket_queue_[i].begin();
-    while(list_it!=negative_bucket_queue_[i].end())
+    std::vector<Eigen::Vector3i>::iterator list_end = negative_bucket_queue_[i].end();
+    for ( ; list_it != list_end ; ++list_it)
     {
-      Eigen::Vector3i loc = *list_it;
+      const Eigen::Vector3i& loc = *list_it;
       PropDistanceFieldVoxel* vptr = &voxel_grid_->getCell(loc.x(), loc.y(), loc.z());
 
       // select the neighborhood list based on the update direction:
@@ -472,11 +478,11 @@ void PropagationDistanceField::propagateNegative()
       int D = i;
       if (D>1)
         D=1;
-      // avoid a possible segfault situation:
+
+      // This will never happen.  negative_update_direction_ is always set before voxel is added to negative_bucket_queue_.
       if (vptr->negative_update_direction_<0 || vptr->negative_update_direction_>26)
       {
-        //     ROS_WARN("Invalid update direction detected: %d", vptr->update_direction_);
-        ++list_it;
+        logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
         continue;
       }
 
@@ -508,8 +514,6 @@ void PropagationDistanceField::propagateNegative()
           negative_bucket_queue_[new_distance_sq].push_back(nloc);
         }
       }
-
-      ++list_it;
     }
     negative_bucket_queue_[i].clear();
   }

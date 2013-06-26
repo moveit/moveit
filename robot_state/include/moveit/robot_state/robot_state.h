@@ -103,7 +103,7 @@ public:
   void updateLinkTransforms();
   
   /** \brief Update the state after setting a particular link to the input global transform pose.*/
-  bool updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform);
+  bool updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool backward = false);
   
   /** \brief Get the kinematic model corresponding to this state.*/
   const robot_model::RobotModelConstPtr& getRobotModel() const

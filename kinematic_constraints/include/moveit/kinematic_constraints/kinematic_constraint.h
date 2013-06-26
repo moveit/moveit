@@ -39,7 +39,7 @@
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_state/transforms.h>
+#include <moveit/transforms/transforms.h>
 #include <moveit/collision_detection/collision_world.h>
 
 #include <geometric_shapes/bodies.h>
@@ -87,9 +87,8 @@ public:
    * \brief Constructor
    * 
    * @param [in] model The kinematic model used for constraint evaluation
-   * @param [in] tf The transform set used for constraint evaluation
    */
-  KinematicConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf);
+  KinematicConstraint(const robot_model::RobotModelConstPtr &model);
   virtual ~KinematicConstraint();
   
   /** \brief Clear the stored constraint */
@@ -164,25 +163,14 @@ public:
    */
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return kmodel_;
-  }
-  /** 
-   * 
-   * 
-   * 
-   * @return The transforms associated with this constraint
-   */
-  const robot_state::TransformsConstPtr& getTransforms() const
-  {
-    return tf_;
+    return robot_model_;
   }
   
 protected:
   
-  ConstraintType                          type_; /**< \brief The type of the constraint */
-  robot_model::RobotModelConstPtr kmodel_; /**< \brief The kinematic model associated with this constraint */
-  robot_state::TransformsConstPtr     tf_; /**< \brief The transforms associated with the constraint */
-  double                                  constraint_weight_; /**< \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function  */
+  ConstraintType                  type_; /**< \brief The type of the constraint */
+  robot_model::RobotModelConstPtr robot_model_; /**< \brief The kinematic model associated with this constraint */
+  double                          constraint_weight_; /**< \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function  */
 };
 
 typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr; /**< \brief boost::shared_ptr to a Kinematic Constraint */
@@ -214,10 +202,9 @@ public:
    * \brief Constructor
    * 
    * @param [in] model The kinematic model used for constraint evaluation
-   * @param [in] tf The transform set used for constraint evaluation
    */
-  JointConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
-    KinematicConstraint(model, tf), joint_model_(NULL)
+  JointConstraint(const robot_model::RobotModelConstPtr &model) :
+    KinematicConstraint(model), joint_model_(NULL)
   {
     type_ = JOINT_CONSTRAINT;
   }
@@ -355,10 +342,9 @@ public:
    * \brief Constructor
    * 
    * @param [in] model The kinematic model used for constraint evaluation
-   * @param [in] tf The transform set used for constraint evaluation
    */
-  OrientationConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
-    KinematicConstraint(model, tf), link_model_(NULL)
+  OrientationConstraint(const robot_model::RobotModelConstPtr &model) :
+    KinematicConstraint(model), link_model_(NULL)
   {
     type_ = ORIENTATION_CONSTRAINT;
   }
@@ -376,7 +362,7 @@ public:
    * 
    * @return True if constraint can be configured from oc
    */  
-  bool configure(const moveit_msgs::OrientationConstraint &oc);
+  bool configure(const moveit_msgs::OrientationConstraint &oc, const robot_state::Transforms &tf);
 
   /** 
    * \brief Check if two orientation constraints are the same.  
@@ -479,11 +465,11 @@ public:
 protected:
   
   const robot_model::LinkModel *link_model_; /**< \brief The target link model */
-  Eigen::Matrix3d                                   desired_rotation_matrix_; /**< \brief The desired rotation matrix in the tf frame */
-  Eigen::Matrix3d                                   desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for efficiency */
-  std::string                                       desired_rotation_frame_id_; /**< \brief The target frame of the transform tree */
-  bool                                              mobile_frame_; /**< \brief Whether or not the header frame is mobile or fixed */
-  double                                            absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
+  Eigen::Matrix3d               desired_rotation_matrix_; /**< \brief The desired rotation matrix in the tf frame */
+  Eigen::Matrix3d               desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for efficiency */
+  std::string                   desired_rotation_frame_id_; /**< \brief The target frame of the transform tree */
+  bool                          mobile_frame_; /**< \brief Whether or not the header frame is mobile or fixed */
+  double                        absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
 };
 
 
@@ -511,10 +497,9 @@ public:
    * \brief Constructor
    * 
    * @param [in] model The kinematic model used for constraint evaluation
-   * @param [in] tf The transform set used for constraint evaluation
    */
-  PositionConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
-    KinematicConstraint(model, tf), link_model_(NULL)
+  PositionConstraint(const robot_model::RobotModelConstPtr &model) :
+    KinematicConstraint(model), link_model_(NULL)
   {
     type_ = POSITION_CONSTRAINT;
   }
@@ -535,7 +520,7 @@ public:
    * 
    * @return True if constraint can be configured from pc
    */  
-  bool configure(const moveit_msgs::PositionConstraint &pc);
+  bool configure(const moveit_msgs::PositionConstraint &pc, const robot_state::Transforms &tf);
 
   /** 
    * \brief Check if two constraints are the same.  For position
@@ -754,9 +739,8 @@ public:
    * \brief Constructor
    * 
    * @param [in] model The kinematic model used for constraint evaluation
-   * @param [in] tf The transform set used for constraint evaluation
    */
-  VisibilityConstraint(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf);
+  VisibilityConstraint(const robot_model::RobotModelConstPtr &model);
 
   /** 
    * \brief Configure the constraint based on a
@@ -770,7 +754,7 @@ public:
    * 
    * @return True if constraint can be configured from vc
    */  
-  bool configure(const moveit_msgs::VisibilityConstraint &vc);
+  bool configure(const moveit_msgs::VisibilityConstraint &vc, const robot_state::Transforms &tf);
 
   /** 
    * \brief Check if two constraints are the same.  
@@ -865,10 +849,9 @@ public:
    * \brief Constructor
    * 
    * @param [in] model The kinematic model used for constraint evaluation
-   * @param [in] tf The transform set used for constraint evaluation
    */
-  KinematicConstraintSet(const robot_model::RobotModelConstPtr &model, const robot_state::TransformsConstPtr &tf) :
-    kmodel_(model), tf_(tf)
+  KinematicConstraintSet(const robot_model::RobotModelConstPtr &model) :
+    robot_model_(model)
   {
   }
   
@@ -890,7 +873,7 @@ public:
    * KinematicConstraintSet can still be used even if the addition
    * returns false.
    */  
-  bool add(const moveit_msgs::Constraints &c);
+  bool add(const moveit_msgs::Constraints &c, const robot_state::Transforms &tf);
   
   /** 
    * \brief Add a vector of joint constraints
@@ -908,7 +891,7 @@ public:
    * 
    * @return Will return true only if all constraints are valid, and false otherwise
    */
-  bool add(const std::vector<moveit_msgs::PositionConstraint> &pc);
+  bool add(const std::vector<moveit_msgs::PositionConstraint> &pc, const robot_state::Transforms &tf);
   
   /** 
    * \brief Add a vector of orientation constraints
@@ -917,7 +900,7 @@ public:
    * 
    * @return Will return true only if all constraints are valid, and false otherwise
    */
-  bool add(const std::vector<moveit_msgs::OrientationConstraint> &oc);
+  bool add(const std::vector<moveit_msgs::OrientationConstraint> &oc, const robot_state::Transforms &tf);
   
   /** 
    * \brief Add a vector of visibility constraints
@@ -926,7 +909,7 @@ public:
    * 
    * @return Will return true only if all constraints are valid, and false otherwise
    */
-  bool add(const std::vector<moveit_msgs::VisibilityConstraint> &vc);
+  bool add(const std::vector<moveit_msgs::VisibilityConstraint> &vc, const robot_state::Transforms &tf);
   
   /** 
    * \brief Determines whether all constraints are satisfied by state,
@@ -1053,9 +1036,7 @@ public:
   
 protected:
   
-  robot_model::RobotModelConstPtr         kmodel_; /**< \brief The kinematic model used for by the Set */
-  robot_state::TransformsConstPtr             tf_; /**< \brief The transforms used by the Set */
-  
+  robot_model::RobotModelConstPtr                 robot_model_; /**< \brief The kinematic model used for by the Set */
   std::vector<KinematicConstraintPtr>             kinematic_constraints_; /**<  \brief Shared pointers to all the member constraints */
   
   std::vector<moveit_msgs::JointConstraint>       joint_constraints_; /**<  \brief Messages corresponding to all internal joint constraints */
