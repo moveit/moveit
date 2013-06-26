@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.5 (2013-06-26)
+------------------
 * add computeBackwardTransform()
 * bugfixes for voxel_grid, distance_field
 * slight improvements to profiler
