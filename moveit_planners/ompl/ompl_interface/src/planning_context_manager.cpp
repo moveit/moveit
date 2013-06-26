@@ -59,8 +59,6 @@
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
 
-//typedef std::map<std::string, ompl_interface::PlanningConfigurationSettings> PlanningConfigurationMap; // TODO: remove this!
-
 namespace ompl_interface
 {
 class PlanningContextManager::LastPlanningContext
