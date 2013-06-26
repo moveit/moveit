@@ -166,7 +166,7 @@ void ompl_interface::ModelBasedPlanningContext::configure()
   spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
   ompl_simple_setup_.setStartState(ompl_start_state);
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
-
+  
   if (path_constraints_ && spec_.constraints_library_)
   {
     const ConstraintApproximationPtr &ca = spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
@@ -329,8 +329,8 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
 								   moveit_msgs::MoveItErrorCodes *error)
 {
   // ******************* set the path constraints to use
-  path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getRobotModel(), getPlanningScene()->getTransforms()));
-  path_constraints_->add(path_constraints);
+  path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getRobotModel()));
+  path_constraints_->add(path_constraints, getPlanningScene()->getTransforms());
   path_constraints_msg_ = path_constraints;
   
   return true;
@@ -346,8 +346,8 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
   {
     moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
-    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getRobotModel(), getPlanningScene()->getTransforms()));
-    kset->add(constr);
+    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getRobotModel()));
+    kset->add(constr, getPlanningScene()->getTransforms());
     if (!kset->empty())
       goal_constraints_.push_back(kset);
   }
