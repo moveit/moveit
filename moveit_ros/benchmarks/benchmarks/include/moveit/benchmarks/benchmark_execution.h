@@ -125,15 +125,15 @@ private:
   };
 
   /// Allows for parameter sweeping of the planner configuration
-  struct FactorOptions
+  struct ParameterOptions
   {
     std::string key;
     std::string log_key;
 
     // Parameters for sweeping
-    bool isSweep;
+    bool is_sweep;
     double start;
-    double iterator;
+    double step_size;
     double end;
 
     // Parameters for fractional factorial analysis (design of experience)
@@ -142,7 +142,7 @@ private:
   };
 
   /// Contains the parameter combination for one test
-  typedef std::map<std::string,double> FactorInstance;
+  typedef std::map<std::string,double> ParameterInstance;
 
   void collectMetrics(std::map<std::string, std::string> &rundata,
                       const planning_interface::MotionPlanDetailedResponse &mp_res,
@@ -152,35 +152,33 @@ private:
    * @brief Called within the benchmarking solve loop to allow parameters to be swept/tested
    * @param planner - pointer to the current planner we are about to use
    * @param planner_id - name of planner we are about to use
-   * @param factor_combinations_id_ - keeps track of what parameter combo we are currently iterating on
+   * @param param_combinations_id_ - keeps track of what parameter combo we are currently iterating on
    * @param parameter_data - used for outputting log information to file (results)
    */
   void modifyPlannerConfiguration(planning_interface::Planner* planner,
                                   const std::string& planner_id,
-                                  std::size_t factor_combinations_id_,
+                                  std::size_t param_combinations_id_,
                                   RunData &parameter_data);
 
   /**
-   * @brief Populates the factor_combinations_ vector with fractional factorial combination
+   * @brief Populates the param_combinations_ vector with all combinations of desired parameters to be tested
    * @return number of combinations to be tested
    */
-  std::size_t generateFactorCombinationsHack();
+  std::size_t generateParamCombinations();
 
   /**
-   * @brief Populates the factor_combinations_ vector with all combinations of desird factors to be tested
-   * @return number of combinations to be tested
+   * @brief Recursively generates all the combinations of parameters to be tested
+   * @param options_id - where in the recursive loop we are, id is with respect to the n*n*n*... number of tests we are to generate
+   * @param param_instance - holds the generated parameter combinations, the result
    */
-  std::size_t generateFactorCombinations();
-
-  /// Recursively generates all the combinations of parameters to be tested
-  void recursiveFactorCombinations(int options_id, FactorInstance factor_instance);
+  void recursiveParamCombinations(int options_id, ParameterInstance param_instance);
 
   /// Output to console the settings
   void printConfigurationSettings(const std::map<std::string,planning_interface::PlanningConfigurationSettings> &settings);
 
   BenchmarkOptions options_;
-  std::vector<FactorOptions> factor_options_;
-  std::vector<FactorInstance> factor_combinations_;
+  std::vector<ParameterOptions> param_options_;
+  std::vector<ParameterInstance> param_combinations_;
 
   std::vector<std::string> available_plugins_;
   planning_scene::PlanningScenePtr planning_scene_;

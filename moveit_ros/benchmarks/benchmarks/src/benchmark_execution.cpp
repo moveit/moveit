@@ -685,7 +685,6 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       else if (key.substr(0, 6) == "sweep.")
       {
         std::string sweep_var = key.substr(6);
-        ROS_ERROR_STREAM_NAMED("temp","SWEEP key="<<sweep_var<<" val="<<val);
 
         // Convert the string of a:b:c numbers into parsed doubles
         std::vector<std::string> strings;
@@ -697,12 +696,12 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
           continue;
         }
 
-        FactorOptions new_sweep;
-        new_sweep.isSweep = true; // not a fractional factorial analaysis
+        ParameterOptions new_sweep;
+        new_sweep.is_sweep = true; // not a fractional factorial analaysis
         try
         {
           new_sweep.start = boost::lexical_cast<double>(strings[0]);
-          new_sweep.iterator = boost::lexical_cast<double>(strings[1]);
+          new_sweep.step_size = boost::lexical_cast<double>(strings[1]);
           new_sweep.end = boost::lexical_cast<double>(strings[2]);
           new_sweep.key = sweep_var;
           // for logging to file:
@@ -723,9 +722,8 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
         }
 
         // Insert into array of all sweeps
-        factor_options_.push_back(new_sweep);
+        param_options_.push_back(new_sweep);
 
-        //ROS_ERROR_STREAM_NAMED("temp","SWEEP start " << new_sweep.start << " it " << new_sweep.iterator << " end " << new_sweep.end);
       }
       else
       {
@@ -1016,8 +1014,8 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   else
     planning_scene_->usePlanningSceneMsg(req.scene);
 
-  // parameter factoring functionality
-  std::size_t n_parameter_sets = generateFactorCombinations(); // this is for parameter sweeping
+  // parameter sweeping functionality
+  std::size_t n_parameter_sets = generateParamCombinations(); // this is for parameter sweeping
 
   // get stats on how many planners and total runs will be executed
   std::size_t total_n_planners = 0;
@@ -1026,7 +1024,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   {
     total_n_planners += planner_ids_to_benchmark_per_planner_interface[i].size();
 
-    // n = algorithms * runs * parameter_factors
+    // n = algorithms * runs * parameters
     total_n_runs += planner_ids_to_benchmark_per_planner_interface[i].size() *
       runs_per_planner_interface[i] * n_parameter_sets;
   }
@@ -1046,10 +1044,10 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       mp_req.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
       AlgorithmRunsData runs(runs_per_planner_interface[i]*n_parameter_sets);
 
-      // factor tracking
-      std::size_t factor_combinations_id_ = 0;
+      // param tracking
+      std::size_t param_combinations_id_ = 0;
 
-      // loop through the desired parameter factors
+      // loop through the desired parameters
       for (std::size_t param_count = 0; param_count < n_parameter_sets; ++param_count)
       {
         // Check if ROS is still alive
@@ -1059,11 +1057,11 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
         // Create new instance of the chosen parameters
         RunData parameter_data;
 
-        // apply the current parameter factor, if we are using those
+        // apply the current parameter, if we are using those
         if( n_parameter_sets > 1 )
         {
-          modifyPlannerConfiguration(planner_interfaces_to_benchmark[i], mp_req.planner_id, factor_combinations_id_, parameter_data);
-          ++factor_combinations_id_;
+          modifyPlannerConfiguration(planner_interfaces_to_benchmark[i], mp_req.planner_id, param_combinations_id_, parameter_data);
+          ++param_combinations_id_;
         }
 
         // loop through the desired number of runs
@@ -1074,7 +1072,6 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
           ++progress; // this outputs asterisks
 
-          //ROS_ERROR_STREAM_NAMED("temp","Request:\n" << mp_req);
 
           // run a single benchmark
           ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
@@ -1099,7 +1096,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
           }
         }
       }
-      // this vector of runs represents all the runs*parameter factors
+      // this vector of runs represents all the runs*parameters
       data.push_back(runs);
 
     } // end j - planning algoritms
@@ -1127,8 +1124,6 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     // loop through the planning *algorithms* times the # parameter combinations
     for (std::size_t p = 0 ; p < planner_ids_to_benchmark_per_planner_interface[q].size(); ++p)
     {
-      //ROS_DEBUG_STREAM_NAMED("temp","q="<<q<<" p="<<p<<" run_id="<<run_id);
-
       // Output name of planning algorithm
       out << planner_interfaces_to_benchmark[q]->getDescription() + "_" + planner_ids_to_benchmark_per_planner_interface[q][p] << std::endl;
 
@@ -1140,10 +1135,6 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       std::set<std::string> properties_set;
       for (std::size_t j = 0 ; j < data[run_id].size() ; ++j)
       {
-
-        //ROS_DEBUG_STREAM_NAMED("","j  =" << j);
-        //ROS_DEBUG_STREAM_NAMED("","size = " << data.size() << " size[run_id] " << data[run_id].size());
-        //ROS_DEBUG_STREAM_NAMED("temp","total n parameters " << n_parameter_sets);
 
         for (RunData::const_iterator mit = data[run_id][j].begin() ; mit != data[run_id][j].end() ; ++mit)
         {
@@ -1334,7 +1325,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
 
 void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_interface::Planner* planner,
                                                                        const std::string& planner_id,
-                                                                       std::size_t factor_combinations_id_,
+                                                                       std::size_t param_combinations_id_,
                                                                        RunData &parameter_data)
 {
   // Get the planner's current settings
@@ -1344,14 +1335,14 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
   std::map<std::string, planning_interface::PlanningConfigurationSettings>::iterator settings_it = settings.find(planner_id);
   if(settings_it != settings.end())
   {
-    // key exists, loop through all values in this factor instance
+    // key exists, loop through all values in this param instance
     std::string str_parameter_value;
-    for (std::size_t i = 0; i < factor_options_.size(); ++i)
+    for (std::size_t i = 0; i < param_options_.size(); ++i)
     {
       // convert from double to string
       try
       {
-        const double& value = factor_combinations_[factor_combinations_id_][factor_options_[i].key];
+        const double& value = param_combinations_[param_combinations_id_][param_options_[i].key];
         str_parameter_value = boost::lexical_cast<std::string>(value);
       }
       catch(boost::bad_lexical_cast &ex)
@@ -1360,13 +1351,11 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
       }
 
       // record parameter values for logging
-      parameter_data[factor_options_[i].log_key] = str_parameter_value;
+      parameter_data[param_options_[i].log_key] = str_parameter_value;
 
       // record parameter to planner config
-      settings_it->second.config[factor_options_[i].key] = str_parameter_value;
+      settings_it->second.config[param_options_[i].key] = str_parameter_value;
 
-      // debug
-      ROS_ERROR_STREAM_NAMED("temp","Parameter " << factor_options_[i].key << " now has value " << str_parameter_value);
     }
   }
   else // settings for this planner_id does not already exist
@@ -1386,58 +1375,59 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
   planner->setPlanningConfigurations(settings);
 }
 
-std::size_t moveit_benchmarks::BenchmarkExecution::generateFactorCombinations()
+std::size_t moveit_benchmarks::BenchmarkExecution::generateParamCombinations()
 {
-  if (!factor_options_.size())
-    return 1; // by default there are no factor parameters, so the factor loop runs once
+  if (!param_options_.size())
+    return 1; // by default there are no parameters, so the param loop runs once
 
-  // Create initial factor instance of all min values for the parameters
-  FactorInstance factor_instance;
-  for (std::size_t i = 0; i < factor_options_.size(); ++i)
+  // Create initial param instance of all min values for the parameters
+  ParameterInstance param_instance;
+  for (std::size_t i = 0; i < param_options_.size(); ++i)
   {
     // start = min value
-    factor_instance[ factor_options_[i].key ] = factor_options_[i].start;
+    param_instance[ param_options_[i].key ] = param_options_[i].start;
   }
 
-  // call recusive function for every factor option available
+  // call recusive function for every param option available
   int initial_options_id = 0;
-  recursiveFactorCombinations(initial_options_id, factor_instance);
+  recursiveParamCombinations(initial_options_id, param_instance);
 
   // DEBUG
-  for (std::size_t i = 0; i < factor_combinations_.size(); ++i)
+  /*
+  for (std::size_t i = 0; i < param_combinations_.size(); ++i)
   {
-    ROS_WARN_STREAM_NAMED("temp","Factor instance:");
     // Debug map
-    for(std::map<std::string,double>::const_iterator it = factor_combinations_[i].begin(); it != factor_combinations_[i].end(); ++it)
+    for(std::map<std::string,double>::const_iterator it = param_combinations_[i].begin(); it != param_combinations_[i].end(); ++it)
       std::cout << "  - " << it->first << " => " << it->second << std::endl;
   }
+  */
 
   // Total number of parameters
-  return factor_combinations_.size();
+  return param_combinations_.size();
 }
 
-void moveit_benchmarks::BenchmarkExecution::recursiveFactorCombinations(int options_id, FactorInstance factor_instance)
+void moveit_benchmarks::BenchmarkExecution::recursiveParamCombinations(int options_id, ParameterInstance param_instance)
 {
-  // Get a pointer to current factoring parameter
-  const FactorOptions& factor_option = factor_options_[options_id];
+  // Get a pointer to current parameter
+  const ParameterOptions& param_option = param_options_[options_id];
 
   do
   {
-    // Call the next factor parameter if one exists
-    if( factor_options_.size() > options_id + 1 )
+    // Call the next parameter if one exists
+    if( param_options_.size() > options_id + 1 )
     {
-      recursiveFactorCombinations(options_id + 1, factor_instance);
+      recursiveParamCombinations(options_id + 1, param_instance);
     }
-    else // we are the end of the recursive call, so we can add this factor_instance to the vector
+    else // we are the end of the recursive call, so we can add this param_instance to the vector
     {
-      factor_combinations_.push_back(factor_instance);
+      param_combinations_.push_back(param_instance);
     }
 
     // Increment this value
-    factor_instance[factor_option.key] += factor_option.iterator;
+    param_instance[param_option.key] += param_option.step_size;
 
     // Continue adding iteration amount until value equals end
-  } while( factor_instance[factor_option.key] <= factor_option.end + 0.00001 ); // rounding issues fudge factor
+  } while( param_instance[param_option.key] <= param_option.end + 0.00001 ); // rounding issues fudge parameter
 
   return;
 }

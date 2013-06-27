@@ -34,7 +34,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Mark Moll, Ioan Sucan
+# Author: Mark Moll, Ioan Sucan, Dave Coleman
 
 from sys import argv, exit
 import os
