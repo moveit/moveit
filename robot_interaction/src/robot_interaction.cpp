@@ -31,6 +31,7 @@
 
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
+#include <moveit/transforms/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -338,7 +339,7 @@ void RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::
   else
     return;
   
-  if (!vj.parent_frame.empty() && vj.parent_frame != planning_frame_)
+  if (!vj.parent_frame.empty() && !robot_state::Transforms::sameFrame(vj.parent_frame, planning_frame_))
   { 
     robot_state::RobotStatePtr state = getUniqueStateAccess();
     const robot_state::LinkState *ls = state->getLinkState(vj.parent_frame);
