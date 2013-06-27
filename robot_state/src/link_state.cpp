@@ -74,7 +74,7 @@ void robot_state::LinkState::computeTransformForward(const LinkState *parent_lin
 
 void robot_state::LinkState::computeTransformBackward(const LinkState *child_link)
 {
-  global_link_transform_ = child_link->global_link_transform_ * (link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform()).inverse();
+  global_link_transform_ = child_link->global_link_transform_ * (child_link->link_model_->getJointOriginTransform() * child_link->parent_joint_state_->getVariableTransform()).inverse();
   if (parent_link_state_)
     parent_link_state_->computeTransformBackward(this);
 
