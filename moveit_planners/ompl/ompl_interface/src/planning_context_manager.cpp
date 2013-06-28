@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2012, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2012, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -64,13 +64,13 @@ namespace ompl_interface
 class PlanningContextManager::LastPlanningContext
 {
 public:
-  
+
   ModelBasedPlanningContextPtr getContext()
   {
     boost::mutex::scoped_lock slock(lock_);
     return last_planning_context_solve_;
   }
-  
+
   void setContext(const ModelBasedPlanningContextPtr &context)
   {
     boost::mutex::scoped_lock slock(lock_);
@@ -78,25 +78,25 @@ public:
   }
 
   void clear()
-  {    
+  {
     boost::mutex::scoped_lock slock(lock_);
     last_planning_context_solve_.reset();
   }
-  
+
 private:
   /* The planning group for which solve() was called last */
   ModelBasedPlanningContextPtr last_planning_context_solve_;
-  boost::mutex                 lock_;  
+  boost::mutex                 lock_;
 };
 
 struct PlanningContextManager::CachedContexts
 {
   std::map<std::pair<std::string, std::string>,
            std::vector<ModelBasedPlanningContextPtr> > contexts_;
-  boost::mutex                                         lock_;
+boost::mutex                                         lock_;
 };
 
-}
+} // namespace ompl_interface
 
 ompl_interface::PlanningContextManager::PlanningContextManager(const robot_model::RobotModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
   kmodel_(kmodel), constraint_sampler_manager_(csm),
@@ -121,12 +121,12 @@ inline void auxPlannerConfig(const ob::PlannerPtr &planner, const ModelBasedPlan
 {
 }
 /*
-template<>
-inline void auxPlannerConfig<og::msRRTConnect>(const ob::PlannerPtr &planner, const ModelBasedPlanningContextSpecification &spec)
-{
+  template<>
+  inline void auxPlannerConfig<og::msRRTConnect>(const ob::PlannerPtr &planner, const ModelBasedPlanningContextSpecification &spec)
+  {
   for (std::size_t i = 0 ; i < spec.subspaces_.size() ; ++i)
-    planner->as<og::msRRTConnect>()->addExplorationSubspace(spec.subspaces_[i]);
-}
+  planner->as<og::msRRTConnect>()->addExplorationSubspace(spec.subspaces_[i]);
+  }
 */
 template<typename T>
 static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si, const std::string &new_name, const ModelBasedPlanningContextSpecification &spec)
@@ -134,13 +134,13 @@ static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si,
   ompl::base::PlannerPtr planner(new T(si));
   if (!new_name.empty())
     planner->setName(new_name);
-  planner->params().setParams(spec.config_, true);  
+  planner->params().setParams(spec.config_, true);
   auxPlannerConfig<T>(planner, spec);
   planner->setup();
   return planner;
 }
 
-}
+} // namespace ompl_interface
 
 ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManager::plannerSelector(const std::string &planner) const
 {
@@ -153,14 +153,14 @@ ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManage
     return ConfiguredPlannerAllocator();
   }
 }
-  
+
 
 void ompl_interface::PlanningContextManager::registerDefaultPlanners()
 {
   registerPlannerAllocator("geometric::RRT", boost::bind(&allocatePlanner<og::RRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::RRTConnect", boost::bind(&allocatePlanner<og::RRTConnect>, _1, _2, _3));
   //  registerPlannerAllocator("geometric::msRRTConnect", boost::bind(&allocatePlanner<og::msRRTConnect>, _1, _2, _3));
-  registerPlannerAllocator("geometric::LazyRRT", boost::bind(&allocatePlanner<og::LazyRRT>, _1, _2, _3)); 
+  registerPlannerAllocator("geometric::LazyRRT", boost::bind(&allocatePlanner<og::LazyRRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::TRRT", boost::bind(&allocatePlanner<og::TRRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::EST", boost::bind(&allocatePlanner<og::EST>, _1, _2, _3));
   registerPlannerAllocator("geometric::SBL", boost::bind(&allocatePlanner<og::SBL>, _1, _2, _3));
@@ -183,28 +183,32 @@ ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager
   return boost::bind(&PlanningContextManager::plannerSelector, this, _1);
 }
 
-void ompl_interface::PlanningContextManager::setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig)
+void ompl_interface::PlanningContextManager::setPlanningConfigurations(const ompl_interface::PlanningConfigurationMap &pconfig)
 {
   planner_configs_.clear();
-  for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
-    planner_configs_[pconfig[i].name] = pconfig[i];
+  planner_configs_ = pconfig;
 
   // construct default configurations
   const std::map<std::string, robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
   for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
+  {
     if (planner_configs_.find(it->first) == planner_configs_.end())
     {
       PlanningConfigurationSettings empty;
       empty.name = empty.group = it->first;
       planner_configs_[empty.name] = empty;
     }
+  }
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const std::string &config, const std::string& factory_type) const
 {
-  std::map<std::string, PlanningConfigurationSettings>::const_iterator pc = planner_configs_.find(config);
+  ompl_interface::PlanningConfigurationMap::const_iterator pc = planner_configs_.find(config);
+
   if (pc != planner_configs_.end())
+  {
     return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1, factory_type));
+  }
   else
   {
     logError("Planning configuration '%s' was not found", config.c_str());
@@ -216,8 +220,10 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
                                                                                                         const FactoryTypeSelector &factory_selector) const
 {
   const ompl_interface::ModelBasedStateSpaceFactoryPtr &factory = factory_selector(config.group);
-  
+
+  // Check for a cached planning context
   ModelBasedPlanningContextPtr context;
+
   {
     boost::mutex::scoped_lock slock(cached_contexts_->lock_);
     std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
@@ -229,11 +235,16 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
         {
           logDebug("Reusing cached planning context");
           context = cc->second[i];
+
+          // Update the context with our current planner configurations - needed for parameter sweeping
+          context->setSpecificationConfig(config.config);
+
           break;
         }
     }
   }
-  
+
+  // Create a new planning context
   if (!context)
   {
     ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
@@ -260,7 +271,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
         }
       }
     }
-    
+
     logDebug("Creating new planning context");
     context.reset(new ModelBasedPlanningContext(config.name, context_spec));
     {
@@ -278,14 +289,14 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   else
     context->setMaximumSolutionSegmentLength(max_solution_segment_length_);
   context->setMinimumWaypointCount(minimum_waypoint_count_);
-  
+
   last_planning_context_->setContext(context);
-  return context;  
+  return context;
 }
 
 const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string & /* dummy */, const std::string &factory_type) const
 {
-  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f = 
+  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f =
     factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
   if (f != state_space_factories_.end())
     return f->second;
@@ -312,7 +323,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
         prev_priority = priority;
       }
   }
-  
+
   if (best == state_space_factories_.end())
   {
     logError("There are no known state spaces that can represent the given planning problem");
@@ -333,15 +344,16 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     logError("No group specified to plan for");
     return ModelBasedPlanningContextPtr();
   }
-  
+
   // identify the correct planning configuration
-  std::map<std::string, PlanningConfigurationSettings>::const_iterator pc = planner_configs_.end();
+  PlanningConfigurationMap::const_iterator pc = planner_configs_.end();
   if (!req.planner_id.empty())
   {
     pc = planner_configs_.find(req.planner_id.find(req.group_name) == std::string::npos ? req.group_name + "[" + req.planner_id + "]" : req.planner_id);
     if (pc == planner_configs_.end())
-      logWarn("Cannot find planning configuration for group '%s' using planner '%s'. Will use defaults instead.", 
+      logWarn("Cannot find planning configuration for group '%s' using planner '%s'. Will use defaults instead.",
               req.group_name.c_str(), req.planner_id.c_str());
+
   }
   if (pc == planner_configs_.end())
   {
@@ -352,7 +364,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       return ModelBasedPlanningContextPtr();
     }
   }
-  
+
   return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req));
 }
 
