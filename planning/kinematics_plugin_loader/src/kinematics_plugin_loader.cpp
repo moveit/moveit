@@ -231,7 +231,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
         // read the list of plugin names for possible kinematics solvers
         for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
         {
-          ROS_DEBUG("Looking for param %s ", (known_groups[i].name_ + "/kinematics_solver").c_str());
+          ROS_DEBUG(" - Looking for param %s ", (known_groups[i].name_ + "/kinematics_solver").c_str());
           std::string ksolver_param_name;
           if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver", ksolver_param_name))
           {

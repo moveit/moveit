@@ -92,7 +92,7 @@ int main(int argc, char **argv)
         proc++;
       }
     }
-    std::cout << "Processed " << proc << " benchmark configuration files" << std::endl;
+    ROS_INFO_STREAM("Processed " << proc << " benchmark configuration files");
   }
   catch(mongo_ros::DbConnectException &ex)
   {
@@ -100,6 +100,7 @@ int main(int argc, char **argv)
                      << std::endl << ex.what());
   }
   
+  ROS_INFO("Benchmarks complete! Shutting down ROS..."); // because sometimes there are segfaults after this
   ros::shutdown();
   
   return 0;
