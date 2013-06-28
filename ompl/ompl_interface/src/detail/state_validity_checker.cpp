@@ -32,11 +32,12 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Dave Coleman */
 
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
+#include <ros/ros.h>
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
@@ -78,16 +79,63 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 
 double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state) const
 { 
-  robot_state::RobotState *kstate = tss_.getStateStorage();
-  planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
+  bool useCollisionDistanceCost = false; // TODO - set this somewhere else
+  double cost = 0.0;
 
-  collision_detection::CollisionResult res;
-  planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
+  if( useCollisionDistanceCost ) // proximity to collisions cost
+  {
+    robot_state::RobotState *kstate = tss_.getStateStorage();
+    planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
 
-  double c = 0.0;
-  for (std::set<collision_detection::CostSource>::const_iterator it = res.cost_sources.begin() ; it != res.cost_sources.end() ; ++it)
-    c += it->cost * it->getVolume();
-  return c;
+    collision_detection::CollisionResult res;
+    planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
+
+    for (std::set<collision_detection::CostSource>::const_iterator it = res.cost_sources.begin() ; it != res.cost_sources.end() ; ++it)
+      cost += it->cost * it->getVolume();
+  }
+  else // use distance between joints cost
+  {
+    static std::vector<double> prev_joint_values;
+    static bool first_time = true;
+    static boost::thread::id thread_id = boost::this_thread::get_id();
+
+    // Check that we are still on same thread
+    if( thread_id != boost::this_thread::get_id() )
+      ROS_ERROR_STREAM("Multiple threads are not implemented here...");
+
+    // Get current robot state
+    robot_state::RobotState *kstate = tss_.getStateStorage();
+    planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
+ 
+    std::vector<double> new_joint_values;
+
+    // get joint state values
+    kstate->getStateValues(new_joint_values);
+
+    // calculate cost
+    for (std::size_t i = 0; i < new_joint_values.size(); ++i)
+    {
+      double value = 0;
+      // Check if first time
+      if (first_time)
+      {
+        first_time = false;
+        prev_joint_values.resize(new_joint_values.size());
+      }
+      else
+      {
+        // get abs of difference in each joint value
+        value = fabs(prev_joint_values[i] - new_joint_values[i]);
+      }
+
+      cost += value;
+
+      // copy new value to old vector
+      prev_joint_values[i] = new_joint_values[i];
+    }
+  }
+
+  return cost;
 }
 
 double ompl_interface::StateValidityChecker::clearance(const ompl::base::State *state) const
