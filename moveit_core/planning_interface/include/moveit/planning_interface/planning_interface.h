@@ -45,6 +45,21 @@
 namespace planning_interface
 {
 
+/*
+    Policy: Settings with unknown keys are ignored. Settings for unknown groups are ignored   
+*/
+struct PlanningConfigurationSettings
+{
+  // \brief name can  of the form "group_name[config_name]" if there are particular configurations 
+  //        specified for a group, or of the form "group_name" if default settings are to be used.
+  std::string                        name;
+  // \brief group ?
+  std::string                        group;
+  // \brief config key-value pairs of settings
+  std::map<std::string, std::string> config;
+};
+typedef std::map<std::string, PlanningConfigurationSettings> PlanningConfigurationMap;
+
 /** \brief Base class for a MoveIt planner */
 class Planner
 {
@@ -78,6 +93,12 @@ public:
   
   /// Determine whether this plugin instance is able to represent this planning request
   virtual bool canServiceRequest(const MotionPlanRequest &req)  const = 0;
+
+  /// Settings for planners to use for their specific algorithms
+  virtual void setPlanningConfigurations(const PlanningConfigurationMap &pcs) const = 0;
+
+  /// Get settings for planners to use for their specific algorithms, so that they can then be modified
+  virtual const PlanningConfigurationMap getPlanningConfigurations() const = 0;
   
   /// Request termination, if a solve() function is currently computing plans
   virtual void terminate() const = 0;
