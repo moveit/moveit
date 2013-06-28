@@ -38,6 +38,7 @@ add_library(moveit_move_group_capabilities_base
   src/move_group_context.cpp
   src/move_group_capability.cpp
   )
+add_dependencies(moveit_move_group_capabilities_base ${catkin_EXPORTED_TARGETS}) # wait until all *_msgs packages are finished being built
 
 add_executable(move_group src/move_group.cpp)
 

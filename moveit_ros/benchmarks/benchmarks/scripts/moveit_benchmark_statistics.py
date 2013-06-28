@@ -34,10 +34,10 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Mark Moll, Ioan Sucan
+# Author: Mark Moll, Ioan Sucan, Dave Coleman
 
 from sys import argv, exit
-from os.path import basename, splitext
+import os
 import sqlite3
 import datetime
 import matplotlib
@@ -64,12 +64,17 @@ def read_benchmark_log(dbname, filenames):
         expname =  logfile.readline().split()[-1]
         hostname = logfile.readline().split()[-1]
         date = " ".join(logfile.readline().split()[2:])
-        logfile.readline() # skip <<<|
+        goal_name = logfile.readline().split()[-1]
+        
+        # disabled the planning request part
+        #logfile.readline() # skip <<<|
+        #expsetup = ""
+        #expline = logfile.readline()
+        #while not expline.startswith("|>>>"):
+        #    expsetup = expsetup + expline
+        #    expline = logfile.readline()
         expsetup = ""
-        expline = logfile.readline()
-        while not expline.startswith("|>>>"):
-            expsetup = expsetup + expline
-            expline = logfile.readline()
+
         timelimit = float(logfile.readline().split()[0])
         totaltime = float(logfile.readline().split()[0])
 
@@ -107,7 +112,10 @@ def read_benchmark_log(dbname, filenames):
             # load a dictionary of properties and types
             # we keep the names of the properties in a list as well, to ensure the correct order of properties
             properties = {}
-            propNames = ['experimentid', 'plannerid']
+            basePropNames = ['experimentid', 'plannerid', 'goal_name']  # these are the ones not from the planner directly
+            basePropValues = [experiment_id, planner_id, goal_name]
+            propNames = []
+            propNames.extend(basePropNames)
             for j in range(num_properties):
                 field = logfile.readline().split()
                 ftype = field[-1]
@@ -116,7 +124,7 @@ def read_benchmark_log(dbname, filenames):
                 propNames.append(fname)
 
             # create the table, if needed
-            table_columns = "experimentid INTEGER, plannerid INTEGER"
+            table_columns = "experimentid INTEGER, plannerid INTEGER, goal_name VARCHAR(100)"
             for k, v in properties.iteritems():
                 table_columns = table_columns + ', ' + k + ' ' + v
             table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE ON UPDATE CASCADE"
@@ -133,11 +141,11 @@ def read_benchmark_log(dbname, filenames):
                     c.execute('ALTER TABLE `' + planner_table + '` ADD ' + col + ' ' + properties[col] + ';')
 
             # add measurements
-            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 2)) + ')'
+            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + len(basePropNames))) + ')'  
 
             num_runs = int(logfile.readline().split()[0])
             for j in range(num_runs):
-                run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x)
+                run = tuple(basePropValues + [None if len(x)==0 else float(x)
                     for x in logfile.readline().split('; ')[:-1]])
                 c.execute(insert_fmt_str, run)
 
@@ -309,6 +317,86 @@ def save_as_mysql(dbname, mysqldump):
         mysqldump.write(line)
     mysqldump.close()
 
+def generate_csv(dbname, fname):
+    """Create a csv file with all experiments combined into one list."""
+    print("Generating CSV output...")
+    
+    # Open CSV File
+    csv = open(fname, 'w')
+    
+    # Connect to database
+    conn = sqlite3.connect(dbname)
+    cursor = conn.cursor()
+    cursor.execute('PRAGMA FOREIGN_KEYS = ON')
+
+    # Get planner tables
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    table_names = [ str(t[0]) for t in cursor.fetchall() ]
+    planner_names = [ t for t in table_names if t.startswith('planner_') ]
+
+    # Create vectors
+    attributes = []
+    types = {}
+    experiments = []
+
+    # merge possible attributes from all planners
+    for planner_name in planner_names:
+        cursor.execute('SELECT * FROM `%s` LIMIT 1' % planner_name)
+        atr = [ t[0] for t in cursor.description]
+        atr.remove('plannerid')
+        atr.remove('experimentid')
+        for attribute in atr:
+            if attribute not in attributes:
+                cursor.execute('SELECT typeof(`%s`) FROM `%s` WHERE `%s` IS NOT NULL LIMIT 1' % (attribute, planner_name, attribute))
+                attributes.append(attribute) # add this new attribute (first time seen)
+                types[attribute] = cursor.fetchone()[0]
+
+        # Find new exeperiments for this planner table and add to our experiment vector
+        cursor.execute('SELECT DISTINCT experimentid FROM `%s`' % planner_name)
+        experiment_ids = [t[0] for t in cursor.fetchall() if not t[0]==None]
+        for experiment_id in experiment_ids:
+            if experiment_id not in experiments:
+                experiments.append(experiment_id)
+
+    # Sort all found attributes
+    attributes.sort(reverse=True)
+
+    # Create header of the CSV
+    csv.write('planner_type')
+    for atr in attributes:
+        #if types[atr]=='integer' or types[atr]=='real':
+        csv.write(", %s"%atr)
+    csv.write('\n') # new line
+
+    # Start creating CSV file by polling each planner table and seperating its data into proper column
+    # format, leaving blanks where planner is missing possible attribute data
+    for planner_name in planner_names:
+        cursor.execute('SELECT * FROM `%s`' % planner_name)
+        # get this planner's attributes
+        planner_attributes = [ t[0] for t in cursor.description]
+        #print>>csv, planner_attributes
+
+        # loop through each row of the planner experiments, aka each 'run'
+        for run in cursor.fetchall():
+            # write a *simplified* planner name
+            name_short = planner_name.strip('planner')
+            name_short = name_short.strip('_OMPL_')
+            name_short = name_short.replace('[','_')
+            name_short = name_short.strip('kConfigDefault]')
+            csv.write(name_short)
+            # loop through each global attribute
+            for atr in attributes:
+                # find the global attribute in this table if it exists
+                if atr in planner_attributes:
+                    # output value
+                    index_of_attr = planner_attributes.index(atr)
+                    csv.write(", %s" %run[index_of_attr])
+                else:
+                    csv.write(", ")
+            # done with this line
+            csv.write("\n")
+
+
 
 if __name__ == "__main__":
     usage = """%prog [options] [<benchmark.log> ...]"""
@@ -319,8 +407,12 @@ if __name__ == "__main__":
         help="Compute the views for best planner configurations")
     parser.add_option("-p", "--plot", dest="plot", default=None,
         help="Create a PDF of plots")
+    parser.add_option("-c", "--csv", dest="csv", default=None,
+        help="Create a CSV of combined experiments")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
+    parser.add_option("-o", "--overwrite", action="store_true", dest="overwrite", default=False,
+        help="Use this flag to enable overwriting a previous database file with new benchmarks")
 
     if len(argv) == 1:
         parser.print_help()
@@ -328,10 +420,19 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if len(args) > 0:
+        # Check if user wants to start a new database (delete old one)
+        if options.overwrite:
+            try:
+                os.remove(options.dbname)
+            except OSError:
+                pass
         read_benchmark_log(options.dbname, args)
     
     if options.plot:
         plot_statistics(options.dbname, options.plot)
+
+    if options.csv:
+        generate_csv(options.dbname, options.csv)
 
     if options.mysqldb:
         save_as_mysql(options.dbname, options.mysqldb)
