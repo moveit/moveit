@@ -217,7 +217,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
 
   // Add Planners
   static const std::string planners[] = 
-    {"SBL", "EST", "LBKPIECE", "BKPIECE", "KPIECE", "RRT", "RRTConnect", "RRTstar", "PRM", "PRMstar" };
+    {"SBL", "EST", "LBKPIECE", "BKPIECE", "KPIECE", "RRT", "RRTConnect", "RRTstar", "TRRT", "PRM", "PRMstar" };
   
   std::vector<std::string> pconfigs;
   for (std::size_t i = 0 ; i < sizeof(planners) / sizeof(std::string) ; ++i)
