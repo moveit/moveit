@@ -12,7 +12,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://moveit.ros.org</url>
+  <url type="website">http://moveit.ros.org/wiki/Kinematics/IKFast</url>
   <url type="bugtracker">https://github.com/ros-planning/moveit_ikfast/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit_ikfast</url>
 
