@@ -77,7 +77,7 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
   opt.max_explicit_points = 10;
   
   ompl_interface.getConstraintsLibrary().addConstraintApproximation(c, "right_arm", ps, opt);
-  ompl_interface.getConstraintsLibrary().saveConstraintApproximations("/home/isucan/constraints_approximation_database");
+  ompl_interface.getConstraintsLibrary().saveConstraintApproximations("~/constraints_approximation_database");
   ROS_INFO("Done");
 }
 
