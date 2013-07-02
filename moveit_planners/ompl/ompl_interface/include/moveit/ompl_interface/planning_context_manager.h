@@ -40,7 +40,7 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space_factory.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit_msgs/MotionPlanRequest.h>
+
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>
@@ -48,14 +48,6 @@
 
 namespace ompl_interface
 {
-
-struct PlanningConfigurationSettings
-{
-  std::string                        name;
-  std::string                        group;
-  std::map<std::string, std::string> config;
-};
-typedef std::map<std::string, PlanningConfigurationSettings> PlanningConfigurationMap;
 
 class PlanningContextManager
 {
@@ -66,8 +58,14 @@ public:
   
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
-  void setPlanningConfigurations(const PlanningConfigurationMap &pconfig);
-
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig);
+  
+  /** @brief Return the previously set planner configurations */
+  const planning_interface::PlannerConfigurationMap& getPlannerConfigurations() const
+  {
+    return planner_configs_;
+  }
+  
   /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
   unsigned int getMaximumStateSamplingAttempts() const
   {
@@ -148,8 +146,10 @@ public:
     
   ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const;
 
-  ModelBasedPlanningContextPtr getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const;
-  
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene, 
+                                                  const planning_interface::MotionPlanRequest &req,
+                                                  moveit_msgs::MoveItErrorCodes &error_code) const;
+
   void registerPlannerAllocator(const std::string &planner_id, const ConfiguredPlannerAllocator &pa)
   {
     known_planners_[planner_id] = pa;
@@ -171,27 +171,22 @@ public:
   }
   
   ConfiguredPlannerSelector getPlannerSelector() const;
-
-  const PlanningConfigurationMap& getPlanningConfigurations() const
-  {
-    return planner_configs_;
-  }
   
 protected:
 
-  typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> FactoryTypeSelector;
+  typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
 
   ConfiguredPlannerAllocator plannerSelector(const std::string &planner) const;
   
   void registerDefaultPlanners();
   void registerDefaultStateSpaces();
   
-  ModelBasedPlanningContextPtr getPlanningContext(const PlanningConfigurationSettings &config, const FactoryTypeSelector &factory) const;
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::PlannerConfigurationSettings &config, const StateSpaceFactoryTypeSelector &factory) const;
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory1(const std::string &group_name, const std::string &factory_type) const;
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string &group_name, const moveit_msgs::MotionPlanRequest &req) const;
   
   /** \brief The kinematic model for which motion plans are computed */
-  robot_model::RobotModelConstPtr               kmodel_;
+  robot_model::RobotModelConstPtr                       kmodel_;
   
   constraint_samplers::ConstraintSamplerManagerPtr      constraint_sampler_manager_;
   
@@ -203,7 +198,7 @@ protected:
       be of the form "group_name[config_name]" if there are
       particular configurations specified for a group, or of the
       form "group_name" if default settings are to be used. */
-  std::map<std::string, PlanningConfigurationSettings>  planner_configs_;
+  planning_interface::PlannerConfigurationMap           planner_configs_;
 
   /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
   unsigned int                                          max_goal_samples_;

@@ -1,38 +1,38 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2012, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2012, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
@@ -52,10 +52,22 @@
 #include <ompl/datastructures/PDF.h>
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec) :
-  spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getRobotModel()),
-  ompl_simple_setup_(spec.state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
-  last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_state_sampling_attempts_(0), max_goal_sampling_attempts_(0), 
-  max_planning_threads_(0), max_solution_segment_length_(0.0), minimum_waypoint_count_(0)
+  planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName()),
+  spec_(spec),
+  complete_initial_robot_state_(spec.state_space_->getRobotModel()),
+  ompl_simple_setup_(spec.state_space_),
+  ompl_benchmark_(ompl_simple_setup_),
+  ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
+  last_plan_time_(0.0),
+  last_simplify_time_(0.0),
+  max_goal_samples_(0),
+  max_state_sampling_attempts_(0),
+  max_goal_sampling_attempts_(0), 
+  max_planning_threads_(0),
+  max_solution_segment_length_(0.0),
+  minimum_waypoint_count_(0),
+  use_state_validity_cache_(true),
+  simplify_solutions_(true)
 {
   ompl_simple_setup_.getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
@@ -103,7 +115,7 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
 	}
 	else
 	  logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the group '%s'.",
-                   name_.c_str(), v.c_str(), getJointModelGroup()->getName().c_str());
+                   name_.c_str(), v.c_str(), getGroupName().c_str());
       }
       if (j.empty())
 	logError("%s: No valid joints specified for joint projection", name_.c_str());
@@ -147,7 +159,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
 
     constraint_samplers::ConstraintSamplerPtr cs;
     if (spec_.constraint_sampler_manager_)
-      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getJointModelGroup()->getName(), path_constraints_->getAllConstraints());
+      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(), path_constraints_->getAllConstraints());
     
     if (cs)
     {
@@ -204,7 +216,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   it = cfg.find("type");
   if (it == cfg.end())
   {
-    if (name_ != getJointModelGroupName())
+    if (name_ != getGroupName())
       logWarn("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
   }
   else
@@ -212,7 +224,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     std::string type = it->second;
     cfg.erase(it);
     ompl_simple_setup_.setPlannerAllocator(boost::bind(spec_.planner_selector_(type), _1,
-						       name_ != getJointModelGroupName() ? name_ : "", spec_));
+						       name_ != getGroupName() ? name_ : "", spec_));
     logInform("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
               name_.c_str(), type.c_str());
   }
@@ -288,7 +300,7 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   {
     constraint_samplers::ConstraintSamplerPtr cs;
     if (spec_.constraint_sampler_manager_)
-      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getJointModelGroup()->getName(), goal_constraints_[i]->getAllConstraints());
+      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(), goal_constraints_[i]->getAllConstraints());
     if (cs)
     {
       ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
@@ -302,11 +314,6 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
     logError("Unable to construct goal representation");
   
   return ob::GoalPtr();
-}
-
-void ompl_interface::ModelBasedPlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene)
-{
-  planning_scene_ = planning_scene;
 }
 
 void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(const robot_state::RobotState &complete_initial_robot_state)
@@ -329,7 +336,7 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
 								   moveit_msgs::MoveItErrorCodes *error)
 {
   // ******************* set the path constraints to use
-  path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getRobotModel()));
+  path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getRobotModel()));
   path_constraints_->add(path_constraints, getPlanningScene()->getTransforms());
   path_constraints_msg_ = path_constraints;
   
@@ -346,7 +353,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
   {
     moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
-    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getRobotModel()));
+    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getRobotModel()));
     kset->add(constr, getPlanningScene()->getTransforms());
     if (!kset->empty())
       goal_constraints_.push_back(kset);
@@ -373,7 +380,7 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
   ompl_benchmark_.clearPlanners();
   ompl_simple_setup_.setup();  
   ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
-  ompl_benchmark_.setExperimentName(getRobotModel()->getName() + "_" + getJointModelGroupName() + "_" +
+  ompl_benchmark_.setExperimentName(getRobotModel()->getName() + "_" + getGroupName() + "_" +
 				    getPlanningScene()->getName() + "_" + name_);
   
   ot::Benchmark::Request req;
@@ -413,6 +420,81 @@ void ompl_interface::ModelBasedPlanningContext::postSolve()
   
   if (ompl_simple_setup_.getProblemDefinition()->hasApproximateSolution())
     logWarn("Computed solution is approximate");
+}
+
+bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanResponse &res)
+{
+  if (solve(request_.allowed_planning_time, request_.num_planning_attempts))
+  {
+    double ptime = getLastPlanTime();
+    if (simplify_solutions_ && ptime < request_.allowed_planning_time)
+    {
+      simplifySolution(request_.allowed_planning_time - ptime);
+      ptime += getLastSimplifyTime();
+    }
+    interpolateSolution();
+    
+    // fill the response
+    logDebug("%s: Returning successful solution with %lu states", getName().c_str(),
+             getOMPLSimpleSetup().getSolutionPath().getStateCount());
+    
+    res.trajectory_.reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+    getSolutionPath(*res.trajectory_);
+    res.planning_time_ = ptime;
+    return true;
+  }
+  else
+  {
+    logInform("Unable to solve the planning problem");
+    res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+    return false;
+  }
+}
+
+bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanDetailedResponse &res)
+{
+  if (solve(request_.allowed_planning_time, request_.num_planning_attempts))
+  {
+    res.trajectory_.reserve(3);
+    
+    // add info about planned solution
+    double ptime = getLastPlanTime();
+    res.processing_time_.push_back(ptime);
+    res.description_.push_back("plan");
+    res.trajectory_.resize(res.trajectory_.size() + 1);
+    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+    getSolutionPath(*res.trajectory_.back());
+    
+    // simplify solution if time remains
+    if (simplify_solutions_ && ptime < request_.allowed_planning_time)
+    {
+      simplifySolution(request_.allowed_planning_time - ptime);
+      res.processing_time_.push_back(getLastSimplifyTime());
+      res.description_.push_back("simplify");
+      res.trajectory_.resize(res.trajectory_.size() + 1);
+      res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+      getSolutionPath(*res.trajectory_.back());
+    }
+    
+    ompl::time::point start_interpolate = ompl::time::now();
+    interpolateSolution();
+    res.processing_time_.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
+    res.description_.push_back("interpolate");
+    res.trajectory_.resize(res.trajectory_.size() + 1);
+    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+    getSolutionPath(*res.trajectory_.back());
+    
+    // fill the response
+    logDebug("%s: Returning successful solution with %lu states", getName().c_str(),
+             getOMPLSimpleSetup().getSolutionPath().getStateCount());
+    return true;
+  }
+  else
+  {
+    logInform("Unable to solve the planning problem");
+    res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+    return false;
+  }
 }
 
 bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
@@ -504,9 +586,10 @@ void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition()
   ptc_ = NULL;
 }
 
-void ompl_interface::ModelBasedPlanningContext::terminateSolve()
+bool ompl_interface::ModelBasedPlanningContext::terminate()
 {
   boost::mutex::scoped_lock slock(ptc_lock_);
   if (ptc_)
     ptc_->terminate();
+  return true;
 }

@@ -39,7 +39,7 @@
 
 ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link) :
   ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), planning_context_(pc),
-  group_name_(planning_context_->getJointModelGroupName()), link_name_(link),
+  group_name_(planning_context_->getGroupName()), link_name_(link),
   tss_(planning_context_->getCompleteInitialRobotState())
 {
 }

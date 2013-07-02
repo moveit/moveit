@@ -1,38 +1,38 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
-
-/* Author: Ioan Sucan, Sachin Chitta */
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+ 
+/* Author: Ioan Sucan */
 
 #include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/robot_state/conversions.h>
@@ -50,18 +50,64 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   use_constraints_approximations_(true),
   simplify_solutions_(true)
 {  
-  loadParams();
+  ROS_INFO("Initializing OMPL interface using ROS parameters");
+  loadPlannerConfigurations();
+  loadConstraintApproximations();
+  loadConstraintSamplers();
+}
+
+ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel, const planning_interface::PlannerConfigurationMap &pconfig, const ros::NodeHandle &nh) : 
+  nh_(nh),
+  kmodel_(kmodel),
+  constraint_sampler_manager_(new  constraint_samplers::ConstraintSamplerManager()),
+  context_manager_(kmodel, constraint_sampler_manager_),
+  constraints_library_(new ConstraintsLibrary(context_manager_)),
+  use_constraints_approximations_(true),
+  simplify_solutions_(true)
+{ 
+  ROS_INFO("Initializing OMPL interface using specified configuration");
+  setPlannerConfigurations(pconfig);
+  loadConstraintApproximations();
+  loadConstraintSamplers();
 }
 
 ompl_interface::OMPLInterface::~OMPLInterface()
 {
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const planning_interface::MotionPlanRequest &req) const
+void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig)
 {
-  ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(req);
+  planning_interface::PlannerConfigurationMap pconfig2 = pconfig;
+  
+  // construct default configurations
+  const std::map<std::string, robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
+  for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
+  {
+    if (pconfig.find(it->first) == pconfig.end())
+    {
+      planning_interface::PlannerConfigurationSettings empty;
+      empty.name = empty.group = it->first;
+      pconfig2[empty.name] = empty;
+    }
+  }
+  
+  context_manager_.setPlannerConfigurations(pconfig2);
+}
+
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                                               const planning_interface::MotionPlanRequest &req) const
+{
+  moveit_msgs::MoveItErrorCodes dummy;
+  return getPlanningContext(planning_scene, req, dummy);
+}
+
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                                               const planning_interface::MotionPlanRequest &req,
+                                                                                               moveit_msgs::MoveItErrorCodes &error_code) const
+{
+  ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(planning_scene, req, error_code);
   if (ctx)
-    configureConstraints(ctx);
+    configureContext(ctx);
   return ctx;
 }
 
@@ -69,80 +115,17 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getP
 {
   ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(config, factory_type);
   if (ctx)
-    configureConstraints(ctx);
+    configureContext(ctx);
   return ctx;
 }
 
-void ompl_interface::OMPLInterface::configureConstraints(const ModelBasedPlanningContextPtr &context) const
+void ompl_interface::OMPLInterface::configureContext(const ModelBasedPlanningContextPtr &context) const
 {
   if (use_constraints_approximations_)
     context->setConstraintsApproximations(constraints_library_);
   else
     context->setConstraintsApproximations(ConstraintsLibraryPtr());
-}
-
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prepareForSolve(const planning_interface::MotionPlanRequest &req, 
-                                                                                            const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                                                            moveit_msgs::MoveItErrorCodes *error_code,
-                                                                                            unsigned int *attempts, double *timeout) const
-{
-  moveit::Profiler::ScopedBlock sblock("OMPLInterface:PrepareForSolve");
-
-  if (!planning_scene)
-  { 
-    ROS_ERROR("No planning scene supplied as input"); 
-    error_code->val = moveit_msgs::MoveItErrorCodes::FAILURE;
-    return ModelBasedPlanningContextPtr();
-  }
-  
-  robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);  
-  ModelBasedPlanningContextPtr context = getPlanningContext(req);
-  if (!context)
-  {
-    error_code->val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
-    return context;
-  }
-
-  *timeout = req.allowed_planning_time;
-  if (*timeout <= 0.0)
-  {
-    ROS_INFO("The timeout for planning must be positive (%lf specified). Assuming one second instead.", *timeout);
-    *timeout = 1.0;
-  }
-  
-  *attempts = 1;
-  if (req.num_planning_attempts > 0)
-    *attempts = req.num_planning_attempts;
-  else
-    if (req.num_planning_attempts < 0)
-      ROS_ERROR("The number of desired planning attempts should be positive. Assuming one attempt.");
-  
-  context->clear();
-  
-  // set the planning scene
-  context->setPlanningScene(planning_scene);
-  context->setCompleteInitialState(*start_state);
-  
-  context->setPlanningVolume(req.workspace_parameters);
-  if (!context->setPathConstraints(req.path_constraints, error_code))
-    return ModelBasedPlanningContextPtr();
-  
-  if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, error_code))
-    return ModelBasedPlanningContextPtr(); 
-  
-  try
-  {
-    context->configure();
-    ROS_DEBUG("%s: New planning context is set.", context->getName().c_str());
-    error_code->val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-  }
-  catch (ompl::Exception &ex)
-  {
-    ROS_ERROR("OMPL encountered an error: %s", ex.what());
-    context.reset();
-  }
-  
-  return context;
+  context->simplifySolutions(simplify_solutions_);
 }
 
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -151,46 +134,14 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   moveit::Profiler::ScopedStart pslv;
   moveit::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
 
-  unsigned int attempts = 1;
-  double timeout = 0.0;
-  
-  ModelBasedPlanningContextPtr context = prepareForSolve(req, planning_scene, &res.error_code_, &attempts, &timeout);
-
-  if (!context)
-    return false;
-
-  res.trajectory_.reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
-  if (context->solve(timeout, attempts))
+  ModelBasedPlanningContextPtr context = getPlanningContext(planning_scene, req);
+  if (context)
   {
-    /*
-    ompl::base::PlannerData pd(context->getOMPLSimpleSetup().getSpaceInformation());
-    context->getOMPLSimpleSetup().getPlannerData(pd);
-    for (unsigned int k = 0 ; k < pd.numVertices() ; ++k)
-      context->getOMPLSimpleSetup().getSpaceInformation()->printState(pd.getVertex(k).getState());
-    */    
-
-    double ptime = context->getLastPlanTime();
-    if (simplify_solutions_ && ptime < timeout)
-    {
-      context->simplifySolution(timeout - ptime);
-      ptime += context->getLastSimplifyTime();
-    }
-    context->interpolateSolution();
-    
-    // fill the response
-    ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
-             context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-    
-    context->getSolutionPath(*res.trajectory_);
-    res.planning_time_ = ptime;
-    return true;
+    context->clear();
+    return context->solve(res);
   }
   else
-  {
-    ROS_INFO("Unable to solve the planning problem");
-    res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
-  }
 }
 
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -198,76 +149,15 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 {
   moveit::Profiler::ScopedStart pslv;
   moveit::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
-  
-  unsigned int attempts = 1;
-  double timeout = 0.0;
-  moveit_msgs::MoveItErrorCodes error_code; // not used
-  ModelBasedPlanningContextPtr context = prepareForSolve(req, planning_scene, &error_code, &attempts, &timeout);
-  if (!context)
-    return false;
 
-  if (context->solve(timeout, attempts))
+  ModelBasedPlanningContextPtr context = getPlanningContext(planning_scene, req);
+  if (context)
   {
-    res.trajectory_.reserve(3);
-    
-    // add info about planned solution
-    double ptime = context->getLastPlanTime();
-    res.processing_time_.push_back(ptime);
-    res.description_.push_back("plan");
-    res.trajectory_.resize(res.trajectory_.size() + 1);
-    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
-    context->getSolutionPath(*res.trajectory_.back());
-    
-    // simplify solution if time remains
-    if (simplify_solutions_ && ptime < timeout)
-    {
-      context->simplifySolution(timeout - ptime);
-      res.processing_time_.push_back(context->getLastSimplifyTime());
-      res.description_.push_back("simplify");
-      res.trajectory_.resize(res.trajectory_.size() + 1);
-      res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
-      context->getSolutionPath(*res.trajectory_.back());
-    }
-    
-    ros::WallTime start_interpolate = ros::WallTime::now();
-    context->interpolateSolution();
-    res.processing_time_.push_back((ros::WallTime::now() - start_interpolate).toSec());
-    res.description_.push_back("interpolate");
-    res.trajectory_.resize(res.trajectory_.size() + 1);
-    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(kmodel_, context->getJointModelGroupName()));
-    context->getSolutionPath(*res.trajectory_.back());
-    
-    // fill the response
-    ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
-              context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-    return true;
+    context->clear();
+    return context->solve(res);
   }
   else
-  {
-    ROS_INFO("Unable to solve the planning problem");
-    error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
-  }
-}
-/*
-bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                              const moveit_msgs::BenchmarkPluginRequest &req,
-                                              moveit_msgs::BenchmarkPluginResponse &res) const
-{  
-  unsigned int attempts = 1;
-  double timeout = 0.0;
-
-  ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &res.error_code, &attempts, &timeout);
-  if (!context)
-    return false; 
-  return context->benchmark(timeout, attempts, req.filename);
-}
-*/
-void ompl_interface::OMPLInterface::terminateSolve()
-{
-  const ModelBasedPlanningContextPtr &context = getLastPlanningContext();
-  if (context)
-    context->terminateSolve();
 }
 
 void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::string &path)
@@ -311,18 +201,10 @@ void ompl_interface::OMPLInterface::loadConstraintSamplers()
   constraint_sampler_manager_loader_.reset(new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader(constraint_sampler_manager_));
 }
 
-void ompl_interface::OMPLInterface::loadParams()
-{ 
-  ROS_INFO("Initializing OMPL interface using ROS parameters");
-  loadPlannerConfigurations();
-  loadConstraintApproximations();
-  loadConstraintSamplers();
-}
-
 void ompl_interface::OMPLInterface::loadPlannerConfigurations()
 {
   const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();  
-  ompl_interface::PlanningConfigurationMap pconfig;
+  planning_interface::PlannerConfigurationMap pconfig;
 
   // read the planning configuration for each group
   pconfig.clear();
@@ -369,7 +251,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     // set the parameters (if any) for the default group configuration;
     if (!specific_group_params.empty())
     {
-      ompl_interface::PlanningConfigurationSettings pc;
+      planning_interface::PlannerConfigurationSettings pc;
       pc.name = group_names[i];
       pc.group = group_names[i];
       pc.config = specific_group_params;
@@ -391,7 +273,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
 	    {
 	      if (xml_config.getType() == XmlRpc::XmlRpcValue::TypeStruct)
 	      {
-		ompl_interface::PlanningConfigurationSettings pc;
+		planning_interface::PlannerConfigurationSettings pc;
 		pc.name = group_names[i] + "[" + planner_config + "]";
 		pc.group = group_names[i];
 		// inherit parameters from the group (which can be overriden)
@@ -426,7 +308,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     }
   }
   
-  for(ompl_interface::PlanningConfigurationMap::iterator it = pconfig.begin(); 
+  for(planning_interface::PlannerConfigurationMap::iterator it = pconfig.begin(); 
       it != pconfig.end(); ++it)
   {
     ROS_DEBUG_STREAM("Parameters for configuration '"<< it->first << "'");
@@ -434,7 +316,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
          config_it != it->second.config.end() ; ++config_it)
       ROS_DEBUG_STREAM(" - " << config_it->first << " = " << config_it->second);
   }
-  setPlanningConfigurations(pconfig);
+  setPlannerConfigurations(pconfig);
 }
 
 void ompl_interface::OMPLInterface::printStatus()
