@@ -203,11 +203,11 @@ if __name__ == '__main__':
       f.write(template_text)
    print '\nCreated plugin file at \'' + plugin_file_name + '\''
 
-   # Create plugin definition
-   lib_file_base = robot_name + "_moveit_ikfast_kinematics_plugin"
+   # Create plugin definition .xml file
+   ik_library_name = robot_name + "_" + planning_group_name + "_moveit_ikfast_plugin"
    plugin_name = robot_name + '_' + planning_group_name + \
        '_kinematics/IKFastKinematicsPlugin'
-   plugin_def = etree.Element("library", path="lib/lib"+lib_file_base)
+   plugin_def = etree.Element("library", path="lib/lib"+ik_library_name)
    cl = etree.SubElement(plugin_def, "class")
    cl.set("name", plugin_name)
    cl.set("type", 'ikfast_kinematics_plugin::IKFastKinematicsPlugin')
@@ -216,7 +216,7 @@ if __name__ == '__main__':
    desc.text = 'IKFast'+str(template_version)+' plugin for closed-form kinematics'
 
    # Write plugin definition to file
-   def_file_base = robot_name + "_moveit_ikfast_plugin_description.xml"
+   def_file_base = ik_library_name + "_description.xml"
    def_file_name = plugin_pkg_dir + "/" + def_file_base
    with open(def_file_name,'w') as f:
       etree.ElementTree(plugin_def).write(f, xml_declaration=True, pretty_print=True)
@@ -240,6 +240,7 @@ if __name__ == '__main__':
    template_text = re.sub('_ROBOT_NAME_', robot_name, template_text)
    template_text = re.sub('_GROUP_NAME_', planning_group_name, template_text)
    template_text = re.sub('_PACKAGE_NAME_', moveit_plugin_pkg, template_text)
+   template_text = re.sub('_LIBRARY_NAME_', ik_library_name, template_text)
 
    with open(cmake_file,'w') as f:
       f.write(template_text)
