@@ -76,7 +76,7 @@ move_group::MoveGroupContext::~MoveGroupContext()
 
 bool move_group::MoveGroupContext::status() const
 {
-  const planning_interface::PlannerPtr &planner_interface = planning_pipeline_->getPlannerInterface();
+  const planning_interface::PlannerManagerPtr &planner_interface = planning_pipeline_->getPlannerManager();
   if (planner_interface)
   {
     ROS_INFO_STREAM("MoveGroup context using planning plugin " << planning_pipeline_->getPlannerPluginName());

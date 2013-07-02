@@ -108,7 +108,7 @@ public:
     return adapter_plugin_names_;
   }
 
-  const planning_interface::PlannerPtr& getPlannerInterface()
+  const planning_interface::PlannerManagerPtr& getPlannerManager()
   {
     return planner_instance_;
   }
@@ -132,8 +132,8 @@ private:
   bool publish_received_requests_;
   ros::Publisher received_request_publisher_;
 
-  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
-  planning_interface::PlannerPtr planner_instance_;
+  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
+  planning_interface::PlannerManagerPtr planner_instance_;
   std::string planner_plugin_name_;
   
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
