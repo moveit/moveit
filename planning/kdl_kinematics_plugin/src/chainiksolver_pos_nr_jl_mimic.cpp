@@ -42,7 +42,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
 {
   if(_mimic_joints.size() != chain.getNrOfJoints())
   {    
-    ROS_ERROR("Mimic Joint info should be same size as number of joints in chain: %d", chain.getNrOfJoints());    
+    ROS_ERROR("kdl","Mimic Joint info should be same size as number of joints in chain: %d", chain.getNrOfJoints());    
     return false;
   }
     
@@ -50,7 +50,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   {
     if(_mimic_joints[i].map_index >= chain.getNrOfJoints())
     {
-      ROS_ERROR("Mimic Joint index should be less than number of joints in chain: %d", chain.getNrOfJoints());    
+      ROS_ERROR("kdl","Mimic Joint index should be less than number of joints in chain: %d", chain.getNrOfJoints());    
       return false;
     }    
   }
@@ -60,7 +60,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   qToqMimic(q_min,q_min_mimic);
   qToqMimic(q_max,q_max_mimic);
 
-  ROS_DEBUG_STREAM("Set mimic joints");
+  ROS_DEBUG_NAMED("kdl","Set mimic joints");
   return true;
 }
 
@@ -110,17 +110,17 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
         break;
     }
     
-    ROS_DEBUG_STREAM("delta_twist");
+    ROS_DEBUG_STREAM_NAMED("kdl","delta_twist");
     for(std::size_t i=0; i < 6; ++i)
-      ROS_DEBUG("%d: %f",(int) i, delta_twist(i));
+      ROS_DEBUG_NAMED("kdl","%d: %f",(int) i, delta_twist(i));
     
     iksolver.CartToJnt(q_temp,delta_twist,delta_q);
     
     Add(q_temp,delta_q,q_temp);
 
-    ROS_DEBUG_STREAM("delta_q");
+    ROS_DEBUG_STREAM_NAMED("kdl","delta_q");
     for(std::size_t i=0; i < delta_q.rows(); ++i)
-      ROS_DEBUG("%d: %f",(int) i, delta_q(i));
+      ROS_DEBUG_NAMED("kdl","%d: %f",(int) i, delta_q(i));
     
     for(std::size_t j=0; j<q_min_mimic.rows(); ++j) 
     {
@@ -142,13 +142,13 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
   }
   
   qMimicToq(q_temp, q_out);  
-  ROS_DEBUG_STREAM("Full Solution:");
+  ROS_DEBUG_STREAM_NAMED("kdl","Full Solution:");
   for(std::size_t i=0; i < q_temp.rows(); ++i)
-    ROS_DEBUG("%d: %f",(int) i,q_temp(i));
+    ROS_DEBUG_NAMED("kdl","%d: %f",(int) i,q_temp(i));
 
-  ROS_DEBUG_STREAM("Actual Solution:");
+  ROS_DEBUG_STREAM_NAMED("kdl","Actual Solution:");
   for(std::size_t i=0; i < q_out.rows(); ++i)
-    ROS_DEBUG("%d: %f",(int) i,q_out(i));
+    ROS_DEBUG_NAMED("kdl","%d: %f",(int) i,q_out(i));
 
   if(i!=maxiter)
     return 0;

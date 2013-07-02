@@ -145,7 +145,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   if (!urdf_model || !srdf)
   {
-    ROS_ERROR("URDF and SRDF must be loaded for KDL kinematics solver to work.");
+    ROS_ERROR_NAMED("kdl","URDF and SRDF must be loaded for KDL kinematics solver to work.");
     return false;
   }
 
@@ -153,13 +153,13 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   if(!kinematic_model_->hasJointModelGroup(group_name))
   {
-    ROS_ERROR("Kinematic model does not contain group %s", group_name.c_str());
+    ROS_ERROR_NAMED("kdl","Kinematic model does not contain group %s", group_name.c_str());
     return false;
   }
   robot_model::JointModelGroup* joint_model_group = kinematic_model_->getJointModelGroup(group_name);
   if(!joint_model_group->isChain())
   {
-    ROS_ERROR("Group '%s' is not a chain", group_name.c_str());
+    ROS_ERROR_NAMED("kdl","Group '%s' is not a chain", group_name.c_str());
     return false;
   }
 
@@ -167,12 +167,12 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
   {
-    ROS_ERROR("Could not initialize tree object");
+    ROS_ERROR_NAMED("kdl","Could not initialize tree object");
     return false;
   }
   if (!kdl_tree.getChain(base_frame_, tip_frame_, kdl_chain_))
   {
-    ROS_ERROR("Could not initialize chain object");
+    ROS_ERROR_NAMED("kdl","Could not initialize chain object");
     return false;
   }
 
@@ -184,7 +184,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   if(!joint_model_group->hasLinkModel(tip_frame_))
   {
-    ROS_ERROR("Could not find tip name in joint group '%s'", group_name.c_str());
+    ROS_ERROR_NAMED("kdl","Could not find tip name in joint group '%s'", group_name.c_str());
     return false;
   }
   ik_chain_info_.link_names.push_back(tip_frame_);
@@ -207,12 +207,12 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   private_handle.param("max_solver_iterations", max_solver_iterations, 500);
   private_handle.param("epsilon", epsilon, 1e-5);
   private_handle.param(group_name+"/position_only_ik", position_ik, false);
-  ROS_DEBUG("Looking in private handle: %s for param name: %s",
+  ROS_DEBUG_NAMED("kdl","Looking in private handle: %s for param name: %s",
             private_handle.getNamespace().c_str(),
             (group_name+"/position_only_ik").c_str());
 
   if(position_ik)
-    ROS_INFO("Using position only ik");
+    ROS_INFO_NAMED("kdl","Using position only ik");
 
   num_possible_redundant_joints_ = kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik? 3:6);
 
@@ -276,7 +276,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   epsilon_ = epsilon;
 
   active_ = true;
-  ROS_DEBUG("KDL solver initialized");
+  ROS_DEBUG_NAMED("kdl","KDL solver initialized");
   return true;
 }
 
@@ -284,12 +284,12 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
 {
   if(num_possible_redundant_joints_ < 0)
   {
-    ROS_ERROR("This group cannot have redundant joints");
+    ROS_ERROR_NAMED("kdl","This group cannot have redundant joints");
     return false;
   }
   if(redundant_joints.size() > num_possible_redundant_joints_)
   {
-    ROS_ERROR("This group can only have %d redundant joints", num_possible_redundant_joints_);
+    ROS_ERROR_NAMED("kdl","This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;
   }
   /*
@@ -302,7 +302,7 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
       {
         ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
         redundant_joints.push_back(static_cast<std::string>(joint_list[i]));
-        ROS_INFO("Designated joint: %s as redundant joint", redundant_joints.back().c_str());
+        ROS_INFO_NAMED("kdl","Designated joint: %s as redundant joint", redundant_joints.back().c_str());
       }
     }
   */
@@ -324,7 +324,7 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
     }
   }
   for(std::size_t i=0; i < redundant_joints_map_index.size(); ++i)
-    ROS_DEBUG("Redundant joint map index: %d %d", (int) i, (int) redundant_joints_map_index[i]);
+    ROS_DEBUG_NAMED("kdl","Redundant joint map index: %d %d", (int) i, (int) redundant_joints_map_index[i]);
 
   redundant_joints_map_index_ = redundant_joints_map_index_;
   redundant_joint_indices_ = redundant_joints;
@@ -465,7 +465,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   ros::WallTime n1 = ros::WallTime::now();
   if(!active_)
   {
-    ROS_ERROR("kinematics not active");
+    ROS_ERROR_NAMED("kdl","kinematics not active");
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
@@ -496,7 +496,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
 
   if ((redundant_joint_indices_.size() > 0) && !ik_solver_vel.setRedundantJointsMapIndex(redundant_joints_map_index_))
   {
-    ROS_ERROR("Could not set redundant joints");
+    ROS_ERROR_NAMED("kdl","Could not set redundant joints");
     return false;
   }
 
@@ -526,40 +526,40 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   unsigned int counter(0);
   while(1)
   {
-    //    ROS_DEBUG("Iteration: %d, time: %f, Timeout: %f",counter,(ros::WallTime::now()-n1).toSec(),timeout);
+    //    ROS_DEBUG_NAMED("kdl","Iteration: %d, time: %f, Timeout: %f",counter,(ros::WallTime::now()-n1).toSec(),timeout);
     counter++;
     if(timedOut(n1,timeout))
     {
-      ROS_DEBUG("IK timed out");
+      ROS_DEBUG_NAMED("kdl","IK timed out");
       error_code.val = error_code.TIMED_OUT;
       ik_solver_vel.unlockRedundantJoints();
       return false;
     }
     int ik_valid = ik_solver_pos.CartToJnt(jnt_pos_in, pose_desired, jnt_pos_out);
-    ROS_DEBUG("IK valid: %d", ik_valid);
+    ROS_DEBUG_NAMED("kdl","IK valid: %d", ik_valid);
     if(!consistency_limits.empty())
     {
       getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in, lock_redundancy);
       if(ik_valid < 0 || !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
       {
-        ROS_DEBUG("Could not find IK solution: does not match consistency limits");
+        ROS_DEBUG_NAMED("kdl","Could not find IK solution: does not match consistency limits");
         continue;
       }
     }
     else
     {
       getRandomConfiguration(jnt_pos_in, lock_redundancy);
-      ROS_DEBUG("New random configuration");
+      ROS_DEBUG_NAMED("kdl","New random configuration");
       for(unsigned int j=0; j < dimension_; j++)
-        ROS_DEBUG("%d %f", j, jnt_pos_in(j));
+        ROS_DEBUG_NAMED("kdl","%d %f", j, jnt_pos_in(j));
 
       if(ik_valid < 0)
       {
-        ROS_INFO("Could not find IK solution");
+        ROS_INFO_NAMED("kdl","Could not find IK solution");
         continue;
       }
     }
-    ROS_DEBUG("Found IK solution");
+    ROS_DEBUG_NAMED("kdl","Found IK solution");
     for(unsigned int j=0; j < dimension_; j++)
       solution[j] = jnt_pos_out(j);
     if(!solution_callback.empty())
@@ -574,7 +574,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
       return true;
     }
   }
-  ROS_DEBUG("An IK that satisifes the constraints and is collision free could not be found");
+  ROS_DEBUG_NAMED("kdl","An IK that satisifes the constraints and is collision free could not be found");
   error_code.val = error_code.NO_IK_SOLUTION;
   ik_solver_vel.unlockRedundantJoints();
   return false;
@@ -587,13 +587,13 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_nam
   ros::WallTime n1 = ros::WallTime::now();
   if(!active_)
   {
-    ROS_ERROR("kinematics not active");
+    ROS_ERROR_NAMED("kdl","kinematics not active");
     return false;
   }
   poses.resize(link_names.size());
   if(joint_angles.size() != dimension_)
   {
-    ROS_ERROR("Joint angles vector must have size: %d",dimension_);
+    ROS_ERROR_NAMED("kdl","Joint angles vector must have size: %d",dimension_);
     return false;
   }
 
@@ -612,14 +612,14 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_nam
   bool valid = true;
   for(unsigned int i=0; i < poses.size(); i++)
   {
-    ROS_DEBUG("End effector index: %d",getKDLSegmentIndex(link_names[i]));
+    ROS_DEBUG_NAMED("kdl","End effector index: %d",getKDLSegmentIndex(link_names[i]));
     if(fk_solver.JntToCart(jnt_pos_in,p_out,getKDLSegmentIndex(link_names[i])) >=0)
     {
       tf::poseKDLToMsg(p_out,poses[i]);
     }
     else
     {
-      ROS_ERROR("Could not compute FK for %s",link_names[i].c_str());
+      ROS_ERROR_NAMED("kdl","Could not compute FK for %s",link_names[i].c_str());
       valid = false;
     }
   }
