@@ -47,7 +47,7 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedP
   kinematic_constraint_set_(ks),
   constraint_sampler_(cs), 
   work_state_(pc->getCompleteInitialRobotState()),
-  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName())), 
+  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getGroupName())), 
   invalid_sampled_constraints_(0),
   warned_invalid_samples_(false),
   verbose_display_(0)

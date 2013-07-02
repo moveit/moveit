@@ -41,7 +41,7 @@
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
-  group_name_(pc->getJointModelGroupName()), tss_(pc->getCompleteInitialRobotState()), verbose_(false)
+  group_name_(pc->getGroupName()), tss_(pc->getCompleteInitialRobotState()), verbose_(false)
 {
   specs_.clearanceComputationType = ompl::base::StateValidityCheckerSpecs::APPROXIMATE;
   specs_.hasValidDirectionComputation = false;
@@ -49,9 +49,9 @@ ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlann
   collision_request_with_distance_.distance = true;
   collision_request_with_cost_.cost = true;
 
-  collision_request_simple_.group_name = planning_context_->getJointModelGroupName();
-  collision_request_with_distance_.group_name = planning_context_->getJointModelGroupName();
-  collision_request_with_cost_.group_name = planning_context_->getJointModelGroupName();
+  collision_request_simple_.group_name = planning_context_->getGroupName();
+  collision_request_with_distance_.group_name = planning_context_->getGroupName();
+  collision_request_with_cost_.group_name = planning_context_->getGroupName();
   
   collision_request_simple_verbose_ = collision_request_simple_;
   collision_request_simple_verbose_.verbose = true;
