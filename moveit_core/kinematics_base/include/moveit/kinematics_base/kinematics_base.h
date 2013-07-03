@@ -48,6 +48,23 @@ namespace kinematics
 {
 
 /**
+ * @struct KinematicsQueryOptions
+ * @brief A set of options for the kinematics solver
+ */
+struct KinematicsQueryOptions
+{
+  KinematicsQueryOptions()
+  {
+    lock_redundant_joints = false;
+    return_approximate_solution = false;    
+  }
+  
+  bool lock_redundant_joints;
+  bool return_approximate_solution;      
+};
+
+  
+/**
  * @class KinematicsBase
  * @brief Provides an interface for kinematics solvers.
  */
@@ -74,7 +91,7 @@ public:
                              const std::vector<double> &ik_seed_state,
                              std::vector<double> &solution,
                              moveit_msgs::MoveItErrorCodes &error_code,
-                             bool lock_redundant_joints = false) const = 0;      
+                             const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;      
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -93,7 +110,7 @@ public:
                                 double timeout,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                bool lock_redundant_joints = false) const = 0;      
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;      
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -114,7 +131,7 @@ public:
                                 const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                bool lock_redundant_joints = false) const = 0;      
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;      
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -136,7 +153,7 @@ public:
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                bool lock_redundant_joints = false) const = 0;      
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;      
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -160,7 +177,7 @@ public:
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                bool lock_redundant_joints = false) const = 0;      
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;      
     
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
