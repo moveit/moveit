@@ -2,10 +2,14 @@
   <name>moveit_simple_controller_manager</name>
   <version>0.4.0</version>
   <description>A generic, simple controller manager plugin for MoveIt.</description>
-  <author>Michael Ferguson</author>
+  <author email="fergs@unboundedrobotics.com">Michael Ferguson</author>
   <maintainer email="fergs@unboundedrobotics.com">Michael Ferguson</maintainer>
 
   <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_plugins/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_plugins</url>
 
   <buildtool_depend>catkin</buildtool_depend> 
 
