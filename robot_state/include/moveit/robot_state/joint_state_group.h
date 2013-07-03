@@ -242,14 +242,14 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, unsigned int attempts = 0, double timeout = 0.0, 
-                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the last link in the chain needs to achieve 
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt */  
-  bool setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts = 0, double timeout = 0.0, bool lock_redundant_joints = false);
+  bool setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts = 0, double timeout = 0.0, const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
   
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -257,8 +257,7 @@ public:
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts = 0, double timeout = 0.0,
-                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+  bool setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint =  StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -267,7 +266,7 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const Eigen::Affine3d &pose, unsigned int attempts = 0, double timeout = 0.0, 
-                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -275,14 +274,14 @@ public:
       @param tip The name of the link the pose is specified for
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt */  
-  bool setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, bool lock_redundant_joints);
+  bool setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the last link in the chain needs to achieve 
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt */  
-  bool setFromIK(const Eigen::Affine3d &pose_in, unsigned int attempts, double timeout, bool lock_redundant_joints);  
+  bool setFromIK(const Eigen::Affine3d &pose_in, unsigned int attempts, double timeout, const kinematics::KinematicsQueryOptions &options);  
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -292,7 +291,7 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, unsigned int attempts = 0, double timeout = 0.0, 
-                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -304,7 +303,7 @@ public:
       @param constraint A state validity constraint to be required for IK solutions */  
   bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, 
                  const std::vector<double> &consistency_limits, unsigned int attempts = 0, double timeout = 0.0,
-                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+                 const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief  Warning: This function inefficiently copies all transforms around. 
       If the group consists of a set of sub-groups that are each a chain and a solver 
@@ -316,7 +315,7 @@ public:
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const EigenSTL::vector_Affine3d &poses, const std::vector<std::string> &tips, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+  bool setFromIK(const EigenSTL::vector_Affine3d &poses, const std::vector<std::string> &tips, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief Warning: This function inefficiently copies all transforms around.
       If the group consists of a set of sub-groups that are each a chain and a solver 
@@ -329,7 +328,7 @@ public:
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */  
-  bool setFromIK(const EigenSTL::vector_Affine3d &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+  bool setFromIK(const EigenSTL::vector_Affine3d &poses, const std::vector<std::string> &tips, const std::vector<std::vector<double> > &consistency_limits, unsigned int attempts = 0, double timeout = 0.0, const StateValidityCallbackFn &constraint = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
    * @param twist a cartesian velocity on the 'tip' frame
@@ -383,7 +382,7 @@ public:
       that is considered a failure and the returned path is truncated up to just before the jump. The jump detection can be disabled 
       by setting \e jump_threshold to 0.0*/
   double computeCartesianPath(std::vector<boost::shared_ptr<RobotState> > &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
-                              double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+                              double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path.
 
@@ -405,7 +404,7 @@ public:
       that is considered a failure and the returned path is truncated up to just before the jump. The jump detection can be disabled
       by setting \e jump_threshold to 0.0*/
   double computeCartesianPath(std::vector<boost::shared_ptr<RobotState> > &traj, const std::string &link_name, const Eigen::Affine3d &target, bool global_reference_frame,
-                              double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+                              double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief Compute the sequence of joint values that perform a general Cartesian path.
 
@@ -426,7 +425,7 @@ public:
       than average_consecutive_distance * \e jump_threshold, that is considered a failure and the returned path is truncated up to
       just before the jump. The jump detection can be disabled by setting \e jump_threshold to 0.0*/
   double computeCartesianPath(std::vector<boost::shared_ptr<RobotState> > &traj, const std::string &link_name, const EigenSTL::vector_Affine3d &waypoints,
-                              bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn(), bool lock_redundant_joints = false);
+                              bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   JointStateGroup& operator=(const JointStateGroup &other);
 
