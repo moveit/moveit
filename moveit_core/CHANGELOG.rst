@@ -2,6 +2,12 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.6 (2013-07-03)
+------------------
+* Added ability to change planner configurations in the interface
+* add docs for controller manager
+* fix computeTransformBackward()
+
 0.4.5 (2013-06-26)
 ------------------
 * add computeBackwardTransform()
