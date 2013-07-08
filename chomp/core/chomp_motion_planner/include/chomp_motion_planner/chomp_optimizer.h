@@ -57,9 +57,9 @@ namespace chomp
 class ChompOptimizer
 {
 public:
-  ChompOptimizer(ChompTrajectory *trajectory, 
+  ChompOptimizer(ChompTrajectory *trajectory,
                  const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const std::string& planning_group, 
+                 const std::string& planning_group,
                  const ChompParameters *parameters,
                  const planning_models::RobotState& start_state);
 
@@ -103,17 +103,17 @@ private:
   }
   template<typename Derived>
   void getJacobian(int trajectoryPoint,
-                   Eigen::Vector3d& collision_point_pos, 
-                   std::string& jointName, 
+                   Eigen::Vector3d& collision_point_pos,
+                   std::string& jointName,
                    Eigen::MatrixBase<Derived>& jacobian) const;
 
-  // void getRandomState(const planning_models::RobotState& currentState, 
+  // void getRandomState(const planning_models::RobotState& currentState,
   //                     const std::string& group_name,
   //                     Eigen::VectorXd& state_vec);
 
-  void setRobotStateFromPoint(ChompTrajectory& group_trajectory, 
+  void setRobotStateFromPoint(ChompTrajectory& group_trajectory,
                               int i);
-  
+
   //collision_proximity::CollisionProximitySpace::TrajectorySafety checkCurrentIterValidity();
 
   int num_joints_;
@@ -135,7 +135,7 @@ private:
   planning_models::RobotState *start_state_;
   const planning_models::RobotModel::JointModelGroup* joint_model_group_;
   const collision_detection::CollisionWorldHybrid* hy_world_;
-  const collision_detection::CollisionRobotHybrid* hy_robot_; 
+  const collision_detection::CollisionRobotHybrid* hy_robot_;
 
   std::vector<ChompCost> joint_costs_;
   boost::shared_ptr<collision_detection::GroupStateRepresentation> gsr_;

@@ -38,9 +38,9 @@
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
 
 ompl_interface::PoseModelStateSpaceFactory::PoseModelStateSpaceFactory() : ModelBasedStateSpaceFactory()
-{  
+{
   type_ = PoseModelStateSpace::PARAMETERIZATION_TYPE;
-}  
+}
 
 int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::string &group,
                                                                     const moveit_msgs::MotionPlanRequest &req,
@@ -65,7 +65,7 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::s
         if (vc == jmg->getVariableCount())
           ik = true;
       }
-    
+
     if (ik)
     {
       // if we have path constraints, we prefer interpolating in pose space

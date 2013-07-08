@@ -62,19 +62,19 @@ public:
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
+             const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::GetMotionPlan::Response &res) const
   {
-    return chomp_interface_->solve(planning_scene, req, 
+    return chomp_interface_->solve(planning_scene, req,
                                    chomp_interface_->getParams(),res);
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
+             const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::MotionPlanDetailedResponse &res) const
   {
     moveit_msgs::GetMotionPlan::Response res2;
-    if (chomp_interface_->solve(planning_scene, req, 
+    if (chomp_interface_->solve(planning_scene, req,
                                 chomp_interface_->getParams(),res2))
     {
       res.trajectory_start = res2.trajectory_start;
@@ -88,7 +88,7 @@ public:
   }
 
   std::string getDescription() const { return "CHOMP"; }
-  
+
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
     algs.resize(1);
@@ -99,7 +99,7 @@ public:
   {
     //TODO - make interruptible
   }
-     
+
 private:
   boost::shared_ptr<CHOMPInterfaceROS> chomp_interface_;
 };
@@ -107,4 +107,3 @@ private:
 } // ompl_interface_ros
 
 PLUGINLIB_EXPORT_CLASS( chomp_interface_ros::CHOMPPlanner, planning_interface::Planner);
-                      

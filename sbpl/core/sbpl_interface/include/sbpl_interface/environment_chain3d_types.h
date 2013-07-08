@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2008, Maxim Likhachev
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of the University of Pennsylvania nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -42,7 +42,7 @@ static unsigned int HASH_TABLE_SIZE = 32*1024;
 
 static inline unsigned int intHash(unsigned int key)
 {
-  key += (key << 12); 
+  key += (key << 12);
   key ^= (key >> 22);
   key += (key << 4);
   key ^= (key >> 9);
@@ -82,8 +82,8 @@ struct EnvChain3DGoalPose
 /** main structure that stores environment data used in planning */
 struct EnvChain3DPlanningData
 {
-  
-  EnvChain3DPlanningData(std::vector<int*>& state_ID_to_index_mapping) : 
+
+  EnvChain3DPlanningData(std::vector<int*>& state_ID_to_index_mapping) :
     state_ID_to_index_mapping_(state_ID_to_index_mapping),
     goal_hash_entry_(NULL),
     start_hash_entry_(NULL),
@@ -100,17 +100,17 @@ struct EnvChain3DPlanningData
 
   unsigned int getHashBin(const std::vector<int>& coord) {
     unsigned int val = 0;
-    
+
     for(size_t i = 0; i < coord.size(); i++)
       val += intHash(coord[i]) << i;
-    
+
     return intHash(val) & (hash_table_size_-1);
   }
 
   EnvChain3DHashEntry* addHashEntry(const std::vector<int>& coord,
                                     const std::vector<double>& angles,
                                     const int(&xyz)[3],
-                                    int action) 
+                                    int action)
   {
     EnvChain3DHashEntry* new_hash_entry = new EnvChain3DHashEntry();
     new_hash_entry->stateID = state_ID_to_coord_table_.size();
@@ -134,7 +134,7 @@ struct EnvChain3DPlanningData
   }
 
   EnvChain3DHashEntry* getHashEntry(const std::vector<int> &coord,
-                                    int action) 
+                                    int action)
   {
     unsigned int bin = getHashBin(coord);
     for(unsigned int i = 0; i < coord_to_state_ID_table_[bin].size(); i++) {
@@ -167,7 +167,7 @@ struct EnvChain3DPlanningData
   //maps from coords to stateID
   std::vector<std::vector<EnvChain3DHashEntry*> > coord_to_state_ID_table_;
 
-  //vector that maps from stateID to coords	
+  //vector that maps from stateID to coords
   std::vector<EnvChain3DHashEntry*> state_ID_to_coord_table_;
 
 };
@@ -192,7 +192,7 @@ public:
           //start not at min limit, so peg the end position
           end = joint_limit_.min_position;
         } else {
-          //start already at min limit          
+          //start already at min limit
           return false;
         }
       } else if(end > joint_limit_.max_position) {
@@ -200,7 +200,7 @@ public:
           //start not at max limit, so peg the end position
           end = joint_limit_.max_position;
         } else {
-          //start already at max limit          
+          //start already at max limit
           return false;
         }
       }
@@ -239,7 +239,7 @@ public:
     } else {
       return fabs(planning_models::shortestAngularDistance(start,end));
     }
-  }  
+  }
   int getIntegerDistance(double start,
                          double end,
                          double delta) {
@@ -276,7 +276,7 @@ public:
     delta_(delta)
   {
   }
-  
+
   virtual bool generateSuccessorState(const std::vector<double>& start,
                                       std::vector<double>& end) {
     end = start;

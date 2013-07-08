@@ -51,7 +51,7 @@ public:
   virtual ~SBPLMetaInterface(){}
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
+             const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::GetMotionPlan::Response &res);
 
   const PlanningStatistics& getLastPlanningStatistics() const {
@@ -62,10 +62,10 @@ protected:
 
   void runSolver(bool use_first,
                  const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const moveit_msgs::GetMotionPlan::Request &req, 
+                 const moveit_msgs::GetMotionPlan::Request &req,
                  moveit_msgs::GetMotionPlan::Response &res,
                  const PlanningParameters& params);
-  
+
   boost::mutex planner_done_mutex_;
   boost::condition_variable planner_done_condition_;
   bool first_ok_;

@@ -61,7 +61,7 @@ void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::Stat
 {
   robot_state::RobotState *s = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*s, state);
-  
+
   const robot_state::LinkState *ls = s->getLinkState(link_name_);
   const Eigen::Vector3d &o = ls->getGlobalLinkTransform().translation();
   projection(0) = o.x();

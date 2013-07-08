@@ -41,7 +41,7 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
 {
   // set the state space name
   setName(spec_.joint_model_group_->getName());
-  
+
   // make sure we have bounds for every joint stored within the spec (use default bounds if not specified)
   const std::vector<const robot_model::JointModel*> &joint_model_vector = spec_.joint_model_group_->getJointModels();
   for (std::size_t i = 0 ; i < joint_model_vector.size() ; ++i)
@@ -54,15 +54,15 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
                  joint_model_vector[i]->getName().c_str(), spec_.joint_model_group_->getName().c_str());
         spec_.joints_bounds_[i] = joint_model_vector[i]->getVariableBounds();
       }
-  
+
   // construct the state space components, subspace by subspace
   for (std::size_t i = 0 ; i < joint_model_vector.size() ; ++i)
     addSubspace(ompl::base::StateSpacePtr(new ModelBasedJointStateSpace(joint_model_vector[i], spec_.joints_bounds_[i])), joint_model_vector[i]->getDistanceFactor());
   jointSubspaceCount_ = joint_model_vector.size();
-  
+
   // default settings
   setTagSnapToSegment(0.95);
-  
+
   /// expose parameters
   params_.declareParam<double>("tag_snap_to_segment",
                                boost::bind(&ModelBasedStateSpace::setTagSnapToSegment, this, _1),
@@ -90,7 +90,7 @@ void ompl_interface::ModelBasedStateSpace::setTagSnapToSegment(double snap)
 }
 
 ompl::base::State* ompl_interface::ModelBasedStateSpace::allocState() const
-{ 
+{
   StateType *state = new StateType();
   allocStateComponents(state);
   return state;
@@ -104,7 +104,7 @@ void ompl_interface::ModelBasedStateSpace::freeState(ompl::base::State *state) c
 void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State *destination, const ompl::base::State *source) const
 {
   CompoundStateSpace::copyState(destination, source);
-  destination->as<StateType>()->tag = source->as<StateType>()->tag; 
+  destination->as<StateType>()->tag = source->as<StateType>()->tag;
   destination->as<StateType>()->flags = source->as<StateType>()->flags;
   destination->as<StateType>()->distance = source->as<StateType>()->distance;
 }
@@ -121,13 +121,13 @@ void ompl_interface::ModelBasedStateSpace::serialize(void *serialization, const 
 }
 
 void ompl_interface::ModelBasedStateSpace::deserialize(ompl::base::State *state, const void *serialization) const
-{   
+{
   state->as<StateType>()->tag = *reinterpret_cast<const int*>(serialization);
   CompoundStateSpace::deserialize(state, reinterpret_cast<const char*>(serialization) + sizeof(int));
 }
 
 double ompl_interface::ModelBasedStateSpace::getMaximumExtent() const
-{ 
+{
   double total = 0.0;
   for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
   {
@@ -150,19 +150,19 @@ double ompl_interface::ModelBasedStateSpace::distance(const ompl::base::State *s
       total += d * d * weights_[i];
     }
     return sqrt(total);
-  }  
+  }
 }
 
 void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
-{  
+{
   // clear any cached info (such as validity known or not)
   state->as<StateType>()->clearKnownInformation();
-  
+
   if (!interpolation_function_ || !interpolation_function_(from, to, t, state))
   {
     // perform the actual interpolation
     CompoundStateSpace::interpolate(from, to, t, state);
-    
+
     // compute tag
     if (from->as<StateType>()->tag >= 0 && t < 1.0 - tag_snap_to_segment_)
       state->as<StateType>()->tag = from->as<StateType>()->tag;
@@ -175,7 +175,7 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *
 }
 
 void ompl_interface::ModelBasedStateSpace::afterStateSample(ompl::base::State *sample) const
-{ 
+{
   sample->as<StateType>()->clearKnownInformation();
 }
 
@@ -184,31 +184,31 @@ namespace ompl_interface
 class WrappedStateSampler : public ompl::base::StateSampler
 {
 public:
-  
+
   WrappedStateSampler(const ompl::base::StateSpace *space, const ompl::base::StateSamplerPtr &wrapped) : ompl::base::StateSampler(space), wrapped_(wrapped)
   {
   }
-  
+
   virtual void sampleUniform(ompl::base::State *state)
   {
     wrapped_->sampleUniform(state);
     space_->as<ModelBasedStateSpace>()->afterStateSample(state);
   }
-  
+
   virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
-  {    
+  {
     wrapped_->sampleUniformNear(state, near, distance);
     space_->as<ModelBasedStateSpace>()->afterStateSample(state);
   }
-  
+
   virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
   {
     wrapped_->sampleGaussian(state, mean, stdDev);
     space_->as<ModelBasedStateSpace>()->afterStateSample(state);
   }
-  
+
 protected:
-  
+
   ompl::base::StateSamplerPtr wrapped_;
 };
 }
@@ -258,6 +258,6 @@ void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *st
 {
   const std::vector<robot_state::JointState*> &src = jsg->getJointStateVector();
   for (std::size_t i = 0 ; i < src.size() ; ++i)
-    *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state = *src[i];     
+    *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state = *src[i];
   state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
 }

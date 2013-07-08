@@ -43,35 +43,35 @@ namespace ompl_interface
 class GoalSampleableRegionMux : public ompl::base::GoalSampleableRegion
 {
 public:
-  
+
   /** @brief Constructor
    *  @param goals The input set of goals*/
   GoalSampleableRegionMux(const std::vector<ompl::base::GoalPtr> &goals);
-  
+
   virtual ~GoalSampleableRegionMux()
   {
   }
-  
+
   /** @brief Sample a goal*/
   virtual void sampleGoal(ompl::base::State *st) const;
-  
+
   /** @brief Get the max sample count*/
   virtual unsigned int maxSampleCount() const;
-  
+
   /** @brief Query if sampler can find any sample*/
   virtual bool canSample() const;
-  
+
   /** @brief Is the goal satisfied for this state (given a distance)*/
   virtual bool isSatisfied(const ompl::base::State *st, double *distance) const;
-  
+
   /** @brief Find the distance of this state from the goal*/
   virtual double distanceGoal(const ompl::base::State *st) const;
-  
+
   /** @brief Pretty print goal information*/
   virtual void print(std::ostream &out = std::cout) const;
-  
+
 protected:
-  
+
   std::vector<ompl::base::GoalPtr> goals_;
   mutable unsigned int             gindex_;
 };

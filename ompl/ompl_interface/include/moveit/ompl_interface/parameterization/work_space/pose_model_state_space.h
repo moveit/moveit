@@ -52,27 +52,27 @@ public:
   class StateType : public ModelBasedStateSpace::StateType
   {
   public:
-    enum 
+    enum
       {
         JOINTS_COMPUTED = 256,
         POSE_COMPUTED = 512
       };
-    
+
     StateType() : ModelBasedStateSpace::StateType()
     {
       flags |= JOINTS_COMPUTED;
-    }    
+    }
 
     bool jointsComputed() const
     {
       return flags & JOINTS_COMPUTED;
     }
-    
+
     bool poseComputed() const
     {
       return flags & POSE_COMPUTED;
     }
-    
+
     void setJointsComputed(bool value)
     {
       if (value)
@@ -80,7 +80,7 @@ public:
       else
         flags &= ~JOINTS_COMPUTED;
     }
-    
+
     void setPoseComputed(bool value)
     {
       if (value)
@@ -88,14 +88,14 @@ public:
       else
         flags &= ~POSE_COMPUTED;
     }
-    
+
   };
-  
+
   PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
   virtual ~PoseModelStateSpace();
-  
+
   virtual ompl::base::State* allocState() const;
-  virtual void freeState(ompl::base::State *state) const;  
+  virtual void freeState(ompl::base::State *state) const;
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
   virtual double distance(const ompl::base::State *state1, const ompl::base::State *state2) const;
@@ -108,22 +108,22 @@ public:
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   virtual void copyToOMPLState(ompl::base::State *state, const robot_state::JointStateGroup* jsg) const;
   virtual void sanityChecks() const;
-  
+
 private:
 
   struct PoseComponent
   {
     PoseComponent(const robot_model::JointModelGroup *subgroup);
-    
+
     bool computeStateFK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state) const;
     bool computeStateIK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state) const;
-    
+
     bool operator<(const PoseComponent &o) const
     {
       return subgroup_->getName() < o.subgroup_->getName();
     }
-    
-    const robot_model::JointModelGroup *subgroup_;    
+
+    const robot_model::JointModelGroup *subgroup_;
     boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
     ompl::base::StateSpacePtr state_space_;
     std::vector<std::string> fk_link_;
@@ -131,7 +131,7 @@ private:
     std::vector<unsigned int> joint_val_count_;
     unsigned int variable_count_;
   };
-  
+
   void constructSpaceFromPoses();
   virtual void afterStateSample(ompl::base::State *sample) const;
 

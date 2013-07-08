@@ -48,7 +48,7 @@ static const std::string ROBOT_DESCRIPTION="robot_description";      // name of 
 class OMPLPlannerService
 {
 public:
-  
+
   OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor &psm, bool debug = false) :
     nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getRobotModel()), debug_(debug)
   {
@@ -59,7 +59,7 @@ public:
       pub_request_ = nh_.advertise<moveit_msgs::MotionPlanRequest>("motion_plan_request", 100);
     }
   }
-  
+
   bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
   {
     ROS_INFO("Received new planning request...");
@@ -68,7 +68,7 @@ public:
     planning_interface::MotionPlanResponse response;
     bool result = ompl_interface_.solve(psm_.getPlanningScene(), req.motion_plan_request, response);
     res.motion_plan_response.error_code = response.error_code_;
-    
+
     if (debug_)
     {
       if (result)
@@ -95,11 +95,11 @@ public:
     if (debug_)
       ROS_INFO("Publishing debug information");
   }
-  
+
 private:
-  
+
   ros::NodeHandle                               nh_;
-  planning_scene_monitor::PlanningSceneMonitor &psm_;  
+  planning_scene_monitor::PlanningSceneMonitor &psm_;
   ompl_interface::OMPLInterface                 ompl_interface_;
   ros::ServiceServer                            plan_service_;
   ros::ServiceServer                            display_states_service_;
@@ -111,15 +111,15 @@ private:
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, PLANNER_NODE_NAME);
-  
+
   bool debug = false;
   for (int i = 1 ; i < argc ; ++i)
     if (strncmp(argv[i], "--debug", 7) == 0)
       debug = true;
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
   if (psm.getPlanningScene())
@@ -127,13 +127,13 @@ int main(int argc, char **argv)
     psm.startWorldGeometryMonitor();
     psm.startSceneMonitor();
     psm.startStateMonitor();
-    
+
     OMPLPlannerService pservice(psm, debug);
     pservice.status();
     ros::waitForShutdown();
   }
   else
-    ROS_ERROR("Planning scene not configured");  
-  
+    ROS_ERROR("Planning scene not configured");
+
   return 0;
 }

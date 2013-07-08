@@ -63,11 +63,11 @@ ompl_interface::PoseModelStateSpace::~PoseModelStateSpace()
 
 void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses()
 {
-  std::sort(poses_.begin(), poses_.end());  
+  std::sort(poses_.begin(), poses_.end());
   for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
     weights_[i] = 0;
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
-    addSubspace(poses_[i].state_space_, 1.0);  
+    addSubspace(poses_[i].state_space_, 1.0);
   setName(getJointModelGroupName() + "_" + PARAMETERIZATION_TYPE);
   lock();
 }
@@ -104,7 +104,7 @@ void ompl_interface::PoseModelStateSpace::copyState(ompl::base::State *destinati
 {
   // copy the state data
   ModelBasedStateSpace::copyState(destination, source);
-  
+
   // compute additional stuff if needed
   computeStateK(destination);
 }
@@ -121,7 +121,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   // we want to interpolate in Cartesian space; we do not have a guarantee that from and to
   // have their poses computed, but this is very unlikely to happen (depends how the planner gets its input states)
   ModelBasedStateSpace::interpolate(from, to, t, state);
-  
+
   // the call above may reset all flags for state; but we know the pose we want flag should be set
   state->as<StateType>()->setPoseComputed(true);
 
@@ -134,7 +134,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   */
 
   // after interpolation we cannot be sure about the joint values (we use them as seed only)
-  // so we recompute IK if needed 
+  // so we recompute IK if needed
   if (computeStateIK(state))
   {
     for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
@@ -146,8 +146,8 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
       // if the joint value jumped too much
       if (d_from + d_to > std::max(0.2, dj))
       {
-	state->as<StateType>()->markInvalid();
-	break;
+    state->as<StateType>()->markInvalid();
+    break;
       }
     }
   }
@@ -168,7 +168,7 @@ ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const robot_mo
 {
   state_space_.reset(new ompl::base::SE3StateSpace());
   state_space_->setName(subgroup_->getName() + "_Workspace");
-  fk_link_.resize(1, kinematics_solver_->getTipFrame());      
+  fk_link_.resize(1, kinematics_solver_->getTipFrame());
   joint_names_ = kinematics_solver_->getJointNames();
   joint_val_count_.resize(joint_names_.size());
   for (std::size_t i = 0 ; i < joint_names_.size() ; ++i)
@@ -177,7 +177,7 @@ ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const robot_mo
 }
 
 bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateFK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state_part) const
-{  
+{
   // read the values from the joint state by name, in the order expected by the kinematics solver
   std::vector<double> values(variable_count_);
   unsigned int vindex = 0;
@@ -187,12 +187,12 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateFK(const om
     for (unsigned int j = 0 ; j < joint_val_count_[i] ; ++j)
       values[vindex++] = v[j];
   }
-  
+
   // compute forward kinematics for the link of interest
   std::vector<geometry_msgs::Pose> poses;
   if (!kinematics_solver_->getPositionFK(fk_link_, values, poses))
     return false;
-  
+
   // copy the resulting data to the desired location in the state
   ompl::base::SE3StateSpace::StateType *se3_state = state_part->as<ompl::base::SE3StateSpace::StateType>();
   se3_state->setXYZ(poses[0].position.x, poses[0].position.y, poses[0].position.z);
@@ -201,7 +201,7 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateFK(const om
   so3_state.y = poses[0].orientation.y;
   so3_state.z = poses[0].orientation.z;
   so3_state.w = poses[0].orientation.w;
-  
+
   return true;
 }
 
@@ -224,7 +224,7 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(const om
     std::cout << seed_values[i] << " ";
   std::cout << std::endl;
   */
-    
+
   // construct the pose
   geometry_msgs::Pose pose;
   const ompl::base::SE3StateSpace::StateType *se3_state = state->as<ompl::base::SE3StateSpace::StateType>();
@@ -236,24 +236,24 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(const om
   pose.orientation.y = so3_state.y;
   pose.orientation.z = so3_state.z;
   pose.orientation.w = so3_state.w;
-  
+
   // run IK
   std::vector<double> solution;
   moveit_msgs::MoveItErrorCodes err_code;
   if (!kinematics_solver_->getPositionIK(pose, seed_values, solution, err_code))
   {
     if (err_code.val != moveit_msgs::MoveItErrorCodes::TIMED_OUT ||
-	!kinematics_solver_->searchPositionIK(pose, seed_values, kinematics_solver_->getDefaultTimeout() * 2.0, solution, err_code))
+    !kinematics_solver_->searchPositionIK(pose, seed_values, kinematics_solver_->getDefaultTimeout() * 2.0, solution, err_code))
       return false;
   }
-  
-  // copy solution to the joint state 
+
+  // copy solution to the joint state
   vindex = 0;
   for (std::size_t i = 0 ; i < jaddr.size() ; ++i)
     for (unsigned int j = 0 ; j < joint_val_count_[i] ; ++j)
       jaddr[i][j] = solution[vindex++];
-  
-  return true;      
+
+  return true;
 }
 
 bool ompl_interface::PoseModelStateSpace::computeStateFK(ompl::base::State *state) const
@@ -271,14 +271,14 @@ bool ompl_interface::PoseModelStateSpace::computeStateFK(ompl::base::State *stat
 }
 
 bool ompl_interface::PoseModelStateSpace::computeStateIK(ompl::base::State *state) const
-{  
+{
   if (state->as<StateType>()->jointsComputed())
     return true;
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     if (!poses_[i].computeStateIK(this, state, state->as<StateType>()->components[componentCount_ - i - 1]))
     {
       state->as<StateType>()->markInvalid();
-      return false;      
+      return false;
     }
   state->as<StateType>()->setJointsComputed(true);
   return true;
@@ -294,13 +294,13 @@ bool ompl_interface::PoseModelStateSpace::computeStateK(ompl::base::State *state
     return true;
   state->as<StateType>()->markInvalid();
   return false;
-} 
+}
 
 void ompl_interface::PoseModelStateSpace::afterStateSample(ompl::base::State *sample) const
 {
-  ModelBasedStateSpace::afterStateSample(sample); 
+  ModelBasedStateSpace::afterStateSample(sample);
   sample->as<StateType>()->setJointsComputed(true);
-  sample->as<StateType>()->setPoseComputed(false);  
+  sample->as<StateType>()->setPoseComputed(false);
   computeStateFK(sample);
   /*
   std::cout << "SAMPLE:\n";
@@ -311,7 +311,7 @@ void ompl_interface::PoseModelStateSpace::afterStateSample(ompl::base::State *sa
 void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State *state, const robot_state::JointStateGroup* jsg) const
 {
   ModelBasedStateSpace::copyToOMPLState(state, jsg);
-  state->as<StateType>()->setJointsComputed(true);  
+  state->as<StateType>()->setJointsComputed(true);
   state->as<StateType>()->setPoseComputed(false);
   computeStateFK(state);
   /*

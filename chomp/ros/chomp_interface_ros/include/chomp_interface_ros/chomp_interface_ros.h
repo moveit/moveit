@@ -52,15 +52,15 @@ public:
   const chomp::ChompParameters& getParams() const {
     return params_;
   }
-  
+
 protected:
-  
+
   /** @brief Configure everything using the param server */
   void loadParams();
-  
+
   ros::NodeHandle nh_; /// The ROS node handle
 
-  chomp::ChompParameters params_;  
+  chomp::ChompParameters params_;
 };
 
 }

@@ -55,13 +55,13 @@ static const double DIFF_RULES[3][DIFF_RULE_LENGTH] = {
 };
 
 static inline void jointStateToArray(const planning_models::RobotModelConstPtr& kmodel,
-                              const sensor_msgs::JointState &joint_state, 
-                              const std::string& planning_group_name, 
+                              const sensor_msgs::JointState &joint_state,
+                              const std::string& planning_group_name,
                               Eigen::MatrixXd::RowXpr joint_array)
 {
   const planning_models::RobotModel::JointModelGroup* group = kmodel->getJointModelGroup(planning_group_name);
   std::vector<const planning_models::RobotModel::JointModel*> models = group->getJointModels();
-  
+
   for(unsigned int i=0; i < joint_state.position.size(); i++)
   {
     for(size_t j = 0; j < models.size(); j++)

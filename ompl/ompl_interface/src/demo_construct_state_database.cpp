@@ -57,16 +57,16 @@ moveit_msgs::Constraints getConstraints()
   ocm.weight = 1.0;
   moveit_msgs::Constraints cmsg;
   cmsg.orientation_constraints.resize(1, ocm);
-  cmsg.name = ocm.link_name + ":upright";   
+  cmsg.name = ocm.link_name + ":upright";
   return cmsg;
 }
 
 void computeDB(const robot_model::RobotModelPtr &robot_model,
-	       unsigned int ns, unsigned int ne)
+           unsigned int ns, unsigned int ne)
 {
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(robot_model));
   ompl_interface::OMPLInterface ompl_interface(robot_model);
-  moveit_msgs::Constraints c = getConstraints(); 
+  moveit_msgs::Constraints c = getConstraints();
   ompl_interface::ConstraintApproximationConstructionOptions opt;
   opt.state_space_parameterization = "PoseModel";
   opt.samples = ns;
@@ -75,7 +75,7 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
   opt.max_edge_length = 0.2;
   opt.explicit_points_resolution = 0.05;
   opt.max_explicit_points = 10;
-  
+
   ompl_interface.getConstraintsLibrary().addConstraintApproximation(c, "right_arm", ps, opt);
   ompl_interface.getConstraintsLibrary().saveConstraintApproximations("~/constraints_approximation_database");
   ROS_INFO("Done");
@@ -86,7 +86,7 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
   {
     planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
     robot_state::robotStateMsgToRobotState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentStateNonConst());
-    ompl_interface::ConstraintApproximationConstructionResults ca_res = 
+    ompl_interface::ConstraintApproximationConstructionResults ca_res =
       ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
                                                                          diff_scene, req.samples, req.edges_per_sample);
     if (ca_res.approx)
@@ -100,18 +100,18 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
     else
       return false;
   }
-  */  
+  */
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "construct_ompl_state_database", ros::init_options::AnonymousName);
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   unsigned int nstates = 1000;
   unsigned int nedges = 0;
-  
+
   if (argc > 1)
     try
     {
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     catch(...)
     {
     }
-  
+
   if (argc > 2)
     try
     {
@@ -129,10 +129,10 @@ int main(int argc, char **argv)
     catch(...)
     {
     }
-  
+
   robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
   computeDB(rml.getModel(), nstates, nedges);
-  
+
   ros::shutdown();
   return 0;
 }

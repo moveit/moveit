@@ -49,17 +49,17 @@ double getRandomDouble()
   return ((double)random() / (double)RAND_MAX);
 }
 
-ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory, 
+ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
                                const planning_scene::PlanningSceneConstPtr& planning_scene,
                                const std::string& planning_group,
                                const ChompParameters *parameters,
                                const planning_models::RobotState& start_state) :
-  full_trajectory_(trajectory), 
-  kmodel_(planning_scene->getRobotModel()), 
-  planning_group_(planning_group), 
+  full_trajectory_(trajectory),
+  kmodel_(planning_scene->getRobotModel()),
+  planning_group_(planning_group),
   parameters_(parameters),
-  group_trajectory_(*full_trajectory_, 
-                    planning_group_, 
+  group_trajectory_(*full_trajectory_,
+                    planning_group_,
                     DIFF_RULE_LENGTH),
   planning_scene_(planning_scene),
   state_(start_state),
@@ -86,17 +86,17 @@ void ChompOptimizer::initialize()
   num_vars_free_ = group_trajectory_.getNumFreePoints();
   num_vars_all_ = group_trajectory_.getNumPoints();
   num_joints_ = group_trajectory_.getNumJoints();
-  
+
   free_vars_start_ = group_trajectory_.getStartIndex();
   free_vars_end_ = group_trajectory_.getEndIndex();
-  
+
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = planning_group_;
   ros::WallTime wt = ros::WallTime::now();
   hy_world_->getCollisionGradients(req,
                                    res,
-                                   *hy_robot_->getCollisionRobotDistanceField().get(), 
+                                   *hy_robot_->getCollisionRobotDistanceField().get(),
                                    state_,
                                    &planning_scene_->getAllowedCollisionMatrix(),
                                    gsr_);
@@ -106,13 +106,13 @@ void ChompOptimizer::initialize()
   {
     num_collision_points_ += gsr_->gradients_[i].gradients.size();
   }
-  
+
   // set up the joint costs:
   joint_costs_.reserve(num_joints_);
-  
+
   double max_cost_scale = 0.0;
-  
-  joint_model_group_ = planning_scene_->getRobotModel()->getJointModelGroup(planning_group_); 
+
+  joint_model_group_ = planning_scene_->getRobotModel()->getJointModelGroup(planning_group_);
 
   const std::vector<const planning_models::RobotModel::JointModel*> joint_models = joint_model_group_->getJointModels();
   for(size_t i = 0; i < joint_models.size(); i++)
@@ -130,13 +130,13 @@ void ChompOptimizer::initialize()
     if(max_cost_scale < cost_scale)
       max_cost_scale = cost_scale;
   }
-  
+
   // scale the smoothness costs
   for(int i = 0; i < num_joints_; i++)
   {
     joint_costs_[i].scale(max_cost_scale);
   }
-  
+
   // allocate memory for matrices:
   smoothness_increments_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
   collision_increments_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
@@ -147,28 +147,28 @@ void ChompOptimizer::initialize()
   jacobian_jacobian_tranpose_ = Eigen::MatrixXd::Zero(3, 3);
   random_state_ = Eigen::VectorXd::Zero(num_joints_);
   joint_state_velocities_ = Eigen::VectorXd::Zero(num_joints_);
-  
+
   group_trajectory_backup_ = group_trajectory_.getTrajectory();
   best_group_trajectory_ = group_trajectory_.getTrajectory();
-  
+
   collision_point_joint_names_.resize(num_vars_all_, std::vector<std::string>(num_collision_points_));
   collision_point_pos_eigen_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_collision_points_));
   collision_point_vel_eigen_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_collision_points_));
   collision_point_acc_eigen_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_collision_points_));
   joint_axes_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_joints_));
   joint_positions_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_joints_));
-  
+
   collision_point_potential_.resize(num_vars_all_, std::vector<double>(num_collision_points_));
   collision_point_vel_mag_.resize(num_vars_all_, std::vector<double>(num_collision_points_));
   collision_point_potential_gradient_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_collision_points_));
-  
+
   collision_free_iteration_ = 0;
   is_collision_free_ = false;
   state_is_in_collision_.resize(num_vars_all_);
   point_is_in_collision_.resize(num_vars_all_, std::vector<int>(num_collision_points_));
-  
+
   last_improvement_iteration_ = -1;
-  
+
   // HMC initialization:
   momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
   random_momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
@@ -181,7 +181,7 @@ void ChompOptimizer::initialize()
                                      MultivariateGaussian(Eigen::VectorXd::Zero(num_vars_free_),
                                                           joint_costs_[i].getQuadraticCostInverse()));
   }
-  
+
   std::map<std::string, std::string> fixed_link_resolution_map;
   for(int i = 0; i < num_joints_; i++)
   {
@@ -190,7 +190,7 @@ void ChompOptimizer::initialize()
     registerParents(joint_model_group_->getJointModels()[i]);
     fixed_link_resolution_map[joint_names_[i]] = joint_names_[i];
   }
-  
+
   for(size_t i = 0; i < joint_model_group_->getFixedJointModels().size(); i ++)
   {
     const planning_models::RobotModel::JointModel* model = joint_model_group_->getFixedJointModels()[i];
@@ -248,7 +248,7 @@ void ChompOptimizer::initialize()
     for(size_t g = 0; g < gsr_->gradients_.size(); g++)
     {
       collision_detection::GradientInfo& info = gsr_->gradients_[g];
-      
+
       for(size_t k = 0; k < info.sphere_locations.size(); k++)
       {
         if(fixed_link_resolution_map.find(info.joint_name) != fixed_link_resolution_map.end())
@@ -281,7 +281,7 @@ void ChompOptimizer::registerParents(const planning_models::RobotModel::JointMod
   while(!found_root)
   {
     if(parent_model == NULL)
-    { 
+    {
       if(model->getParentLinkModel() == NULL) {
         ROS_ERROR_STREAM("Model " << model->getName() << " not root but has NULL link model parent");
         return;
@@ -392,10 +392,10 @@ void ChompOptimizer::optimize()
         should_break_out = true;
       }
       // } else if(safety == CollisionProximitySpace::InCollisionSafe) {
-      
+
       // ROS_DEBUG("Trajectory cost: %f (s=%f, c=%f)", getTrajectoryCost(), getSmoothnessCost(), getCollisionCost());
       // CollisionProximitySpace::TrajectorySafety safety = checkCurrentIterValidity();
-      // if(safety == CollisionProximitySpace::MeshToMeshSafe) 
+      // if(safety == CollisionProximitySpace::MeshToMeshSafe)
       // {
       //   num_collision_free_iterations_ = 0;
       //   ROS_INFO("Chomp Got mesh to mesh safety at iter %d. Breaking out early.", iteration_);
@@ -762,9 +762,9 @@ void ChompOptimizer::computeJointProperties(int trajectory_point)
   {
     const planning_models::RobotState *::JointState* joint_state = state_.getJointState(joint_names_[j]);
     const planning_models::RobotModel::JointModel* joint_model = joint_state->getJointModel();
-    const planning_models::RobotModel::RevoluteJointModel* revolute_joint 
+    const planning_models::RobotModel::RevoluteJointModel* revolute_joint
       = dynamic_cast<const planning_models::RobotModel::RevoluteJointModel*>(joint_model);
-    const planning_models::RobotModel::PrismaticJointModel* prismatic_joint 
+    const planning_models::RobotModel::PrismaticJointModel* prismatic_joint
       = dynamic_cast<const planning_models::RobotModel::PrismaticJointModel*>(joint_model);
 
     std::string parent_link_name = joint_model->getParentLinkModel()->getName();
@@ -790,15 +790,15 @@ void ChompOptimizer::computeJointProperties(int trajectory_point)
     }
 
     axis = joint_transform * axis;
-    
+
     joint_axes_[trajectory_point][j] = axis;
     joint_positions_[trajectory_point][j] = joint_transform.translation();
   }
 }
 
 template<typename Derived>
-void ChompOptimizer::getJacobian(int trajectory_point, 
-                                 Eigen::Vector3d& collision_point_pos, 
+void ChompOptimizer::getJacobian(int trajectory_point,
+                                 Eigen::Vector3d& collision_point_pos,
                                  std::string& joint_name,
                                  Eigen::MatrixBase<Derived>& jacobian) const
 {
@@ -829,14 +829,14 @@ void ChompOptimizer::handleJointLimits()
   const std::vector<const planning_models::RobotModel::JointModel*> joint_models = joint_model_group_->getJointModels();
   for(size_t joint_i = 0; joint_i < joint_models.size(); joint_i++) {
     const planning_models::RobotModel::JointModel* joint_model = joint_models[joint_i];
-    const planning_models::RobotModel::RevoluteJointModel* revolute_joint 
+    const planning_models::RobotModel::RevoluteJointModel* revolute_joint
       = dynamic_cast<const planning_models::RobotModel::RevoluteJointModel*>(joint_model);
-    
+
     if(revolute_joint->isContinuous())
     {
       continue;
     }
-    
+
     const planning_models::RobotModel::JointModel::Bounds& bounds = joint_model->getVariableBounds();
 
     double joint_max = -DBL_MAX;
@@ -848,7 +848,7 @@ void ChompOptimizer::handleJointLimits()
       {
         joint_min = (*it).first;
       }
-      
+
       if((*it).second > joint_max)
       {
         joint_max = (*it).second;
@@ -930,10 +930,10 @@ void ChompOptimizer::performForwardKinematics()
     req.group_name = planning_group_;
     setRobotStateFromPoint(group_trajectory_, i);
     ros::WallTime grad = ros::WallTime::now();
-    
+
     hy_world_->getCollisionGradients(req,
                                      res,
-                                     *hy_robot_->getCollisionRobotDistanceField().get(),                              
+                                     *hy_robot_->getCollisionRobotDistanceField().get(),
                                      state_,
                                      NULL,
                                      gsr_);
@@ -994,7 +994,7 @@ void ChompOptimizer::performForwardKinematics()
         collision_point_acc_eigen_[i][j] += (inv_time_sq * DIFF_RULES[1][k + DIFF_RULE_LENGTH / 2]) * collision_point_pos_eigen_[i
                                                                                                                                  + k][j];
       }
-      
+
       // get the norm of the velocity:
       collision_point_vel_mag_[i][j] = collision_point_vel_eigen_[i][j].norm();
     }
@@ -1028,7 +1028,7 @@ void ChompOptimizer::perturbTrajectory()
   std::vector<double> vals;
   random_state.getJointStateGroup(planning_group_)->getGroupStateValues(vals);
   double* ptr = &vals[0];
-  Eigen::Map<Eigen::VectorXd> random_matrix(ptr, vals.size()); 
+  Eigen::Map<Eigen::VectorXd> random_matrix(ptr, vals.size());
   //Eigen::VectorXd random_matrix = vals;
 
   // convert the state into an increment
@@ -1039,7 +1039,7 @@ void ChompOptimizer::perturbTrajectory()
   joint_state_velocities_.normalize();
   random_matrix = (Eigen::MatrixXd::Identity(num_joints_, num_joints_) - joint_state_velocities_
                    * joint_state_velocities_.transpose()) * random_matrix;
-                   
+
   int mp_free_vars_index = mid_point - free_vars_start_;
   for(int i = 0; i < num_joints_; i++)
   {
@@ -1056,14 +1056,14 @@ void ChompOptimizer::perturbTrajectory()
 //   {
 
 //     bool continuous = false;
-      
+
 //     RobotState *::JointState* jointState = jointStates[i];
-//     const RobotModel::RevoluteJointModel* revolute_joint 
+//     const RobotModel::RevoluteJointModel* revolute_joint
 //       = dynamic_cast<const RobotModel::RevoluteJointModel*>(jointState->getJointModel());
 //     if(revolute_joint && revolute_joint->continuous_) {
 //       continuous = true;
 //     }
-      
+
 //     map<string, pair<double, double> > bounds = jointState->getJointModel()->getAllVariableBounds();
 //     int j = 0;
 //     for(map<string, pair<double, double> >::iterator it = bounds.begin(); it != bounds.end(); it++)
@@ -1071,7 +1071,7 @@ void ChompOptimizer::perturbTrajectory()
 //       double randVal = jointState->getJointStateValues()[j] + (getRandomDouble()
 //                                                                * (parameters_->getRandomJumpAmount()) - getRandomDouble() * (parameters_->getRandomJumpAmount()));
 
-//       if(!continuous) 
+//       if(!continuous)
 //       {
 //         if(randVal > it->second.second)
 //         {
@@ -1085,7 +1085,7 @@ void ChompOptimizer::perturbTrajectory()
 
 //       ROS_DEBUG_STREAM("Joint " << it->first << " old value " << jointState->getJointStateValues()[j] << " new value " << randVal);
 //       state_vec(i) = randVal;
-        
+
 //       j++;
 //     }
 //   }

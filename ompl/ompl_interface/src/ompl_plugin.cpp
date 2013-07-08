@@ -81,7 +81,7 @@ public:
   {
     return "OMPL";
   }
-  
+
   virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
     const planning_interface::PlannerConfigurationMap &pconfig = ompl_interface_->getPlannerConfigurations();
@@ -90,8 +90,8 @@ public:
     for (planning_interface::PlannerConfigurationMap::const_iterator it = pconfig.begin() ; it != pconfig.end() ; ++it)
       algs.push_back(it->first);
   }
-  
-  virtual void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig) 
+
+  virtual void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig)
   {
     // this call can add a few more configs than we pass in (adds defaults)
     ompl_interface_->setPlannerConfigurations(pconfig);
@@ -105,7 +105,7 @@ public:
   {
     return ompl_interface_->getPlanningContext(planning_scene, req, error_code);
   }
-  
+
 private:
 
     /*
@@ -139,7 +139,7 @@ private:
     ob::ScopedState<> rstate2(ss.getStateSpace());
     ros::WallDuration wait(2);
     unsigned int n = 0;
-    std::vector<ob::State*> sts;  
+    std::vector<ob::State*> sts;
     if (vss->sample(rstate2.get()))
       while (display_random_valid_states_)
       {
@@ -175,7 +175,7 @@ private:
 
   void displayPlannerData(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const std::string &link_name) const
-  {    
+  {
     ompl_interface::ModelBasedPlanningContextPtr pc = ompl_interface_->getLastPlanningContext();
     if (pc)
     {
@@ -224,9 +224,9 @@ private:
       planner_data_link_name_.clear();
       ROS_INFO("Not displaying OMPL exploration data structures.");
     }
-    else   
+    else
       if (!config.link_for_exploration_tree.empty() && planner_data_link_name_.empty())
-      {    
+      {
         pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
         planner_data_link_name_ = config.link_for_exploration_tree;
         ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
@@ -248,14 +248,14 @@ private:
     }
     else
       if (!display_random_valid_states_ && config.display_random_valid_states)
-      {   
+      {
         pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
         pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
-	display_random_valid_states_ = true; 
-        //	pub_valid_states_thread_.reset(new boost::thread(boost::bind(&OMPLPlannerManager::displayRandomValidStates, this)));
+    display_random_valid_states_ = true;
+        //    pub_valid_states_thread_.reset(new boost::thread(boost::bind(&OMPLPlannerManager::displayRandomValidStates, this)));
       }
   }
-  
+
   ros::NodeHandle nh_;
   boost::scoped_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig> > dynamic_reconfigure_server_;
   boost::scoped_ptr<OMPLInterface> ompl_interface_;

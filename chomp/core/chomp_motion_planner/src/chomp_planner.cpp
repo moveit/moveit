@@ -47,7 +47,7 @@ ChompPlanner::ChompPlanner(const planning_models::RobotModelConstPtr& kmodel)
 }
 
 bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                         const moveit_msgs::GetMotionPlan::Request &req, 
+                         const moveit_msgs::GetMotionPlan::Request &req,
                          const chomp::ChompParameters& params,
                          moveit_msgs::GetMotionPlan::Response &res) const
 {
@@ -57,7 +57,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                              .03,
                              req.motion_plan_request.group_name);
   jointStateToArray(planning_scene->getRobotModel(),
-                    req.motion_plan_request.start_state.joint_state, 
+                    req.motion_plan_request.start_state.joint_state,
                     req.motion_plan_request.group_name,
                     trajectory.getTrajectoryPoint(0));
 
@@ -71,10 +71,10 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                     << " to position " << req.motion_plan_request.goal_constraints[0].joint_constraints[i].position);
   }
   jointStateToArray(planning_scene->getRobotModel(),
-                    js, 
-                    req.motion_plan_request.group_name, 
+                    js,
+                    req.motion_plan_request.group_name,
                     trajectory.getTrajectoryPoint(goal_index));
-  const planning_models::RobotModel::JointModelGroup* model_group = 
+  const planning_models::RobotModel::JointModelGroup* model_group =
     planning_scene->getRobotModel()->getJointModelGroup(req.motion_plan_request.group_name);
   // fix the goal to move the shortest angular distance for wrap-around joints:
   for (size_t i = 0; i < model_group->getJointModels().size(); i++)
@@ -93,17 +93,17 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
       }
     }
   }
-  
+
   // fill in an initial quintic spline trajectory
   trajectory.fillInMinJerk();
 
   // optimize!
   planning_models::RobotState *start_state(planning_scene->getCurrentState());
   planning_models::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
-    
+
   ros::WallTime create_time = ros::WallTime::now();
-  ChompOptimizer optimizer(&trajectory, 
-                           planning_scene, 
+  ChompOptimizer optimizer(&trajectory,
+                           planning_scene,
                            req.motion_plan_request.group_name,
                            &params,
                            start_state);
@@ -146,7 +146,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     // Further filtering is required to set valid timestamps accounting for velocity and acceleration constraints.
     res.trajectory.joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
   }
-  
+
   ROS_INFO("Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   ROS_INFO("Serviced planning request in %f wall-seconds, trajectory duration is %f", (ros::WallTime::now() - start_time).toSec(), res.trajectory.joint_trajectory.points[goal_index].time_from_start.toSec());
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
