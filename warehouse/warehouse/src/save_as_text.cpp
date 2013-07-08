@@ -80,17 +80,17 @@ int main(int argc, char **argv)
     ("help", "Show help message")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
     ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
-  
+
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
-  
+
   if (vm.count("help"))
   {
     std::cout << desc << std::endl;
     return 1;
   }
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
@@ -104,10 +104,10 @@ int main(int argc, char **argv)
 
   moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
                                              vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-  
+
   std::vector<std::string> scene_names;
   pss.getPlanningSceneNames(scene_names);
-  
+
   for (std::size_t i = 0 ; i < scene_names.size() ; ++i)
   {
     moveit_warehouse::PlanningSceneWithMetadata pswm;
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
       std::ofstream fout((scene_names[i] + ".scene").c_str());
       psm.getPlanningScene()->saveGeometryToStream(fout);
       fout.close();
-            
+
       std::vector<std::string> robotStateNames;
       robot_model::RobotModelConstPtr km = psm.getRobotModel();
       // Get start states for scene
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 
       // Get goal constraints for scene
       std::vector<std::string> constraintNames;
-      
+
       std::stringstream csregex;
       csregex << ".*" << scene_names[i] << ".*";
       cs.getKnownConstraints(csregex.str(), constraintNames);
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
             qfout << "." << std::endl;
           }
         }
-      
+
         if(constraintNames.size())
         {
           qfout << "goal" << std::endl;
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
             qfout << constraintNames[k] << std::endl;
             moveit_warehouse::ConstraintsWithMetadata constraints;
             cs.getConstraints(constraints, constraintNames[k]);
-            
+
             LinkConstraintMap lcmap;
             collectLinkConstraints(*constraints, lcmap);
             for(LinkConstraintMap::iterator iter = lcmap.begin(); iter != lcmap.end(); iter++)
@@ -181,15 +181,15 @@ int main(int argc, char **argv)
             }
             qfout << "." << std::endl;
           }
-        }      
+        }
         qfout.close();
       }
     }
 
-    
+
   }
-  
+
   ROS_INFO("Done.");
-  
+
   return 0;
 }

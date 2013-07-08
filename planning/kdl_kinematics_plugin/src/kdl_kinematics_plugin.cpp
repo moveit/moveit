@@ -368,7 +368,7 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
 
   return searchPositionIK(ik_pose,
                           ik_seed_state,
-			  default_timeout_,
+              default_timeout_,
                           solution,
                           solution_callback,
                           error_code,
@@ -578,7 +578,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   error_code.val = error_code.NO_IK_SOLUTION;
   ik_solver_vel.unlockRedundantJoints();
   if(options.return_approximate_solution)
-    return true;  
+    return true;
   return false;
 }
 

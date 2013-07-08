@@ -45,14 +45,14 @@
 namespace pick_place
 {
 
-namespace 
+namespace
 {
 using namespace moveit_ros_manipulation;
 
 class DynamicReconfigureImpl
-{ 
+{
 public:
-  
+
   DynamicReconfigureImpl() : dynamic_reconfigure_server_(ros::NodeHandle("~/pick_place")),
                              max_goal_count_(5),
                              max_fail_(3),
@@ -61,16 +61,16 @@ public:
   {
     dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
   }
-  
+
   unsigned int max_goal_count_;
   unsigned int max_fail_;
   double max_step_;
   double jump_factor_;
-  
+
 private:
-  
+
   void dynamicReconfigureCallback(PickPlaceDynamicReconfigureConfig &config, uint32_t level)
-  {   
+  {
     max_goal_count_ = config.max_attempted_states_per_pose;
     max_fail_ = config.max_consecutive_fail_attempts;
     max_step_ = config.cartesian_motion_step_size;
@@ -127,7 +127,7 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
   robot_state::JointStateGroup *jsg = token_state->getJointStateGroup(plan->shared_data_->planning_group_);
   for (unsigned int j = 0 ; j < attempts ; ++j)
   {
-    double min_d = std::numeric_limits<double>::infinity();  
+    double min_d = std::numeric_limits<double>::infinity();
     if (plan->goal_sampler_->sample(jsg, *token_state, plan->shared_data_->max_goal_sampling_attempts_))
     {
       for (std::size_t i = 0 ; i < plan->possible_goal_states_.size() ; ++i)
@@ -243,7 +243,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
         if (d_close_up > 0.0 && close_up_states.size() > 1)
           *plan->possible_goal_states_[i]  = *close_up_states[close_up_states.size() - 2];
       }
-      
+
       // try to compute a straight line path that arrives at the goal using the specified approach direction
       robot_state::RobotStatePtr first_approach_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
 

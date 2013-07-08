@@ -79,7 +79,7 @@ public:
     default_ik_attempts_(ik_attempts)
   {
   }
-  
+
   /** \brief Get a function pointer that allocates and initializes a kinematics solver. If not previously called, this function reads the SRDF and calls the variant below. */
   robot_model::SolverAllocatorFn getLoaderFunction();
 
@@ -91,7 +91,7 @@ public:
   {
     return groups_;
   }
-  
+
   /** \brief Get a map from group name to default IK timeout */
   const std::map<std::string, double>& getIKTimeout() const
   {
@@ -105,12 +105,12 @@ public:
   }
 
   void status() const;
-  
+
 private:
 
-  std::string robot_description_;  
+  std::string robot_description_;
   double default_search_resolution_;
-  
+
   class KinematicsLoaderImpl;
   boost::shared_ptr<KinematicsLoaderImpl> loader_;
 

@@ -148,7 +148,7 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
     ui_->save_query_button->setEnabled(false);
     ui_->save_scene_button->setEnabled(false);
     ui_->delete_query_button->setEnabled(false);
-    ui_->delete_scene_button->setEnabled(false); 
+    ui_->delete_scene_button->setEnabled(false);
     populateConstraintsList(std::vector<std::string>());
   }
   else
@@ -156,7 +156,7 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
     {
       ui_->database_connect_button->setUpdatesEnabled(false);
       ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
-      ui_->database_connect_button->setUpdatesEnabled(true); 
+      ui_->database_connect_button->setUpdatesEnabled(true);
       populateConstraintsList(std::vector<std::string>());
     }
     else
@@ -177,10 +177,10 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
           ui_->database_connect_button->setUpdatesEnabled(true);
           ui_->save_scene_button->setEnabled(true);
           ui_->reset_db_button->show();
-          populatePlanningSceneTreeView();   
+          populatePlanningSceneTreeView();
           if (move_group_)
           {
-            move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());  
+            move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
             planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this), "populateConstraintsList");
           }
         }

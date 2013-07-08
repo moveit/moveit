@@ -47,7 +47,7 @@ namespace occupancy_map_monitor
 {
 
 typedef unsigned int ShapeHandle;
-typedef std::map<ShapeHandle, Eigen::Affine3d, std::less<ShapeHandle>, 
+typedef std::map<ShapeHandle, Eigen::Affine3d, std::less<ShapeHandle>,
                  Eigen::aligned_allocator<std::pair<const ShapeHandle, Eigen::Affine3d> > > ShapeTransformCache;
 typedef boost::function<bool(const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache)> TransformCacheProvider;
 
@@ -61,10 +61,10 @@ public:
 
   OccupancyMapUpdater(const std::string &type);
   virtual ~OccupancyMapUpdater();
-  
+
   /** \brief This is the first function to be called after construction */
   void setMonitor(OccupancyMapMonitor *monitor);
-  
+
   /** @brief Set updater params using struct that comes from parsing a yaml string. This must be called after setMonitor() */
   virtual bool setParams(XmlRpc::XmlRpcValue &params) = 0;
 
@@ -72,42 +72,42 @@ public:
   virtual bool initialize() = 0;
 
   virtual void start() = 0;
-  
+
   virtual void stop() = 0;
 
   virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape) = 0;
-  
+
   virtual void forgetShape(ShapeHandle handle) = 0;
-  
+
   const std::string& getType() const
   {
     return type_;
-  } 
-  
+  }
+
   void setTransformCacheCallback(const TransformCacheProvider &transform_callback)
   {
     transform_provider_callback_ = transform_callback;
   }
-  
+
   void publishDebugInformation(bool flag)
   {
     debug_info_ = flag;
   }
-  
+
 protected:
-  
-  OccupancyMapMonitor *monitor_; 
-  std::string type_;  
+
+  OccupancyMapMonitor *monitor_;
+  std::string type_;
   OccMapTreePtr tree_;
   TransformCacheProvider transform_provider_callback_;
   ShapeTransformCache transform_cache_;
   bool debug_info_;
-  
+
   bool updateTransformCache(const std::string &target_frame, const ros::Time &target_time);
-  
+
   static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, double *value);
-  static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, unsigned int *value);  
-  
+  static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, unsigned int *value);
+
 };
 
 typedef boost::shared_ptr<OccupancyMapUpdater> OccupancyMapUpdaterPtr;

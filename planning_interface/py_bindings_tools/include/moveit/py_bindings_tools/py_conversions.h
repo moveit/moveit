@@ -68,7 +68,7 @@ std::vector<double> doubleFromList(const boost::python::list &values)
 }
 
 std::vector<std::string> stringFromList(const boost::python::list &values)
-{ 
+{
   return typeFromList<std::string>(values);
 }
 

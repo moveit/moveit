@@ -41,7 +41,7 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "list_planning_adapter_plugins");
-  
+
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > loader;
   try
   {
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   catch(pluginlib::PluginlibException& ex)
   {
     std::cout << "Exception while creating class loader " << ex.what() << std::endl;
-  }  
+  }
 
   const std::vector<std::string> &classes = loader->getDeclaredClasses();
   std::cout << "Available planning request adapter plugins:" << std::endl;
@@ -70,6 +70,6 @@ int main(int argc, char **argv)
       std::cout << " \t\t  " << ad->getDescription() << std::endl;
     std::cout << std::endl << std::endl;
   }
-  
+
   return 0;
 }

@@ -72,15 +72,15 @@ public:
 
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
-  
+
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
   }
-  
+
   void setLinkColor(const std::string &link_name, const QColor &color);
   void unsetLinkColor(const std::string& link_name);
-                                                                                                
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -95,7 +95,7 @@ private Q_SLOTS:
   void changedEnableVisualVisible();
   void changedEnableCollisionVisible();
   void changedAllLinks();
-  
+
 protected:
 
   void loadRobotModel();
@@ -113,8 +113,8 @@ protected:
   void setRobotHighlights(const moveit_msgs::DisplayRobotState::_highlight_links_type& highlight_links);
   void setHighlight(const std::string& link_name, const std_msgs::ColorRGBA& color);
   void unsetHighlight(const std::string& link_name);
-  
-  // overrides from Display  
+
+  // overrides from Display
   virtual void onInitialize();
   virtual void onEnable();
   virtual void onDisable();
@@ -123,14 +123,14 @@ protected:
   // render the robot
   ros::NodeHandle root_nh_;
   ros::Subscriber robot_state_subscriber_;
-  
-  RobotStateVisualizationPtr robot_;  
+
+  RobotStateVisualizationPtr robot_;
   rdf_loader::RDFLoaderPtr rdf_loader_;
   robot_model::RobotModelConstPtr kmodel_;
   robot_state::RobotStatePtr kstate_;
   std::map<std::string, std_msgs::ColorRGBA> highlights_;
   bool update_state_;
-  
+
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* root_link_name_property_;
   rviz::RosTopicProperty* robot_state_topic_property_;

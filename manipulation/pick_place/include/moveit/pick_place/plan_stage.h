@@ -46,22 +46,21 @@ namespace pick_place
 
 class PlanStage : public ManipulationStage
 {
-public:  
-  
+public:
+
   PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
             const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
-  
+
   virtual void signalStop();
-  
+
   virtual bool evaluate(const ManipulationPlanPtr &plan) const;
-  
+
 private:
-  
-  planning_scene::PlanningSceneConstPtr planning_scene_; 
+
+  planning_scene::PlanningSceneConstPtr planning_scene_;
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;
 };
 
 }
 
 #endif
-

@@ -52,8 +52,8 @@ bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotion
 {
   ROS_INFO("Received new planning service request...");
   context_->planning_scene_monitor_->updateFrameTransforms();
-  
-  bool solved = false;   
+
+  bool solved = false;
   planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
   try
   {
@@ -63,17 +63,17 @@ bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotion
   }
   catch(std::runtime_error &ex)
   {
-    ROS_ERROR("Planning pipeline threw an exception: %s", ex.what()); 
+    ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
     res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
   catch(...)
   {
-    ROS_ERROR("Planning pipeline threw an exception"); 
+    ROS_ERROR("Planning pipeline threw an exception");
     res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
-  
+
   return solved;
 }
 
-#include <class_loader/class_loader.h> 
+#include <class_loader/class_loader.h>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupPlanService, move_group::MoveGroupCapability)

@@ -87,7 +87,7 @@ private:
   // Ogre-rviz point clouds
   std::vector<rviz::PointCloud*> cloud_;
   boost::shared_ptr<const octomap::OcTree> octree_;
-  
+
   Ogre::SceneNode* scene_node_;
   Ogre::SceneManager* scene_manager_;
 
@@ -98,4 +98,3 @@ private:
 
 }
 #endif
-

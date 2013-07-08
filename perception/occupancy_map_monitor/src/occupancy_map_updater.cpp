@@ -84,5 +84,3 @@ bool OccupancyMapUpdater::updateTransformCache(const std::string &target_frame, 
 }
 
 }
-
-

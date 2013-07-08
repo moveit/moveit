@@ -40,7 +40,7 @@
 #include <limits>
 
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency) :
-  current_state_monitor_(state_monitor), 
+  current_state_monitor_(state_monitor),
   trajectory_(current_state_monitor_->getRobotModel(), ""),
   sampling_frequency_(5.0)
 {
@@ -86,10 +86,10 @@ void planning_scene_monitor::TrajectoryMonitor::stopTrajectoryMonitor()
 }
 
 void planning_scene_monitor::TrajectoryMonitor::clearTrajectory()
-{  
+{
   bool restart = isActive();
   if (restart)
-    stopTrajectoryMonitor(); 
+    stopTrajectoryMonitor();
   trajectory_.clear();
   if (restart)
     startTrajectoryMonitor();
@@ -99,9 +99,9 @@ void planning_scene_monitor::TrajectoryMonitor::recordStates()
 {
   if (!current_state_monitor_)
     return;
-  
+
   ros::Rate rate(sampling_frequency_);
-  
+
   while (record_states_thread_)
   {
     rate.sleep();

@@ -69,7 +69,7 @@ void addTArrowMarker(visualization_msgs::InteractiveMarker &im)
   m.color.g = 1.0f;
   m.color.b = 0.0f;
   m.color.a = 1.0f;
-  
+
   visualization_msgs::Marker mc;
   mc.type = visualization_msgs::Marker::CYLINDER;
   mc.scale.x = 0.05 * im.scale;
@@ -114,14 +114,14 @@ void addErrorMarker(visualization_msgs::InteractiveMarker &im)
   err.id = 1;
   err.action = visualization_msgs::Marker::ADD;
   err.header = im.header;
-  err.pose = im.pose;  
+  err.pose = im.pose;
   err.pose.orientation.x = err.pose.orientation.y = 0.7071067811865476;
   err.pose.orientation.z = err.pose.orientation.w = 0.0;
   err.color.r = 1.0f;
   err.color.g = 0.0f;
   err.color.b = 0.0f;
   err.color.a = 1.0f;
-  
+
   visualization_msgs::InteractiveMarkerControl err_control;
   err_control.always_visible = false;
   err_control.markers.push_back(err);
@@ -258,7 +258,7 @@ visualization_msgs::InteractiveMarker makePlanarXYMarker(const std::string& name
 }
 
 visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
-                                                     const geometry_msgs::PoseStamped &stamped, 
+                                                     const geometry_msgs::PoseStamped &stamped,
                                                      double scale,
                                                      bool orientation_fixed)
 {

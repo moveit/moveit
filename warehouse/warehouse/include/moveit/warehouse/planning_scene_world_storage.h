@@ -51,17 +51,17 @@ class PlanningSceneWorldStorage : public MoveItMessageStorage
 {
 public:
 
-  static const std::string DATABASE_NAME;  
+  static const std::string DATABASE_NAME;
   static const std::string PLANNING_SCENE_WORLD_ID_NAME;
 
 
-  /** \brief Initialize the planning scene world storage to connect to a specified \e host and \e port for the MongoDB. 
-      If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying 
+  /** \brief Initialize the planning scene world storage to connect to a specified \e host and \e port for the MongoDB.
+      If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying
       which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
-      If no values are found, the defaults are left to be the ones MongoDB uses. 
+      If no values are found, the defaults are left to be the ones MongoDB uses.
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
   PlanningSceneWorldStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
-   
+
   void addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld &msg, const std::string &name);
   bool hasPlanningSceneWorld(const std::string &name) const;
   void getKnownPlanningSceneWorlds(std::vector<std::string> &names) const;
@@ -79,7 +79,7 @@ public:
 private:
 
   void createCollections();
-  
+
   PlanningSceneWorldCollection planning_scene_world_collection_;
 
 };

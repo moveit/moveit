@@ -91,7 +91,7 @@ void PickPlacePlanBase::initialize()
 void PickPlacePlanBase::waitForPipeline(const ros::WallTime &endtime)
 {
   // wait till we're done
-  boost::unique_lock<boost::mutex> lock(done_mutex_); 
+  boost::unique_lock<boost::mutex> lock(done_mutex_);
   pushed_all_poses_ = true;
   while (!done_ && endtime > ros::WallTime::now())
     done_condition_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
@@ -127,7 +127,7 @@ void PickPlace::displayComputedMotionPlans(bool flag)
 }
 
 void PickPlace::visualizePlan(const ManipulationPlanPtr &plan) const
-{ 
+{
   moveit_msgs::DisplayTrajectory dtraj;
   dtraj.model_id = getRobotModel()->getName();
   bool first = true;
@@ -137,12 +137,12 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr &plan) const
       continue;
     if (first)
     {
-      robot_state::robotStateToRobotStateMsg(plan->trajectories_[i].trajectory_->getFirstWayPoint(), dtraj.trajectory_start);   
+      robot_state::robotStateToRobotStateMsg(plan->trajectories_[i].trajectory_->getFirstWayPoint(), dtraj.trajectory_start);
       first = false;
     }
     dtraj.trajectory.resize(dtraj.trajectory.size() + 1);
     plan->trajectories_[i].trajectory_->getRobotTrajectoryMsg(dtraj.trajectory.back());
-  }    
+  }
   display_path_publisher_.publish(dtraj);
 }
 
@@ -168,15 +168,15 @@ std::vector<std_msgs::ColorRGBA> setupDefaultGraspColors()
 }
 
 }
-  
+
 void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) const
 {
   if (plans.empty())
     return;
-  
+
   robot_state::RobotState state(getRobotModel());
   state.setToDefaultValues();
-  
+
   static std::vector<std_msgs::ColorRGBA> colors(setupDefaultGraspColors());
   visualization_msgs::MarkerArray ma;
   for (std::size_t i = 0 ; i < plans.size() ; ++i)
@@ -189,8 +189,8 @@ void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) c
       state.getRobotMarkers(ma, jmg->getLinkModelNames(), colors[type], "moveit_grasps:stage_" + boost::lexical_cast<std::string>(plans[i]->processing_stage_), ros::Duration(60));
     }
   }
-  
+
   grasps_publisher_.publish(ma);
 }
-  
+
 }

@@ -46,7 +46,7 @@ point_containment_filter::ShapeMask::~ShapeMask()
 }
 
 void point_containment_filter::ShapeMask::freeMemory()
-{   
+{
   for (std::set<SeeShape>::const_iterator it = bodies_.begin() ; it != bodies_.end() ; ++it)
     delete it->body;
   bodies_.clear();
@@ -59,7 +59,7 @@ void point_containment_filter::ShapeMask::setTransformCallback(const TransformCa
 }
 
 point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addShape(const shapes::ShapeConstPtr &shape, double scale, double padding)
-{ 
+{
   boost::mutex::scoped_lock _(shapes_lock_);
   SeeShape ss;
   ss.body = bodies::createBodyFromShape(shape.get());
@@ -76,7 +76,7 @@ point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addSh
   }
   else
     return 0;
-  
+
   ShapeHandle ret = next_handle_;
   const std::size_t sz = min_handle_ + bodies_.size() + 1;
   for (std::size_t i = min_handle_ ; i < sz ; ++i)
@@ -86,7 +86,7 @@ point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addSh
       break;
     }
   min_handle_ = next_handle_;
-  
+
   return ret;
 }
 
@@ -107,7 +107,7 @@ void point_containment_filter::ShapeMask::removeShape(ShapeHandle handle)
 
 void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<pcl::PointXYZ>& data_in,
                                                           const Eigen::Vector3d &sensor_origin,
-                                                          const double min_sensor_dist, const double max_sensor_dist, 
+                                                          const double min_sensor_dist, const double max_sensor_dist,
                                                           std::vector<int> &mask)
 {
   boost::mutex::scoped_lock _(shapes_lock_);
@@ -115,26 +115,26 @@ void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<
   if (bodies_.empty())
     std::fill(mask.begin(), mask.end(), (int)OUTSIDE);
   else
-  {   
+  {
     Eigen::Affine3d tmp;
     bspheres_.resize(bodies_.size());
     std::size_t j = 0;
     for (std::set<SeeShape>::const_iterator it = bodies_.begin() ; it != bodies_.end() ; ++it)
     {
       if (transform_callback_(it->handle, tmp))
-      {        
+      {
         it->body->setPose(tmp);
         it->body->computeBoundingSphere(bspheres_[j++]);
       }
     }
-    
+
     const unsigned int np = data_in.points.size();
-    
+
     // compute a sphere that bounds the entire robot
     bodies::BoundingSphere bound;
     bodies::mergeBoundingSpheres(bspheres_, bound);
     const double radiusSquared = bound.radius * bound.radius;
-    
+
     // we now decide which points we keep
 #pragma omp parallel for schedule(dynamic)
     for (int i = 0 ; i < (int)np ; ++i)
@@ -155,10 +155,10 @@ void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<
 }
 
 int point_containment_filter::ShapeMask::getMaskContainment(const Eigen::Vector3d &pt) const
-{ 
+{
   boost::mutex::scoped_lock _(shapes_lock_);
 
-  int out = OUTSIDE;        
+  int out = OUTSIDE;
   for (std::set<SeeShape>::const_iterator it = bodies_.begin() ; it != bodies_.end() && out == OUTSIDE ; ++it)
     if (it->body->containsPoint(pt))
       out = INSIDE;

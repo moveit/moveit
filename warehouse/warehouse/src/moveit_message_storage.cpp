@@ -87,7 +87,7 @@ void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &rege
     boost::regex r(regex);
     for (std::size_t i = 0; i < names.size() ; ++i)
     {
-      boost::cmatch match;   
+      boost::cmatch match;
       if (boost::regex_match(names[i].c_str(), match, r))
         fnames.push_back(names[i]);
     }

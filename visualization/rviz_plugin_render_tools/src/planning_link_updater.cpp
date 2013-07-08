@@ -42,14 +42,13 @@ bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::strin
   {
     return false;
   }
-  
+
   const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
   Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
   visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
   visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
   collision_position = visual_position;
   collision_orientation = visual_orientation;
-  
+
   return true;
 }
-

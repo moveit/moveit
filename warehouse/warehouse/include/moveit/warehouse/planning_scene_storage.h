@@ -58,21 +58,21 @@ class PlanningSceneStorage : public MoveItMessageStorage
 public:
 
   static const std::string DATABASE_NAME;
-  
+
   static const std::string PLANNING_SCENE_ID_NAME;
   static const std::string MOTION_PLAN_REQUEST_ID_NAME;
 
-  /** \brief Initialize the planning scene storage to connect to a specified \e host and \e port for the MongoDB. 
-      If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying 
+  /** \brief Initialize the planning scene storage to connect to a specified \e host and \e port for the MongoDB.
+      If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying
       which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
-      If no values are found, the defaults are left to be the ones MongoDB uses. 
+      If no values are found, the defaults are left to be the ones MongoDB uses.
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
   PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
-  
+
   void addPlanningScene(const moveit_msgs::PlanningScene &scene);
   void addPlanningQuery(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
   void addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query, const moveit_msgs::RobotTrajectory &result, const std::string &scene_name);
-  
+
   bool hasPlanningScene(const std::string &name) const;
   void getPlanningSceneNames(std::vector<std::string> &names) const;
   void getPlanningSceneNames(const std::string &regex, std::vector<std::string> &names) const;
@@ -83,7 +83,7 @@ public:
 
   bool hasPlanningQuery(const std::string &scene_name, const std::string &query_name) const;
   bool getPlanningQuery(MotionPlanRequestWithMetadata &query_m, const std::string &scene_name, const std::string &query_name);
-  void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;  
+  void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;
   void getPlanningQueriesNames(std::vector<std::string> &query_names, const std::string &scene_name) const;
   void getPlanningQueriesNames(const std::string &regex, std::vector<std::string> &query_names, const std::string &scene_name) const;
   void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const;
@@ -105,10 +105,10 @@ public:
 private:
 
   void createCollections();
-  
+
   std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
   std::string addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name);
-  
+
   PlanningSceneCollection     planning_scene_collection_;
   MotionPlanRequestCollection motion_plan_request_collection_;
   RobotTrajectoryCollection   robot_trajectory_collection_;

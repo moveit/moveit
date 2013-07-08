@@ -58,7 +58,7 @@ void moveit_warehouse::ConstraintsStorage::reset()
 {
   constraints_collection_.reset();
   MoveItMessageStorage::drop(DATABASE_NAME);
-  createCollections();  
+  createCollections();
 }
 
 void moveit_warehouse::ConstraintsStorage::addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot, const std::string &group)
@@ -70,7 +70,7 @@ void moveit_warehouse::ConstraintsStorage::addConstraints(const moveit_msgs::Con
     replace = true;
   }
   mongo_ros::Metadata metadata(CONSTRAINTS_ID_NAME, msg.name,
-                               ROBOT_NAME, robot, 
+                               ROBOT_NAME, robot,
                                CONSTRAINTS_GROUP_NAME, group);
   constraints_collection_->insert(msg, metadata);
   ROS_DEBUG("%s constraints '%s'", replace ? "Replaced" : "Added", msg.name.c_str());
@@ -134,7 +134,7 @@ void moveit_warehouse::ConstraintsStorage::renameConstraints(const std::string &
   if (!group.empty())
     q.append(CONSTRAINTS_GROUP_NAME, group);
   mongo_ros::Metadata m(CONSTRAINTS_ID_NAME, new_name);
-  constraints_collection_->modifyMetadata(q, m);  
+  constraints_collection_->modifyMetadata(q, m);
   ROS_DEBUG("Renamed constraints from '%s' to '%s'", old_name.c_str(), new_name.c_str());
 }
 

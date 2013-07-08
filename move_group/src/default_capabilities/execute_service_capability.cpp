@@ -57,10 +57,10 @@ bool move_group::MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::
     res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     return true;
   }
-  
+
   // \todo unwind trajectory before execution
   //    robot_trajectory::RobotTrajectory to_exec(planning_scene_monitor_->getRobotModel(), ;
-  
+
   context_->trajectory_execution_manager_->clear();
   if (context_->trajectory_execution_manager_->push(req.trajectory))
   {
@@ -71,10 +71,10 @@ bool move_group::MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::
       if (es == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
         res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       else
-        if (es == moveit_controller_manager::ExecutionStatus::PREEMPTED) 
+        if (es == moveit_controller_manager::ExecutionStatus::PREEMPTED)
           res.error_code.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
         else
-          if (es == moveit_controller_manager::ExecutionStatus::TIMED_OUT) 
+          if (es == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
             res.error_code.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
           else
             res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
@@ -87,12 +87,12 @@ bool move_group::MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::
     }
   }
   else
-  {    
+  {
     res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
   }
   return true;
 }
 
 
-#include <class_loader/class_loader.h> 
+#include <class_loader/class_loader.h>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupExecuteService, move_group::MoveGroupCapability)

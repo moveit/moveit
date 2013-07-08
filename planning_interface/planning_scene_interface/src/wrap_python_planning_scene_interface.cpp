@@ -61,24 +61,24 @@ public:
                                     PlanningSceneInterface()
   {
   }
-  
+
   bp::list getKnownObjectNamesPython(bool with_type = false)
   {
     return moveit::py_bindings_tools::listFromString(getKnownObjectNames(with_type));
   }
-  
+
   bp::list getKnownObjectNamesInROIPython(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type = false)
   {
     return moveit::py_bindings_tools::listFromString(getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type));
   }
-  
-};  
-  
+
+};
+
 static void wrap_planning_scene_interface()
 {
   bp::class_<PlanningSceneInterfaceWrapper> PlanningSceneClass("PlanningSceneInterface");
 
-  PlanningSceneClass.def("get_known_object_names", &PlanningSceneInterfaceWrapper::getKnownObjectNamesPython);  
+  PlanningSceneClass.def("get_known_object_names", &PlanningSceneInterfaceWrapper::getKnownObjectNamesPython);
   PlanningSceneClass.def("get_known_object_names_in_roi", &PlanningSceneInterfaceWrapper::getKnownObjectNamesInROIPython);
 }
 
@@ -91,4 +91,4 @@ BOOST_PYTHON_MODULE(_moveit_planning_scene_interface)
   wrap_planning_scene_interface();
 }
 
-/** @endcond */ 
+/** @endcond */

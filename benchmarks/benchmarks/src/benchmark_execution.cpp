@@ -1053,7 +1053,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
         // Check if ROS is still alive
         if( !ros::ok() )
           return;
-        
+
         // Create new instance of the chosen parameters
         RunData parameter_data;
 
@@ -1063,9 +1063,9 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
           modifyPlannerConfiguration(*planner_interfaces_to_benchmark[i], mp_req.planner_id, param_combinations_id_, parameter_data);
           ++param_combinations_id_;
         }
-        
+
         planning_interface::PlanningContextPtr pcontext = planner_interfaces_to_benchmark[i]->getPlanningContext(planning_scene_, mp_req);
-        
+
         // loop through the desired number of runs
         for (unsigned int run_count = 0 ; run_count < runs_per_planner_interface[i] ; ++run_count)
         {
@@ -1078,7 +1078,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
           // run a single benchmark
           ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
           pcontext->clear();
-          
+
           planning_interface::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
 
@@ -1156,7 +1156,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       for (unsigned int j = 0 ; j < properties.size() ; ++j)
         out << properties[j] << std::endl;
       out << data[run_id].size() << " runs" << std::endl;
- 
+
       // output all the data to the log file
       for (std::size_t j = 0 ; j < data[run_id].size() ; ++j)
       {
@@ -1365,7 +1365,7 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
   {
     ROS_ERROR_STREAM("Settings for " << planner_id << " do not exist. This should not happen.");
   }
-  
+
   // Apply the new settings
   planner.setPlannerConfigurations(settings);
 }
@@ -1439,4 +1439,3 @@ void moveit_benchmarks::BenchmarkExecution::printConfigurationSettings(const pla
       out << "      - " << config_it->first << " => " << config_it->second << std::endl;
   }
 }
-

@@ -44,7 +44,7 @@ static const std::string ROBOT_DESCRIPTION="robot_description";      // name of 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "moveit_benchmarks", ros::init_options::AnonymousName);
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
@@ -55,12 +55,12 @@ int main(int argc, char **argv)
     ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.")
     ("benchmark-goal-existance", "Benchmark the sampling of the goal region")
     ("benchmark-planners", "Benchmark only the planners");
-  
+
   boost::program_options::variables_map vm;
   boost::program_options::parsed_options po = boost::program_options::parse_command_line(argc, argv, desc);
   boost::program_options::store(po, vm);
   boost::program_options::notify(vm);
-  
+
   if (vm.count("help") || argc == 1) // show help if no parameters passed
   {
     std::cout << desc << std::endl;
@@ -71,15 +71,15 @@ int main(int argc, char **argv)
   {
     planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
     moveit_benchmarks::BenchmarkType btype = 0;
-    moveit_benchmarks::BenchmarkExecution be(psm.getPlanningScene(), 
+    moveit_benchmarks::BenchmarkExecution be(psm.getPlanningScene(),
                                              vm.count("host") ? vm["host"].as<std::string>() : "",
                                              vm.count("port") ? vm["port"].as<std::size_t>() : 0);
     if (vm.count("benchmark-planners"))
-      btype += moveit_benchmarks::BENCHMARK_PLANNERS;    
+      btype += moveit_benchmarks::BENCHMARK_PLANNERS;
     if (vm.count("benchmark-goal-existance"))
       btype += moveit_benchmarks::BENCHMARK_GOAL_EXISTANCE;
-    
-    unsigned int proc = 0; 
+
+    unsigned int proc = 0;
     std::vector<std::string> files = boost::program_options::collect_unrecognized(po.options, boost::program_options::include_positional);
     for (std::size_t i = 0 ; i < files.size() ; ++i)
     {
@@ -96,12 +96,12 @@ int main(int argc, char **argv)
   }
   catch(mongo_ros::DbConnectException &ex)
   {
-    ROS_ERROR_STREAM("Unable to connect to warehouse. If you just created the database, it could take a while for initial setup. Please try to run the benchmark again." 
+    ROS_ERROR_STREAM("Unable to connect to warehouse. If you just created the database, it could take a while for initial setup. Please try to run the benchmark again."
                      << std::endl << ex.what());
   }
-  
+
   ROS_INFO("Benchmarks complete! Shutting down ROS..."); // because sometimes there are segfaults after this
   ros::shutdown();
-  
+
   return 0;
 }

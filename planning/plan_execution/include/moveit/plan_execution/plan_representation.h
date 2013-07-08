@@ -51,14 +51,14 @@ struct ExecutableTrajectory
   ExecutableTrajectory()
   {
   }
-  
+
   ExecutableTrajectory(const robot_trajectory::RobotTrajectoryPtr &trajectory,
                        const std::string &description) :
     trajectory_(trajectory),
     description_(description)
   {
   }
-  
+
   robot_trajectory::RobotTrajectoryPtr trajectory_;
   std::string description_;
   collision_detection::AllowedCollisionMatrixConstPtr allowed_collision_matrix_;
@@ -67,15 +67,15 @@ struct ExecutableTrajectory
 
 /// A generic representation on what a computed motion plan looks like
 struct ExecutableMotionPlan
-{ 
+{
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
-  
+
   std::vector<ExecutableTrajectory> plan_components_;
-  
+
   // The trace of the trajectory recorded during execution
   robot_trajectory::RobotTrajectoryPtr executed_trajectory_;
-  
+
   /// An error code reflecting what went wrong (if anything)
   moveit_msgs::MoveItErrorCodes error_code_;
 };

@@ -50,8 +50,8 @@ namespace move_group
 class MoveGroupExe
 {
 public:
-  
-  MoveGroupExe(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : 
+
+  MoveGroupExe(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) :
     node_handle_("~")
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
@@ -63,14 +63,14 @@ public:
     // start the capabilities
     configureCapabilities();
   }
-  
+
   ~MoveGroupExe()
   {
     capabilities_.clear();
     context_.reset();
     capability_plugin_loader_.reset();
   }
-  
+
   void status()
   {
     if (context_)
@@ -87,9 +87,9 @@ public:
     else
       ROS_ERROR("No MoveGroup context created. Nothing will work.");
   }
-  
-private:  
-  
+
+private:
+
   void configureCapabilities()
   {
     try
@@ -105,7 +105,7 @@ private:
     // add individual capabilities move_group supports
     std::string capability_plugins;
     if (node_handle_.getParam("capabilities", capability_plugins))
-    { 
+    {
       boost::char_separator<char> sep(" ");
       boost::tokenizer<boost::char_separator<char> > tok(capability_plugins, sep);
       for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
@@ -126,7 +126,7 @@ private:
       }
     }
     std::stringstream ss;
-    ss << std::endl;    
+    ss << std::endl;
     ss << "********************************************************" << std::endl;
     ss << "* MoveGroup using: " << std::endl;
     for (std::size_t i = 0 ; i < capabilities_.size() ; ++i)
@@ -134,9 +134,9 @@ private:
     ss << "********************************************************" << std::endl;
     ROS_INFO_STREAM(ss.str());
   }
-  
+
   ros::NodeHandle node_handle_;
-  MoveGroupContextPtr context_; 
+  MoveGroupContextPtr context_;
   boost::shared_ptr<pluginlib::ClassLoader<MoveGroupCapability> > capability_plugin_loader_;
   std::vector<boost::shared_ptr<MoveGroupCapability> > capabilities_;
 };
@@ -146,14 +146,14 @@ private:
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, move_group::NODE_NAME);
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener(ros::Duration(10.0)));
-  
+
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor(new planning_scene_monitor::PlanningSceneMonitor(ROBOT_DESCRIPTION, tf));
-  
+
   if (planning_scene_monitor->getPlanningScene())
   {
     bool debug = false;
@@ -170,18 +170,18 @@ int main(int argc, char **argv)
 
     move_group::MoveGroupExe mge(planning_scene_monitor, debug);
 
-    planning_scene_monitor->startSceneMonitor();    
+    planning_scene_monitor->startSceneMonitor();
     planning_scene_monitor->startWorldGeometryMonitor();
     planning_scene_monitor->startStateMonitor();
 
     planning_scene_monitor->publishDebugInformation(debug);
-    
+
     mge.status();
-    
+
     ros::waitForShutdown();
   }
   else
     ROS_ERROR("Planning scene not configured");
-  
+
   return 0;
 }

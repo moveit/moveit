@@ -88,11 +88,11 @@ void demoPlace(moveit::planning_interface::MoveGroup &group)
     g.approach.desired_distance = 0.4;
     g.retreat.min_distance = 0.1;
     g.retreat.desired_distance = 0.27;
-    
+
     g.post_place_posture.name.resize(1, "r_gripper_joint");
     g.post_place_posture.position.resize(1);
     g.post_place_posture.position[0] = 0;
-    
+
     loc.push_back(g);
   }
   group.place("bubu", loc);
@@ -100,20 +100,20 @@ void demoPlace(moveit::planning_interface::MoveGroup &group)
 
 void attachObject(void)
 {
-  
+
 }
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "move_group_interface_demo", ros::init_options::AnonymousName);
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   moveit::planning_interface::MoveGroup group(argc > 1 ? argv[1] : "right_arm");
   demoPlace(group);
-  
+
   sleep(2);
-  
+
   return 0;
 }

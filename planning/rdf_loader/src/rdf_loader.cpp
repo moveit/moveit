@@ -39,7 +39,7 @@
 #include <ros/ros.h>
 
 rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
-{  
+{
   moveit::Profiler::ScopedStart prof_start;
   moveit::Profiler::ScopedBlock prof_block("RDFLoader(robot_description)");
 

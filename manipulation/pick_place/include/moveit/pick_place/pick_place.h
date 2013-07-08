@@ -55,34 +55,34 @@ typedef boost::shared_ptr<const PickPlace> PickPlaceConstPtr;
 class PickPlacePlanBase
 {
 public:
-  
+
   PickPlacePlanBase(const PickPlaceConstPtr &pick_place, const std::string &name);
   ~PickPlacePlanBase();
-  
+
   const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans() const
   {
     return pipeline_.getSuccessfulManipulationPlans();
   }
   const std::vector<ManipulationPlanPtr>& getFailedManipulationPlans() const
   {
-    return pipeline_.getFailedManipulationPlans();  
+    return pipeline_.getFailedManipulationPlans();
   }
-  
+
   const moveit_msgs::MoveItErrorCodes& getErrorCode() const
   {
     return error_code_;
   }
-  
+
 protected:
 
   void initialize();
   void waitForPipeline(const ros::WallTime &endtime);
   void foundSolution();
   void emptyQueue();
-  
-  PickPlaceConstPtr pick_place_;  
+
+  PickPlaceConstPtr pick_place_;
   ManipulationPipeline pipeline_;
-  
+
   double last_plan_time_;
   bool done_;
   bool pushed_all_poses_;
@@ -94,8 +94,8 @@ protected:
 class PickPlan : public PickPlacePlanBase
 {
 public:
-  
-  PickPlan(const PickPlaceConstPtr &pick_place);  
+
+  PickPlan(const PickPlaceConstPtr &pick_place);
   bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal);
 };
 
@@ -105,15 +105,15 @@ typedef boost::shared_ptr<const PickPlan> PickPlanConstPtr;
 class PlacePlan : public PickPlacePlanBase
 {
 public:
-  
+
   PlacePlan(const PickPlaceConstPtr &pick_place);
   bool plan(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PlaceGoal &goal);
 
 private:
 
-  bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose, 
-				  const robot_state::AttachedBody* body,
-				  geometry_msgs::PoseStamped &place_pose) const;
+  bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose,
+                  const robot_state::AttachedBody* body,
+                  geometry_msgs::PoseStamped &place_pose) const;
 };
 
 typedef boost::shared_ptr<PlacePlan> PlacePlanPtr;
@@ -122,7 +122,7 @@ typedef boost::shared_ptr<const PlacePlan> PlacePlanConstPtr;
 class PickPlace : private boost::noncopyable,
                   public boost::enable_shared_from_this<PickPlace>
 {
-public: 
+public:
 
   static const std::string DISPLAY_PATH_TOPIC;
   static const std::string DISPLAY_GRASP_TOPIC;
@@ -131,12 +131,12 @@ public:
   static const double DEFAULT_GRASP_POSTURE_COMPLETION_DURATION; // seconds
 
   PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline);
-  
+
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintsSamplerManager() const
   {
     return constraint_sampler_manager_loader_->getConstraintSamplerManager();
   }
-  
+
   const planning_pipeline::PlanningPipelinePtr& getPlanningPipeline() const
   {
     return planning_pipeline_;
@@ -159,13 +159,13 @@ public:
   void visualizePlan(const ManipulationPlanPtr &plan) const;
 
   void visualizeGrasp(const ManipulationPlanPtr &plan) const;
-  
+
   void visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) const;
 
 private:
-  
+
   ros::NodeHandle nh_;
-  planning_pipeline::PlanningPipelinePtr planning_pipeline_;  
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
   bool display_computed_motion_plans_;
   bool display_grasps_;
   ros::Publisher display_path_publisher_;

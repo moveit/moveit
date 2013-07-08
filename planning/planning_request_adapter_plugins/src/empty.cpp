@@ -44,15 +44,15 @@ class Empty : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
   virtual std::string getDescription() const { return "No Op"; }
-  
+
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const planning_interface::MotionPlanRequest &req, 
+                            const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     return planner(planning_scene, req, res);
-  }  
+  }
 };
 
 }

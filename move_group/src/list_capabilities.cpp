@@ -49,6 +49,6 @@ int main(int argc, char **argv)
   {
     std::cerr << "Exception while creating plugin loader for move_group capabilities: " << ex.what() << std::endl;
   }
-  
+
   return 0;
 }

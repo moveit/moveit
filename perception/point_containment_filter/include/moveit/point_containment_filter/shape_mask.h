@@ -54,7 +54,7 @@ class ShapeMask
 {
 
 public:
-  
+
   /** \brief The possible values of a mask computed for a point */
   enum
     {
@@ -62,15 +62,15 @@ public:
       OUTSIDE = 1,
       CLIP = 2
     };
-  
+
   typedef boost::function<bool (ShapeHandle, Eigen::Affine3d&)> TransformCallback;
-  
+
   /** \brief Construct the filter */
   ShapeMask(const TransformCallback& transform_callback = TransformCallback());
-  
+
   /** \brief Destructor to clean up */
   ~ShapeMask();
-  
+
   ShapeHandle addShape(const shapes::ShapeConstPtr &shape, double scale = 1.0, double padding = 0.0);
   void removeShape(ShapeHandle handle);
 
@@ -79,32 +79,32 @@ public:
   /** \brief Compute the containment mask (INSIDE or OUTSIDE) for a given pointcloud. If a mask element is INSIDE, the point
       is inside the robot. The point is outside if the mask element is OUTSIDE.
   */
-  void maskContainment(const pcl::PointCloud<pcl::PointXYZ>& data_in,  const Eigen::Vector3d &sensor_pos, 
+  void maskContainment(const pcl::PointCloud<pcl::PointXYZ>& data_in,  const Eigen::Vector3d &sensor_pos,
                        const double min_sensor_dist, const double max_sensor_dist, std::vector<int> &mask);
-  
+
   /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point.
       It is assumed the point is in the frame corresponding to the TransformCallback */
   int getMaskContainment(double x, double y, double z) const;
-  
-  
+
+
   /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point.
       It is assumed the point is in the frame corresponding to the TransformCallback */
   int getMaskContainment(const Eigen::Vector3d &pt) const;
-  
+
 private:
-  
+
   struct SeeShape
   {
     SeeShape()
     {
       body = NULL;
     }
-    
+
     bodies::Body *body;
     ShapeHandle handle;
     double volume;
   };
-  
+
   struct SortBodies
   {
     bool operator()(const SeeShape &b1, const SeeShape &b2)
@@ -116,14 +116,14 @@ private:
       return b1.handle < b2.handle;
     }
   };
-  
+
   /** \brief Free memory. */
   void freeMemory();
-  
+
   TransformCallback transform_callback_;
   ShapeHandle next_handle_;
   ShapeHandle min_handle_;
-  
+
   mutable boost::mutex shapes_lock_;
   std::set<SeeShape, SortBodies> bodies_;
   std::map<ShapeHandle, std::set<SeeShape, SortBodies>::iterator> used_handles_;

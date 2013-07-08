@@ -48,45 +48,45 @@ namespace plan_execution
 using namespace moveit_ros_planning;
 
 class PlanExecution::DynamicReconfigureImpl
-{ 
+{
 public:
-  
+
   DynamicReconfigureImpl(PlanExecution *owner) : owner_(owner),
                                                  dynamic_reconfigure_server_(ros::NodeHandle("~/plan_execution"))
   {
     dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
   }
-  
+
 private:
-  
+
   void dynamicReconfigureCallback(PlanExecutionDynamicReconfigureConfig &config, uint32_t level)
   {
     owner_->setMaxReplanAttempts(config.max_replan_attempts);
     owner_->setTrajectoryStateRecordingFrequency(config.record_trajectory_state_frequency);
   }
-  
+
   PlanExecution *owner_;
   dynamic_reconfigure::Server<PlanExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
 }
 
-plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor, 
+plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
                                              const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution) :
   node_handle_("~"), planning_scene_monitor_(planning_scene_monitor),
   trajectory_execution_manager_(trajectory_execution)
-{ 
+{
   if (!trajectory_execution_manager_)
     trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel()));
-  
+
   default_max_replan_attempts_ = 5;
 
   preempt_requested_ = false;
   new_scene_update_ = false;
-  
+
   // we want to be notified when new information is available
   planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanExecution::planningSceneUpdatedCallback, this, _1));
-  
+
   // start the dynamic-reconfigure server
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 }
@@ -152,7 +152,7 @@ void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan &plan, c
 }
 
 void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan &plan, const moveit_msgs::PlanningScene &scene_diff, const Options &opt)
-{ 
+{
   if (planning_scene::PlanningScene::isEmpty(scene_diff))
     planAndExecute(plan, opt);
   else
@@ -170,42 +170,42 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
 {
   // perform initial configuration steps & various checks
   preempt_requested_ = false;
-  
+
   // run the actual motion plan & execution
   unsigned int max_replan_attempts = opt.replan_ ? (opt.replan_attempts_ > 0 ? opt.replan_attempts_ : default_max_replan_attempts_) : 1;
   unsigned int replan_attempts = 0;
   bool previously_solved = false;
-  
+
   // run a planning loop for at most the maximum replanning attempts;
   // re-planning is executed only in case of known types of failures (e.g., environment changed)
   do
   {
     replan_attempts++;
     ROS_INFO("Planning attempt %u of at most %u", replan_attempts, max_replan_attempts);
-    
+
     if (opt.before_plan_callback_)
       opt.before_plan_callback_();
-    
+
     new_scene_update_ = false; // we clear any scene updates to be evaluated because we are about to compute a new plan, which should consider most recent updates already
 
     // if we never had a solved plan, or there is no specified way of fixing plans, just call the planner; otherwise, try to repair the plan we previously had;
-    bool solved = (!previously_solved || !opt.repair_plan_callback_) ? 
+    bool solved = (!previously_solved || !opt.repair_plan_callback_) ?
       opt.plan_callback_(plan) :
       opt.repair_plan_callback_(plan, trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex());
-        
+
     if (preempt_requested_)
       break;
-    
+
     // if planning fails in a manner that is not recoverable, we exit the loop,
     // otherwise, we attempt to continue, if replanning attempts are left
     if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED ||
-	plan.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
+    plan.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
         plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
     {
       if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA && opt.replan_delay_ > 0.0)
       {
-	ros::WallDuration d(opt.replan_delay_);
-	d.sleep();
+    ros::WallDuration d(opt.replan_delay_);
+    d.sleep();
       }
       continue;
     }
@@ -215,7 +215,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
       previously_solved = true;
     else
       break;
-    
+
     if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
       if (opt.before_execution_callback_)
@@ -223,11 +223,11 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
 
       if (preempt_requested_)
         break;
-      
+
       // execute the trajectory, and monitor its executionm
       plan.error_code_ = executeAndMonitor(plan);
     }
-    
+
     // if we are done, then we exit the loop
     if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
       break;
@@ -240,33 +240,33 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
       // othewrise, we wait (if needed)
       if (opt.replan_delay_ > 0.0)
       {
-	ROS_INFO("Waiting for a %lf seconds before attempting a new plan ...", opt.replan_delay_);
-	ros::WallDuration d(opt.replan_delay_);
-	d.sleep();
-	ROS_INFO("Done waiting");
+    ROS_INFO("Waiting for a %lf seconds before attempting a new plan ...", opt.replan_delay_);
+    ros::WallDuration d(opt.replan_delay_);
+    d.sleep();
+    ROS_INFO("Done waiting");
       }
     }
   } while (!preempt_requested_ && max_replan_attempts > replan_attempts);
-  
+
   if (preempt_requested_)
   {
     ROS_DEBUG("PlanExecution was preempted");
     plan.error_code_.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
   }
-  
+
   if (opt.done_callback_)
     opt.done_callback_();
-  
+
   if( plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS )
     ROS_DEBUG("PlanExecution finished successfully.");
   else
-    ROS_DEBUG("PlanExecution terminating with error code %d - '%s'", plan.error_code_.val, 
+    ROS_DEBUG("PlanExecution terminating with error code %d - '%s'", plan.error_code_.val,
               getErrorCodeString(plan.error_code_).c_str());
 }
 
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan &plan)
 {
-  // check the validity of the currently executed path segment only, since there could be 
+  // check the validity of the currently executed path segment only, since there could be
   // changes in the world in between path segments
   return isRemainingPathValid(plan, trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex());
 }
@@ -288,7 +288,7 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
         plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i), *acm);
       else
         plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i));
-      
+
       if (res.collision || !plan.planning_scene_->isStateFeasible(t.getWayPoint(i), false))
       {
         // Dave's debacle
@@ -312,36 +312,36 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
 moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(const ExecutableMotionPlan &plan)
 {
   moveit_msgs::MoveItErrorCodes result;
-  
+
   // try to execute the trajectory
   execution_complete_ = true;
-  
+
   if (!trajectory_execution_manager_)
   {
     ROS_ERROR("No trajectory execution manager");
     result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     return result;
   }
-  
+
   if (plan.plan_components_.empty())
   {
     result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return result;
   }
-  
+
   execution_complete_ = false;
-  
+
   // push the trajectories we have slated for execution to the trajectory execution manager
   int prev = -1;
   for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
-  {    
+  {
     if (!plan.plan_components_[i].trajectory_ || plan.plan_components_[i].trajectory_->empty())
       continue;
 
-    // \todo should this be in trajectory_execution ? Maybe. Then that will have to use kinematic_trajectory too; 
+    // \todo should this be in trajectory_execution ? Maybe. Then that will have to use kinematic_trajectory too;
     // spliting trajectories for controllers becomes interesting: tied to groups instead of joints. this could cause some problems
     // in the meantime we do a hack:
-    
+
     bool unwound = false;
     for (std::size_t j = 0 ; j < i ; ++j)
       // if we ran unwind on a path for the same group
@@ -349,22 +349,22 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
       {
         plan.plan_components_[i].trajectory_->unwind(plan.plan_components_[j].trajectory_->getLastWayPoint());
         unwound = true;
-        break;        
+        break;
       }
-    
+
     if (!unwound)
     {
       // unwind the path to execute based on the current state of the system
       if (prev < 0)
-        plan.plan_components_[i].trajectory_->unwind(plan.planning_scene_monitor_ && plan.planning_scene_monitor_->getStateMonitor() ? 
-                                                     *plan.planning_scene_monitor_->getStateMonitor()->getCurrentState() : 
+        plan.plan_components_[i].trajectory_->unwind(plan.planning_scene_monitor_ && plan.planning_scene_monitor_->getStateMonitor() ?
+                                                     *plan.planning_scene_monitor_->getStateMonitor()->getCurrentState() :
                                                      plan.planning_scene_->getCurrentState());
       else
         plan.plan_components_[i].trajectory_->unwind(plan.plan_components_[prev].trajectory_->getLastWayPoint());
     }
-    
+
     prev = i;
-    
+
     // convert to message, pass along
     moveit_msgs::RobotTrajectory msg;
     plan.plan_components_[i].trajectory_->getRobotTrajectoryMsg(msg);
@@ -384,7 +384,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   // start recording trajectory states
   if (trajectory_monitor_)
     trajectory_monitor_->startTrajectoryMonitor();
-  
+
   // start a trajectory execution thread
   trajectory_execution_manager_->execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1),
                                          boost::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan, _1));
@@ -420,16 +420,16 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     }
     else
       if (!execution_complete_)
-      {    
+      {
         ROS_WARN("Stopping execution due to unknown reason. Possibly the node is about to shut down.");
         trajectory_execution_manager_->stopExecution();
       }
-  
+
   // stop recording trajectory states
   if (trajectory_monitor_)
     trajectory_monitor_->stopTrajectoryMonitor();
-  
-  // decide return value 
+
+  // decide return value
   if (path_became_invalid_)
     result.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
   else
@@ -441,12 +441,12 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     else
     {
       if (trajectory_execution_manager_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
-	result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       else
         if (trajectory_execution_manager_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
-	  result.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
-	else
-	  result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+      result.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+    else
+      result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     }
   }
   return result;
@@ -476,7 +476,7 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
       preempt_requested_ = true;
       return;
     }
-  
+
   // if there is a next trajectory, check it for validity, before we start execution
   std::size_t test_index = index;
   while (++test_index < plan->plan_components_.size())
@@ -487,4 +487,3 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
       break;
     }
 }
-

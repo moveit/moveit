@@ -76,28 +76,28 @@ public:
 
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
-  
+
   void setLinkColor(const std::string &link_name, const QColor &color);
   void unsetLinkColor(const std::string& link_name);
-  
+
   void queueRenderSceneGeometry();
 
   // pass the execution of this function call to a separate thread that runs in the background
   void addBackgroundJob(const boost::function<void()> &job, const std::string &name);
-  
+
   // queue the execution of this function for the next time the main update() loop gets called
   void addMainLoopJob(const boost::function<void()> &job);
 
   void waitForAllMainLoopJobs();
-    
+
   // remove all queued jobs
   void clearJobs();
-  
+
   const robot_model::RobotModelConstPtr& getRobotModel();
   planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO() const;
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();
-                                                                                                
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -115,7 +115,7 @@ private Q_SLOTS:
   void changedSceneDisplayTime();
   void changedOctreeRenderMode();
   void changedOctreeColorMode();
-  
+
 protected:
 
   /// This function reloads the robot model and reinitializes the PlanningSceneMonitor
@@ -132,13 +132,13 @@ protected:
 
   /// This is an event called by loadRobotModel() in the MainLoop; do not call directly
   virtual void onRobotModelLoaded();
-  
+
   /**
    * \brief Set the scene node's position, given the target frame and the planning frame
    */
   void calculateOffsetPosition();
-  
-  void executeMainLoopJobs();  
+
+  void executeMainLoopJobs();
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void renderPlanningScene();
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
@@ -146,35 +146,35 @@ protected:
   void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color);
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name);
   void unsetAllColors(rviz::Robot* robot);
-  
-  // overrides from Display  
+
+  // overrides from Display
   virtual void onInitialize();
   virtual void onEnable();
   virtual void onDisable();
   virtual void fixedFrameChanged();
-  
+
   // new virtual functions added by this plugin
   virtual void updateInternal(float wall_dt, float ros_dt);
   virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  
+
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   bool model_is_loading_;
   boost::mutex robot_model_loading_lock_;
-  
+
   BackgroundProcessing background_process_;
   std::deque<boost::function<void()> > main_loop_jobs_;
   boost::mutex main_loop_jobs_lock_;
   boost::condition_variable main_loop_jobs_empty_condition_;
-  
+
   Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
-  
+
   // render the planning scene
-  RobotStateVisualizationPtr planning_scene_robot_;  
+  RobotStateVisualizationPtr planning_scene_robot_;
   PlanningSceneRenderPtr planning_scene_render_;
-  
+
   bool planning_scene_needs_render_;
   float current_scene_time_;
-  
+
   rviz::Property* scene_category_;
   rviz::Property* robot_category_;
 

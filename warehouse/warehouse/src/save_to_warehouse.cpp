@@ -50,7 +50,7 @@ static const std::string ROBOT_DESCRIPTION="robot_description";
 void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_warehouse::PlanningSceneStorage *pss)
 {
   ROS_INFO("Received an update to the planning scene...");
-  
+
   if (!psm->getPlanningScene()->getName().empty())
   {
     if (!pss->hasPlanningScene(psm->getPlanningScene()->getName()))
@@ -85,16 +85,16 @@ void onConstraints(const moveit_msgs::ConstraintsConstPtr &msg, moveit_warehouse
     ROS_INFO("No name specified for constraints. Not saving.");
     return;
   }
-  
+
   if (cs->hasConstraints(msg->name))
   {
-    ROS_INFO("Replacing constraints '%s'", msg->name.c_str());    
+    ROS_INFO("Replacing constraints '%s'", msg->name.c_str());
     cs->removeConstraints(msg->name);
     cs->addConstraints(*msg);
   }
   else
   {
-    ROS_INFO("Adding constraints '%s'", msg->name.c_str());    
+    ROS_INFO("Adding constraints '%s'", msg->name.c_str());
     cs->addConstraints(*msg);
   }
 }
@@ -109,23 +109,23 @@ void onRobotState(const moveit_msgs::RobotStateConstPtr &msg, moveit_warehouse::
     n++;
   std::string name = "S" + boost::lexical_cast<std::string>(n);
   ROS_INFO("Adding robot state '%s'", name.c_str());
-  rs->addRobotState(*msg, name);  
+  rs->addRobotState(*msg, name);
 }
 
 int main(int argc, char **argv)
-{  
+{
   ros::init(argc, argv, "save_to_warehouse", ros::init_options::AnonymousName);
-  
+
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
     ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
-  
+
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
-  
+
   if (vm.count("help"))
   {
     std::cout << desc << std::endl;
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   ros::NodeHandle nh;
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
     ROS_ERROR("Unable to initialize PlanningSceneMonitor");
     return 1;
   }
-  
+
   psm.startSceneMonitor();
   psm.startWorldGeometryMonitor();
   moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
     for (std::size_t i = 0 ; i < names.size() ; ++i)
       ROS_INFO(" * %s", names[i].c_str());
   }
-  
+
   psm.addUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
 
   boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback1 = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
   ros::Subscriber constr_sub = nh.subscribe("constraints", 100, callback2);
   boost::function<void(const moveit_msgs::RobotStateConstPtr&)> callback3 = boost::bind(&onRobotState, _1, &rs);
   ros::Subscriber state_sub = nh.subscribe("robot_state", 100, callback3);
-  
+
   std::vector<std::string> topics;
   psm.getMonitoredTopics(topics);
   ROS_INFO_STREAM("Listening for scene updates on topics " << boost::algorithm::join(topics, ", "));

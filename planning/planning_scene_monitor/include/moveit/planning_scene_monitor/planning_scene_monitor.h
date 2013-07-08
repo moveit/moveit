@@ -58,7 +58,7 @@ namespace planning_scene_monitor
 class PlanningSceneMonitor : private boost::noncopyable
 {
 public:
-  
+
   enum SceneUpdateType
     {
       /** \brief No update */
@@ -76,8 +76,8 @@ public:
       /** \brief The entire scene was updated */
       UPDATE_SCENE = 8 + UPDATE_STATE + UPDATE_TRANSFORMS + UPDATE_GEOMETRY
     };
-  
-    
+
+
   /** @brief Constructor
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param tf A pointer to a tf::Transformer
@@ -102,7 +102,7 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const std::string &robot_description, 
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const std::string &robot_description,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string &name = "");
 
@@ -112,37 +112,37 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, 
-                       const robot_model_loader::RobotModelLoaderPtr &rml, 
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene,
+                       const robot_model_loader::RobotModelLoaderPtr &rml,
                        const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string &name = "");
 
   ~PlanningSceneMonitor();
-  
+
   /** \brief Get the name of this monitor */
   const std::string& getName() const
   {
     return monitor_name_;
   }
-  
+
   /** \brief Get the user kinematic model loader */
   const robot_model_loader::RobotModelLoaderPtr& getRobotModelLoader() const
   {
     return rm_loader_;
   }
-  
+
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
   }
-  
+
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
   const planning_scene::PlanningScenePtr& getPlanningScene()
   {
     return scene_;
   }
-  
+
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
   const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
@@ -161,7 +161,7 @@ public:
       the pointer of the scene is the same as the one maintained,
       or if a parent of the scene is the one maintained. */
   bool updatesScene(const planning_scene::PlanningScenePtr &scene) const;
-  
+
   /** @brief Get the stored robot description
    *  @return An instance of the stored robot description*/
   const std::string& getRobotDescription() const
@@ -174,38 +174,38 @@ public:
   {
     return default_robot_padd_;
   }
-  
+
   /// Get the default robot scaling
   double getDefaultRobotScale() const
   {
     return default_robot_scale_;
   }
-    
+
   /// Get the default object padding
   double getDefaultObjectPadding() const
   {
     return default_object_padd_;
   }
-  
+
   /// Get the default attached padding
   double getDefaultAttachedObjectPadding() const
   {
     return default_attached_padd_;
   }
-  
+
   /** @brief Get the instance of the TF client that was passed to the constructor of this class. */
   const boost::shared_ptr<tf::Transformer>& getTFClient() const
   {
     return tf_;
   }
-  
+
   /** \brief By default, the maintained planning scene does not reason about diffs. When the flag passed in is true, the maintained
       scene starts counting diffs. Future updates to the planning scene will be stored as diffs and can be retrieved as
       such. Setting the flag to false restores the default behaviour. Maintaining diffs is automatically enabled when
       publishing planning scenes. */
   void monitorDiffs(bool flag);
 
-  /** \brief Start publishing the maintained planning scene. The first message set out is a complete planning scene. 
+  /** \brief Start publishing the maintained planning scene. The first message set out is a complete planning scene.
       Diffs are sent afterwards on updates specified by the \e event bitmask. For UPDATE_SCENE, the full scene is always sent. */
   void startPublishingPlanningScene(SceneUpdateType event, const std::string &planning_scene_topic = "monitored_planning_scene");
 
@@ -214,13 +214,13 @@ public:
 
   /** \brief Set the maximum frequency at which planning scenes are being published */
   void setPlanningScenePublishingFrequency(double hz);
-  
+
   /** \brief Get the maximum frequency at which planning scenes are published (Hz) */
   double getPlanningScenePublishingFrequency() const
   {
     return publish_planning_scene_frequency_;
   }
-  
+
   /** @brief Get the stored instance of the stored current state monitor
    *  @return An instance of the stored current state monitor*/
   const CurrentStateMonitorPtr& getStateMonitor() const
@@ -253,7 +253,7 @@ public:
 
   /** @brief Get the maximum frequency (Hz) at which the current state of the planning scene is updated.*/
   double getStateUpdateFrequency();
-   
+
   /** @brief Start the scene monitor
    *  @param scene_topic The name of the planning scene topic
    */
@@ -278,10 +278,10 @@ public:
 
   /** @brief Clear the functions to be called when an update to the scene is received */
   void clearUpdateCallbacks();
-  
+
   /** @brief Get the topic names that the monitor is listening to */
   void getMonitoredTopics(std::vector<std::string> &topics) const;
-  
+
   /** \brief Return the time when the last update was made to the planning scene (by the monitor) */
   const ros::Time& getLastUpdateTime() const
   {
@@ -289,7 +289,7 @@ public:
   }
 
   void publishDebugInformation(bool flag);
-  
+
   /** @brief This function is called every time there is a change to the planning scene */
   void triggerSceneUpdateEvent(SceneUpdateType update_type);
 
@@ -306,14 +306,14 @@ public:
   void unlockSceneWrite();
 
 protected:
-  
+
   /** @brief Initialize the planning scene monitor
    *  @param scene The scene instance to fill with data (an instance is allocated if the one passed in is not allocated) */
   void initialize(const planning_scene::PlanningScenePtr &scene);
 
   /** @brief Configure the collision matrix for a particular scene */
   void configureCollisionMatrix(const planning_scene::PlanningScenePtr &scene);
-  
+
   /** @brief Configure the default padding*/
   void configureDefaultPadding();
 
@@ -325,7 +325,7 @@ protected:
 
   /** @brief Callback for a new collision object msg that failed to pass the TF filter */
   void collisionObjectFailTFCallback(const moveit_msgs::CollisionObjectConstPtr &obj, tf::filter_failure_reasons::FilterFailureReason reason);
-  
+
   /** @brief Callback for a new planning scene world*/
   void newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr &world);
 
@@ -334,13 +334,13 @@ protected:
 
   /** @brief Callback for octomap updates */
   void octomapUpdateCallback();
-  
+
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
 
   /** @brief Callback for a change for an attached object of the current state of the planning scene */
   void currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody *attached_body, bool just_attached);
-  
+
   /** @brief Callback for a change in the world maintained by the planning scene */
   void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr &object, collision_detection::World::Action action);
 
@@ -353,15 +353,15 @@ protected:
   void includeWorldObjectInOctree(const collision_detection::World::ObjectConstPtr &obj);
 
   void excludeAttachedBodiesFromOctree();
-  void includeAttachedBodiesInOctree();  
+  void includeAttachedBodiesInOctree();
   void excludeAttachedBodyFromOctree(const robot_state::AttachedBody *attached_body);
   void includeAttachedBodyInOctree(const robot_state::AttachedBody *attached_body);
-  
+
   bool getShapeTransformCache(const std::string &target_frame, const ros::Time &target_time, occupancy_map_monitor::ShapeTransformCache &cache) const;
 
   /// The name of this scene monitor
   std::string                           monitor_name_;
-  
+
   planning_scene::PlanningScenePtr      scene_;
   planning_scene::PlanningSceneConstPtr scene_const_;
   planning_scene::PlanningScenePtr      parent_scene_; /// if diffs are monitored, this is the pointer to the parent scene
@@ -380,7 +380,7 @@ protected:
   double                                default_object_padd_;
   /// default attached padding
   double                                default_attached_padd_;
-  
+
   // variables for planning scene publishing
   ros::Publisher                        planning_scene_publisher_;
   boost::scoped_ptr<boost::thread>      publish_planning_scene_;
@@ -388,30 +388,30 @@ protected:
   SceneUpdateType                       publish_update_types_;
   SceneUpdateType                       new_scene_update_;
   boost::condition_variable_any         new_scene_update_condition_;
-  
+
   // subscribe to various sources of data
   ros::Subscriber                       planning_scene_subscriber_;
   ros::Subscriber                       planning_scene_world_subscriber_;
 
   ros::Subscriber                       attached_collision_object_subscriber_;
 
-  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_; 
+  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_;
   boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionObject> > collision_object_filter_;
-  
+
   boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionMap> > collision_map_subscriber_;
   boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionMap> > collision_map_filter_;
 
-  // include a octomap monitor 
+  // include a octomap monitor
   boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
 
-  // include a current state monitor 
+  // include a current state monitor
   CurrentStateMonitorPtr current_state_monitor_;
-  
+
 
   typedef std::map<std::string, occupancy_map_monitor::ShapeHandle> LinkShapeHandles;
   typedef std::map<const robot_state::AttachedBody*, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > > AttachedBodyShapeHandles;
   typedef std::map<std::string, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, Eigen::Affine3d*> > > CollisionBodyShapeHandles;
-  
+
   LinkShapeHandles link_shape_handles_;
   AttachedBodyShapeHandles attached_body_shape_handles_;
   CollisionBodyShapeHandles collision_body_shape_handles_;
@@ -422,24 +422,24 @@ protected:
 
 private:
 
-  void getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped> &transforms); 
+  void getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped> &transforms);
 
   void scenePublishingThread();
-  
+
   void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
-  
+
   /// the amount of time to wait in between updates to the robot state (in seconds)
-  double dt_state_update_; 
+  double dt_state_update_;
 
   /// the planning scene state is updated at a maximum specified frequency,
   /// and this timestamp is used to implement that functionality
   ros::WallTime last_state_update_;
-  
+
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
   robot_model::RobotModelConstPtr robot_model_;
-  
+
   class DynamicReconfigureImpl;
-  DynamicReconfigureImpl *reconfigure_impl_;  
+  DynamicReconfigureImpl *reconfigure_impl_;
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
@@ -455,12 +455,12 @@ public:
   {
     initialize(true);
   }
-  
+
   const PlanningSceneMonitorPtr& getPlanningSceneMonitor()
   {
     return planning_scene_monitor_;
   }
-  
+
   operator bool() const
   {
     return planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene();
@@ -483,14 +483,14 @@ protected:
   {
     initialize(read_only);
   }
-  
+
   void initialize(bool read_only)
   {
     if (planning_scene_monitor_)
       lock_.reset(new SingleUnlock(planning_scene_monitor_.get(), read_only));
   }
-  
-  // we use this struct so that lock/unlock are called only once 
+
+  // we use this struct so that lock/unlock are called only once
   // even if the LockedPlanningScene instance is copied around
   struct SingleUnlock
   {
@@ -503,7 +503,7 @@ protected:
         planning_scene_monitor_->lockSceneWrite();
     }
     ~SingleUnlock()
-    { 
+    {
       if (read_only_)
         planning_scene_monitor_->unlockSceneRead();
       else
@@ -512,7 +512,7 @@ protected:
     PlanningSceneMonitor *planning_scene_monitor_;
     bool read_only_;
   };
-  
+
   PlanningSceneMonitorPtr planning_scene_monitor_;
   boost::shared_ptr<SingleUnlock> lock_;
 };
@@ -520,12 +520,12 @@ protected:
 class LockedPlanningSceneRW : public LockedPlanningSceneRO
 {
 public:
-  
+
   LockedPlanningSceneRW(const PlanningSceneMonitorPtr &planning_scene_monitor) :
     LockedPlanningSceneRO(planning_scene_monitor, false)
   {
   }
-  
+
   operator const planning_scene::PlanningScenePtr&()
   {
     return planning_scene_monitor_->getPlanningScene();

@@ -54,25 +54,24 @@ public:
    * \defgroup move_group_interface_world_management Manage the world
    */
   /**@{*/
-  
+
   /** \brief Get the names of all known objects in the world. If \e with_type is set to true, only return objects that have a known type. */
   std::vector<std::string> getKnownObjectNames(bool with_type = false);
 
   /** \brief Get the names of known objects in the world that are located within a bounding region (specified in the frame reported by getPlanningFrame()).
       If \e with_type is set to true, only return objects that have a known type. */
   std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type = false);
-  
+
   /**@}*/
-  
+
 private:
-  
+
   class PlanningSceneInterfaceImpl;
   PlanningSceneInterfaceImpl *impl_;
-  
+
 };
-  
+
 }
 }
 
 #endif
-

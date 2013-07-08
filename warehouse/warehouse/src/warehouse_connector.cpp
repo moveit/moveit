@@ -57,7 +57,7 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
 {
   if(child_pid_ != 0)
     kill(child_pid_, SIGTERM);
-  
+
   child_pid_ = fork();
   if (child_pid_ == -1)
   {
@@ -65,25 +65,25 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
     child_pid_ = 0;
     return false;
   }
-  
+
   if (child_pid_ == 0)
   {
     std::size_t exec_file_pos = mongoexec_.find_last_of("/\\");
     if (exec_file_pos != std::string::npos)
     {
-      char** argv = new char*[4];      
+      char** argv = new char*[4];
       std::size_t exec_length = 1 + mongoexec_.length() - exec_file_pos;
       argv[0] = new char[1 + exec_length];
       snprintf(argv[0], exec_length, "%s", mongoexec_.substr(exec_file_pos + 1).c_str());
-      
+
       argv[1] = new char[16];
       snprintf(argv[1], 15, "--dbpath");
-      
+
       argv[2] = new char[1024];
       snprintf(argv[2], 1023, "%s", dirname.c_str());
-      
+
       argv[3] = NULL;
-      
+
       int code = execv(mongoexec_.c_str(), argv);
       delete[] argv[0];
       delete[] argv[1];

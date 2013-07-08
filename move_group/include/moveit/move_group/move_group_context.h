@@ -46,11 +46,11 @@ MOVEIT_CLASS_FORWARD(PlanningSceneMonitor);
 
 namespace planning_pipeline
 {
-MOVEIT_CLASS_FORWARD(PlanningPipeline);    
+MOVEIT_CLASS_FORWARD(PlanningPipeline);
 }
-    
+
 namespace plan_execution
-{	
+{
 MOVEIT_CLASS_FORWARD(PlanExecution);
 MOVEIT_CLASS_FORWARD(PlanWithSensing);
 }
@@ -62,16 +62,16 @@ MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
 
 namespace move_group
 {
-    
+
 struct MoveGroupContext
 {
   MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
-		   bool allow_trajectory_execution = false,
-		   bool debug = false);
+           bool allow_trajectory_execution = false,
+           bool debug = false);
   ~MoveGroupContext();
 
   bool status() const;
-  
+
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;
@@ -79,7 +79,7 @@ struct MoveGroupContext
   plan_execution::PlanWithSensingPtr plan_with_sensing_;
   bool allow_trajectory_execution_;
   bool debug_;
-};    
+};
 
 typedef boost::shared_ptr<MoveGroupContext> MoveGroupContextPtr;
 

@@ -70,15 +70,15 @@ struct InitProxy
     char **fake_argv = new char*[args.size()];
     for (std::size_t i = 0 ; i < args.size() ; ++i)
       fake_argv[i] = strdup(args[i].c_str());
-    
-    ros::init(fake_argc, fake_argv, ROScppNodeName(), ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);  
+
+    ros::init(fake_argc, fake_argv, ROScppNodeName(), ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
     for (int i = 0 ; i < fake_argc ; ++i)
       delete[] fake_argv[i];
     delete[] fake_argv;
   }
-  
+
   ~InitProxy()
-  { 
+  {
     if (ros::isInitialized() && !ros::isShuttingDown())
       ros::shutdown();
   }
@@ -87,16 +87,16 @@ struct InitProxy
 }
 
 static void roscpp_init_or_stop(bool init)
-{ 
+{
   // ensure we do not accidentally initialize ROS multiple times per process
   static boost::mutex lock;
   boost::mutex::scoped_lock slock(lock);
-  
+
   // once per process, we start a spinner
   static bool once = true;
   static boost::scoped_ptr<InitProxy> proxy;
   static boost::scoped_ptr<ros::AsyncSpinner> spinner;
-  
+
   // initialize only once
   if (once && init)
   {
@@ -110,7 +110,7 @@ static void roscpp_init_or_stop(bool init)
       spinner->start();
     }
   }
-  
+
   // shutdown if needed
   if (!init)
   {

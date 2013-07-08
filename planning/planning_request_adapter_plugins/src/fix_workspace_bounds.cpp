@@ -44,9 +44,9 @@ namespace default_planner_request_adapters
 class FixWorkspaceBounds : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  
+
   static const std::string WBOUNDS_PARAM_NAME;
-  
+
   FixWorkspaceBounds() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(WBOUNDS_PARAM_NAME, workspace_extent_))
@@ -55,15 +55,15 @@ public:
       ROS_INFO_STREAM("Param '" << WBOUNDS_PARAM_NAME << "' was not set. Using default value: " << workspace_extent_);
     }
     else
-      ROS_INFO_STREAM("Param '" << WBOUNDS_PARAM_NAME << "' was set to " << workspace_extent_); 
+      ROS_INFO_STREAM("Param '" << WBOUNDS_PARAM_NAME << "' was set to " << workspace_extent_);
     workspace_extent_ /= 2.0;
   }
-  
+
   virtual std::string getDescription() const { return "Fix Workspace Bounds"; }
-  
+
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const planning_interface::MotionPlanRequest &req, 
+                            const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
@@ -83,9 +83,9 @@ public:
     else
       return planner(planning_scene, req, res);
   }
-  
+
 private:
-  ros::NodeHandle nh_;    
+  ros::NodeHandle nh_;
   double workspace_extent_;
 };
 

@@ -39,7 +39,7 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "display_random_state");
-  
+
   bool valid = false;
   bool invalid = false;
   for (int i = 0 ; i < argc ; ++i)
@@ -55,10 +55,10 @@ int main(int argc, char **argv)
       break;
     }
   }
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   ros::NodeHandle nh;
   robot_model_loader::RobotModelLoader::Options opt;
   opt.robot_description_ = "robot_description";
@@ -67,17 +67,17 @@ int main(int argc, char **argv)
   psm.startWorldGeometryMonitor();
   psm.startSceneMonitor();
   ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
-  
+
   ros::Duration(0.5).sleep();
-  
-  do 
+
+  do
   {
     if(!psm.getPlanningScene())
     {
       ROS_ERROR("Planning scene did not load properly, exiting...");
       break;
     }
-    
+
     std::cout << "Type a number and hit Enter. That number of ";
     if (valid)
       std::cout << "valid ";
@@ -87,14 +87,14 @@ int main(int argc, char **argv)
     std::cout << "states will be randomly generated at an interval of one second and published as a planning scene." << std::endl;
     std::size_t n;
     std::cin >> n;
-    
+
     for (std::size_t i = 0 ; i < n ; ++i)
     {
       if (valid)
       {
         bool found = false;
         unsigned int attempts = 0;
-        do 
+        do
         {
           attempts++;
           psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
         {
           bool found = false;
           unsigned int attempts = 0;
-          do 
+          do
           {
             attempts++;
             psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
@@ -131,16 +131,16 @@ int main(int argc, char **argv)
         }
         else
           psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
-      
+
       moveit_msgs::PlanningScene psmsg;
       psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
       pub_scene.publish(psmsg);
       psm.getPlanningScene()->getCurrentState().printStateInfo();
-      
-      sleep(1);        
+
+      sleep(1);
     }
-  } while (nh.ok());    
-  
+  } while (nh.ok());
+
   ros::shutdown();
   return 0;
 }
