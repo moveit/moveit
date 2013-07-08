@@ -35,12 +35,12 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/trajectory_processing/trajectory_tools.h>
-  
+
 namespace trajectory_processing
 {
 
 bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory)
-{ 
+{
   return trajectory.joint_trajectory.points.empty() && trajectory.multi_dof_joint_trajectory.points.empty();
 }
 

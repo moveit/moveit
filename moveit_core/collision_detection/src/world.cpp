@@ -68,7 +68,7 @@ void collision_detection::World::addToObject(const std::string &id,
     logError("Number of shapes and number of poses do not match. Not adding this object to collision world.");
     return;
   }
- 
+
   if (!shapes.size())
     return;
 
@@ -125,7 +125,7 @@ collision_detection::World::ObjectConstPtr collision_detection::World::getObject
 
 void collision_detection::World::ensureUnique(ObjectPtr &obj)
 {
-  if (obj && !obj.unique()) 
+  if (obj && !obj.unique())
     obj.reset(new Object(*obj));
 }
 
@@ -147,7 +147,7 @@ bool collision_detection::World::moveShapeInObject(const std::string &id,
       {
         ensureUnique(it->second);
         it->second->shape_poses_[i] = pose;
-        
+
         notify(it->second, MOVE_SHAPE);
         return true;
       }
@@ -247,4 +247,3 @@ void collision_detection::World::notifyObserverAllObjects(const ObserverHandle o
     }
   }
 }
-

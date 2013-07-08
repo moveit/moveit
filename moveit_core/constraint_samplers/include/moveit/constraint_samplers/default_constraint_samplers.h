@@ -45,7 +45,7 @@ namespace constraint_samplers
 
 /**
  * \brief JointConstraintSampler is a class that allows the sampling
- * of joints in a particular group of the robot, subject to a set of individual joint constraints.  
+ * of joints in a particular group of the robot, subject to a set of individual joint constraints.
  *
  * The set of individual joint constraint reduce the allowable bounds
  * used in the sampling.  Unconstrained values will be sampled within
@@ -56,50 +56,50 @@ class JointConstraintSampler : public ConstraintSampler
 {
 public:
 
-  /** 
-   * Constructor 
-   * 
-   * @param [in] scene The planning scene used to check the constraint 
+  /**
+   * Constructor
+   *
+   * @param [in] scene The planning scene used to check the constraint
    *
    * @param [in] group_name The group name associated with the
    * constraint.  Will be invalid if no group name is passed in or the
    * joint model group cannot be found in the kinematic model
-   * 
+   *
    */
-  JointConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, 
+  JointConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene,
                          const std::string &group_name) :
     ConstraintSampler(scene, group_name)
   {
   }
-  /** 
-   * \brief Configures a joint constraint given a Constraints message.  
+  /**
+   * \brief Configures a joint constraint given a Constraints message.
    *
    * If more than one constraint for a particular joint is specified,
    * the most restrictive set of bounds will be used (highest minimum
    * value, lowest maximum value).  For the configuration to be
    * successful, the following condition must be met, in addition to
    * the conditions specified in \ref configure(const std::vector<kinematic_constraints::JointConstraint> &jc) :
-   
+
    * \li The Constraints message must contain one or more valid joint
    * constraints (where validity is judged by the ability to configure
-   * a \ref JointConstraint) 
+   * a \ref JointConstraint)
    *
-   * @param [in] constr The message containing the constraints 
-   * 
-   * @return True if the conditions are met, otherwise false 
-   */  
+   * @param [in] constr The message containing the constraints
+   *
+   * @return True if the conditions are met, otherwise false
+   */
   virtual bool configure(const moveit_msgs::Constraints &constr);
 
-  /** 
-   * \brief Configures a joint constraint given a vector of constraints.   
+  /**
+   * \brief Configures a joint constraint given a vector of constraints.
    *
    * If more than one constraint for a particular joint is specified,
    * the most restrictive set of bounds will be used (highest minimum
    * value, lowest_maximum value.  For the configuration to be
    * successful, the following conditions must be met:
-   
+
    * \li The vector must contain one or more valid, enabled joint
-   * constraints 
+   * constraints
    *
    * \li At least one constraint must reference a joint in the
    * indicated group.  If no additional bounds exist for this group,
@@ -110,26 +110,26 @@ public:
    * \li The constraints must allow a sampleable region for all
    * joints, where the most restrictive minimum bound is less than the
    * most restrictive maximum bound
-   * 
+   *
    * @param [in] jc The vector of joint constraints
-   * 
-   * @return True if the conditions are met, otherwise false 
-   */  
+   *
+   * @return True if the conditions are met, otherwise false
+   */
   bool configure(const std::vector<kinematic_constraints::JointConstraint> &jc);
 
-  virtual bool sample(robot_state::JointStateGroup *jsg, 
-                      const robot_state::RobotState &ks,  
+  virtual bool sample(robot_state::JointStateGroup *jsg,
+                      const robot_state::RobotState &ks,
                       unsigned int max_attempts);
 
-  virtual bool project(robot_state::JointStateGroup *jsg, 
-                       const robot_state::RobotState &reference_state, 
+  virtual bool project(robot_state::JointStateGroup *jsg,
+                       const robot_state::RobotState &reference_state,
                        unsigned int max_attempts);
 
-  /** 
+  /**
    * \brief Gets the number of constrained joints - joints that have an
    * additional bound beyond the joint limits.
-   * 
-   * 
+   *
+   *
    * @return The number of constrained joints.
    */
   std::size_t getConstrainedJointCount() const
@@ -137,48 +137,48 @@ public:
     return bounds_.size();
   }
 
-  /** 
+  /**
    * \brief Gets the number of unconstrained joints - joint that have
    * no additional bound beyond the joint limits.
-   * 
+   *
    * @return The number of unconstrained joints.
    */
   std::size_t getUnconstrainedJointCount() const
   {
     return unbounded_.size();
   }
-  
+
 protected:
-  
-  /// \brief An internal structure used for maintaining constraints on a particular joint                                             
+
+  /// \brief An internal structure used for maintaining constraints on a particular joint
   struct JointInfo
   {
-    /** 
+    /**
      * \brief Constructor
-     * 
-     * @return 
+     *
+     * @return
      */
-    JointInfo() 
+    JointInfo()
     {
       min_bound_ = -std::numeric_limits<double>::max();
       max_bound_ = std::numeric_limits<double>::max();
     }
 
-    /** 
+    /**
      * \brief Function that adjusts the joints only if they are more
      * restrictive.  This means that the min limit is higher than the
      * current limit, or the max limit is lower than the current max
      * limit.
-     * 
+     *
      * @param min The min limit for potential adjustment
      * @param max The max limit for potential adjustment
      */
-    void potentiallyAdjustMinMaxBounds(double min, double max) 
+    void potentiallyAdjustMinMaxBounds(double min, double max)
     {
       min_bound_ = std::max(min, min_bound_);
       max_bound_ = std::min(max, max_bound_);
     }
-    
+
     double min_bound_;          /**< The most restrictive min value of those set */
     double max_bound_;          /**< The most restrictive max value of those set */
     std::size_t index_;         /**< The index within the joint state vector for this joint */
@@ -197,83 +197,83 @@ protected:
 /**
  * \brief A structure for potentially holding a position constraint
  * and an orientation constraint for use during Ik Sampling
- * 
+ *
  */
 struct IKSamplingPose
 {
-  /** 
+  /**
    * \brief Empty constructor.
-   * 
-   * @return 
+   *
+   * @return
    */
   IKSamplingPose();
 
-  /** 
+  /**
    * \brief Constructor that takes a single pose constraint, doing a copy
-   * 
+   *
    * @param pc The pose constraint that will be copied into the internal variable
-   * 
+   *
    */
   IKSamplingPose(const kinematic_constraints::PositionConstraint &pc);
 
-  /** 
+  /**
    * \brief Constructor that takes a single orientation constraint, doing a copy
-   * 
+   *
    * @param oc The orientation constraint that will be copied into the internal variable
-   * 
-   * @return 
+   *
+   * @return
    */
   IKSamplingPose(const kinematic_constraints::OrientationConstraint &oc);
 
-  /** 
+  /**
    * \brief Constructor that takes both a position and an orientation
    * constraint, copying both into the internal variables
-   * 
+   *
    * @param pc The pose constraint that will be copied into the internal variable
    * @param oc The orientation constraint that will be copied into the internal variable
-   * 
-   * @return 
+   *
+   * @return
    */
-  IKSamplingPose(const kinematic_constraints::PositionConstraint &pc, 
+  IKSamplingPose(const kinematic_constraints::PositionConstraint &pc,
                  const kinematic_constraints::OrientationConstraint &oc);
-  
-  /** 
+
+  /**
    * \brief Constructor that takes a pointer to a position constraint.
-   * 
+   *
    * @param pc Pointer for copying into internal variable
-   * 
-   * @return 
+   *
+   * @return
    */
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc);
 
-  /** 
+  /**
    * \brief Constructor that takes a pointer to a orientation constraint.
-   * 
+   *
    * @param oc Pointer for copying into internal variable
-   * 
-   * @return 
+   *
+   * @return
    */
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
 
 
-  /** 
+  /**
    * \brief Constructor that takes a pointer to both position and orientation constraints.
-   * 
+   *
    * @param pc Pointer for copying into internal variables
    * @param oc Pointer for copying into internal variable
-   * 
-   * @return 
+   *
+   * @return
    */
-  IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, 
+  IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc,
                  const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
-  
+
   boost::shared_ptr<kinematic_constraints::PositionConstraint>    position_constraint_; /**< \brief Holds the position constraint for sampling */
   boost::shared_ptr<kinematic_constraints::OrientationConstraint> orientation_constraint_; /**< \brief Holds the orientation constraint for sampling */
 };
 
 /**
- * \brief A class that allows the sampling of IK constraints.  
- * 
+ * \brief A class that allows the sampling of IK constraints.
+ *
  * An IK constraint can have a position constraint, and orientation
  * constraint, or both.  The constraint will attempt to sample a pose
  * that adheres to the constraint, and then solves IK for that pose.
@@ -284,23 +284,23 @@ class IKConstraintSampler : public ConstraintSampler
 {
 public:
 
-  /** 
-   * \brief Constructor 
-   * 
-   * @param [in] scene The planning scene used to check the constraint 
+  /**
+   * \brief Constructor
+   *
+   * @param [in] scene The planning scene used to check the constraint
    *
    * @param [in] group_name The group name associated with the
    * constraint.  Will be invalid if no group name is passed in or the
    * joint model group cannot be found in the kinematic model
-   * 
+   *
    */
-  IKConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, 
+  IKConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene,
                       const std::string &group_name) :
     ConstraintSampler(scene, group_name)
   {
   }
 
-  /** 
+  /**
    * \brief Configures the IK constraint given a constraints message.
    *
    * If the constraints message contains both orientation constraints
@@ -317,18 +317,18 @@ public:
    * constraints.  If no valid position or orientation constraints
    * exist, it will return false.  For more information, see the docs
    * for \ref configure(const IKSamplingPose &sp).
-   * 
-   * @param constr The Constraint message 
-   * 
+   *
+   * @param constr The Constraint message
+   *
    * @return True if some valid position and orientation constraints
    * exist and the overloaded configuration function returns true.
    * Otherwise, returns false.
    */
   virtual bool configure(const moveit_msgs::Constraints &constr);
 
-  /** 
+  /**
    * \brief Configures the Constraint given a IKSamplingPose.
-   * 
+   *
    *
    * This function performs the actual constraint configuration.  It returns true if the following are true:
    * \li The \ref IKSamplingPose has either a valid orientation or position constraint
@@ -337,35 +337,35 @@ public:
    * \li There is a valid IK solver instance for the indicated group.
    * This will be only be the case if a group has a specific solver
    * associated with it.  For situations where the super-group doesn't
-   * have a solver, but all subgroups have solvers, then use the 
-   * \ref ConstraintSamplerManager.  
-   * 
+   * have a solver, but all subgroups have solvers, then use the
+   * \ref ConstraintSamplerManager.
+   *
    * \li The kinematic model has both the links associated with the IK
-   * solver's tip and base frames. 
-   *  
+   * solver's tip and base frames.
+   *
    * \li The link specified in the constraints is the tip link of the IK solver
    *
    * @param [in] sp The variable that contains the position and orientation constraints
-   * 
+   *
    * @return True if all conditions are met and the group specified in
    * the constructor is valid.  Otherwise, false.
    */
   bool configure(const IKSamplingPose &sp);
 
-  /** 
+  /**
    * \brief Gets the timeout argument passed to the IK solver
-   * 
-   * 
+   *
+   *
    * @return The IK timeout
    */
   double getIKTimeout() const
   {
     return ik_timeout_;
   }
-  
-  /** 
+
+  /**
    * \brief Sets the timeout argument passed to the IK solver
-   * 
+   *
    * @param timeout The timeout argument that will be used in future IK calls
    */
   void setIKTimeout(double timeout)
@@ -373,20 +373,20 @@ public:
     ik_timeout_ = timeout;
   }
 
-  /** 
-   * \brief Gets the position constraint associated with this sampler.  
-   * 
-   * 
+  /**
+   * \brief Gets the position constraint associated with this sampler.
+   *
+   *
    * @return The position constraint, or an empty boost::shared_ptr if none has been specified
    */
   const boost::shared_ptr<kinematic_constraints::PositionConstraint>& getPositionConstraint() const
   {
     return sampling_pose_.position_constraint_;
   }
-  /** 
+  /**
    * \brief Gets the orientation constraint associated with this sampler.
-   * 
-   * 
+   *
+   *
    * @return The orientation constraint, or an empty boost::shared_ptr if none has been specified
    */
   const boost::shared_ptr<kinematic_constraints::OrientationConstraint>& getOrientationConstraint() const
@@ -394,9 +394,9 @@ public:
     return sampling_pose_.orientation_constraint_;
   }
 
-  /** 
-   * \brief Gets the volume associated with the position and orientation constraints.  
-   * 
+  /**
+   * \brief Gets the volume associated with the position and orientation constraints.
+   *
    * This function computes the volume of the sampling constraint.
    * The volume associated with the position constraint is either the
    * product of the volume of all position constraint regions, or 1.0
@@ -409,16 +409,16 @@ public:
    */
   double getSamplingVolume() const;
 
-  /** 
+  /**
    * \brief Gets the link name associated with this sampler
-   * 
-   * 
+   *
+   *
    * @return The associated link name
    */
   const std::string& getLinkName() const;
-  
-  /** 
-   * \brief Produces an IK sample, putting the result in the JointStateGroup. 
+
+  /**
+   * \brief Produces an IK sample, putting the result in the JointStateGroup.
    *
    * This function first calls the \ref samplePose function to produce
    * a position and orientation in the constraint region.  It then
@@ -431,21 +431,21 @@ public:
    * IK is not successful, it will repeat the pose sample and IK
    * procedure max_attempt times.  If in any iteration a valid pose
    * cannot be sample within max_attempts time, it will return false.
-   * 
-   * @param jsg The joint state group in question.  Must match the group passed in the constructor or will return false. 
+   *
+   * @param jsg The joint state group in question.  Must match the group passed in the constructor or will return false.
    * @param ks A reference state that will be used for transforming the IK poses
    * @param max_attempts The number of attempts to both sample and try IK
-   * 
-   * @return True if a valid sample pose was produced and valid IK found for that pose.  Otherwise false. 
+   *
+   * @return True if a valid sample pose was produced and valid IK found for that pose.  Otherwise false.
    */
   virtual bool sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts);
 
-  virtual bool project(robot_state::JointStateGroup *jsg, 
-                       const robot_state::RobotState &reference_state, 
+  virtual bool project(robot_state::JointStateGroup *jsg,
+                       const robot_state::RobotState &reference_state,
                        unsigned int max_attempts);
-  /** 
-   * \brief Returns a pose that falls within the constraint regions. 
-   * 
+  /**
+   * \brief Returns a pose that falls within the constraint regions.
+   *
    * If a position constraint is specified, then a position is
    * produced by selecting a random region among the constraint
    * regions and taking a sample in that region.  If no region is
@@ -458,34 +458,34 @@ public:
    * difference rotation to the orientation constraint target.
    * Otherwise, a random quaternion is produced.
    *
-   * @param [out] pos The position component of the sample 
-   * @param [out] quat The orientation component of the sample 
+   * @param [out] pos The position component of the sample
+   * @param [out] quat The orientation component of the sample
    * @param [in] ks The reference state used for performing transforms
    * @param [in] max_attempts The maximum attempts to try to sample - applies only to the position constraint
-   * 
+   *
    * @return True if a sample was successfully produced, otherwise false
    */
   bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const robot_state::RobotState &ks, unsigned int max_attempts);
-  
+
 protected:
-  
+
   virtual void clear();
 
-  /** 
+  /**
    * \brief Performs checks and sets various internal values associated with the IK solver
-   * 
+   *
    * @return True if the IK solver exists and if it associated with the expected base frame and tip frames.  Otherwise false.
    */
   bool loadIKSolver();
-  
-  /** 
+
+  /**
    * \brief Actually calls IK on the given pose, generating a random seed state.
-   * 
+   *
    * @param ik_query The pose for solving IK, assumed to be for the tip frame in the base frame
-   * @param timeout The timeout for the IK search 
+   * @param timeout The timeout for the IK search
    * @param jsg The joint state group into which to place the solution
    * @param use_as_seed If true, the state values in jsg are used as seed for the IK
-   * 
+   *
    * @return True if IK returns successfully with the timeout, and otherwise false.
    */
   bool callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback, double timeout,

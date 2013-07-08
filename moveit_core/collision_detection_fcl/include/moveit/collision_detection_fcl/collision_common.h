@@ -53,17 +53,17 @@ struct CollisionGeometryData
   {
     ptr.link = link;
   }
-  
+
   CollisionGeometryData(const robot_state::AttachedBody *ab) : type(BodyTypes::ROBOT_ATTACHED)
   {
     ptr.ab = ab;
   }
-  
+
   CollisionGeometryData(const World::Object *obj) : type(BodyTypes::WORLD_OBJECT)
   {
     ptr.obj = obj;
   }
-  
+
   const std::string& getID() const
   {
     switch (type)
@@ -91,7 +91,7 @@ struct CollisionGeometryData
     }
     return "Object";
   }
-  
+
   BodyType type;
   union
   {
@@ -107,30 +107,30 @@ struct CollisionData
   CollisionData() : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
   {
   }
-  
+
   CollisionData(const CollisionRequest *req, CollisionResult *res,
                 const AllowedCollisionMatrix *acm) : req_(req), active_components_only_(NULL), res_(res), acm_(acm), done_(false)
   {
   }
-  
+
   ~CollisionData()
   {
   }
 
   /// Compute \e active_components_only_ based on \e req_
   void enableGroup(const robot_model::RobotModelConstPtr &kmodel);
-  
+
   /// The collision request passed by the user
   const CollisionRequest       *req_;
 
   /// If the collision request includes a group name, this set contains the pointers to the link models that are considered for collision;
   /// If the pointer is NULL, all collisions are considered.
-  const std::set<const robot_model::LinkModel*> 
+  const std::set<const robot_model::LinkModel*>
                                *active_components_only_;
 
   /// The user specified response location
   CollisionResult              *res_;
-  
+
   /// The user specified collision matrix (may be NULL)
   const AllowedCollisionMatrix *acm_;
 
@@ -144,7 +144,7 @@ struct FCLGeometry
   FCLGeometry()
   {
   }
-  
+
   FCLGeometry(fcl::CollisionGeometry *collision_geometry, const robot_model::LinkModel *link) :
     collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link))
   {
@@ -165,14 +165,14 @@ struct FCLGeometry
 
   template<typename T>
   void updateCollisionGeometryData(const T* data, bool newType)
-  { 
+  {
     if (!newType && collision_geometry_data_)
       if (collision_geometry_data_->ptr.raw == reinterpret_cast<const void*>(data))
         return;
     collision_geometry_data_.reset(new CollisionGeometryData(data));
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
-  
+
   boost::shared_ptr<fcl::CollisionGeometry> collision_geometry_;
   boost::shared_ptr<CollisionGeometryData>  collision_geometry_data_;
 };
@@ -185,7 +185,7 @@ struct FCLObject
   void registerTo(fcl::BroadPhaseCollisionManager *manager);
   void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
   void clear();
-  
+
   std::vector<boost::shared_ptr<fcl::CollisionObject> > collision_objects_;
   std::vector<FCLGeometryConstPtr> collision_geometry_;
 };
@@ -251,7 +251,7 @@ inline void fcl2costsource(const fcl::CostSource &fcs, CostSource& cs)
   cs.aabb_max[0] = fcs.aabb_max[0];
   cs.aabb_max[1] = fcs.aabb_max[1];
   cs.aabb_max[2] = fcs.aabb_max[2];
-  
+
   cs.cost = fcs.cost_density;
 }
 

@@ -54,30 +54,30 @@ static ActiveContexts& getActiveContexts()
 }
 }
 
-planning_interface::PlanningContext::PlanningContext(const std::string &name, const std::string &group) : 
+planning_interface::PlanningContext::PlanningContext(const std::string &name, const std::string &group) :
   name_(name),
   group_(group)
 {
   ActiveContexts &ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
-  ac.contexts_.insert(this);  
+  ac.contexts_.insert(this);
 }
 
 planning_interface::PlanningContext::~PlanningContext()
 {
   ActiveContexts &ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
-  ac.contexts_.erase(this);  
-} 
+  ac.contexts_.erase(this);
+}
 
 void planning_interface::PlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene)
-{  
+{
   planning_scene_ = planning_scene;
 }
 
 void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanRequest &request)
 {
-  request_ = request; 
+  request_ = request;
   if (request_.allowed_planning_time <= 0.0)
   {
     logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.", request_.allowed_planning_time);

@@ -52,12 +52,12 @@ namespace constraint_samplers
  * Member samplers can operate on all or part of a joint state group
  * vector, with later samplers potentially overwriting previous
  * samplers.
- * 
+ *
  */
 class UnionConstraintSampler : public ConstraintSampler
 {
 public:
-  /** 
+  /**
    * \brief Constructor, which will re-order its internal list of
    * samplers on construction.
    *
@@ -70,7 +70,7 @@ public:
    * subset of the set of links updated by the group of B, A and B are
    * not swapped.  If the updated links of B are a proper set of the
    * updated links of A, A and B are swapped.
-   * 
+   *
    * \li Otherwise, the groups associated with A and B are either
    * disjoint in terms of updated links or have an equivalent group.
    * In this case, it is determined if any updated links in the group for A
@@ -79,55 +79,55 @@ public:
    * \li If A depends on B, and B depends on A, a warning message is
    * printed that circular dependencies are likely to lead to bad
    * samples.  A and B are not swapped.
-   * 
+   *
    * \li If one of the frame dependencies of B is a link updated by A,
    * but not vice-versa, the samplers are swapped.
-   * 
+   *
    * \li If one of the frame dependencies of A is a link updated by B,
    * but not vice-versa, the samplers are not swapped.
    *
    * \li If no dependency exists, the samplers are swapped according
    * to alphabetical order.
-   * 
-   * @param [in] scene The planning scene 
+   *
+   * @param [in] scene The planning scene
    * @param [in] group_name The group name is ignored, as each sampler already has a group name
    * @param [in] samplers A vector of already configured samplers that will be applied for future samples
-   * 
-   * @return 
+   *
+   * @return
    */
-  UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, 
-                         const std::string &group_name, 
+  UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene,
+                         const std::string &group_name,
                          const std::vector<ConstraintSamplerPtr> &samplers);
 
-  /** 
+  /**
    * \brief Gets the sorted internal list of constraint samplers
-   * 
-   * 
+   *
+   *
    * @return The sorted internal list of constraint samplers
-   */  
+   */
   const std::vector<ConstraintSamplerPtr>& getSamplers() const
   {
     return samplers_;
   }
 
-  /** 
+  /**
    * \brief No-op, as the union constraint sampler is for already
    * configured samplers
-   * 
+   *
    * @param [in] constr Constraint message
-   * 
+   *
    * @return Always true
    */
   virtual bool configure(const moveit_msgs::Constraints &constr)
   {
     return true;
   }
-  
-  /** 
+
+  /**
    * \brief No-op, as the union constraint sampler can act on anything
-   * 
+   *
    * @param [in] constr Constraint message
-   * 
+   *
    * @return Always true
    */
   virtual bool canService(const moveit_msgs::Constraints &constr) const
@@ -135,9 +135,9 @@ public:
     return true;
   }
 
-  /** 
+  /**
    * \brief Produces a sample from all configured samplers.
-   * 
+   *
    * This function will call each sampler in sorted order
    * independently of the group associated with the sampler.  The
    * function will also operate independently of the joint state group
@@ -147,7 +147,7 @@ public:
    * @param [in] jsg A joint state group, which only needs to have a valid associated kinematic model
    * @param [in] ks Reference kinematic state that will be passed through to samplers
    * @param [in] max_attempts Max attempts, which will be passed through to samplers
-   * 
+   *
    * @return True if all invidual samplers return true
    */
   virtual bool sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts);

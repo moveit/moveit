@@ -48,4 +48,3 @@ std::size_t trajectoryWaypointCount(const moveit_msgs::RobotTrajectory &trajecto
 }
 
 #endif
-

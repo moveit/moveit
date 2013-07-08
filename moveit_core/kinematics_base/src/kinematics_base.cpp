@@ -41,10 +41,10 @@ const double kinematics::KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
 const double kinematics::KinematicsBase::DEFAULT_TIMEOUT = 1.0;
 
 void kinematics::KinematicsBase::setValues(const std::string& robot_description,
-					   const std::string& group_name,
-					   const std::string& base_frame,
-					   const std::string& tip_frame,
-					   double search_discretization)
+                       const std::string& group_name,
+                       const std::string& base_frame,
+                       const std::string& tip_frame,
+                       double search_discretization)
 {
   robot_description_ = robot_description;
   group_name_ = group_name;
@@ -60,10 +60,10 @@ bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<unsigned i
     if(redundant_joint_indices[i] >= getJointNames().size())
     {
       return false;
-    }      
-  }    
+    }
+  }
   redundant_joint_indices_ = redundant_joint_indices;
-  return true;    
+  return true;
 }
 
 bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<std::string> &redundant_joint_names)
@@ -74,8 +74,8 @@ bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<std::strin
     for (std::size_t j = 0 ; j < jnames.size() ; ++j)
       if (jnames[j] == redundant_joint_names[i])
       {
-	redundant_joint_indices.push_back(j);
-	break;
+    redundant_joint_indices.push_back(j);
+    break;
       }
   return redundant_joint_indices.size() == redundant_joint_names.size() ? setRedundantJoints(redundant_joint_indices) : false;
 }
@@ -83,4 +83,4 @@ bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<std::strin
 std::string kinematics::KinematicsBase::removeSlash(const std::string &str) const
 {
   return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
-}  
+}

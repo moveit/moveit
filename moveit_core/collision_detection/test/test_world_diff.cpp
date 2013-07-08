@@ -95,7 +95,7 @@ TEST(WorldDiff, TrackChanges)
             it->second);
 
   diff2.reset(world);
-  
+
   bool move_ok = world->moveShapeInObject(
                           "obj2",
                           cyl,
@@ -145,7 +145,7 @@ TEST(WorldDiff, TrackChanges)
   EXPECT_EQ(2, diff2.getChanges().size());
 
   diff1.reset();
-  
+
   move_ok = world->moveShapeInObject(
                           "obj3",
                           cyl,
@@ -161,7 +161,7 @@ TEST(WorldDiff, TrackChanges)
 
   EXPECT_EQ(1, diff1.getChanges().size());
   EXPECT_EQ(2, diff2.getChanges().size());
-  
+
   it = diff1.getChanges().find("obj2");
   EXPECT_NE(diff1.end(), it);
   EXPECT_EQ(collision_detection::World::DESTROY,

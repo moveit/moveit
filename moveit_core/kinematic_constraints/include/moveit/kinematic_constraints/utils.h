@@ -47,8 +47,8 @@
 namespace kinematic_constraints
 {
 
-/** 
- * \brief Merge two sets of constraints into one. 
+/**
+ * \brief Merge two sets of constraints into one.
  *
  * This just does appending of all constraints except joint
  * constraints. For members of type \ref JointConstraint, the bounds
@@ -57,7 +57,7 @@ namespace kinematic_constraints
  *
  * @param [in] first The first constraint to merge
  * @param [in] second The second constraint to merge
- * 
+ *
  * @return The merged set of constraints
  */
 moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second);
@@ -68,105 +68,105 @@ bool isEmpty(const moveit_msgs::Constraints &constr);
 
 std::size_t countIndividualConstraints(const moveit_msgs::Constraints &constr);
 
-/** 
+/**
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a joint group.  The full constraint will contain a
  * vector of type \ref JointConstraint, one for each DOF in the group.
- * 
- * @param [in] jsg The group for which to generate goal joint constraints 
+ *
+ * @param [in] jsg The group for which to generate goal joint constraints
  * @param [in] tolerance_below The below tolerance to apply to all constraints
  * @param [in] tolerance_above The above tolerance to apply to all constraints
- * 
+ *
  * @return A full constraint message containing all the joint constraints
  */
 moveit_msgs::Constraints constructGoalConstraints(const robot_state::JointStateGroup *jsg,
                                                   double tolerance_below, double tolerance_above);
 
-/** 
+/**
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a joint group.  The full constraint will contain a
  * vector of type \ref JointConstraint, one for each DOF in the group.
- * 
- * @param [in] jsg The group for which to generate joint constraints 
+ *
+ * @param [in] jsg The group for which to generate joint constraints
  * @param [in] tolerance A tolerance to apply both above and below for all constraints
- * 
+ *
  * @return A full constraint message containing all the joint constraints
  */
 moveit_msgs::Constraints constructGoalConstraints(const robot_state::JointStateGroup *jsg,
                                                   double tolerance = std::numeric_limits<double>::epsilon());
 
 
-/** 
+/**
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a given link.  The full constraint will contain a
  * \ref PositionConstraint and a \ref OrientationConstraint,
  * constructed from the pose. A sphere will be used to represent the
  * constraint region for the \ref PositionConstraint.
- * 
+ *
  * @param [in] link_name The link name for both constraints
- * @param [in] pose The pose stamped to be used for the target region. 
+ * @param [in] pose The pose stamped to be used for the target region.
  * @param [in] tolerance_pos The dimension of the sphere associated with the target region of the \ref PositionConstraint
  * @param [in] tolerance_angle The value to assign to the absolute tolerances of the \ref OrientationConstraint
- * 
- * @return A full constraint message containing both constraints 
+ *
+ * @return A full constraint message containing both constraints
  */
 moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose, double tolerance_pos = 1e-3, double tolerance_angle = 1e-2);
 
-/** 
+/**
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a given link.  The full constraint will contain a
  * \ref PositionConstraint and a \ref OrientationConstraint,
  * constructed from the pose. A box  will be used to represent the
  * constraint region for the \ref PositionConstraint.
- * 
+ *
  * @param [in] link_name The link name for both constraints
- * @param [in] pose The pose stamped to be used for the target region. 
+ * @param [in] pose The pose stamped to be used for the target region.
  * @param [in] tolerance_pos The dimensions of the box (xyz) associated with the target region of the \ref PositionConstraint
  * @param [in] tolerance_angle The values to assign to the absolute tolerances (xyz) of the \ref OrientationConstraint
- * 
- * @return A full constraint message containing both constraints 
+ *
+ * @return A full constraint message containing both constraints
  */
 moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
                                                   const std::vector<double> &tolerance_pos, const std::vector<double> &tolerance_angle);
 
-/** 
+/**
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a given link. The full constraint message will
  * contain only an \ref OrientationConstraint.
- * 
+ *
  * @param [in] link_name The link name for the \ref OrientationConstraint
  * @param [in] quat The quaternion for the \ref OrientationConstraint
  * @param [in] tolerance The absolute axes tolerances to apply to the \ref OrientationConstraint
- * 
+ *
  * @return A full constraint message containing the orientation constraint
  */
 moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::QuaternionStamped &quat, double tolerance = 1e-2);
 
-/** 
+/**
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a given link.  The full constraint message will
  * contain only a \ref PositionConstraint.  A sphere will be used to
  * represent the constraint region.
- * 
+ *
  * @param [in] link_name The link name for the \ref PositionConstraint
  * @param [in] reference_point A point corresponding to the target_point_offset of the \ref PositionConstraint
  * @param [in] goal_point The position associated with the constraint region
  * @param [in] tolerance The radius associated with the sphere volume associated with the constraint region
- * 
+ *
  * @return A full constraint message containing the position constraint
  */
 moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::Point &reference_point, const geometry_msgs::PointStamped &goal_point, double tolerance = 1e-3);
 
-/** 
+/**
  * \brief Generates a constraint message intended to be used as a goal
  * constraint for a given link.  The full constraint message will
  * contain only a \ref PositionConstraint.  A sphere will be used to
  * represent the constraint region.
- * 
+ *
  * @param [in] link_name The link name for the \ref PositionConstraint
  * @param [in] goal_point The position associated with the constraint region
  * @param [in] tolerance The radius associated with the sphere volume associated with the constraint region
- * 
+ *
  * @return A full constraint message containing the position constraint
  */
 moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PointStamped &goal_point, double tolerance = 1e-3);

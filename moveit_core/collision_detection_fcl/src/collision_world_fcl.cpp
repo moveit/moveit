@@ -109,12 +109,12 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
   const CollisionRobotFCL &robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
   robot_fcl.constructFCLObject(state, fcl_obj);
-  
+
   CollisionData cd(&req, &res, acm);
   cd.enableGroup(robot.getRobotModel());
   for (std::size_t i = 0 ; !cd.done_ && i < fcl_obj.collision_objects_.size() ; ++i)
     manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
-  
+
   if (req.distance)
     res.distance = distanceRobotHelper(robot, state, acm);
 }
@@ -134,7 +134,7 @@ void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const Col
   const CollisionWorldFCL &other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
   CollisionData cd(&req, &res, acm);
   manager_->collide(other_fcl_world.manager_.get(), &cd, &collisionCallback);
-  
+
   if (req.distance)
     res.distance = distanceWorldHelper(other_world, acm);
 }
@@ -184,7 +184,7 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
     if (jt != fcl_objs_.end())
       fcl_objs_.erase(jt);
   }
-  
+
   // manager_->update();
 }
 
@@ -198,7 +198,7 @@ void collision_detection::CollisionWorldFCL::setWorld(const WorldPtr& world)
 
   // clear out objects from old world
   manager_->clear();
-  fcl_objs_.clear();  
+  fcl_objs_.clear();
   cleanCollisionGeometryCache();
 
   CollisionWorld::setWorld(world);
@@ -232,7 +232,7 @@ void collision_detection::CollisionWorldFCL::notifyObjectChange(const ObjectCons
 }
 
 double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm) const
-{       
+{
   const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
   robot_fcl.constructFCLObject(state, fcl_obj);
@@ -241,7 +241,7 @@ double collision_detection::CollisionWorldFCL::distanceRobotHelper(const Collisi
   CollisionResult res;
   CollisionData cd(&req, &res, acm);
   cd.enableGroup(robot.getRobotModel());
-  
+
   for(std::size_t i = 0; !cd.done_ && i < fcl_obj.collision_objects_.size(); ++i)
     manager_->distance(fcl_obj.collision_objects_[i].get(), &cd, &distanceCallback);
 
@@ -282,4 +282,3 @@ double collision_detection::CollisionWorldFCL::distanceWorldHelper(const Collisi
 
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 const std::string collision_detection::CollisionDetectorAllocatorFCL::NAME_("FCL");
-

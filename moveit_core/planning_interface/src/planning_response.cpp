@@ -52,13 +52,13 @@ void planning_interface::MotionPlanResponse::getMessage(moveit_msgs::MotionPlanR
 void planning_interface::MotionPlanDetailedResponse::getMessage(moveit_msgs::MotionPlanDetailedResponse &msg) const
 {
   msg.error_code = error_code_;
-  
+
   msg.trajectory.clear();
   msg.description.clear();
   msg.processing_time.clear();
-  
+
   bool first = true;
-  
+
   for (std::size_t i = 0 ; i < trajectory_.size() ; ++i)
   {
     if (trajectory_[i]->empty())

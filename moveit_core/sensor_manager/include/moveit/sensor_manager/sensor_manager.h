@@ -53,21 +53,21 @@ struct SensorInfo
   SensorInfo() : min_dist(0.), max_dist(0.0), x_angle(0.0), y_angle(0.0)
   {
   }
-  
+
   /// The name of the frame in which the sensor observation axis is Z and starts at (0,0,0)
   std::string origin_frame;
-  
+
   /* Define the frustum (or approximation of the frustum) */
-  
-  /// The minumum distance along the Z axis at which observations start 
+
+  /// The minumum distance along the Z axis at which observations start
   double min_dist;
-  
-  /// The maximum distance along the Z axis at which observations can be 
+
+  /// The maximum distance along the Z axis at which observations can be
   double max_dist;
-  
+
   /// The range of observations (in radians) on the X axis
   double x_angle;
-  
+
   /// The range of observations (in radians) on the Y axis
   double y_angle;
 };
@@ -75,29 +75,29 @@ struct SensorInfo
 class MoveItSensorManager
 {
 public:
-  
+
   MoveItSensorManager()
   {
   }
-  
+
   virtual ~MoveItSensorManager()
   {
   }
-  
+
   /** \brief Get the list of known sensors */
   virtual void getSensorsList(std::vector<std::string> &names) const = 0;
-  
+
   /** \brief Get the sensor information for a particular sensor */
   virtual SensorInfo getSensorInfo(const std::string &name) const = 0;
-  
+
   /** \brief Check if any sensors are known to this manager */
   virtual bool hasSensors() const = 0;
-  
+
   /// Point sensor \e name towards a particular point in space (\e target). This may require executing a trajectory, but it may or may not execute that trajectory.
   /// If it does not, it returns it as part of \e sensor_trajectory. This is the recommended behaviour, since the caller of this function can perform checks on the safety of the trajectory.
   /// The function returns true on success (either completing execution succesfully or computing a trajecotory successufully)
   virtual bool pointSensorTo(const std::string &name, const geometry_msgs::PointStamped &target, moveit_msgs::RobotTrajectory &sensor_trajectory) = 0;
-  
+
 };
 
 typedef boost::shared_ptr<MoveItSensorManager> MoveItSensorManagerPtr;

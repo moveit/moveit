@@ -83,7 +83,7 @@ TEST(Loading, SimpleRobot)
         "<robot name=\"myrobot\">"
         "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"floating\"/>"
         "</robot>";
-    
+
     boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL0);
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL0);
@@ -490,7 +490,7 @@ TEST(FK, OneRobot)
     state.printTransforms(ss2);
 
     EXPECT_EQ(ss1.str(), ss2.str());
-    
+
     EXPECT_NEAR(1.0, state.getLinkState("base_link")->getGlobalLinkTransform().translation().x(), 1e-5);
     EXPECT_NEAR(1.0, state.getLinkState("base_link")->getGlobalLinkTransform().translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getLinkState("base_link")->getGlobalLinkTransform().translation().z(), 1e-5);
@@ -538,7 +538,7 @@ TEST(FK, OneRobot)
     EXPECT_NEAR(state.getJointState("joint_a")->getVariableValues()[0], 0.2, 1e-3);
     state.enforceBounds();
     EXPECT_NEAR(state.getJointState("joint_a")->getVariableValues()[0], 0.2, 1e-3);
-    
+
     upd_a["joint_a"] = 3.2;
     state.setStateValues(upd_a);
     EXPECT_TRUE(state.satisfiesBounds("joint_a"));

@@ -56,18 +56,18 @@ namespace kinematic_constraints
 /// \brief Struct for containing the results of constraint evaluation
 struct ConstraintEvaluationResult
 {
-  /** 
+  /**
    * \brief Constructor
-   * 
+   *
    * @param [in] result_satisfied True if the constraint evaluated to true, otherwise false
    * @param [in] dist The distance evaluated by the constraint
-   * 
-   * @return 
+   *
+   * @return
    */
   ConstraintEvaluationResult(bool result_satisfied = false, double dist = 0.0) : satisfied(result_satisfied), distance(dist)
   {
   }
-  
+
   bool   satisfied;             /**< \brief Whether or not the constraint or constraints were satisfied */
   double distance;              /**< \brief The distance evaluation from the constraint or constraints */
 };
@@ -76,98 +76,98 @@ struct ConstraintEvaluationResult
 class KinematicConstraint
 {
 public:
-  
+
   /// \brief Enum for representing a constraint
   enum ConstraintType
     {
       UNKNOWN_CONSTRAINT, JOINT_CONSTRAINT, POSITION_CONSTRAINT, ORIENTATION_CONSTRAINT, VISIBILITY_CONSTRAINT
     };
-  
-  /** 
+
+  /**
    * \brief Constructor
-   * 
+   *
    * @param [in] model The kinematic model used for constraint evaluation
    */
   KinematicConstraint(const robot_model::RobotModelConstPtr &model);
   virtual ~KinematicConstraint();
-  
+
   /** \brief Clear the stored constraint */
   virtual void clear() = 0;
-  
-  /** 
+
+  /**
    * \brief Decide whether the constraint is satisfied in the indicated state
-   * 
+   *
    * @param [in] state The kinematic state used for evaluation
    * @param [in] verbose Whether or not to print output
-   * 
-   * @return 
+   *
+   * @return
    */
   virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const = 0;
-  
+
   /** \brief This function returns true if this constraint is
       configured and able to decide whether states do meet the
       constraint or not. If this function returns false it means
       that decide() will always return true -- there is no
       constraint to be checked. */
   virtual bool enabled() const = 0;
-  
-  /** 
+
+  /**
    * \brief Check if two constraints are the same.  This means that
    * the types are the same, the subject of the constraint is the
    * same, and all values associated with the constraint are within a
    * margin.  The other constraint must also be enabled.
-   * 
+   *
    * @param [in] other The other constraint to test
    * @param [in] margin The margin to apply to all values associated with constraint
-   * 
+   *
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const = 0;
-  
-  /** 
+
+  /**
    * \brief Get the type of constraint
-   * 
-   * 
+   *
+   *
    * @return The constraint type
    */
   ConstraintType getType() const
   {
     return type_;
   }
-  
-  /** 
+
+  /**
    * \brief Print the constraint data
-   * 
+   *
    * @param [in] out The file descriptor for printing
    */
   virtual void print(std::ostream &out = std::cout) const
   {
   }
-  
-  /** 
-   * 
-   * \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function 
-   * 
+
+  /**
+   *
+   * \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function
+   *
    * @return The constraint weight
    */
   double getConstraintWeight() const
   {
     return constraint_weight_;
   }
-  
-  /** 
-   * 
-   * 
-   * 
+
+  /**
+   *
+   *
+   *
    * @return The kinematic model associated with this constraint
    */
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
   }
-  
+
 protected:
-  
+
   ConstraintType                  type_; /**< \brief The type of the constraint */
   robot_model::RobotModelConstPtr robot_model_; /**< \brief The kinematic model associated with this constraint */
   double                          constraint_weight_; /**< \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function  */
@@ -193,14 +193,14 @@ typedef boost::shared_ptr<const KinematicConstraint> KinematicConstraintConstPtr
  * the tolerance below is .02 then -3.1 is a valid value, as is 3.14;
  * 3.1 is out of bounds.
  *
- * Type will be JOINT_CONSTRAINT. 
+ * Type will be JOINT_CONSTRAINT.
  */
 class JointConstraint : public KinematicConstraint
 {
 public:
-  /** 
+  /**
    * \brief Constructor
-   * 
+   *
    * @param [in] model The kinematic model used for constraint evaluation
    */
   JointConstraint(const robot_model::RobotModelConstPtr &model) :
@@ -209,7 +209,7 @@ public:
     type_ = JOINT_CONSTRAINT;
   }
 
-  /** 
+  /**
    * \brief Configure the constraint based on a
    * moveit_msgs::JointConstraint
    *
@@ -217,15 +217,15 @@ public:
    * in the kinematic model, the joint must not be a multi-DOF joint
    * (for these joints, local variables should be used), and the
    * tolerance values must be positive.
-   * 
+   *
    * @param [in] jc JointConstraint for configuration
-   * 
+   *
    * @return True if constraint can be configured from jc
-   */  
+   */
   bool configure(const moveit_msgs::JointConstraint &jc);
 
-  /** 
-   * \brief Check if two joint constraints are the same.  
+  /**
+   * \brief Check if two joint constraints are the same.
    *
    * This means that the types are the same, the subject of the
    * constraint is the same, and all values associated with the
@@ -233,10 +233,10 @@ public:
    * be enabled.  For this to be true of joint constraints, they must
    * act on the same joint, and the position and tolerance values must
    * be within the margins.
-   * 
+   *
    * @param [in] other The other constraint to test
    * @param [in] margin The margin to apply to all values associated with constraint
-   * 
+   *
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
@@ -244,45 +244,45 @@ public:
   virtual bool enabled() const;
   virtual void clear();
   virtual void print(std::ostream &out = std::cout) const;
-  
-  /** 
+
+  /**
    * \brief Get the joint model for which this constraint operates
-   * 
+   *
    * @return The relevant joint model if enabled, and otherwise NULL
    */
   const robot_model::JointModel* getJointModel() const
   {
     return joint_model_;
   }
-  /** 
+  /**
    * \brief Gets the local variable name if this constraint was
    * configured for a part of a multi-DOF joint
-   * 
-   * 
+   *
+   *
    * @return The component of the joint name after the slash, or the
    * empty string if there is no local variable name
-   */  
+   */
   const std::string& getLocalVariableName() const
   {
     return local_variable_name_;
   }
 
-  /** 
+  /**
    *  \brief Gets the joint variable name, as known to the robot_model::RobotModel
    *
    * This will include the local variable name if a variable of a multi-DOF joint is constrained.
-   * 
+   *
    * @return The joint variable name
    */
   const std::string& getJointVariableName() const
   {
     return joint_variable_name_;
   }
-  
-  /** 
-   * \brief Gets the desired position component of the constraint 
-   * 
-   * 
+
+  /**
+   * \brief Gets the desired position component of the constraint
+   *
+   *
    * @return The desired joint position
    */
   double getDesiredJointPosition() const
@@ -290,10 +290,10 @@ public:
     return joint_position_;
   }
 
-  /** 
+  /**
    * \brief Gets the upper tolerance component of the joint constraint
-   * 
-   * 
+   *
+   *
    * @return The above joint tolerance
    */
   double getJointToleranceAbove() const
@@ -301,19 +301,19 @@ public:
     return joint_tolerance_above_;
   }
 
-  /** 
+  /**
    * \brief Gets the lower tolerance component of the joint constraint
-   * 
-   * 
+   *
+   *
    * @return The below joint tolerance
    */
   double getJointToleranceBelow() const
   {
     return joint_tolerance_below_;
   }
-  
+
 protected:
-  
+
   const robot_model::JointModel *joint_model_; /**< \brief The joint from the kinematic model for this constraint */
   bool                                               joint_is_continuous_; /**< \brief Whether or not the joint is continuous */
   std::string                                        local_variable_name_; /**< \brief The local variable name for a multi DOF joint, if any */
@@ -338,9 +338,9 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 public:
-  /** 
+  /**
    * \brief Constructor
-   * 
+   *
    * @param [in] model The kinematic model used for constraint evaluation
    */
   OrientationConstraint(const robot_model::RobotModelConstPtr &model) :
@@ -349,7 +349,7 @@ public:
     type_ = ORIENTATION_CONSTRAINT;
   }
 
-  /** 
+  /**
    * \brief Configure the constraint based on a
    * moveit_msgs::OrientationConstraint
    *
@@ -357,15 +357,15 @@ public:
    * in the kinematic model. Note that if the absolute tolerance
    * values are left as 0.0 only values less than a very small epsilon
    * will evaluate to satisfied.
-   * 
+   *
    * @param [in] oc OrientationConstraint for configuration
-   * 
+   *
    * @return True if constraint can be configured from oc
-   */  
+   */
   bool configure(const moveit_msgs::OrientationConstraint &oc, const robot_state::Transforms &tf);
 
-  /** 
-   * \brief Check if two orientation constraints are the same.  
+  /**
+   * \brief Check if two orientation constraints are the same.
 
    * This means that the types are the same, the subject of the
    * constraint is the same, and all values associated with the
@@ -373,11 +373,11 @@ public:
    * be enabled.  For this to be true of orientation constraints:
    * \li The link must be the same
    * \li The rotations specified by the quaternions must be within the margin
-   * \li The tolerances must all be within the margin 
-   * 
+   * \li The tolerances must all be within the margin
+   *
    * @param [in] other The other constraint to test
    * @param [in] margin The margin to apply to all values associated with constraint
-   * 
+   *
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
@@ -385,19 +385,19 @@ public:
   virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
   virtual bool enabled() const;
   virtual void print(std::ostream &out = std::cout) const;
-  
-  /** 
+
+  /**
    * \brief Gets the subject link model
-   * 
-   * 
+   *
+   *
    * @return Returns the current link model
    */
   const robot_model::LinkModel* getLinkModel() const
   {
     return link_model_;
   }
-  
-  /** 
+
+  /**
    * \brief The target frame of the planning_models::Transforms class,
    * for interpreting the rotation frame.
    *
@@ -407,10 +407,10 @@ public:
   {
     return desired_rotation_frame_id_;
   }
-  
-  /** 
+
+  /**
    * \brief Whether or not a mobile reference frame is being employed.
-   * 
+   *
    * @return True if a mobile reference frame is being employed, and
    * otherwise false.
    */
@@ -419,20 +419,20 @@ public:
     return mobile_frame_;
   }
 
-  /** 
+  /**
    * \brief The rotation target in the reference frame.
-   * 
+   *
     * @return The target rotation
    */
   const Eigen::Matrix3d& getDesiredRotationMatrix() const
   {
     return desired_rotation_matrix_;
   }
-  
-  /** 
+
+  /**
    * \brief Gets the X axis tolerance
-   * 
-   * 
+   *
+   *
    * @return The X axis tolerance
    */
   double getXAxisTolerance() const
@@ -440,30 +440,30 @@ public:
     return absolute_x_axis_tolerance_;
   }
 
-  /** 
+  /**
    * \brief Gets the Y axis tolerance
-   * 
-   * 
+   *
+   *
    * @return The Y axis tolerance
-   */  
+   */
   double getYAxisTolerance() const
   {
     return absolute_y_axis_tolerance_;
   }
-  
-  /** 
+
+  /**
    * \brief Gets the Z axis tolerance
-   * 
-   * 
+   *
+   *
    * @return The Z axis tolerance
    */
   double getZAxisTolerance() const
   {
     return absolute_z_axis_tolerance_;
   }
-  
+
 protected:
-  
+
   const robot_model::LinkModel *link_model_; /**< \brief The target link model */
   Eigen::Matrix3d               desired_rotation_matrix_; /**< \brief The desired rotation matrix in the tf frame */
   Eigen::Matrix3d               desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for efficiency */
@@ -493,9 +493,9 @@ public:
 
 public:
 
-  /** 
+  /**
    * \brief Constructor
-   * 
+   *
    * @param [in] model The kinematic model used for constraint evaluation
    */
   PositionConstraint(const robot_model::RobotModelConstPtr &model) :
@@ -504,9 +504,9 @@ public:
     type_ = POSITION_CONSTRAINT;
   }
 
-  /** 
+  /**
    * \brief Configure the constraint based on a
-   * moveit_msgs::PositionConstraint 
+   * moveit_msgs::PositionConstraint
    *
    * For the configure command to be successful, the link must be
    * specified in the model, and one or more constrained regions must
@@ -515,14 +515,14 @@ public:
    * is empty, the constraint will fail to configure.  If an invalid
    * quaternion is passed for a shape, the identity quaternion will be
    * substituted.
-   * 
+   *
    * @param [in] pc moveit_msgs::PositionConstraint for configuration
-   * 
+   *
    * @return True if constraint can be configured from pc
-   */  
+   */
   bool configure(const moveit_msgs::PositionConstraint &pc, const robot_state::Transforms &tf);
 
-  /** 
+  /**
    * \brief Check if two constraints are the same.  For position
    * constraints this means that:
    * \li The types are the same
@@ -531,7 +531,7 @@ public:
    * \li The target offsets are no more than the margin apart
    * \li Each entry in the constraint region of this constraint matches a region in the other constraint
    * \li Each entry in the other constraint region matches a region in the other constraint
-   * 
+   *
    * Two constraint regions matching each other means that:
    * \li The poses match within the margin
    * \li The types are the same
@@ -542,7 +542,7 @@ public:
    *
    * @param [in] other The other constraint to test
    * @param [in] margin The margin to apply to all values associated with constraint
-   * 
+   *
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
@@ -551,33 +551,33 @@ public:
   virtual bool enabled() const;
   virtual void print(std::ostream &out = std::cout) const;
 
-  /** 
+  /**
    * \brief Returns the associated link model, or NULL if not enabled
-   * 
-   * 
+   *
+   *
    * @return The link model
-   */  
+   */
   const robot_model::LinkModel* getLinkModel() const
   {
     return link_model_;
   }
-  
-  /** 
+
+  /**
    * \brief Returns the target offset
-   * 
-   * 
+   *
+   *
    * @return The target offset
    */
   const Eigen::Vector3d& getLinkOffset() const
   {
     return offset_;
   }
-  
-  /** 
+
+  /**
    * \brief If the constraint is enabled and the link offset is
    * substantially different than zero
-   * 
-   * 
+   *
+   *
    * @return Whether or not there is a link offset
    */
   bool hasLinkOffset() const
@@ -585,35 +585,35 @@ public:
     if(!enabled()) return false;
     return has_offset_;
   }
-  
 
-  /** 
+
+  /**
    * \brief Returns all the constraint regions
-   * 
-   * 
+   *
+   *
    * @return The constraint regions
    */
   const std::vector<bodies::BodyPtr>& getConstraintRegions() const
   {
     return constraint_region_;
   }
-  
-  /** 
+
+  /**
    * \brief Returns the reference frame
-   * 
-   * 
+   *
+   *
    * @return The reference frame
    */
   const std::string& getReferenceFrame() const
   {
     return constraint_frame_id_;
   }
-  
-  /** 
+
+  /**
    * \brief If enabled and the specified frame is a mobile frame,
    * return true.  Otherwise, returns false.
-   * 
-   * 
+   *
+   *
    * @return Whether a mobile reference frame is being employed
    */
   bool mobileReferenceFrame() const
@@ -621,9 +621,9 @@ public:
     if(!enabled()) return false;
     return mobile_frame_;
   }
-  
+
 protected:
-  
+
   Eigen::Vector3d                                   offset_; /**< \brief The target offset */
   bool                                              has_offset_; /**< \brief Whether the offset is substantially different than 0.0 */
   std::vector<bodies::BodyPtr>                      constraint_region_; /**< \brief The constraint region vector */
@@ -647,7 +647,7 @@ protected:
  * combination of geometric checks, and then a collision check that
  * tests whether a cone that connects the sensor and the target is
  * entirely unobstructed by the robot's links.
- * 
+ *
  * The constraint consists of a sensor pose, a target pose, a few
  * parameters that govern the shape of the target, and a few
  * parameters that allow finer control over the geometry of the check.
@@ -681,7 +681,7 @@ protected:
  * the visibility constraint:
  *
  * \image html fingertip_collision.png "Visibility constraint violated as right arm is within the cone"
- *  
+ *
  * Note that both the target and the sensor frame can change with the
  * robot's state.
  *
@@ -709,9 +709,9 @@ protected:
  * associated with the sensor and the red arrow associated with the
  * target.
 
- * \image html exact_opposites.png "Max view angle is evaluated at 0.0" 
- * \image html fourty_five.png "Max view angle evaluates around pi/4" 
- * \image html perpindicular.png "Max view angle evaluates at pi/2, the maximum" 
+ * \image html exact_opposites.png "Max view angle is evaluated at 0.0"
+ * \image html fourty_five.png "Max view angle evaluates around pi/4"
+ * \image html perpindicular.png "Max view angle evaluates at pi/2, the maximum"
  * \image html other_side.png "Sensor pointed at wrong side of target, will violate constraint as long as max_view_angle > 0.0"
  *
  * If constraining the target to be within the field of view of the
@@ -721,10 +721,10 @@ protected:
  * above images, the range angle is always 0, as the target's center
  * is directly lined up with the blue arrow.  In this image, however,
  * the view angle is evaluated at 0.0, while the range angle is
- * evaluated at .65.  
- * 
- * \image html range_angle.png "Range angle is high, so only sensors with wide fields of view would see the target" 
- * 
+ * evaluated at .65.
+ *
+ * \image html range_angle.png "Range angle is high, so only sensors with wide fields of view would see the target"
+ *
  * By limiting the max_range_angle, you can constrain the target to be
  * within the field of view of the sensor.  Max_view_angle and
  * max_range_angle can be used at once.
@@ -735,82 +735,82 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 public:
-  /** 
+  /**
    * \brief Constructor
-   * 
+   *
    * @param [in] model The kinematic model used for constraint evaluation
    */
   VisibilityConstraint(const robot_model::RobotModelConstPtr &model);
 
-  /** 
+  /**
    * \brief Configure the constraint based on a
-   * moveit_msgs::VisibilityConstraint 
+   * moveit_msgs::VisibilityConstraint
    *
    * For the configure command to be successful, the target radius
    * must be non-zero (negative values will have the absolute value
-   * taken).  If cone sides are less than 3, a value of 3 will be used.  
-   * 
+   * taken).  If cone sides are less than 3, a value of 3 will be used.
+   *
    * @param [in] vc moveit_msgs::VisibilityConstraint for configuration
-   * 
+   *
    * @return True if constraint can be configured from vc
-   */  
+   */
   bool configure(const moveit_msgs::VisibilityConstraint &vc, const robot_state::Transforms &tf);
 
-  /** 
-   * \brief Check if two constraints are the same.  
-   * 
+  /**
+   * \brief Check if two constraints are the same.
+   *
    * For visibility constraints this means that:
    * \li The types are the same,
    * \li The target frame ids are the same
    * \li The sensor frame ids are the same
    * \li The cone sides number is the same
    * \li The sensor view directions are the same
-   * \li The max view angles and target radii are within the margin 
-   * \li The sensor and target poses are within the margin, as computed by taking the norm of the difference.  
-   * 
+   * \li The max view angles and target radii are within the margin
+   * \li The sensor and target poses are within the margin, as computed by taking the norm of the difference.
+   *
    * @param [in] other The other constraint to test
    * @param [in] margin The margin to apply to all values associated with constraint
-   * 
+   *
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear();
-  
-  /** 
+
+  /**
    * \brief Gets a trimesh shape representing the visibility cone
-   * 
+   *
    * @param [in] state The state from which to produce the cone
-   *  
+   *
    * @return The shape associated with the cone
    */
   shapes::Mesh* getVisibilityCone(const robot_state::RobotState &state) const;
-  
-  /** 
+
+  /**
    * \brief Adds markers associated with the visibility cone, sensor
    * and target to the visualization array
-   * 
+   *
    * The visibility cone and two arrows - a blue array that issues
    * from the sensor_view_direction of the sensor, and a red arrow the
    * issues along the Z axis of the the target frame.
    *
    * @param [in] state The state from which to produce the markers
-   * @param [out] markers The marker array to which the markers will be added 
+   * @param [out] markers The marker array to which the markers will be added
    */
   void getMarkers(const robot_state::RobotState &state, visualization_msgs::MarkerArray &markers) const;
 
   virtual bool enabled() const;
   virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
   virtual void print(std::ostream &out = std::cout) const;
-  
+
 protected:
 
-  /** 
+  /**
    * \brief Function that gets passed into collision checking to allow some collisions.
-   * 
+   *
    * The cone object is allowed to touch either the sensor or the header frame, but not anything else
    *
-   * @param [in] contact The contact in question 
-   * 
+   * @param [in] contact The contact in question
+   *
    * @return True if the collision is allowed, otherwise false
    */
   bool decideContact(const collision_detection::Contact &contact) const;
@@ -834,9 +834,9 @@ protected:
  * \brief A class that contains many different constraints, and can
  * check RobotState *versus the full set.  A set is satisfied if
  * and only if all constraints are satisfied.
- * 
+ *
  * The set may contain any number of different kinds of constraints.
- * All constraints, including invalid ones, are stored internally.  
+ * All constraints, including invalid ones, are stored internally.
  */
 class KinematicConstraintSet
 {
@@ -845,200 +845,200 @@ public:
 
 public:
 
-  /** 
+  /**
    * \brief Constructor
-   * 
+   *
    * @param [in] model The kinematic model used for constraint evaluation
    */
   KinematicConstraintSet(const robot_model::RobotModelConstPtr &model) :
     robot_model_(model)
   {
   }
-  
+
   ~KinematicConstraintSet()
   {
     clear();
   }
-  
+
   /** \brief Clear the stored constraints */
   void clear();
-  
-  /** 
+
+  /**
    * \brief Add all known constraints
-   * 
-   * @param [in] c A message potentially contain vectors of constraints of add types 
-   * 
+   *
+   * @param [in] c A message potentially contain vectors of constraints of add types
+   *
    * @return Whether or not all constraints could be successfully
    * configured given the contents of the message.  The
    * KinematicConstraintSet can still be used even if the addition
    * returns false.
-   */  
+   */
   bool add(const moveit_msgs::Constraints &c, const robot_state::Transforms &tf);
-  
-  /** 
+
+  /**
    * \brief Add a vector of joint constraints
-   * 
+   *
    * @param [in] jc A vector of joint constraints
-   * 
+   *
    * @return Will return true only if all constraints are valid, and false otherwise
    */
   bool add(const std::vector<moveit_msgs::JointConstraint> &jc);
-  
-  /** 
+
+  /**
    * \brief Add a vector of position constraints
-   * 
+   *
    * @param [in] pc A vector of position constraints
-   * 
+   *
    * @return Will return true only if all constraints are valid, and false otherwise
    */
   bool add(const std::vector<moveit_msgs::PositionConstraint> &pc, const robot_state::Transforms &tf);
-  
-  /** 
+
+  /**
    * \brief Add a vector of orientation constraints
-   * 
+   *
    * @param [in] oc A vector of orientation constraints
-   * 
+   *
    * @return Will return true only if all constraints are valid, and false otherwise
    */
   bool add(const std::vector<moveit_msgs::OrientationConstraint> &oc, const robot_state::Transforms &tf);
-  
-  /** 
+
+  /**
    * \brief Add a vector of visibility constraints
-   * 
+   *
    * @param [in] vc A vector of visibility constraints
-   * 
+   *
    * @return Will return true only if all constraints are valid, and false otherwise
    */
   bool add(const std::vector<moveit_msgs::VisibilityConstraint> &vc, const robot_state::Transforms &tf);
-  
-  /** 
+
+  /**
    * \brief Determines whether all constraints are satisfied by state,
    * returning a single evaluation result
-   * 
+   *
    * @param [in] state The state to test
    * @param [in] verbose Whether or not to make each constraint give debug output
-   * 
+   *
    * @return A single constraint evaluation result, where it will
    * report satisfied only if all constraints are satisfied, and with
    * a distance that is the sum of all individual distances.
    */
   ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
 
-  /** 
-   * 
+  /**
+   *
    * \brief Determines whether all constraints are satisfied by state,
    * returning a vector of results through a parameter in addition to
    * a summed result.
-   * 
-   * @param [in] state The state to test 
-   * 
+   *
+   * @param [in] state The state to test
+   *
    * @param [out] results The individual results from constraint
-   * evaluation on each constraint contained in the set.  
+   * evaluation on each constraint contained in the set.
    *
    * @param [in] verbose Whether to print the results of each constraint
    * check.
-   * 
+   *
    * @return A single constraint evaluation result, where it will
    * report satisfied only if all constraints are satisfied, and with
    * a distance that is the sum of all individual distances.
    */
   ConstraintEvaluationResult decide(const robot_state::RobotState &state, std::vector<ConstraintEvaluationResult> &results, bool verbose = false) const;
-  
-  /** 
+
+  /**
    * \brief Whether or not another KinematicConstraintSet is equal to
    * this one.
-   * 
+   *
    * Equality means that for each constraint in this set there is a
    * constraint in the other set for which equal() is true with the
    * given margin.  Multiple constraints in this set can be matched to
    * single constraints in the other set.  Some constraints in the
    * other set may not be matched to constraints in this set.
    *
-   * @param [in] other The other set against which to test 
+   * @param [in] other The other set against which to test
    * @param [in] margin The margin to apply to all individual constraint equality tests
-   * 
+   *
    * @return True if all constraints are matched, false otherwise
    */
   bool equal(const KinematicConstraintSet &other, double margin) const;
-  
-  /** 
+
+  /**
    * \brief Print the constraint data
-   * 
-   * @param [in] out The file stream for printing 
+   *
+   * @param [in] out The file stream for printing
    */
   void print(std::ostream &out = std::cout) const;
-  
-  /** 
+
+  /**
    * \brief Get all position constraints in the set
-   * 
-   * 
+   *
+   *
    * @return All position constraints
    */
   const std::vector<moveit_msgs::PositionConstraint>& getPositionConstraints() const
   {
     return position_constraints_;
   }
-  
-  /** 
+
+  /**
    * \brief Get all orientation constraints in the set
-   * 
-   * 
+   *
+   *
    * @return All orientation constraints
    */
   const std::vector<moveit_msgs::OrientationConstraint>& getOrientationConstraints() const
   {
     return orientation_constraints_;
   }
-  
-  /** 
+
+  /**
    * \brief Get all joint constraints in the set
-   * 
-   * 
+   *
+   *
    * @return All joint constraints
    */
   const std::vector<moveit_msgs::JointConstraint>& getJointConstraints() const
   {
     return joint_constraints_;
   }
-  
-  /** 
+
+  /**
    * \brief Get all visibility constraints in the set
-   * 
-   * 
+   *
+   *
    * @return All visibility constraints
    */
   const std::vector<moveit_msgs::VisibilityConstraint>& getVisibilityConstraints() const
   {
     return visibility_constraints_;
   }
-  
-  /** 
+
+  /**
    * \brief Get all constraints in the set
-   * 
-   * 
+   *
+   *
    * @return All constraints in a single message
    */
   const moveit_msgs::Constraints& getAllConstraints() const
   {
     return all_constraints_;
   }
-  
-  /** 
+
+  /**
    * \brief Returns whether or not there are any constraints in the set
-   * 
-   * 
+   *
+   *
    * @return True if there are no constraints, otherwise false.
    */
   bool empty() const
   {
     return kinematic_constraints_.empty();
   }
-  
+
 protected:
-  
+
   robot_model::RobotModelConstPtr                 robot_model_; /**< \brief The kinematic model used for by the Set */
   std::vector<KinematicConstraintPtr>             kinematic_constraints_; /**<  \brief Shared pointers to all the member constraints */
-  
+
   std::vector<moveit_msgs::JointConstraint>       joint_constraints_; /**<  \brief Messages corresponding to all internal joint constraints */
   std::vector<moveit_msgs::PositionConstraint>    position_constraints_;/**<  \brief Messages corresponding to all internal position constraints */
   std::vector<moveit_msgs::OrientationConstraint> orientation_constraints_;/**<  \brief Messages corresponding to all internal orientation constraints */

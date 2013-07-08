@@ -48,7 +48,7 @@ protected:
   virtual void SetUp()
   {
     srdf_model_.reset(new srdf::Model());
-    
+
     std::string xml_string;
     std::fstream xml_file("test/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
@@ -115,7 +115,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   Eigen::Affine3d x;
   x.setIdentity();
   tf.transformPose(ks, "some_frame_2", x, x);
-  
+
   EXPECT_TRUE(t2.translation() == x.translation());
   EXPECT_TRUE(t2.rotation() == x.rotation());
 

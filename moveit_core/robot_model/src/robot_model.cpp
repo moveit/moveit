@@ -75,19 +75,19 @@ void robot_model::RobotModel::buildModel(const urdf::ModelInterface &urdf_model,
   {
     const urdf::Link *root_link_ptr = urdf_model.getRoot().get();
     model_frame_ = '/' + root_link_ptr->name;
-    
+
     root_joint_ = buildRecursive(NULL, root_link_ptr, srdf_model);
     root_link_ = root_joint_->child_link_model_;
     buildMimic(urdf_model);
     buildJointInfo();
-    
+
     if (link_models_with_collision_geometry_vector_.empty())
       logWarn("No geometry is associated to any robot links");
-    
+
     // build groups
     buildGroups(srdf_model);
     buildGroupStates(srdf_model);
-    
+
     std::stringstream ss;
     printModelInfo(ss);
     logDebug("%s", ss.str().c_str());
@@ -564,7 +564,7 @@ robot_model::JointModel* robot_model::RobotModel::buildRecursive(LinkModel *pare
     constructJointModel(NULL, urdf_link, srdf_model);
   if (joint == NULL)
     return NULL;
-  
+
   // bookkeeping for the joint
   joint_model_map_[joint->name_] = joint;
   joint->tree_index_ = joint_model_vector_.size();
@@ -578,7 +578,7 @@ robot_model::JointModel* robot_model::RobotModel::buildRecursive(LinkModel *pare
   // construct the link
   LinkModel *link = constructLinkModel(urdf_link);
   joint->child_link_model_ = link;
-  
+
   // bookkeeping for the link
   link_model_map_[joint->child_link_model_->name_] = link;
   link->tree_index_ = link_model_vector_.size();
@@ -815,17 +815,17 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
         }
       }
     }
-  
+
   if (urdf_link->parent_joint)
     result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
   else
     result->joint_origin_transform_.setIdentity();
-  
+
   return result;
 }
 
 shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *geom)
-{ 
+{
   moveit::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
 
   shapes::Shape *result = NULL;
@@ -859,7 +859,7 @@ shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *g
     logError("Unknown geometry type: %d", (int)geom->type);
     break;
   }
-  
+
   return shapes::ShapePtr(result);
 }
 

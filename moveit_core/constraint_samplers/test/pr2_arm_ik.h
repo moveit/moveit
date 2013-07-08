@@ -70,11 +70,11 @@ inline bool solveQuadratic(const double &a, const double &b, const double &c, do
   }
   //ROS_DEBUG("Discriminant: %f\n",discriminant);
   if (discriminant >= 0)
-  {      
-    *x1 = (-b + sqrt(discriminant))/(2*a); 
+  {
+    *x1 = (-b + sqrt(discriminant))/(2*a);
     *x2 = (-b - sqrt(discriminant))/(2*a);
     return true;
-  } 
+  }
   else if(fabs(discriminant) < IK_EPS)
   {
     *x1 = -b/(2*a);
@@ -119,19 +119,19 @@ inline bool solveCosineEqn(const double &a, const double &b, const double &c, do
 class PR2ArmIK
 {
 public:
-    
+
   /** @class
    *  @brief Inverse kinematics for the PR2 arm.
    *  @author Sachin Chitta <sachinc@willowgarage.com>
    *
    */
-  PR2ArmIK();    
+  PR2ArmIK();
   ~PR2ArmIK(){};
 
-  /** 
+  /**
       @brief Initialize the solver by providing a urdf::Model and a root and tip name.
       @param A urdf::Model representation of the PR2 robot model
-      @param The root joint name of the arm 
+      @param The root joint name of the arm
       @param The tip joint name of the arm
       @return true if initialization was successful, false otherwise.
   */
@@ -151,11 +151,11 @@ public:
   */
   void computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &shoulder_roll_initial_guess,std::vector<std::vector<double> > &solution) const;
 
-    
+
   //  std::vector<std::vector<double> > solution_ik_;/// a vector of ik solutions
 
   /**
-     @brief get chain information about the arm. This populates the IK query response, filling in joint level information including names and joint limits. 
+     @brief get chain information about the arm. This populates the IK query response, filling in joint level information including names and joint limits.
      @param The response structure to be filled in.
   */
   void getSolverInfo(moveit_msgs::KinematicSolverInfo &info);
@@ -172,7 +172,7 @@ public:
   void addJointToChainInfo(boost::shared_ptr<const urdf::Joint> joint,moveit_msgs::KinematicSolverInfo &info);
 
   bool checkJointLimits(const std::vector<double> &joint_values) const;
- 
+
   bool checkJointLimits(const double &joint_value, const int &joint_num) const;
 
   Eigen::Matrix4f grhs_, gf_, home_inv_, home_;

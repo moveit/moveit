@@ -85,8 +85,8 @@ bool includesParent(const JointModel *joint, const JointModelGroup *group)
 }
 
 robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
-					      const std::vector<const JointModel*> &unsorted_group_joints,
-					      const RobotModel* parent_model) :
+                          const std::vector<const JointModel*> &unsorted_group_joints,
+                          const RobotModel* parent_model) :
   parent_model_(parent_model), name_(group_name),
   variable_count_(0), is_end_effector_(false), is_chain_(false),
   default_ik_timeout_(0.5), default_ik_attempts_(2)
@@ -94,7 +94,7 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
   // sort joints in Depth-First order
   std::vector<const JointModel*> group_joints = unsorted_group_joints;
   std::sort(group_joints.begin(), group_joints.end(), &orderJointsByIndex);
-  
+
   for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
   {
     joint_model_map_[group_joints[i]->getName()] = group_joints[i];
@@ -115,7 +115,7 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
     else
       fixed_joints_.push_back(group_joints[i]);
   }
-  
+
   //now we need to find all the set of joints within this group
   //that root distinct subtrees
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
@@ -127,7 +127,7 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
     if (!includesParent(joint, this))
       joint_roots_.push_back(joint_model_vector_[i]);
   }
-  
+
   // compute joint_variables_index_map_
   unsigned int vector_index_counter = 0;
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
@@ -156,10 +156,10 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
   std::set<const LinkModel*> group_links_set;
   for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
     group_links_set.insert(group_joints[i]->getChildLinkModel());
-  
+
   for (std::set<const LinkModel*>::iterator it = group_links_set.begin(); it != group_links_set.end(); ++it)
     link_model_vector_.push_back(*it);
-  
+
   std::sort(link_model_vector_.begin(), link_model_vector_.end(), &orderLinksByIndex);
   for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
   {
@@ -167,7 +167,7 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
     if (link_model_vector_[i]->getShape())
       link_model_with_geometry_name_vector_.push_back(link_model_vector_[i]->getName());
   }
-  
+
   // compute updated links
   std::set<const LinkModel*> u_links;
   for (std::size_t i = 0 ; i < joint_roots_.size() ; ++i)
@@ -184,7 +184,7 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
     if ((*it)->getShape())
     {
       updated_link_model_with_geometry_vector_.push_back(*it);
-      updated_link_model_with_geometry_set_.insert(*it); 
+      updated_link_model_with_geometry_set_.insert(*it);
       updated_link_model_with_geometry_name_set_.insert((*it)->getName());
     }
   }
@@ -205,9 +205,9 @@ robot_model::JointModelGroup::JointModelGroup(const std::string& group_name,
       {
         chain = false;
         break;
-      }    
+      }
     if (chain)
-      is_chain_ = true;  
+      is_chain_ = true;
   }
 }
 
@@ -258,18 +258,18 @@ void robot_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers:
     logError("The specification of the near-by variable values to sample around for group '%s' should be of size %u but it is of size %u",
              name_.c_str(), variable_count_, (unsigned int)near.size());
     return;
-  }  
-  
+  }
+
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
   {
-    double distance = 0.0;    
+    double distance = 0.0;
     std::map<robot_model::JointModel::JointType, double>::const_iterator iter = distance_map.find(joint_model_vector_[i]->getType());
     if (iter != distance_map.end())
-      distance = iter->second;    
+      distance = iter->second;
     else
-      logWarn("Did not pass in distance for %s",joint_model_vector_[i]->getName().c_str());    
+      logWarn("Did not pass in distance for %s",joint_model_vector_[i]->getName().c_str());
     joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distance);
-  }  
+  }
 }
 
 void robot_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const
@@ -278,14 +278,14 @@ void robot_model::JointModelGroup::getVariableRandomValuesNearBy(random_numbers:
   {
     logError("When sampling random values nearby for group '%s', distances vector should be of size %u, but it is of size %u",
              name_.c_str(), (unsigned int)joint_model_vector_.size(), (unsigned int)distances.size());
-    return;    
-  } 
+    return;
+  }
   if (near.size() != variable_count_)
   {
     logError("The specification of the near-by variable values to sample around for group '%s' should be of size %u but it is of size %u",
              name_.c_str(), variable_count_, (unsigned int)near.size());
     return;
-  }  
+  }
 
   for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
     joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values, near, distances[i]);
@@ -300,7 +300,7 @@ double robot_model::JointModelGroup::getMaximumExtent(void) const
 }
 
 void robot_model::JointModelGroup::getKnownDefaultStates(std::vector<std::string> &default_states) const
-{  
+{
   default_states.clear();
   default_states.reserve(default_states_.size());
   for (std::map<std::string, std::map<std::string, double> >::const_iterator it = default_states_.begin() ; it != default_states_.end() ; ++it)
@@ -374,8 +374,8 @@ void robot_model::JointModelGroup::setSolverAllocators(const std::pair<SolverAll
     solver_instance_ = solver_allocators_.first(this);
     if (solver_instance_)
     {
-      ik_joint_bijection_.clear();   
-      const std::vector<std::string> &ik_jnames = solver_instance_->getJointNames(); 
+      ik_joint_bijection_.clear();
+      const std::vector<std::string> &ik_jnames = solver_instance_->getJointNames();
       for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
       {
         std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.find(ik_jnames[i]);

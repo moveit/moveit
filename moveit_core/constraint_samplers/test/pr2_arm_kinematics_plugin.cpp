@@ -45,14 +45,14 @@ using namespace std;
 
 namespace pr2_arm_kinematics {
 
-bool PR2ArmIKSolver::getCount(int &count, 
-                              const int &max_count, 
+bool PR2ArmIKSolver::getCount(int &count,
+                              const int &max_count,
                               const int &min_count)
 {
   if(count > 0)
   {
     if(-count >= min_count)
-    {   
+    {
       count = -count;
       return true;
     }
@@ -83,10 +83,10 @@ bool PR2ArmIKSolver::getCount(int &count,
   }
 }
 
-PR2ArmIKSolver::PR2ArmIKSolver(const urdf::ModelInterface &robot_model, 
+PR2ArmIKSolver::PR2ArmIKSolver(const urdf::ModelInterface &robot_model,
                                const std::string &root_frame_name,
                                const std::string &tip_frame_name,
-                               const double &search_discretization_angle, 
+                               const double &search_discretization_angle,
                                const int &free_angle):ChainIkSolverPos()
 {
   search_discretization_angle_ = search_discretization_angle;
@@ -98,22 +98,22 @@ PR2ArmIKSolver::PR2ArmIKSolver(const urdf::ModelInterface &robot_model,
     active_ = true;
 }
 
-int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init, 
-                              const KDL::Frame& p_in, 
+int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init,
+                              const KDL::Frame& p_in,
                               KDL::JntArray &q_out)
 {
   Eigen::Matrix4f b = KDLToEigenMatrix(p_in);
   std::vector<std::vector<double> > solution_ik;
   if(free_angle_ == 0)
   {
-    ROS_DEBUG("Solving with %f",q_init(0)); 
+    ROS_DEBUG("Solving with %f",q_init(0));
     pr2_arm_ik_.computeIKShoulderPan(b,q_init(0),solution_ik);
   }
   else
   {
     pr2_arm_ik_.computeIKShoulderRoll(b,q_init(2),solution_ik);
   }
-  
+
   if(solution_ik.empty())
     return -1;
 
@@ -121,11 +121,11 @@ int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init,
   int min_index = -1;
 
   for(int i=0; i< (int) solution_ik.size(); i++)
-  {     
+  {
     ROS_DEBUG("Solution : %d",(int)solution_ik.size());
 
     for(int j=0; j < (int)solution_ik[i].size(); j++)
-    {   
+    {
       ROS_DEBUG("%d: %f",j,solution_ik[i][j]);
     }
     ROS_DEBUG(" ");
@@ -143,7 +143,7 @@ int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init,
   {
     q_out.resize((int)solution_ik[min_index].size());
     for(int i=0; i < (int)solution_ik[min_index].size(); i++)
-    {   
+    {
       q_out(i) = solution_ik[min_index][i];
     }
     return 1;
@@ -152,9 +152,9 @@ int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init,
     return -1;
 }
 
-int PR2ArmIKSolver::CartToJntSearch(const KDL::JntArray& q_in, 
-                                    const KDL::Frame& p_in, 
-                                    KDL::JntArray &q_out, 
+int PR2ArmIKSolver::CartToJntSearch(const KDL::JntArray& q_in,
+                                    const KDL::Frame& p_in,
+                                    KDL::JntArray &q_out,
                                     const double &timeout)
 {
   KDL::JntArray q_init = q_in;
@@ -302,7 +302,7 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description,
     }
     ROS_DEBUG("PR2KinematicsPlugin::active for %s",group_name.c_str());
     active_ = true;
-  }    
+  }
   return active_;
 }
 
@@ -325,7 +325,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
   if(!active_)
   {
     ROS_ERROR("kinematics not active");
-    error_code.val = error_code.PLANNING_FAILED; 
+    error_code.val = error_code.PLANNING_FAILED;
     return false;
   }
   KDL::Frame pose_desired;
@@ -348,7 +348,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                                                      timeout);
   if(ik_valid == pr2_arm_kinematics::NO_IK_SOLUTION)
   {
-    error_code.val = error_code.NO_IK_SOLUTION; 
+    error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
 
@@ -364,8 +364,8 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
   }
   else
   {
-    ROS_DEBUG("An IK solution could not be found");   
-    error_code.val = error_code.NO_IK_SOLUTION; 
+    ROS_DEBUG("An IK solution could not be found");
+    error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
 }

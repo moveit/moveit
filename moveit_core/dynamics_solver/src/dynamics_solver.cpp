@@ -50,19 +50,19 @@ namespace dynamics_solver
 
 namespace
 {
-inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform, 
-                                              const geometry_msgs::Vector3 &vector) 
+inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform,
+                                              const geometry_msgs::Vector3 &vector)
 {
   Eigen::Vector3d p;
   p = Eigen::Vector3d(vector.x, vector.y, vector.z);
-  p = transform.rotation()*p;  
-  
+  p = transform.rotation()*p;
+
   geometry_msgs::Vector3 result;
   result.x = p.x();
   result.y = p.y();
-  result.z = p.z();  
-  
-  return result;  
+  result.z = p.z();
+
+  return result;
 }
 }
 
@@ -71,11 +71,11 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_
                                const geometry_msgs::Vector3 &gravity_vector)
 {
   group_name_ = group_name;
-  kinematic_model_ = kinematic_model;  
+  kinematic_model_ = kinematic_model;
   joint_model_group_ = kinematic_model_->getJointModelGroup(group_name);
   if (!joint_model_group_)
     return;
-  
+
   if(!joint_model_group_->isChain())
   {
     logError("Group %s is not a chain. Will not initialize dynamics solver", group_name_.c_str());
@@ -89,31 +89,31 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_
     joint_model_group_ = NULL;
     return;
   }
-  
-  const robot_model::JointModel* joint = joint_model_group_->getJointRoots()[0];  
+
+  const robot_model::JointModel* joint = joint_model_group_->getJointRoots()[0];
   if(!joint->getParentLinkModel())
   {
-    logError("Group %s does not have a parent link",group_name_.c_str());    
+    logError("Group %s does not have a parent link",group_name_.c_str());
     joint_model_group_ = NULL;
     return;
   }
-  
-  base_name_ = joint->getParentLinkModel()->getName();  
-  
+
+  base_name_ = joint->getParentLinkModel()->getName();
+
   tip_name_ = joint_model_group_->getLinkModelNames().back();
   logDebug("Base name: %s, Tip name: %s", base_name_.c_str(), tip_name_.c_str());
-  
-  const boost::shared_ptr<const urdf::ModelInterface> urdf_model = kinematic_model_->getURDF();  
-  const boost::shared_ptr<const srdf::Model> srdf_model = kinematic_model_->getSRDF();  
+
+  const boost::shared_ptr<const urdf::ModelInterface> urdf_model = kinematic_model_->getURDF();
+  const boost::shared_ptr<const srdf::Model> srdf_model = kinematic_model_->getSRDF();
   KDL::Tree tree;
 
-  if (!kdl_parser::treeFromUrdfModel(*urdf_model, tree)) 
+  if (!kdl_parser::treeFromUrdfModel(*urdf_model, tree))
   {
     logError("Could not initialize tree object");
     joint_model_group_ = NULL;
     return;
   }
-  if (!tree.getChain(base_name_, tip_name_, kdl_chain_)) 
+  if (!tree.getChain(base_name_, tip_name_, kdl_chain_))
   {
     logError("Could not initialize chain object");
     joint_model_group_ = NULL;
@@ -122,7 +122,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_
   num_joints_ = kdl_chain_.getNrOfJoints();
   num_segments_ = kdl_chain_.getNrOfSegments();
 
-  kinematic_state_.reset(new robot_state::RobotState(kinematic_model_));  
+  kinematic_state_.reset(new robot_state::RobotState(kinematic_model_));
   joint_state_group_ = kinematic_state_->getJointStateGroup(joint_model_group_->getName());
 
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();
@@ -134,11 +134,11 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_
     else
       max_torques_.push_back(0.0);
   }
-  
+
   KDL::Vector gravity(gravity_vector.x,gravity_vector.y,gravity_vector.z); // \todo Not sure if KDL expects the negative of this (Sachin)
   gravity_ = gravity.Norm();
   logDebug("Gravity norm set to %f", gravity_);
-  
+
   chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_, gravity));
 }
 
@@ -197,12 +197,12 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
 
     kdl_wrenches[i](3) = wrenches[i].torque.x;
     kdl_wrenches[i](4) = wrenches[i].torque.y;
-    kdl_wrenches[i](5) = wrenches[i].torque.z;    
+    kdl_wrenches[i](5) = wrenches[i].torque.z;
   }
-    
+
   if(chain_id_solver_->CartToJnt(kdl_angles, kdl_velocities, kdl_accelerations, kdl_wrenches, kdl_torques) < 0)
-  {    
-    logError("Something went wrong computing torques");    
+  {
+    logError("Something went wrong computing torques");
     return false;
   }
 
@@ -232,15 +232,15 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   std::vector<geometry_msgs::Wrench> wrenches(num_segments_);
   if(!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, zero_torques))
     return false;
-  
+
   for(unsigned int i=0; i < num_joints_; ++i)
   {
     if(fabs(zero_torques[i]) >= max_torques_[i])
     {
       payload = 0.0;
-      joint_saturated = i;      
+      joint_saturated = i;
       return true;
-    }    
+    }
   }
 
   joint_state_group_->setVariableValues(joint_angles);
@@ -249,10 +249,10 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   Eigen::Affine3d transform = tip_frame.inverse() * base_frame;
   wrenches.back().force.z = 1.0;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
-  wrenches.back().torque = transformVector(transform, wrenches.back().torque);  
+  wrenches.back().torque = transformVector(transform, wrenches.back().torque);
 
   logDebug("New wrench (local frame): %f %f %f", wrenches.back().force.x, wrenches.back().force.y, wrenches.back().force.z);
-  
+
   if(!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, torques))
     return false;
 
@@ -266,9 +266,9 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
     {
       min_payload = payload_joint;
       joint_saturated = i;
-    }    
-  }  
-  payload = min_payload/gravity_;  
+    }
+  }
+  payload = min_payload/gravity_;
   logDebug("Max payload (kg): %f", payload);
   return true;
 }
@@ -298,21 +298,21 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
   joint_state_group_->setVariableValues(joint_angles);
   const Eigen::Affine3d &base_frame = kinematic_state_->getFrameTransform(base_name_);
   const Eigen::Affine3d &tip_frame = kinematic_state_->getFrameTransform(tip_name_);
-  Eigen::Affine3d transform = tip_frame.inverse()* base_frame;  
+  Eigen::Affine3d transform = tip_frame.inverse()* base_frame;
   wrenches.back().force.z = payload * gravity_;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
-  wrenches.back().torque = transformVector(transform, wrenches.back().torque);  
+  wrenches.back().torque = transformVector(transform, wrenches.back().torque);
 
   logDebug("New wrench (local frame): %f %f %f", wrenches.back().force.x, wrenches.back().force.y, wrenches.back().force.z);
-  
+
   if(!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques))
     return false;
   return true;
 }
 
 const std::vector<double>& DynamicsSolver::getMaxTorques() const
-{  
-  return max_torques_;  
+{
+  return max_torques_;
 }
 
 }

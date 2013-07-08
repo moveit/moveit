@@ -56,7 +56,7 @@ namespace collision_detection
     /** create a new CollisionWorld by copying an existing CollisionWorld of the same type.s
      * The world must be either the same world as used by \orig or a copy of that world which has not yet been modified. */
     virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const = 0;
-    
+
     /** create a new CollisionRobot given a robot_model */
     virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const = 0;
 

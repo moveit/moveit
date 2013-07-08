@@ -765,7 +765,7 @@ bool kinematic_constraints::VisibilityConstraint::equal(const KinematicConstrain
     return false;
   const VisibilityConstraint &o = static_cast<const VisibilityConstraint&>(other);
 
-  if (robot_state::Transforms::sameFrame(target_frame_id_, o.target_frame_id_) && 
+  if (robot_state::Transforms::sameFrame(target_frame_id_, o.target_frame_id_) &&
       robot_state::Transforms::sameFrame(sensor_frame_id_, o.sensor_frame_id_) &&
       cone_sides_ == o.cone_sides_ && sensor_view_direction_ == o.sensor_view_direction_)
   {
@@ -1185,4 +1185,3 @@ bool kinematic_constraints::KinematicConstraintSet::equal(const KinematicConstra
   }
   return true;
 }
-

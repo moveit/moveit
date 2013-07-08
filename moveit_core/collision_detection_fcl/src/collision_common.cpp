@@ -123,7 +123,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     if (cd1->ptr.ab->getAttachedLink() == cd2->ptr.ab->getAttachedLink())
       always_allow_collision = true;
   }
-  
+
   // if collisions are always allowed, we are done
   if (always_allow_collision)
     return false;

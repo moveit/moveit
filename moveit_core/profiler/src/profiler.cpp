@@ -25,7 +25,7 @@
 *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
@@ -113,7 +113,7 @@ void moveit::Profiler::end(const std::string &name)
   lock_.unlock();
 }
 
-namespace 
+namespace
 {
 
 inline double to_seconds(const boost::posix_time::time_duration &d)
@@ -128,10 +128,10 @@ void moveit::Profiler::status(std::ostream &out, bool merge)
   stop();
   lock_.lock();
   printOnDestroy_ = false;
-  
+
   out << std::endl;
   out << " *** Profiling statistics. Total counted time : " << to_seconds(tinfo_.total) << " seconds" << std::endl;
-  
+
   if (merge)
   {
     PerThread combined;
@@ -176,7 +176,7 @@ void moveit::Profiler::console(void)
 }
 
 /// @cond IGNORE
-namespace 
+namespace
 {
 
 struct dataIntVal
@@ -212,7 +212,7 @@ struct SortDoubleByValue
 void moveit::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
 {
   double total = to_seconds(tinfo_.total);
-  
+
   std::vector<dataIntVal> events;
   for (std::map<std::string, unsigned long int>::const_iterator iev = data.events.begin() ; iev != data.events.end() ; ++iev)
   {
@@ -224,7 +224,7 @@ void moveit::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
     out << "Events:" << std::endl;
   for (unsigned int i = 0 ; i < events.size() ; ++i)
     out << events[i].name << ": " << events[i].value << std::endl;
-  
+
   std::vector<dataDoubleVal> avg;
   for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin() ; ia != data.avg.end() ; ++ia)
   {
@@ -240,24 +240,24 @@ void moveit::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
     out << avg[i].name << ": " << avg[i].value << " (stddev = " <<
       sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")" << std::endl;
   }
-  
+
   std::vector<dataDoubleVal> time;
-  
+
   for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin() ; itm != data.time.end() ; ++itm)
   {
     dataDoubleVal next = {itm->first, to_seconds(itm->second.total)};
     time.push_back(next);
   }
-  
+
   std::sort(time.begin(), time.end(), SortDoubleByValue());
   if (!time.empty())
     out << "Blocks of time:" << std::endl;
-  
+
   double unaccounted = total;
   for (unsigned int i = 0 ; i < time.size() ; ++i)
   {
     const TimeInfo &d = data.time.find(time[i].name)->second;
-    
+
     double tS = to_seconds(d.shortest);
     double tL = to_seconds(d.longest);
     out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
@@ -280,9 +280,8 @@ void moveit::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
       out << " (" << (100.0 * unaccounted / total) << " %)";
     out << std::endl;
   }
-  
+
   out << std::endl;
 }
 
 #endif
-

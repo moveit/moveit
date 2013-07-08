@@ -123,7 +123,7 @@ public:
    * used together.
    *
    * This does nothing if this type of collision detector has already been added.
-   * 
+   *
    * A new PlanningScene contains an FCL collision detector.  This FCL
    * collision detector will always be available unless it is removed by
    * calling setActiveCollisionDetector() with exclusive=true.
@@ -212,7 +212,7 @@ public:
 
   /** \brief Get a copy of the current state with components overwritten by the state message \e update */
   robot_state::RobotStatePtr getCurrentStateUpdated(const moveit_msgs::RobotState &update) const;
-  
+
   /** \brief Get the allowed collision matrix */
   const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix() const
   {
@@ -229,7 +229,7 @@ public:
   }
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
   robot_state::Transforms& getTransformsNonConst();
-  
+
   /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
       Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
   const Eigen::Affine3d& getFrameTransform(const std::string &id) const;
@@ -237,13 +237,13 @@ public:
   /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
       Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
   const Eigen::Affine3d& getFrameTransform(const robot_state::RobotState &state, const std::string &id) const;
-  
+
   /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached body id or a collision object */
   bool knowsFrameTransform(const std::string &id) const;
 
   /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached body id or a collision object */
   bool knowsFrameTransform(const robot_state::RobotState &state, const std::string &id) const;
-  
+
   /** \brief Get the representation of the world */
   const collision_detection::WorldConstPtr& getWorld() const
   {
@@ -418,13 +418,13 @@ public:
 
   /** \brief Set the current robot state */
   void setCurrentState(const robot_state::RobotState &state);
-  
+
   /** \brief Set the callback to be triggered when changes are made to the current scene state */
   void setAttachedBodyUpdateCallback(const robot_state::AttachedBodyCallback &callback);
 
   /** \brief Set the callback to be triggered when changes are made to the current scene world */
   void setCollisionObjectUpdateCallback(const collision_detection::World::ObserverCallbackFn &callback);
-  
+
   bool hasObjectColor(const std::string &id) const;
 
   const std_msgs::ColorRGBA& getObjectColor(const std::string &id) const;
@@ -613,7 +613,7 @@ private:
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgObjectColors(moveit_msgs::PlanningScene &scene_msg) const;
-  
+
   struct CollisionDetector;
   typedef boost::shared_ptr<CollisionDetector> CollisionDetectorPtr;
   typedef boost::shared_ptr<const CollisionDetector> CollisionDetectorConstPtr;
@@ -626,10 +626,10 @@ private:
     collision_detection::CollisionRobotConstPtr        crobot_unpadded_const_;
     collision_detection::CollisionRobotPtr             crobot_;                 // if NULL use parent's
     collision_detection::CollisionRobotConstPtr        crobot_const_;
-                                                       
+
     collision_detection::CollisionWorldPtr             cworld_;                 // never NULL
     collision_detection::CollisionWorldConstPtr        cworld_const_;
-                                                       
+
     CollisionDetectorConstPtr                          parent_;                 // may be NULL
 
     const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
@@ -668,13 +668,13 @@ private:
   collision_detection::WorldConstPtr             world_const_;  // copy of world_
   collision_detection::WorldDiffPtr              world_diff_;   // NULL unless this is a diff scene
   collision_detection::World::ObserverCallbackFn current_world_object_update_callback_;
-  collision_detection::World::ObserverHandle     current_world_object_update_observer_handle_;  
+  collision_detection::World::ObserverHandle     current_world_object_update_observer_handle_;
 
   std::map<std::string, CollisionDetectorPtr>    collision_;          // never empty
   CollisionDetectorPtr                           active_collision_;   // copy of one of the entries in collision_.  Never NULL.
 
   collision_detection::AllowedCollisionMatrixPtr acm_;                // if NULL use parent's
-  
+
   StateFeasibilityFn                             state_feasibility_;
   MotionFeasibilityFn                            motion_feasibility_;
 
@@ -682,7 +682,7 @@ private:
 
   // a map of object types
   boost::scoped_ptr<ObjectTypeMap>               object_types_;
-  
+
 
 };
 

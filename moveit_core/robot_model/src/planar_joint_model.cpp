@@ -42,7 +42,7 @@
 robot_model::PlanarJointModel::PlanarJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
 {
   type_ = PLANAR;
-  
+
   local_variable_names_.push_back("x");
   local_variable_names_.push_back("y");
   local_variable_names_.push_back("theta");
@@ -121,7 +121,7 @@ void robot_model::PlanarJointModel::interpolate(const std::vector<double> &from,
   // interpolate position
   state[0] = from[0] + (to[0] - from[0]) * t;
   state[1] = from[1] + (to[1] - from[1]) * t;
-  
+
   // interpolate angle
   double diff = to[2] - from[2];
   if (fabs(diff) <= boost::math::constants::pi<double>())
@@ -148,7 +148,7 @@ double robot_model::PlanarJointModel::distance(const std::vector<double> &values
   assert(values2.size() == 3);
   double dx = values1[0] - values2[0];
   double dy = values1[1] - values2[1];
-  
+
   double d = fabs(values1[2] - values2[2]);
   d = (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
   return sqrt(dx*dx + dy*dy) + angular_distance_weight_ * d;
@@ -164,7 +164,7 @@ bool robot_model::PlanarJointModel::satisfiesBounds(const std::vector<double> &v
 }
 
 bool robot_model::PlanarJointModel::normalizeRotation(std::vector<double> &values) const
-{  
+{
   double &v = values[2];
   if (v >= -boost::math::constants::pi<double>() && v <= boost::math::constants::pi<double>())
     return false;
@@ -206,7 +206,7 @@ void robot_model::PlanarJointModel::computeJointStateValues(const Eigen::Affine3
   joint_values.resize(3);
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
-  
+
   Eigen::Quaterniond q(transf.rotation());
   //taken from Bullet
   double s_squared = 1.0-(q.w()*q.w());

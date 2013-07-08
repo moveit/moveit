@@ -37,7 +37,7 @@
 #include <moveit/robot_state/state_transforms.h>
 #include <moveit/robot_state/robot_state.h>
 
-robot_state::StateTransforms::StateTransforms(const std::string &target_frame, const RobotStateConstPtr &state) : 
+robot_state::StateTransforms::StateTransforms(const std::string &target_frame, const RobotStateConstPtr &state) :
   Transforms(target_frame),
   state_(state)
 {

@@ -386,7 +386,7 @@ protected:
 
   /** \brief Given an URDF model and a SRDF model, build a full kinematic model */
   void buildModel(const urdf::ModelInterface &urdf_model, const srdf::Model &srdf_model);
-  
+
   /** \brief Given a SRDF model describing the groups, build up the groups in this kinematic model */
   void buildGroups(const srdf::Model &srdf_model);
 

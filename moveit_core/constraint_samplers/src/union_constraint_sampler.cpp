@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -58,11 +58,11 @@ struct OrderSamplers
     //a contains b and sets are not equal
     if (a_contains_b && !b_contains_a)
       return true;
-    if (b_contains_a && !a_contains_b) 
+    if (b_contains_a && !a_contains_b)
       return false;
 
     //sets are equal or disjoint
-    bool a_depends_on_b = false;  
+    bool a_depends_on_b = false;
     bool b_depends_on_a = false;
     const std::vector<std::string> &fda = a->getFrameDependency();
     const std::vector<std::string> &fdb = b->getFrameDependency();
@@ -90,7 +90,7 @@ struct OrderSamplers
       return true;
     if(a_depends_on_b && !b_depends_on_a)
       return false;
-    
+
     // prefer sampling JointConstraints first
     JointConstraintSampler *ja = dynamic_cast<JointConstraintSampler*>(a.get());
     JointConstraintSampler *jb = dynamic_cast<JointConstraintSampler*>(b.get());
@@ -98,45 +98,45 @@ struct OrderSamplers
       return true;
     if (jb && ja == NULL)
       return false;
-    
+
     // neither depends on either, so break ties based on group name
     return (a->getJointModelGroup()->getName() < b->getJointModelGroup()->getName());
   }
 };
 }
 
-constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, 
+constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name,
                                                                     const std::vector<ConstraintSamplerPtr> &samplers) :
   ConstraintSampler(scene, group_name), samplers_(samplers)
 {
   // using stable sort to preserve order of equivalents
   std::stable_sort(samplers_.begin(), samplers_.end(), OrderSamplers());
-  
+
   for (std::size_t i = 0 ; i < samplers_.size() ; ++i)
-  { 
+  {
     const std::vector<std::string> &fd = samplers_[i]->getFrameDependency();
     for (std::size_t j = 0 ; j < fd.size() ; ++j)
       frame_depends_.push_back(fd[j]);
-    
+
     logDebug("Union sampler for group '%s' includes sampler for group '%s'", jmg_->getName().c_str(), samplers_[i]->getJointModelGroup()->getName().c_str());
   }
 }
 
 bool constraint_samplers::UnionConstraintSampler::sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts)
 {
-  jsg->setToRandomValues(); 
-  
+  jsg->setToRandomValues();
+
   if (samplers_.size() >= 1)
   {
     if (!samplers_[0]->sample(jsg->getRobotState()->getJointStateGroup(samplers_[0]->getJointModelGroup()->getName()), ks, max_attempts))
       return false;
   }
-  
+
   if (samplers_.size() > 1)
   {
     robot_state::RobotState temp = ks;
     *(temp.getJointStateGroup(jsg->getName())) = *jsg;
-    
+
     for (std::size_t i = 1 ; i < samplers_.size() ; ++i)
     {
       robot_state::JointStateGroup *x = jsg->getRobotState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
@@ -149,7 +149,7 @@ bool constraint_samplers::UnionConstraintSampler::sample(robot_state::JointState
         return false;
     }
   }
-  
+
   return true;
 }
 
@@ -160,12 +160,12 @@ bool constraint_samplers::UnionConstraintSampler::project(robot_state::JointStat
     if (!samplers_[0]->project(jsg->getRobotState()->getJointStateGroup(samplers_[0]->getJointModelGroup()->getName()), ks, max_attempts))
       return false;
   }
-  
+
   if (samplers_.size() > 1)
   {
     robot_state::RobotState temp = ks;
     *(temp.getJointStateGroup(jsg->getName())) = *jsg;
-    
+
     for (std::size_t i = 1 ; i < samplers_.size() ; ++i)
     {
       robot_state::JointStateGroup *x = jsg->getRobotState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
@@ -178,6 +178,6 @@ bool constraint_samplers::UnionConstraintSampler::project(robot_state::JointStat
         return false;
     }
   }
-  
+
   return true;
 }
