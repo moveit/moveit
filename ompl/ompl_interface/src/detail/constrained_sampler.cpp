@@ -41,7 +41,7 @@
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc, const constraint_samplers::ConstraintSamplerPtr &cs) :
   ob::StateSampler(pc->getOMPLStateSpace().get()), planning_context_(pc), default_(space_->allocDefaultStateSampler()),
   constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()), 
-  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName())),
+  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getGroupName())),
   constrained_success_(0), constrained_failure_(0)
 {   
   inv_dim_ = space_->getDimension() > 0 ? 1.0 / (double)space_->getDimension() : 1.0;
