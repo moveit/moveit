@@ -3,10 +3,10 @@
   <version>3.0.1</version>
   <description>Generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files. </description>
 
-  <author>Dave Coleman, CU Boulder</author>
-  <author>Jeremy Zoss, SwRI</author>
-  <author>David Butterworth, KAIST</author>
-  <author>Mathias Lüdtke, Fraunhofer IPA</author>
+  <author>Dave Coleman</author>
+  <author>Jeremy Zoss</author>
+  <author>David Butterworth</author>
+  <author>Mathias Lüdtk</author>
 
   <maintainer email="davetcoleman@gmail.com">Dave Coleman</maintainer>
 
