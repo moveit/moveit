@@ -56,18 +56,18 @@ namespace collision_detection
       {
         /** \brief A link on the robot */
         ROBOT_LINK,
-        
+
         /** \brief A body attached to a robot link */
         ROBOT_ATTACHED,
-        
+
         /** \brief A body in the environment */
         WORLD_OBJECT
       };
   }
-  
+
   /** \brief The types of bodies that are considered for collision */
   typedef BodyTypes::Type BodyType;
-  
+
   /** \brief Definition of a contact point */
   struct Contact
   {
@@ -81,20 +81,20 @@ namespace collision_detection
 
     /** \brief depth (penetration between bodies) */
     double          depth;
-    
+
     /** \brief The id of the first body involved in the contact */
     std::string     body_name_1;
-    
+
     /** \brief The type of the first body involved in the contact */
     BodyType        body_type_1;
-    
+
     /** \brief The id of the second body involved in the contact */
     std::string     body_name_2;
-    
+
     /** \brief The type of the second body involved in the contact */
     BodyType        body_type_2;
   };
-  
+
   /** \brief When collision costs are computed, this structure contains information about the partial cost incurred in a particular volume */
   struct CostSource
   {
@@ -106,7 +106,7 @@ namespace collision_detection
 
     /// The partial cost (the probability of existance for the object there is a collision with)
     double                  cost;
-    
+
     /// Get the volume of the AABB around the cost source
     double getVolume() const
     {
@@ -139,9 +139,9 @@ namespace collision_detection
     {
     }
     typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
-    
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    
+
     /** \brief Clear a previously stored result */
     void clear()
     {
@@ -151,23 +151,23 @@ namespace collision_detection
       contacts.clear();
       cost_sources.clear();
     }
-    
+
     /** \brief True if collision was found, false otherwise */
     bool                 collision;
-    
+
     /** \brief Closest distance between two bodies */
     double               distance;
-    
+
     /** \brief Number of contacts returned */
     std::size_t          contact_count;
-    
+
     /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contacts themselves */
     ContactMap           contacts;
-        
+
     /** \brief When costs are computed, the individual cost sources are  */
     std::set<CostSource> cost_sources;
   };
-  
+
   /** \brief Representation of a collision checking request */
   struct CollisionRequest
   {
@@ -181,10 +181,10 @@ namespace collision_detection
                          verbose(false)
     {
     }
-    
+
     /** \brief The group name to check collisions for (optional; if empty, assume the complete robot) */
     std::string group_name;
-    
+
     /** \brief If true, compute proximity distance */
     bool        distance;
 
@@ -193,13 +193,13 @@ namespace collision_detection
 
     /** \brief If true, compute contacts */
     bool        contacts;
-    
+
     /** \brief Overall maximum number of contacts to compute */
     std::size_t max_contacts;
-    
+
     /** \brief Maximum number of contacts to compute per pair of bodies (multiple bodies may be in contact at different configurations) */
     std::size_t max_contacts_per_pair;
-    
+
     /** \brief When costs are computed, this value defines how many of the top cost sources should be returned */
     std::size_t max_cost_sources;
 
@@ -213,7 +213,7 @@ namespace collision_detection
     /** \brief Flag indicating whether information about detected collisions should be reported */
     bool        verbose;
   };
-  
+
 }
 
 #endif

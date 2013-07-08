@@ -45,15 +45,15 @@ namespace collision_detection
 class CollisionRobotAllValid : public CollisionRobot
 {
 public:
-  
+
   CollisionRobotAllValid(const robot_model::RobotModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
   CollisionRobotAllValid(const CollisionRobot &other);
-  
+
   virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state) const;
   virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
   virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2) const;
   virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2, const AllowedCollisionMatrix &acm) const;
-  
+
   virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state,
                                    const CollisionRobot &other_robot, const robot_state::RobotState &other_state) const;
   virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state,
@@ -64,15 +64,15 @@ public:
   virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2,
                                    const CollisionRobot &other_robot, const robot_state::RobotState &other_state1, const robot_state::RobotState &other_state2,
                                    const AllowedCollisionMatrix &acm) const;
-  
+
   virtual double distanceSelf(const robot_state::RobotState &state) const;
   virtual double distanceSelf(const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
-  
+
   virtual double distanceOther(const robot_state::RobotState &state,
                                const CollisionRobot &other_robot, const robot_state::RobotState &other_state) const;
   virtual double distanceOther(const robot_state::RobotState &state, const CollisionRobot &other_robot,
                                const robot_state::RobotState &other_state, const AllowedCollisionMatrix &acm) const;
-  
+
 };
 
 }

@@ -60,10 +60,10 @@ bool robot_model::JointModel::getVariableBounds(const std::string& variable, std
 }
 
 bool robot_model::JointModel::setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds)
-{ 
+{
   std::map<std::string, unsigned int>::const_iterator it = variable_index_.find(variable);
   if (it == variable_index_.end())
-  {   
+  {
     logWarn("Could not find variable '%s' to set bounds for within joint '%s'", variable.c_str(), name_.c_str());
     return false;
   }

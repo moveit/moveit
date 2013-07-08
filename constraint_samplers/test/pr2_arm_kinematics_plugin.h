@@ -69,9 +69,9 @@ static const int TIMED_OUT = -2;
 class PR2ArmIKSolver : public KDL::ChainIkSolverPos
 {
 public:
-  
+
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  
+
   /** @class
    *  @brief ROS/KDL based interface for the inverse kinematics of the PR2 arm
    *  @author Sachin Chitta <sachinc@willowgarage.com>
@@ -79,46 +79,46 @@ public:
    *  This class provides a KDL based interface to the inverse kinematics of the PR2 arm. It inherits from the KDL::ChainIkSolverPos class
    *  but also exposes additional functionality to return multiple solutions from an inverse kinematics computation.
    */
-  PR2ArmIKSolver(const urdf::ModelInterface &robot_model, 
+  PR2ArmIKSolver(const urdf::ModelInterface &robot_model,
                  const std::string &root_frame_name,
                  const std::string &tip_frame_name,
-                 const double &search_discretization_angle, 
+                 const double &search_discretization_angle,
                  const int &free_angle);
-  
+
   ~PR2ArmIKSolver(){};
-  
-  /** 
-   * @brief The PR2 inverse kinematics solver 
-   */ 
+
+  /**
+   * @brief The PR2 inverse kinematics solver
+   */
   PR2ArmIK pr2_arm_ik_;
-  
+
   /**
    * @brief Indicates whether the solver has been successfully initialized
    */
   bool active_;
-  
-  int CartToJnt(const KDL::JntArray& q_init, 
-                const KDL::Frame& p_in, 
+
+  int CartToJnt(const KDL::JntArray& q_init,
+                const KDL::Frame& p_in,
                 KDL::JntArray& q_out);
 
-  int CartToJntSearch(const KDL::JntArray& q_in, 
-                      const KDL::Frame& p_in, 
-                      KDL::JntArray &q_out, 
+  int CartToJntSearch(const KDL::JntArray& q_in,
+                      const KDL::Frame& p_in,
+                      KDL::JntArray &q_out,
                       const double &timeout);
 
   void getSolverInfo(moveit_msgs::KinematicSolverInfo &response)
   {
     pr2_arm_ik_.getSolverInfo(response);
   }
-  
+
 private:
-  
+
   bool getCount(int &count, const int &max_count, const int &min_count);
-  
+
   double search_discretization_angle_;
-  
+
   int free_angle_;
-  
+
   std::string root_frame_name_;
 };
 
@@ -139,7 +139,7 @@ public:
 
   void setRobotModel(boost::shared_ptr<urdf::ModelInterface>& robot_model);
 
-  /** 
+  /**
    *  @brief Specifies if the node is active or not
    *  @return True if the node is active, false otherwise.
    */
@@ -156,8 +156,8 @@ public:
                              const std::vector<double> &ik_seed_state,
                              std::vector<double> &solution,
                              moveit_msgs::MoveItErrorCodes &error_code,
-                             const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;      
-    
+                             const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
    * This particular method is intended for "searching" for a solutions by stepping through the redundancy
@@ -171,14 +171,14 @@ public:
                                 double timeout,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;      
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
    * This particular method is intended for "searching" for a solutions by stepping through the redundancy
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
-   * @param consistency_limit the distance that the redundancy can be from the current position 
+   * @param consistency_limit the distance that the redundancy can be from the current position
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -187,7 +187,7 @@ public:
                                 const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;      
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -203,7 +203,7 @@ public:
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;      
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -212,7 +212,7 @@ public:
    * around those specified in the seed state are admissible and need to be searched.
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
-   * @param consistency_limit the distance that the redundancy can be from the current position 
+   * @param consistency_limit the distance that the redundancy can be from the current position
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -222,8 +222,8 @@ public:
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;      
-    
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
    * @param request  - the request contains the joint angles, set of links for which poses are to be computed and a timeout
@@ -231,9 +231,9 @@ public:
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool getPositionFK(const std::vector<std::string> &link_names,
-                             const std::vector<double> &joint_angles, 
+                             const std::vector<double> &joint_angles,
                              std::vector<geometry_msgs::Pose> &poses) const;
-    
+
   /**
    * @brief  Initialization function for the kinematics
    * @return True if initialization was successful, false otherwise
@@ -243,17 +243,17 @@ public:
                           const std::string& base_name,
                           const std::string& tip_name,
                           double search_discretization);
-    
+
   /**
    * @brief  Return all the joint names in the order they are used internally
    */
   const std::vector<std::string>& getJointNames() const;
-    
+
   /**
    * @brief  Return all the link names in the order they are represented internally
    */
   const std::vector<std::string>& getLinkNames() const;
-    
+
 protected:
 
   bool active_;
@@ -267,13 +267,13 @@ protected:
   moveit_msgs::KinematicSolverInfo ik_solver_info_, fk_solver_info_;
 
   mutable IKCallbackFn desiredPoseCallback_;
-  mutable IKCallbackFn solutionCallback_;    
+  mutable IKCallbackFn solutionCallback_;
 
-  void desiredPoseCallback(const KDL::JntArray& jnt_array, 
+  void desiredPoseCallback(const KDL::JntArray& jnt_array,
                            const KDL::Frame& ik_pose,
                            moveit_msgs::MoveItErrorCodes& error_code) const;
 
-  void jointSolutionCallback(const KDL::JntArray& jnt_array, 
+  void jointSolutionCallback(const KDL::JntArray& jnt_array,
                              const KDL::Frame& ik_pose,
                              moveit_msgs::MoveItErrorCodes& error_code) const;
 

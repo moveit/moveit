@@ -116,7 +116,7 @@ void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distanc
       for (int z = 0; z < getZNumCells(); ++z)
       {
         double dist = getDistance(x,y,z);
-        
+
         if (dist >= min_distance && dist <= max_distance)
         {
           int last = inf_marker.points.size();
@@ -134,9 +134,9 @@ void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distanc
   }
 }
 
-void DistanceField::getGradientMarkers(double min_distance, 
+void DistanceField::getGradientMarkers(double min_distance,
                                        double max_distance,
-                                       const std::string& frame_id, 
+                                       const std::string& frame_id,
                                        const ros::Time& stamp,
                                        visualization_msgs::MarkerArray& marker_array) const
 {
@@ -418,8 +418,8 @@ void DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type,
 
 void DistanceField::setPoint(int xCell, int yCell, int zCell,
                              double dist, geometry_msgs::Point& point,
-                             std_msgs::ColorRGBA& color, 
-                             double max_distance) const 
+                             std_msgs::ColorRGBA& color,
+                             double max_distance) const
 {
   double wx,wy,wz;
   gridToWorld(xCell,yCell,zCell, wx,wy,wz);
@@ -434,8 +434,8 @@ void DistanceField::setPoint(int xCell, int yCell, int zCell,
 }
 
 
-void DistanceField::getProjectionPlanes(const std::string& frame_id, 
-                                        const ros::Time& stamp, 
+void DistanceField::getProjectionPlanes(const std::string& frame_id,
+                                        const ros::Time& stamp,
                                         double max_dist,
                                         visualization_msgs::Marker& marker) const
 {

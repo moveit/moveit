@@ -73,7 +73,7 @@ void robot_model::RevoluteJointModel::getVariableRandomValues(random_numbers::Ra
 
 void robot_model::RevoluteJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
                                                                         const std::vector<double> &near, const double distance) const
-{  
+{
   if (continuous_)
   {
     values.push_back(rng.uniformReal(near[values.size()] - distance, near[values.size()] + distance));
@@ -145,7 +145,7 @@ void robot_model::RevoluteJointModel::enforceBounds(std::vector<double> &values,
       if (v > boost::math::constants::pi<double>())
         v -= 2.0 * boost::math::constants::pi<double>();
   }
-  else 
+  else
   {
     const std::pair<double, double> &b = bounds[0];
     if (values[0] < b.first)
@@ -170,7 +170,7 @@ void robot_model::RevoluteJointModel::computeTransform(const std::vector<double>
 
 void robot_model::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
-  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_)); 
+  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_));
 }
 
 void robot_model::RevoluteJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const

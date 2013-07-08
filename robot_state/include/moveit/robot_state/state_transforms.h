@@ -49,11 +49,11 @@ class StateTransforms : public Transforms
 public:
   StateTransforms(const std::string &target_frame, const RobotStateConstPtr &state);
 
-  virtual bool canTransform(const std::string &from_frame) const;  
+  virtual bool canTransform(const std::string &from_frame) const;
   virtual const Eigen::Affine3d& getTransform(const std::string &from_frame) const;
 
 protected:
-  
+
   RobotStateConstPtr state_;
 };
 

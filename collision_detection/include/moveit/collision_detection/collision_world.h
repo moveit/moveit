@@ -215,7 +215,7 @@ namespace collision_detection
     virtual double distanceWorld(const CollisionWorld &world,
                                  const AllowedCollisionMatrix &acm) const = 0;
     /** set the world to use.
-     * This can be expensive unless the new and old world are empty. 
+     * This can be expensive unless the new and old world are empty.
      * Passing NULL will result in a new empty world being created. */
     virtual void setWorld(const WorldPtr& world);
 

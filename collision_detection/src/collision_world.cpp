@@ -93,4 +93,3 @@ void collision_detection::CollisionWorld::setWorld(const WorldPtr& world)
 
   world_const_ = world;
 }
-

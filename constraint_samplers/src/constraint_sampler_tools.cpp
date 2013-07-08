@@ -56,7 +56,7 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sa
     logError("No sampler specified for counting samples per second");
     return 0.0;
   }
-  robot_state::RobotState ks(reference_state); 
+  robot_state::RobotState ks(reference_state);
   unsigned long int valid = 0;
   unsigned long int total = 0;
   ros::WallTime end = ros::WallTime::now() + ros::WallDuration(1.0);
@@ -71,7 +71,7 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sa
     }
   }
   while (ros::WallTime::now() < end);
-  return (double)valid / (double)total;  
+  return (double)valid / (double)total;
 }
 
 void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &sampler, const robot_state::RobotState &reference_state,
@@ -82,8 +82,8 @@ void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &samp
     logError("No sampler specified for visualizing distribution of samples");
     return;
   }
-  
-  robot_state::RobotState ks(reference_state); 
+
+  robot_state::RobotState ks(reference_state);
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
   color.g = 0.0f;

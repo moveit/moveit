@@ -94,16 +94,16 @@ bool robot_state::Transforms::isFixedFrame(const std::string &frame) const
 }
 
 const Eigen::Affine3d& robot_state::Transforms::getTransform(const std::string &from_frame) const
-{ 
+{
   if (!from_frame.empty())
   {
     FixedTransformsMap::const_iterator it = (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame));
     if (it != transforms_.end())
       return it->second;
   }
-  
+
   logError("Unable to transform from frame '%s' to frame '%s'. Returning identity.", from_frame.c_str(), target_frame_.c_str());
-  
+
   // return identity
   static const Eigen::Affine3d identity = Eigen::Affine3d::Identity();
   return identity;
@@ -164,4 +164,3 @@ void robot_state::Transforms::copyTransforms(std::vector<geometry_msgs::Transfor
     tf::transformEigenToMsg(it->second, transforms[i].transform);
   }
 }
-

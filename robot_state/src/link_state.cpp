@@ -51,12 +51,12 @@ robot_state::LinkState::~LinkState()
 void robot_state::LinkState::computeTransformForward(const Eigen::Affine3d& parent_transform)
 {
   global_link_transform_ = parent_transform;
-  
-  // do fwd transforms 
+
+  // do fwd transforms
   const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
   for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
     robot_state_->getLinkState(child_jmodels[i]->getChildLinkModel()->getName())->computeTransformForward(this);
-  
+
   computeGeometryTransforms();
 }
 
@@ -64,11 +64,11 @@ void robot_state::LinkState::computeTransformForward(const LinkState *parent_lin
 {
   global_link_transform_ = parent_link->global_link_transform_ * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
 
-  // do fwd transforms 
+  // do fwd transforms
   const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
   for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
     robot_state_->getLinkState(child_jmodels[i]->getChildLinkModel()->getName())->computeTransformForward(this);
-  
+
   computeGeometryTransforms();
 }
 
@@ -80,7 +80,7 @@ void robot_state::LinkState::computeTransformBackward(const LinkState *child_lin
   else
     parent_joint_state_->setVariableValues(global_link_transform_);
 
-  // do fwd transforms 
+  // do fwd transforms
   const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
   for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
   {
@@ -88,7 +88,7 @@ void robot_state::LinkState::computeTransformBackward(const LinkState *child_lin
     if (child != child_link)
       child->computeTransformForward(this);
   }
-  
+
   computeGeometryTransforms();
 }
 
@@ -99,11 +99,11 @@ void robot_state::LinkState::computeTransformBackward(const Eigen::Affine3d& chi
     parent_link_state_->computeTransformBackward(this);
   else
     parent_joint_state_->setVariableValues(global_link_transform_);
-  // do fwd transforms 
+  // do fwd transforms
   const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
   for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
     robot_state_->getLinkState(child_jmodels[i]->getChildLinkModel()->getName())->computeTransformForward(this);
-  
+
   computeGeometryTransforms();
 }
 
@@ -114,14 +114,14 @@ void robot_state::LinkState::computeGeometryTransforms()
 }
 
 void robot_state::LinkState::computeTransform()
-{ 
+{
   global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : robot_state_->getRootTransform())
     * link_model_->getJointOriginTransform() * parent_joint_state_->getVariableTransform();
   computeGeometryTransforms();
 }
 
 void robot_state::LinkState::updateAttachedBodies()
-{  
+{
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
     it->second->computeTransform(global_link_transform_);
 }
@@ -150,4 +150,3 @@ void robot_state::LinkState::getAttachedBodies(std::vector<const AttachedBody*> 
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
     attached_bodies.push_back(it->second);
 }
-

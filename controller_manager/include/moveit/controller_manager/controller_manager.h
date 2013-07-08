@@ -52,22 +52,22 @@ struct ExecutionStatus
   enum Value
     {
       UNKNOWN, RUNNING, SUCCEEDED, PREEMPTED, TIMED_OUT, ABORTED, FAILED
-    };  
-  
+    };
+
   ExecutionStatus(Value value = UNKNOWN) : status_(value)
   {
   }
-  
+
   operator Value() const
   {
     return status_;
   }
-  
+
   operator bool() const
   {
     return status_ == SUCCEEDED;
   }
-  
+
   /// Convert the execution status to a string
   std::string asString() const
   {
@@ -90,14 +90,14 @@ struct ExecutionStatus
     }
   }
 private:
-  Value status_;  
+  Value status_;
 };
 
 /** \brief MoveIt sends commands to a controller via a handle that satisfies this interface. */
 class MoveItControllerHandle
 {
 public:
-  
+
   /** \brief Each controller has a name. The handle is initialized with that name */
   MoveItControllerHandle(const std::string &name) : name_(name)
   {
@@ -106,13 +106,13 @@ public:
   virtual ~MoveItControllerHandle()
   {
   }
-  
+
   /** \brief Get the name of the controller this handle can send commands to */
   const std::string& getName() const
   {
     return name_;
   }
-  
+
   /** \brief Send a trajectory to the controller. The controller is expected to execute the trajectory, but this function call should not block. Blocking is achievable by calling waitForExecution(). Return false when the controller cannot accept the trajectory. */
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &trajectory) = 0;
 
@@ -121,14 +121,14 @@ public:
 
   /** \brief Wait for the current execution to complete, or until the timeout is reached. Return true if the execution is complete (whether successful or not). Return false if timeout was reached. If timeout is 0 (default argument), wait until the execution is complete (no timeout). */
   virtual bool waitForExecution(const ros::Duration &timeout = ros::Duration(0)) = 0;
-  
+
   /** \brief Return the execution status of the last trajectory sent to the controller. */
   virtual ExecutionStatus getLastExecutionStatus() = 0;
 
 protected:
-  
+
   std::string name_;
-  
+
 };
 
 typedef boost::shared_ptr<MoveItControllerHandle> MoveItControllerHandlePtr;
@@ -144,7 +144,7 @@ typedef boost::shared_ptr<const MoveItControllerHandle> MoveItControllerHandleCo
 class MoveItControllerManager
 {
 public:
-  
+
   /** \brief Each controller known to MoveIt has a state. This
       structure describes that controller's state. */
   struct ControllerState
@@ -153,7 +153,7 @@ public:
                         default_(false)
     {
     }
-    
+
     /** \brief A controller can be active or inactive. This means that MoveIt could activate the controller when needed,
         and de-activate controllers that overlap (control the same set of joints) */
     bool active_;
@@ -162,7 +162,7 @@ public:
         makes MoveIt prefer this controller when multiple options are available. */
     bool default_;
   };
-  
+
   /** \brief Default constructor. This needs to have no arguments so that the plugin system can construct the object. */
   MoveItControllerManager()
   {
@@ -171,10 +171,10 @@ public:
   virtual ~MoveItControllerManager()
   {
   }
-  
+
   /** \brief Controllers are managed by name. Given a name, return an object that can perform operations on the corresponding controller. */
   virtual MoveItControllerHandlePtr getControllerHandle(const std::string &name) = 0;
-  
+
   /** \brief Get the list of known controller names. */
   virtual void getControllersList(std::vector<std::string> &names) = 0;
 

@@ -45,52 +45,52 @@ namespace constraint_samplers
 
 /**
  * \brief This class assists in the generation of a ConstraintSampler for a
- * particular group from a moveit_msgs::Constraints.  
- * 
+ * particular group from a moveit_msgs::Constraints.
+ *
  * It contains logic that will generate either a
  * JointConstraintSampler, an IKConstraintSampler, or a
  * UnionConstraintSampler depending on the contents of the Constraints
  * message and the group in question.
- * 
+ *
  */
 class ConstraintSamplerManager
 {
 public:
-  /** 
+  /**
    * \brief Empty constructor
-   * 
+   *
    */
   ConstraintSamplerManager()
   {
   }
-  /** 
+  /**
    * \brief Allows the user to specify an alternate ConstraintSamplerAllocation
-   * 
+   *
    * @param sa The constraint sampler allocator that will be used
    */
   void registerSamplerAllocator(const ConstraintSamplerAllocatorPtr &sa)
   {
     sampler_alloc_.push_back(sa);
   }
-  /** 
-   * \brief Selects among the potential sampler allocators.  
-   * 
+  /**
+   * \brief Selects among the potential sampler allocators.
+   *
    * This function will iterate through the constraint sampler
    * allocators, trying to find one that can service the constraints.
    * The first one that can service the request will be called.  If no
    * allocators can service the Constraints, or there are no
    * allocators, the selectDefaultSampler will be called.
-   * 
+   *
    * @param scene The planning scene that will be passed into the constraint sampler
    * @param group_name The group name for which to allocate the constraint sampler
    * @param constr The constraints
-   * 
+   *
    * @return A boost::shared_ptr to the ConstraintSampler that is
    * allocated, or an empty pointer if none could be allocated
    */
   ConstraintSamplerPtr selectSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr) const;
 
-  /** 
+  /**
    * \brief Default logic to select a ConstraintSampler given a
    * constraints message.
    *
@@ -99,7 +99,7 @@ public:
    * Constraints argument.  The type of constraint sampler that is
    * produced depends on which constraint vectors have been populated.
    * The following rules are applied:
-   * 
+   *
    * - If every joint in the group indicated by group_name is
    * constrained by a valid joint constraint in the joint_constraints
    * vector, a JointConstraintSampler with all bounded joints in
@@ -118,17 +118,17 @@ public:
    *   - If there is a valid IKConstraintSampler, then if no valid joint constraints are present then an IKConstraintSampler will be returned.
    *   - If there are joint constraints, a UnionConstraintSampler with both the JointConstraintSampler and the IKConstraintSampler will be returned.
    * - If there is no direct IK solver for the group, or no valid IKConstraintSampler could be generated, and there are subgroup IKSolvers, the function will attempt to generate a sampler from the various subgroup solvers.
-   *   - It will attempt to determine which constraints act on the IK link for the sub-group IK solvers, and attempts to create ConstraintSampler functions by recursively calling \ref selectDefaultSampler for the sub-group.  
+   *   - It will attempt to determine which constraints act on the IK link for the sub-group IK solvers, and attempts to create ConstraintSampler functions by recursively calling \ref selectDefaultSampler for the sub-group.
    *   - If any samplers are valid, it adds them to a vector of type \ref ConstraintSamplerPtr.
    *   - Once it has iterated through each sub-group, if any samplers are valid, they are returned in a UnionConstraintSampler, along with a JointConstraintSampler if one exists.
    * @param scene The planning scene that will be used to create the ConstraintSampler
    * @param group_name The group name for which to create a sampler
    * @param constr The set of constraints for which to create a sampler
-   * 
+   *
    * @return A valid \ref ConstraintSamplerPtr if one could be allocated, and otherwise an empty \ref ConstraintSamplerPtr
    */
   static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr);
-  
+
 private:
 
   std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_; /**< \brief Holds the constraint sampler allocators, which will be tested in order  */

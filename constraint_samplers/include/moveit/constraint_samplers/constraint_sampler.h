@@ -45,8 +45,8 @@
 /**
  * \brief The constraint samplers namespace contains a number of
  * methods for generating samples based on a constraint or set of
- * constraints.  
- * 
+ * constraints.
+ *
  * It intended for use by any algorithm that requires a
  * constraint-aware sampling strategy.
  */
@@ -59,71 +59,71 @@ namespace constraint_samplers
 class ConstraintSampler
 {
 public:
-  
+
   static const unsigned int DEFAULT_MAX_SAMPLING_ATTEMPTS = 2; /**< \brief The default value associated with a sampling request.  By default if a valid sample cannot be produced in this many attempts, it returns with no sample */
-  
-  /** 
+
+  /**
    * \brief Constructor
-   * 
-   * @param [in] scene The planning scene that will be used for constraint checking 
+   *
+   * @param [in] scene The planning scene that will be used for constraint checking
    * @param [in] group_name The name of the group that will be sampled.  Will be invalid if no group name is passed in or the joint model group cannot be found in the kinematic model
    */
   ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
-  
+
   virtual ~ConstraintSampler()
   {
   }
-  
-  /** 
-   * \brief Function for configuring a constraint sampler given a Constraints message.  
-   * 
+
+  /**
+   * \brief Function for configuring a constraint sampler given a Constraints message.
+   *
    * @param [in] constr The constraints from which to construct a sampler
-   * 
+   *
    * @return True if the configuration is successful.  If true, \ref isValid should also true.  If false, \ref isValid should return false
    */
   virtual bool configure(const moveit_msgs::Constraints &constr) = 0;
 
-  /** 
+  /**
    * \brief Gets the group name set in the constructor
-   * 
+   *
    * @return The group name
    */
   const std::string& getGroupName() const
   {
     return getJointModelGroup()->getName();
   }
-  
-  /** 
+
+  /**
    * \brief Gets the joint model group
-   * 
-   * 
+   *
+   *
    * @return The joint model group
    */
   const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return jmg_;
   }
-  
-  /** 
+
+  /**
    * \brief Gets the planning scene
-   * 
-   * 
+   *
+   *
    * @return The planning scene as a const ptr
    */
   const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return scene_;
   }
-  
-  /** 
+
+  /**
    * \brief Return the names of the mobile frames whose pose is needed when sample() is called.
-   * 
+   *
    * Mobile frames mean frames other than the reference frame of the
    * kinematic model.  These frames may move when the kinematic state
    * changes.  Frame dependency can help determine an ordering from a
    * set of constraint samplers - for more information see the derived
    * class documentation for \ref UnionConstraintSampler.
-   * 
+   *
    * @return The list of names whose pose is needed
    */
   const std::vector<std::string>& getFrameDependency() const
@@ -131,7 +131,7 @@ public:
     return frame_depends_;
   }
 
-  /** 
+  /**
    * \brief Gets the callback used to determine state validity during sampling. The sampler will attempt to satisfy this constraint if possible, but there is no guarantee.
    */
   const robot_state::StateValidityCallbackFn& getStateValidityCallback() const
@@ -139,9 +139,9 @@ public:
     return state_validity_callback_;
   }
 
-  /** 
+  /**
    * \brief Sets the callback used to determine the state validity during sampling. The sampler will attempt to satisfy this constraint if possible, but there is no guarantee.
-   * 
+   *
    * @param callback The callback to set
    */
   void setStateValidityCallback(const robot_state::StateValidityCallbackFn &callback)
@@ -149,39 +149,39 @@ public:
     state_validity_callback_ = callback;
   }
 
-  /** 
+  /**
    * \brief Samples given the constraints, populating the joint state
    * group.  The value DEFAULT_MAX_SAMPLING_ATTEMPTS will be passed in
    * as the maximum number of attempts to make to take a sample.
-   * 
+   *
    * @param [out] jsg The joint state group into which the values will be placed
    * @param [in] reference_state Reference state that will be used to do transforms or perform other actions
-   * 
+   *
    * @return True if a sample was successfully taken, false otherwise
    */
-  bool sample(robot_state::JointStateGroup *jsg, 
+  bool sample(robot_state::JointStateGroup *jsg,
               const robot_state::RobotState &reference_state)
   {
     return sample(jsg, reference_state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
-  } 
+  }
 
-  /** 
+  /**
    * \brief Project a sample given the constraints, updating the joint state
    * group. The value DEFAULT_MAX_SAMPLING_ATTEMPTS will be passed in
    * as the maximum number of attempts to make to project the sample.
    *
-   * @param [out] jsg The joint state group which specifies the state to be projected, according to the constraints 
+   * @param [out] jsg The joint state group which specifies the state to be projected, according to the constraints
    * @param [in] reference_state Reference state that will be used to do transforms or perform other actions
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  bool project(robot_state::JointStateGroup *jsg, 
+  bool project(robot_state::JointStateGroup *jsg,
                const robot_state::RobotState &reference_state)
   {
     return project(jsg, reference_state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
 
-  /** 
+  /**
    * \brief Samples given the constraints, populating the joint state
    * group.  This function allows the parameter max_attempts to be set.
    *
@@ -191,51 +191,51 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  virtual bool sample(robot_state::JointStateGroup *jsg, 
-                      const robot_state::RobotState &reference_state, 
+  virtual bool sample(robot_state::JointStateGroup *jsg,
+                      const robot_state::RobotState &reference_state,
                       unsigned int max_attempts) = 0;
 
-  /** 
+  /**
    * \brief Project a sample given the constraints, updating the joint state
    * group. This function allows the parameter max_attempts to be set.
    *
-   * @param [out] jsg The joint state group which specifies the state to be projected, according to the constraints 
+   * @param [out] jsg The joint state group which specifies the state to be projected, according to the constraints
    * @param [in] reference_state Reference state that will be used to do transforms or perform other actions
    * @param [in] max_attempts The maximum number of times to attempt to draw a sample.  If no sample has been drawn in this number of attempts, false will be returned.
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  virtual bool project(robot_state::JointStateGroup *jsg, 
-                       const robot_state::RobotState &reference_state, 
+  virtual bool project(robot_state::JointStateGroup *jsg,
+                       const robot_state::RobotState &reference_state,
                        unsigned int max_attempts) = 0;
 
-  /** 
-   * \brief Returns whether or not the constraint sampler is valid or not.  To be valid, the joint model group must be available in the kinematic model.  
-   * 
+  /**
+   * \brief Returns whether or not the constraint sampler is valid or not.  To be valid, the joint model group must be available in the kinematic model.
+   *
    * @return True if the sampler is valid, and otherwise false.
    */
   bool isValid() const
   {
     return is_valid_;
   }
-  
+
   /** \brief Check if the sampler is set to verbose mode */
   bool getVerbose() const
   {
     return verbose_;
   }
-  
+
   /** \brief Enable/disable verbose mode for sampler */
   void setVerbose(bool flag)
   {
     verbose_ = flag;
   }
-  
+
 protected:
-  
-  /** 
+
+  /**
    * \brief Clears all data from the constraint.
-   * 
+   *
    */
   virtual void clear();
 

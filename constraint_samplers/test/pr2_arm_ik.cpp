@@ -39,9 +39,9 @@
       th2 = shoulder/turret lift/pitch
       th3 = shoulder/turret roll
       th4 = elbow pitch
-      th5 = elbow roll 
+      th5 = elbow roll
       th6 = wrist pitch
-      th7 = wrist roll 
+      th7 = wrist roll
 *****/
 using namespace angles;
 using namespace pr2_arm_kinematics;
@@ -106,7 +106,7 @@ bool PR2ArmIK::init(const urdf::ModelInterface &robot_model, const std::string &
       num_joints++;
     }
     link = robot_model.getLink(link->getParent()->name);
-  } 
+  }
 
   solver_info_.link_names.push_back(tip_name);
 
@@ -220,7 +220,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
 
   double at(0), bt(0), ct(0);
 
-  double theta2[2],theta3[2],theta4[2],theta5[2],theta6[4],theta7[2]; 
+  double theta2[2],theta3[2],theta4[2],theta5[2],theta6[4],theta7[2];
 
   double sopx = shoulder_upperarm_offset_*cost1;
   double sopy = shoulder_upperarm_offset_*sint1;
@@ -245,7 +245,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
     return;
 
   double acos_angle = acos(acosTerm);
- 
+
   theta4[0] = acos_angle;
   theta4[1] = -acos_angle;
 
@@ -283,7 +283,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
 
 
 #ifdef DEBUG
-      std::cout << "t2 " << t2 << std::endl; 
+      std::cout << "t2 " << t2 << std::endl;
 #endif
       sint2 = sin(t2);
       cost2 = cos(t2);
@@ -295,7 +295,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
         continue;
 
       for(int kk =0; kk < 2; kk++)
-      {           
+      {
         t3 = theta3[kk];
 
         if(!checkJointLimits(angles::normalize_angle(t3),2))
@@ -304,7 +304,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
         sint3 = sin(t3);
         cost3 = cos(t3);
 #ifdef DEBUG
-        std::cout << "t3 " << t3 << std::endl; 
+        std::cout << "t3 " << t3 << std::endl;
 #endif
         if(fabs((shoulder_upperarm_offset_-shoulder_elbow_offset_+(shoulder_elbow_offset_-shoulder_wrist_offset_)*cost4)*sint2+(shoulder_elbow_offset_-shoulder_wrist_offset_)*cost2*cost3*sint4-z) > IK_EPS )
           continue;
@@ -388,7 +388,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
 #ifdef DEBUG
             std::cout << "t5" << t5 << std::endl;
             std::cout << "t7" << t7 << std::endl;
-#endif      
+#endif
             if(fabs(sin(t6)*sin(t7)-grhs_local(0,1)) > IK_EPS || fabs(cos(t7)*sin(t6)-grhs_local(0,2)) > IK_EPS)
               continue;
 
@@ -525,7 +525,7 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &
       }
 
       for(int kk =0; kk < 2; kk++)
-      {           
+      {
         t1 = theta1[kk];
 #ifdef DEBUG
         std::cout << "t1 " << t1 << std::endl;
@@ -637,7 +637,7 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &
 #ifdef DEBUG
             std::cout << "t5 " << t5 << std::endl;
             std::cout << "t7 " << t7 << std::endl;
-#endif      
+#endif
             //           if(fabs(sin(t6)*sin(t7)-grhs_local(0,1)) > IK_EPS || fabs(cos(t7)*sin(t6)-grhs_local(0,2)) > IK_EPS)
             //  continue;
 

@@ -143,13 +143,13 @@ bool checkOctomapVersusDistanceField(const PropagationDistanceField& df,
           octomap::point3d query(qx, qy, qz);
           octomap::OcTreeNode* result = octree.search(query);
           if(!result) {
-            for(float boundary_x = query.x()-df.getResolution(); 
+            for(float boundary_x = query.x()-df.getResolution();
                 boundary_x <= query.x()+df.getResolution() && !result;
                 boundary_x += df.getResolution()) {
-              for(float boundary_y = query.y()-df.getResolution(); 
+              for(float boundary_y = query.y()-df.getResolution();
                   boundary_y <= query.y()+df.getResolution() && !result;
                   boundary_y += df.getResolution()) {
-                for(float boundary_z = query.z()-df.getResolution(); 
+                for(float boundary_z = query.z()-df.getResolution();
                     boundary_z <= query.z()+df.getResolution();
                     boundary_z += df.getResolution()) {
                   octomap::point3d query_boundary(boundary_x, boundary_y, boundary_z);
@@ -207,9 +207,9 @@ unsigned int countLeafNodes(const octomap::OcTree& octree)
 }
 
 //points should contain all occupied points
-void check_distance_field(const PropagationDistanceField & df, 
-                          const EigenSTL::vector_Vector3d& points, 
-                          int numX, int numY, int numZ, 
+void check_distance_field(const PropagationDistanceField & df,
+                          const EigenSTL::vector_Vector3d& points,
+                          int numX, int numY, int numZ,
                           bool do_negs)
 {
   std::vector<Eigen::Vector3i> points_ind(points.size());
@@ -252,7 +252,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   int numX = df.getXNumCells();
   int numY = df.getYNumCells();
   int numZ = df.getZNumCells();
-  
+
   EXPECT_EQ( numX, (int)(width/resolution+0.5) );
   EXPECT_EQ( numY, (int)(height/resolution+0.5) );
   EXPECT_EQ( numZ, (int)(depth/resolution+0.5) );
@@ -315,7 +315,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
           double xscale = grad.x()/grad.norm();
           double yscale = grad.y()/grad.norm();
           double zscale = grad.z()/grad.norm();
-          
+
           double comp_x = wx-xscale*dist;
           double comp_y = wy-yscale*dist;
           double comp_z = wz-zscale*dist;
@@ -323,7 +323,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
             first = false;
             std::cout << "Dist " << dist << std::endl;
             std::cout << "Cell " << x << " " << y << " " << z << " " << wx << " " << wy << " " << wz << std::endl;
-            std::cout << "Scale " << xscale << " " << yscale << " " << zscale << std::endl; 
+            std::cout << "Scale " << xscale << " " << yscale << " " << zscale << std::endl;
             std::cout << "Grad " << grad.x() << " " << grad.y() << " " << grad.z() << " comp " << comp_x << " " << comp_y << " " << comp_z << std::endl;
           }
           ASSERT_NEAR(comp_x, point1.x(), resolution) << dist << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale << " " << yscale << " " << zscale << std::endl;
@@ -345,7 +345,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   int numX = df.getXNumCells();
   int numY = df.getYNumCells();
   int numZ = df.getZNumCells();
-  
+
   EXPECT_EQ( numX, (int)(width/resolution+0.5) );
   EXPECT_EQ( numY, (int)(height/resolution+0.5) );
   EXPECT_EQ( numZ, (int)(depth/resolution+0.5) );
@@ -401,7 +401,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
       test_points.push_back(points[i]);
     }
   }
-  test_df.addPointsToField(test_points);  
+  test_df.addPointsToField(test_points);
   ASSERT_TRUE(areDistanceFieldsDistancesEqual(df, test_df));
 
   PropagationDistanceField gradient_df( width, height, depth, resolution, origin_x, origin_y, origin_z, max_dist, true);
@@ -413,7 +413,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   p.position.x = .5;
   p.position.y = .5;
   p.position.z = .5;
-  
+
   gradient_df.addShapeToField(&sphere, p);
   printNeg(gradient_df, numX, numY, numZ);
   EXPECT_GT(gradient_df.getCell(5,5,5).negative_distance_square_, 1);
@@ -439,7 +439,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
           double comp_x = wx-xscale*dist;
           double comp_y = wy-yscale*dist;
           double comp_z = wz-zscale*dist;
-          
+
           int cell_x, cell_y, cell_z;
           gradient_df.worldToGrid(comp_x, comp_y, comp_z,
                                   cell_x, cell_y, cell_z);
@@ -459,7 +459,7 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   int numX = df.getXNumCells();
   int numY = df.getYNumCells();
   int numZ = df.getZNumCells();
-  
+
   shapes::Sphere sphere(.25);
 
   geometry_msgs::Pose p;
@@ -472,7 +472,7 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   np.orientation.w = 1.0;
   np.position.x = .7;
   np.position.y = .7;
-  np.position.z = .7;  
+  np.position.z = .7;
 
   df.addShapeToField(&sphere, p);
 
@@ -535,12 +535,12 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
             << " entries" << std::endl;
 
   ros::WallTime dt = ros::WallTime::now();
-  PropagationDistanceField df( PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+  PropagationDistanceField df( PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
                                PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
   std::cout << "Creating unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;
 
   dt = ros::WallTime::now();
-  PropagationDistanceField sdf( PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+  PropagationDistanceField sdf( PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
                                 PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, true);
 
   std::cout << "Creating signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;
@@ -561,41 +561,41 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
   unsigned int big_num_points = ceil(2.0/PERF_RESOLUTION)*ceil(2.0/PERF_RESOLUTION)*ceil(.5/PERF_RESOLUTION);
 
-  std::cout << "Adding " << big_num_points << " points" << std::endl; 
+  std::cout << "Adding " << big_num_points << " points" << std::endl;
 
   dt = ros::WallTime::now();
   df.addShapeToField(&big_table, p);
-  std::cout << "Adding to unsigned took " 
-            << (ros::WallTime::now()-dt).toSec() 
-            << " avg " << (ros::WallTime::now()-dt).toSec()/(big_num_points*1.0) 
-            << std::endl;  
+  std::cout << "Adding to unsigned took "
+            << (ros::WallTime::now()-dt).toSec()
+            << " avg " << (ros::WallTime::now()-dt).toSec()/(big_num_points*1.0)
+            << std::endl;
 
   dt = ros::WallTime::now();
   df.addShapeToField(&big_table, p);
-  std::cout << "Re-adding to unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Re-adding to unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;
 
   dt = ros::WallTime::now();
   sdf.addShapeToField(&big_table, p);
-  std::cout << "Adding to signed took " 
-            << (ros::WallTime::now()-dt).toSec() 
-            << " avg " << (ros::WallTime::now()-dt).toSec()/(big_num_points*1.0) 
-            << std::endl;  
+  std::cout << "Adding to signed took "
+            << (ros::WallTime::now()-dt).toSec()
+            << " avg " << (ros::WallTime::now()-dt).toSec()/(big_num_points*1.0)
+            << std::endl;
 
   dt = ros::WallTime::now();
   df.moveShapeInField(&big_table, p, np);
-  std::cout << "Moving in unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Moving in unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;
 
   dt = ros::WallTime::now();
   sdf.moveShapeInField(&big_table, p, np);
-  std::cout << "Moving in signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
-    
+  std::cout << "Moving in signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;
+
   dt = ros::WallTime::now();
   df.removeShapeFromField(&big_table, np);
-  std::cout << "Removing from unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
-  
+  std::cout << "Removing from unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;
+
   dt = ros::WallTime::now();
   sdf.removeShapeFromField(&big_table, np);
-  std::cout << "Removing from signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Removing from signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;
 
   dt = ros::WallTime::now();
   df.reset();
@@ -608,35 +608,35 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
   dt = ros::WallTime::now();
   df.addShapeToField(&small_table, p);
-  std::cout << "Adding to unsigned took " 
-            << (ros::WallTime::now()-dt).toSec() 
-            << " avg " << (ros::WallTime::now()-dt).toSec()/(small_num_points*1.0) 
-            << std::endl;  
+  std::cout << "Adding to unsigned took "
+            << (ros::WallTime::now()-dt).toSec()
+            << " avg " << (ros::WallTime::now()-dt).toSec()/(small_num_points*1.0)
+            << std::endl;
 
   dt = ros::WallTime::now();
   sdf.addShapeToField(&small_table, p);
-  std::cout << "Adding to signed took " 
-            << (ros::WallTime::now()-dt).toSec() 
-            << " avg " << (ros::WallTime::now()-dt).toSec()/(small_num_points*1.0) 
-            << std::endl;  
+  std::cout << "Adding to signed took "
+            << (ros::WallTime::now()-dt).toSec()
+            << " avg " << (ros::WallTime::now()-dt).toSec()/(small_num_points*1.0)
+            << std::endl;
 
   dt = ros::WallTime::now();
   df.moveShapeInField(&small_table, p, np);
-  std::cout << "Moving in unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Moving in unsigned took " << (ros::WallTime::now()-dt).toSec() << std::endl;
 
   dt = ros::WallTime::now();
   sdf.moveShapeInField(&small_table, p, np);
-  std::cout << "Moving in signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;  
+  std::cout << "Moving in signed took " << (ros::WallTime::now()-dt).toSec() << std::endl;
 
   //uniformly spaced points - a worst case scenario
-  PropagationDistanceField worstdfu(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+  PropagationDistanceField worstdfu(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
                                    PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
 
-  PropagationDistanceField worstdfs(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+  PropagationDistanceField worstdfs(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
                                    PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, true);
 
-  
-  
+
+
   EigenSTL::vector_Vector3d bad_vec;
   unsigned int count = 0;
   for(unsigned int z = UNIFORM_DISTANCE; z < worstdfu.getZNumCells()-UNIFORM_DISTANCE; z += UNIFORM_DISTANCE) {
@@ -646,7 +646,7 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
         Eigen::Vector3d loc;
         bool valid = worstdfu.gridToWorld(x,y,z,
                                           loc.x(), loc.y(), loc.z());
-        
+
         if(!valid) {
           logWarn("Something wrong");
           continue;
@@ -655,25 +655,25 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
       }
     }
   }
-  
+
   dt = ros::WallTime::now();
   worstdfu.addPointsToField(bad_vec);
-  ros::WallDuration wd = ros::WallTime::now()-dt; 
+  ros::WallDuration wd = ros::WallTime::now()-dt;
   printf("Time for unsigned adding %u uniform points is %g average %g\n", (unsigned int)bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
   dt = ros::WallTime::now();
   worstdfs.addPointsToField(bad_vec);
-  wd = ros::WallTime::now()-dt; 
+  wd = ros::WallTime::now()-dt;
   printf("Time for signed adding %u uniform points is %g average %g\n", (unsigned int)bad_vec.size(), wd.toSec(), wd.toSec()/(bad_vec.size()*1.0));
 
 }
 
 TEST(TestSignedPropagationDistanceField, TestOcTree)
 {
-  PropagationDistanceField df(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
-                              PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);  
-  
+  PropagationDistanceField df(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
+                              PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
+
   octomap::OcTree tree(.02);
-  
+
   unsigned int count = 0;
   for(float x = 1.01; x < 1.5; x += .02) {
     for(float y = 1.01; y < 1.5; y += .02) {
@@ -682,9 +682,9 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
         tree.updateNode(point, true);
       }
     }
-  } 
+  }
 
-  //more points at the border of the distance field  
+  //more points at the border of the distance field
   for(float x = 2.51; x < 3.5; x += .02) {
     for(float y = 1.01; y < 3.5; y += .02) {
       for(float z = 1.01; z < 3.5; z += .02, count++) {
@@ -692,7 +692,7 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
         tree.updateNode(point, true);
       }
     }
-  } 
+  }
 
   std::cout << "OcTree nodes " << count << std::endl;
   df.addOcTreeToField(&tree);
@@ -707,7 +707,7 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
         tree.updateNode(point, true);
       }
     }
-  } 
+  }
   df.addOcTreeToField(&tree);
   EXPECT_TRUE(checkOctomapVersusDistanceField(df, tree));
 
@@ -721,38 +721,38 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
 
   //now try different resolutions
   octomap::OcTree tree_lowres(.05);
-  octomap::point3d point1(.5,.5,.5);  
-  octomap::point3d point2(.7,.5,.5);  
-  octomap::point3d point3(1.0,.5,.5);  
+  octomap::point3d point1(.5,.5,.5);
+  octomap::point3d point2(.7,.5,.5);
+  octomap::point3d point3(1.0,.5,.5);
   tree_lowres.updateNode(point1, true);
   tree_lowres.updateNode(point2, true);
   tree_lowres.updateNode(point3, true);
   ASSERT_EQ(countLeafNodes(tree_lowres), 3);
 
-  PropagationDistanceField df_highres(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
-                                      PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);  
-  
+  PropagationDistanceField df_highres(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
+                                      PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
+
   df_highres.addOcTreeToField(&tree_lowres);
   EXPECT_EQ(countOccupiedCells(df_highres), 3*(6*6*6));
   std::cout << "Occupied cells " << countOccupiedCells(df_highres) << std::endl;
 
   //testing adding shape that happens to be octree
   boost::shared_ptr<octomap::OcTree> tree_shape(new octomap::OcTree(.05));
-  octomap::point3d tpoint1(1.0,.5,1.0);  
-  octomap::point3d tpoint2(1.7,.5,.5);  
-  octomap::point3d tpoint3(1.8,.5,.5);  
+  octomap::point3d tpoint1(1.0,.5,1.0);
+  octomap::point3d tpoint2(1.7,.5,.5);
+  octomap::point3d tpoint3(1.8,.5,.5);
   tree_shape->updateNode(tpoint1, true);
   tree_shape->updateNode(tpoint2, true);
   tree_shape->updateNode(tpoint3, true);
-  
+
   boost::shared_ptr<shapes::OcTree> shape_oc(new shapes::OcTree(tree_shape));
 
-  PropagationDistanceField df_test_shape_1(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
-                                           PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);  
+  PropagationDistanceField df_test_shape_1(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
+                                           PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
 
-  PropagationDistanceField df_test_shape_2(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
-                                           PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);  
-  
+  PropagationDistanceField df_test_shape_2(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
+                                           PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
+
   df_test_shape_1.addOcTreeToField(tree_shape.get());
   df_test_shape_2.addShapeToField(shape_oc.get(), geometry_msgs::Pose());
   EXPECT_TRUE(areDistanceFieldsDistancesEqual(df_test_shape_1, df_test_shape_2));
@@ -762,7 +762,7 @@ TEST(TestSignedPropagationDistanceField, TestReadWrite)
 {
 
   PropagationDistanceField small_df( width, height, depth, resolution, origin_x, origin_y, origin_z, max_dist);
-  
+
   EigenSTL::vector_Vector3d points;
   points.push_back(point1);
   points.push_back(point2);
@@ -779,7 +779,7 @@ TEST(TestSignedPropagationDistanceField, TestReadWrite)
   PropagationDistanceField small_df2(si, PERF_MAX_DIST, false);
   ASSERT_TRUE(areDistanceFieldsDistancesEqual(small_df, small_df2));
 
-  PropagationDistanceField df(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, 
+  PropagationDistanceField df(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
                               PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
 
   shapes::Sphere sphere(.5);

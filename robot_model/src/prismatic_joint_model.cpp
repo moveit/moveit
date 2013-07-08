@@ -50,7 +50,7 @@ unsigned int robot_model::PrismaticJointModel::getStateSpaceDimension() const
 }
 
 double robot_model::PrismaticJointModel::getMaximumExtent(const Bounds &other_bounds) const
-{  
+{
   return other_bounds[0].second - other_bounds[0].first;
 }
 
@@ -78,7 +78,7 @@ void robot_model::PrismaticJointModel::getVariableRandomValues(random_numbers::R
 
 void robot_model::PrismaticJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
                                                                          const std::vector<double> &near, const double distance) const
-{ 
+{
   values.push_back(rng.uniformReal(std::max(bounds[0].first, near[values.size()] - distance),
                                    std::min(bounds[0].second, near[values.size()] + distance)));
 }

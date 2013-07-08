@@ -63,7 +63,7 @@ void collision_detection::CollisionWorldAllValid::checkRobotCollision(const Coll
 }
 
 void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state1, const robot_state::RobotState &state2) const
-{  
+{
   res.collision = false;
   if (req.verbose)
     logInform("Using AllValid collision detection. No collision checking is performed.");

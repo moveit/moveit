@@ -52,101 +52,101 @@ class LinkState
 {
   friend class RobotState;
 public:
-  
+
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  
+
   /** @brief Constructor */
   LinkState(RobotState *state, const robot_model::LinkModel *lm);
 
   ~LinkState();
-  
+
   /** @brief Get the name of link corresponding to this state */
   const std::string& getName() const
   {
     return link_model_->getName();
   }
-  
+
   /** @brief Get the kinematic state that this link state is part of*/
   const RobotState *getRobotState() const
   {
     return robot_state_;
   }
-  
+
   /** @brief Get the kinematic state that this link state is part of*/
   RobotState *getRobotState()
   {
     return robot_state_;
   }
-   
+
   /** \brief Recompute global_collision_body_transform and global_link_transform */
   void computeTransform();
 
-  void computeTransformForward(const Eigen::Affine3d& transform);  
+  void computeTransformForward(const Eigen::Affine3d& transform);
   void computeTransformBackward(const Eigen::Affine3d& transform);
-  
+
   void computeGeometryTransforms();
-  
+
   /** \brief Update all attached bodies given set link transforms */
   void updateAttachedBodies();
-  
+
   /** @brief Get the link model corresponding to this state */
   const robot_model::LinkModel* getLinkModel() const
   {
     return link_model_;
   }
-  
+
   /** @brief Get the joint state corresponding to the parent joint of this link */
   const JointState* getParentJointState() const
   {
     return parent_joint_state_;
   }
-  
+
   /** @brief Get the link state corresponding to the parent link of this link */
   const LinkState* getParentLinkState() const
   {
     return parent_link_state_;
   }
-  
+
   /** @brief Get all the bodies attached to this link */
   void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
-  
+
   /** @brief Get the attached body with name \e id */
   const AttachedBody* getAttachedBody(const std::string &id) const;
-  
+
   /** \brief Check if an attached body named \e id exists in this group */
   bool hasAttachedBody(const std::string &id) const;
-  
+
   /** @brief Get the global transform for this link */
   const Eigen::Affine3d& getGlobalLinkTransform() const
   {
     return global_link_transform_;
   }
-  
+
   /** @brief Get the global transform for the collision body associated with this link */
   const Eigen::Affine3d& getGlobalCollisionBodyTransform() const
   {
     return global_collision_body_transform_;
   }
-  
+
 private:
-    
-  void computeTransformForward(const LinkState *parent_link);  
+
+  void computeTransformForward(const LinkState *parent_link);
   void computeTransformBackward(const LinkState *child_link);
 
   /** \brief The robot state this link is part of */
   RobotState                          *robot_state_;
-  
+
   const robot_model::LinkModel        *link_model_;
-  
+
   JointState                          *parent_joint_state_;
-  
+
   LinkState                           *parent_link_state_;
-  
+
   std::map<std::string, AttachedBody*> attached_body_map_;
-  
+
   /** \brief The global transform this link forwards (computed by forward kinematics) */
   Eigen::Affine3d                      global_link_transform_;
-  
+
   /** \brief The global transform for this link (computed by forward kinematics) */
   Eigen::Affine3d                      global_collision_body_transform_;
 };

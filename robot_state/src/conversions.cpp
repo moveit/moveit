@@ -56,11 +56,11 @@ static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, 
              (unsigned int)joint_state.name.size(), (unsigned int)joint_state.position.size());
     return false;
   }
-  
+
   std::map<std::string, double> joint_state_map;
   for (unsigned int i = 0 ; i < joint_state.name.size(); ++i)
     joint_state_map[joint_state.name[i]] = joint_state.position[i];
-  
+
   if (missing == NULL)
     state.setStateValues(joint_state_map);
   else
@@ -83,7 +83,7 @@ static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, 
         js->getVelocities()[0] = joint_state.velocity[i];
       }
     }
-  
+
   return true;
 }
 
@@ -95,11 +95,11 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
     logError("Different number of names, values or frames in MultiDOFJointState message.");
     return false;
   }
-  
+
   bool error = false;
   Eigen::Affine3d inv_t;
   bool use_inv_t = false;
-  
+
   if (nj > 0 && mjs.header.frame_id != state.getRobotModel()->getModelFrame())
   {
     if (tf)
@@ -113,7 +113,7 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
       }
       catch (std::runtime_error&)
       {
-        error = true; 
+        error = true;
       }
     else
       error = true;
@@ -121,9 +121,9 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
       logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible to transform that to frame '%s'",
               mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
   }
-  
+
   for (std::size_t i = 0 ; i < nj ; ++i)
-  {   
+  {
     const std::string &joint_name = mjs.joint_names[i];
     if (!state.hasJointState(joint_name))
     {
@@ -133,7 +133,7 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
     }
     Eigen::Affine3d transf;
     tf::transformMsgToEigen(mjs.joint_transforms[i], transf);
-    
+
     // if frames do not mach, attempt to transform
     if (use_inv_t)
       transf = transf * inv_t;
@@ -141,12 +141,12 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
     JointState *joint_state = state.getJointState(joint_name);
     joint_state->setVariableValues(transf);
   }
-  
+
   return !error;
 }
 
 static inline void robotStateToMultiDOFJointState(const RobotState& state, moveit_msgs::MultiDOFJointState &mjs)
-{  
+{
   // \todo it would be nice if the robot model had a list of index values for the multi-dof joints (same for single-dof joints)
   const std::vector<JointState*> &js = state.getJointStateVector();
   mjs.joint_names.clear();
@@ -158,45 +158,45 @@ static inline void robotStateToMultiDOFJointState(const RobotState& state, movei
       tf::transformEigenToMsg(js[i]->getVariableTransform(), p);
       mjs.joint_names.push_back(js[i]->getName());
       mjs.joint_transforms.push_back(p);
-    } 
+    }
   mjs.header.frame_id = state.getRobotModel()->getModelFrame();
 }
 
 class ShapeVisitorAddToCollisionObject : public boost::static_visitor<void>
 {
 public:
-  
+
   ShapeVisitorAddToCollisionObject(moveit_msgs::CollisionObject *obj) :
     boost::static_visitor<void>(), obj_(obj)
   {
   }
-  
+
   void addToObject(const shapes::ShapeMsg &sm, const geometry_msgs::Pose &pose)
   {
     pose_ = &pose;
     boost::apply_visitor(*this, sm);
   }
-  
+
   void operator()(const shape_msgs::Plane &shape_msg) const
   {
-    obj_->planes.push_back(shape_msg);   
+    obj_->planes.push_back(shape_msg);
     obj_->plane_poses.push_back(*pose_);
   }
-  
+
   void operator()(const shape_msgs::Mesh &shape_msg) const
   {
     obj_->meshes.push_back(shape_msg);
     obj_->mesh_poses.push_back(*pose_);
   }
-  
+
   void operator()(const shape_msgs::SolidPrimitive &shape_msg) const
   {
     obj_->primitives.push_back(shape_msg);
     obj_->primitive_poses.push_back(*pose_);
   }
-  
+
 private:
-  
+
   moveit_msgs::CollisionObject *obj_;
   const geometry_msgs::Pose *pose_;
 };
@@ -211,7 +211,7 @@ static void attachedBodyToMsg(const AttachedBody &attached_body, moveit_msgs::At
     aco.touch_links.push_back(*it);
   aco.object.header.frame_id = aco.link_name;
   aco.object.id = attached_body.getName();
-  
+
   aco.object.operation = moveit_msgs::CollisionObject::ADD;
   const std::vector<shapes::ShapeConstPtr>& ab_shapes = attached_body.getShapes();
   const EigenSTL::vector_Affine3d& ab_tf = attached_body.getFixedTransforms();
@@ -245,13 +245,13 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
         logError("Number of primitive shapes does not match number of poses in collision object message");
         return;
       }
-      
+
       if (aco.object.meshes.size() != aco.object.mesh_poses.size())
       {
         logError("Number of meshes does not match number of poses in collision object message");
         return;
       }
-      
+
       if (aco.object.planes.size() != aco.object.plane_poses.size())
       {
         logError("Number of planes does not match number of poses in collision object message");
@@ -263,18 +263,18 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
       {
         std::vector<shapes::ShapeConstPtr> shapes;
         EigenSTL::vector_Affine3d poses;
-        
+
         for (std::size_t i = 0 ; i < aco.object.primitives.size() ; ++i)
         {
           shapes::Shape *s = shapes::constructShapeFromMsg(aco.object.primitives[i]);
           if (s)
           {
             Eigen::Affine3d p;
-            tf::poseMsgToEigen(aco.object.primitive_poses[i], p);            
+            tf::poseMsgToEigen(aco.object.primitive_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
-        }       
+        }
         for (std::size_t i = 0 ; i < aco.object.meshes.size() ; ++i)
         {
           shapes::Shape *s = shapes::constructShapeFromMsg(aco.object.meshes[i]);
@@ -293,7 +293,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
           {
             Eigen::Affine3d p;
             tf::poseMsgToEigen(aco.object.plane_poses[i], p);
-            
+
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -317,11 +317,11 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
           for (std::size_t i = 0 ; i < poses.size() ; ++i)
             poses[i] = t * poses[i];
         }
-        
+
         if (shapes.empty())
           logError("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(), aco.object.id.c_str());
         else
-        {  
+        {
           if (state.clearAttachedBody(aco.object.id))
             logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                       aco.object.id.c_str(), aco.link_name.c_str());
@@ -336,7 +336,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
   }
   else
     if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
-    {    
+    {
       state.clearAttachedBody(aco.object.id);
     }
     else
@@ -349,14 +349,14 @@ static bool robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_m
   bool result1 = _jointStateToRobotState(robot_state.joint_state, state, &missing);
   bool result2 = multiDOFJointsToRobotState(robot_state.multi_dof_joint_state, state, tf);
   state.updateLinkTransforms();
-  
+
   if (copy_attached_bodies && !robot_state.attached_collision_objects.empty())
   {
     for (std::size_t i = 0 ; i < robot_state.attached_collision_objects.size() ; ++i)
       msgToAttachedBody(tf, robot_state.attached_collision_objects[i], state);
     state.updateLinkTransforms();
   }
-  
+
   if (result1 && result2)
   {
     if (!missing.empty())
@@ -370,7 +370,7 @@ static bool robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_m
             missing.erase(vnames[i]);
         }
       }
-    
+
     return missing.empty();
   }
   else
@@ -424,7 +424,7 @@ void robot_state::robotStateToJointStateMsg(const RobotState& state, sensor_msgs
 {
   const std::vector<JointState*> &js = state.getJointStateVector();
   joint_state = sensor_msgs::JointState();
-  
+
   for (std::size_t i = 0 ; i < js.size() ; ++i)
     if (js[i]->getVariableCount() == 1)
     {
@@ -433,10 +433,10 @@ void robot_state::robotStateToJointStateMsg(const RobotState& state, sensor_msgs
       if (!js[i]->getVelocities().empty())
         joint_state.velocity.push_back(js[i]->getVelocities()[0]);
     }
-  
+
   // if inconsistent number of velocities are specified, discard them
   if (joint_state.velocity.size() != joint_state.position.size())
     joint_state.velocity.clear();
-  
+
   joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
 }

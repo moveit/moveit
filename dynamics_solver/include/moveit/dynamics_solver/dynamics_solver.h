@@ -30,7 +30,7 @@
 *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 * Author: Sachin Chitta
 *********************************************************************/
 
@@ -50,14 +50,14 @@ namespace dynamics_solver
 {
 
 /**
- * This solver currently computes the required torques given a 
- * joint configuration, velocities, accelerations and external wrenches 
+ * This solver currently computes the required torques given a
+ * joint configuration, velocities, accelerations and external wrenches
  * acting on the links of a robot
  */
 class DynamicsSolver
 {
 public:
-  
+
   /**
    * @brief Initialize the dynamics solver
    * @param urdf_model The urdf model for the robot
@@ -68,9 +68,9 @@ public:
   DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_model,
                  const std::string &group_name,
                  const geometry_msgs::Vector3 &gravity_vector);
-  
+
   /**
-   * @brief Get the torques (the order of all input and output is the same 
+   * @brief Get the torques (the order of all input and output is the same
    * as the order of joints for this group in the RobotModel)
    * @param joint_angles The joint angles (desired joint configuration)
    * this must have size = number of joints in the group
@@ -89,11 +89,11 @@ public:
                   const std::vector<double> &joint_accelerations,
                   const std::vector<geometry_msgs::Wrench> &wrenches,
                   std::vector<double> &torques) const;
-    
+
   /**
-   * @brief Get the maximum payload for this group (in kg). Payload is 
+   * @brief Get the maximum payload for this group (in kg). Payload is
    * the weight that this group can hold when the weight is attached to the origin
-   * of the last link of this group. (The order of joint_angles vector is the same 
+   * of the last link of this group. (The order of joint_angles vector is the same
    * as the order of joints for this group in the RobotModel)
    * @param joint_angles The joint angles (desired joint configuration)
    * this must have size = number of joints in the group
@@ -106,7 +106,7 @@ public:
                      unsigned int &joint_saturated) const;
 
   /**
-   * @brief Get torques corresponding to a particular payload value.  Payload is 
+   * @brief Get torques corresponding to a particular payload value.  Payload is
    * the weight that this group can hold when the weight is attached to the origin
    * of the last link of this group.
    * @param joint_angles The joint angles (desired joint configuration)
@@ -123,8 +123,8 @@ public:
    * @brief Get maximum torques for this group
    * @return Vector of max torques
    */
-  const std::vector<double>& getMaxTorques() const;  
-    
+  const std::vector<double>& getMaxTorques() const;
+
   /**
    * @brief Get the kinematic model
    * @return kinematic model
@@ -132,7 +132,7 @@ public:
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kinematic_model_;
-  }  
+  }
 
   /**
    * @brief Get the group name
@@ -141,14 +141,14 @@ public:
   const std::string& getGroupName() const
   {
     return group_name_;
-  }  
+  }
 
 private:
 
   boost::shared_ptr<KDL::ChainIdSolver_RNE> chain_id_solver_; // KDL chain inverse dynamics
   KDL::Chain kdl_chain_; // KDL chain
 
-  std::string group_name_, base_name_, tip_name_; // group name, base name, tip name 
+  std::string group_name_, base_name_, tip_name_; // group name, base name, tip name
   unsigned int num_joints_, num_segments_; // number of joints in group, number of segments in group
   std::vector<double> max_torques_; // vector of max torques
 
@@ -157,9 +157,9 @@ private:
 
   robot_state::RobotStatePtr kinematic_state_; //kinematic state
   robot_state::JointStateGroup* joint_state_group_; //joint state for the group
-  
+
   double gravity_; //Norm of the gravity vector passed in initialize()
-  
+
 };
 
 typedef boost::shared_ptr<DynamicsSolver> DynamicsSolverPtr;

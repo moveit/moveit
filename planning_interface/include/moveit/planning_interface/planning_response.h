@@ -47,11 +47,11 @@ namespace planning_interface
 
 struct MotionPlanResponse
 {
-  MotionPlanResponse() : 
+  MotionPlanResponse() :
     planning_time_(0.0)
   {
   }
-  
+
   void getMessage(moveit_msgs::MotionPlanResponse &msg) const;
 
   robot_trajectory::RobotTrajectoryPtr trajectory_;

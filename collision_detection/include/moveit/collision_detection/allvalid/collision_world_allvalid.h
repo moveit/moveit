@@ -47,7 +47,7 @@ class CollisionRobotAllValid;
 class CollisionWorldAllValid : public CollisionWorld
 {
 public:
-  
+
   CollisionWorldAllValid();
   explicit CollisionWorldAllValid(const WorldPtr& world);
   CollisionWorldAllValid(const CollisionWorld &other, const WorldPtr& world);

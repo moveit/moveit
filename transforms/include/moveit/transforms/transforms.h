@@ -50,7 +50,7 @@ namespace robot_state
 MOVEIT_CLASS_FORWARD(Transforms);
 
 /// @brief Map frame names to the transformation matrix that can transform objects from the frame name to the planning frame
-typedef std::map<std::string, Eigen::Affine3d, std::less<std::string>, 
+typedef std::map<std::string, Eigen::Affine3d, std::less<std::string>,
                  Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > FixedTransformsMap;
 
 /** @brief Provides an implementation of a snapshot of a transform tree that can be easily queried for
@@ -63,7 +63,7 @@ public:
    * @brief Construct a transform list
    */
   Transforms(const std::string &target_frame);
-  
+
   /**
    * @brief Destructor
    */
@@ -71,7 +71,7 @@ public:
 
   /** \brief Check if two frames end up being the same once the missing / are added as prefix (if they are missing) */
   static bool sameFrame(const std::string &frame1, const std::string &frame2);
-  
+
   /**
    * @brief Get the planning frame corresponding to this set of transforms
    * @return The planning frame
@@ -82,32 +82,32 @@ public:
    * \defgroup transforms_settings Setting and retrieving transforms maintained in this class
    */
   /**@{*/
-  
+
   /**
    * @brief Return all the transforms
    * @return A map from string names of frames to corresponding Eigen::Affine3d (w.r.t the planning frame)
    */
   const FixedTransformsMap& getAllTransforms() const;
-  
+
   /**
    * @brief Get a vector of all the transforms as ROS messages
    * @param transforms The output transforms
    */
   void copyTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const;
-  
+
   /**
    * @brief Set a transform in the transform tree (adding it if necessary)
    * @param t The input transform (w.r.t the target frame)
    * @param from_frame The frame for which the input transform is specified
    */
   void setTransform(const Eigen::Affine3d &t, const std::string &from_frame);
-  
+
   /**
    * @brief Set a transform in the transform tree (adding it if necessary)
    * @param transform The input transform (the frame_id must match the target frame)
    */
   void setTransform(const geometry_msgs::TransformStamped &transform);
-  
+
   /**
    * @brief Set a transform in the transform tree (adding it if necessary)
    * @param transform The input transforms (the frame_id must match the target frame)
@@ -118,7 +118,7 @@ public:
    * @brief Set all the transforms: a map from string names of frames to corresponding Eigen::Affine3d (w.r.t the planning frame)
    */
   void setAllTransforms(const FixedTransformsMap &transforms);
-  
+
   /**@}*/
 
   /**
@@ -136,7 +136,7 @@ public:
   {
     v_out = getTransform(from_frame).rotation() * v_in;
   }
-    
+
   /**
    * @brief Transform a quaternion in from_frame to the target_frame
    * @param from_frame The frame in which the input quaternion is specified
@@ -147,7 +147,7 @@ public:
   {
     q_out = getTransform(from_frame).rotation() * q_in;
   }
-  
+
   /**
    * @brief Transform a rotation matrix in from_frame to the target_frame
    * @param from_frame The frame in which the input rotation matrix is specified
@@ -157,8 +157,8 @@ public:
   void transformRotationMatrix(const std::string &from_frame, const Eigen::Matrix3d &m_in, Eigen::Matrix3d &m_out) const
   {
     m_out = getTransform(from_frame).rotation() * m_in;
-  }  
-  
+  }
+
   /**
    * @brief Transform a pose in from_frame to the target_frame
    * @param from_frame The frame in which the input pose is specified
@@ -173,12 +173,12 @@ public:
 
   /**
    * @brief Check whether data can be transformed from a particular frame
-   */  
+   */
   virtual bool canTransform(const std::string &from_frame) const;
 
   /**
    * @brief Check whether a frame stays constant as the state of the robot model changes
-   */  
+   */
   virtual bool isFixedFrame(const std::string &frame) const;
 
   /**
@@ -187,12 +187,12 @@ public:
    * @return The required transform
    */
   virtual const Eigen::Affine3d& getTransform(const std::string &from_frame) const;
-  
+
 protected:
-  
+
   std::string        target_frame_;
   FixedTransformsMap transforms_;
-  
+
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

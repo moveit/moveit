@@ -42,9 +42,9 @@
 /** \def MOVEIT_CLASS_FORWARD
     Macro that forward declares a class XXX, and also defines two shared ptrs with named XXXPtr and XXXConstPtr  */
 
-#define MOVEIT_CLASS_FORWARD(C)				\
-    class C;						\
-    typedef boost::shared_ptr<C> C##Ptr;		\
-    typedef boost::shared_ptr<const C> C##ConstPtr;	\
-    
+#define MOVEIT_CLASS_FORWARD(C)                \
+    class C;                        \
+    typedef boost::shared_ptr<C> C##Ptr;        \
+    typedef boost::shared_ptr<const C> C##ConstPtr;    \
+
 #endif

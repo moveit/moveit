@@ -200,7 +200,7 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
                       const std::vector<std::string>& active_joints,
                       const std::vector<double>& time_diff)
 {
-  
+
   double time_sum = 0.0;
 
   robot_state::RobotStatePtr prev_waypoint;
@@ -291,20 +291,20 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
       double v1, v2, a;
 
       bool start_velocity = false;
-      if(dt1 == 0.0 || dt2 == 0.0) 
+      if(dt1 == 0.0 || dt2 == 0.0)
       {
         v1 = 0.0;
         v2 = 0.0;
         a = 0.0;
-      } 
-      else 
+      }
+      else
       {
         if(i==0)
-	{
-          const std::vector<double> &vel = curr_waypoint->getJointState(active_joints[j])->getVelocities();          
-	  if(!vel.empty())
-	  {
-	    start_velocity = true;
+    {
+          const std::vector<double> &vel = curr_waypoint->getJointState(active_joints[j])->getVelocities();
+      if(!vel.empty())
+      {
+        start_velocity = true;
             v1 = vel[0];
           }
         }
@@ -436,7 +436,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
             bool start_velocity = false;
             if(index==0)
             {
-              const std::vector<double> &vel = curr_waypoint->getJointState(active_joints[j])->getVelocities();          
+              const std::vector<double> &vel = curr_waypoint->getJointState(active_joints[j])->getVelocities();
               if(!vel.empty())
               {
                 start_velocity = true;
@@ -495,7 +495,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
     logError("It looks like the planner did not set the group the plan was computed for");
     return false;
   }
-  
+
   const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
   for (std::size_t i = 0 ; i < jnt.size() ; ++i)
     if (jnt[i]->getVariableCount() != 1)
@@ -503,10 +503,10 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
       logWarn("Time parametrization works for single-dof joints only");
       return false;
     }
-  
+
   const std::vector<moveit_msgs::JointLimits> &limits = trajectory.getGroup()->getVariableLimits();
   const std::vector<std::string> &active_joints = group->getJointModelNames();
-  
+
   // this lib does not actually work properly when angles wrap around, so we need to unwind the path first
   trajectory.unwind();
 

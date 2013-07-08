@@ -56,7 +56,7 @@ struct PlannerConfigurationSettings
 {
   /** \brief The group (as defined in the SRDF) this configuration is meant for */
   std::string                        group;
-  
+
   /* \brief Name of the configuration. If there is only one configuration, this should be the same as the group name.
      If there are multiple configurations, the form "group_name[config_name]" is expected for the name. */
   std::string                        name;
@@ -76,9 +76,9 @@ class PlanningContext
 public:
 
   PlanningContext(const std::string &name, const std::string &group);
-  
+
   virtual ~PlanningContext();
-  
+
   /** \brief Get the name of the group this planning context is for */
   const std::string& getGroupName() const
   {
@@ -90,13 +90,13 @@ public:
   {
     return name_;
   }
-  
+
   /** \brief Get the planning scene associated to this planning context */
   const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return planning_scene_;
   }
-  
+
   /** \brief Get the motion plan request associated to this planning context */
   const MotionPlanRequest& getMotionPlanRequest() const
   {
@@ -105,13 +105,13 @@ public:
 
   /** \brief Set the planning scene for this context */
   void setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene);
-  
+
   /** \brief Set the planning request for this context */
   void setMotionPlanRequest(const MotionPlanRequest &request);
-  
+
   /** \brief Solve the motion planning problem and store the result in \e res. This function should not clear data structures before computing. The constructor and clear() do that. */
   virtual bool solve(MotionPlanResponse &res) = 0;
-  
+
   /** \brief Solve the motion planning problem and store the detailed result in \e res. This function should not clear data structures before computing. The constructor and clear() do that. */
   virtual bool solve(MotionPlanDetailedResponse &res) = 0;
 
@@ -120,15 +120,15 @@ public:
 
   /** \brief Clear the data structures used by the planner */
   virtual void clear() = 0;
-  
+
 protected:
 
   /// The name of this planning context
   std::string name_;
-  
+
   /// The group (as in the SRDF) this planning context is for
   std::string group_;
-  
+
   /// The planning scene for this context
   planning_scene::PlanningSceneConstPtr planning_scene_;
 
@@ -142,27 +142,27 @@ MOVEIT_CLASS_FORWARD(PlanningContext);
 class PlannerManager
 {
 public:
-  
+
   PlannerManager()
   {
   }
-  
-  virtual ~PlannerManager() 
+
+  virtual ~PlannerManager()
   {
   }
-  
+
   /// Initialize a planner. This function will be called after the construction of the plugin, before any other call is made.
   /// It is assumed that motion plans will be computed for the robot described by \e model and that any exposed ROS functionality
   /// or required ROS parameters are namespaced by \e ns
   virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns);
-  
+
   /// Get \brief a short string that identifies the planning interface
   virtual std::string getDescription() const;
-  
+
   /// \brief Get the names of the known planning algorithms (values that can be filled as planner_id in the planning request)
   virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const;
-  
-  /// \brief Construct a planning context given the current scene and a planning request. If a problem is encountered, error code is set and empty ptr is returned. 
+
+  /// \brief Construct a planning context given the current scene and a planning request. If a problem is encountered, error code is set and empty ptr is returned.
   /// The returned motion planner context is clean -- the motion planner will start from scratch every time a context is constructed.
   /// \param planning_scene A const planning scene to use for planning
   /// \param req The representation of the planning request
@@ -174,10 +174,10 @@ public:
   /// \brief Calls the function above but ignores the error_code
   PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                         const MotionPlanRequest &req) const;
-  
+
   /// \brief Determine whether this plugin instance is able to represent this planning request
   virtual bool canServiceRequest(const MotionPlanRequest &req)  const = 0;
-    
+
   /// \brief Specify the settings to be used for specific algorithms
   virtual void setPlannerConfigurations(const PlannerConfigurationMap &pcs);
 
@@ -191,7 +191,7 @@ public:
   void terminate() const;
 
 protected:
-  
+
   /** \brief All the existing planning configurations. The name
       of the configuration is the key of the map. This name can
       be of the form "group_name[config_name]" if there are

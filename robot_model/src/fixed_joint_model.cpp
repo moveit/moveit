@@ -70,7 +70,7 @@ bool robot_model::FixedJointModel::satisfiesBounds(const std::vector<double> &va
 
 double robot_model::FixedJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
 {
-  return 0.0;  
+  return 0.0;
 }
 
 double robot_model::FixedJointModel::getMaximumExtent(const Bounds &other_bounds) const

@@ -130,7 +130,7 @@ TEST(World, AddRemoveShape)
   EXPECT_EQ(2, box.use_count());
   EXPECT_EQ(2, cyl.use_count());
   EXPECT_EQ(4, ball.use_count());
-  
+
   bool rm_cyl = world.removeShapeFromObject("mix1", cyl);
   EXPECT_TRUE(rm_cyl);
 
@@ -405,7 +405,7 @@ TEST(World, TrackChanges)
 
   world.removeObserver(observer_ta);
   world.removeObserver(observer_ta3);
-  
+
   EXPECT_EQ(9, ta.cnt_);
   EXPECT_EQ(3, ta2.cnt_);
   EXPECT_EQ(4, ta3.cnt_);

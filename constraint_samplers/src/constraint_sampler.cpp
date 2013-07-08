@@ -36,7 +36,7 @@
 
 #include <moveit/constraint_samplers/constraint_sampler.h>
 
-constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name) : 
+constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name) :
   scene_(scene),
   verbose_(false)
 {

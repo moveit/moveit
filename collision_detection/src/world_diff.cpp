@@ -117,4 +117,3 @@ void collision_detection::WorldDiff::notify(const World::ObjectConstPtr& obj, Wo
   else
     a = a | action;
 }
-

@@ -53,21 +53,21 @@ namespace collision_detection
   class World
   {
   public:
-    
+
     /** \brief Constructor */
     World();
-    
+
     /** \brief A copy constructor.
      * \e other should not be changed while the copy constructor is running
      * This does copy on write and should be quick. */
     World(const World &other);
 
     ~World();
-    
+
     /**********************************************************************/
     /* Collision Bodies                                                   */
     /**********************************************************************/
-    
+
     /** \brief A representation of an object */
     struct Object
     {
@@ -77,20 +77,20 @@ namespace collision_detection
 
       /** \brief The id for this object */
       std::string                         id_;
-      
+
       /** \brief An array of shapes */
       std::vector<shapes::ShapeConstPtr> shapes_;
-      
+
       /** \brief An array of shape poses */
       EigenSTL::vector_Affine3d          shape_poses_;
     };
-    
+
     typedef boost::shared_ptr<Object> ObjectPtr;
     typedef boost::shared_ptr<Object> ObjectConstPtr;
-    
+
     /** \brief Get the list of Object ids */
     std::vector<std::string> getObjectIds() const;
-    
+
     /** \brief Get a particular object */
     ObjectConstPtr getObject(const std::string &id) const;
 
@@ -117,19 +117,19 @@ namespace collision_detection
       return objects_.find(id);
     }
 
-    
+
     /** \brief Check if a particular object exists in the collision world*/
     bool hasObject(const std::string &id) const;
-    
+
     /** \brief Add shapes to an object in the map.
      * This function makes repeated calls to addToObjectInternal() to add the
-     * shapes one by one. 
+     * shapes one by one.
      *  \note This function does NOT call the addToObject() variant that takes
      * a single shape and a single pose as input. */
     void addToObject(const std::string &id,
                      const std::vector<shapes::ShapeConstPtr> &shapes,
                      const EigenSTL::vector_Affine3d &poses);
-    
+
     /** \brief Add a shape to an object.
      * If the object already exists, this call will add the shape to the object
      * at the specified pose. Otherwise, the object is created and the
@@ -137,28 +137,28 @@ namespace collision_detection
     void addToObject(const std::string &id,
                      const shapes::ShapeConstPtr &shape,
                      const Eigen::Affine3d &pose);
-    
+
     /** \brief Update the pose of a shape in an object. Shape equality is
      * verified by comparing pointers. Returns true on success. */
     bool moveShapeInObject(const std::string &id,
                            const shapes::ShapeConstPtr &shape,
                            const Eigen::Affine3d &pose);
-    
+
     /** \brief Remove shape from object.
      * Shape equality is verified by comparing pointers. Ownership of the
      * object is renounced (i.e. object is deleted if no external references
-     * exist) if this was the last shape in the object. 
+     * exist) if this was the last shape in the object.
      * Returns true on success and false if the object did not exist or did not
      * contain the shape. */
     bool removeShapeFromObject(const std::string &id,
                                const shapes::ShapeConstPtr &shape);
-    
+
     /** \brief Remove a particular object.
      * If there are no external pointers to the corresponding instance of
      * Object, the memory is freed.
      * Returns true on success and false if no such object was found. */
     bool removeObject(const std::string &id);
-    
+
     /** \brief Clear all objects.
      * If there are no other pointers to corresponding instances of Objects,
      * the memory is freed. */
@@ -216,7 +216,7 @@ namespace collision_detection
     void notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const;
 
   private:
-    
+
     /** notify all observers of a change */
     void notify(const ObjectConstPtr&, Action);
 
@@ -250,7 +250,7 @@ namespace collision_detection
     std::vector<Observer*> observers_;
 
   };
-  
+
   typedef boost::shared_ptr<World> WorldPtr;
   typedef boost::shared_ptr<const World> WorldConstPtr;
 

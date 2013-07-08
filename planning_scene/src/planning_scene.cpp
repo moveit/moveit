@@ -59,12 +59,12 @@ public:
     scene_(scene)
   {
   }
-  
+
   virtual bool canTransform(const std::string &from_frame) const
   {
     return scene_->knowsFrameTransform(from_frame);
   }
-  
+
   virtual bool isFixedFrame(const std::string &frame) const
   {
     if (frame.empty())
@@ -76,12 +76,12 @@ public:
     else
       return knowsObject(frame);
   }
-  
+
   virtual const Eigen::Affine3d& getTransform(const std::string &from_frame) const
   {  // the call below also calls Transforms::getTransform() too
     return scene_->getFrameTransform(from_frame);
   }
-  
+
 private:
 
   bool knowsObject(const std::string &id) const
@@ -93,7 +93,7 @@ private:
     }
     return false;
   }
-  
+
   const PlanningScene *scene_;
 };
 
@@ -178,7 +178,7 @@ robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(const
   robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model, srdf_model));
   if (!robot_model || !robot_model->getRoot())
     return robot_model::RobotModelPtr();
-  
+
   return robot_model;
 }
 
@@ -466,7 +466,7 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
 
   if (ftf_)
     scene->getTransformsNonConst().setAllTransforms(ftf_->getAllTransforms());
-  
+
   if (kstate_)
     scene->getCurrentStateNonConst() = *kstate_;
 
@@ -911,7 +911,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   getCollisionRobot()->getScale(scene_msg.link_scale);
 
   getPlanningSceneMsgObjectColors(scene_msg);
- 
+
   // add collision objects
   getPlanningSceneMsgCollisionObjects(scene_msg);
 
@@ -966,13 +966,13 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 
   if (comp.components & moveit_msgs::PlanningSceneComponents::OBJECT_COLORS)
     getPlanningSceneMsgObjectColors(scene_msg);
-  
-  // add collision objects   
+
+  // add collision objects
   if (comp.components & moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY)
     getPlanningSceneMsgCollisionObjects(scene_msg);
   else
     if (comp.components & moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_NAMES)
-    {  
+    {
       const std::vector<std::string> &ns = world_->getObjectIds();
       scene_msg.world.collision_objects.clear();
       scene_msg.world.collision_objects.reserve(ns.size());
@@ -981,12 +981,12 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
         {
           moveit_msgs::CollisionObject co;
           co.id = ns[i];
-	  if (hasObjectType(co.id))
-	    co.type = getObjectType(co.id);
+      if (hasObjectType(co.id))
+        co.type = getObjectType(co.id);
           scene_msg.world.collision_objects.push_back(co);
         }
     }
-  
+
   // get the octomap
   if (comp.components & moveit_msgs::PlanningSceneComponents::OCTOMAP)
     getPlanningSceneMsgOctomap(scene_msg);
@@ -1439,7 +1439,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       EigenSTL::vector_Affine3d poses;
 
       // we need to add some shapes; if the message is empty, maybe the object is already in the world
-      if (object.object.operation == moveit_msgs::CollisionObject::ADD && 
+      if (object.object.operation == moveit_msgs::CollisionObject::ADD &&
           object.object.primitives.empty() && object.object.meshes.empty() && object.object.planes.empty())
       {
         collision_detection::CollisionWorld::ObjectConstPtr obj = world_->getObject(object.object.id);
@@ -1475,7 +1475,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           else
             logWarn("You tried to append geometry to an attached object that is actually a world object ('%s'). World geometry is ignored.", object.object.id.c_str());
         }
-        
+
         for (std::size_t i = 0 ; i < object.object.primitives.size() ; ++i)
         {
           shapes::Shape *s = shapes::constructShapeFromMsg(object.object.primitives[i]);
@@ -1524,10 +1524,10 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         logError("There is no geometry to attach to link '%s' as part of attached body '%s'", object.link_name.c_str(), object.object.id.c_str());
         return false;
       }
-      
+
       if (!object.object.type.db.empty() || !object.object.type.key.empty())
         setObjectType(object.object.id, object.object.type);
-      
+
       if (object.object.operation == moveit_msgs::CollisionObject::ADD || !kstate_->hasAttachedBody(object.object.id))
       {
         // there should not exist an attached object with this name
@@ -1545,13 +1545,13 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         sensor_msgs::JointState detach_posture = object.detach_posture.name.empty() ? ab->getDetachPosture() : object.detach_posture;
         std::set<std::string> ab_touch_links = ab->getTouchLinks();
         kstate_->clearAttachedBody(object.object.id);
-        if (object.touch_links.empty()) 
+        if (object.touch_links.empty())
           kstate_->attachBody(object.object.id, shapes, poses, ab_touch_links, object.link_name, detach_posture);
         else
           kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name, detach_posture);
         logInform("Added shapes to object '%s' attached to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       }
-      
+
       return true;
     }
     else
@@ -1563,7 +1563,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     if (ls)
     {
       std::vector<const robot_state::AttachedBody*> attached_bodies;
-     
+
       if (object.object.id.empty()) // if no specific object id is given, then we remove all objects attached to the link_name
       {
         ls->getAttachedBodies(attached_bodies);
@@ -1596,7 +1596,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     }
     else
       logError("Robot state is not compatible with robot model. This could be fatal.");
-  } 
+  }
   else if (object.object.operation == moveit_msgs::CollisionObject::MOVE)
   {
     logError("Move for attached objects not yet implemented");
@@ -1691,7 +1691,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
   {
     if (object.id.empty())
     {
-      const std::vector<std::string> &object_ids = world_->getObjectIds(); 
+      const std::vector<std::string> &object_ids = world_->getObjectIds();
       for (std::size_t i = 0; i < object_ids.size(); ++i)
         if (object_ids[i] != OCTOMAP_NS)
           world_->removeObject(object_ids[i]);
@@ -1705,7 +1705,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     if (world_->hasObject(object.id))
     {
       if (!object.primitives.empty() || !object.meshes.empty() || !object.planes.empty())
-        logWarn("Move operation for object '%s' ignores the geometry specified in the message.");    
+        logWarn("Move operation for object '%s' ignores the geometry specified in the message.");
 
       const Eigen::Affine3d &t = getTransforms().getTransform(object.header.frame_id);
       EigenSTL::vector_Affine3d new_poses;
@@ -1726,7 +1726,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         Eigen::Affine3d p;
         tf::poseMsgToEigen(object.plane_poses[i], p);
         new_poses.push_back(t * p);
-      }  
+      }
 
       collision_detection::World::ObjectConstPtr obj = world_->getObject(object.id);
       if (obj->shapes_.size() == new_poses.size())
@@ -1774,7 +1774,7 @@ const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const ro
     else
       if (obj->shape_poses_.size() == 1)
         return obj->shape_poses_[0];
-  } 
+  }
   return getTransforms().Transforms::getTransform(id);
 }
 

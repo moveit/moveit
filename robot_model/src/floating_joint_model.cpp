@@ -75,7 +75,7 @@ double robot_model::FloatingJointModel::distance(const std::vector<double> &valu
   assert(values2.size() == 7);
   double dx = values1[0] - values2[0];
   double dy = values1[1] - values2[1];
-  double dz = values1[2] - values2[2]; 
+  double dz = values1[2] - values2[2];
   double dq = fabs(values1[3] * values2[3] + values1[4] * values2[4] + values1[5] * values2[5] + values1[6] * values2[6]);
   if (dq + std::numeric_limits<double>::epsilon() >= 1.0)
     return sqrt(dx*dx + dy*dy + dz * dz);
@@ -89,7 +89,7 @@ double robot_model::FloatingJointModel::distanceTranslation(const std::vector<do
   assert(values2.size() == 7);
   double dx = values1[0] - values2[0];
   double dy = values1[1] - values2[1];
-  double dz = values1[2] - values2[2]; 
+  double dz = values1[2] - values2[2];
   return sqrt(dx*dx + dy*dy + dz * dz);
 }
 
@@ -136,7 +136,7 @@ void robot_model::FloatingJointModel::interpolate(const std::vector<double> &fro
 bool robot_model::FloatingJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   assert(bounds.size() > 2);
-  
+
   if (values[0] < bounds[0].first - margin || values[0] > bounds[0].second + margin)
     return false;
   if (values[1] < bounds[1].first - margin || values[1] > bounds[1].second + margin)
@@ -150,7 +150,7 @@ bool robot_model::FloatingJointModel::satisfiesBounds(const std::vector<double> 
 }
 
 bool robot_model::FloatingJointModel::normalizeRotation(std::vector<double> &values) const
-{ 
+{
   // normalize the quaternion if we need to
   double normSqr = values[3] * values[3] + values[4] * values[4] + values[5] * values[5] + values[6] * values[6];
   if (fabs(normSqr - 1.0) > std::numeric_limits<double>::epsilon() * 100.0)
@@ -231,7 +231,7 @@ void robot_model::FloatingJointModel::getVariableDefaultValues(std::vector<doubl
     else
       values.push_back((bounds[i].first + bounds[i].second)/2.0);
   }
-  
+
   values.push_back(0.0);
   values.push_back(0.0);
   values.push_back(0.0);
@@ -242,7 +242,7 @@ void robot_model::FloatingJointModel::getVariableRandomValues(random_numbers::Ra
 {
   std::size_t s = values.size();
   values.resize(s + 7);
-  
+
   if (bounds[0].second >= std::numeric_limits<double>::max() || bounds[0].first <= -std::numeric_limits<double>::max())
     values[s] = 0.0;
   else
@@ -265,10 +265,10 @@ void robot_model::FloatingJointModel::getVariableRandomValues(random_numbers::Ra
 
 void robot_model::FloatingJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
                                                                         const std::vector<double> &near, const double distance) const
-{   
+{
   std::size_t s = values.size();
   values.resize(s + 7);
-  
+
   if (bounds[0].second >= std::numeric_limits<double>::max() || bounds[0].first <= -std::numeric_limits<double>::max())
     values[s] = 0.0;
   else
@@ -285,7 +285,7 @@ void robot_model::FloatingJointModel::getVariableRandomValuesNearBy(random_numbe
     values[s + 2] = rng.uniformReal(std::max(bounds[2].first, near[s + 2] - distance),
                                     std::min(bounds[2].second, near[s + 2] + distance));
 
-  double da = angular_distance_weight_ * distance;  
+  double da = angular_distance_weight_ * distance;
   if (da >= .25 * boost::math::constants::pi<double>())
   {
     double q[4]; rng.quaternion(q);
@@ -295,7 +295,7 @@ void robot_model::FloatingJointModel::getVariableRandomValuesNearBy(random_numbe
     values[s + 6] = q[3];
   }
   else
-  { 
+  {
     //taken from OMPL
     // sample angle & axis
     double ax = rng.gaussian01();
