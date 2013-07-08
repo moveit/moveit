@@ -90,7 +90,7 @@ void planning_pipeline::PlanningPipeline::configure()
   // load the planning plugin
   try
   {
-    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
+    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
   }
   catch(pluginlib::PluginlibException& ex)
   {
@@ -234,7 +234,10 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       }
     }
     else
-      solved = planner_instance_->solve(planning_scene, req, res);
+    {
+      planning_interface::PlanningContextPtr context = planner_instance_->getPlanningContext(planning_scene, req, res.error_code_);
+      solved = context ? context->solve(res) : false;
+    }
   }
   catch(std::runtime_error &ex)
   {
