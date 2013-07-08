@@ -522,7 +522,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   for(unsigned int i=0; i < dimension_; i++)
     jnt_seed_state(i) = ik_seed_state[i];
   jnt_pos_in = jnt_seed_state;
-
+  
   unsigned int counter(0);
   while(1)
   {
@@ -533,14 +533,14 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
       ROS_DEBUG_NAMED("kdl","IK timed out");
       error_code.val = error_code.TIMED_OUT;
       ik_solver_vel.unlockRedundantJoints();
-      return false;
+      return false;      
     }
     int ik_valid = ik_solver_pos.CartToJnt(jnt_pos_in, pose_desired, jnt_pos_out);
     ROS_DEBUG_NAMED("kdl","IK valid: %d", ik_valid);
     if(!consistency_limits.empty())
     {
       getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in, options.lock_redundant_joints);
-      if(ik_valid < 0 || !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
+      if( (ik_valid < 0 && !options.return_approximate_solution) || !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
       {
         ROS_DEBUG_NAMED("kdl","Could not find IK solution: does not match consistency limits");
         continue;
@@ -553,9 +553,9 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
       for(unsigned int j=0; j < dimension_; j++)
         ROS_DEBUG_NAMED("kdl","%d %f", j, jnt_pos_in(j));
 
-      if(ik_valid < 0)
+      if(ik_valid < 0 && !options.return_approximate_solution)
       {
-        ROS_INFO_NAMED("kdl","Could not find IK solution");
+        ROS_DEBUG_NAMED("kdl","Could not find IK solution");
         continue;
       }
     }
@@ -577,8 +577,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   ROS_DEBUG_NAMED("kdl","An IK that satisifes the constraints and is collision free could not be found");
   error_code.val = error_code.NO_IK_SOLUTION;
   ik_solver_vel.unlockRedundantJoints();
-  if(options.return_approximate_solution)
-    return true;
   return false;
 }
 
