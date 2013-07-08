@@ -286,7 +286,7 @@ robot_state::JointState* robot_state::JointStateGroup::getJointState(const std::
     return it->second;
 }
 
-bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, bool lock_redundant_joints)
+bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -294,10 +294,10 @@ bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, un
     logError("No kinematics solver instantiated for this group");    
     return false;
   }  
-  return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint, lock_redundant_joints);
+  return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint, options);
 }
 
-bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts, double timeout, bool lock_redundant_joints)
+bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, unsigned int attempts, double timeout, const kinematics::KinematicsQueryOptions &options)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -306,17 +306,17 @@ bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, un
     return false;
   }  
   static StateValidityCallbackFn constraint = StateValidityCallbackFn();  
-  return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint, lock_redundant_joints);
+  return setFromIK(pose, solver->getTipFrame(), attempts, timeout, constraint, options);
 }
 
-bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, bool lock_redundant_joints)
+bool robot_state::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 {
   Eigen::Affine3d mat;
   tf::poseMsgToEigen(pose, mat);
-  return setFromIK(mat, tip,  attempts, timeout, constraint, lock_redundant_joints);
+  return setFromIK(mat, tip,  attempts, timeout, constraint, options);
 }
 
-bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, bool lock_redundant_joints)
+bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 { 
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -325,23 +325,23 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, unsign
     return false;
   }  
   static std::vector<double> consistency_limits;  
-  return setFromIK(pose, solver->getTipFrame(), consistency_limits, attempts, timeout, constraint, lock_redundant_joints);  
+  return setFromIK(pose, solver->getTipFrame(), consistency_limits, attempts, timeout, constraint, options);  
 }
 
-bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, bool lock_redundant_joints)
+bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 {
   static std::vector<double> consistency_limits;  
-  return setFromIK(pose_in, tip_in, consistency_limits, attempts, timeout, constraint, lock_redundant_joints);  
+  return setFromIK(pose_in, tip_in, consistency_limits, attempts, timeout, constraint, options);  
 }
 
-bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, bool lock_redundant_joints)
+bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, unsigned int attempts, double timeout, const kinematics::KinematicsQueryOptions &options)
 {
   static std::vector<double> consistency_limits;  
   static StateValidityCallbackFn constraint = StateValidityCallbackFn();  
-  return setFromIK(pose_in, tip_in, consistency_limits, attempts, timeout, constraint, lock_redundant_joints);  
+  return setFromIK(pose_in, tip_in, consistency_limits, attempts, timeout, constraint, options);  
 }
 
-bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, unsigned int attempts, double timeout, bool lock_redundant_joints)
+bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, unsigned int attempts, double timeout, const kinematics::KinematicsQueryOptions &options)
 {
   static std::vector<double> consistency_limits;  
   static StateValidityCallbackFn constraint = StateValidityCallbackFn();  
@@ -351,10 +351,10 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, uns
     logError("No kinematics solver instantiated for this group");    
     return false;
   }  
-  return setFromIK(pose_in, solver->getTipFrame(), consistency_limits, attempts, timeout, constraint, lock_redundant_joints);  
+  return setFromIK(pose_in, solver->getTipFrame(), consistency_limits, attempts, timeout, constraint, options);  
 }
 
-bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, const std::vector<double> &consistency_limits, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, bool lock_redundant_joints)
+bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, const std::vector<double> &consistency_limits, unsigned int attempts, double timeout, const StateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 {
   const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
   if (!solver)
@@ -460,7 +460,7 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         seed[bij[i]] = random_values[i];
       
-      if (lock_redundant_joints)
+      if (options.lock_redundant_joints)
       {
         std::vector<unsigned int> red_joints;
         solver->getRedundantJoints(red_joints);
@@ -478,8 +478,8 @@ bool robot_state::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, con
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
     if (ik_callback_fn ?
-        solver->searchPositionIK(ik_query, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, lock_redundant_joints) : 
-        solver->searchPositionIK(ik_query, seed, timeout, consistency_limits, ik_sol, error, lock_redundant_joints))
+        solver->searchPositionIK(ik_query, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, options) : 
+        solver->searchPositionIK(ik_query, seed, timeout, consistency_limits, ik_sol, error, options))
     {
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
@@ -496,10 +496,10 @@ bool robot_state::JointStateGroup::setFromIK(const EigenSTL::vector_Affine3d &po
                                              unsigned int attempts, 
                                              double timeout, 
                                              const StateValidityCallbackFn &constraint,
-                                             bool lock_redundant_joints)
+                                             const kinematics::KinematicsQueryOptions &options)
 {
   static const std::vector<std::vector<double> > consistency_limits;
-  return setFromIK(poses_in, tips_in, consistency_limits, attempts, timeout, constraint, lock_redundant_joints);  
+  return setFromIK(poses_in, tips_in, consistency_limits, attempts, timeout, constraint, options);  
 }
 
 bool robot_state::JointStateGroup::setFromIK(const EigenSTL::vector_Affine3d &poses_in, 
@@ -508,14 +508,14 @@ bool robot_state::JointStateGroup::setFromIK(const EigenSTL::vector_Affine3d &po
                                              unsigned int attempts, 
                                              double timeout, 
                                              const StateValidityCallbackFn &constraint,
-                                             bool lock_redundant_joints)
+                                             const kinematics::KinematicsQueryOptions &options)
 {
   if (poses_in.size() == 1 && tips_in.size() == 1 && consistency_limits.size() <= 1)
   {
     if (consistency_limits.empty())
-      return setFromIK(poses_in[0], tips_in[0], attempts, timeout, constraint, lock_redundant_joints);
+      return setFromIK(poses_in[0], tips_in[0], attempts, timeout, constraint, options);
     else
-      return setFromIK(poses_in[0], tips_in[0], consistency_limits[0], attempts, timeout, constraint, lock_redundant_joints);    
+      return setFromIK(poses_in[0], tips_in[0], consistency_limits[0], attempts, timeout, constraint, options);    
   }
   
   const std::vector<std::string>& sub_group_names = joint_model_group_->getSubgroupNames();
@@ -837,7 +837,7 @@ bool robot_state::JointStateGroup::avoidJointLimitsSecondaryTask(const robot_sta
 }
 
 double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotStatePtr> &traj, const std::string &link_name, const Eigen::Vector3d &direction, bool global_reference_frame,
-                                                          double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback, bool lock_redundant_joints)
+                                                          double distance, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback, const kinematics::KinematicsQueryOptions &options)
 {
   const LinkState *link_state = kinematic_state_->getLinkState(link_name);
   if (!link_state)
@@ -854,11 +854,11 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
   target_pose.translation() += rotated_direction * distance;
   
   //call computeCartesianPath for the computed target pose in the global reference frame
-  return (distance * computeCartesianPath(traj, link_name, target_pose, true, max_step, jump_threshold, validCallback, lock_redundant_joints));
+  return (distance * computeCartesianPath(traj, link_name, target_pose, true, max_step, jump_threshold, validCallback, options));
 }
 
 double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotStatePtr> &traj, const std::string &link_name, const Eigen::Affine3d &target, bool global_reference_frame,
-                                                          double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback, bool lock_redundant_joints)
+                                                          double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback, const kinematics::KinematicsQueryOptions &options)
 {
   const LinkState *link_state = kinematic_state_->getLinkState(link_name);
   if (!link_state)
@@ -914,7 +914,7 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
     Eigen::Affine3d pose(start_quaternion.slerp(percentage, target_quaternion));
     pose.translation() = percentage * rotated_target.translation() + (1 - percentage) * start_pose.translation();
 
-    if (setFromIK(pose, link_name, 1, 0.0, validCallback, lock_redundant_joints))
+    if (setFromIK(pose, link_name, 1, 0.0, validCallback, options))
     {
       traj.push_back(RobotStatePtr(new RobotState(*kinematic_state_)));
 
@@ -956,7 +956,7 @@ double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotState
 }
 
 double robot_state::JointStateGroup::computeCartesianPath(std::vector<RobotStatePtr> &traj, const std::string &link_name, const EigenSTL::vector_Affine3d &waypoints,
-                                                          bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback, bool lock_redundant_joints)
+                                                          bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback, const kinematics::KinematicsQueryOptions &options)
 {
   double percentage_solved = 0.0;
   for (std::size_t i = 0; i < waypoints.size(); ++i)
