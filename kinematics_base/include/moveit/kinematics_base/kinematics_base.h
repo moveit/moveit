@@ -53,10 +53,10 @@ namespace kinematics
  */
 struct KinematicsQueryOptions
 {
-  KinematicsQueryOptions()
+  KinematicsQueryOptions() : 
+    lock_redundant_joints(false),
+    return_approximate_solution(false)
   {
-    lock_redundant_joints = false;
-    return_approximate_solution = false;    
   }
   
   bool lock_redundant_joints;
