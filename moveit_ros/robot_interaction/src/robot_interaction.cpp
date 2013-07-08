@@ -981,7 +981,9 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffe
                                    unsigned int attempts, double ik_timeout, 
                                    const robot_state::StateValidityCallbackFn &validity_callback, bool redundancy_locked)
 {
-  return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, redundancy_locked ? 1 : attempts, ik_timeout, validity_callback, redundancy_locked);
+  kinematics::KinematicsQueryOptions options;
+  options.lock_redundant_joints = redundancy_locked;  
+  return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, redundancy_locked ? 1 : attempts, ik_timeout, validity_callback, options);
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
