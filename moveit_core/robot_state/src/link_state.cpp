@@ -77,6 +77,8 @@ void robot_state::LinkState::computeTransformBackward(const LinkState *child_lin
   global_link_transform_ = child_link->global_link_transform_ * (child_link->link_model_->getJointOriginTransform() * child_link->parent_joint_state_->getVariableTransform()).inverse();
   if (parent_link_state_)
     parent_link_state_->computeTransformBackward(this);
+  else
+    parent_joint_state_->setVariableValues(global_link_transform_);
 
   // do fwd transforms 
   const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
@@ -95,7 +97,8 @@ void robot_state::LinkState::computeTransformBackward(const Eigen::Affine3d& chi
   global_link_transform_ = child_transform;
   if (parent_link_state_)
     parent_link_state_->computeTransformBackward(this);
-
+  else
+    parent_joint_state_->setVariableValues(global_link_transform_);
   // do fwd transforms 
   const std::vector<robot_model::JointModel*> &child_jmodels = link_model_->getChildJointModels();
   for (std::size_t i = 0 ; i < child_jmodels.size() ; ++i)
