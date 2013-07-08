@@ -65,14 +65,14 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
   req.allowed_planning_time = (plan->shared_data_->timeout_ - ros::WallTime::now()).toSec();
   req.path_constraints = plan->shared_data_->path_constraints_;
   req.planner_id = plan->shared_data_->planner_id_;
-  
+
   req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(plan->approach_state_->getJointStateGroup(plan->shared_data_->planning_group_)));
   unsigned int attempts = 0;
   do
   {
     attempts++;
     if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) &&
-        res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && 
+        res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS &&
         res.trajectory_ && !res.trajectory_->empty())
     {
       if (!plan->approach_posture_.name.empty())
@@ -87,7 +87,7 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
       plan_execution::ExecutableTrajectory et(res.trajectory_, name_);
       plan->trajectories_.insert(plan->trajectories_.begin(), et);
       plan->error_code_ = res.error_code_;
-      
+
       return true;
     }
     else
@@ -95,7 +95,7 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
   }
   // if the planner reported an invalid plan, give it a second chance
   while (!signal_stop_ && plan->error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN && attempts < 2);
-  
+
   return false;
 }
 

@@ -21,8 +21,8 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// Modified to account for "mimic" joints, i.e. joints whose motion has a 
-// linear relationship to that of another joint. 
+// Modified to account for "mimic" joints, i.e. joints whose motion has a
+// linear relationship to that of another joint.
 // Copyright  (C)  2013  Sachin Chitta, Willow Garage
 
 #ifndef KDLCHAINIKSOLVERPOS_NR_JL_Mimic_HPP
@@ -71,9 +71,9 @@ public:
   virtual int CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out);
 
   virtual int CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out, bool lock_redundant_joints);
-  
+
   bool setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints);
- 
+
 private:
   const Chain chain;
   JntArray q_min;//These are the limits for the "reduced" state consisting of only active DOFs
@@ -85,14 +85,14 @@ private:
   ChainIkSolverVel& iksolver;
   JntArray delta_q;
   Frame f;
-  Twist delta_twist;  
+  Twist delta_twist;
   unsigned int maxiter;
   double eps;
-  std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;  
+  std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;
   void qToqMimic(const JntArray& q, JntArray& q_result); //Convert from the "reduced" state (only active DOFs) to the "full" state
   void qMimicToq(const JntArray& q, JntArray& q_result); //Convert from the "full" state to the "reduced" state
   bool position_ik;
-  
+
 };
 
 }

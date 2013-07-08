@@ -44,7 +44,7 @@
 
 namespace move_group
 {
-    
+
 enum MoveGroupState
   {
     IDLE,
@@ -56,46 +56,46 @@ enum MoveGroupState
 class MoveGroupCapability
 {
 public:
-  
-  MoveGroupCapability(const std::string &capability_name) : 
+
+  MoveGroupCapability(const std::string &capability_name) :
     node_handle_("~"),
     capability_name_(capability_name)
   {
   }
-  
+
   virtual ~MoveGroupCapability()
   {
   }
-  
+
   void setContext(const MoveGroupContextPtr &context);
-    
+
   virtual void initialize() = 0;
-  
+
   const std::string& getName() const
   {
     return capability_name_;
-  }  
-    
+  }
+
 protected:
-  
-  std::string getActionResultString(const moveit_msgs::MoveItErrorCodes &error_code, bool planned_trajectory_empty, bool plan_only);  
+
+  std::string getActionResultString(const moveit_msgs::MoveItErrorCodes &error_code, bool planned_trajectory_empty, bool plan_only);
   std::string stateToStr(MoveGroupState state) const;
-  
+
   void convertToMsg(const std::vector<plan_execution::ExecutableTrajectory> &trajectory,
                     moveit_msgs::RobotState &first_state_msg, std::vector<moveit_msgs::RobotTrajectory> &trajectory_msg) const;
   void convertToMsg(const robot_trajectory::RobotTrajectoryPtr &trajectory,
                     moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg) const;
   void convertToMsg(const std::vector<plan_execution::ExecutableTrajectory> &trajectory,
                     moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg) const;
-  
+
   planning_interface::MotionPlanRequest clearRequestStartState(const planning_interface::MotionPlanRequest &request) const;
-  moveit_msgs::PlanningScene clearSceneRobotState(const moveit_msgs::PlanningScene &scene) const;  
+  moveit_msgs::PlanningScene clearSceneRobotState(const moveit_msgs::PlanningScene &scene) const;
   bool performTransform(geometry_msgs::PoseStamped &pose_msg, const std::string &target_frame) const;
-  
+
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
   std::string capability_name_;
-  MoveGroupContextPtr context_;    
+  MoveGroupContextPtr context_;
 };
 
 }

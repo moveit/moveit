@@ -58,7 +58,7 @@ void sendKnife()
   aco.touch_links.push_back("r_gripper_r_finger_link");
   aco.touch_links.push_back("r_gripper_r_finger_tip_link");
   aco.touch_links.push_back("r_gripper_l_finger_tip_frame");
-  
+
   moveit_msgs::CollisionObject &co = aco.object;
   co.id = "knife";
   co.header.stamp = ros::Time::now();
@@ -74,7 +74,7 @@ void sendKnife()
   co.primitive_poses[0].position.y = 0;
   co.primitive_poses[0].position.z = -0.2;
   co.primitive_poses[0].orientation.w = 1.0;
-  
+
   pub_aco.publish(aco);
   sleep(1);
   pub_aco.publish(aco);
@@ -86,13 +86,13 @@ void sendKnife()
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "demo", ros::init_options::AnonymousName);
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
   sendKnife();
 
   ros::waitForShutdown();
-  
+
   return 0;
 }

@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     ("help", "Show help message")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
     ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.")
-    ("scene", boost::program_options::value<std::string>(), "Name of scene to publish.") 
+    ("scene", boost::program_options::value<std::string>(), "Name of scene to publish.")
     ("planning_requests", "Also publish the planning requests that correspond to the scene")
     ("planning_results", "Also publish the planning results that correspond to the scene")
     ("constraint", boost::program_options::value<std::string>(), "Name of constraint to publish.")
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
-  
+
   if (vm.count("help") || (!vm.count("scene") && !vm.count("constraint") && !vm.count("state")))
   {
     std::cout << desc << std::endl;
@@ -90,10 +90,10 @@ int main(int argc, char **argv)
     std::cout << desc << std::endl;
     return 2;
   }
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   ros::NodeHandle nh;
   ros::Publisher pub_scene, pub_req, pub_res, pub_constr, pub_state;
   ros::Duration wait_time(delay);
@@ -101,21 +101,21 @@ int main(int argc, char **argv)
   // publish the scene
   if (vm.count("scene"))
   {
-    pub_scene = nh.advertise<moveit_msgs::PlanningScene>(PLANNING_SCENE_TOPIC, 10); 
+    pub_scene = nh.advertise<moveit_msgs::PlanningScene>(PLANNING_SCENE_TOPIC, 10);
     bool req = vm.count("planning_requests");
     bool res = vm.count("planning_results");
     if (req)
       pub_req = nh.advertise<moveit_msgs::MotionPlanRequest>(PLANNING_REQUEST_TOPIC, 100);
     if (res)
-      pub_res = nh.advertise<moveit_msgs::RobotTrajectory>(PLANNING_RESULTS_TOPIC, 100); 
-    
+      pub_res = nh.advertise<moveit_msgs::RobotTrajectory>(PLANNING_RESULTS_TOPIC, 100);
+
     moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
                                                vm.count("port") ? vm["port"].as<std::size_t>() : 0);
     ros::spinOnce();
-    
+
     std::vector<std::string> scene_names;
     pss.getPlanningSceneNames(vm["scene"].as<std::string>(), scene_names);
-    
+
     for (std::size_t i = 0 ; i < scene_names.size() ; ++i)
     {
       moveit_warehouse::PlanningSceneWithMetadata pswm;
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
         ROS_INFO("Publishing scene '%s'", pswm->lookupString(moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_ID_NAME).c_str());
         pub_scene.publish(static_cast<const moveit_msgs::PlanningScene&>(*pswm));
         ros::spinOnce();
-        
+
         // publish optional data associated to the scene
         if (req || res)
         {
@@ -157,19 +157,19 @@ int main(int argc, char **argv)
       }
     }
   }
-  
+
   // publish constraints
   if (vm.count("constraint"))
   {
     moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
                                             vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-    pub_constr = nh.advertise<moveit_msgs::Constraints>(CONSTRAINTS_TOPIC, 100); 
+    pub_constr = nh.advertise<moveit_msgs::Constraints>(CONSTRAINTS_TOPIC, 100);
     std::vector<std::string> cnames;
     cs.getKnownConstraints(vm["constraint"].as<std::string>(), cnames);
-    
+
     for (std::size_t i = 0 ; i < cnames.size() ; ++i)
     {
-      moveit_warehouse::ConstraintsWithMetadata cwm;    
+      moveit_warehouse::ConstraintsWithMetadata cwm;
       if (cs.getConstraints(cwm, cnames[i]))
       {
         ROS_INFO("Publishing constraints '%s'", cwm->lookupString(moveit_warehouse::ConstraintsStorage::CONSTRAINTS_ID_NAME).c_str());
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
       }
     }
   }
-  
+
   // publish constraints
   if (vm.count("state"))
   {
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
     pub_state = nh.advertise<moveit_msgs::RobotState>(STATES_TOPIC, 100);
     std::vector<std::string> rnames;
     rs.getKnownRobotStates(vm["state"].as<std::string>(), rnames);
-    
+
     for (std::size_t i = 0 ; i < rnames.size() ; ++i)
     {
       moveit_warehouse::RobotStateWithMetadata rswm;
@@ -201,9 +201,9 @@ int main(int argc, char **argv)
       }
     }
   }
-  
+
   ros::WallDuration(1.0).sleep();
   ROS_INFO("Done.");
-  
+
   return 0;
 }

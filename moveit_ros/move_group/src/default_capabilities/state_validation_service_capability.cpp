@@ -58,7 +58,7 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
   robot_state::robotStateMsgToRobotState(req.robot_state, rs);
 
   res.valid = true;
-  
+
   // configure collision request
   collision_detection::CollisionRequest creq;
   creq.group_name = req.group_name;
@@ -87,7 +87,7 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
         res.contacts.back().header.stamp = time_now;
       }
   }
-  
+
   // copy cost sources
   res.cost_sources.reserve(cres.cost_sources.size());
   for (std::set<collision_detection::CostSource>::const_iterator it = cres.cost_sources.begin() ; it != cres.cost_sources.end() ; ++it)
@@ -95,7 +95,7 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
     res.cost_sources.resize(res.cost_sources.size() + 1);
     collision_detection::costSourceToMsg(*it, res.cost_sources.back());
   }
-      
+
   // evaluate constraints
   if (!kinematic_constraints::isEmpty(req.constraints))
   {
@@ -114,10 +114,10 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
       res.constraint_result[k].distance = kres[k].distance;
     }
   }
-  
+
   return true;
 }
 
 
-#include <class_loader/class_loader.h> 
+#include <class_loader/class_loader.h>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupStateValidationService, move_group::MoveGroupCapability)

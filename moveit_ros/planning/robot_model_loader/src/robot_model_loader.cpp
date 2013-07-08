@@ -61,7 +61,7 @@ namespace
 {
 
 bool canSpecifyPosition(const robot_model::JointModel *jmodel, const unsigned int index)
-{  
+{
   bool ok = false;
   if (jmodel->getType() == robot_model::JointModel::PLANAR && index == 2)
     ROS_ERROR("Cannot specify position limits for orientation of planar joint '%s'", jmodel->getName().c_str());
@@ -104,7 +104,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
     // if there are additional joint limits specified in some .yaml file, read those in
     ros::NodeHandle nh("~");
     std::map<std::string, std::vector<moveit_msgs::JointLimits> > individual_joint_limits_map;
-    
+
     for (unsigned int i = 0; i < model_->getJointModels().size() ; ++i)
     {
       robot_model::JointModel *jmodel = model_->getJointModels()[i];
@@ -112,7 +112,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
       for(unsigned int j = 0; j < jlim.size(); ++j)
       {
         std::string prefix = rdf_loader_->getRobotDescription() + "_planning/joint_limits/" + jlim[j].joint_name + "/";
-        
+
         double max_position;
         if (nh.getParam(prefix + "max_position", max_position))
         {
@@ -156,7 +156,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
         bool has_vel_limits;
         if (nh.getParam(prefix + "has_velocity_limits", has_vel_limits))
           jlim[j].has_velocity_limits = has_vel_limits;
-        
+
         double max_acc;
         if (nh.getParam(prefix + "max_acceleration", max_acc))
         {
@@ -171,7 +171,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
       individual_joint_limits_map[jmodel->getName()] = jlim;
     }
     const std::map<std::string, robot_model::JointModelGroup*> &jmgm = model_->getJointModelGroupMap();
-    for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = jmgm.begin() ; it != jmgm.end() ; ++it) 
+    for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = jmgm.begin() ; it != jmgm.end() ; ++it)
     {
       std::vector<moveit_msgs::JointLimits> group_joint_limits;
       for(unsigned int i = 0; i < it->second->getJointModelNames().size(); i++)
@@ -181,12 +181,12 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
                                   individual_joint_limits_map[it->second->getJointModelNames()[i]].end());
       }
       it->second->setVariableLimits(group_joint_limits);
-    }  
+    }
   }
-  
+
   if (model_ && opt.load_kinematics_solvers_)
     loadKinematicsSolvers();
-  
+
   ROS_DEBUG_STREAM("Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
@@ -194,7 +194,7 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
 {
   moveit::Profiler::ScopedStart prof_start;
   moveit::Profiler::ScopedBlock prof_block("RobotModelLoader::loadKinematicsSolvers");
-  
+
   if (rdf_loader_ && model_)
   {
     // load the kinematics solvers
@@ -207,7 +207,7 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
     std::stringstream ss;
     std::copy(groups.begin(), groups.end(), std::ostream_iterator<std::string>(ss, " "));
     ROS_DEBUG_STREAM("Loaded information about the following groups: '" << ss.str() << "'");
-    
+
     std::map<std::string, robot_model::SolverAllocatorFn> imap;
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
     {
@@ -227,7 +227,7 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
         continue;
       robot_model::JointModelGroup *jmg = model_->getJointModelGroup(it->first);
       jmg->setDefaultIKTimeout(it->second);
-    } 
+    }
 
     // set the default IK attempts
     const std::map<std::string, unsigned int> &attempts = kinematics_loader_->getIKAttempts();
@@ -248,7 +248,7 @@ std::map<std::string, kinematics::KinematicsBasePtr> robot_model_loader::RobotMo
   {
     const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
-    { 
+    {
       if (!model_->hasJointModelGroup(groups[i]))
         continue;
       const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);

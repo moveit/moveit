@@ -116,7 +116,7 @@ public:
         ROS_INFO("Start state appears to be in collision");
       else
         ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
-      
+
       robot_state::RobotStatePtr prefix_state(new robot_state::RobotState(start_state));
       random_numbers::RandomNumberGenerator rng;
 

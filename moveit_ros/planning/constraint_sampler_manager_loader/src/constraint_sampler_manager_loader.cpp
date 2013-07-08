@@ -45,13 +45,13 @@ namespace constraint_sampler_manager_loader
 class ConstraintSamplerManagerLoader::Helper
 {
 public:
-  
-  Helper(const constraint_samplers::ConstraintSamplerManagerPtr &csm) : 
+
+  Helper(const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
     nh_("~")
   {
     std::string constraint_samplers;
     if (nh_.getParam("constraint_samplers", constraint_samplers))
-    {      
+    {
       try
       {
         constraint_sampler_plugin_loader_.reset(new pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator>("moveit_core", "constraint_samplers::ConstraintSamplerAllocator"));
@@ -78,14 +78,14 @@ public:
       }
     }
   }
-  
+
 private:
-  
+
   ros::NodeHandle nh_;
   boost::scoped_ptr<pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator> > constraint_sampler_plugin_loader_;
 };
 
-ConstraintSamplerManagerLoader::ConstraintSamplerManagerLoader(const constraint_samplers::ConstraintSamplerManagerPtr &csm) : 
+ConstraintSamplerManagerLoader::ConstraintSamplerManagerLoader(const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
   constraint_sampler_manager_(csm ? csm : constraint_samplers::ConstraintSamplerManagerPtr(new constraint_samplers::ConstraintSamplerManager())),
   impl_(new Helper(constraint_sampler_manager_))
 {

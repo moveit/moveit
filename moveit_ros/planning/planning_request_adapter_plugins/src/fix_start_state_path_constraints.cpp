@@ -50,30 +50,30 @@ public:
   FixStartStatePathConstraints() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
-  
+
   virtual std::string getDescription() const { return "Fix Start State Path Constraints"; }
-  
-  
+
+
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const planning_interface::MotionPlanRequest &req, 
+                            const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
-    
+
     // get the specified start state
     robot_state::RobotState start_state = planning_scene->getCurrentState();
     robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
-    
+
     // if the start state is otherwise valid but does not meet path constraints
-    if (planning_scene->isStateValid(start_state, req.group_name) && 
+    if (planning_scene->isStateValid(start_state, req.group_name) &&
         !planning_scene->isStateValid(start_state, req.path_constraints, req.group_name))
     {
       ROS_INFO("Path constraints not satisfied for start state...");
       planning_scene->isStateValid(start_state, req.path_constraints, req.group_name, true);
       ROS_INFO("Planning to path constraints...");
-      
+
       planning_interface::MotionPlanRequest req2 = req;
       req2.goal_constraints.resize(1);
       req2.goal_constraints[0] = req.path_constraints;
@@ -82,18 +82,18 @@ public:
       bool solved1 = planner(planning_scene, req2, res2);
 
       if (solved1)
-      { 
+      {
         planning_interface::MotionPlanRequest req3 = req;
         ROS_INFO("Planned to path constraints. Resuming original planning request.");
-        
+
         // extract the last state of the computed motion plan and set it as the new start state
         robot_state::robotStateToRobotStateMsg(res2.trajectory_->getLastWayPoint(), req3.start_state);
         bool solved2 = planner(planning_scene, req3, res);
         res.planning_time_ += res2.planning_time_;
-        
+
         if (solved2)
         {
-          // we need to append the solution paths. 
+          // we need to append the solution paths.
           res.trajectory_->append(*res2.trajectory_, 0.0);
           return true;
         }
@@ -101,7 +101,7 @@ public:
           return false;
       }
       else
-      { 
+      {
         ROS_WARN("Unable to plan to path constraints. Running usual motion plan.");
         bool result = planner(planning_scene, req, res);
         res.planning_time_ += res2.planning_time_;

@@ -237,15 +237,15 @@ void MotionPlanningFrame::configureWorkspace()
   b[1].second = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
   b[2].first = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;
   b[2].second = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
-  
+
   if (move_group_)
     move_group_->setWorkspace(b[0].first, b[1].first, b[2].first,
                               b[0].second, b[1].second, b[2].second);
   // get non-const access to the kmodel and update planar & floating joints as indicated by the workspace settings
-  if (planning_display_->getPlanningSceneMonitor() && planning_display_->getPlanningSceneMonitor()->getRobotModelLoader() && 
+  if (planning_display_->getPlanningSceneMonitor() && planning_display_->getPlanningSceneMonitor()->getRobotModelLoader() &&
       planning_display_->getPlanningSceneMonitor()->getRobotModelLoader()->getModel())
   {
-    const robot_model::RobotModelPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getRobotModelLoader()->getModel(); 
+    const robot_model::RobotModelPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getRobotModelLoader()->getModel();
     const std::vector<robot_model::JointModel*> &jm = kmodel->getJointModels();
     for (std::size_t i = 0 ; i < jm.size() ; ++i)
       if (jm[i]->getType() == robot_model::JointModel::PLANAR)
@@ -259,7 +259,7 @@ void MotionPlanningFrame::configureWorkspace()
           jm[i]->setVariableBounds(jm[i]->getName() + "/trans_x", b[0]);
           jm[i]->setVariableBounds(jm[i]->getName() + "/trans_y", b[1]);
           jm[i]->setVariableBounds(jm[i]->getName() + "/trans_z", b[2]);
-        }    
+        }
   }
 }
 

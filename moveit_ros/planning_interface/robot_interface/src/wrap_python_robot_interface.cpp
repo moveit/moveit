@@ -50,13 +50,13 @@ namespace moveit
 class RobotInterfacePython : protected py_bindings_tools::ROScppInitializer
 {
 public:
-  RobotInterfacePython(const std::string &robot_description) : 
+  RobotInterfacePython(const std::string &robot_description) :
     py_bindings_tools::ROScppInitializer()
   {
-    robot_model_ = planning_interface::getSharedRobotModel(robot_description); 
+    robot_model_ = planning_interface::getSharedRobotModel(robot_description);
     current_state_monitor_ = planning_interface::getSharedStateMonitor(robot_model_, planning_interface::getSharedTF());
   }
-  
+
   bp::list getJointNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getJointModelNames());
@@ -70,11 +70,11 @@ public:
     else
       return bp::list();
   }
-  
+
   bp::list getLinkNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getLinkModelNames());
-  } 
+  }
 
   bp::list getGroupLinkNames(const std::string &group) const
   {
@@ -84,12 +84,12 @@ public:
     else
       return bp::list();
   }
-  
+
   bp::list getGroupNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getJointModelGroupNames());
   }
-  
+
   bp::list getJointLimits(const std::string &name) const
   {
     bp::list result;
@@ -105,16 +105,16 @@ public:
         result.append(l);
       }
     }
-    return result;    
+    return result;
   }
-  
+
   const char* getPlanningFrame() const
   {
     return robot_model_->getModelFrame().c_str();
   }
-  
+
   bp::list getLinkPose(const std::string &name)
-  {  
+  {
     bp::list l;
     if (!ensureCurrentState())
       return l;
@@ -134,9 +134,9 @@ public:
       v[6] = q.w();
       l = py_bindings_tools::listFromDouble(v);
     }
-    return l;   
+    return l;
   }
-  
+
   bp::list getCurrentJointValues(const std::string &name)
   {
     bp::list l;
@@ -146,17 +146,17 @@ public:
     const robot_state::JointState *js = state->getJointState(name);
     if (js)
       l = py_bindings_tools::listFromDouble(js->getVariableValues());
-    return l;    
+    return l;
   }
 
   bool ensureCurrentState()
-  {  
+  {
     if (!current_state_monitor_)
     {
       ROS_ERROR("Unable to get current robot state");
       return false;
     }
-    
+
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
     {
@@ -165,8 +165,8 @@ public:
         ROS_WARN("Joint values for monitored state are requested but the full state is not known");
     }
     return true;
-  }  
-  
+  }
+
   bp::dict getCurrentVariableValues()
   {
     bp::dict d;
@@ -175,21 +175,21 @@ public:
       ROS_ERROR("Unable to get current robot state");
       return d;
     }
-    
+
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
       current_state_monitor_->startStateMonitor();
-    
+
     if (!current_state_monitor_->waitForCurrentState(1.0))
       ROS_WARN("Joint values for monitored state are requested but the full state is not known");
-    
+
     const std::map<std::string, double> &vars = current_state_monitor_->getCurrentStateValues();
     for (std::map<std::string, double>::const_iterator it = vars.begin() ; it != vars.end() ; ++it)
       d[it->first] = it->second;
-    
+
     return d;
   }
-  
+
   const char* getRobotRootLink() const
   {
     return robot_model_->getRootLinkName().c_str();
@@ -199,7 +199,7 @@ public:
   {
     return robot_model_->hasJointModelGroup(group);
   }
-  
+
 private:
   robot_model::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
@@ -209,7 +209,7 @@ private:
 static void wrap_robot_interface()
 {
   using namespace moveit;
-  
+
   bp::class_<RobotInterfacePython> RobotClass("RobotInterface", bp::init<std::string>());
 
   RobotClass.def("get_joint_names", &RobotInterfacePython::getJointNames);

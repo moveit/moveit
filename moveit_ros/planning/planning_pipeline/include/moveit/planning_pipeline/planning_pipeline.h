@@ -59,23 +59,23 @@ public:
                    const ros::NodeHandle &nh = ros::NodeHandle("~"),
                    const std::string &planning_plugin_param_name = "planning_plugin",
                    const std::string &adapter_plugins_param_name = "request_adapters");
-  
-  PlanningPipeline(const robot_model::RobotModelConstPtr& model, 
+
+  PlanningPipeline(const robot_model::RobotModelConstPtr& model,
                    const ros::NodeHandle &nh,
                    const std::string &planning_plugin_name,
                    const std::vector<std::string> &adapter_plugin_names);
-  
+
   void displayComputedMotionPlans(bool flag);
-  
+
   void publishReceivedRequests(bool flag);
-  
+
   void checkSolutionPaths(bool flag);
-  
+
   bool getDisplayComputedMotionPlans() const
   {
     return display_computed_motion_plans_;
   }
-  
+
   bool getPublishReceivedRequests() const
   {
     return publish_received_requests_;
@@ -85,11 +85,11 @@ public:
   {
     return check_solution_paths_;
   }
-  
+
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                     const planning_interface::MotionPlanRequest& req,
                     planning_interface::MotionPlanResponse& res) const;
-  
+
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                     const planning_interface::MotionPlanRequest& req,
                     planning_interface::MotionPlanResponse& res,
@@ -97,12 +97,12 @@ public:
 
   /// Request termination, if a generatePlan() function is currently computing plans
   void terminate() const;
-  
+
   const std::string& getPlannerPluginName() const
   {
     return planner_plugin_name_;
   }
-  
+
   const std::vector<std::string>& getAdapterPluginNames() const
   {
     return adapter_plugin_names_;
@@ -112,16 +112,16 @@ public:
   {
     return planner_instance_;
   }
-  
+
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
   }
 
 private:
-  
+
   void configure();
-  
+
   ros::NodeHandle nh_;
 
   /// Flag indicating whether motion plans should be published as a moveit_msgs::DisplayTrajectory
@@ -135,17 +135,17 @@ private:
   boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
   planning_interface::PlannerManagerPtr planner_instance_;
   std::string planner_plugin_name_;
-  
+
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
   boost::scoped_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
   std::vector<std::string> adapter_plugin_names_;
 
   robot_model::RobotModelConstPtr kmodel_;
-  
+
   /// Flag indicating whether the reported plans should be checked once again, by the planning pipeline itself
   bool check_solution_paths_;
   ros::Publisher contacts_publisher_;
-  
+
 };
 
 typedef boost::shared_ptr<PlanningPipeline> PlanningPipelinePtr;

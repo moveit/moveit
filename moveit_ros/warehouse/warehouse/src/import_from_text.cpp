@@ -154,7 +154,7 @@ void parseGoal(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *p
   int count;
   in >> count;
 
-  // Convert to getLine method from here-on, so eat the line break. 
+  // Convert to getLine method from here-on, so eat the line break.
   std::string end_link;
   std::getline(in, end_link);
 

@@ -55,7 +55,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
 {
   // set up the GUI
   ui_->setupUi(this);
-  
+
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
   // to keep the GUI more responsive (using the background job processing)
   connect( ui_->plan_button, SIGNAL( clicked() ), this, SLOT( planButtonClicked() ));
@@ -109,13 +109,13 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect(copy_object_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedCollisionObject() ) );
 
   ui_->reset_db_button->hide();
-  ui_->background_job_progress->hide(); 
+  ui_->background_job_progress->hide();
   ui_->background_job_progress->setMaximum(0);
 
   ui_->tabWidget->setCurrentIndex(0);
-  
+
   known_collision_objects_version_ = 0;
-  
+
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
@@ -124,7 +124,7 @@ MotionPlanningFrame::~MotionPlanningFrame()
 {
 }
 
-void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list) 
+void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list)
 {
   QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
   for (std::size_t i = 0 ; i < found_items.size(); ++i)
@@ -132,28 +132,28 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
 }
 
 void MotionPlanningFrame::fillStateSelectionOptions()
-{ 
+{
   ui_->start_state_selection->clear();
   ui_->goal_state_selection->clear();
-  
+
   if (!planning_display_->getPlanningSceneMonitor())
     return;
-  
+
   const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
-  std::string group = planning_display_->getCurrentPlanningGroup(); 
+  std::string group = planning_display_->getCurrentPlanningGroup();
   if (group.empty())
     return;
   const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
   if (jmg)
-  {      
+  {
     ui_->start_state_selection->addItem(QString("<random>"));
     ui_->start_state_selection->addItem(QString("<current>"));
     ui_->start_state_selection->addItem(QString("<same as goal>"));
-    
+
     ui_->goal_state_selection->addItem(QString("<random>"));
     ui_->goal_state_selection->addItem(QString("<current>"));
     ui_->goal_state_selection->addItem(QString("<same as start>"));
-    
+
     std::vector<std::string> known_states;
     jmg->getKnownDefaultStates(known_states);
     if (!known_states.empty())
@@ -175,12 +175,12 @@ void MotionPlanningFrame::changePlanningGroupHelper()
 {
   if (!planning_display_->getPlanningSceneMonitor())
     return;
-  
+
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::fillStateSelectionOptions, this));
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
 
   const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
-  std::string group = planning_display_->getCurrentPlanningGroup(); 
+  std::string group = planning_display_->getCurrentPlanningGroup();
 
   if (!group.empty() && kmodel)
   {
@@ -208,7 +208,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       if (move_group_->getInterfaceDescription(desc))
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
       planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this), "populateConstraintsList");
-      
+
       if (first_time_)
       {
         first_time_ = false;
@@ -217,10 +217,10 @@ void MotionPlanningFrame::changePlanningGroupHelper()
         {
           planning_display_->setQueryStartState(ps->getCurrentState());
           planning_display_->setQueryGoalState(ps->getCurrentState());
-        }        
+        }
       }
     }
-  } 
+  }
 }
 
 void MotionPlanningFrame::changePlanningGroup()
@@ -246,14 +246,14 @@ void MotionPlanningFrame::importResource(const std::string &path)
       shapes::ShapeConstPtr shape(mesh);
       Eigen::Affine3d pose;
       pose.setIdentity();
-      
+
       if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))
       {
         QMessageBox::warning(this, QString("Duplicate names"),
                              QString("An attached object named '").append(name.c_str()).append("' already exists. Please rename the attached object before importing."));
         return;
       }
-      
+
       //If the object already exists, ask the user whether to overwrite or rename
       if (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(name))
       {
@@ -263,7 +263,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
         msgBox.setDefaultButton(QMessageBox::No);
         int ret = msgBox.exec();
-        
+
         switch (ret)
         {
           case QMessageBox::Yes:
@@ -314,7 +314,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
       {
         planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
         if (ps)
-          addObject(ps->getWorldNonConst(), name, shape, pose);  
+          addObject(ps->getWorldNonConst(), name, shape, pose);
       }
     }
     else
@@ -327,11 +327,11 @@ void MotionPlanningFrame::importResource(const std::string &path)
 
 void MotionPlanningFrame::enable()
 {
-  ui_->planning_algorithm_combo_box->clear();  
+  ui_->planning_algorithm_combo_box->clear();
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
   ui_->library_label->setStyleSheet("QLabel { color : red; font: bold }");
   ui_->object_status->setText("");
-  
+
   // activate the frame
   show();
 }

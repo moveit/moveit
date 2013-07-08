@@ -42,15 +42,15 @@ namespace moveit_rviz_plugin
 class PlanningLinkUpdater : public rviz::LinkUpdater
 {
 public:
-  
+
   PlanningLinkUpdater(const robot_state::RobotStateConstPtr &state)
     : kinematic_state_(state)
   {
   }
-  
+
   virtual bool getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
                                  Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const;
-  
+
 private:
   robot_state::RobotStateConstPtr kinematic_state_;
 };

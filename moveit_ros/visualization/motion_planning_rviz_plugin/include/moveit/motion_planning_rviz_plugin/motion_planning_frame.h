@@ -68,12 +68,12 @@ class RobotStateStorage;
 namespace moveit_rviz_plugin
 {
 class MotionPlanningDisplay;
-  
+
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
   Q_OBJECT
-  
+
 public:
   MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
   ~MotionPlanningFrame();
@@ -88,13 +88,13 @@ protected:
   static const int ITEM_TYPE_QUERY = 2;
 
   void constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq);
-  
+
   void updateSceneMarkers(float wall_dt, float ros_dt);
 
-  MotionPlanningDisplay *planning_display_;  
+  MotionPlanningDisplay *planning_display_;
   rviz::DisplayContext* context_;
   Ui::MotionPlanningUI *ui_;
-  
+
   boost::shared_ptr<moveit::planning_interface::MoveGroup> move_group_;
 
   boost::shared_ptr<moveit::planning_interface::MoveGroup::Plan> current_plan_;
@@ -107,7 +107,7 @@ protected:
   typedef std::map<std::string, moveit_msgs::RobotState> RobotStateMap;
   typedef std::pair<std::string, moveit_msgs::RobotState> RobotStatePair;
   RobotStateMap robot_states_;
- 
+
 private Q_SLOTS:
 
   //Context tab
@@ -117,14 +117,14 @@ private Q_SLOTS:
   void resetDbButtonClicked();
 
   //Planning tab
-  void planButtonClicked();  
+  void planButtonClicked();
   void executeButtonClicked();
   void planAndExecuteButtonClicked();
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
   void pathConstraintsIndexChanged(int index);
   void useStartStateButtonClicked();
-  void useGoalStateButtonClicked();  
+  void useGoalStateButtonClicked();
 
   //Scene Objects tab
   void importFileButtonClicked();
@@ -141,7 +141,7 @@ private Q_SLOTS:
   void copySelectedCollisionObject();
   void exportAsTextButtonClicked();
   void importFromTextButtonClicked();
-  
+
   //Stored scenes tab
   void saveSceneButtonClicked();
   void planningSceneItemClicked();
@@ -163,7 +163,7 @@ private Q_SLOTS:
 
   //General
   void tabChanged(int index);
-  
+
 private:
 
   //Context tab
@@ -173,14 +173,14 @@ private:
   void populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc);
 
   //Planning tab
-  void computePlanButtonClicked();  
+  void computePlanButtonClicked();
   void computeExecuteButtonClicked();
-  void computePlanAndExecuteButtonClicked(); 
+  void computePlanAndExecuteButtonClicked();
   void computePlanAndExecuteButtonClickedDisplayHelper();
   void populateConstraintsList();
   void populateConstraintsList(const std::vector<std::string> &constr);
   void configureForPlanning();
-  void configureWorkspace();  
+  void configureWorkspace();
   void updateQueryStateHelper(robot_state::RobotState &state, const std::string &v);
   void fillStateSelectionOptions();
 
@@ -194,7 +194,7 @@ private:
   void populateCollisionObjectsList();
   void computeImportFromText(const std::string &path);
   void computeExportAsText(const std::string &path);
-    
+
   //Stored scenes tab
   void computeSaveSceneButtonClicked();
   void computeSaveQueryButtonClicked(const std::string &scene, const std::string &query_name);
@@ -214,24 +214,23 @@ private:
   //General
   void changePlanningGroupHelper();
   void importResource(const std::string &path);
-  
+
 
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
-  
+
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
 
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
-  
+
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
   long unsigned int known_collision_objects_version_;
   bool first_time_;
-  
+
 };
 
 }
 
 #endif
-

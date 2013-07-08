@@ -55,21 +55,21 @@ namespace pick_place
 struct ManipulationPlanSharedData
 {
   std::string planning_group_;
-  
+
   std::string end_effector_group_;
-  
+
   std::string ik_link_name_;
-  
+
   unsigned int max_goal_sampling_attempts_;
 
   std::string planner_id_;
-  
+
   bool minimize_object_distance_;
-  
+
   moveit_msgs::Constraints path_constraints_;
 
   moveit_msgs::AttachedCollisionObject diff_attached_object_;
-  
+
   ros::WallTime timeout_;
 };
 
@@ -78,12 +78,12 @@ typedef boost::shared_ptr<const ManipulationPlanSharedData> ManipulationPlanShar
 
 struct ManipulationPlan
 {
-  ManipulationPlan(const ManipulationPlanSharedDataConstPtr &shared_data) : 
+  ManipulationPlan(const ManipulationPlanSharedDataConstPtr &shared_data) :
     shared_data_(shared_data),
     processing_stage_(0)
   {
   }
-  
+
   /// Restore this plan to a state that makes it look like it never was processed by the manipulation pipeline
   void clear()
   {
@@ -93,36 +93,36 @@ struct ManipulationPlan
     possible_goal_states_.clear();
     processing_stage_ = 0;
   }
-  
+
   // Shared data between manipulation plans (set at initialization)
   ManipulationPlanSharedDataConstPtr shared_data_;
-  
+
   // the approach motion towards the goal
   manipulation_msgs::GripperTranslation approach_;
-  
+
   // the retreat motion away from the goal
   manipulation_msgs::GripperTranslation retreat_;
-  
+
   sensor_msgs::JointState approach_posture_;
-  
+
   sensor_msgs::JointState retreat_posture_;
-  
+
   // -------------- computed data --------------------------
   geometry_msgs::PoseStamped goal_pose_;
   Eigen::Affine3d transformed_goal_pose_;
-  
+
   moveit_msgs::Constraints goal_constraints_;
   constraint_samplers::ConstraintSamplerPtr goal_sampler_;
   std::vector<robot_state::RobotStatePtr> possible_goal_states_;
-  
+
   robot_state::RobotStatePtr approach_state_;
-  
+
   // The sequence of trajectories produced for execution
   std::vector<plan_execution::ExecutableTrajectory> trajectories_;
-  
+
   // An error code reflecting what went wrong (if anything)
   moveit_msgs::MoveItErrorCodes error_code_;
-  
+
   // The processing stage that was last working on this plan, or was about to work on this plan
   std::size_t processing_stage_;
 };

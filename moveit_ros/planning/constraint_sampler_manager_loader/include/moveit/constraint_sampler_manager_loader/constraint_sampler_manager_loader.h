@@ -44,23 +44,23 @@ namespace constraint_sampler_manager_loader
 {
 
 class ConstraintSamplerManagerLoader
-{ 
+{
 public:
 
   ConstraintSamplerManagerLoader(const constraint_samplers::ConstraintSamplerManagerPtr &csm = constraint_samplers::ConstraintSamplerManagerPtr());
-  
+
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager() const
   {
     return constraint_sampler_manager_;
   }
-  
+
 private:
-  
+
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
   class Helper;
   boost::shared_ptr<Helper> impl_;
-  
+
 };
 
 typedef boost::shared_ptr<ConstraintSamplerManagerLoader> ConstraintSamplerManagerLoaderPtr;

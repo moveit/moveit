@@ -52,7 +52,7 @@ namespace trajectory_execution_manager
 
 // Two modes:
 // Managed controllers
-// Unmanaged controllers: given the trajectory, 
+// Unmanaged controllers: given the trajectory,
 class TrajectoryExecutionManager
 {
 public:
@@ -68,43 +68,43 @@ public:
   /// Data structure that represents information necessary to execute a trajectory
   struct TrajectoryExecutionContext
   {
-    /// The controllers to use for executing the different trajectory parts; 
+    /// The controllers to use for executing the different trajectory parts;
     std::vector<std::string> controllers_;
-    
+
     // The trajectory to execute, split in different parts (by joints), each set of joints corresponding to one controller
     std::vector<moveit_msgs::RobotTrajectory> trajectory_parts_;
   };
-  
+
   /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel);
-  
+
   /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, bool manage_controllers);
 
   /// Destructor. Cancels all running trajectories (if any)
   ~TrajectoryExecutionManager();
-  
+
   /// If this function returns true, then this instance of the manager is allowed to load/unload/switch controllers
   bool isManagingControllers() const;
-  
+
   /// Get the instance of the controller manager used (this is the plugin instance loaded)
   const moveit_controller_manager::MoveItControllerManagerPtr& getControllerManager() const;
-  
+
   /** \brief Execute a named event (e.g., 'stop') */
   void processEvent(const std::string &event);
 
   /** \brief Make sure the active controllers are such that trajectories that actuate joints in the specified group can be executed.
       \note If manage_controllers_ is false and the controllers that happen to be active do not cover the joints in the group to be actuated, this function fails. */
   bool ensureActiveControllersForGroup(const std::string &group);
-  
+
   /** \brief Make sure the active controllers are such that trajectories that actuate joints in the specified set can be executed.
       \note If manage_controllers_ is false and the controllers that happen to be active do not cover the joints to be actuated, this function fails. */
   bool ensureActiveControllersForJoints(const std::vector<std::string> &joints);
-  
+
   /** \brief Make sure a particular controller is active.
       \note If manage_controllers_ is false and the controllers that happen to be active to not include the one specified as argument, this function fails. */
   bool ensureActiveController(const std::string &controller);
-  
+
   /** \brief Make sure a particular set of controllers are active.
       \note If manage_controllers_ is false and the controllers that happen to be active to not include the ones specified as argument, this function fails. */
   bool ensureActiveControllers(const std::vector<std::string> &controllers);
@@ -130,10 +130,10 @@ public:
   /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the already loaded ones.
   /// If no controller is specified, a default is used.
   bool push(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
-  
+
   /// Get the trajectories to be executed
   const std::vector<TrajectoryExecutionContext*>& getTrajectories() const;
-  
+
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback &callback = ExecutionCompleteCallback(), bool auto_clear = true);
 
@@ -170,25 +170,25 @@ public:
 
   /// Wait until the execution is complete. This applies for executions started by either execute() or pushAndExecute()
   moveit_controller_manager::ExecutionStatus waitForExecution();
-  
+
   /// Get the state that the robot is expected to be at, given current time, after execute() has been called. The return value is a pair of two index values:
   /// first = the index of the trajectory to be executed (in the order push() was called), second = the index of the point within that trajectory.
   /// Values of -1 are returned when there is no trajectory being executed, or if the trajectory was passed using pushAndExecute().
   std::pair<int, int> getCurrentExpectedTrajectoryIndex() const;
-  
-  /// Return the controller status for the last attempted execution 
+
+  /// Return the controller status for the last attempted execution
   moveit_controller_manager::ExecutionStatus getLastExecutionStatus() const;
-    
+
   /// Stop whatever executions are active, if any
   void stopExecution(bool auto_clear = true);
-  
+
   /// Clear the trajectories to execute
   void clear();
-  
+
   /// Enable or disable the monitoring of trajectory execution duration. If a controller takes
   /// longer than expected, the trajectory is canceled
   void enableExecutionDurationMonitoring(bool flag);
-  
+
   /// When determining the expected duration of a trajectory, this multiplicative factor is applied
   /// to get the allowed duration of execution
   void setAllowedExecutionDurationScaling(double scaling);
@@ -196,7 +196,7 @@ public:
   /// Before sending a trajectory to a controller, scale the velocities by the factor specified.
   /// By default, this is 1.0
   void setExecutionVelocityScaling(double scaling);
-  
+
 private:
 
   struct ControllerInformation
@@ -206,7 +206,7 @@ private:
     std::set<std::string> overlapping_controllers_;
     moveit_controller_manager::MoveItControllerManager::ControllerState state_;
     ros::Time last_update_;
-    
+
     bool operator<(ControllerInformation &other) const
     {
       if (joints_.size() != other.joints_.size())
@@ -220,37 +220,37 @@ private:
   void reloadControllerInformation();
 
   bool configure(TrajectoryExecutionContext &context, const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
-  
+
   void updateControllersState(const ros::Duration &age);
   void updateControllerState(const std::string &controller, const ros::Duration &age);
   void updateControllerState(ControllerInformation &ci, const ros::Duration &age);
 
   bool distributeTrajectory(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers, std::vector<moveit_msgs::RobotTrajectory> &parts);
-  
+
   bool findControllers(const std::set<std::string> &actuated_joints, std::size_t controller_count, const std::vector<std::string> &available_controllers, std::vector<std::string> &selected_controllers);
   bool checkControllerCombination(std::vector<std::string> &controllers, const std::set<std::string> &actuated_joints);
-  void generateControllerCombination(std::size_t start_index, std::size_t controller_count, const std::vector<std::string> &available_controllers, 
+  void generateControllerCombination(std::size_t start_index, std::size_t controller_count, const std::vector<std::string> &available_controllers,
                                      std::vector<std::string> &selected_controllers, std::vector< std::vector<std::string> > &selected_options,
                                      const std::set<std::string> &actuated_joints);
   bool selectControllers(const std::set<std::string> &actuated_joints, const std::vector<std::string> &available_controllers, std::vector<std::string> &selected_controllers);
-  
+
   void executeThread(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear);
   bool executePart(std::size_t part_index);
   void continuousExecutionThread();
-  
+
 
   void stopExecutionInternal();
-  
+
   void receiveEvent(const std_msgs::StringConstPtr &event);
 
   robot_model::RobotModelConstPtr kinematic_model_;
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;
   ros::Subscriber event_topic_subscriber_;
-  
+
   std::map<std::string, ControllerInformation> known_controllers_;
   bool manage_controllers_;
-  
+
   // thread used to execute trajectories using the execute() command
   boost::scoped_ptr<boost::thread> execution_thread_;
 
@@ -259,7 +259,7 @@ private:
 
   boost::mutex execution_state_mutex_;
   boost::mutex continuous_execution_mutex_;
-  
+
   boost::condition_variable continuous_execution_condition_;
 
   // this condition is used to notify the completion of execution for given trajectories
@@ -276,15 +276,15 @@ private:
   bool run_continuous_execution_thread_;
   std::vector<TrajectoryExecutionContext*> trajectories_;
   std::deque<TrajectoryExecutionContext*> continuous_execution_queue_;
-  
+
   boost::scoped_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> > controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
 
   bool verbose_;
 
   class DynamicReconfigureImpl;
-  DynamicReconfigureImpl *reconfigure_impl_; 
-  
+  DynamicReconfigureImpl *reconfigure_impl_;
+
   bool execution_duration_monitoring_;
   double allowed_execution_duration_scaling_;
   double execution_velocity_scaling_;

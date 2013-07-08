@@ -82,7 +82,7 @@ OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octre
     cloud_[i]->setRenderMode(rviz::PointCloud::RM_BOXES);
     scene_node_->attachObject(cloud_[i]);
   }
-  
+
   octreeDecoding(octree,
                  octree_voxel_rendering,
                  octree_color_mode);

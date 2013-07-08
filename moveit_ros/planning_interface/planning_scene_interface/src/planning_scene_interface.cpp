@@ -47,12 +47,12 @@ namespace planning_interface
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
-  
+
   PlanningSceneInterfaceImpl()
   {
     planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
   }
-  
+
   std::vector<std::string> getKnownObjectNames(bool with_type)
   {
     moveit_msgs::GetPlanningScene::Request request;
@@ -86,8 +86,8 @@ public:
     for (std::size_t i = 0; i < response.scene.world.collision_objects.size() ; ++i)
     {
       if (with_type && !response.scene.world.collision_objects[i].type.key.empty())
-        continue;   
-      if (response.scene.world.collision_objects[i].mesh_poses.empty() && 
+        continue;
+      if (response.scene.world.collision_objects[i].mesh_poses.empty() &&
           response.scene.world.collision_objects[i].primitive_poses.empty())
         continue;
       bool good = true;
@@ -118,7 +118,7 @@ public:
     }
     return result;
   }
-  
+
 private:
 
   ros::NodeHandle node_handle_;
@@ -128,7 +128,7 @@ private:
 
 PlanningSceneInterface::PlanningSceneInterface()
 {
-  impl_ = new PlanningSceneInterfaceImpl();  
+  impl_ = new PlanningSceneInterfaceImpl();
 }
 
 PlanningSceneInterface::~PlanningSceneInterface()
@@ -149,4 +149,3 @@ std::vector<std::string> PlanningSceneInterface::getKnownObjectNamesInROI(double
 
 }
 }
-

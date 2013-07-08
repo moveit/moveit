@@ -48,7 +48,7 @@ namespace rdf_loader
  *  @brief Default constructor
  *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded*/
 class RDFLoader
-{ 
+{
 public:
   /** @brief Default constructor
    *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded; the SRDF is assumed to be at the same param name + the "_semantic" suffix */
@@ -65,7 +65,7 @@ public:
   {
     return robot_description_;
   }
-  
+
   /** @brief Get the parsed URDF model*/
   const boost::shared_ptr<urdf::ModelInterface>& getURDF() const
   {
@@ -77,13 +77,13 @@ public:
   {
     return srdf_;
   }
-  
+
 private:
-  
+
   std::string                             robot_description_;
   boost::shared_ptr<srdf::Model>          srdf_;
   boost::shared_ptr<urdf::ModelInterface> urdf_;
-  
+
 };
 
 typedef boost::shared_ptr<RDFLoader> RDFLoaderPtr;

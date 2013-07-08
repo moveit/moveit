@@ -45,7 +45,7 @@ BackgroundProcessing::BackgroundProcessing()
 
 BackgroundProcessing::~BackgroundProcessing()
 {
-  run_processing_thread_ = false; 
+  run_processing_thread_ = false;
   new_action_condition_.notify_all();
   processing_thread_->join();
 }
@@ -58,7 +58,7 @@ void BackgroundProcessing::processingThread()
   {
     while (actions_.empty() && run_processing_thread_)
       new_action_condition_.wait(ulock);
-    
+
     while (!actions_.empty())
     {
       boost::function<void()> fn = actions_.front();
@@ -66,7 +66,7 @@ void BackgroundProcessing::processingThread()
       actions_.pop_front();
       action_names_.pop_front();
       processing_ = true;
-      
+
       // make sure we are unlocked while we process the event
       action_lock_.unlock();
       try
@@ -74,7 +74,7 @@ void BackgroundProcessing::processingThread()
         ROS_DEBUG("Begin executing '%s'", action_name.c_str());
         fn();
         ROS_DEBUG("Done executing '%s'", action_name.c_str());
-      } 
+      }
       catch(std::runtime_error &ex)
       {
         ROS_ERROR("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());

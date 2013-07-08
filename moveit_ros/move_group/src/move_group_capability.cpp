@@ -52,21 +52,21 @@ void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execut
     for (std::size_t i = 0 ; i < trajectory.size() ; ++i)
     {
       if (trajectory[i].trajectory_)
-      {          
+      {
         if (first && !trajectory[i].trajectory_->empty())
         {
           robot_state::robotStateToRobotStateMsg(trajectory[i].trajectory_->getFirstWayPoint(), first_state_msg);
           first = false;
         }
         trajectory[i].trajectory_->getRobotTrajectoryMsg(trajectory_msg[i]);
-      }        
+      }
     }
   }
 }
 
 void move_group::MoveGroupCapability::convertToMsg(const robot_trajectory::RobotTrajectoryPtr &trajectory,
                                                    moveit_msgs::RobotState &first_state_msg, moveit_msgs::RobotTrajectory &trajectory_msg) const
-{     
+{
   if (trajectory && !trajectory->empty())
   {
     robot_state::robotStateToRobotStateMsg(trajectory->getFirstWayPoint(), first_state_msg);
@@ -182,7 +182,7 @@ bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStampe
     pose_msg.header.frame_id = target_frame;
     return true;
   }
-  
+
   try
   {
     std::string error;
@@ -190,10 +190,10 @@ bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStampe
     context_->planning_scene_monitor_->getTFClient()->getLatestCommonTime(pose_msg.header.frame_id, target_frame, common_time, &error);
     if (!error.empty())
       ROS_ERROR("TF Problem: %s", error.c_str());
-    
+
     tf::Stamped<tf::Pose> pose_tf, pose_tf_out;
     tf::poseStampedMsgToTF(pose_msg, pose_tf);
-    pose_tf.stamp_ = common_time;    
+    pose_tf.stamp_ = common_time;
     context_->planning_scene_monitor_->getTFClient()->transformPose(target_frame, pose_tf, pose_tf_out);
     tf::poseStampedTFToMsg(pose_tf_out, pose_msg);
   }

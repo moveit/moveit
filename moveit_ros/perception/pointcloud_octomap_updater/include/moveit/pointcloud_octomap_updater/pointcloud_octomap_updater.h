@@ -53,12 +53,12 @@ namespace occupancy_map_monitor
 class PointCloudOctomapUpdater : public OccupancyMapUpdater
 {
 public:
-  
+
   PointCloudOctomapUpdater();
   virtual ~PointCloudOctomapUpdater();
-  
+
   virtual bool setParams(XmlRpc::XmlRpcValue &params);
-  
+
   virtual bool initialize();
   virtual void start();
   virtual void stop();
@@ -68,17 +68,17 @@ public:
 protected:
 
   virtual void updateMask(const pcl::PointCloud<pcl::PointXYZ> &cloud, const Eigen::Vector3d &sensor_origin, std::vector<int> &mask);
-    
+
 private:
-  
+
   bool getShapeTransform(ShapeHandle h, Eigen::Affine3d &transform) const;
   void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
   void stopHelper();
 
-  ros::NodeHandle root_nh_; 
+  ros::NodeHandle root_nh_;
   ros::NodeHandle private_nh_;
   boost::shared_ptr<tf::Transformer> tf_;
-  
+
   /* params */
   std::string point_cloud_topic_;
   double scale_;
@@ -87,17 +87,17 @@ private:
   unsigned int point_subsample_;
   std::string filtered_cloud_topic_;
   ros::Publisher filtered_cloud_publisher_;
-  
+
   message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
   tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
-  
+
   /* used to store all cells in the map which a given ray passes through during raycasting.
      we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */
   octomap::KeyRay key_ray_;
-  
+
   boost::scoped_ptr<point_containment_filter::ShapeMask> shape_mask_;
   std::vector<int> mask_;
-  
+
 };
 
 }

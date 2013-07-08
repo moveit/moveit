@@ -41,7 +41,7 @@
 namespace kdl_kinematics_plugin
 {
 
-/** \brief A model of a mimic joint. Mimic joints are typically unactuated joints 
+/** \brief A model of a mimic joint. Mimic joints are typically unactuated joints
 that are constrained to follow the motion of another joint. The constraint is linear, i.e.
 joint_angle_constrained_joint = joint_angle_mimicked_joint*multiplier + offset
 */
@@ -60,14 +60,14 @@ public:
   /** \brief Name of this joint */
   std::string joint_name;
   /** \brief If true, this joint is an active DOF and not a mimic joint*/
-  bool active;  
-  
+  bool active;
+
   void reset(unsigned int index)
   {
     offset = 0.0;
     multiplier = 1.0;
-    map_index = index;    
-    active = false;    
+    map_index = index;
+    active = false;
   };
 };
 

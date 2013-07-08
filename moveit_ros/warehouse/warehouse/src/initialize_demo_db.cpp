@@ -51,7 +51,7 @@
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
 int main(int argc, char **argv)
-{ 
+{
   ros::init(argc, argv, "initialize_demo_db", ros::init_options::AnonymousName);
 
   boost::program_options::options_description desc;
@@ -59,20 +59,20 @@ int main(int argc, char **argv)
     ("help", "Show help message")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
     ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
-  
+
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
-  
+
   if (vm.count("help"))
   {
     std::cout << desc << std::endl;
     return 1;
   }
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   ros::NodeHandle nh;
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
   if (!psm.getPlanningScene())
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
   bool done = false;
   unsigned int attempts = 0;
   while (!done && attempts < 5)
-  { 
+  {
     attempts++;
     try
     {
@@ -97,14 +97,14 @@ int main(int argc, char **argv)
       pss.reset();
       cs.reset();
       rs.reset();
-      
+
       // add default planning scenes
       moveit_msgs::PlanningScene psmsg;
       psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
       psmsg.name = "default";
       pss.addPlanningScene(psmsg);
       ROS_INFO("Added default scene: '%s'", psmsg.name.c_str());
-      
+
       moveit_msgs::RobotState rsmsg;
       robot_state::robotStateToRobotStateMsg(psm.getPlanningScene()->getCurrentState(), rsmsg);
       rs.addRobotState(rsmsg, "default");
@@ -119,25 +119,25 @@ int main(int argc, char **argv)
         const std::vector<std::string> &lnames = jmg->getLinkModelNames();
         if (lnames.empty())
           continue;
-        
+
         moveit_msgs::OrientationConstraint ocm;
         ocm.link_name = lnames.back();
         ocm.header.frame_id = psm.getRobotModel()->getModelFrame();
         ocm.orientation.x = 0.0;
         ocm.orientation.y = 0.0;
-	ocm.orientation.z = 0.0;
-	ocm.orientation.w = 1.0;
+    ocm.orientation.z = 0.0;
+    ocm.orientation.w = 1.0;
         ocm.absolute_x_axis_tolerance = 0.1;
         ocm.absolute_y_axis_tolerance = 0.1;
         ocm.absolute_z_axis_tolerance = boost::math::constants::pi<double>();
         ocm.weight = 1.0;
         moveit_msgs::Constraints cmsg;
         cmsg.orientation_constraints.resize(1, ocm);
-        cmsg.name = ocm.link_name + ":upright"; 
-        cs.addConstraints(cmsg, psm.getRobotModel()->getName(), jmg->getName());    
+        cmsg.name = ocm.link_name + ":upright";
+        cs.addConstraints(cmsg, psm.getRobotModel()->getName(), jmg->getName());
         ROS_INFO("Added default constraint: '%s'", cmsg.name.c_str());
       }
-      done = true; 
+      done = true;
       ROS_INFO("Default MoveIt! Warehouse was reset. Done.");
     }
     catch(mongo_ros::DbConnectException &ex)
@@ -148,6 +148,6 @@ int main(int argc, char **argv)
   }
 
   ros::shutdown();
-  
+
   return 0;
 }

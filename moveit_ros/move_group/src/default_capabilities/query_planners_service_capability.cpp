@@ -49,7 +49,7 @@ void move_group::MoveGroupQueryPlannersService::initialize()
 }
 
 bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
-{    
+{
   const planning_interface::PlannerManagerPtr &planner_interface = context_->planning_pipeline_->getPlannerManager();
   if (planner_interface)
   {
@@ -63,5 +63,5 @@ bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::Quer
   return true;
 }
 
-#include <class_loader/class_loader.h> 
+#include <class_loader/class_loader.h>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupQueryPlannersService, move_group::MoveGroupCapability)

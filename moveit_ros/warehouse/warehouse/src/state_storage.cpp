@@ -57,7 +57,7 @@ void moveit_warehouse::RobotStateStorage::reset()
 {
   state_collection_.reset();
   MoveItMessageStorage::drop(DATABASE_NAME);
-  createCollections();  
+  createCollections();
 }
 
 void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::RobotState &msg, const std::string &name, const std::string &robot)
@@ -122,7 +122,7 @@ void moveit_warehouse::RobotStateStorage::renameRobotState(const std::string &ol
   if (!robot.empty())
     q.append(ROBOT_NAME, robot);
   mongo_ros::Metadata m(STATE_NAME, new_name);
-  state_collection_->modifyMetadata(q, m);  
+  state_collection_->modifyMetadata(q, m);
   ROS_DEBUG("Renamed robot state from '%s' to '%s'", old_name.c_str(), new_name.c_str());
 }
 

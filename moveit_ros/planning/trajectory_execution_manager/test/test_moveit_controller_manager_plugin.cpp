@@ -37,4 +37,3 @@
 
 PLUGINLIB_EXPORT_CLASS(test_moveit_controller_manager::TestMoveItControllerManager,
                        moveit_controller_manager::MoveItControllerManager);
-

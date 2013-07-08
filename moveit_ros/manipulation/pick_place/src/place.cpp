@@ -49,9 +49,9 @@ PlacePlan::PlacePlan(const PickPlaceConstPtr &pick_place) : PickPlacePlanBase(pi
 {
 }
 
-bool PlacePlan::transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose, 
-					   const robot_state::AttachedBody* attached_body,
-					   geometry_msgs::PoseStamped &place_pose) const
+bool PlacePlan::transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose,
+                       const robot_state::AttachedBody* attached_body,
+                       geometry_msgs::PoseStamped &place_pose) const
 {
   const EigenSTL::vector_Affine3d& fixed_transforms = attached_body->getFixedTransforms();
   if (fixed_transforms.empty())
@@ -71,7 +71,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   std::string attached_object_name = goal.attached_object_name;
   const robot_model::JointModelGroup *jmg = NULL;
   const robot_model::JointModelGroup *eef = NULL;
-  
+
   if (planning_scene->getRobotModel()->hasEndEffector(goal.group_name))
   {
     eef = planning_scene->getRobotModel()->getEndEffector(goal.group_name);
@@ -93,22 +93,22 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       }
     }
   }
-  
+
   if (!jmg)
   {
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return false;
   }
-  
+
   // try to infer attached body name if possible
   int loop_count = 0;
   while (attached_object_name.empty() && loop_count < 2)
   {
     // in the first try, look for objects attached to the eef, if the eef is known;
     // otherwise, look for attached bodies in the planning group itself
-    const std::vector<std::string> &links = loop_count == 0 ? 
+    const std::vector<std::string> &links = loop_count == 0 ?
       (eef ? eef->getLinkModelNames() : jmg->getLinkModelNames()) : jmg->getLinkModelNames();
-    // if we had no eef, there is no more looping to do, so we bump the loop count 
+    // if we had no eef, there is no more looping to do, so we bump the loop count
     if (loop_count == 0 && !eef)
       loop_count++;
     loop_count++;
@@ -116,7 +116,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     {
       const robot_state::LinkState *ls = planning_scene->getCurrentState().getLinkState(links[i]);
       if (ls)
-      {  
+      {
         std::vector<const robot_state::AttachedBody*> attached_bodies;
         ls->getAttachedBodies(attached_bodies);
         if (attached_bodies.empty())
@@ -132,7 +132,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       }
     }
   }
-  
+
   const robot_state::AttachedBody *attached_body = planning_scene->getCurrentState().getAttachedBody(attached_object_name);
   if (!attached_body)
   {
@@ -140,12 +140,12 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME;
     return false;
   }
-  
+
   ros::WallTime start_time = ros::WallTime::now();
 
   // construct common data for possible manipulation plans
   ManipulationPlanSharedDataPtr plan_data(new ManipulationPlanSharedData());
-  ManipulationPlanSharedDataConstPtr const_plan_data = plan_data;  
+  ManipulationPlanSharedDataConstPtr const_plan_data = plan_data;
   plan_data->planning_group_ = jmg->getName();
   plan_data->end_effector_group_ = eef ? eef->getName() : "";
   plan_data->ik_link_name_ = eef ? eef->getEndEffectorParentGroup().second : "";
@@ -160,45 +160,45 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   detach_object_msg.link_name = attached_body->getAttachedLinkName();
   detach_object_msg.object.id = attached_object_name;
   detach_object_msg.object.operation = moveit_msgs::CollisionObject::REMOVE;
-  
+
   collision_detection::AllowedCollisionMatrixPtr approach_place_acm(new collision_detection::AllowedCollisionMatrix(planning_scene->getAllowedCollisionMatrix()));
-  
+
   // we are allowed to touch certain other objects with the gripper
   approach_place_acm->setEntry(eef->getLinkModelNames(), goal.allowed_touch_objects, true);
 
   // we are allowed to touch the target object slightly while retreating the end effector
   std::vector<std::string> touch_links(attached_body->getTouchLinks().begin(), attached_body->getTouchLinks().end());
   approach_place_acm->setEntry(attached_object_name, touch_links, true);
-  
+
   if (!goal.support_surface_name.empty())
   {
     // we are allowed to have contact between the target object and the support surface before the place
     approach_place_acm->setEntry(goal.support_surface_name, attached_object_name, true);
-    
+
     // optionally, it may be allowed to touch the support surface with the gripper
     if (goal.allow_gripper_support_collision && eef)
       approach_place_acm->setEntry(goal.support_surface_name, eef->getLinkModelNames(), true);
   }
-  
-  
+
+
   // configure the manipulation pipeline
   pipeline_.reset();
-  
+
   ManipulationStagePtr stage1(new ReachableAndValidPoseFilter(planning_scene, approach_place_acm, pick_place_->getConstraintsSamplerManager()));
   ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, approach_place_acm));
-  ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline())); 
+  ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline()));
   pipeline_.addStage(stage1).addStage(stage2).addStage(stage3);
 
   initialize();
-  
+
   pipeline_.start();
-  
+
   // add possible place locations
   for (std::size_t i = 0 ; i < goal.place_locations.size() ; ++i)
   {
     ManipulationPlanPtr p(new ManipulationPlan(const_plan_data));
     const manipulation_msgs::PlaceLocation &pl = goal.place_locations[i];
-    // The goals are specified for the attached body 
+    // The goals are specified for the attached body
     // but we want to transform them into goals for the end-effector instead
     transformToEndEffectorGoal(pl.place_pose, attached_body, p->goal_pose_);
     p->approach_ = pl.approach;
@@ -208,15 +208,15 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       p->retreat_posture_ = attached_body->getDetachPosture();
     pipeline_.push(p);
   }
-  ROS_INFO("Added %d place locations", (int) goal.place_locations.size());  
+  ROS_INFO("Added %d place locations", (int) goal.place_locations.size());
 
   // wait till we're done
   waitForPipeline(endtime);
-  
+
   pipeline_.stop();
-  
+
   last_plan_time_ = (ros::WallTime::now() - start_time).toSec();
-  
+
   if (!getSuccessfulManipulationPlans().empty())
     error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
@@ -241,7 +241,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     }
   }
   ROS_INFO("Place completed after %lf seconds", last_plan_time_);
-  
+
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
@@ -252,14 +252,14 @@ PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr &p
     p->plan(planning_scene, goal);
   else
     p->plan(planning_scene->diff(goal.planning_options.planning_scene_diff), goal);
-  
+
   if (display_computed_motion_plans_)
   {
     const std::vector<pick_place::ManipulationPlanPtr> &success = p->getSuccessfulManipulationPlans();
     if (!success.empty())
       visualizePlan(success.back());
   }
-  
+
   if (display_grasps_)
   {
     const std::vector<pick_place::ManipulationPlanPtr> &success = p->getSuccessfulManipulationPlans();
@@ -267,9 +267,8 @@ PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr &p
     const std::vector<pick_place::ManipulationPlanPtr> &failed = p->getFailedManipulationPlans();
     visualizeGrasps(failed);
   }
-  
+
   return p;
 }
 
 }
-

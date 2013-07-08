@@ -58,7 +58,7 @@ void PlanningSceneRender::clear()
   render_shapes_->clear();
 }
 
-void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
+void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene,
                                               const rviz::Color &default_env_color,
                                               const rviz::Color &default_attached_color,
                                               OctreeVoxelRenderMode octree_voxel_rendering,
@@ -67,9 +67,9 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
 {
   if (!scene)
     return;
-  
+
   clear();
-  
+
   if (scene_robot_)
   {
     robot_state::RobotStateConstPtr ks(new robot_state::RobotState(scene->getCurrentState()));
@@ -82,7 +82,7 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     scene->getKnownObjectColors(color_map);
     scene_robot_->update(ks, color, color_map);
   }
-  
+
   const std::vector<std::string> &ids = scene->getWorld()->getObjectIds();
   for (std::size_t i = 0 ; i < ids.size() ; ++i)
   {

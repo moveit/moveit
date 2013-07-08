@@ -52,107 +52,107 @@ namespace default_planner_request_adapters
 class AddTimeParameterization : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  
+
   AddTimeParameterization() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
   /*
   void reflexxesComputeTime(robot_trajectory::RobotTrajectory &traj) const
   {
-    
+
     boost::scoped_ptr<ReflexxesAPI> RML;
     boost::scoped_ptr<RMLPositionInputParameters> IP;
     boost::scoped_ptr<RMLPositionOutputParameters> OP;
     RMLPositionFlags Flags;
-    
+
     // ********************************************************************
-    // Creating all relevant objects of the Reflexxes Motion Library	
-    
+    // Creating all relevant objects of the Reflexxes Motion Library
+
     RML.reset(new ReflexxesAPI(7, 0.01));
     IP.reset(new RMLPositionInputParameters(7));
     OP.reset(new RMLPositionOutputParameters(7));
-    
+
     std::vector<double> v;
     traj.getFirstWayPoint().getJointStateGroup(traj.getGroup()->getName())->getVariableValues(v);
-    
+
     for (int i = 0; i < 7 ; ++i)
     {
-      IP->CurrentPositionVector->VecData		[i]	=	   v[i]; // rad
-      IP->CurrentVelocityVector->VecData		[i]	=	   0.0		; // rad/s
-      IP->CurrentAccelerationVector->VecData	        [i]	=	   0.0		; // not needed for type 2
-      IP->MaxVelocityVector->VecData			[i]	=	   1.5		; // rad/s
-      IP->MaxAccelerationVector->VecData		[i]	=	   1.0		; // 
-      IP->MaxJerkVector->VecData			[i]	=	   0.1		; // not needed for type 2
-      IP->TargetPositionVector->VecData		        [i]	=	   v[i]; // first waypoint
-      IP->TargetVelocityVector->VecData		        [i]	=	   0.0		; // velocity at first waypoint
-      IP->SelectionVector->VecData			[i]	=	  true		;
-    }	
+      IP->CurrentPositionVector->VecData        [i]    =       v[i]; // rad
+      IP->CurrentVelocityVector->VecData        [i]    =       0.0        ; // rad/s
+      IP->CurrentAccelerationVector->VecData            [i]    =       0.0        ; // not needed for type 2
+      IP->MaxVelocityVector->VecData            [i]    =       1.5        ; // rad/s
+      IP->MaxAccelerationVector->VecData        [i]    =       1.0        ; //
+      IP->MaxJerkVector->VecData            [i]    =       0.1        ; // not needed for type 2
+      IP->TargetPositionVector->VecData                [i]    =       v[i]; // first waypoint
+      IP->TargetVelocityVector->VecData                [i]    =       0.0        ; // velocity at first waypoint
+      IP->SelectionVector->VecData            [i]    =      true        ;
+    }
     bool error = false;
     for (std::size_t i = 1 ; !error && i < traj.getWayPointCount() ; ++i)
     {
       int ResultValue = 0;
       double totalt = 0.0;
-      
+
       while (ResultValue != ReflexxesAPI::RML_FINAL_STATE_REACHED)
       {
-        
-        // ****************************************************************									
+
+        // ****************************************************************
         // Wait for the next timer tick
         // (not implemented in this example in order to keep it simple)
-        // ****************************************************************	
-        
+        // ****************************************************************
+
         // Calling the Reflexxes OTG algorithm
-        ResultValue	=	RML->RMLPosition(*IP,	OP.get(),	Flags);
-        
+        ResultValue    =    RML->RMLPosition(*IP,    OP.get(),    Flags);
+
         if (ResultValue < 0)
         {
-          printf("An error occurred (%d).\n", ResultValue	);
+          printf("An error occurred (%d).\n", ResultValue    );
           error = true;
           break;
         }
-        
+
         totalt += 0.01;
-        
-        
-        // ****************************************************************									
+
+
+        // ****************************************************************
         // Here, the new state of motion, that is
         //
-        // - OP->NewPositionVector		
-        // - OP->NewVelocityVector		
+        // - OP->NewPositionVector
+        // - OP->NewVelocityVector
         // - OP->NewAccelerationVector
         //
-        // can be used as input values for lower level controllers. In the 
-        // most simple case, a position controller in actuator space is 
-        // used, but the computed state can be applied to many other 
-        // controllers (e.g., Cartesian impedance controllers, 
+        // can be used as input values for lower level controllers. In the
+        // most simple case, a position controller in actuator space is
+        // used, but the computed state can be applied to many other
+        // controllers (e.g., Cartesian impedance controllers,
         // operational space controllers).
         // ****************************************************************
-        
+
         // ****************************************************************
-        // Feed the output values of the current control cycle back to 
+        // Feed the output values of the current control cycle back to
         // input values of the next control cycle
-        
-        *IP->CurrentPositionVector		=	*OP->NewPositionVector		;
-        *IP->CurrentVelocityVector		=	*OP->NewVelocityVector		;
-        *IP->CurrentAccelerationVector	        =	*OP->NewAccelerationVector	;
+
+        *IP->CurrentPositionVector        =    *OP->NewPositionVector        ;
+        *IP->CurrentVelocityVector        =    *OP->NewVelocityVector        ;
+        *IP->CurrentAccelerationVector            =    *OP->NewAccelerationVector    ;
       }
       std::cout << "T" << i << " :" << totalt << std::endl;
-      
+
       traj.setWayPointDurationFromPrevious(i, totalt);
       traj.getWayPoint(i).getJointStateGroup(traj.getGroup()->getName())->getVariableValues(v);
       for (int k = 0 ; k < 7 ; ++k)
-        IP->TargetPositionVector->VecData[k] = v[k];      
+        IP->TargetPositionVector->VecData[k] = v[k];
     }
   }
   */
   virtual std::string getDescription() const { return "Add Time Parameterization"; }
-  
+
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const planning_interface::MotionPlanRequest &req, 
+                            const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
-  { 
+  {
     bool result = planner(planning_scene, req, res);
     if (result && res.trajectory_)
     {
@@ -160,12 +160,12 @@ public:
       if (!time_param_.computeTimeStamps(*res.trajectory_))
         ROS_WARN("Time parametrization for the solution path failed.");
     }
-    
+
     return result;
-  }   
-  
+  }
+
 private:
-  
+
   trajectory_processing::IterativeParabolicTimeParameterization time_param_;
 };
 

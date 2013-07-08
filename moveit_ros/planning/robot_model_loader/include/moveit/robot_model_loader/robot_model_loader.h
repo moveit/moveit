@@ -48,7 +48,7 @@ namespace robot_model_loader
 class RobotModelLoader
 {
 public:
-  
+
   /** @brief Structure that encodes the options to be passed to the RobotModelLoader constructor */
   struct Options
   {
@@ -58,20 +58,20 @@ public:
       srdf_doc_(NULL),
       load_kinematics_solvers_(true)
     {
-    }  
+    }
 
     Options(const std::string &urdf_string, const std::string &srdf_string) :
       urdf_string_(urdf_string),
       srdf_string_(srdf_string),
       urdf_doc_(NULL),
-      srdf_doc_(NULL),      
+      srdf_doc_(NULL),
       load_kinematics_solvers_(true)
     {
-    }  
+    }
 
     Options(TiXmlDocument *urdf_doc, TiXmlDocument *srdf_doc) :
       urdf_doc_(urdf_doc),
-      srdf_doc_(srdf_doc),      
+      srdf_doc_(srdf_doc),
       load_kinematics_solvers_(true)
     {
     }
@@ -79,38 +79,38 @@ public:
     /**  @brief The string name corresponding to the ROS param where the URDF is loaded; Using the same parameter name plus the "_planning" suffix, additional configuration can be specified (e.g., additional joint limits).
          Loading from the param server is attempted only if loading from string fails. */
     std::string robot_description_;
-    
+
     /** @brief The string content of the URDF and SRDF documents. Loading from string is attempted only if loading from XML fails */
     std::string urdf_string_, srdf_string_;
 
     /** @brief The parsed XML content of the URDF and SRDF documents. */
     TiXmlDocument *urdf_doc_, *srdf_doc_;
-        
+
     /** @brief Flag indicating whether the kinematics solvers should be loaded as well, using specified ROS parameters */
     bool load_kinematics_solvers_;
-    
+
   };
-  
-    
+
+
   /** @brief Default constructor */
   RobotModelLoader(const Options &opt = Options());
 
   RobotModelLoader(const std::string &robot_description, bool load_kinematics_solvers = true);
-  
+
   ~RobotModelLoader();
-  
+
   /** @brief Get the constructed planning_models::RobotModel */
   const robot_model::RobotModelPtr& getModel() const
   {
     return model_;
   }
-  
+
   /** @brief Get the resolved parameter name for the robot description */
   const std::string& getRobotDescription() const
   {
     return rdf_loader_->getRobotDescription();
   }
-  
+
   /** @brief Get the parsed URDF model*/
   const boost::shared_ptr<urdf::ModelInterface>& getURDF() const
   {
@@ -129,7 +129,7 @@ public:
     return rdf_loader_;
   }
 
-  /** \brief Get the kinematics solvers plugin loader. 
+  /** \brief Get the kinematics solvers plugin loader.
       \note This instance needs to be kept in scope, otherwise kinematics solver plugins may get unloaded. */
   const kinematics_plugin_loader::KinematicsPluginLoaderPtr& getKinematicsPluginLoader() const
   {
@@ -138,16 +138,16 @@ public:
 
   /** @brief Get a map from group name to a configured instance of a kinematic solver */
   std::map<std::string, kinematics::KinematicsBasePtr> generateKinematicsSolversMap() const;
-  
+
   /** @brief Load the kinematics solvers into the kinematic model. This is done by default, unless disabled explicitly by the options passed to the constructor */
   void loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kloader = kinematics_plugin_loader::KinematicsPluginLoaderPtr());
-  
+
 private:
 
   void configure(const Options &opt);
-  
+
   robot_model::RobotModelPtr model_;
-  rdf_loader::RDFLoaderPtr rdf_loader_; 
+  rdf_loader::RDFLoaderPtr rdf_loader_;
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
 
 };

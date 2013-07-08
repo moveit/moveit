@@ -63,12 +63,12 @@ public:
     MoveGroup(Options(group_name, robot_description), boost::shared_ptr<tf::Transformer>(), ros::Duration(5, 0))
   {
   }
-  
+
   bool setJointValueTargetPerJointPythonList(const std::string &joint, bp::list &values)
   {
     return setJointValueTarget(joint, py_bindings_tools::doubleFromList(values));
   }
-  
+
   bool setJointValueTargetPythonList(bp::list &values)
   {
     return setJointValueTarget(py_bindings_tools::doubleFromList(values));
@@ -76,39 +76,39 @@ public:
 
   bool setJointValueTargetPythonDict(bp::dict &values)
   {
-    bp::list k = values.keys(); 
+    bp::list k = values.keys();
     int l = bp::len(k);
     std::map<std::string, double> v;
     for (int i = 0; i < l ; ++i)
       v[bp::extract<std::string>(k[i])] = bp::extract<double>(values[k[i]]);
     return setJointValueTarget(v);
   }
-  
+
   void rememberJointValuesFromPythonList(const std::string &string, bp::list &values)
   {
     rememberJointValues(string, py_bindings_tools::doubleFromList(values));
   }
-  
+
   const char* getPlanningFrameCStr() const
   {
     return getPlanningFrame().c_str();
   }
-  
+
   bp::list getJointsList() const
   {
     return py_bindings_tools::listFromString(getJoints());
   }
 
-  bp::list getCurrentJointValuesList() 
+  bp::list getCurrentJointValuesList()
   {
     return py_bindings_tools::listFromDouble(getCurrentJointValues());
   }
-  
-  bp::list getRandomJointValuesList() 
+
+  bp::list getRandomJointValuesList()
   {
     return py_bindings_tools::listFromDouble(getRandomJointValues());
   }
-  
+
   bp::dict getRememberedJointValuesPython() const
   {
     const std::map<std::string, std::vector<double> > &rv = getRememberedJointValues();
@@ -117,7 +117,7 @@ public:
       d[it->first] = py_bindings_tools::listFromDouble(it->second);
     return d;
   }
-  
+
   bp::list convertPoseToList(const geometry_msgs::Pose &pose) const
   {
     std::vector<double> v(7);
@@ -167,12 +167,12 @@ public:
     p.orientation.z = v[5];
     p.orientation.w = v[6];
   }
-  
+
   bp::list getCurrentRPYPython(const std::string &end_effector_link = "")
   {
     return py_bindings_tools::listFromDouble(getCurrentRPY(end_effector_link));
   }
-  
+
   bp::list getCurrentPosePython(const std::string &end_effector_link = "")
   {
     geometry_msgs::PoseStamped pose = getCurrentPose(end_effector_link);
@@ -184,12 +184,12 @@ public:
     geometry_msgs::PoseStamped pose = getRandomPose(end_effector_link);
     return convertPoseToList(pose.pose);
   }
-  
+
   bp::list getKnownConstraintsList() const
   {
     return py_bindings_tools::listFromString(getKnownConstraints());
   }
-  
+
   bool placePython(const std::string &object_name, const bp::list &pose)
   {
     geometry_msgs::PoseStamped msg;
@@ -198,9 +198,9 @@ public:
     msg.header.stamp = ros::Time::now();
     return place(object_name, msg);
   }
-  
+
   void convertListToArrayOfPoses(const bp::list &poses, std::vector<geometry_msgs::Pose> &msg)
-  { 
+  {
     int l = bp::len(poses);
     for (int i = 0; i < l ; ++i)
     {
@@ -208,7 +208,7 @@ public:
       std::vector<double> v = py_bindings_tools::doubleFromList(pose);
       if (v.size() == 6 || v.size() == 7)
       {
-        Eigen::Affine3d p = v.size() == 6 ? 
+        Eigen::Affine3d p = v.size() == 6 ?
           Eigen::Affine3d(Eigen::AngleAxisd(v[3], Eigen::Vector3d::UnitX())
                           * Eigen::AngleAxisd(v[4], Eigen::Vector3d::UnitY())
                           * Eigen::AngleAxisd(v[5], Eigen::Vector3d::UnitZ())) :
@@ -222,7 +222,7 @@ public:
         ROS_WARN("Incorrect number of values for a pose: %u", (unsigned int)v.size());
     }
   }
-  
+
   bool setPoseTargetsPython(bp::list &poses, const std::string &end_effector_link = "")
   {
     std::vector<geometry_msgs::Pose> msg;
@@ -241,8 +241,8 @@ public:
       {
         msg.orientation.x = v[3];
         msg.orientation.y = v[4];
-        msg.orientation.z = v[5];  
-        msg.orientation.w = v[6];  
+        msg.orientation.z = v[5];
+        msg.orientation.w = v[6];
       }
       else
       {
@@ -251,20 +251,20 @@ public:
       }
     msg.position.x = v[0];
     msg.position.y = v[1];
-    msg.position.z = v[2];      
+    msg.position.z = v[2];
     return setPoseTarget(msg, end_effector_link);
   }
 
   const char* getEndEffectorLinkCStr() const
   {
     return getEndEffectorLink().c_str();
-  }  
-  
+  }
+
   const char* getPoseReferenceFrameCStr() const
   {
     return getPoseReferenceFrame().c_str();
   }
-  
+
   const char* getNameCStr() const
   {
     return getName().c_str();
@@ -276,7 +276,7 @@ public:
     convertDictToTrajectory(plan_dict, plan.trajectory_);
     return execute(plan);
   }
-  
+
   void convertDictToTrajectory(const bp::dict &plan, moveit_msgs::RobotTrajectory &traj) const
   {
     traj.joint_trajectory.joint_names = py_bindings_tools::stringFromList(bp::extract<bp::list>(plan["joint_trajectory"]["joint_names"]));
@@ -293,7 +293,7 @@ public:
       pt.velocities = py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["velocities"]));
       pt.accelerations = py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["accelerations"]));
       pt.time_from_start = ros::Duration(bp::extract<double>(joint_trajectory_points[i]["time_from_start"]));
-      traj.joint_trajectory.points.push_back(pt);       
+      traj.joint_trajectory.points.push_back(pt);
     }
     const bp::list &multi_dof_joint_trajectory_points = bp::extract<bp::list>(plan["multi_dof_joint_trajectory"]["points"]);
     l = boost::python::len(multi_dof_joint_trajectory_points);
@@ -304,16 +304,16 @@ public:
       int lk = boost::python::len(tf);
       for (int k = 0 ; k < lk ; ++k)
       {
-	geometry_msgs::Transform tf_msg;
-	convertListToTransform(bp::extract<bp::list>(tf[k]), tf_msg);
-	pt.transforms.push_back(tf_msg);
+    geometry_msgs::Transform tf_msg;
+    convertListToTransform(bp::extract<bp::list>(tf[k]), tf_msg);
+    pt.transforms.push_back(tf_msg);
       }
       pt.time_from_start = ros::Duration(bp::extract<double>(multi_dof_joint_trajectory_points[i]["time_from_start"]));
-      traj.multi_dof_joint_trajectory.points.push_back(pt);       
+      traj.multi_dof_joint_trajectory.points.push_back(pt);
     }
-     
+
   }
-  
+
   bp::dict convertTrajectoryToDict(moveit_msgs::RobotTrajectory &traj) const
   {
     bp::list joint_names = py_bindings_tools::listFromString(traj.joint_trajectory.joint_names);
@@ -322,7 +322,7 @@ public:
     multi_dof_joint_trajectory["joint_names"] = joint_names;
     joint_trajectory["frame_id"] = traj.joint_trajectory.header.frame_id;
     multi_dof_joint_trajectory["frame_id"] = traj.multi_dof_joint_trajectory.header.frame_id;
-    
+
     bp::list joint_traj_points;
     for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = traj.joint_trajectory.points.begin() ;
          it != traj.joint_trajectory.points.end() ; ++it)
@@ -336,7 +336,7 @@ public:
     }
 
     joint_trajectory["points"] = joint_traj_points;
-    
+
     bp::list multi_dof_traj_points;
     for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = traj.multi_dof_joint_trajectory.points.begin() ;
          it != traj.multi_dof_joint_trajectory.points.end() ; ++it)
@@ -373,15 +373,15 @@ public:
     return bp::make_tuple(convertTrajectoryToDict(trajectory), fraction);
   }
 
-};  
-  
+};
+
 static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string, std::string>());
 
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
   MoveGroupClass.def("move", &MoveGroupWrapper::move);
-  MoveGroupClass.def("execute", &MoveGroupWrapper::executePython); 
+  MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
   bool (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
   MoveGroupClass.def("place", &MoveGroupWrapper::placePython);
@@ -389,19 +389,19 @@ static void wrap_move_group_interface()
 
   MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);
   MoveGroupClass.def("get_planning_frame", &MoveGroupWrapper::getPlanningFrameCStr);
-  
+
   MoveGroupClass.def("get_joints", &MoveGroupWrapper::getJointsList);
   MoveGroupClass.def("get_variable_count", &MoveGroupWrapper::getVariableCount);
   MoveGroupClass.def("allow_looking", &MoveGroupWrapper::allowLooking);
   MoveGroupClass.def("allow_replanning", &MoveGroupWrapper::allowReplanning);
-  
+
   MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);
-  
+
   MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);
   MoveGroupClass.def("set_end_effector_link", &MoveGroupWrapper::setEndEffectorLink);
   MoveGroupClass.def("get_end_effector_link", &MoveGroupWrapper::getEndEffectorLinkCStr);
   MoveGroupClass.def("get_pose_reference_frame", &MoveGroupWrapper::getPoseReferenceFrameCStr);
-  
+
   MoveGroupClass.def("set_pose_target", &MoveGroupWrapper::setPoseTargetPython);
 
   MoveGroupClass.def("set_pose_targets", &MoveGroupWrapper::setPoseTargetsPython);
@@ -409,7 +409,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_position_target", &MoveGroupWrapper::setPositionTarget);
   MoveGroupClass.def("set_rpy_target", &MoveGroupWrapper::setRPYTarget);
   MoveGroupClass.def("set_orientation_target", &MoveGroupWrapper::setOrientationTarget);
-  
+
   MoveGroupClass.def("get_current_pose", &MoveGroupWrapper::getCurrentPosePython);
   MoveGroupClass.def("get_current_rpy", &MoveGroupWrapper::getCurrentRPYPython);
 
@@ -427,35 +427,35 @@ static void wrap_move_group_interface()
   bool (MoveGroupWrapper::*setJointValueTarget_5)(const sensor_msgs::JointState &) = &MoveGroupWrapper::setJointValueTarget;
   MoveGroupClass.def("set_joint_value_target", setJointValueTarget_5);
 
-  MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget); 
-  MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget); 
+  MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget);
+  MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget);
 
   void (MoveGroupWrapper::*rememberJointValues_2)(const std::string&) = &MoveGroupWrapper::rememberJointValues;
   MoveGroupClass.def("remember_joint_values", rememberJointValues_2);
-  
+
   MoveGroupClass.def("remember_joint_values",  &MoveGroupWrapper::rememberJointValuesFromPythonList);
 
   MoveGroupClass.def("get_current_joint_values",  &MoveGroupWrapper::getCurrentJointValuesList);
   MoveGroupClass.def("get_random_joint_values",  &MoveGroupWrapper::getRandomJointValuesList);
   MoveGroupClass.def("get_remembered_joint_values",  &MoveGroupWrapper::getRememberedJointValuesPython);
 
-  MoveGroupClass.def("forget_joint_values", &MoveGroupWrapper::forgetJointValues); 
+  MoveGroupClass.def("forget_joint_values", &MoveGroupWrapper::forgetJointValues);
 
-  MoveGroupClass.def("get_goal_joint_tolerance", &MoveGroupWrapper::getGoalJointTolerance); 
-  MoveGroupClass.def("get_goal_position_tolerance", &MoveGroupWrapper::getGoalPositionTolerance); 
-  MoveGroupClass.def("get_goal_orientation_tolerance", &MoveGroupWrapper::getGoalOrientationTolerance); 
+  MoveGroupClass.def("get_goal_joint_tolerance", &MoveGroupWrapper::getGoalJointTolerance);
+  MoveGroupClass.def("get_goal_position_tolerance", &MoveGroupWrapper::getGoalPositionTolerance);
+  MoveGroupClass.def("get_goal_orientation_tolerance", &MoveGroupWrapper::getGoalOrientationTolerance);
 
-  MoveGroupClass.def("set_goal_joint_tolerance", &MoveGroupWrapper::setGoalJointTolerance); 
-  MoveGroupClass.def("set_goal_position_tolerance", &MoveGroupWrapper::setGoalPositionTolerance); 
-  MoveGroupClass.def("set_goal_orientation_tolerance", &MoveGroupWrapper::setGoalOrientationTolerance); 
-  MoveGroupClass.def("set_goal_tolerance", &MoveGroupWrapper::setGoalTolerance); 
+  MoveGroupClass.def("set_goal_joint_tolerance", &MoveGroupWrapper::setGoalJointTolerance);
+  MoveGroupClass.def("set_goal_position_tolerance", &MoveGroupWrapper::setGoalPositionTolerance);
+  MoveGroupClass.def("set_goal_orientation_tolerance", &MoveGroupWrapper::setGoalOrientationTolerance);
+  MoveGroupClass.def("set_goal_tolerance", &MoveGroupWrapper::setGoalTolerance);
 
   bool (MoveGroupWrapper::*setPathConstraints_1)(const std::string&) = &MoveGroupWrapper::setPathConstraints;
   MoveGroupClass.def("set_path_constraints", setPathConstraints_1);
 
-  MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints); 
+  MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints);
   MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
-  MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase); 
+  MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase);
   MoveGroupClass.def("set_workspace", &MoveGroupWrapper::setWorkspace);
   MoveGroupClass.def("set_planning_time", &MoveGroupWrapper::setPlanningTime);
   MoveGroupClass.def("get_planning_time", &MoveGroupWrapper::getPlanningTime);

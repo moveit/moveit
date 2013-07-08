@@ -51,48 +51,48 @@ typedef boost::function<void(const robot_state::RobotStateConstPtr &state, const
 class TrajectoryMonitor
 {
 public:
-  
+
   /** @brief Constructor.
    */
   TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency = 5.0);
-  
+
   ~TrajectoryMonitor();
-  
+
   void startTrajectoryMonitor();
-  
+
   void stopTrajectoryMonitor();
-  
+
   void clearTrajectory();
-  
+
   bool isActive() const;
 
   double getSamplingFrequency() const
   {
     return sampling_frequency_;
   }
-  
+
   void setSamplingFrequency(double sampling_frequency);
-  
+
   /// Return the current maintained trajectory. This function is not thread safe (hence NOT const), because the trajectory could be modified.
   const robot_trajectory::RobotTrajectory& getTrajectory()
   {
     return trajectory_;
   }
-  
+
   void swapTrajectory(robot_trajectory::RobotTrajectory &other)
   {
     trajectory_.swap(other);
   }
-  
+
   void setOnStateAddCallback(const TrajectoryStateAddedCallback &callback)
   {
     state_add_callback_ = callback;
   }
-  
+
 private:
-  
+
   void recordStates();
-  
+
   CurrentStateMonitorConstPtr current_state_monitor_;
   double sampling_frequency_;
 

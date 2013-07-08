@@ -46,13 +46,13 @@ namespace move_group
 class MoveGroupQueryPlannersService : public MoveGroupCapability
 {
 public:
-  
+
   MoveGroupQueryPlannersService();
 
   virtual void initialize();
-  
+
 private:
-  
+
   bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res);
 
   ros::ServiceServer query_service_;

@@ -42,13 +42,13 @@ static const std::string ROBOT_DESCRIPTION="robot_description";
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "visualize_robot_collision_volume");
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   double radius = 0.02;
   double lifetime = 600.0;
-  
+
   boost::shared_ptr<tf::TransformListener> tr(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tr);
   if (psm.getPlanningScene())
@@ -61,12 +61,12 @@ int main(int argc, char **argv)
     std::cout << "\nListening for planning scene...\nType the number of spheres to generate and press Enter: " << std::endl;
     int N;
     std::cin >> N;
-    
-    
+
+
     planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
     std::vector<double> aabb;
     scene->getCurrentState().computeAABB(aabb);
-    
+
     // publish the bounding box
     visualization_msgs::Marker mk;
     mk.header.stamp = ros::Time::now();
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     visualization_msgs::MarkerArray arr;
     arr.markers.push_back(mk);
     pub_markers.publish(arr);
-    
+
 
     Eigen::Affine3d t;
     t.setIdentity();
@@ -143,6 +143,6 @@ int main(int argc, char **argv)
       }
     }
   }
-  
+
   return 0;
 }

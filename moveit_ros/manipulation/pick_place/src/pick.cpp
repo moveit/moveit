@@ -54,12 +54,12 @@ struct OrderGraspQuality
   OrderGraspQuality(const std::vector<manipulation_msgs::Grasp> &grasps) : grasps_(grasps)
   {
   }
-  
+
   bool operator()(const std::size_t a, const std::size_t b) const
   {
     return grasps_[a].grasp_quality > grasps_[b].grasp_quality;
   }
-  
+
   const std::vector<manipulation_msgs::Grasp> &grasps_;
 };
 }
@@ -68,7 +68,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
 {
   double timeout = goal.allowed_planning_time;
   ros::WallTime endtime = ros::WallTime::now() + ros::WallDuration(timeout);
-  
+
   std::string planning_group = goal.group_name;
   std::string end_effector = goal.end_effector;
   if (end_effector.empty() && !planning_group.empty())
@@ -93,12 +93,12 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       const robot_model::JointModelGroup *jmg = planning_scene->getRobotModel()->getEndEffector(end_effector);
       if (!jmg)
       {
-        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;  
+        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
         return false;
       }
       planning_group = jmg->getEndEffectorParentGroup().first;
       ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
-    }      
+    }
   const robot_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getRobotModel()->getEndEffector(end_effector);
   if (!eef)
   {
@@ -122,45 +122,45 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   plan_data->minimize_object_distance_ = goal.minimize_object_distance;
   plan_data->max_goal_sampling_attempts_ = std::max(2u, planning_scene->getRobotModel()->getJointModelGroup(planning_group)->getDefaultIKAttempts());
   moveit_msgs::AttachedCollisionObject &attach_object_msg = plan_data->diff_attached_object_;
-  
+
   // construct the attached object message that will change the world to what it would become after a pick
-  attach_object_msg.link_name = ik_link; 
+  attach_object_msg.link_name = ik_link;
   attach_object_msg.object.id = goal.target_name;
   attach_object_msg.object.operation = moveit_msgs::CollisionObject::ADD;
   attach_object_msg.touch_links = goal.attached_object_touch_links.empty() ? eef->getLinkModelNames() : goal.attached_object_touch_links;
   collision_detection::AllowedCollisionMatrixPtr approach_grasp_acm(new collision_detection::AllowedCollisionMatrix(planning_scene->getAllowedCollisionMatrix()));
-  
+
   // we are allowed to touch the target object
   approach_grasp_acm->setEntry(goal.target_name, attach_object_msg.touch_links, true);
   // we are allowed to touch certain other objects with the gripper
   approach_grasp_acm->setEntry(eef->getLinkModelNames(), goal.allowed_touch_objects, true);
   if (!goal.support_surface_name.empty())
   {
-    // we are allowed to have contact between the target object and the support surface before the grasp 
+    // we are allowed to have contact between the target object and the support surface before the grasp
     approach_grasp_acm->setEntry(goal.support_surface_name, goal.target_name, true);
-    
+
     // optionally, it may be allowed to touch the support surface with the gripper
     if (goal.allow_gripper_support_collision)
       approach_grasp_acm->setEntry(goal.support_surface_name, eef->getLinkModelNames(), true);
   }
-  
+
   // configure the manipulation pipeline
   pipeline_.reset();
   ManipulationStagePtr stage1(new ReachableAndValidPoseFilter(planning_scene, approach_grasp_acm, pick_place_->getConstraintsSamplerManager()));
   ManipulationStagePtr stage2(new ApproachAndTranslateStage(planning_scene, approach_grasp_acm));
-  ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline())); 
+  ManipulationStagePtr stage3(new PlanStage(planning_scene, pick_place_->getPlanningPipeline()));
   pipeline_.addStage(stage1).addStage(stage2).addStage(stage3);
-  
+
   initialize();
   pipeline_.start();
-  
+
   // order the grasps by quality
   std::vector<std::size_t> grasp_order(goal.possible_grasps.size());
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
     grasp_order[i] = i;
   OrderGraspQuality oq(goal.possible_grasps);
   std::sort(grasp_order.begin(), grasp_order.end(), oq);
-  
+
   // feed the available grasps to the stages we set up
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
   {
@@ -176,13 +176,13 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     p->retreat_posture_ = g.grasp_posture;
     pipeline_.push(p);
   }
-  
+
   // wait till we're done
   waitForPipeline(endtime);
   pipeline_.stop();
-  
+
   last_plan_time_ = (ros::WallTime::now() - start_time).toSec();
-  
+
   if (!getSuccessfulManipulationPlans().empty())
     error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
@@ -207,12 +207,12 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     }
   }
   ROS_INFO("Pickup completed after %lf seconds", last_plan_time_);
-  
+
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
 PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::PickupGoal &goal) const
-{ 
+{
   PickPlanPtr p(new PickPlan(shared_from_this()));
 
   if (planning_scene::PlanningScene::isEmpty(goal.planning_options.planning_scene_diff))
@@ -226,7 +226,7 @@ PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &pla
     if (!success.empty())
       visualizePlan(success.back());
   }
-    
+
   if (display_grasps_)
   {
     const std::vector<pick_place::ManipulationPlanPtr> &success = p->getSuccessfulManipulationPlans();
@@ -234,9 +234,8 @@ PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr &pla
     const std::vector<pick_place::ManipulationPlanPtr> &failed = p->getFailedManipulationPlans();
     visualizeGrasps(failed);
   }
-  
+
   return p;
 }
 
 }
-

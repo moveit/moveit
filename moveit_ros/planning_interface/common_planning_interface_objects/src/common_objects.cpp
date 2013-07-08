@@ -50,9 +50,9 @@ struct SharedStorage
   {
     tf_.reset();
     state_monitors_.clear();
-    model_loaders_.clear(); 
+    model_loaders_.clear();
   }
-  
+
   boost::mutex lock_;
   boost::shared_ptr<tf::Transformer> tf_;
   std::map<std::string, robot_model_loader::RobotModelLoaderPtr> model_loaders_;
@@ -81,7 +81,7 @@ boost::shared_ptr<tf::Transformer> getSharedTF()
 }
 
 robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_description)
-{ 
+{
   SharedStorage &s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
   if (s.model_loaders_.find(robot_description) != s.model_loaders_.end())
@@ -97,7 +97,7 @@ robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_des
 }
 
 planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
-{  
+{
   SharedStorage &s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
   if (s.state_monitors_.find(kmodel->getName()) != s.state_monitors_.end())

@@ -57,7 +57,7 @@ void runCollisionDetection(unsigned int id, unsigned int trials, const planning_
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "evaluate_collision_checking_speed");
-  
+
   unsigned int nthreads = 2;
   unsigned int trials = 10000;
   boost::program_options::options_description desc;
@@ -70,19 +70,19 @@ int main(int argc, char **argv)
   boost::program_options::parsed_options po = boost::program_options::parse_command_line(argc, argv, desc);
   boost::program_options::store(po, vm);
   boost::program_options::notify(vm);
-  
+
   if (vm.count("help"))
   {
     std::cout << desc << std::endl;
     return 0;
   }
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
   if (psm.getPlanningScene())
-  {  
+  {
     if (vm.count("wait"))
     {
       psm.startWorldGeometryMonitor();
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     }
     else
       ros::Duration(0.5).sleep();
-    
+
     std::vector<robot_state::RobotStatePtr> states;
     ROS_INFO("Sampling %u valid states...", nthreads);
     for (unsigned int i = 0 ; i < nthreads ; ++i)
@@ -110,12 +110,12 @@ int main(int argc, char **argv)
       } while (true);
       states.push_back(robot_state::RobotStatePtr(state));
     }
-    
+
     std::vector<boost::thread*> threads;
-    
+
     for (unsigned int i = 0 ; i < states.size() ; ++i)
       threads.push_back(new boost::thread(boost::bind(&runCollisionDetection, i, trials, psm.getPlanningScene().get(), states[i].get())));
-    
+
     for (unsigned int i = 0 ; i < states.size() ; ++i)
     {
       threads[i]->join();
@@ -124,6 +124,6 @@ int main(int argc, char **argv)
   }
   else
     ROS_ERROR("Planning scene not configured");
-  
+
   return 0;
 }

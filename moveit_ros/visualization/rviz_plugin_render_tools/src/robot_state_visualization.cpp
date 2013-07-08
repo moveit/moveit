@@ -44,7 +44,7 @@ RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode* root_node, rvi
   visible_(true),
   visual_visible_(true),
   collision_visible_(false)
-{ 
+{
   default_attached_object_color_.r = 0.0f;
   default_attached_object_color_.g = 0.7f;
   default_attached_object_color_.b = 0.0f;
@@ -54,7 +54,7 @@ RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode* root_node, rvi
 
 void RobotStateVisualization::load(const urdf::ModelInterface &descr, bool visual, bool collision)
 {
-  robot_.load(descr, visual, collision); 
+  robot_.load(descr, visual, collision);
   robot_.setVisualVisible(visual_visible_);
   robot_.setCollisionVisible(collision_visible_);
   robot_.setVisible(visible_);
@@ -62,7 +62,7 @@ void RobotStateVisualization::load(const urdf::ModelInterface &descr, bool visua
 
 void RobotStateVisualization::clear()
 {
-  robot_.clear(); 
+  robot_.clear();
   render_shapes_->clear();
 }
 
@@ -83,7 +83,7 @@ void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kine
   updateHelper(kinematic_state, default_attached_object_color, NULL);
 }
 
-void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color, 
+void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kinematic_state, const std_msgs::ColorRGBA &default_attached_object_color,
                                          const std::map<std::string, std_msgs::ColorRGBA> &color_map)
 {
   updateHelper(kinematic_state, default_attached_object_color, &color_map);
@@ -140,7 +140,7 @@ void RobotStateVisualization::setVisualVisible(bool visible)
 }
 
 void RobotStateVisualization::setCollisionVisible(bool visible)
-{  
+{
   collision_visible_ = visible;
   robot_.setCollisionVisible(visible);
 }

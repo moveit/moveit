@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
     ros::Duration(0.5).sleep();
     rml.getModel()->printModelInfo(std::cout);
-    
+
     ros::shutdown();
     return 0;
 }

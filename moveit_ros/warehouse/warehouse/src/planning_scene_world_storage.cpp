@@ -55,7 +55,7 @@ void moveit_warehouse::PlanningSceneWorldStorage::reset()
 {
   planning_scene_world_collection_.reset();
   MoveItMessageStorage::drop(DATABASE_NAME);
-  createCollections();  
+  createCollections();
 }
 
 void moveit_warehouse::PlanningSceneWorldStorage::addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld &msg, const std::string &name)
@@ -65,7 +65,7 @@ void moveit_warehouse::PlanningSceneWorldStorage::addPlanningSceneWorld(const mo
   {
     removePlanningSceneWorld(name);
     replace = true;
-  }  
+  }
   mongo_ros::Metadata metadata(PLANNING_SCENE_WORLD_ID_NAME, name);
   planning_scene_world_collection_->insert(msg, metadata);
   ROS_DEBUG("%s planning scene world '%s'", replace ? "Replaced" : "Added", name.c_str());
@@ -111,7 +111,7 @@ void moveit_warehouse::PlanningSceneWorldStorage::renamePlanningSceneWorld(const
 {
   mongo_ros::Query q(PLANNING_SCENE_WORLD_ID_NAME, old_name);
   mongo_ros::Metadata m(PLANNING_SCENE_WORLD_ID_NAME, new_name);
-  planning_scene_world_collection_->modifyMetadata(q, m);  
+  planning_scene_world_collection_->modifyMetadata(q, m);
   ROS_DEBUG("Renamed planning scene world from '%s' to '%s'", old_name.c_str(), new_name.c_str());
 }
 

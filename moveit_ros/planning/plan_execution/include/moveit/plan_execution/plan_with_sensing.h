@@ -61,22 +61,22 @@ public:
   }
 
   bool computePlan(ExecutableMotionPlan &plan, const ExecutableMotionPlanComputationFn &motion_planner, unsigned int max_look_attempts, double max_safe_path_cost);
-  
+
   double getMaxSafePathCost() const
   {
     return default_max_safe_path_cost_;
   }
-  
+
   void setMaxSafePathCost(double max_safe_path_cost)
   {
     default_max_safe_path_cost_ = max_safe_path_cost;
   }
-  
+
   void setMaxLookAttempts(unsigned int attempts)
   {
     default_max_look_attempts_ = attempts;
   }
-  
+
   unsigned int getMaxLookAttempts() const
   {
     return default_max_look_attempts_;
@@ -86,36 +86,36 @@ public:
   {
     return max_cost_sources_;
   }
-  
+
   void setMaxCostSources(unsigned int value)
   {
     max_cost_sources_ = value;
   }
-  
+
   double getDiscardOverlappingCostSources() const
   {
     return discard_overlapping_cost_sources_;
   }
-  
+
   void setDiscardOverlappingCostSources(double value)
   {
     discard_overlapping_cost_sources_ = value;
   }
-  
+
   void setBeforeLookCallback(const boost::function<void()> &callback)
   {
     before_look_callback_ = callback;
   }
-  
+
   void displayCostSources(bool flag);
 
 private:
-  
+
   bool lookAt(const std::set<collision_detection::CostSource> &cost_sources, const std::string &frame_id);
-  
+
   ros::NodeHandle node_handle_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
-  
+
   boost::scoped_ptr<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager> > sensor_manager_loader_;
   moveit_sensor_manager::MoveItSensorManagerPtr sensor_manager_;
   unsigned int default_max_look_attempts_;
@@ -128,7 +128,7 @@ private:
   ros::Publisher cost_sources_publisher_;
 
   boost::function<void()> before_look_callback_;
-  
+
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;
 };

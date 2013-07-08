@@ -86,7 +86,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
                                float alpha)
 {
   rviz::Shape* ogre_shape = NULL;
-  
+
   // we don't know how to render cones directly, but we can convert them to a mesh
   if (s->type == shapes::CONE)
   {
@@ -95,7 +95,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
       renderShape(node, m.get(), p, octree_voxel_rendering, octree_color_mode, color, alpha);
     return;
   }
-  
+
   switch (s->type)
   {
   case shapes::SPHERE:
@@ -159,14 +159,14 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
           unsigned int i3 = i * 3;
           if (mesh->triangle_normals && !mesh->vertex_normals)
             normal = rot * Eigen::Vector3d(mesh->triangle_normals[i3], mesh->triangle_normals[i3 + 1], mesh->triangle_normals[i3 + 2]);
-          
+
           for (int k = 0 ; k < 3 ; ++k)
           {
             unsigned int vi = 3 * mesh->triangles[i3 + k];
             Eigen::Vector3d v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
             manual_object->position(v.x(), v.y(), v.z());
             if (mesh->vertex_normals)
-            {  
+            {
               normal = rot * Eigen::Vector3d(mesh->vertex_normals[vi], mesh->vertex_normals[vi + 1], mesh->vertex_normals[vi + 2]);
               manual_object->normal(normal.x(), normal.y(), normal.z());
             }
@@ -222,4 +222,3 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
 }
 
 }
-

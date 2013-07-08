@@ -160,7 +160,7 @@ private:
                                   const std::string& planner_id,
                                   std::size_t param_combinations_id_,
                                   RunData &parameter_data);
-  
+
   /**
    * @brief Populates the param_combinations_ vector with all combinations of desired parameters to be tested
    * @return number of combinations to be tested

@@ -19,8 +19,8 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// Modified to account for "mimic" joints, i.e. joints whose motion has a 
-// linear relationship to that of another joint. 
+// Modified to account for "mimic" joints, i.e. joints whose motion has a
+// linear relationship to that of another joint.
 // Copyright  (C)  2013  Sachin Chitta, Willow Garage
 
 #include <moveit/kdl_kinematics_plugin/chainiksolver_vel_pinv_mimic.hpp>
@@ -65,7 +65,7 @@ ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, in
 {
   mimic_joints_.resize(chain.getNrOfJoints());
   for(std::size_t i=0; i < mimic_joints_.size(); ++i)
-    mimic_joints_[i].reset(i);    
+    mimic_joints_[i].reset(i);
 }
 
 ChainIkSolverVel_pinv_mimic::~ChainIkSolverVel_pinv_mimic()
@@ -76,7 +76,7 @@ bool ChainIkSolverVel_pinv_mimic::setMimicJoints(const std::vector<kdl_kinematic
 {
   if(mimic_joints.size() != chain.getNrOfJoints())
     return false;
-  
+
   for(std::size_t i=0; i < mimic_joints.size(); ++i)
   {
     if(mimic_joints[i].map_index >= chain.getNrOfJoints())
@@ -90,7 +90,7 @@ bool ChainIkSolverVel_pinv_mimic::setRedundantJointsMapIndex(const std::vector<u
 {
   if(redundant_joints_map_index.size() != chain.getNrOfJoints()-num_mimic_joints-num_redundant_joints)
     return false;
-  
+
   for(std::size_t i=0; i < redundant_joints_map_index.size(); ++i)
   {
     if(redundant_joints_map_index[i] >= chain.getNrOfJoints()-num_mimic_joints)
@@ -102,30 +102,30 @@ bool ChainIkSolverVel_pinv_mimic::setRedundantJointsMapIndex(const std::vector<u
 
 bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian &jac, Jacobian &jac_reduced_l)
 {
-  jac_reduced_l.data.setZero();  
+  jac_reduced_l.data.setZero();
   for(std::size_t i=0; i < chain.getNrOfJoints(); ++i)
   {
     Twist vel1 = jac_reduced_l.getColumn(mimic_joints_[i].map_index);
     Twist vel2 = jac.getColumn(i);
     Twist result = vel1 + (mimic_joints_[i].multiplier*vel2);
-    jac_reduced_l.setColumn(mimic_joints_[i].map_index,result);    
+    jac_reduced_l.setColumn(mimic_joints_[i].map_index,result);
   }
   return true;
 }
 
 bool ChainIkSolverVel_pinv_mimic::jacToJacLocked(const Jacobian &jac, Jacobian &jac_locked)
 {
-  jac_locked.data.setZero();  
+  jac_locked.data.setZero();
   for(std::size_t i=0; i < chain.getNrOfJoints()-num_mimic_joints-num_redundant_joints; ++i)
   {
-    jac_locked.setColumn(i, jac.getColumn(locked_joints_map_index[i]));    
+    jac_locked.setColumn(i, jac.getColumn(locked_joints_map_index[i]));
   }
   return true;
 }
 
 int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
 {
-  qdot_out.data.setZero();  
+  qdot_out.data.setZero();
   //Let the ChainJntToJacSolver calculate the jacobian "jac" for
   //the current joint positions "q_in". This will include the mimic joints
   if(num_mimic_joints > 0)
@@ -138,21 +138,21 @@ int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const 
     jnt2jac.JntToJac(q_in,jac_reduced);
 
   //Now compute the jacobian with redundant joints locked
-  jacToJacLocked(jac_reduced,jac_locked);  
+  jacToJacLocked(jac_reduced,jac_locked);
 
   //Do a singular value decomposition of "jac" with maximum
   //iterations "maxiter", put the results in "U", "S" and "V"
   //jac = U*S*Vt
 
-  int ret;  
+  int ret;
   if(!position_ik)
     ret = svd_eigen_HH(jac_locked.data,U_locked,S_locked,V_locked,tmp_locked,maxiter);
   else
     ret = svd_eigen_HH(jac_locked.data.topLeftCorner(3,chain.getNrOfJoints()-num_mimic_joints-num_redundant_joints),U_translate_locked,S_translate_locked,V_translate_locked,tmp_translate_locked,maxiter);
- 
+
   double sum;
   unsigned int i,j;
-  
+
   // We have to calculate qdot_out = jac_pinv*v_in
   // Using the svd decomposition this becomes(jac_pinv=V*S_pinv*Ut):
   // qdot_out = V*S_pinv*Ut*v_in
@@ -162,7 +162,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const 
     rows = jac_locked.rows();
   else
     rows = 3;
-  
+
   //first we calculate Ut*v_in
   for (i=0;i<jac_locked.columns();i++) {
     sum = 0.0;
@@ -187,13 +187,13 @@ int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const 
       if(!position_ik)
         sum+=V_locked(i,j)*tmp(j);
       else
-        sum+=V_translate_locked(i,j)*tmp(j);        
+        sum+=V_translate_locked(i,j)*tmp(j);
     }
     //Put the result in qdot_out_reduced if mimic joints exist, otherwise in qdot_out
     if(num_mimic_joints > 0)
       qdot_out_reduced_locked(i)=sum;
     else
-      qdot_out_locked(i) = sum;    
+      qdot_out_locked(i) = sum;
   }
   ROS_DEBUG_STREAM_NAMED("kdl","Solution:");
 
@@ -207,16 +207,16 @@ int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const 
     {
       qdot_out(i) = qdot_out_reduced(mimic_joints_[i].map_index) * mimic_joints_[i].multiplier;
     }
-  }  
+  }
   else
   {
     for(i=0; i < chain.getNrOfJoints()-num_redundant_joints; ++i)
     {
       qdot_out(locked_joints_map_index[i]) = qdot_out_locked(i);
-    }  
-  }  
+    }
+  }
   // Reset the flag
-  // redundant_joints_locked = false;  
+  // redundant_joints_locked = false;
   //return the return value of the svd decomposition
   return ret;
 }
@@ -225,7 +225,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
 {
   if(redundant_joints_locked)
     return CartToJntRedundant(q_in, v_in, qdot_out);
-  
+
   //Let the ChainJntToJacSolver calculate the jacobian "jac" for
   //the current joint positions "q_in". This will include the mimic joints
   if(num_mimic_joints > 0)
@@ -241,15 +241,15 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
   //iterations "maxiter", put the results in "U", "S" and "V"
   //jac = U*S*Vt
 
-  int ret;  
+  int ret;
   if(!position_ik)
     ret = svd.calculate(jac_reduced,U,S,V,maxiter);
   else
     ret = svd_eigen_HH(jac_reduced.data.topLeftCorner(3,chain.getNrOfJoints()-num_mimic_joints),U_translate,S_translate,V_translate,tmp_translate,maxiter);
- 
+
   double sum;
   unsigned int i,j;
-  
+
   // We have to calculate qdot_out = jac_pinv*v_in
   // Using the svd decomposition this becomes(jac_pinv=V*S_pinv*Ut):
   // qdot_out = V*S_pinv*Ut*v_in
@@ -259,7 +259,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
     rows = jac_reduced.rows();
   else
     rows = 3;
-  
+
   //first we calculate Ut*v_in
   for (i=0;i<jac_reduced.columns();i++) {
     sum = 0.0;
@@ -284,13 +284,13 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
       if(!position_ik)
         sum+=V[i](j)*tmp(j);
       else
-        sum+=V_translate(i,j)*tmp(j);        
+        sum+=V_translate(i,j)*tmp(j);
     }
     //Put the result in qdot_out_reduced if mimic joints exist, otherwise in qdot_out
     if(num_mimic_joints > 0)
       qdot_out_reduced(i)=sum;
     else
-      qdot_out(i) = sum;    
+      qdot_out(i) = sum;
   }
   ROS_DEBUG_STREAM_NAMED("kdl","Solution:");
   if(num_mimic_joints > 0)
@@ -299,7 +299,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
     {
       qdot_out(i) = qdot_out_reduced(mimic_joints_[i].map_index) * mimic_joints_[i].multiplier;
     }
-  }  
+  }
   //return the return value of the svd decomposition
   return ret;
 }

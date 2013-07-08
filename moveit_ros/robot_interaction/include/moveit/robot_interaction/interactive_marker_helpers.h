@@ -42,12 +42,12 @@ visualization_msgs::InteractiveMarker makeEmptyInteractiveMarker(const std::stri
                                                      double scale);
 
 visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
-                                                     const geometry_msgs::PoseStamped &stamped, 
+                                                     const geometry_msgs::PoseStamped &stamped,
                                                      double scale,
                                                      bool orientation_fixed = false);
 
 visualization_msgs::InteractiveMarker makePlanarXYMarker(const std::string& name,
-                                                     const geometry_msgs::PoseStamped &stamped, 
+                                                     const geometry_msgs::PoseStamped &stamped,
                                                      double scale,
                                                      bool orientation_fixed = false);
 

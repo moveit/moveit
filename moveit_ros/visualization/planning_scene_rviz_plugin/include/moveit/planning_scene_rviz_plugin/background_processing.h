@@ -48,34 +48,33 @@ public:
       ADD, REMOVE, COMPLETE
     };
   typedef boost::function<void(JobEvent)> JobUpdateCallback;
-  
+
   BackgroundProcessing();
   ~BackgroundProcessing();
 
   void addJob(const boost::function<void()> &job, const std::string &name);
   std::size_t getJobCount() const;
   void clear();
-  
+
   void setJobUpdateEvent(const JobUpdateCallback &event);
-  
+
 private:
-  
+
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
-  
+
   mutable boost::mutex action_lock_;
   boost::condition_variable new_action_condition_;
-  std::deque<boost::function<void()> > actions_; 
+  std::deque<boost::function<void()> > actions_;
   std::deque<std::string> action_names_;
 
   JobUpdateCallback queue_change_event_;
 
   bool processing_;
-  
+
   void processingThread();
 };
 
 }
 
 #endif
-

@@ -57,10 +57,10 @@ bool ReachableAndValidPoseFilter::isStateCollisionFree(const ManipulationPlan *m
                                                        robot_state::JointStateGroup *joint_state_group,
                                                        const std::vector<double> &joint_group_variable_values) const
 {
-  joint_state_group->setVariableValues(joint_group_variable_values);  
+  joint_state_group->setVariableValues(joint_group_variable_values);
   // apply approach posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
   joint_state_group->getRobotState()->setStateValues(manipulation_plan->approach_posture_);
-  
+
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.verbose = verbose_;
@@ -69,7 +69,7 @@ bool ReachableAndValidPoseFilter::isStateCollisionFree(const ManipulationPlan *m
   if (res.collision == false)
     return planning_scene_->isStateFeasible(*joint_state_group->getRobotState());
   else
-    return false;  
+    return false;
 }
 
 bool ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const
@@ -86,14 +86,14 @@ bool ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr &p
 }
 
 bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) const
-{   
-  // initialize with scene state 
+{
+  // initialize with scene state
   robot_state::RobotStatePtr token_state(new robot_state::RobotState(planning_scene_->getCurrentState()));
   if (isEndEffectorFree(plan, *token_state))
   {
     // update the goal pose message if anything has changed; this is because the name of the frame in the input goal pose
     // can be that of objects in the collision world but most components are unaware of those transforms,
-    // so we convert to a frame that is certainly known 
+    // so we convert to a frame that is certainly known
     if (robot_state::Transforms::sameFrame(planning_scene_->getPlanningFrame(), plan->goal_pose_.header.frame_id))
     {
       tf::poseEigenToMsg(plan->transformed_goal_pose_, plan->goal_pose_.pose);
@@ -102,9 +102,9 @@ bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) cons
 
     // convert the pose we want to reach to a set of constraints
     plan->goal_constraints_ = kinematic_constraints::constructGoalConstraints(plan->shared_data_->ik_link_name_, plan->goal_pose_);
-    
+
     const std::string &planning_group = plan->shared_data_->planning_group_;
-    
+
     // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
     // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc
     plan->goal_sampler_ = constraints_sampler_manager_->selectSampler(planning_scene_, planning_group, plan->goal_constraints_);
@@ -123,7 +123,7 @@ bool ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) cons
     }
     else
       ROS_ERROR_THROTTLE(1, "No sampler was constructed");
-  }  
+  }
   plan->error_code_.val = moveit_msgs::MoveItErrorCodes::GOAL_IN_COLLISION;
   return false;
 }

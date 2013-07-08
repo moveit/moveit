@@ -74,11 +74,11 @@ public:
                    const rviz::Color &color,
                    float alpha);
   void clear();
-  
+
 private:
 
   rviz::DisplayContext *context_;
-  
+
   std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
   std::vector< Ogre::MovableObject* > movable_objects_;
   std::vector< boost::shared_ptr<OcTreeRender> > octree_voxel_grids_;
@@ -94,4 +94,3 @@ typedef boost::shared_ptr<const RenderShapes> RenderShapesConstPtr;
 }
 
 #endif
-
