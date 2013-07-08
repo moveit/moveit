@@ -327,6 +327,14 @@ int IKFastKinematicsPlugin::solve(KDL::Frame &pose_frame, const std::vector<doub
   // IKFast56/61
   solutions.Clear();
 
+  double trans[3];
+  trans[0] = pose_frame.p[0];//-.18;
+  trans[1] = pose_frame.p[1];
+  trans[2] = pose_frame.p[2];
+
+#if defined(IKTYPE_TRANSFORM_6D)
+  // For **Transform6D**, eerot is 9 values for the 3x3 rotation matrix.
+
   //KDL::Rotation rot = KDL::Rotation::RotY(M_PI/2);
   KDL::Rotation orig = pose_frame.M;
   KDL::Rotation mult = orig;//*rot;
@@ -342,14 +350,35 @@ int IKFastKinematicsPlugin::solve(KDL::Frame &pose_frame, const std::vector<doub
   vals[7] = mult(2,1);
   vals[8] = mult(2,2);
 
-  double trans[3];
-  trans[0] = pose_frame.p[0];//-.18;
-  trans[1] = pose_frame.p[1];
-  trans[2] = pose_frame.p[2];
-
   // IKFast56/61
   ComputeIk(trans, vals, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
   return solutions.GetNumSolutions();
+
+#elif defined(IKTYPE_DIRECTION_3D) || defined(IKTYPE_RAY_4D) || defined(IKTYPE_TRANSLATION_DIRECTION_5D)
+  // For **Direction3D**, **Ray4D**, and **TranslationDirection5D**, the first 3 values represent the target direction.
+  KDL::Vector direction = pose_frame.M * KDL::Vector(0, 0, 1);
+
+  ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+  return solutions.GetNumSolutions();
+
+#elif defined(IKTYPE_TRANSLATION_X_AXIS_ANGLE_4D) || defined(IKTYPE_TRANSLATION_Y_AXIS_ANGLE_4D) || defined(IKTYPE_TRANSLATION_Z_AXIS_ANGLE_4D)
+  // For **TranslationXAxisAngle4D**, **TranslationYAxisAngle4D**, and **TranslationZAxisAngle4D** the first value represents the angle.
+  ROS_ERROR_NAMED("ikfast", "IK for this IKTYPE not implemented yet.");
+  return 0;
+
+#elif defined(IKTYPE_TRANSLATION_LOCAL_GLOBAL_6D)
+  // For **TranslationLocalGlobal6D**, the diagonal elements ([0],[4],[8]) are the local translation inside the end effector coordinate system.
+  ROS_ERROR_NAMED("ikfast", "IK for this IKTYPE not implemented yet.");
+  return 0;
+
+#elif defined(IKTYPE_ROTATION_3D) || defined(IKTYPE_TRANSLATION_3D) || defined(IKTYPE_LOOKAT_3D) || defined(IKTYPE_TRANSLATION_X_Y_2D) || defined(IKTYPE_TRANSLATION_X_AXIS_ANGLE_Z_NORM_4D) || defined(IKTYPE_TRANSLATION_Y_AXIS_ANGLE_Z_NORM_4D) || defined(IKTYPE_TRANSLATION_Z_AXIS_ANGLE_Z_NORM_4D)
+  ROS_ERROR_NAMED("ikfast", "IK for this IKTYPE not implemented yet.");
+  return 0;
+
+#else
+  ROS_ERROR_NAMED("ikfast", "You need to #define a IKTYPE_!");
+  return 0;
+#endif
 }
 
 void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal> &solutions, int i, std::vector<double>& solution) const
@@ -486,6 +515,11 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_
                                            const std::vector<double> &joint_angles,
                                            std::vector<geometry_msgs::Pose> &poses) const
 {
+#ifndef IKTYPE_TRANSFORM_6D
+  ROS_ERROR_NAMED("ikfast", "Can only compute FK for IKTYPE_TRANSFORM_6D!");
+  return false;
+#endif
+
   KDL::Frame p_out;
   if(link_names.size() == 0) {
     ROS_WARN_STREAM_NAMED("ikfast","Link names with nothing");
