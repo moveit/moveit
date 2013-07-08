@@ -50,7 +50,7 @@ void move_group::MoveGroupQueryPlannersService::initialize()
 
 bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
 {    
-  const planning_interface::PlannerPtr &planner_interface = context_->planning_pipeline_->getPlannerInterface();
+  const planning_interface::PlannerManagerPtr &planner_interface = context_->planning_pipeline_->getPlannerManager();
   if (planner_interface)
   {
     std::vector<std::string> algs;

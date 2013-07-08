@@ -45,6 +45,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <pluginlib/class_loader.h>
 #include <boost/function.hpp>
+#include <iostream>
 
 namespace moveit_benchmarks
 {
@@ -155,11 +156,11 @@ private:
    * @param param_combinations_id_ - keeps track of what parameter combo we are currently iterating on
    * @param parameter_data - used for outputting log information to file (results)
    */
-  void modifyPlannerConfiguration(planning_interface::Planner* planner,
+  void modifyPlannerConfiguration(planning_interface::PlannerManager &planner,
                                   const std::string& planner_id,
                                   std::size_t param_combinations_id_,
                                   RunData &parameter_data);
-
+  
   /**
    * @brief Populates the param_combinations_ vector with all combinations of desired parameters to be tested
    * @return number of combinations to be tested
@@ -174,7 +175,7 @@ private:
   void recursiveParamCombinations(int options_id, ParameterInstance param_instance);
 
   /// Output to console the settings
-  void printConfigurationSettings(const std::map<std::string,planning_interface::PlanningConfigurationSettings> &settings);
+  void printConfigurationSettings(const planning_interface::PlannerConfigurationMap &settings, std::ostream &out);
 
   BenchmarkOptions options_;
   std::vector<ParameterOptions> param_options_;
@@ -189,8 +190,8 @@ private:
   moveit_warehouse::TrajectoryConstraintsStorage tcs_;
   moveit_warehouse::RobotStateStorage rs_;
 
-  boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
-  std::map<std::string, boost::shared_ptr<planning_interface::Planner> > planner_interfaces_;
+  boost::shared_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
+  std::map<std::string, planning_interface::PlannerManagerPtr> planner_interfaces_;
 
 };
 

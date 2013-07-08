@@ -101,7 +101,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
   // load the pluginlib class loader
   try
   {
-    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
+    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
   }
   catch(pluginlib::PluginlibException& ex)
   {
@@ -115,7 +115,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
     ROS_INFO("Attempting to load and configure %s", classes[i].c_str());
     try
     {
-      boost::shared_ptr<planning_interface::Planner> p = planner_plugin_loader_->createInstance(classes[i]);
+      boost::shared_ptr<planning_interface::PlannerManager> p = planner_plugin_loader_->createInstance(classes[i]);
       p->initialize(planning_scene_->getRobotModel(), "");
       planner_interfaces_[classes[i]] = p;
     }
@@ -131,7 +131,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
   else
   {
     std::stringstream ss;
-    for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ;
+    for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager> >::const_iterator it = planner_interfaces_.begin() ;
          it != planner_interfaces_.end(); ++it)
       ss << it->first << " ";
     ROS_INFO("Available planner instances: %s", ss.str().c_str());
@@ -889,7 +889,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
         ROS_ERROR("Planning interface '%s' was not found", req.plugins[i].name.c_str());
 
   // pointer list of planning plugins
-  std::vector<planning_interface::Planner*> planner_interfaces_to_benchmark;
+  std::vector<planning_interface::PlannerManager*> planner_interfaces_to_benchmark;
 
   // each planning plugin has a vector of its sub algorithms (planners) that it can run
   std::vector<std::vector<std::string> > planner_ids_to_benchmark_per_planner_interface;
@@ -900,7 +900,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   planning_interface::MotionPlanRequest mp_req = req.motion_plan_request;
 
   // loop through each planning interface
-  for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ;
+  for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager> >::const_iterator it = planner_interfaces_.begin() ;
        it != planner_interfaces_.end(); ++it)
   {
     // find the plugin that the planning interface belongs to
@@ -1060,10 +1060,12 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
         // apply the current parameter, if we are using those
         if( n_parameter_sets > 1 )
         {
-          modifyPlannerConfiguration(planner_interfaces_to_benchmark[i], mp_req.planner_id, param_combinations_id_, parameter_data);
+          modifyPlannerConfiguration(*planner_interfaces_to_benchmark[i], mp_req.planner_id, param_combinations_id_, parameter_data);
           ++param_combinations_id_;
         }
-
+        
+        planning_interface::PlanningContextPtr pcontext = planner_interfaces_to_benchmark[i]->getPlanningContext(planning_scene_, mp_req);
+        
         // loop through the desired number of runs
         for (unsigned int run_count = 0 ; run_count < runs_per_planner_interface[i] ; ++run_count)
         {
@@ -1075,10 +1077,12 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
           // run a single benchmark
           ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
+          pcontext->clear();
+          
           planning_interface::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
 
-          bool solved = planner_interfaces_to_benchmark[i]->solve(planning_scene_, mp_req, mp_res);
+          bool solved = pcontext->solve(mp_res);
           double total_time = (ros::WallTime::now() - start).toSec();
 
           // collect data
@@ -1323,17 +1327,17 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
   }
 }
 
-void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_interface::Planner* planner,
+void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_interface::PlannerManager &planner,
                                                                        const std::string& planner_id,
                                                                        std::size_t param_combinations_id_,
                                                                        RunData &parameter_data)
 {
   // Get the planner's current settings
-  std::map<std::string, planning_interface::PlanningConfigurationSettings> settings = planner->getPlanningConfigurations();
+  planning_interface::PlannerConfigurationMap settings = planner.getPlannerConfigurations();
 
   // Check if this planner_id already has settings (it should)
-  std::map<std::string, planning_interface::PlanningConfigurationSettings>::iterator settings_it = settings.find(planner_id);
-  if(settings_it != settings.end())
+  planning_interface::PlannerConfigurationMap::iterator settings_it = settings.find(planner_id);
+  if (settings_it != settings.end())
   {
     // key exists, loop through all values in this param instance
     std::string str_parameter_value;
@@ -1342,10 +1346,10 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
       // convert from double to string
       try
       {
-        const double& value = param_combinations_[param_combinations_id_][param_options_[i].key];
+        double value = param_combinations_[param_combinations_id_][param_options_[i].key];
         str_parameter_value = boost::lexical_cast<std::string>(value);
       }
-      catch(boost::bad_lexical_cast &ex)
+      catch (boost::bad_lexical_cast &ex)
       {
         ROS_WARN("%s", ex.what());
       }
@@ -1355,24 +1359,15 @@ void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_
 
       // record parameter to planner config
       settings_it->second.config[param_options_[i].key] = str_parameter_value;
-
     }
   }
-  else // settings for this planner_id does not already exist
+  else // settings for this planner_id does not exist
   {
-    ROS_ERROR_STREAM("Settings for " << planner_id << " do not already exist. This should not happen"); // I think this is bad...
-    planning_interface::PlanningConfigurationSettings planner_config;
+    ROS_ERROR_STREAM("Settings for " << planner_id << " do not exist. This should not happen.");
   }
-
-  // Debug map
-  for(std::map<std::string,std::string>::const_iterator config_it = settings_it->second.config.begin();
-      config_it != settings_it->second.config.end(); ++config_it)
-  {
-    std::cout << "      - " << config_it->first << " => " << config_it->second << std::endl;
-  }
-
+  
   // Apply the new settings
-  planner->setPlanningConfigurations(settings);
+  planner.setPlannerConfigurations(settings);
 }
 
 std::size_t moveit_benchmarks::BenchmarkExecution::generateParamCombinations()
@@ -1433,20 +1428,15 @@ void moveit_benchmarks::BenchmarkExecution::recursiveParamCombinations(int optio
 }
 
 /// Output to console the settings
-void moveit_benchmarks::BenchmarkExecution::printConfigurationSettings(const planning_interface::PlanningConfigurationMap &settings)
+void moveit_benchmarks::BenchmarkExecution::printConfigurationSettings(const planning_interface::PlannerConfigurationMap &settings, std::ostream &out)
 {
   // Debug map
-  for(planning_interface::PlanningConfigurationMap::const_iterator it = settings.begin();
-      it != settings.end(); ++it)
+  for (planning_interface::PlannerConfigurationMap::const_iterator it = settings.begin(); it != settings.end(); ++it)
   {
-    std::cout << "  - " << it->first << " => " << it->second.name << "/" << it->second.group << std::endl ;
-
+    out << "  - " << it->first << " => " << it->second.name << "/" << it->second.group << std::endl;
     // Debug map
-    for(std::map<std::string,std::string>::const_iterator config_it = it->second.config.begin();
-        config_it != it->second.config.end(); ++config_it)
-    {
-      std::cout << "      - " << config_it->first << " => " << config_it->second << std::endl;
-    }
+    for(std::map<std::string,std::string>::const_iterator config_it = it->second.config.begin() ; config_it != it->second.config.end(); ++config_it)
+      out << "      - " << config_it->first << " => " << config_it->second << std::endl;
   }
 }
 

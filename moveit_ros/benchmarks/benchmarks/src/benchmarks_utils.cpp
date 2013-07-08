@@ -47,10 +47,10 @@ namespace moveit_benchmarks
 std::vector<std::string> benchmarkGetAvailablePluginNames()
 {
   // load the planning plugins
-  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader;
+  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader;
   try
   {
-    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::Planner>("moveit_core", "planning_interface::Planner"));
+    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
   }
   catch(pluginlib::PluginlibException& ex)
   {
