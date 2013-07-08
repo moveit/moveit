@@ -32,84 +32,175 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Brian Gerkey */
+/* Author: Ioan Sucan */
 
 #ifndef MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/planning_interface/planning_response.h>
+#include <string>
+#include <map>
 
 /** \brief This namespace includes the base class for MoveIt planners */
 namespace planning_interface
 {
 
-/*
-    Policy: Settings with unknown keys are ignored. Settings for unknown groups are ignored   
+/**
+   \brief Specify the settings for a particular planning algorithm, for a particular group. The Planner plugin uses these settings to configure the algorithm.
+   \note Settings with unknown keys are ignored. Settings for unknown groups are ignored.
 */
-struct PlanningConfigurationSettings
+struct PlannerConfigurationSettings
 {
-  // \brief name can  of the form "group_name[config_name]" if there are particular configurations 
-  //        specified for a group, or of the form "group_name" if default settings are to be used.
-  std::string                        name;
-  // \brief group ?
+  /** \brief The group (as defined in the SRDF) this configuration is meant for */
   std::string                        group;
-  // \brief config key-value pairs of settings
+  
+  /* \brief Name of the configuration. If there is only one configuration, this should be the same as the group name.
+     If there are multiple configurations, the form "group_name[config_name]" is expected for the name. */
+  std::string                        name;
+
+  /** \brief Key-value pairs of settings that get passed to the planning algorithm */
   std::map<std::string, std::string> config;
 };
-typedef std::map<std::string, PlanningConfigurationSettings> PlanningConfigurationMap;
+
+/** \brief Map from PlannerConfigurationSettings.name to PlannerConfigurationSettings */
+typedef std::map<std::string, PlannerConfigurationSettings> PlannerConfigurationMap;
+
+
+/** \brief Representation of a particular planning context -- the planning scene and the request are known,
+    solution is not yet computed. */
+class PlanningContext
+{
+public:
+
+  PlanningContext(const std::string &name, const std::string &group);
+  
+  virtual ~PlanningContext();
+  
+  /** \brief Get the name of the group this planning context is for */
+  const std::string& getGroupName() const
+  {
+    return group_;
+  }
+
+  /** \brief Get the name of this planning context */
+  const std::string& getName() const
+  {
+    return name_;
+  }
+  
+  /** \brief Get the planning scene associated to this planning context */
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
+  {
+    return planning_scene_;
+  }
+  
+  /** \brief Get the motion plan request associated to this planning context */
+  const MotionPlanRequest& getMotionPlanRequest() const
+  {
+    return request_;
+  }
+
+  /** \brief Set the planning scene for this context */
+  void setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene);
+  
+  /** \brief Set the planning request for this context */
+  void setMotionPlanRequest(const MotionPlanRequest &request);
+  
+  /** \brief Solve the motion planning problem and store the result in \e res. This function should not clear data structures before computing. The constructor and clear() do that. */
+  virtual bool solve(MotionPlanResponse &res) = 0;
+  
+  /** \brief Solve the motion planning problem and store the detailed result in \e res. This function should not clear data structures before computing. The constructor and clear() do that. */
+  virtual bool solve(MotionPlanDetailedResponse &res) = 0;
+
+  /** \brief If solve() is running, terminate the computation. Return false if termination not possible. No-op if solve() is not running (returns true).*/
+  virtual bool terminate() = 0;
+
+  /** \brief Clear the data structures used by the planner */
+  virtual void clear() = 0;
+  
+protected:
+
+  /// The name of this planning context
+  std::string name_;
+  
+  /// The group (as in the SRDF) this planning context is for
+  std::string group_;
+  
+  /// The planning scene for this context
+  planning_scene::PlanningSceneConstPtr planning_scene_;
+
+  /// The planning request for this context
+  MotionPlanRequest request_;
+};
+
+MOVEIT_CLASS_FORWARD(PlanningContext);
 
 /** \brief Base class for a MoveIt planner */
-class Planner
+class PlannerManager
 {
 public:
   
-  Planner()
+  PlannerManager()
   {
   }
   
-  virtual ~Planner() 
+  virtual ~PlannerManager() 
   {
-  };
+  }
   
   /// Initialize a planner. This function will be called after the construction of the plugin, before any other call is made.
-  /// It is assumed that motion plans will be computed for the robot described by \e model and that any exposed functionality
-  /// or required parameters are namespaced by \e ns
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns) { return true; }
+  /// It is assumed that motion plans will be computed for the robot described by \e model and that any exposed ROS functionality
+  /// or required ROS parameters are namespaced by \e ns
+  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns);
   
-  /// Get a short string that identifies the planning interface
-  virtual std::string getDescription() const { return ""; }
+  /// Get \brief a short string that identifies the planning interface
+  virtual std::string getDescription() const;
   
-  /// Get the names of the known planning algorithms (values that can be filled as planner_id in the planning request)
-  virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const { }
+  /// \brief Get the names of the known planning algorithms (values that can be filled as planner_id in the planning request)
+  virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const;
   
-  /// Subclass must implement methods below
-  virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const MotionPlanRequest &req, MotionPlanResponse &res) const = 0;
+  /// \brief Construct a planning context given the current scene and a planning request. If a problem is encountered, error code is set and empty ptr is returned. 
+  /// The returned motion planner context is clean -- the motion planner will start from scratch every time a context is constructed.
+  /// \param planning_scene A const planning scene to use for planning
+  /// \param req The representation of the planning request
+  /// \param error_code This is where the error is set if constructing the planning context fails
+  virtual PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                const MotionPlanRequest &req,
+                                                moveit_msgs::MoveItErrorCodes &error_code) const = 0;
+
+  /// \brief Calls the function above but ignores the error_code
+  PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                        const MotionPlanRequest &req) const;
   
-  virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const MotionPlanRequest &req, MotionPlanDetailedResponse &res) const = 0;
-  
-  /// Determine whether this plugin instance is able to represent this planning request
+  /// \brief Determine whether this plugin instance is able to represent this planning request
   virtual bool canServiceRequest(const MotionPlanRequest &req)  const = 0;
+    
+  /// \brief Specify the settings to be used for specific algorithms
+  virtual void setPlannerConfigurations(const PlannerConfigurationMap &pcs);
 
-  /// Settings for planners to use for their specific algorithms
-  virtual void setPlanningConfigurations(const PlanningConfigurationMap &pcs) const = 0;
+  /// \brief Get the settings for a specific algorithm
+  const PlannerConfigurationMap& getPlannerConfigurations() const
+  {
+    return config_settings_;
+  }
 
-  /// Get settings for planners to use for their specific algorithms, so that they can then be modified
-  virtual const PlanningConfigurationMap getPlanningConfigurations() const = 0;
+  /// \brief Request termination, if a solve() function is currently computing plans
+  void terminate() const;
+
+protected:
   
-  /// Request termination, if a solve() function is currently computing plans
-  virtual void terminate() const = 0;
-  
+  /** \brief All the existing planning configurations. The name
+      of the configuration is the key of the map. This name can
+      be of the form "group_name[config_name]" if there are
+      particular configurations specified for a group, or of the
+      form "group_name" if default settings are to be used. */
+  PlannerConfigurationMap config_settings_;
 };
 
-/// Shared pointer to a Planner
-typedef boost::shared_ptr<Planner> PlannerPtr;
-
-/// Shared pointer to a const Planner
-typedef boost::shared_ptr<const Planner> PlannerConstPtr;
+MOVEIT_CLASS_FORWARD(PlannerManager);
 
 } // planning_interface
 
