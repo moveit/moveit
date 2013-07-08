@@ -44,17 +44,17 @@ namespace ompl_interface
 class PoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
-  
+
   PoseModelStateSpaceFactory();
-  
+
   virtual int canRepresentProblem(const std::string &group,
                                   const moveit_msgs::MotionPlanRequest &req,
                                   const robot_model::RobotModelConstPtr &kmodel) const;
-    
+
 protected:
-  
+
   virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
-    
+
 };
 }
 

@@ -47,11 +47,11 @@
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-  
+
   virtual void SetUp()
   {
     srdf_model_.reset(new srdf::Model());
-    
+
     std::string xml_string;
     std::fstream xml_file("../kinematic_state/test/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
@@ -69,7 +69,7 @@ protected:
     else
       urdf_ok_ = false;
     srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../kinematic_state/test/srdf/robot.xml");
-    
+
     if (urdf_ok_ && srdf_ok_)
       kmodel_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
   };
@@ -77,14 +77,14 @@ protected:
   virtual void TearDown()
   {
   }
-  
+
 protected:
   robot_model::RobotModelPtr kmodel_;
   boost::shared_ptr<urdf::ModelInterface> urdf_model_;
   boost::shared_ptr<srdf::Model>     srdf_model_;
   bool                               urdf_ok_;
   bool                               srdf_ok_;
-  
+
 };
 
 TEST_F(LoadPlanningModelsPr2, StateSpace)
@@ -125,7 +125,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaces)
   ompl_interface::ModelBasedStateSpaceSpecification spec4(kmodel_, "arms");
   ompl_interface::ModelBasedStateSpace ss4(spec4);
   ss4.setup();
-  
+
   std::ofstream fout("ompl_interface_test_state_space_diagram2.dot");
   ompl::base::StateSpace::Diagram(fout);
 }
@@ -160,15 +160,15 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
     ss.copyToOMPLState(state, kstate);
     kstate.getJointStateGroup(ss.getJointModelGroupName())->setToRandomValues();
-    std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() - 
+    std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() -
                   kstate2.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation()) << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) > 1e-12);
     ss.copyToRobotState(kstate, state);
-    std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() - 
+    std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() -
                   kstate2.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation()) << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
   }
-  
+
   ss.freeState(state);
 }
 

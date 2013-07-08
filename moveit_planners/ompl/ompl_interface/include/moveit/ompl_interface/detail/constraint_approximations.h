@@ -57,7 +57,7 @@ struct ConstraintApproximation
                           const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
 
   void visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const;
-    
+
   std::string                                      group_;
   std::string                                      factory_;
   std::string                                      serialization_;
@@ -65,7 +65,7 @@ struct ConstraintApproximation
   planning_models::RobotModelConstPtr          kmodel_;
   kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
   std::vector<int>                                 space_signature_;
-    
+
   std::string                                      ompldb_filename_;
   ompl::base::StateStoragePtr                      state_storage_ptr_;
   ConstraintApproximationStateStorage             *state_storage_;

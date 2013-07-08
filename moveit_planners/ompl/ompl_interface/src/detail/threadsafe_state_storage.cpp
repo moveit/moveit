@@ -46,7 +46,7 @@ ompl_interface::TSStateStorage::TSStateStorage(const robot_state::RobotState &st
 }
 
 ompl_interface::TSStateStorage::~TSStateStorage()
-{    
+{
   for (std::map<boost::thread::id, robot_state::RobotState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
     delete it->second;
 }

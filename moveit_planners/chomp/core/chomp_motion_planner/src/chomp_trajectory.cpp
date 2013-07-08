@@ -41,9 +41,9 @@
 namespace chomp
 {
 
-ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model, 
-                                 double duration, 
-                                 double discretization, 
+ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model,
+                                 double duration,
+                                 double discretization,
                                  std::string group_name):
   planning_group_name_(group_name),
   num_points_((duration/discretization)+1),
@@ -58,9 +58,9 @@ ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robo
   init();
 }
 
-ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model, 
-                                 int num_points, 
-                                 double discretization, 
+ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model,
+                                 int num_points,
+                                 double discretization,
                                  std::string group_name):
   planning_group_name_(group_name),
   num_points_(num_points),
@@ -131,7 +131,7 @@ ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robo
 
   num_points_ = traj.points.size()+1;
   duration_ = (traj.points.back().time_from_start-traj.points[0].time_from_start).toSec();
-  
+
   start_index_ = 1;
   end_index_ = num_points_-2;
 
@@ -154,7 +154,7 @@ void ChompTrajectory::overwriteTrajectory(const trajectory_msgs::JointTrajectory
     for(unsigned int j = 0; j < traj.joint_names.size(); j++) {
       trajectory_(i,j) = traj.points[i-1].positions[j];
     }
-  }  
+  }
 }
 
 void ChompTrajectory::init()

@@ -40,10 +40,10 @@
 
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc, const constraint_samplers::ConstraintSamplerPtr &cs) :
   ob::StateSampler(pc->getOMPLStateSpace().get()), planning_context_(pc), default_(space_->allocDefaultStateSampler()),
-  constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()), 
+  constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()),
   work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getGroupName())),
   constrained_success_(0), constrained_failure_(0)
-{   
+{
   inv_dim_ = space_->getDimension() > 0 ? 1.0 / (double)space_->getDimension() : 1.0;
 }
 
@@ -56,11 +56,11 @@ double ompl_interface::ConstrainedSampler::getConstrainedSamplingRate() const
 }
 
 bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
-{ 
+{
   //  moveit::Profiler::ScopedBlock sblock("sampleWithConstraints");
-  
+
   if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
-  { 
+  {
     planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
     if (space_->satisfiesBounds(state))
     {
@@ -81,7 +81,7 @@ void ompl_interface::ConstrainedSampler::sampleUniform(ob::State *state)
 void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
 {
   if (sampleC(state) || sampleC(state) || sampleC(state))
-  {    
+  {
     double total_d = space_->distance(state, near);
     if (total_d > distance)
     {
@@ -96,8 +96,8 @@ void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State *state, con
 void ompl_interface::ConstrainedSampler::sampleGaussian(ob::State *state, const ob::State *mean, const double stdDev)
 {
   if (sampleC(state) || sampleC(state) || sampleC(state))
-  {    
-    double total_d = space_->distance(state, mean);  
+  {
+    double total_d = space_->distance(state, mean);
     double distance = rng_.gaussian(0.0, stdDev);
     if (total_d > distance)
     {

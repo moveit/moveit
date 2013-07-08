@@ -38,15 +38,15 @@
 
 namespace sbpl_interface {
 
-SBPLMetaInterface::SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel) 
+SBPLMetaInterface::SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel)
 {
   sbpl_interface_first_.reset(new sbpl_interface::SBPLInterface(kmodel));
   sbpl_interface_second_.reset(new sbpl_interface::SBPLInterface(kmodel));
 }
 
 bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                              const moveit_msgs::GetMotionPlan::Request &req, 
-                              moveit_msgs::GetMotionPlan::Response &res) 
+                              const moveit_msgs::GetMotionPlan::Request &req,
+                              moveit_msgs::GetMotionPlan::Response &res)
 {
   first_ok_ = false;
   first_done_ = false;
@@ -57,7 +57,7 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
   param_bfs.use_bfs_ = true;
   PlanningParameters param_no_bfs;
   param_no_bfs.use_bfs_ = false;
-  moveit_msgs::GetMotionPlan::Response res1, res2; 
+  moveit_msgs::GetMotionPlan::Response res1, res2;
   boost::thread thread1(boost::bind(&SBPLMetaInterface::runSolver, this, true,
                                     boost::cref(planning_scene), boost::cref(req), boost::ref(res1), param_bfs));
   boost::thread thread2(boost::bind(&SBPLMetaInterface::runSolver, this, false,
@@ -125,7 +125,7 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
 
 void SBPLMetaInterface::runSolver(bool use_first,
                                   const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                  const moveit_msgs::GetMotionPlan::Request &req, 
+                                  const moveit_msgs::GetMotionPlan::Request &req,
                                   moveit_msgs::GetMotionPlan::Response &res,
                                   const PlanningParameters& params)
 {
@@ -149,7 +149,7 @@ void SBPLMetaInterface::runSolver(bool use_first,
   } catch(...) {
     std::cerr << "Interruption requested\n";
   }
-} 
+}
 
-  
+
 }

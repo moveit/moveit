@@ -31,7 +31,7 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
- 
+
 /* Author: Ioan Sucan */
 
 #include <moveit/ompl_interface/ompl_interface.h>
@@ -49,14 +49,14 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   constraints_library_(new ConstraintsLibrary(context_manager_)),
   use_constraints_approximations_(true),
   simplify_solutions_(true)
-{  
+{
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
   loadConstraintApproximations();
   loadConstraintSamplers();
 }
 
-ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel, const planning_interface::PlannerConfigurationMap &pconfig, const ros::NodeHandle &nh) : 
+ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel, const planning_interface::PlannerConfigurationMap &pconfig, const ros::NodeHandle &nh) :
   nh_(nh),
   kmodel_(kmodel),
   constraint_sampler_manager_(new  constraint_samplers::ConstraintSamplerManager()),
@@ -64,7 +64,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   constraints_library_(new ConstraintsLibrary(context_manager_)),
   use_constraints_approximations_(true),
   simplify_solutions_(true)
-{ 
+{
   ROS_INFO("Initializing OMPL interface using specified configuration");
   setPlannerConfigurations(pconfig);
   loadConstraintApproximations();
@@ -78,7 +78,7 @@ ompl_interface::OMPLInterface::~OMPLInterface()
 void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig)
 {
   planning_interface::PlannerConfigurationMap pconfig2 = pconfig;
-  
+
   // construct default configurations
   const std::map<std::string, robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
   for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
@@ -90,7 +90,7 @@ void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_inte
       pconfig2[empty.name] = empty;
     }
   }
-  
+
   context_manager_.setPlannerConfigurations(pconfig2);
 }
 
@@ -145,7 +145,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 }
 
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-					  const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const
+                      const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const
 {
   moveit::Profiler::ScopedStart pslv;
   moveit::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
@@ -162,7 +162,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 
 void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::string &path)
 {
-  constraints_library_->loadConstraintApproximations(path);   
+  constraints_library_->loadConstraintApproximations(path);
   std::stringstream ss;
   constraints_library_->printConstraintApproximations(ss);
   ROS_INFO_STREAM(ss.str());
@@ -203,7 +203,7 @@ void ompl_interface::OMPLInterface::loadConstraintSamplers()
 
 void ompl_interface::OMPLInterface::loadPlannerConfigurations()
 {
-  const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();  
+  const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();
   planning_interface::PlannerConfigurationMap pconfig;
 
   // read the planning configuration for each group
@@ -214,15 +214,15 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     static const std::string KNOWN_GROUP_PARAMS[] = {
       "projection_evaluator", "longest_valid_segment_fraction"
     };
-    
+
     // get parameters specific for the robot planning group
     std::map<std::string, std::string> specific_group_params;
     for (std::size_t k = 0 ; k < sizeof(KNOWN_GROUP_PARAMS) / sizeof(std::string) ; ++k)
     {
       if (nh_.hasParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k]))
       {
-	std::string value;
-	if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value))
+    std::string value;
+    if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value))
         {
           if (!value.empty())
             specific_group_params[KNOWN_GROUP_PARAMS[k]] = value;
@@ -247,7 +247,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         }
       }
     }
-    
+
     // set the parameters (if any) for the default group configuration;
     if (!specific_group_params.empty())
     {
@@ -257,62 +257,62 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
       pc.config = specific_group_params;
       pconfig[pc.name] = pc;
     }
-    
+
     // get parameters specific to each planner type
     XmlRpc::XmlRpcValue config_names;
     if (nh_.getParam(group_names[i] + "/planner_configs", config_names))
     {
       if (config_names.getType() == XmlRpc::XmlRpcValue::TypeArray)
       {
-	for (int32_t j = 0; j < config_names.size() ; ++j)
-	  if (config_names[j].getType() == XmlRpc::XmlRpcValue::TypeString)
-	  {
-	    std::string planner_config = static_cast<std::string>(config_names[j]);
-	    XmlRpc::XmlRpcValue xml_config;
-	    if (nh_.getParam("planner_configs/" + planner_config, xml_config))
-	    {
-	      if (xml_config.getType() == XmlRpc::XmlRpcValue::TypeStruct)
-	      {
-		planning_interface::PlannerConfigurationSettings pc;
-		pc.name = group_names[i] + "[" + planner_config + "]";
-		pc.group = group_names[i];
-		// inherit parameters from the group (which can be overriden)
-		pc.config = specific_group_params;
-		
-		// read parameters specific for this configuration
-		for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin() ; it != xml_config.end() ; ++it)
-		  if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
-		    pc.config[it->first] = static_cast<std::string>(it->second);
-		  else
-		    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-		      pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
-		    else
-		      if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
-			pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
-		      else
-			if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
-			  pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
+    for (int32_t j = 0; j < config_names.size() ; ++j)
+      if (config_names[j].getType() == XmlRpc::XmlRpcValue::TypeString)
+      {
+        std::string planner_config = static_cast<std::string>(config_names[j]);
+        XmlRpc::XmlRpcValue xml_config;
+        if (nh_.getParam("planner_configs/" + planner_config, xml_config))
+        {
+          if (xml_config.getType() == XmlRpc::XmlRpcValue::TypeStruct)
+          {
+        planning_interface::PlannerConfigurationSettings pc;
+        pc.name = group_names[i] + "[" + planner_config + "]";
+        pc.group = group_names[i];
+        // inherit parameters from the group (which can be overriden)
+        pc.config = specific_group_params;
+
+        // read parameters specific for this configuration
+        for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin() ; it != xml_config.end() ; ++it)
+          if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
+            pc.config[it->first] = static_cast<std::string>(it->second);
+          else
+            if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+              pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
+            else
+              if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
+            pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
+              else
+            if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+              pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
                 pconfig[pc.name] = pc;
-	      }
-	      else
-		ROS_ERROR("A planning configuration should be of type XmlRpc Struct type (for configuration '%s')", planner_config.c_str());
-	    }
-	    else
-	      ROS_ERROR("Could not find the planner configuration '%s' on the param server", planner_config.c_str());
-	  }
-	  else
-	    ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_names[i].c_str());
+          }
+          else
+        ROS_ERROR("A planning configuration should be of type XmlRpc Struct type (for configuration '%s')", planner_config.c_str());
+        }
+        else
+          ROS_ERROR("Could not find the planner configuration '%s' on the param server", planner_config.c_str());
       }
       else
-	ROS_ERROR("The planner_configs argument of a group configuration should be an array of strings (for group '%s')", group_names[i].c_str());
+        ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_names[i].c_str());
+      }
+      else
+    ROS_ERROR("The planner_configs argument of a group configuration should be an array of strings (for group '%s')", group_names[i].c_str());
     }
   }
-  
-  for(planning_interface::PlannerConfigurationMap::iterator it = pconfig.begin(); 
+
+  for(planning_interface::PlannerConfigurationMap::iterator it = pconfig.begin();
       it != pconfig.end(); ++it)
   {
     ROS_DEBUG_STREAM("Parameters for configuration '"<< it->first << "'");
-    for (std::map<std::string, std::string>::const_iterator config_it = it->second.config.begin() ; 
+    for (std::map<std::string, std::string>::const_iterator config_it = it->second.config.begin() ;
          config_it != it->second.config.end() ; ++config_it)
       ROS_DEBUG_STREAM(" - " << config_it->first << " = " << config_it->second);
   }

@@ -50,7 +50,7 @@ public:
   virtual ~SBPLInterface(){}
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
+             const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::GetMotionPlan::Response &res,
              const PlanningParameters& params) const;
 

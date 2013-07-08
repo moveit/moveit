@@ -42,7 +42,7 @@ ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const robot
 {
   // set the state space name
   setName(joint_model_->getName());
-  
+
   if (joint_bounds_.size() != joint_model_->getVariableBounds().size())
   {
     logError("Joint '%s' from group has incorrect bounds specified. Using the default bounds instead.",  joint_model_->getName().c_str());
@@ -81,7 +81,7 @@ unsigned int ompl_interface::ModelBasedJointStateSpace::getDimension() const
 }
 
 double ompl_interface::ModelBasedJointStateSpace::getMaximumExtent() const
-{  
+{
   return joint_model_->getMaximumExtent(joint_bounds_);
 }
 
@@ -127,7 +127,7 @@ void ompl_interface::ModelBasedJointStateSpace::serialize(void *serialization, c
 }
 
 void ompl_interface::ModelBasedJointStateSpace::deserialize(ompl::base::State *state, const void *serialization) const
-{ 
+{
   memcpy(&state->as<StateType>()->joint_state->getVariableValues()[0], serialization, joint_model_->getVariableCount() * sizeof(double));
   propagateJointStateUpdate(state);
 }
@@ -177,7 +177,7 @@ void ompl_interface::ModelBasedJointStateSpace::propagateJointStateUpdate(ompl::
 {
   // update the transform the joint applies
   joint_model_->updateTransform(state->as<StateType>()->joint_state->getVariableValues(), state->as<StateType>()->joint_state->getVariableTransform());
-  
+
   // propagate updates to mimic joints
   state->as<StateType>()->joint_state->updateMimicJoints();
 }
@@ -187,29 +187,29 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedJointStateSpace::allocDefa
   class DefaultStateSampler : public ompl::base::StateSampler
   {
   public:
-    
+
     DefaultStateSampler(const ompl::base::StateSpace *space) : ompl::base::StateSampler(space),
                                                                values_(space->as<ModelBasedJointStateSpace>()->getJointModel()->getVariableCount())
     {
     }
-    
+
     virtual void sampleUniform(ompl::base::State *state)
     {
       std::vector<double> &values = state->as<ModelBasedJointStateSpace::StateType>()->joint_state->getVariableValues();
       values.clear(); // clear first since getRandomValues() does .push_back()
-      
+
       // generate random values accorrding to JointModel
       space_->as<ModelBasedJointStateSpace>()->getJointModel()->getVariableRandomValues(moveit_rng_, values, space_->as<ModelBasedJointStateSpace>()->getJointBounds());
-      
+
       // propagate transforms
       space_->as<ModelBasedJointStateSpace>()->propagateJointStateUpdate(state);
     }
-    
+
     virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
-    {     
+    {
       std::vector<double> &values = state->as<ModelBasedJointStateSpace::StateType>()->joint_state->getVariableValues();
       values.clear(); // clear first since getRandomValues() does .push_back()
-      
+
       // generate random values accorrding to JointModel
       space_->as<ModelBasedJointStateSpace>()->getJointModel()->getVariableRandomValuesNearBy(moveit_rng_, values, space_->as<ModelBasedJointStateSpace>()->getJointBounds(),
                                                                                               near->as<ModelBasedJointStateSpace::StateType>()->joint_state->getVariableValues(),
@@ -217,16 +217,16 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedJointStateSpace::allocDefa
       // propagate transforms
       space_->as<ModelBasedJointStateSpace>()->propagateJointStateUpdate(state);
     }
-    
+
     virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
     {
       sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
     }
-    
+
   protected:
-    std::vector<double> values_;    
+    std::vector<double> values_;
     random_numbers::RandomNumberGenerator moveit_rng_;
   };
-  
+
   return ompl::base::StateSamplerPtr(static_cast<ompl::base::StateSampler*>(new DefaultStateSampler(this)));
 }

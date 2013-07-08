@@ -112,7 +112,7 @@ ompl_interface::PlanningContextManager::~PlanningContextManager()
 {
 }
 
-namespace 
+namespace
 {
 using namespace ompl_interface;
 
@@ -241,7 +241,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
     logDebug("Creating new planning context");
     context.reset(new ModelBasedPlanningContext(config.name, context_spec));
-    context->useStateValidityCache(state_validity_cache); 
+    context->useStateValidityCache(state_validity_cache);
     {
       boost::mutex::scoped_lock slock(cached_contexts_->lock_);
       cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
@@ -259,7 +259,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   context->setMinimumWaypointCount(minimum_waypoint_count_);
 
   context->setSpecificationConfig(config.config);
-  
+
   last_planning_context_->setContext(context);
   return context;
 }
@@ -307,7 +307,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   }
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene, 
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
                                                                                                         const moveit_msgs::MotionPlanRequest &req,
                                                                                                         moveit_msgs::MoveItErrorCodes &error_code) const
 {
@@ -317,12 +317,12 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return ModelBasedPlanningContextPtr();
   }
-  
+
   error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-  
+
   if (!planning_scene)
-  { 
-    logError("No planning scene supplied as input"); 
+  {
+    logError("No planning scene supplied as input");
     return ModelBasedPlanningContextPtr();
   }
 
@@ -345,28 +345,28 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       return ModelBasedPlanningContextPtr();
     }
   }
-  
+
   ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req));
   if (context)
   {
     context->clear();
-    
+
     context->setPlanningScene(planning_scene);
     context->setMotionPlanRequest(req);
-    
-    robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);  
-    
+
+    robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
+
     // set the planning scene
     context->setPlanningScene(planning_scene);
     context->setCompleteInitialState(*start_state);
-  
+
     context->setPlanningVolume(req.workspace_parameters);
     if (!context->setPathConstraints(req.path_constraints, &error_code))
       return ModelBasedPlanningContextPtr();
-    
+
     if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, &error_code))
-      return ModelBasedPlanningContextPtr(); 
-    
+      return ModelBasedPlanningContextPtr();
+
     try
     {
       context->configure();
@@ -379,7 +379,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       context.reset();
     }
   }
-  
+
   return context;
 }
 

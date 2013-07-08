@@ -42,22 +42,22 @@ namespace ompl_inteface
 class OutputHandlerROS : public ompl::msg::OutputHandler
 {
 public:
-  
+
   OutputHandlerROS() : OutputHandler()
   {
   }
-  
+
   virtual void log(const std::string &text, ompl::msg::LogLevel level, const char *filename, int line)
   {
     switch (level)
     {
-    case ompl::msg::LOG_INFO: 
+    case ompl::msg::LOG_INFO:
       {
         ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Info, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
         if (ROS_UNLIKELY(enabled))
         {
           ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
-        }    
+        }
       }
       break;
     case ompl::msg::LOG_WARN:
@@ -66,7 +66,7 @@ public:
         if (ROS_UNLIKELY(enabled))
         {
           ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
-        }    
+        }
       }
       break;
     case ompl::msg::LOG_ERROR:
@@ -75,7 +75,7 @@ public:
         if (ROS_UNLIKELY(enabled))
         {
           ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
-        }    
+        }
       }
       break;
     default:
@@ -85,7 +85,7 @@ public:
         if (ROS_UNLIKELY(enabled))
         {
           ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
-        }    
+        }
       }
       break;
     }
@@ -98,7 +98,7 @@ struct RegisterOH
   {
     static OutputHandlerROS oh_ros;
     ompl::msg::useOutputHandler(&oh_ros);
-    ompl::msg::setLogLevel(ompl::msg::LOG_DEBUG);    
+    ompl::msg::setLogLevel(ompl::msg::LOG_DEBUG);
   }
 };
 

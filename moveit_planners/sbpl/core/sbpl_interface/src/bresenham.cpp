@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2010, Maxim Likhachev
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of the University of Pennsylvania nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -39,7 +39,7 @@ void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int
   params->Y2=p2y;
   params->Z2=p2z;
 
-  params->XIndex = params->X1; 
+  params->XIndex = params->X1;
   params->YIndex = params->Y1;
   params->ZIndex = params->Z1;
 
@@ -59,12 +59,12 @@ void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int
   if((double)(p2y-p1y) < 0)
     params->IncY = -1;
   else
-    params->IncY = 1; 
+    params->IncY = 1;
 
   if((double)(p2z-p1z) < 0)
     params->IncZ = -1;
   else
-    params->IncZ = 1; 
+    params->IncZ = 1;
 
   //choose which axis to use as the index
   if(params->dx >= params->dy && params->dx >= params->dz)
@@ -81,7 +81,7 @@ void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int
   }
   else
   {
-    params->UsingXYZIndex = 2; 
+    params->UsingXYZIndex = 2;
     params->err1 = params->dy2 - params->dz;
     params->err2 = params->dx2 - params->dz;
   }
@@ -144,4 +144,3 @@ int get_next_point3d(bresenham3d_param_t *params)
   }
   return 1;
 }
-

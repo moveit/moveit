@@ -64,28 +64,28 @@ public:
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
+             const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::GetMotionPlan::Response &res) const
   {
     sbpl_interface::PlanningParameters params;
     params.use_bfs_ = false;
-    bool solve_ok = sbpl_interface_->solve(planning_scene, 
-                                           req, 
+    bool solve_ok = sbpl_interface_->solve(planning_scene,
+                                           req,
                                            res,
                                            params);
     return solve_ok;
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
+             const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::MotionPlanDetailedResponse &res) const
   {
     sbpl_interface::PlanningParameters params;
     params.use_bfs_ = false;
 
     moveit_msgs::GetMotionPlan::Response res2;
-    if (sbpl_interface_->solve(planning_scene, 
-                               req, 
+    if (sbpl_interface_->solve(planning_scene,
+                               req,
                                res2,
                                params))
     {
@@ -100,7 +100,7 @@ public:
   }
 
   std::string getDescription() const { return "SBPL"; }
-  
+
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
     algs.resize(1);
@@ -111,7 +111,7 @@ public:
   {
     //TODO - make interruptible
   }
-     
+
 private:
   ros::Publisher display_bfs_publisher_;
   boost::shared_ptr<sbpl_interface::SBPLInterface> sbpl_interface_;

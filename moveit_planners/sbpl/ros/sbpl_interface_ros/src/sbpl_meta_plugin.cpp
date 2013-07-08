@@ -64,22 +64,22 @@ public:
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
+             const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::GetMotionPlan::Response &res) const
   {
-    bool solve_ok = sbpl_meta_interface_->solve(planning_scene, 
-                                                req, 
+    bool solve_ok = sbpl_meta_interface_->solve(planning_scene,
+                                                req,
                                                 res);
     return solve_ok;
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
+             const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::MotionPlanDetailedResponse &res) const
   {
     moveit_msgs::GetMotionPlan::Response res2;
-    if (sbpl_meta_interface_->solve(planning_scene, 
-                                    req, 
+    if (sbpl_meta_interface_->solve(planning_scene,
+                                    req,
                                     res2))
     {
       res.trajectory_start = res2.trajectory_start;
@@ -93,7 +93,7 @@ public:
   }
 
   std::string getDescription() const { return "SBPLMeta"; }
-  
+
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
     algs.resize(1);
@@ -104,7 +104,7 @@ public:
   {
     //TODO - make interruptible
   }
-     
+
 private:
   ros::Publisher display_bfs_publisher_;
   boost::shared_ptr<sbpl_interface::SBPLMetaInterface> sbpl_meta_interface_;

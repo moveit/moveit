@@ -45,9 +45,9 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedP
   ob::GoalLazySamples(pc->getOMPLSimpleSetup().getSpaceInformation(), boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false),
   planning_context_(pc),
   kinematic_constraint_set_(ks),
-  constraint_sampler_(cs), 
+  constraint_sampler_(cs),
   work_state_(pc->getCompleteInitialRobotState()),
-  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getGroupName())), 
+  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getGroupName())),
   invalid_sampled_constraints_(0),
   warned_invalid_samples_(false),
   verbose_display_(0)
@@ -68,11 +68,11 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
   // terminate after too many attempts
   if (attempts_so_far >= max_attempts)
     return false;
-  
+
   // terminate after a maximum number of samples
   if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
     return false;
-  
+
   // terminate the sampling thread when a solution has been found
   if (planning_context_->getOMPLSimpleSetup().getProblemDefinition()->hasSolution())
     return false;
@@ -84,8 +84,8 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     if (gls->getStateCount() == 0 && a >= max_attempts_div2)
       if (verbose_display_ < 1)
       {
-	verbose = true;
-	verbose_display_++;
+    verbose = true;
+    verbose_display_++;
       }
 
     if (constraint_sampler_)
@@ -98,15 +98,15 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
           if (static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(newGoal, verbose))
             return true;
         }
-	else
-	{
-	  invalid_sampled_constraints_++;
-	  if (!warned_invalid_samples_ && invalid_sampled_constraints_ >= (attempts_so_far * 8) / 10)
-	  {
-	    warned_invalid_samples_ = true;
-	    logWarn("More than 80%% of the sampled goal states fail to satisfy the constraints imposed on the goal sampler. Is the constrained sampler working correctly?");
-	  }
-	}
+    else
+    {
+      invalid_sampled_constraints_++;
+      if (!warned_invalid_samples_ && invalid_sampled_constraints_ >= (attempts_so_far * 8) / 10)
+      {
+        warned_invalid_samples_ = true;
+        logWarn("More than 80%% of the sampled goal states fail to satisfy the constraints imposed on the goal sampler. Is the constrained sampler working correctly?");
+      }
+    }
       }
     }
     else

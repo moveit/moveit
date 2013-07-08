@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2008, Maxim Likhachev
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of the University of Pennsylvania nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -59,13 +59,13 @@ static const double DEFAULT_JOINT_MOTION_PRIMITIVE_DISTANCE=.2;
 namespace sbpl_interface {
 
 struct PlanningStatistics {
-  
+
   PlanningStatistics() :
     total_expansions_(0),
     coll_checks_(0)
   {
   }
-  
+
   unsigned int total_expansions_;
   ros::WallDuration total_expansion_time_;
   ros::WallDuration total_coll_check_time_;
@@ -75,7 +75,7 @@ struct PlanningStatistics {
 
 struct PlanningParameters {
 
-  PlanningParameters() : 
+  PlanningParameters() :
     use_bfs_(true),
     use_standard_collision_checking_(false),
     attempt_full_shortcut_(true),
@@ -92,7 +92,7 @@ struct PlanningParameters {
 };
 
 /** Environment to be used when planning for a Robotic Arm using the SBPL. */
-class EnvironmentChain3D: public DiscreteSpaceInformation 
+class EnvironmentChain3D: public DiscreteSpaceInformation
 {
 public:
 
@@ -112,8 +112,8 @@ public:
   // Pure virtual functions from DiscreteSpaceInformation
   //
 
-  /** 
-   * @brief Initialize the environment from a text file 
+  /**
+   * @brief Initialize the environment from a text file
    * @param name of environment text file
    * @return true if successful, false otherwise
    */
@@ -126,13 +126,13 @@ public:
   virtual bool InitializeMDPCfg(MDPConfig *MDPCfg);
 
   /**
-   * @brief Get the heuristic from one state to another state. 
+   * @brief Get the heuristic from one state to another state.
    * @param the stateID of the current state
    * @param the stateID of the goal state
    * @return h(s,s')
    */
   virtual int GetFromToHeuristic(int FromStateID, int ToStateID);
-    
+
   /**
    * @brief Get the heuristic of a state to the planner's goal state.
    * @param the stateID of the current state
@@ -146,8 +146,8 @@ public:
    * @return h(s,s_start)
    */
   virtual int GetStartHeuristic(int stateID);
-  
-  /** 
+
+  /**
    * @brief Get the successors of the desired state to be expanded.
    * Return vectors with the successors' state IDs and the cost to move
    * from the current state to that state. If the vectors return to the
@@ -159,7 +159,7 @@ public:
    * transitioning from the current state to the successor state.
    */
   virtual void GetSuccs(int SourceStateID, vector<int>* SuccIDV, vector<int>* CostV);
-    
+
   /** @brief Not defined. */
   virtual void GetPreds(int TargetStateID, vector<int>* PredIDV, vector<int>* CostV);
 
@@ -169,12 +169,12 @@ public:
   /** @brief Not defined. */
   virtual void SetAllPreds(CMDPSTATE* state);
 
-  /** 
+  /**
    * @brief This function returns the number of hash entries created.
    * @return number of hash entries
    */
   virtual int SizeofCreatedEnv();
-  
+
   /**
    * @brief This function prints out the state information of a state.
    * @param the state ID of the desired state
@@ -224,11 +224,11 @@ public:
   const PlanningStatistics& getPlanningStatistics() const {
     return planning_statistics_;
   }
-  
+
   bool getPlaneBFSMarker(visualization_msgs::Marker& plane_marker,
                          double z_val);
-                                              
-  
+
+
   const Eigen::Affine3d& getGoalPose() const {
     return goal_pose_;
   }
@@ -237,7 +237,7 @@ public:
                        trajectory_msgs::JointTrajectory& traj_out);
 
 protected:
-  
+
   bool getGridXYZInt(const Eigen::Affine3d& pose,
                      int(&xyz)[3]) const;
 
@@ -247,13 +247,13 @@ protected:
 
   double angle_discretization_;
   BFS_3D *bfs_;
-  
+
   std::vector<boost::shared_ptr<JointMotionWrapper> > joint_motion_wrappers_;
   std::vector<boost::shared_ptr<JointMotionPrimitive> > possible_actions_;
   planning_models::RobotState *state_;
   const collision_detection::CollisionWorldHybrid* hy_world_;
-  const collision_detection::CollisionRobotHybrid* hy_robot_; 
-  planning_models::RobotState *::JointStateGroup* joint_state_group_;  
+  const collision_detection::CollisionRobotHybrid* hy_robot_;
+  planning_models::RobotState *::JointStateGroup* joint_state_group_;
   boost::shared_ptr<collision_detection::GroupStateRepresentation> gsr_;
   //boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
   const planning_models::RobotState *::LinkState* tip_link_state_;
@@ -269,14 +269,14 @@ protected:
   planning_models::RobotState *interpolation_state_1_;
   planning_models::RobotState *interpolation_state_2_;
   planning_models::RobotState *interpolation_state_temp_;
-  planning_models::RobotState *::JointStateGroup* interpolation_joint_state_group_1_;  
+  planning_models::RobotState *::JointStateGroup* interpolation_joint_state_group_1_;
   planning_models::RobotState *::JointStateGroup* interpolation_joint_state_group_2_;
   planning_models::RobotState *::JointStateGroup* interpolation_joint_state_group_temp_;
   std::map<int, std::map<int, std::vector<std::vector<double> > > > generated_interpolations_map_;
 
   void setMotionPrimitives(const std::string& group_name);
   void determineMaximumEndEffectorTravel();
-  
+
   void convertCoordToJointAngles(const std::vector<int> &coord, std::vector<double> &angles);
   void convertJointAnglesToCoord(const std::vector<double> &angle, std::vector<int> &coord);
 
@@ -292,9 +292,9 @@ protected:
                                  double delta) const;
 
   int getJointDistanceIntegerMax(const std::vector<double>& angles1,
-                                 const std::vector<double>& angles2, 
+                                 const std::vector<double>& angles2,
                                  double delta) const;
-  
+
   // double getJointDistanceMax(const std::vector<double>& angles1,
   //                            const std::vector<double>& angles2);
 
@@ -302,7 +302,7 @@ protected:
   bool interpolateAndCollisionCheck(const std::vector<double> angles1,
                                     const std::vector<double> angles2,
                                     std::vector<std::vector<double> >& state_values);
-  
+
   inline double getEuclideanDistance(double x1, double y1, double z1, double x2, double y2, double z2) const
   {
     return sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
@@ -329,7 +329,7 @@ inline void EnvironmentChain3D::convertJointAnglesToCoord(const std::vector<doub
     double pos_angle = angle[i];
     if(pos_angle < 0.0)
       pos_angle += 2*M_PI;
-    
+
     coord[i] = (int)((pos_angle + angle_discretization_*0.5)/angle_discretization_);
   }
 }
@@ -342,4 +342,3 @@ inline void EnvironmentChain3D::convertJointAnglesToCoord(const std::vector<doub
 } //namespace
 
 #endif
-
