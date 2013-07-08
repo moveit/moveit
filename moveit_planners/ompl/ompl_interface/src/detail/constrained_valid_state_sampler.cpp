@@ -43,7 +43,7 @@ ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBase
                                                                  const constraint_samplers::ConstraintSamplerPtr &cs) :
   ob::ValidStateSampler(pc->getOMPLSimpleSetup().getSpaceInformation().get()),
   planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()),
-  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName()))
+  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getGroupName()))
 {  
   if (!constraint_sampler_)
     default_sampler_ = si_->allocStateSampler();
