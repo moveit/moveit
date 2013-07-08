@@ -42,17 +42,21 @@ namespace planning_request_adapter
 {
 namespace
 {
-bool callPlannerInterfaceSolve(const planning_interface::Planner *planner,
+bool callPlannerInterfaceSolve(const planning_interface::PlannerManager *planner,
                                const planning_scene::PlanningSceneConstPtr& planning_scene,
                                const planning_interface::MotionPlanRequest &req, 
                                planning_interface::MotionPlanResponse &res)
 {
-  return planner->solve(planning_scene, req, res);
+  planning_interface::PlanningContextPtr context = planner->getPlanningContext(planning_scene, req, res.error_code_);
+  if (context)
+    return context->solve(res);
+  else
+    return false;
 }
 }
 }
 
-bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planning_interface::PlannerPtr &planner,
+bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
                                                                     const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                     const planning_interface::MotionPlanRequest &req, 
                                                                     planning_interface::MotionPlanResponse &res,
@@ -61,7 +65,7 @@ bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planni
   return adaptAndPlan(boost::bind(&callPlannerInterfaceSolve, planner.get(), _1, _2, _3), planning_scene, req, res, added_path_index);
 }
 
-bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planning_interface::PlannerPtr &planner,
+bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
                                                                     const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                     const planning_interface::MotionPlanRequest &req, 
                                                                     planning_interface::MotionPlanResponse &res) const
@@ -79,7 +83,7 @@ namespace
 // boost bind is not happy with overloading, so we add intermediate function objects
 
 bool callAdapter1(const PlanningRequestAdapter *adapter,
-                  const planning_interface::PlannerPtr &planner,
+                  const planning_interface::PlannerManagerPtr &planner,
                   const planning_scene::PlanningSceneConstPtr& planning_scene,
                   const planning_interface::MotionPlanRequest &req, 
                   planning_interface::MotionPlanResponse &res,
@@ -93,13 +97,13 @@ bool callAdapter1(const PlanningRequestAdapter *adapter,
   {    
     logError("Exception caught executing adapter '%s': %s", adapter->getDescription().c_str(), ex.what());
     added_path_index.clear();
-    return planner->solve(planning_scene, req, res);
+    return callPlannerInterfaceSolve(planner.get(), planning_scene, req, res);
   }
   catch(...)
   {
     logError("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
     added_path_index.clear();
-    return planner->solve(planning_scene, req, res);
+    return callPlannerInterfaceSolve(planner.get(), planning_scene, req, res);
   }
 }
 
@@ -132,7 +136,7 @@ bool callAdapter2(const PlanningRequestAdapter *adapter,
 
 }
 
-bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::PlannerPtr &planner,
+bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
                                                                          const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                          const planning_interface::MotionPlanRequest &req, 
                                                                          planning_interface::MotionPlanResponse &res) const
@@ -141,7 +145,7 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const p
   return adaptAndPlan(planner, planning_scene, req, res, dummy);
 }
 
-bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::PlannerPtr &planner,
+bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
                                                                          const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                          const planning_interface::MotionPlanRequest &req, 
                                                                          planning_interface::MotionPlanResponse &res,
@@ -151,7 +155,7 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const p
   if (adapters_.empty())
   {
     added_path_index.clear();
-    return planner->solve(planning_scene, req, res);
+    return callPlannerInterfaceSolve(planner.get(), planning_scene, req, res);
   }
   else
   {
