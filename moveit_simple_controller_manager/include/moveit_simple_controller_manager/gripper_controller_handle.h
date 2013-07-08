@@ -70,7 +70,7 @@ public:
       ROS_ERROR("GripperController: cannot execute multi-dof trajectories.");
       return false;
     }
-    
+
     if (trajectory.joint_trajectory.points.size() != 1)
     {
       ROS_ERROR("GripperController: expects a joint trajectory with one point only, but %u provided)", (unsigned int)trajectory.joint_trajectory.points.size());
@@ -84,7 +84,7 @@ public:
       ROS_ERROR("GripperController: expects a joint trajectory with one point that specifies at least one position, but 0 positions provided)");
       return false;
     }
-    
+
     /* TODO: currently sending velocity as effort, make this better. */
     control_msgs::GripperCommandGoal goal;
     if (!trajectory.joint_trajectory.points[0].velocities.empty())
@@ -101,7 +101,7 @@ public:
 
   void setCommandJoint(const std::string& name) { command_joint_ = name; }
   void allowFailure(bool allow) { allow_failure_ = allow; }
-  
+
 private:
 
   void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
@@ -112,12 +112,12 @@ private:
     else
       finishControllerExecution(state);
   }
-  
-  void controllerActiveCallback() 
+
+  void controllerActiveCallback()
   {
     ROS_DEBUG_STREAM("GripperController: " << name_ << " started execution");
   }
-  
+
   void controllerFeedbackCallback(const control_msgs::GripperCommandFeedbackConstPtr& feedback)
   {
     // TODO?

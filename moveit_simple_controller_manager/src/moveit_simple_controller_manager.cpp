@@ -50,9 +50,9 @@ namespace moveit_simple_controller_manager
 class MoveItSimpleControllerManager : public moveit_controller_manager::MoveItControllerManager
 {
 public:
-  
+
   MoveItSimpleControllerManager() : node_handle_("~")
-  { 
+  {
     if (!node_handle_.hasParam("controller_list"))
     {
       ROS_ERROR_STREAM("MoveitSimpleControllerManager: No controller_list specified.");
@@ -66,7 +66,7 @@ public:
       ROS_ERROR("MoveitSimpleControllerManager: controller_list should be specified as an array");
       return;
     }
-    
+
     /* actually create each controller */
     for (int i = 0 ; i < controller_list.size() ; ++i)
     {
@@ -75,7 +75,7 @@ public:
         ROS_ERROR("MoveitSimpleControllerManager: Name and joints must be specifed for each controller");
         continue;
       }
-      
+
       try
       {
         std::string name = std::string(controller_list[i]["name"]);
@@ -105,7 +105,7 @@ public:
           if (static_cast<GripperControllerHandle*>(new_handle.get())->isConnected())
           {
             if (controller_list[i].hasMember("command_joint"))
-                static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["command_joint"]);                
+                static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["command_joint"]);
             else
                 static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["joints"][0]);
 
@@ -136,7 +136,7 @@ public:
       }
     }
   }
-  
+
   virtual ~MoveItSimpleControllerManager()
   {
   }
@@ -157,7 +157,7 @@ public:
    * Get the list of controller names.
    */
   virtual void getControllersList(std::vector<std::string> &names)
-  {    
+  {
     for (std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.begin() ; it != controllers_.end() ; ++it)
       names.push_back(it->first);
     ROS_INFO_STREAM("Returned " << names.size() << " controllers in list");
@@ -209,9 +209,9 @@ public:
 
   /* Cannot switch our controllers */
   virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate) { return false; }
-  
+
 protected:
-  
+
   ros::NodeHandle node_handle_;
   std::map<std::string, ActionBasedControllerHandleBasePtr> controllers_;
 };
