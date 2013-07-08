@@ -85,7 +85,7 @@ public:
       ROS_ERROR_STREAM("MoveitSimpleControllerManager: Action client not connected: " << name_ + "/" + namespace_);
       controller_action_client_.reset();
     }
-    
+
     last_exec_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   }
 
@@ -94,8 +94,8 @@ public:
     return controller_action_client_;
   }
 
-  virtual bool cancelExecution() 
-  {   
+  virtual bool cancelExecution()
+  {
     if (!controller_action_client_)
       return false;
     if (!done_)
@@ -107,9 +107,9 @@ public:
     }
     return true;
   }
-  
+
   virtual bool waitForExecution(const ros::Duration &timeout = ros::Duration(0))
-  { 
+  {
     if (controller_action_client_ && !done_)
       return controller_action_client_->waitForResult(timeout);
     return true;

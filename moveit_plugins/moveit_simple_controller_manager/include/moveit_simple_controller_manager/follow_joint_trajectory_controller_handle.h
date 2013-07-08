@@ -52,12 +52,12 @@ namespace moveit_simple_controller_manager
 class FollowJointTrajectoryControllerHandle : public ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>
 {
 public:
-  
+
   FollowJointTrajectoryControllerHandle(const std::string &name, const std::string &ns = "follow_joint_trajectory") :
     ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>(name, ns)
-  {  
+  {
   }
-  
+
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &trajectory)
   {
     ROS_DEBUG_STREAM("FollowJointTrajectoryController: new trajectory to " << name_);
@@ -86,7 +86,7 @@ public:
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
     return true;
   }
-  
+
 protected:
 
   void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
@@ -94,12 +94,12 @@ protected:
   {
     finishControllerExecution(state);
   }
-  
-  void controllerActiveCallback() 
+
+  void controllerActiveCallback()
   {
     ROS_DEBUG_STREAM("FollowJointTrajectoryController: " << name_ << " started execution");
   }
-  
+
   void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback)
   {
     // TODO?
