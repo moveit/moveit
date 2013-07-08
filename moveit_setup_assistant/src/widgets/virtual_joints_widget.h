@@ -84,7 +84,7 @@ class VirtualJointsWidget : public SetupScreenWidget
   QComboBox *joint_type_field_;
   QWidget *vjoint_list_widget_;
   QWidget *vjoint_edit_widget_;
-                                                                                              
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -129,7 +129,7 @@ private:
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
-  
+
   /// Orignal name of vjoint currently being edited. This is used to find the element in the vector
   std::string current_edit_vjoint_;
 
@@ -137,49 +137,49 @@ private:
   // Private Functions
   // ******************************************************************************************
 
-  /** 
+  /**
    * Find the associated data by name
-   * 
+   *
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
   srdf::Model::VirtualJoint *findVJointByName( const std::string &name );
 
-  /** 
+  /**
    * Create the main list view of vjoints for robot
-   * 
+   *
    * @return the widget
    */
   QWidget* createContentsWidget();
 
-  /** 
+  /**
    * Create the screen for editing vjoints
-   * 
+   *
    * @return the widget
    */
   QWidget* createEditWidget();
-  
-  /** 
+
+  /**
    * Load the robot vjoints into the table
-   * 
+   *
    */
   void loadDataTable();
 
-  /** 
+  /**
    * Populate the combo dropdown box with avail group names
-   * 
+   *
    */
   void loadJointTypesComboBox();
 
-  /** 
+  /**
    * Populate the combo dropdown box with avail parent links
-   * 
-   */  
+   *
+   */
   void loadChildLinksComboBox();
 
-  /** 
+  /**
    * Edit the vjoint with the input name
-   * 
+   *
    * @param name name of vjoint
    */
   void edit( const std::string &name );
@@ -191,4 +191,3 @@ private:
 
 
 #endif
-

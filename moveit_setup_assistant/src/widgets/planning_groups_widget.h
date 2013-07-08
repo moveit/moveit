@@ -149,7 +149,7 @@ private:
   QPushButton* btn_edit_;
 
   QPushButton* btn_delete_;
-  
+
   // Stacked Layout SUBPAGES -------------------------------------------
 
   QWidget* groups_tree_widget_;
@@ -174,7 +174,7 @@ private:
 
   /// Remember whethere we're editing a group or adding a new one
   bool adding_new_group_;
-  
+
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
@@ -229,4 +229,3 @@ Q_DECLARE_METATYPE(PlanGroupType);
 
 
 #endif
-

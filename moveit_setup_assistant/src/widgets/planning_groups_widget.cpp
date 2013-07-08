@@ -1456,5 +1456,3 @@ PlanGroupType::PlanGroupType( srdf::Model::Group *group, const moveit_setup_assi
   : group_( group ), type_( type )
 {
 }
-
-

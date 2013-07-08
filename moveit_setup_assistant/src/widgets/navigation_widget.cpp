@@ -50,7 +50,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) :
 {
   setItemDelegate(new NavDelegate(this));
   setEditTriggers(QAbstractItemView::NoEditTriggers);
-  
+
   //setAttribute(Qt::WA_MacShowFocusRect, false);
 
   // Set frame graphics
@@ -134,13 +134,13 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
   painter->save();
 
   QLinearGradient backgroundGradient(QPoint(option.rect.x(), option.rect.y()), QPoint(option.rect.x(), option.rect.y()+option.rect.height()));
-  if(isSelected) 
+  if(isSelected)
   {
     backgroundGradient.setColorAt(0, QColor(109, 164, 219));
     backgroundGradient.setColorAt(1, QColor(61, 138, 212));
     painter->fillRect(option.rect, QBrush(backgroundGradient));
-  } 
-  else 
+  }
+  else
   {
     backgroundGradient.setColorAt(0, QColor(245, 245, 245));
     backgroundGradient.setColorAt(1, QColor(240, 240, 240));

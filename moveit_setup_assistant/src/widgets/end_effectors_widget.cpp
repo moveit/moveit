@@ -101,7 +101,7 @@ QWidget* EndEffectorsWidget::createContentsWidget()
   data_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
   connect( data_table_, SIGNAL( cellDoubleClicked( int, int ) ), this, SLOT( editDoubleClicked( int, int ) ) );
   connect( data_table_, SIGNAL( cellClicked( int, int ) ), this, SLOT( previewClicked( int, int ) ) );
-  layout->addWidget( data_table_ );  
+  layout->addWidget( data_table_ );
 
   // Set header labels
   QStringList header_list;
@@ -110,7 +110,7 @@ QWidget* EndEffectorsWidget::createContentsWidget()
   header_list.append("Parent Link");
   header_list.append("Parent Group");
   data_table_->setHorizontalHeaderLabels(header_list);
-  
+
   // Bottom Buttons --------------------------------------------------
 
   QHBoxLayout *controls_layout = new QHBoxLayout();
@@ -142,11 +142,11 @@ QWidget* EndEffectorsWidget::createContentsWidget()
   connect(btn_add, SIGNAL(clicked()), this, SLOT(showNewScreen()));
   controls_layout->addWidget(btn_add);
   controls_layout->setAlignment( btn_add, Qt::AlignRight );
-  
+
   // Add layout
   layout->addLayout( controls_layout );
 
-  
+
   // Set layout -----------------------------------------------------
   content_widget->setLayout(layout);
 
@@ -188,7 +188,7 @@ QWidget* EndEffectorsWidget::createEditWidget()
   parent_group_name_field_ = new QComboBox( this );
   parent_group_name_field_->setEditable( false );
   form_layout->addRow( "Parent Group (optional):", parent_group_name_field_ );
-  
+
   layout->addLayout( form_layout );
 
   // Bottom Buttons --------------------------------------------------
@@ -214,11 +214,11 @@ QWidget* EndEffectorsWidget::createEditWidget()
   connect( btn_cancel_, SIGNAL(clicked()), this, SLOT( cancelEditing() ) );
   controls_layout->addWidget( btn_cancel_ );
   controls_layout->setAlignment(btn_cancel_, Qt::AlignRight);
-  
+
   // Add layout
   layout->addLayout( controls_layout );
 
-  
+
   // Set layout -----------------------------------------------------
   edit_widget->setLayout(layout);
 
@@ -240,7 +240,7 @@ void EndEffectorsWidget::showNewScreen()
   parent_group_name_field_->clearEditText(); // actually this just chooses first option
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 1 ); 
+  stacked_layout_->setCurrentIndex( 1 );
 
   // Announce that this widget is in modal mode
   Q_EMIT isModal( true );
@@ -350,7 +350,7 @@ void EndEffectorsWidget::edit( const std::string &name )
   parent_group_name_field_->setCurrentIndex( index );
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 1 ); 
+  stacked_layout_->setCurrentIndex( 1 );
 
   // Announce that this widget is in modal mode
   Q_EMIT isModal( true );
@@ -365,14 +365,14 @@ void EndEffectorsWidget::loadGroupsComboBox()
   group_name_field_->clear();
   parent_group_name_field_->clear();
   parent_group_name_field_->addItem(""); // optional setting
-  
+
   // Add all group names to combo box
   for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
        group_it != config_data_->srdf_->groups_.end(); ++group_it )
   {
     group_name_field_->addItem( group_it->name_.c_str() );
     parent_group_name_field_->addItem( group_it->name_.c_str() );
-  }  
+  }
 
 }
 
@@ -383,7 +383,7 @@ void EndEffectorsWidget::loadParentComboBox()
 {
   // Remove all old groups
   parent_name_field_->clear();
-  
+
   // Get all links in robot model
   std::vector<const robot_model::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
 
@@ -392,7 +392,7 @@ void EndEffectorsWidget::loadParentComboBox()
        link_it < link_models.end(); ++link_it )
   {
     parent_name_field_->addItem( (*link_it)->getName().c_str() );
-  }  
+  }
 
 }
 
@@ -412,7 +412,7 @@ srdf::Model::EndEffector *EndEffectorsWidget::findEffectorByName( const std::str
       searched_group = &(*effector_it);  // convert to pointer from iterator
       break; // we are done searching
     }
-  }  
+  }
 
   // Check if effector was found
   if( searched_group == NULL ) // not found
@@ -420,7 +420,7 @@ srdf::Model::EndEffector *EndEffectorsWidget::findEffectorByName( const std::str
     QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
     QApplication::quit();
   }
-  
+
   return searched_group;
 }
 
@@ -440,11 +440,11 @@ void EndEffectorsWidget::deleteSelected()
   current_edit_effector_ = selected[0]->text().toStdString();
 
   // Confirm user wants to delete group
-  if( QMessageBox::question( this, "Confirm End Effector Deletion", 
+  if( QMessageBox::question( this, "Confirm End Effector Deletion",
                              QString("Are you sure you want to delete the end effector '")
                              .append( current_edit_effector_.c_str() )
-                             .append( "'?" ), 
-                             QMessageBox::Ok | QMessageBox::Cancel) 
+                             .append( "'?" ),
+                             QMessageBox::Ok | QMessageBox::Cancel)
       == QMessageBox::Cancel )
   {
     return;
@@ -482,7 +482,7 @@ void EndEffectorsWidget::doneEditing()
   if( effector_name.empty() )
   {
     QMessageBox::warning( this, "Error Saving", "A name must be specified for the end effector!" );
-    return;    
+    return;
   }
 
   // Check if this is an existing group
@@ -491,9 +491,9 @@ void EndEffectorsWidget::doneEditing()
     // Find the group we are editing based on the goup name string
     searched_data = findEffectorByName( current_edit_effector_ );
   }
-  
+
   // Check that the effector name is unique
-  for( std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin(); 
+  for( std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin();
        data_it != config_data_->srdf_->end_effectors_.end();  ++data_it )
   {
     if( data_it->name_.compare( effector_name ) == 0 ) // the names are the same
@@ -511,34 +511,34 @@ void EndEffectorsWidget::doneEditing()
   if( group_name_field_->currentText().isEmpty() )
   {
     QMessageBox::warning( this, "Error Saving", "A group that contains the links of the end-effector must be chosen!" );
-    return;    
+    return;
   }
-  
+
   // Check that a parent link was selected
   if( parent_name_field_->currentText().isEmpty() )
   {
     QMessageBox::warning( this, "Error Saving", "A parent link must be chosen!" );
-    return;    
+    return;
   }
 
   const robot_model::JointModelGroup *jmg =
     config_data_->getRobotModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
   if (jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
-  {  
+  {
     QMessageBox::warning( this, "Error Saving", QString::fromStdString("Group " + group_name_field_->currentText().toStdString() + " contains the link " + parent_name_field_->currentText().toStdString() + ". However, the parent link of the end-effector should not belong to the group for the end-effector itself."));
-    return;    
+    return;
   }
-  
+
   if (!parent_group_name_field_->currentText().isEmpty())
   {
     jmg = config_data_->getRobotModel()->getJointModelGroup(parent_group_name_field_->currentText().toStdString());
     if (!jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
-    {  
+    {
       QMessageBox::warning( this, "Error Saving", QString::fromStdString("The specified parent group '" + parent_group_name_field_->currentText().toStdString() + "' must contain the specified parent link '" + parent_name_field_->currentText().toStdString() + "'."));
-      return;    
+      return;
     }
   }
-  
+
   // Save the new effector name or create the new effector ----------------------------
   bool isNew = false;
 
@@ -567,7 +567,7 @@ void EndEffectorsWidget::doneEditing()
   loadDataTable();
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 0 ); 
+  stacked_layout_->setCurrentIndex( 0 );
 
   // Announce that this widget is not in modal mode
   Q_EMIT isModal( false );
@@ -579,7 +579,7 @@ void EndEffectorsWidget::doneEditing()
 void EndEffectorsWidget::cancelEditing()
 {
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 0 ); 
+  stacked_layout_->setCurrentIndex( 0 );
 
   // Re-highlight the currently selected end effector group
   previewClicked(0,0); // the number parameters are actually meaningless
@@ -599,11 +599,11 @@ void EndEffectorsWidget::loadDataTable()
   data_table_->clearContents();
 
   // Set size of datatable
-  data_table_->setRowCount( config_data_->srdf_->end_effectors_.size() ); 
+  data_table_->setRowCount( config_data_->srdf_->end_effectors_.size() );
 
   // Loop through every end effector
   int row = 0;
-  for( std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin(); 
+  for( std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin();
        data_it != config_data_->srdf_->end_effectors_.end(); ++data_it )
   {
     // Create row elements
@@ -621,7 +621,7 @@ void EndEffectorsWidget::loadDataTable()
     data_table_->setItem( row, 1, group_name );
     data_table_->setItem( row, 2, parent_name );
     data_table_->setItem( row, 3, parent_group_name );
-    
+
     // Increment counter
     ++row;
   }

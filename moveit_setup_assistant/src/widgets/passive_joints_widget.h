@@ -75,7 +75,7 @@ class PassiveJointsWidget : public SetupScreenWidget
   // ******************************************************************************************
 
   DoubleListWidget *joints_widget_;
-                                                                                              
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -94,7 +94,7 @@ private:
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
-  
+
   /// Orignal name of vjoint currently being edited. This is used to find the element in the vector
   std::string current_edit_vjoint_;
 
@@ -107,4 +107,3 @@ private:
 
 
 #endif
-

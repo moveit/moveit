@@ -2,22 +2,22 @@
 #include <float.h>
 #include <algorithm>
 #include <vector>
- 
+
 typedef double IKReal;
 
-inline bool distance_op(std::pair<unsigned int, double> i, 
+inline bool distance_op(std::pair<unsigned int, double> i,
                         std::pair<unsigned int, double> j) {
   return i.second < j.second;
 }
 
-namespace moveit_setup_assistant 
+namespace moveit_setup_assistant
 {
 class ik_solver_base {
 public:
   virtual int solve(Eigen::Affine3d &pose, const std::vector<double> &ik_seed_state) = 0;
   virtual void getSolution(int i, std::vector<double> &solution) = 0;
   virtual void getClosestSolution(const std::vector<double> &ik_seed_state, std::vector<double> &solution) = 0;
-  virtual void getOrderedSolutions(const std::vector<double> &ik_seed_state, 
+  virtual void getOrderedSolutions(const std::vector<double> &ik_seed_state,
                                    int num_solutions,
                                    std::vector<std::vector<double> >& solutions) = 0;
 
@@ -28,11 +28,11 @@ public:
   ikfast_solver(ik_type ik,int numJoints):ik(ik),numJoints(numJoints) {}
 
   virtual int solve(Eigen::Affine3d &pose, const std::vector<double> &vfree){
-      
+
     solutions.clear();
 
     //Eigen::Affine3d rot(Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitY()));
-    
+
     Eigen::Matrix3d rot = pose.rotation();
 
     double vals[9];
@@ -52,7 +52,7 @@ public:
     trans[2] = pose.translation().z();
 
     ik(trans, vals, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
-      
+
     return solutions.size();
   }
   virtual void getSolution(int i, std::vector<double> &solution){
@@ -65,13 +65,13 @@ public:
     // for(int j=0;j<numJoints; ++j)
     //   std::cout << " " << solution[j];
     // std::cout << std::endl;
-	  
+
     //ROS_ERROR("%f %d",solution[2],vsolfree.size());
   }
   double harmonize(const std::vector<double> &ik_seed_state, std::vector<double> &solution){
     if(ik_seed_state.size() != solution.size()) {
       ROS_WARN_STREAM("Different number of values in seed and solution!");
-    } 
+    }
     for(unsigned int i = 0; i < ik_seed_state.size(); i++) {
       ROS_DEBUG_STREAM(i << " " << ik_seed_state[i] << " " << solution[i]);
     }
@@ -100,7 +100,7 @@ public:
     double dist_sqr = 0;
     for(size_t i=0; i< ik_seed_state.size(); ++i){
       double diff = ik_seed_state[i] - solution[i];
-      if( diff > M_PI ) solution[i]+=2*M_PI; 
+      if( diff > M_PI ) solution[i]+=2*M_PI;
       else if (diff < -M_PI) solution[i]-=2*M_PI;
       diff = ik_seed_state[i] - solution[i];
       dist_sqr += fabs(diff);
@@ -108,7 +108,7 @@ public:
     return dist_sqr;
   }
 
-  virtual void getOrderedSolutions(const std::vector<double> &ik_seed_state, 
+  virtual void getOrderedSolutions(const std::vector<double> &ik_seed_state,
                                    int num_solutions,
                                    std::vector<std::vector<double> >& solutions){
     solutions.resize(num_solutions);
@@ -123,7 +123,7 @@ public:
     std::sort(distances.begin(), distances.end(), distance_op);
     std::vector<std::vector<double> > solutions_ret(solutions.size());
     for(unsigned int i = 0; i < distances.size(); i++) {
-      solutions_ret[i] = solutions[distances[i].first]; 
+      solutions_ret[i] = solutions[distances[i].first];
     }
     solutions = solutions_ret;
   }
@@ -147,9 +147,9 @@ public:
       harmonize(ik_seed_state, solution);
     }
   }
-    
-    
-    
+
+
+
 private:
   ik_type ik;
   std::vector<T> solutions;

@@ -83,7 +83,7 @@ RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_setup_assistant::Mov
 
   layout->addWidget( stacked_layout_widget );
 
- 
+
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
 
@@ -856,7 +856,7 @@ void RobotPosesWidget::publishJoints()
   // Create a planning scene message
   moveit_msgs::DisplayRobotState msg;
   robot_state::robotStateToRobotStateMsg(config_data_->getPlanningScene()->getCurrentState(), msg.state);
-  
+
   // Publish!
   pub_robot_state_.publish( msg );
 

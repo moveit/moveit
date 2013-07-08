@@ -264,7 +264,7 @@ void KinematicChainWidget::alterTree( const QString &link )
 // ******************************************************************************************
 // Highlight the currently selected link
 // ******************************************************************************************
-void KinematicChainWidget::itemSelected() 
+void KinematicChainWidget::itemSelected()
 {
   QTreeWidgetItem* item = link_tree_->currentItem();
   if(item != NULL)

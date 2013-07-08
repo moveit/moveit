@@ -47,12 +47,12 @@
 namespace moveit_setup_assistant
 {
 
-/** 
+/**
  * Widget for showing a left hand side list of navigation items
- * 
- * @param parent 
- * 
- * @return 
+ *
+ * @param parent
+ *
+ * @return
  */
 class NavigationWidget : public QListView
 {
@@ -69,12 +69,12 @@ private:
 };
 
 
-/** 
+/**
  * Class for drawing the style of the navigation box
- * 
- * @param parent 
- * 
- * @return 
+ *
+ * @param parent
+ *
+ * @return
  */
 class NavDelegate : public QStyledItemDelegate
 {
@@ -89,4 +89,4 @@ class NavDelegate : public QStyledItemDelegate
 
 }
 
-#endif 
+#endif

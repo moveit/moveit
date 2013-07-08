@@ -46,7 +46,7 @@ namespace moveit_setup_assistant
  * \brief Reasons for disabling link pairs. Append "in collision" for understanding.
  * NOT_DISABLED means the link pair DOES do self collision checking
  */
-enum DisabledReason { NEVER, DEFAULT, ADJACENT, ALWAYS, USER, NOT_DISABLED }; 
+enum DisabledReason { NEVER, DEFAULT, ADJACENT, ALWAYS, USER, NOT_DISABLED };
 
 /**
  * \brief Store details on a pair of links
@@ -54,15 +54,15 @@ enum DisabledReason { NEVER, DEFAULT, ADJACENT, ALWAYS, USER, NOT_DISABLED };
 struct LinkPairData
 {
   // by default all link pairs are NOT disabled for collision checking
-  LinkPairData() : reason( NOT_DISABLED ), disable_check( false ) {}; 
-  DisabledReason reason;        
+  LinkPairData() : reason( NOT_DISABLED ), disable_check( false ) {};
+  DisabledReason reason;
   bool disable_check;
 };
 
 /**
  * \brief LinkPairMap is an adjacency list structure containing links in string-based form. Used for disabled links
  */
-typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap; 
+typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap;
 
 /**
  * \brief Generate an adjacency list of links that are always and never in collision, to speed up collision detection
@@ -72,8 +72,8 @@ typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap
  * \param min_collision_fraction If collisions are found between a pair of links >= this fraction, the are assumed "always" in collision
  * \return Adj List of unique set of pairs of links in string-based form
  */
-LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress, 
-                                     const bool include_never_colliding, const unsigned int trials, 
+LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress,
+                                     const bool include_never_colliding, const unsigned int trials,
                                      const double min_collision_faction, const bool verbose);
 
 /**
@@ -83,14 +83,14 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
  **/
 void computeLinkPairs( const planning_scene::PlanningScene &scene, LinkPairMap &link_pairs );
 
-/** 
+/**
  * \brief Converts a reason for disabling a link pair into a string
  * \param reason enum reason type
  * \return reason as string
  */
 const std::string disabledReasonToString( DisabledReason reason );
 
-/** 
+/**
  * \brief Converts a string reason for disabling a link pair into a struct data type
  * \param reason string that should match one of the DisableReason types. If not, is set as "USER"
  * \return reason as struct
