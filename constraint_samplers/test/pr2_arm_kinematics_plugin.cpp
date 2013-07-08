@@ -310,7 +310,7 @@ bool PR2ArmKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
                                            const std::vector<double> &ik_seed_state,
                                            std::vector<double> &solution,
                                            moveit_msgs::MoveItErrorCodes &error_code,
-                                           bool lock_redundant_joints) const
+                                           const kinematics::KinematicsQueryOptions &options) const
 {
   return false;
 }
@@ -320,7 +320,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                                               double timeout,
                                               std::vector<double> &solution,
                                               moveit_msgs::MoveItErrorCodes &error_code,
-                                              bool lock_redundant_joints) const
+                                              const kinematics::KinematicsQueryOptions &options) const
 {
   if(!active_)
   {
@@ -376,7 +376,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                                               const std::vector<double> &consistency_limit,
                                               std::vector<double> &solution,
                                               moveit_msgs::MoveItErrorCodes &error_code,
-                                              bool lock_redundant_joints) const
+                                              const kinematics::KinematicsQueryOptions &options) const
 {
   return false;
 }
@@ -387,7 +387,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                                               std::vector<double> &solution,
                                               const IKCallbackFn &solution_callback,
                                               moveit_msgs::MoveItErrorCodes &error_code,
-                                              bool lock_redundant_joints) const
+                                              const kinematics::KinematicsQueryOptions &options) const
 {
   return false;
 }
@@ -399,7 +399,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                                               std::vector<double> &solution,
                                               const IKCallbackFn &solution_callback,
                                               moveit_msgs::MoveItErrorCodes &error_code,
-                                              bool lock_redundant_joints) const
+                                              const kinematics::KinematicsQueryOptions &options) const
 {
   return false;
 }
