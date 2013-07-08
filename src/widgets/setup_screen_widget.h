@@ -48,7 +48,7 @@ class SetupScreenWidget : public QWidget
 
 public:
 
-  SetupScreenWidget( QWidget* parent ) 
+  SetupScreenWidget( QWidget* parent )
   : QWidget( parent )
   {
   }

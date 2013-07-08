@@ -67,28 +67,28 @@ PassiveJointsWidget::PassiveJointsWidget( QWidget *parent, moveit_setup_assistan
 
   // Set the title
   joints_widget_->title_->setText( "" );
-  
+
   joints_widget_->setColumnNames("Active Joints", "Passive Joints");
-  
+
   layout->addWidget( joints_widget_ );
-  
+
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
 }
 
 // ******************************************************************************************
-// 
+//
 // ******************************************************************************************
 void PassiveJointsWidget::focusGiven()
 {
   joints_widget_->clearContents();
-  
+
   // Retrieve pointer to the shared kinematic model
   const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
-  
+
   // Get the names of the all joints
   const std::vector<std::string> &joints = model->getJointModelNames();
-  
+
   if( joints.size() == 0 )
   {
     QMessageBox::critical( this, "Error Loading", "No joints found for robot model");
@@ -98,10 +98,10 @@ void PassiveJointsWidget::focusGiven()
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
     if (model->getJointModel(joints[i])->getVariableCount() > 0)
       active_joints.push_back(joints[i]);
-  
+
   // Set the available joints (left box)
   joints_widget_->setAvailable( active_joints );
-  
+
   std::vector<std::string> passive_joints;
   for (std::size_t i = 0 ; i < config_data_->srdf_->passive_joints_.size() ; ++i)
     passive_joints.push_back(config_data_->srdf_->passive_joints_[i].name_);
@@ -109,7 +109,7 @@ void PassiveJointsWidget::focusGiven()
 }
 
 // ******************************************************************************************
-// 
+//
 // ******************************************************************************************
 void PassiveJointsWidget::selectionUpdated()
 {

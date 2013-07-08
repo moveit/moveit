@@ -138,24 +138,24 @@ std::string SRDFWriter::getSRDFString()
   TiXmlPrinter printer;
   printer.SetIndent( "    " );
   document.Accept( &printer );
-  
+
   // Return string
   return printer.CStr();
 }
 
 // ******************************************************************************************
-// Generate SRDF XML of all contained data 
+// Generate SRDF XML of all contained data
 // ******************************************************************************************
 TiXmlDocument SRDFWriter::generateSRDF()
 {
   TiXmlDocument document;
-  TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );  
-  document.LinkEndChild( decl ); 
-  
+  TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+  document.LinkEndChild( decl );
+
   // Convenience comments
   TiXmlComment * comment = new TiXmlComment( "This does not replace URDF, and is not an extension of URDF.\n    This is a format for representing semantic information about the robot structure.\n    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined\n" );
-  document.LinkEndChild( comment );  
-  
+  document.LinkEndChild( comment );
+
   // Root
   TiXmlElement* robot_root = new TiXmlElement("robot");
   robot_root->SetAttribute("name", robot_name_ ); // robot name
@@ -163,7 +163,7 @@ TiXmlDocument SRDFWriter::generateSRDF()
 
   // Add Groups
   createGroupsXML( robot_root );
-  
+
   // Add Group States
   createGroupStatesXML( robot_root );
 
@@ -171,10 +171,10 @@ TiXmlDocument SRDFWriter::generateSRDF()
   createEndEffectorsXML( robot_root );
 
   // Add Virtual Joints
-  createVirtualJointsXML( robot_root );  
+  createVirtualJointsXML( robot_root );
 
   // Add Passive Joints
-  createPassiveJointsXML( robot_root );  
+  createPassiveJointsXML( robot_root );
 
   // Add Link Sphere approximations
   createLinkSphereApproximationsXML( robot_root );
@@ -195,23 +195,23 @@ void SRDFWriter::createGroupsXML( TiXmlElement *root )
   if( groups_.size() ) // only show comments if there are corresponding elements
   {
     TiXmlComment *comment;
-    comment = new TiXmlComment( "GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc" );  
-    root->LinkEndChild( comment );  
+    comment = new TiXmlComment( "GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc" );
+    root->LinkEndChild( comment );
     comment = new TiXmlComment( "LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included" );
-    root->LinkEndChild( comment );  
+    root->LinkEndChild( comment );
     comment = new TiXmlComment( "JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included" );
-    root->LinkEndChild( comment );  
+    root->LinkEndChild( comment );
     comment = new TiXmlComment( "CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group");
     root->LinkEndChild( comment );
     comment = new TiXmlComment( "SUBGROUPS: Groups can also be formed by referencing to already defined group names" );
-    root->LinkEndChild( comment );  
+    root->LinkEndChild( comment );
   }
 
   // Loop through all of the top groups
-  for( std::vector<srdf::Model::Group>::iterator group_it = groups_.begin(); 
+  for( std::vector<srdf::Model::Group>::iterator group_it = groups_.begin();
        group_it != groups_.end();  ++group_it )
   {
-    
+
     // Create group element
     TiXmlElement *group = new TiXmlElement("group");
     group->SetAttribute("name", group_it->name_ ); // group name
@@ -253,7 +253,7 @@ void SRDFWriter::createGroupsXML( TiXmlElement *root )
       subgroup->SetAttribute("name", *subgroup_it ); // subgroup name
       group->LinkEndChild( subgroup );
     }
-           
+
   }
 }
 
@@ -268,7 +268,7 @@ void SRDFWriter::createLinkSphereApproximationsXML( TiXmlElement *root )
   // Convenience comments
   TiXmlComment *comment = new TiXmlComment();
   comment->SetValue( "COLLISION SPHERES: Purpose: Define a set of spheres that bounds a link." );
-  root->LinkEndChild( comment );  
+  root->LinkEndChild( comment );
 
 
   for ( std::vector<srdf::Model::LinkSpheres>::const_iterator link_sphere_it = link_sphere_approximations_.begin();
@@ -306,8 +306,8 @@ void SRDFWriter::createDisabledCollisionsXML( TiXmlElement *root )
   if( disabled_collisions_.size() ) // only show comments if there are corresponding elements
   {
     TiXmlComment *comment = new TiXmlComment();
-    comment->SetValue( "DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. " );  
-    root->LinkEndChild( comment );  
+    comment->SetValue( "DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. " );
+    root->LinkEndChild( comment );
   }
 
   for ( std::vector<srdf::Model::DisabledCollision>::const_iterator pair_it = disabled_collisions_.begin();
@@ -333,7 +333,7 @@ void SRDFWriter::createGroupStatesXML( TiXmlElement *root )
   {
     TiXmlComment *comment = new TiXmlComment();
     comment->SetValue( "GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'" );
-    root->LinkEndChild( comment );  
+    root->LinkEndChild( comment );
   }
 
   for ( std::vector<srdf::Model::GroupState>::const_iterator state_it = group_states_.begin();
@@ -369,7 +369,7 @@ void SRDFWriter::createEndEffectorsXML( TiXmlElement *root )
   {
     TiXmlComment *comment = new TiXmlComment();
     comment->SetValue( "END EFFECTOR: Purpose: Represent information about an end effector." );
-    root->LinkEndChild( comment );  
+    root->LinkEndChild( comment );
   }
 
   for ( std::vector<srdf::Model::EndEffector>::const_iterator effector_it = end_effectors_.begin();
@@ -396,7 +396,7 @@ void SRDFWriter::createVirtualJointsXML( TiXmlElement *root )
   {
     TiXmlComment *comment = new TiXmlComment();
     comment->SetValue( "VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)" );
-    root->LinkEndChild( comment );  
+    root->LinkEndChild( comment );
   }
 
   for ( std::vector<srdf::Model::VirtualJoint>::const_iterator virtual_it = virtual_joints_.begin();
@@ -419,7 +419,7 @@ void SRDFWriter::createPassiveJointsXML( TiXmlElement *root )
   {
     TiXmlComment *comment = new TiXmlComment();
     comment->SetValue( "PASSIVE JOINT: Purpose: this element is used to mark joints that are not actuated" );
-    root->LinkEndChild( comment );  
+    root->LinkEndChild( comment );
   }
   for ( std::vector<srdf::Model::PassiveJoint>::const_iterator p_it = passive_joints_.begin();
         p_it != passive_joints_.end() ; ++p_it)

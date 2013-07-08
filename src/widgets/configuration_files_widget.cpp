@@ -837,7 +837,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   addTemplateString("[GENERATED_PACKAGE_NAME]", new_package_name_);
 
   // Pair 2
-  std::string urdf_location = config_data_->urdf_pkg_name_.empty() ? config_data_->urdf_path_ : 
+  std::string urdf_location = config_data_->urdf_pkg_name_.empty() ? config_data_->urdf_path_ :
     "$(find " + config_data_->urdf_pkg_name_ + ")/" + config_data_->urdf_pkg_relative_path_;
   addTemplateString("[URDF_LOCATION]", urdf_location);
 
@@ -962,4 +962,3 @@ bool ConfigurationFilesWidget::createFolder(const std::string& output_path)
 
 
 } // namespace
-

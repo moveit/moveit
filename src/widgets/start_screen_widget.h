@@ -128,7 +128,7 @@ private:
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-  
+
   /// Create new config files, or load previos one?
   bool create_new_package_;
 
@@ -145,7 +145,7 @@ private:
   /// Load URDF File to Parameter Server
   bool loadURDFFile( const std::string& urdf_file_path );
 
-  /// Load SRDF File 
+  /// Load SRDF File
   bool loadSRDFFile( const std::string& srdf_file_path );
 
   /// Put SRDF File on Parameter Server

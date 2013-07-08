@@ -81,7 +81,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   // Create main content stack for various screens
   main_content_ = new QStackedLayout();
   current_index_ = 0;
-  
+
   // Wrap main_content_ with a widget
   middle_frame_ = new QWidget( this );
   middle_frame_->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Preferred );
@@ -190,7 +190,7 @@ void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
 void SetupAssistantWidget::moveToScreen( const int index )
 {
   boost::mutex::scoped_lock slock(change_screen_lock_);
-  
+
   if( current_index_ != index )
   {
     current_index_ = index;
@@ -316,7 +316,7 @@ void SetupAssistantWidget::loadRviz()
 
   // Create the MoveIt Rviz Plugin and attach to display
   robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
-  robot_state_display_->setName( "Robot State" );  
+  robot_state_display_->setName( "Robot State" );
 
   rviz_manager_->addDisplay( robot_state_display_, true );
 
@@ -342,7 +342,7 @@ void SetupAssistantWidget::loadRviz()
 // Highlight a robot link
 // ******************************************************************************************
 void SetupAssistantWidget::highlightLink( const std::string& link_name )
-{  
+{
   const robot_model::LinkModel *lm = config_data_->getRobotModel()->getLinkModel(link_name);
   if (lm->getShape()) // skip links with no geometry
     robot_state_display_->setLinkColor( link_name, QColor(255, 0, 0) );
@@ -356,7 +356,7 @@ void SetupAssistantWidget::highlightGroup( const std::string& group_name )
   // Highlight the selected planning group by looping through the links
   if (!config_data_->getRobotModel()->hasJointModelGroup( group_name ))
     return;
-  
+
   const robot_model::JointModelGroup *joint_model_group =
     config_data_->getRobotModel()->getJointModelGroup( group_name );
   if (joint_model_group)
@@ -385,7 +385,7 @@ void SetupAssistantWidget::unhighlightAll()
 
   // check if rviz is ready
   if( !rviz_manager_ || !robot_state_display_)
-  {    
+  {
     return;
   }
 
@@ -439,7 +439,7 @@ bool SetupAssistantWidget::notify( QObject * reciever, QEvent * event )
 void SetupAssistantWidget::setModalMode( bool isModal )
 {
   navs_view_->setDisabled( isModal );
-  
+
   for( int i = 0; i < nav_name_list_.count(); ++i)
   {
     navs_view_->setEnabled( i, !isModal );

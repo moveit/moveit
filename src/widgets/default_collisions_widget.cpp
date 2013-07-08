@@ -50,7 +50,7 @@ namespace moveit_setup_assistant
 {
 
 /// Boost mapping of reasons for disabling a link pair to strings
-const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> longReasonsToString = 
+const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> longReasonsToString =
   boost::assign::map_list_of
   ( moveit_setup_assistant::NEVER, "Never in Collision" )
   ( moveit_setup_assistant::DEFAULT, "Collision by Default" )
@@ -76,7 +76,7 @@ public:
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent, 
+DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
                                                   MoveItConfigDataPtr config_data )
   : SetupScreenWidget( parent ), config_data_(config_data)
 {
@@ -88,7 +88,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
                                            "The Default Self-Collision Matrix Generator will search for pairs of links on the robot that can safely be disabled from collision checking, decreasing motion planning processing time. These pairs of links are disabled when they are always in collision, never in collision, in collision in the robot's default position or when the links are adjacent to each other on the kinematic chain. Sampling density specifies how many random robot positions to check for self collision. Higher densities require more computation time.",
                                            this);
   layout_->addWidget( header );
-   
+
   // Top Button Area -----------------------------------------------
   controls_box_ = new QGroupBox( this );
   layout_->addWidget( controls_box_ );
@@ -103,7 +103,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   // Slider
   density_slider_ = new QSlider( this );
   density_slider_->setTickPosition(QSlider::TicksBelow);
-  density_slider_->setMinimum( 0 ); 
+  density_slider_->setMinimum( 0 );
   density_slider_->setMaximum( 99 );
   density_slider_->setSingleStep( 10 );
   density_slider_->setPageStep( 50 );
@@ -148,7 +148,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   progress_bar_->hide(); // only show when computation begins
   layout_->addWidget(progress_bar_); //,Qt::AlignCenter);
 
-  // Table Area --------------------------------------------  
+  // Table Area --------------------------------------------
 
   // Table
   collision_table_ = new QTableWidget( this );
@@ -186,7 +186,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   fraction_label_->setText("Min. collisions for \"always\"-colliding pairs:");
 
   controls_box_bottom_layout->addWidget(fraction_label_);
-  
+
   fraction_spinbox_ = new QSpinBox(this);
   fraction_spinbox_->setRange(1, 100);
   fraction_spinbox_->setValue(95);
@@ -194,7 +194,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   controls_box_bottom_layout->addWidget(fraction_spinbox_);
 
   controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
-  
+
   setLayout(layout_);
 
   setWindowTitle("Default Collision Matrix");
@@ -210,7 +210,7 @@ void DefaultCollisionsWidget::generateCollisionTable()
   {
     if( QMessageBox::question( this, "Confirm Disabled Collision Overwrite",
                                "Are you sure you want to overwrite the current default collisions matrix with a newly generated one?",
-                               QMessageBox::Ok | QMessageBox::Cancel) 
+                               QMessageBox::Ok | QMessageBox::Cancel)
         == QMessageBox::Cancel )
     {
       return; // abort
@@ -226,16 +226,16 @@ void DefaultCollisionsWidget::generateCollisionTable()
   // NOTE: be sure not to delete this variable until the subprograms have finished using it. Because of the simple
   // use case of this variable (1 thread writes to it, the parent process reads it) it was decided a boost shared
   // pointer is not necessary.
-  unsigned int collision_progress = 0; 
-  progress_bar_->setValue(collision_progress);  
+  unsigned int collision_progress = 0;
+  progress_bar_->setValue(collision_progress);
 
   QApplication::processEvents(); // allow the progress bar to be shown
 
   // Create thread to do actual work
-  boost::thread workerThread( boost::bind( &DefaultCollisionsWidget::generateCollisionTableThread, 
+  boost::thread workerThread( boost::bind( &DefaultCollisionsWidget::generateCollisionTableThread,
                                            this, &collision_progress ));
   // Check interval
-  boost::posix_time::seconds check_interval(1);  
+  boost::posix_time::seconds check_interval(1);
 
   // Continually loop until threaded computation is finished
   while( collision_progress < 100 )
@@ -244,10 +244,10 @@ void DefaultCollisionsWidget::generateCollisionTable()
     progress_bar_->setValue(collision_progress);
 
     // Allow GUI thread to do its stuff
-    QApplication::processEvents(); 
+    QApplication::processEvents();
 
     // 1 second sleep
-    boost::this_thread::sleep(check_interval);  
+    boost::this_thread::sleep(check_interval);
     //usleep(1000 * 1000);
   }
 
@@ -268,17 +268,17 @@ void DefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collis
 {
   unsigned int num_trials = density_slider_->value() * 1000 + 1000; // scale to trials amount
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
-  
+
   const bool verbose = true; // Output benchmarking and statistics
   const bool include_never_colliding = true;
 
   // clear previously loaded collision matrix entries
   config_data_->getPlanningScene()->getAllowedCollisionMatrixNonConst().clear();
-  
+
   // Find the default collision matrix - all links that are allowed to collide
-  link_pairs_ = 
-    moveit_setup_assistant::computeDefaultCollisions( config_data_->getPlanningScene(), 
-                                                      collision_progress, include_never_colliding, num_trials, 
+  link_pairs_ =
+    moveit_setup_assistant::computeDefaultCollisions( config_data_->getPlanningScene(),
+                                                      collision_progress, include_never_colliding, num_trials,
                                                       min_frac, verbose);
 
   // Copy data changes to srdf_writer object
@@ -297,9 +297,9 @@ void DefaultCollisionsWidget::loadCollisionTable()
 {
   int row = 0;
   int progress_counter = 0;
-  
+
   // Show Progress Bar
-  progress_bar_->setValue(0);  
+  progress_bar_->setValue(0);
 
   QApplication::processEvents(); // allow the progress bar to be shown
   progress_label_->setText("Loading table...");
@@ -324,18 +324,18 @@ void DefaultCollisionsWidget::loadCollisionTable()
 
 
   // Intially set the table to be worst-case scenario of every possible element pair
-  collision_table_->setRowCount( link_pairs_.size() ); 
+  collision_table_->setRowCount( link_pairs_.size() );
 
-  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin(); 
-        pair_it != link_pairs_.end(); 
+  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin();
+        pair_it != link_pairs_.end();
         ++pair_it)
   {
     // Add link pair row if 1) it is disabled from collision checking or 2) the SHOW ALL LINK PAIRS checkbox is checked
-    if( pair_it->second.disable_check || collision_checkbox_->isChecked() ) 
+    if( pair_it->second.disable_check || collision_checkbox_->isChecked() )
     {
-      
+
       // Create row elements
-      QTableWidgetItem* linkA = new QTableWidgetItem( pair_it->first.first.c_str() ); 
+      QTableWidgetItem* linkA = new QTableWidgetItem( pair_it->first.first.c_str() );
       linkA->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
       QTableWidgetItem* linkB = new QTableWidgetItem( pair_it->first.second.c_str() );
@@ -356,24 +356,24 @@ void DefaultCollisionsWidget::loadCollisionTable()
       collision_table_->setItem( row, 1, linkB);
       collision_table_->setItem( row, 2, disable_check);
       collision_table_->setItem( row, 3, reason);
-            
+
       // Increment row count
       ++row;
     }
-    
+
     ++progress_counter; // for calculating progress bar
 
     if( progress_counter % 200 == 0 )
     {
       // Update Progress Bar
-      progress_bar_->setValue( progress_counter * 100 / link_pairs_.size() );  
+      progress_bar_->setValue( progress_counter * 100 / link_pairs_.size() );
       QApplication::processEvents(); // allow the progress bar to be shown
     }
 
   }
-  
+
   // Reduce the table size to only the number of used rows.
-  collision_table_->setRowCount( row ); 
+  collision_table_->setRowCount( row );
 
   // Resize headers. The hiding is a hack so that it resizes correctly
   collision_table_->setVisible(false);
@@ -441,7 +441,7 @@ void DefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped 
   if( collision_table_->isEnabled() )
   {
     // Make sure change is the checkbox column
-    if( i == 2 ) 
+    if( i == 2 )
     {
 
       // Convert row to pair
@@ -456,25 +456,25 @@ void DefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped 
       // Check if the checkbox state has changed from original value
       if( link_pairs_[ link_pair ].disable_check != check_state )
       {
-        
+
         // Save the change
         link_pairs_[ link_pair ].disable_check = check_state;
 
         // Handle USER Reasons: 1) pair is disabled by user
-        if( link_pairs_[ link_pair ].disable_check == true && 
+        if( link_pairs_[ link_pair ].disable_check == true &&
             link_pairs_[ link_pair ].reason == moveit_setup_assistant::NOT_DISABLED )
         {
           link_pairs_[ link_pair ].reason = moveit_setup_assistant::USER;
-          
+
           // Change Reason in Table
           collision_table_->item(j, 3)->setText( longReasonsToString.at( link_pairs_[ link_pair ].reason ) );
         }
         // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
-        else if( link_pairs_[ link_pair ].disable_check == false && 
+        else if( link_pairs_[ link_pair ].disable_check == false &&
                  link_pairs_[ link_pair ].reason == moveit_setup_assistant::USER )
         {
           link_pairs_[ link_pair ].reason = moveit_setup_assistant::NOT_DISABLED;
-          
+
           // Change Reason in Table
           collision_table_->item(j, 3)->setText( "" );
         }
@@ -499,9 +499,9 @@ void DefaultCollisionsWidget::linkPairsToSRDF()
   srdf::Model::DisabledCollision dc;
 
   // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
-  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin(); 
+  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin();
         pair_it != link_pairs_.end(); ++pair_it)
-  {  
+  {
     // Only copy those that are actually disabled
     if( pair_it->second.disable_check )
     {
@@ -536,8 +536,8 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
   std::pair<std::string, std::string> link_pair;
 
   // Loop through all disabled collisions in SRDF and update the comprehensive list that has already been created
-  for( std::vector<srdf::Model::DisabledCollision>::const_iterator collision_it = 
-         config_data_->srdf_->disabled_collisions_.begin(); 
+  for( std::vector<srdf::Model::DisabledCollision>::const_iterator collision_it =
+         config_data_->srdf_->disabled_collisions_.begin();
        collision_it != config_data_->srdf_->disabled_collisions_.end(); ++collision_it )
   {
     // Set the link names
@@ -547,7 +547,7 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
     // Set the link meta data
     link_pair_data.reason = moveit_setup_assistant::disabledReasonFromString( collision_it->reason_ );
     link_pair_data.disable_check = true; // disable checking the collision btw the 2 links
-    
+
     // Insert into map
     link_pairs_[ link_pair ] = link_pair_data;
   }

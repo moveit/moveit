@@ -90,8 +90,8 @@ class RobotPosesWidget : public SetupScreenWidget
   QVBoxLayout *joint_list_layout_;
   QWidget *pose_list_widget_;
   QWidget *pose_edit_widget_;
-  QLabel *collision_warning_;                            
-                                                                                              
+  QLabel *collision_warning_;
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -128,9 +128,9 @@ private Q_SLOTS:
   /// Play through the poses
   void playPoses();
 
-  /** 
+  /**
    * Call when one of the sliders has its value changed to store its value in kinematic model
-   * 
+   *
    * @param name - name of joint being changed
    * @param value - value of joint
    */
@@ -147,13 +147,13 @@ private:
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
-  
+
   /// Orignal name of pose currently being edited. This is used to find the element in the vector
   std::string current_edit_pose_;
 
   /// All the joint slider values that have thus far been seen. May contain more than just the current joints' values
   std::map<std::string, double> joint_state_map_;
-  
+
   /// The joints currently in the selected planning group
   std::vector<const robot_model::JointModel*> joint_models_;
 
@@ -169,43 +169,43 @@ private:
   // Private Functions
   // ******************************************************************************************
 
-  /** 
+  /**
    * Find the associated data by name
-   * 
+   *
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
   srdf::Model::GroupState *findPoseByName( const std::string &name );
 
-  /** 
+  /**
    * Create the main list view of poses for robot
-   * 
+   *
    * @return the widget
    */
   QWidget* createContentsWidget();
 
-  /** 
+  /**
    * Create the screen for editing poses
-   * 
+   *
    * @return the widget
    */
   QWidget* createEditWidget();
-  
-  /** 
+
+  /**
    * Load the robot poses into the table
-   * 
+   *
    */
   void loadDataTable();
 
-  /** 
+  /**
    * Populate the combo dropdown box with avail group names
-   * 
+   *
    */
   void loadGroupsComboBox();
 
-  /** 
+  /**
    * Edit the pose with the input name
-   * 
+   *
    * @param name name of pose
    */
   void edit( const std::string &name );
@@ -231,16 +231,16 @@ class SliderWidget : public QWidget
   // Public Functions
   // ******************************************************************************************
 
-  /** 
+  /**
    * Constructor
-   * 
+   *
    * @param parent - parent QWidget
    * @param joint_model_ - a ptr reference to the joint this widget represents
    */
-  SliderWidget( QWidget *parent, const robot_model::JointModel *joint_model, 
+  SliderWidget( QWidget *parent, const robot_model::JointModel *joint_model,
                 double init_value );
 
-  /** 
+  /**
    * Deconstructor
    */
   ~SliderWidget();
@@ -252,7 +252,7 @@ class SliderWidget : public QWidget
   QLabel *joint_label_;
   QSlider *joint_slider_;
   QLineEdit *joint_value_;
-                                                                                              
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -279,7 +279,7 @@ private:
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-  
+
   // Ptr to the joint's data
   const robot_model::JointModel *joint_model_;
 
@@ -302,4 +302,3 @@ Q_DECLARE_METATYPE (std::string)
 
 
 #endif
-

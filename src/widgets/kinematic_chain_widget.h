@@ -80,7 +80,7 @@ class KinematicChainWidget : public QWidget
   // Qt Components
   // ******************************************************************************************
 
-  QLabel *title_; // specify the title from the parent widget  
+  QLabel *title_; // specify the title from the parent widget
   QTreeWidget *link_tree_;
   QLineEdit *base_link_field_;
   QLineEdit *tip_link_field_;

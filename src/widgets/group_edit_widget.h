@@ -69,13 +69,13 @@ class GroupEditWidget : public QWidget
   // Qt Components
   // ******************************************************************************************
 
-  QLabel *title_; // specify the title from the parent widget  
+  QLabel *title_; // specify the title from the parent widget
   QLineEdit *group_name_field_;
   QComboBox *kinematics_solver_field_;
   QLineEdit *kinematics_resolution_field_;
   QLineEdit *kinematics_timeout_field_;
   QLineEdit *kinematics_attempts_field_;
-  QPushButton *btn_delete_; // this button is hidden for new groups 
+  QPushButton *btn_delete_; // this button is hidden for new groups
   QPushButton *btn_save_; // this button is hidden for new groups
   QWidget *new_buttons_widget_; // for showing/hiding the new group buttons
 
@@ -85,7 +85,7 @@ private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-  
+
 Q_SIGNALS:
 
   // ******************************************************************************************
@@ -106,7 +106,7 @@ Q_SIGNALS:
 
   /// Button event for just saving, when in edit mode
   void save();
-  
+
   /// Event sent when user presses cancel button
   void cancelEditing();
 
@@ -135,4 +135,3 @@ private:
 }
 
 #endif
-

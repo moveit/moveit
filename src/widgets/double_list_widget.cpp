@@ -316,7 +316,7 @@ void DoubleListWidget::previewSelectedRight( const QItemSelection& selected, con
 }
 
 // ******************************************************************************************
-// Highlight links of robot 
+// Highlight links of robot
 // ******************************************************************************************
 void DoubleListWidget::previewSelected( const QList<QTableWidgetItem*>& selected )
 {
@@ -332,11 +332,9 @@ void DoubleListWidget::previewSelected( const QList<QTableWidgetItem*>& selected
     selected_vector.push_back( selected[i]->text().toStdString() );
     //std::cout << "  " << selected[i]->text().toStdString() << std::endl;
   }
-  
+
   // Send to shared function
   Q_EMIT( previewSelected( selected_vector ) );
 }
 
 } //namespace moveit_setup_assistant
-
-

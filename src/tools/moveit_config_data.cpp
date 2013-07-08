@@ -216,12 +216,12 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
   emitter << YAML::Value << YAML::BeginMap;
 
   // Add Planners
-  static const std::string planners[] = 
+  static const std::string planners[] =
     {"SBL", "EST", "LBKPIECE", "BKPIECE", "KPIECE", "RRT", "RRTConnect", "RRTstar", "TRRT", "PRM", "PRMstar" };
-  
+
   std::vector<std::string> pconfigs;
   for (std::size_t i = 0 ; i < sizeof(planners) / sizeof(std::string) ; ++i)
-  {  
+  {
     std::string defaultconfig = planners[i] + "kConfigDefault";
     emitter << YAML::Key << defaultconfig;
     emitter << YAML::Value << YAML::BeginMap;
@@ -229,7 +229,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
     emitter << YAML::EndMap;
     pconfigs.push_back(defaultconfig);
   }
-  
+
   // End of every avail planner
   emitter << YAML::EndMap;
 
@@ -245,7 +245,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
     for (std::size_t i = 0 ; i < pconfigs.size() ; ++i)
       emitter << pconfigs[i];
     emitter << YAML::EndSeq;
-    
+
     // Output projection_evaluator
     std::string projection_joints = decideProjectionJoints( group_it->name_ );
     if( !projection_joints.empty() )
@@ -367,16 +367,16 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   {
     emitter << YAML::Key << (*joint_it)->getName();
     emitter << YAML::Value << YAML::BeginMap;
-    
+
     double vel = (*joint_it)->getMaximumVelocity();
-    
+
     // Output property
     emitter << YAML::Key << "has_velocity_limits";
     if (vel > std::numeric_limits<double>::epsilon())
       emitter << YAML::Value << "true";
     else
       emitter << YAML::Value << "false";
-    
+
     // Output property
     emitter << YAML::Key << "max_velocity";
     emitter << YAML::Value << (*joint_it)->getMaximumVelocity();
@@ -388,7 +388,7 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
     // Output property
     emitter << YAML::Key << "max_acceleration";
     emitter << YAML::Value << (*joint_it)->getMaximumVelocity() / 5.0;
-    
+
     emitter << YAML::EndMap;
   }
 

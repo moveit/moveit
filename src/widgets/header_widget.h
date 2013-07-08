@@ -82,9 +82,9 @@ private Q_SLOTS:
   void btn_file_dialog();
 
 public:
-  
+
   /// Constructor
-  LoadPathWidget( const std::string &title, const std::string &instructions, 
+  LoadPathWidget( const std::string &title, const std::string &instructions,
                   const bool dir_only = false, const bool load_only = false, QWidget * parent=0 );
 
   /// Returns the file path in QString format
@@ -104,4 +104,3 @@ public:
 }
 
 #endif
-

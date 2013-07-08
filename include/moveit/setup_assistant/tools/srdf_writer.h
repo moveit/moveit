@@ -55,112 +55,112 @@ public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
-  /** 
+  /**
    * Constructor
    */
   SRDFWriter();
 
-  /** 
+  /**
    * Destructor
    */
   ~SRDFWriter();
-  
-  /** 
+
+  /**
    * Initialize the SRDF writer with an exisiting SRDF file (optional)
-   * 
+   *
    * @param urdf_model a preloaded urdf model reference
    * @param srdf_string the text contents of an SRDF file
-   * 
+   *
    * @return bool if initialization was successful
    */
   bool initString( const urdf::ModelInterface &robot_model, const std::string &srdf_string );
 
-  /** 
+  /**
    * Initialize the SRDF writer with an exisiting SRDF model (optional)
-   * 
+   *
    * @param urdf_model a preloaded urdf model reference
    * @param srdf_model a preloaded srdf model reference
    */
   void initModel( const urdf::ModelInterface &robot_model, const srdf::Model &srdf_model );
 
-  /** 
+  /**
    * Update the SRDF Model class using a new SRDF string
-   * 
+   *
    * @param robot_model a loaded URDF model
    */
   void updateSRDFModel( const urdf::ModelInterface &robot_model );
 
-  /** 
+  /**
    * Generate SRDF XML of all contained data and save to file
-   * 
+   *
    * @param file_path - string path location to save SRDF
    * @return bool - true if save was successful
    */
   bool writeSRDF( const std::string &file_path );
 
-  /** 
+  /**
    * Get a string of a generated SRDF document
-   * 
+   *
    * @return string of XML of current SRDF contents
    */
   std::string getSRDFString();
 
-  /** 
-   * Generate SRDF XML of all contained data 
-   * 
+  /**
+   * Generate SRDF XML of all contained data
+   *
    * @return TinyXML document that contains current SRDF data in this class
    */
   TiXmlDocument generateSRDF();
 
-  /** 
+  /**
    * Generate XML for SRDF groups
-   * 
+   *
    * @param root - TinyXML root element to attach sub elements to
    */
   void createGroupsXML( TiXmlElement *root );
 
-  /** 
+  /**
    * Generate XML for SRDF link collision spheres
-   * 
+   *
    * @param root  - TinyXML root element to attach sub elements to
    */
   void createLinkSphereApproximationsXML( TiXmlElement *root );
 
-  /** 
+  /**
    * Generate XML for SRDF disabled collisions of robot link pairs
-   * 
+   *
    * @param root  - TinyXML root element to attach sub elements to
    */
   void createDisabledCollisionsXML( TiXmlElement *root );
 
-  /** 
+  /**
    * Generate XML for SRDF group states of each joint's position
-   * 
+   *
    * @param root  - TinyXML root element to attach sub elements to
    */
   void createGroupStatesXML( TiXmlElement *root );
 
-  /** 
+  /**
    * Generate XML for SRDF end effectors
-   * 
+   *
    * @param root  - TinyXML root element to attach sub elements to
    */
   void createEndEffectorsXML( TiXmlElement *root );
 
-  /** 
+  /**
    * Generate XML for SRDF virtual joints
-   * 
+   *
    * @param root  - TinyXML root element to attach sub elements to
    */
   void createVirtualJointsXML( TiXmlElement *root );
-  
-  /** 
+
+  /**
    * Generate XML for SRDF passive joints
-   * 
+   *
    * @param root  - TinyXML root element to attach sub elements to
    */
   void createPassiveJointsXML( TiXmlElement *root );
-  
+
   // ******************************************************************************************
   // Group Datastructures
   // ******************************************************************************************

@@ -65,7 +65,7 @@
 #include <boost/program_options.hpp> // for parsing input arguments
 #include <boost/thread/mutex.hpp>
 
-// Forward declarations 
+// Forward declarations
 namespace rviz
 {
 class GridDisplay;
@@ -90,20 +90,20 @@ class SetupAssistantWidget : public QWidget
   // Public Functions
   // ******************************************************************************************
 
-  /** 
+  /**
    * Construct the setup assistant widget, the primary window for this application
    * @param parent - used by Qt for destructing all elements
-   * @return 
+   * @return
    */
   SetupAssistantWidget( QWidget *parent, boost::program_options::variables_map args );
 
-  /** 
+  /**
    * Deconstructor
-   * 
+   *
    */
   ~SetupAssistantWidget();
 
-  /** 
+  /**
    * Changes viewable screen
    * @param index screen index to switch to
    */
@@ -116,16 +116,16 @@ class SetupAssistantWidget : public QWidget
    */
   void closeEvent( QCloseEvent * event );
 
-  /** 
+  /**
    * Qt error handling function
-   * 
-   * @param rec 
-   * @param ev 
+   *
+   * @param rec
+   * @param ev
    * @return bool
    */
   virtual bool notify( QObject * rec, QEvent * ev );
 
-  /** 
+  /**
    * Show/hide the Rviz right panel
    * @param show bool - whether to show
    */
@@ -141,31 +141,31 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
-  /** 
+  /**
    * Event for changing screens by user clicking
    * @param index screen id
    */
   void navigationClicked( const QModelIndex& index );
 
-  /** 
+  /**
    * Event for spinning the ros node
    */
   void updateTimer();
 
-  /** 
+  /**
    * Call a function that enables navigation and goes to screen 2
    */
   void progressPastStartScreen();
 
-  /** 
+  /**
    * Load Rviz once we have a robot description ready
-   * 
+   *
    */
   void loadRviz();
 
-  /** 
+  /**
    * Change the widget modal state based on subwidgets state
-   * 
+   *
    * @param isModal if true disable left navigation
    */
   void setModalMode( bool isModal );
@@ -186,10 +186,10 @@ private Q_SLOTS:
    * Unhighlight all links of a robot
    */
   void unhighlightAll();
-  
+
   // received when virtual joints that change the reference frame are added
   void virtualJointReferenceFrameChanged();
-  
+
 private:
 
 
@@ -198,14 +198,14 @@ private:
   // ******************************************************************************************
   QList<QString> nav_name_list_;
   NavigationWidget *navs_view_;
-  
+
   QWidget *middle_frame_;
   QWidget *rviz_container_;
   QSplitter *splitter_;
   QStackedLayout *main_content_;
   int current_index_;
   boost::mutex change_screen_lock_;
-  
+
   // Rviz Panel
   rviz::RenderPanel* rviz_render_panel_;
   rviz::VisualizationManager* rviz_manager_;
@@ -217,10 +217,10 @@ private:
   PlanningGroupsWidget *pgw_;
   RobotPosesWidget *rpw_;
   EndEffectorsWidget *efw_;
-  VirtualJointsWidget *vjw_; 
+  VirtualJointsWidget *vjw_;
   PassiveJointsWidget *pjw_;
   ConfigurationFilesWidget *cfw_;
-  
+
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 
