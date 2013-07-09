@@ -37,6 +37,7 @@
 #include <visualization_msgs/InteractiveMarker.h>
 #include <interactive_markers/menu_handler.h>
 #include <moveit/robot_state/robot_state.h>
+#include <moveit/macros/class_forward.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
 #include <tf/tf.h>
@@ -232,17 +233,17 @@ public:
     {
       return ik_attempts_;
     }
-
-    void setLockRedundancy(bool lock)
+    
+    const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const
     {
-      lock_redundancy_ = lock;
+      return kinematics_query_options_;
     }
 
-    bool getLockRedundancy() const
+    void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt)
     {
-      return lock_redundancy_;
-    }
-
+      kinematics_query_options_ = opt;
+    }    
+    
     void setMeshesVisible(bool visible)
     {
       display_meshes_ = visible;
@@ -352,10 +353,16 @@ public:
     virtual void handleGeneric(const RobotInteraction::Generic &g,
                                const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
+    /** \brief Check if the marker corresponding to this end-effector leads to an invalid state */
     virtual bool inError(const RobotInteraction::EndEffector& eef) const;
+
+    /** \brief Check if the marker corresponding to this joint leads to an invalid state */
     virtual bool inError(const RobotInteraction::Joint& vj) const;
+
+    /** \brief Check if the generic marker to an invalid state */
     virtual bool inError(const RobotInteraction::Generic& g) const;
 
+    /** \brief Clear any error settings. This makes the markers appear as if the state is no longer invalid. */
     void clearError(void);
 
   protected:
@@ -401,10 +408,10 @@ public:
     robot_state::StateValidityCallbackFn state_validity_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
-    /// Lock the redundancy for the parent group (if possible)
-    bool lock_redundancy_;
 
-
+    // additional options for kinematics queries
+    kinematics::KinematicsQueryOptions kinematics_query_options_;
+    
     bool display_meshes_;
     bool display_controls_;
 
@@ -474,7 +481,7 @@ public:
   static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout,
                           const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn(),
-                          bool redundancy_locked = false);
+                          const kinematics::KinematicsQueryOptions &kinematics_query_options = kinematics::KinematicsQueryOptions());
   static bool updateState(robot_state::RobotState &state, const Joint &vj, const geometry_msgs::Pose &pose);
 
 private:
@@ -519,8 +526,7 @@ private:
   std::string topic_;
 };
 
-typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;
-typedef boost::shared_ptr<const RobotInteraction> RobotInteractionConstPtr;
+MOVEIT_CLASS_FORWARD(RobotInteraction);
 
 }
 

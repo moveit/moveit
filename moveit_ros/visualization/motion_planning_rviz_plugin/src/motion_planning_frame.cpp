@@ -102,6 +102,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->set_as_goal_state_button, SIGNAL( clicked() ), this, SLOT( setAsGoalStateButtonClicked() ));
   connect( ui_->remove_state_button, SIGNAL( clicked() ), this, SLOT( removeStateButtonClicked() ));
   connect( ui_->clear_states_button, SIGNAL( clicked() ), this, SLOT( clearStatesButtonClicked() ));
+  connect( ui_->approximate_ik, SIGNAL( stateChanged(int) ), this, SLOT( approximateIKChanged(int) ));
 
   connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
 
@@ -122,6 +123,11 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
 
 MotionPlanningFrame::~MotionPlanningFrame()
 {
+}
+
+void MotionPlanningFrame::approximateIKChanged(int state)
+{
+  planning_display_->useApproximateIK(state == Qt::Checked);
 }
 
 void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list)
