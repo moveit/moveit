@@ -46,73 +46,115 @@
 namespace planning_pipeline
 {
 
+/** \brief This class facilitates loading planning plugins and
+    planning request adapted plugins.  and allows calling
+    planning_interface::PlanningContext::solve() from a loaded
+    planning plugin and the
+    planning_request_adapter::PlanningRequestAdapter plugins, in the
+    specified order. */
 class PlanningPipeline
 {
 
 public:
 
+  /** \brief When motion plans are computed and they are supposed to be automatically displayed, they are sent to this topic (moveit_msgs::DisplauTrajectory) */
   static const std::string DISPLAY_PATH_TOPIC;
+
+  /** \brief When motion planning requests are received and they are supposed to be automatically published, they are sent to this topic (moveit_msgs::MotionPlanRequest) */
   static const std::string MOTION_PLAN_REQUEST_TOPIC;
+
+  /** \brief When contacts are found in the solution path reported by a planner, they can be published as markers on this topic (visualization_msgs::MarkerArray) */
   static const std::string MOTION_CONTACTS_TOPIC;
 
+  /** \brief Given a robot model (\e model), a node handle (\e nh), initialize the planning pipeline.
+      \param model The robot model for which this pipeline is initialized.
+      \param nh The ROS node handle that should be used for reading parameters needed for configuration
+      \param planning_plugin_param_name The name of the ROS parameter under which the name of the planning plugin is specified
+      \param adapter_plugins_param_name The name of the ROS parameter under which the names of the request adapter plugins are specified (plugin names separated by space; order matters)
+  */
   PlanningPipeline(const robot_model::RobotModelConstPtr& model,
                    const ros::NodeHandle &nh = ros::NodeHandle("~"),
                    const std::string &planning_plugin_param_name = "planning_plugin",
                    const std::string &adapter_plugins_param_name = "request_adapters");
 
+  /** \brief Given a robot model (\e model), a node handle (\e nh), initialize the planning pipeline.
+      \param model The robot model for which this pipeline is initialized.
+      \param nh The ROS node handle that should be used for reading parameters needed for configuration
+      \param planning_plugin_name The name of the planning plugin to load
+      \param adapter_plugins_names The names of the planning request adapter plugins to load
+  */
   PlanningPipeline(const robot_model::RobotModelConstPtr& model,
                    const ros::NodeHandle &nh,
                    const std::string &planning_plugin_name,
                    const std::vector<std::string> &adapter_plugin_names);
 
+  /** \brief Pass a flag telling the pipeline whether or not to publish the computed motion plans on DISPLAY_PATH_TOPIC. Default is true. */
   void displayComputedMotionPlans(bool flag);
 
+  /** \brief Pass a flag telling the pipeline whether or not to publish the received motion planning requests on MOTION_PLAN_REQUEST_TOPIC. Default is false. */
   void publishReceivedRequests(bool flag);
-
+  
+  /** \brief Pass a flag telling the pipeline whether or not to re-check the solution paths reported by the planner. This is true by default.  */
   void checkSolutionPaths(bool flag);
-
+  
+  /** \brief Get the flag set by displayComputedMotionPlans() */
   bool getDisplayComputedMotionPlans() const
   {
     return display_computed_motion_plans_;
   }
 
+  /** \brief Get the flag set by publishReceivedRequests() */
   bool getPublishReceivedRequests() const
   {
     return publish_received_requests_;
   }
 
+  /** \brief Get the flag set by checkSolutionPaths() */
   bool getCheckSolutionPaths() const
   {
     return check_solution_paths_;
   }
 
+  /** \brief Call the motion planner plugin and the sequence of planning request adapters (if any).
+      \param planning_scene The planning scene where motion planning is to be done
+      \param req The request for motion planning
+      \param res The motion planning response */
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                     const planning_interface::MotionPlanRequest& req,
                     planning_interface::MotionPlanResponse& res) const;
 
+  /** \brief Call the motion planner plugin and the sequence of planning request adapters (if any).
+      \param planning_scene The planning scene where motion planning is to be done
+      \param req The request for motion planning
+      \param res The motion planning response
+      \param adapter_added_state_index Sometimes planning request adapters may add states on the solution path (e.g., add the current state of the robot as prefix, when the robot started to plan only from near that state, as the current state itself appears to touch obstacles). This is helpful because the added states should not be considered invalid in all situations. */
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                     const planning_interface::MotionPlanRequest& req,
                     planning_interface::MotionPlanResponse& res,
                     std::vector<std::size_t> &adapter_added_state_index) const;
 
-  /// Request termination, if a generatePlan() function is currently computing plans
+  /** \breif Request termination, if a generatePlan() function is currently computing plans */
   void terminate() const;
 
+  /** \brief Get the name of the planning plugin used */
   const std::string& getPlannerPluginName() const
   {
     return planner_plugin_name_;
   }
 
+  /** \brief Get the names of the planning request adapter plugins used */
   const std::vector<std::string>& getAdapterPluginNames() const
   {
     return adapter_plugin_names_;
   }
 
+  /** \brief Get the planner manager for the loaded planning plugin */
   const planning_interface::PlannerManagerPtr& getPlannerManager()
   {
     return planner_instance_;
   }
 
+  /** \brief Get the robot model that this pipeline is using */
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
@@ -148,8 +190,7 @@ private:
 
 };
 
-typedef boost::shared_ptr<PlanningPipeline> PlanningPipelinePtr;
-typedef boost::shared_ptr<const PlanningPipeline> PlanningPipelineConstPtr;
+MOVEIT_CLASS_FORWARD(PlanningPipeline);
 
 }
 
