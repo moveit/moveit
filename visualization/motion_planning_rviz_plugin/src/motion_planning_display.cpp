@@ -959,6 +959,22 @@ void MotionPlanningDisplay::setQueryGoalState(const robot_state::RobotState &goa
   updateQueryGoalState();
 }
 
+void MotionPlanningDisplay::useApproximateIK(bool flag)
+{
+  if (query_start_state_)
+  {
+    kinematics::KinematicsQueryOptions o = query_start_state_->getKinematicsQueryOptions();
+    o.return_approximate_solution = flag;
+    query_start_state_->setKinematicsQueryOptions(o);
+  }
+  if (query_goal_state_)
+  {
+    kinematics::KinematicsQueryOptions o = query_goal_state_->getKinematicsQueryOptions();
+    o.return_approximate_solution = flag;
+    query_goal_state_->setKinematicsQueryOptions(o);
+  }  
+}
+
 bool MotionPlanningDisplay::isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
 {
   if (frame_->ui_->collision_aware_ik->isChecked() && planning_scene_monitor_)
@@ -1025,7 +1041,7 @@ void MotionPlanningDisplay::changedPlanningGroup()
 
   if (robot_interaction_)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
-
+  
   updateQueryStartState();
   updateQueryGoalState();
   updateLinkColors();

@@ -118,6 +118,8 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void updateQueryStartState();
   void updateQueryGoalState();
 
+  void useApproximateIK(bool flag);
+  
   std::string getCurrentPlanningGroup() const;
 
   void changePlanningGroup(const std::string& group);
@@ -126,7 +128,7 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void addStatusText(const std::vector<std::string> &text);
   void setStatusTextColor(const QColor &color);
   void resetStatusTextColor();
-
+  
 private Q_SLOTS:
 
   // ******************************************************************************************

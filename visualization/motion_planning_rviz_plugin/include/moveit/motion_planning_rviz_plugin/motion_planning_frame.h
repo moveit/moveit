@@ -115,7 +115,8 @@ private Q_SLOTS:
   void publishSceneButtonClicked();
   void planningAlgorithmIndexChanged(int index);
   void resetDbButtonClicked();
-
+  void approximateIKChanged(int state);
+  
   //Planning tab
   void planButtonClicked();
   void executeButtonClicked();
