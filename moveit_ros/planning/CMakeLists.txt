@@ -5,14 +5,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(MSG_DEPS
-  std_msgs
-  actionlib_msgs
-  sensor_msgs
-  geometry_msgs
-  shape_msgs
-  moveit_msgs)
-
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time program_options signals thread)
 find_package(catkin REQUIRED COMPONENTS
@@ -28,18 +20,11 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   tf
   tf_conversions
-  genmsg
-  ${MSG_DEPS}
 )
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 
 include(${QT_USE_FILE})
-
-set(MSG_FILES
-  Progress.msg
-  WorkspacePoint.msg
-  WorkspacePoints.msg)
 
 generate_dynamic_reconfigure_options(
   "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"
