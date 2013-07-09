@@ -43,6 +43,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <ros/ros.h>
 
+/** \brief Planning pipeline */
 namespace planning_pipeline
 {
 
@@ -133,7 +134,7 @@ public:
                     planning_interface::MotionPlanResponse& res,
                     std::vector<std::size_t> &adapter_added_state_index) const;
 
-  /** \breif Request termination, if a generatePlan() function is currently computing plans */
+  /** \brief Request termination, if a generatePlan() function is currently computing plans */
   void terminate() const;
 
   /** \brief Get the name of the planning plugin used */
