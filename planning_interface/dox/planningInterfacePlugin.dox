@@ -1,8 +1,0 @@
-/** \page planning_plugin The plugin interface to motion planning
-
-    For efficiency reasons it is often beneficial to interact with motion planners using a C++ API, rather than using ROS services. To allow for this interaction, a common interface for planners was designed (planning_interface::Planner). This interface is general, and different types of planning strategies can be employed: sampling-based planners, search-based planners, etc.
-
-    The main function call in a planner interface is the solve() function, which takes as arguments the planning scene (planning_scene::PlanningScene), a representation of the planning request and a planning response. The planning request is in the same format as specified to the planning service call. The response can be specified in two formats: the same as for the planning service call and a more detailed response that includes intermediate representations of the planned path.
-
-
-*/
