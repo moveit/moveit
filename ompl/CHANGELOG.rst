@@ -2,6 +2,11 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.2 (2013-07-12)
+------------------
+* white space fixes (tabs are now spaces)
+* port ompl plugin to new base class for planning_interface (using planning contexts)
+
 0.4.1 (2013-07-04)
 ------------------
 * use new location of RRTstar, add PRMstar
