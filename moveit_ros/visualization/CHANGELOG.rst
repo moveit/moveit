@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.0 (2013-07-12)
+------------------
+* fix `#275 <https://github.com/ros-planning/moveit_ros/issues/275>`_
+* white space fixes (tabs are now spaces)
+
 0.4.5 (2013-07-03)
 ------------------
 

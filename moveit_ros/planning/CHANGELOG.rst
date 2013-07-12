@@ -2,6 +2,17 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.0 (2013-07-12)
+------------------
+* minor doc fixes
+* add docs for planning pipeline
+* cleanup build system
+* fixing approximate ik calculation
+* white space fixes (tabs are now spaces)
+* adding check for approximate solution flag
+* adding options struct to kinematics base
+* port to new base class for planning_interface (using planning contexts)
+
 0.4.5 (2013-07-03)
 ------------------
 * Namespaced ROS_* log messages for better debug fitering - added 'kdl' namespace
