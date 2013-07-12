@@ -1,6 +1,6 @@
 <package>
   <name>moveit_core</name>
-  <version>0.4.6</version>
+  <version>0.4.7</version>
   <description>Core libraries used by MoveIt!</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
   <author email="sachinc@willowgarage.com">Sachin Chitta</author>
