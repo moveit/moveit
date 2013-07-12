@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
   tf
   tf_conversions
-  pcl_ros
+  pcl_conversions
   pluginlib
 )
 
