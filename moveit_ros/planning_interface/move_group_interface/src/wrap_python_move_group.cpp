@@ -299,7 +299,7 @@ public:
     l = boost::python::len(multi_dof_joint_trajectory_points);
     for (int i = 0 ; i < l ; ++i)
     {
-      moveit_msgs::MultiDOFJointTrajectoryPoint pt;
+      trajectory_msgs::MultiDOFJointTrajectoryPoint pt;
       const bp::list &tf = bp::extract<bp::list>(multi_dof_joint_trajectory_points[i]["transforms"]);
       int lk = boost::python::len(tf);
       for (int k = 0 ; k < lk ; ++k)
@@ -338,7 +338,7 @@ public:
     joint_trajectory["points"] = joint_traj_points;
 
     bp::list multi_dof_traj_points;
-    for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = traj.multi_dof_joint_trajectory.points.begin() ;
+    for (std::vector<trajectory_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = traj.multi_dof_joint_trajectory.points.begin() ;
          it != traj.multi_dof_joint_trajectory.points.end() ; ++it)
     {
       bp::dict multi_dof_traj_point;
