@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.1 (2013-07-14)
+------------------
+
 0.5.0 (2013-07-12)
 ------------------
 * white space fixes (tabs are now spaces)
