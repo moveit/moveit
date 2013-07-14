@@ -34,8 +34,8 @@
 
 from moveit_commander import MoveItCommanderException
 from geometry_msgs.msg import Pose, PoseStamped, Transform, TransformStamped
-from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from moveit_msgs.msg import RobotTrajectory
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
 import rospy
 import tf
 
