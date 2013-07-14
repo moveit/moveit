@@ -87,10 +87,10 @@ static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, 
   return true;
 }
 
-static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mjs, RobotState& state, const Transforms *tf)
+static bool multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState &mjs, RobotState& state, const Transforms *tf)
 {
   std::size_t nj = mjs.joint_names.size();
-  if (nj != mjs.joint_transforms.size())
+  if (nj != mjs.transforms.size())
   {
     logError("Different number of names, values or frames in MultiDOFJointState message.");
     return false;
@@ -132,7 +132,7 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
       continue;
     }
     Eigen::Affine3d transf;
-    tf::transformMsgToEigen(mjs.joint_transforms[i], transf);
+    tf::transformMsgToEigen(mjs.transforms[i], transf);
 
     // if frames do not mach, attempt to transform
     if (use_inv_t)
@@ -145,19 +145,19 @@ static bool multiDOFJointsToRobotState(const moveit_msgs::MultiDOFJointState &mj
   return !error;
 }
 
-static inline void robotStateToMultiDOFJointState(const RobotState& state, moveit_msgs::MultiDOFJointState &mjs)
+static inline void robotStateToMultiDOFJointState(const RobotState& state, sensor_msgs::MultiDOFJointState &mjs)
 {
   // \todo it would be nice if the robot model had a list of index values for the multi-dof joints (same for single-dof joints)
   const std::vector<JointState*> &js = state.getJointStateVector();
   mjs.joint_names.clear();
-  mjs.joint_transforms.clear();
+  mjs.transforms.clear();
   for (std::size_t i = 0 ; i < js.size() ; ++i)
     if (js[i]->getVariableCount() > 1)
     {
       geometry_msgs::Transform p;
       tf::transformEigenToMsg(js[i]->getVariableTransform(), p);
       mjs.joint_names.push_back(js[i]->getName());
-      mjs.joint_transforms.push_back(p);
+      mjs.transforms.push_back(p);
     }
   mjs.header.frame_id = state.getRobotModel()->getModelFrame();
 }
