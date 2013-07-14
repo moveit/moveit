@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.1 (2013-07-14)
+------------------
+* find PCL separately
+
 0.5.0 (2013-07-12)
 ------------------
 * use pcl_conversions instead of pcl_ros

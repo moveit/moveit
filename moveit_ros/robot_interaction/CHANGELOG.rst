@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.1 (2013-07-14)
+------------------
+
 0.5.0 (2013-07-12)
 ------------------
 * fix `#275 <https://github.com/ros-planning/moveit_ros/issues/275>`_
