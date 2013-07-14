@@ -7,6 +7,8 @@ endif()
 
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread signals)
+find_package(PCL REQUIRED QUIET COMPONENTS common)
+
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   roscpp
@@ -28,6 +30,7 @@ catkin_package(
     occupancy_map_monitor/include
     pointcloud_octomap_updater/include
     ${OCTOMAP_INCLUDE_DIRS}
+    ${PCL_COMMON_INCLUDE_DIRS}
   LIBRARIES
     moveit_point_containment_filter
     moveit_occupancy_map_monitor
@@ -39,6 +42,7 @@ catkin_package(
 include_directories(point_containment_filter/include
                     occupancy_map_monitor/include
 		    pointcloud_octomap_updater/include
+		    ${PCL_COMMON_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS} 
                     )
 include_directories(SYSTEM
