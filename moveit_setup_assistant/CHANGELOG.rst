@@ -2,6 +2,11 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.0 (2013-07-15)
+------------------
+* white space fixes (tabs are now spaces)
+* fix `#49 <https://github.com/ros-planning/moveit_setup_assistant/issues/49>`_
+
 0.4.1 (2013-06-26)
 ------------------
 * fix `#44 <https://github.com/ros-planning/moveit_setup_assistant/issues/44>`_
