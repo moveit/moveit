@@ -90,6 +90,10 @@ if __name__ == '__main__':
       else:
          srdf_file_name = plan_pkg_dir + '/config/' + robot_name + '.srdf'
       srdf = etree.parse(srdf_file_name).getroot()
+   except:
+      print("\nERROR: unable to parse robot configuration file\n" + srdf_file_name + "\n")
+      sys.exit(-1)
+   try:
       if (robot_name != srdf.get('name')):
          print '\nERROR: non-matching robot name found in ' + srdf_file_name + '.' \
              + '  Expected \'' + robot_name + '\',' + ' found \''+srdf.get('name')+'\''
