@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.0 (2013-07-15)
+------------------
+
 0.4.2 (2013-07-12)
 ------------------
 * white space fixes (tabs are now spaces)
