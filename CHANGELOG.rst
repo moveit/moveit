@@ -2,6 +2,10 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.0 (2013-07-15)
+------------------
+* move msgs to common_msgs
+
 0.4.7 (2013-07-12)
 ------------------
 * doc updates
