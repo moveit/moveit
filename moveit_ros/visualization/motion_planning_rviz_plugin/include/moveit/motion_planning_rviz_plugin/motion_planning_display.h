@@ -163,6 +163,12 @@ private Q_SLOTS:
 
 protected:
 
+  enum LinkDisplayStatus
+  {
+    COLLISION_LINK,
+    OUTSIDE_BOUNDS_LINK
+  };
+    
   virtual void onRobotModelLoaded();
   virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   virtual void updateInternal(float wall_dt, float ros_dt);
@@ -242,8 +248,9 @@ protected:
   robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
   boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_start_;
   boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_goal_;
-  std::map<std::string, int> collision_links_start_;
-  std::map<std::string, int> collision_links_goal_;
+  std::map<std::string, LinkDisplayStatus> status_links_start_;
+  std::map<std::string, LinkDisplayStatus> status_links_goal_;
+
   /// Hold the names of the groups for which the query states have been updated (and should not be altered when new info is received from the planning scene)
   std::set<std::string> modified_groups_;
 
