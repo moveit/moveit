@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ikfast</name>
-  <version>3.0.2</version>
+  <version>3.0.3</version>
   <description>Generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files. </description>
 
   <author>Dave Coleman</author>
