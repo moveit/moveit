@@ -674,14 +674,18 @@ void MotionPlanningDisplay::drawQueryStartState()
       // update link colors
       std::vector<std::string> collision_links;
       getPlanningSceneRO()->getCollidingLinks(collision_links, *state);
-      collision_links_start_.clear();
+      status_links_start_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
-        collision_links_start_[collision_links[i]] = 0;
+        status_links_start_[collision_links[i]] = COLLISION_LINK;
       if (!collision_links.empty())
       {
+	collision_detection::CollisionResult::ContactMap pairs;
+	getPlanningSceneRO()->getCollidingPairs(pairs, *state);
         setStatusTextColor(query_start_color_property_->getColor());
         addStatusText("Start state colliding links:");
-        addStatusText(collision_links);
+	for (collision_detection::CollisionResult::ContactMap::const_iterator it = pairs.begin() ; it != pairs.end() ; ++it)
+	  addStatusText(it->first.first + " - " + it->first.second);
+	addStatusText(".");
       }
       std::vector<std::string> outside_bounds;
       const std::vector<robot_state::JointState*> &jstates = state->getJointStateVector();
@@ -689,7 +693,7 @@ void MotionPlanningDisplay::drawQueryStartState()
         if (!jstates[i]->satisfiesBounds(jstates[i]->getJointModel()->getMaximumExtent() * 1e-2))
         {
           outside_bounds.push_back(jstates[i]->getJointModel()->getChildLinkModel()->getName());
-          collision_links_start_[outside_bounds.back()] = 1;
+          status_links_start_[outside_bounds.back()] = OUTSIDE_BOUNDS_LINK;
         }
       if (!outside_bounds.empty())
       {
@@ -782,14 +786,18 @@ void MotionPlanningDisplay::drawQueryGoalState()
       // update link colors
       std::vector<std::string> collision_links;
       getPlanningSceneRO()->getCollidingLinks(collision_links, *state);
-      collision_links_goal_.clear();
+      status_links_goal_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
-        collision_links_goal_[collision_links[i]] = 0;
+	status_links_goal_[collision_links[i]] = COLLISION_LINK;
       if (!collision_links.empty())
       {
+	collision_detection::CollisionResult::ContactMap pairs;
+	getPlanningSceneRO()->getCollidingPairs(pairs, *state);
         setStatusTextColor(query_goal_color_property_->getColor());
         addStatusText("Goal state colliding links:");
-        addStatusText(collision_links);
+	for (collision_detection::CollisionResult::ContactMap::const_iterator it = pairs.begin() ; it != pairs.end() ; ++it)
+	  addStatusText(it->first.first + " - " + it->first.second);
+	addStatusText(".");
       }
 
       const std::vector<robot_state::JointState*> &jstates = state->getJointStateVector();
@@ -798,7 +806,7 @@ void MotionPlanningDisplay::drawQueryGoalState()
         if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
         {
           outside_bounds.push_back(jstates[i]->getJointModel()->getChildLinkModel()->getName());
-          collision_links_goal_[outside_bounds.back()] = 1;
+          status_links_goal_[outside_bounds.back()] = OUTSIDE_BOUNDS_LINK;
         }
 
       if (!outside_bounds.empty())
@@ -997,14 +1005,14 @@ void MotionPlanningDisplay::updateLinkColors()
     setGroupColor(&query_robot_start_->getRobot(), group, query_start_color_property_->getColor());
     setGroupColor(&query_robot_goal_->getRobot(), group, query_goal_color_property_->getColor());
 
-    for (std::map<std::string, int>::const_iterator it = collision_links_start_.begin() ; it != collision_links_start_.end() ; ++it)
-      if (it->second == 0)
+    for (std::map<std::string, LinkDisplayStatus>::const_iterator it = status_links_start_.begin() ; it != status_links_start_.end() ; ++it)
+      if (it->second == COLLISION_LINK)
         setLinkColor(&query_robot_start_->getRobot(), it->first, query_colliding_link_color_property_->getColor());
       else
         setLinkColor(&query_robot_start_->getRobot(), it->first, query_outside_joint_limits_link_color_property_->getColor());
 
-    for (std::map<std::string, int>::const_iterator it = collision_links_goal_.begin() ; it != collision_links_goal_.end() ; ++it)
-      if (it->second == 0)
+    for (std::map<std::string, LinkDisplayStatus>::const_iterator it = status_links_goal_.begin() ; it != status_links_goal_.end() ; ++it)
+      if (it->second == COLLISION_LINK)
         setLinkColor(&query_robot_goal_->getRobot(), it->first, query_colliding_link_color_property_->getColor());
       else
         setLinkColor(&query_robot_goal_->getRobot(), it->first, query_outside_joint_limits_link_color_property_->getColor());
