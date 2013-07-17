@@ -604,22 +604,20 @@ void planning_scene::PlanningScene::checkSelfCollision(const collision_detection
   getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
 }
 
-void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links) const
+void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts) const
 {
-  getCollidingLinks(links, getCurrentState());
+  getCollidingPairs(contacts, getCurrentState());
 }
 
-
-void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
-                                                      const robot_state::RobotState &kstate) const
+void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
+						      const robot_state::RobotState &kstate) const
 {
-  getCollidingLinks(links, kstate, getAllowedCollisionMatrix());
+  getCollidingPairs(contacts, kstate, getAllowedCollisionMatrix());
 }
 
-
-void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
-                                                      const robot_state::RobotState &kstate,
-                                                      const collision_detection::AllowedCollisionMatrix& acm) const
+void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
+						      const robot_state::RobotState &kstate,
+						      const collision_detection::AllowedCollisionMatrix& acm) const
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
@@ -627,8 +625,28 @@ void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &
   req.max_contacts_per_pair = 1;
   collision_detection::CollisionResult res;
   checkCollision(req, res, kstate, acm);
+  res.contacts.swap(contacts);
+}
+
+void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links) const
+{
+  getCollidingLinks(links, getCurrentState());
+}
+
+void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
+                                                      const robot_state::RobotState &kstate) const
+{
+  getCollidingLinks(links, kstate, getAllowedCollisionMatrix());
+}
+
+void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
+                                                      const robot_state::RobotState &kstate,
+                                                      const collision_detection::AllowedCollisionMatrix& acm) const
+{
+  collision_detection::CollisionResult::ContactMap contacts;
+  getCollidingPairs(contacts, kstate, acm);
   links.clear();
-  for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
+  for (collision_detection::CollisionResult::ContactMap::const_iterator it = contacts.begin() ; it != contacts.end() ; ++it)
     for (std::size_t j = 0 ; j < it->second.size() ; ++j)
     {
       if (it->second[j].body_type_1 == collision_detection::BodyTypes::ROBOT_LINK)
