@@ -360,6 +360,19 @@ public:
                          const robot_state::RobotState &kstate,
                          const collision_detection::AllowedCollisionMatrix& acm) const;
 
+  /** \brief Get the names of the links that are involved in collisions for the current state */
+  void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts) const;
+
+  /** \brief Get the names of the links that are involved in collisions for the state \e kstate */
+  void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
+                         const robot_state::RobotState &kstate) const;
+
+  /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
+      allowed collision matrix (\e acm) */
+  void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
+                         const robot_state::RobotState &kstate,
+                         const collision_detection::AllowedCollisionMatrix& acm) const;
+
   /** \brief The distance between the robot model at state \e kstate to the nearest collision */
   double distanceToCollision(const robot_state::RobotState &kstate) const;
 
