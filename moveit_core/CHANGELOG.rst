@@ -2,6 +2,14 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.7 (2013-07-12)
+------------------
+* doc updates
+* white space fixes (tabs are now spaces)
+* update root joint if needed, after doing backward fk
+* adding options struct to kinematics base
+* expose a planning context in the planning_interface base library
+
 0.4.6 (2013-07-03)
 ------------------
 * Added ability to change planner configurations in the interface
