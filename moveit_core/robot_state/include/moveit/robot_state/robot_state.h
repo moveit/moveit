@@ -210,6 +210,9 @@ public:
   /** \brief Get all bodies attached to the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
 
+  /** \brief Get all bodies attached to a group corresponding to this state */
+  void getAttachedBodies(const std::string &group_name, std::vector<const AttachedBody*> &attached_bodies) const;
+
   /** \brief Remove the attached body named \e id. Return false if the object was not found (and thus not removed). Return true on success. */
   bool clearAttachedBody(const std::string &id);
 

@@ -407,6 +407,24 @@ bool robot_state::RobotState::hasAttachedBody(const std::string &id) const
   return attached_body_map_.find(id) != attached_body_map_.end();
 }
 
+void robot_state::RobotState::getAttachedBodies(const std::string &group, std::vector<const robot_state::AttachedBody*> &attached_bodies) const
+{
+  std::map<std::string, AttachedBody*>::const_iterator it;
+  if(!getRobotModel()->getJointModelGroup(group))
+  {
+    logError("Group '%s' not found", group.c_str());
+    return;
+  }
+  
+  for(it = attached_body_map_.begin(); it != attached_body_map_.end(); ++it)
+  {
+    if(getRobotModel()->getJointModelGroup(group)->hasLinkModel((*it).second->getAttachedLinkName()))
+    {
+      attached_bodies.push_back((*it).second);      
+    }    
+  }
+}
+
 const robot_state::AttachedBody* robot_state::RobotState::getAttachedBody(const std::string &id) const
 {
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
