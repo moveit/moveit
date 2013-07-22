@@ -80,9 +80,17 @@ public:
       {
         std::string name = std::string(controller_list[i]["name"]);
 
-        std::string ns;
+        std::string action_ns;
         if (controller_list[i].hasMember("ns"))
-          ns = std::string(controller_list[i]["ns"]);
+        {
+          /* TODO: this used to be called "ns", renaming to "action_ns" and will remove in the future */
+          action_ns = std::string(controller_list[i]["ns"]);
+          ROS_WARN("MoveitSimpleControllerManager: use of 'ns' is deprecated, use 'action_ns' instead.");
+        }
+        else if (controller_list[i].hasMember("action_ns"))
+          action_ns = std::string(controller_list[i]["action_ns"]);
+        else
+          ROS_WARN("MoveitSimpleControllerManager: please note that 'action_ns' no longer has a default value.");
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
@@ -101,7 +109,7 @@ public:
         ActionBasedControllerHandleBasePtr new_handle;
         if ( type == "GripperCommand" )
         {
-          new_handle.reset(ns.empty() ? new GripperControllerHandle(name) : new GripperControllerHandle(name, ns));
+          new_handle.reset(new GripperControllerHandle(name, action_ns));
           if (static_cast<GripperControllerHandle*>(new_handle.get())->isConnected())
           {
             if (controller_list[i].hasMember("command_joint"))
@@ -118,7 +126,7 @@ public:
         }
         else if ( type == "FollowJointTrajectory" )
         {
-          new_handle.reset(ns.empty() ? new FollowJointTrajectoryControllerHandle(name) : new FollowJointTrajectoryControllerHandle(name, ns));
+          new_handle.reset(new FollowJointTrajectoryControllerHandle(name, action_ns));
           if (static_cast<FollowJointTrajectoryControllerHandle*>(new_handle.get())->isConnected())
           {
             ROS_INFO_STREAM("MoveitSimpleControllerManager: Added FollowJointTrajectory controller for " << name );

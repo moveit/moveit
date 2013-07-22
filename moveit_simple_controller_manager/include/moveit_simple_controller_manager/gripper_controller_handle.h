@@ -52,7 +52,7 @@ class GripperControllerHandle : public ActionBasedControllerHandle<control_msgs:
 {
 public:
   /* Topics will map to name/ns/goal, name/ns/result, etc */
-  GripperControllerHandle(const std::string &name, const std::string &ns  = "gripper_action") :
+  GripperControllerHandle(const std::string &name, const std::string &ns) :
     ActionBasedControllerHandle<control_msgs::GripperCommandAction>(name, ns),
     allow_failure_(false)
   {

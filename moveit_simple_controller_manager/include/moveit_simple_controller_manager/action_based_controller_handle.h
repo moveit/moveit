@@ -75,14 +75,14 @@ public:
     namespace_(ns),
     done_(true)
   {
-    controller_action_client_.reset(new actionlib::SimpleActionClient<T>(name_ +"/" + namespace_, true));
+    controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
     while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)) && ++attempts < 3)
-      ROS_INFO_STREAM("MoveitSimpleControllerManager: Waiting for " << name_ + "/" + namespace_ << " to come up");
+      ROS_INFO_STREAM("MoveitSimpleControllerManager: Waiting for " << getActionName() << " to come up");
 
     if (!controller_action_client_->isServerConnected())
     {
-      ROS_ERROR_STREAM("MoveitSimpleControllerManager: Action client not connected: " << name_ + "/" + namespace_);
+      ROS_ERROR_STREAM("MoveitSimpleControllerManager: Action client not connected: " << getActionName());
       controller_action_client_.reset();
     }
 
@@ -131,6 +131,14 @@ public:
   }
 
 protected:
+
+  std::string getActionName()
+  {
+    if (namespace_.empty())
+      return name_;
+    else
+      return name_ +"/" + namespace_;
+  }
 
   void finishControllerExecution(const actionlib::SimpleClientGoalState& state)
   {

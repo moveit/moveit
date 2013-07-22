@@ -53,8 +53,8 @@ class FollowJointTrajectoryControllerHandle : public ActionBasedControllerHandle
 {
 public:
 
-  FollowJointTrajectoryControllerHandle(const std::string &name, const std::string &ns = "follow_joint_trajectory") :
-    ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>(name, ns)
+  FollowJointTrajectoryControllerHandle(const std::string &name, const std::string &action_ns) :
+    ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>(name, action_ns)
   {
   }
 
