@@ -181,6 +181,7 @@ namespace collision_detection
                          verbose(false)
     {
     }
+    virtual ~CollisionRequest() {}
 
     /** \brief The group name to check collisions for (optional; if empty, assume the complete robot) */
     std::string group_name;
