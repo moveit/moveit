@@ -93,7 +93,7 @@ public:
   // remove all queued jobs
   void clearJobs();
 
-  const robot_model::RobotModelConstPtr& getRobotModel();
+  const robot_model::RobotModelConstPtr& getRobotModel() const;
   planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO() const;
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();

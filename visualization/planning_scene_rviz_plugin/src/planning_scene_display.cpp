@@ -250,7 +250,7 @@ const planning_scene_monitor::PlanningSceneMonitorPtr& PlanningSceneDisplay::get
   return planning_scene_monitor_;
 }
 
-const robot_model::RobotModelConstPtr& PlanningSceneDisplay::getRobotModel()
+const robot_model::RobotModelConstPtr& PlanningSceneDisplay::getRobotModel() const
 {
   if (planning_scene_monitor_)
     return planning_scene_monitor_->getRobotModel();
