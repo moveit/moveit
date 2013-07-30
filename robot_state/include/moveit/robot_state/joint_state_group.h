@@ -431,9 +431,6 @@ public:
   double computeCartesianPath(std::vector<boost::shared_ptr<RobotState> > &traj, const std::string &link_name, const EigenSTL::vector_Affine3d &waypoints,
                               bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
-  /** \brief Get all bodies attached to this group */
-  void getAttachedBodies(std::vector<const robot_state::AttachedBody*> &attached_bodies) const;
-
   JointStateGroup& operator=(const JointStateGroup &other);
 
 private:
