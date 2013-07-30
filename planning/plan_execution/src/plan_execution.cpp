@@ -257,7 +257,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
   if (opt.done_callback_)
     opt.done_callback_();
 
-  if( plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS )
+  if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     ROS_DEBUG("PlanExecution finished successfully.");
   else
     ROS_DEBUG("PlanExecution terminating with error code %d - '%s'", plan.error_code_.val,
@@ -273,7 +273,7 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
 
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan &plan, const std::pair<int, int> &path_segment)
 {
-  if (path_segment.first >= 0 && path_segment.second >= 0)
+  if (path_segment.first >= 0 && path_segment.second >= 0 && plan.plan_components_[path_segment.first].trajectory_monitoring_)
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
     const robot_trajectory::RobotTrajectory &t = *plan.plan_components_[path_segment.first].trajectory_;
