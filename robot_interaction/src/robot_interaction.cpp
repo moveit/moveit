@@ -463,7 +463,7 @@ void RobotInteraction::addActiveComponent(const InteractiveMarkerConstructorFn &
 
 double RobotInteraction::computeGroupMarkerSize(const std::string &group)
 {
-  static const double DEFAULT_SCALE = 0.2;
+  static const double DEFAULT_SCALE = 0.25;
   if (group.empty())
     return DEFAULT_SCALE;
   const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
@@ -500,8 +500,8 @@ double RobotInteraction::computeGroupMarkerSize(const std::string &group)
   double s = std::max(std::max(hi.x() - lo.x(), hi.y() - lo.y()), hi.z() - lo.z());
   s *= 1.73205081; // sqrt(3)
 
-  // if the scale is less than 1mm, set it to default
-  if (s < 1e-3)
+  // if the scale is less than 5cm, set it to default
+  if (s < 0.05)
     s = DEFAULT_SCALE;
   return s;
 }
