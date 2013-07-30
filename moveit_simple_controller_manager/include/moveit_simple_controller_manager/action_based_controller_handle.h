@@ -40,10 +40,10 @@
 
 #include <moveit/controller_manager/controller_manager.h>
 #include <actionlib/client/simple_action_client.h>
+#include <moveit/macros/class_forward.h>
 
 namespace moveit_simple_controller_manager
 {
-
 
 /*
  * This exist solely to inject addJoint/getJoints into base non-templated class.
@@ -51,15 +51,16 @@ namespace moveit_simple_controller_manager
 class ActionBasedControllerHandleBase : public moveit_controller_manager::MoveItControllerHandle
 {
 public:
-  ActionBasedControllerHandleBase(const std::string name) :
+  ActionBasedControllerHandleBase(const std::string &name) :
     moveit_controller_manager::MoveItControllerHandle(name)
   {
   }
 
-  virtual void addJoint(std::string name) = 0;
+  virtual void addJoint(const std::string &name) = 0;
   virtual void getJoints(std::vector<std::string> &joints) = 0;
 };
-typedef boost::shared_ptr<ActionBasedControllerHandleBase> ActionBasedControllerHandleBasePtr;
+
+MOVEIT_CLASS_FORWARD(ActionBasedControllerHandleBase);
 
 
 /*
@@ -120,7 +121,7 @@ public:
     return last_exec_;
   }
 
-  virtual void addJoint(std::string name)
+  virtual void addJoint(const std::string &name)
   {
     joints_.push_back(name);
   }
@@ -132,7 +133,7 @@ public:
 
 protected:
 
-  std::string getActionName()
+  std::string getActionName(void) const
   {
     if (namespace_.empty())
       return name_;
