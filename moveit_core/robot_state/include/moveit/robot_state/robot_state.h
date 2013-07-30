@@ -298,7 +298,7 @@ private:
   static void getPoseString(std::stringstream& ss, const Eigen::Affine3d& mtx, const std::string& pfx = "");
 
 
-  robot_model::RobotModelConstPtr kinematic_model_;
+  robot_model::RobotModelConstPtr         kinematic_model_;
 
   std::vector<JointState*>                joint_state_vector_;
   std::map<std::string, JointState*>      joint_state_map_;
