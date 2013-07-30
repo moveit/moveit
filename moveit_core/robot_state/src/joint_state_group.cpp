@@ -1154,3 +1154,31 @@ std::pair<double,int> robot_state::JointStateGroup::getMinDistanceToBounds() con
   }
   return std::pair<double,int>(distance,index);
 }
+
+void robot_state::JointStateGroup::getAttachedBodies(std::vector<const robot_state::AttachedBody*> &attached_bodies) const
+{
+  logDebug("Getting attached bodies for group %s", getJointModelGroup()->getName().c_str());
+  
+  std::vector<const robot_state::AttachedBody*> robot_attached_bodies;
+  getRobotState()->getAttachedBodies(robot_attached_bodies);
+  
+  std::vector<const robot_state::AttachedBody*>::const_iterator it;  
+  for(it = robot_attached_bodies.begin(); it != robot_attached_bodies.end(); ++it)
+  {
+    logDebug("Attached body: %s is attached to link: %s", 
+             (*it)->getName().c_str(), 
+             (*it)->getAttachedLinkName().c_str());
+    
+    if(getJointModelGroup()->hasLinkModel((*it)->getAttachedLinkName()))
+    {
+      attached_bodies.push_back(*it);      
+      continue;      
+    }    
+    if(getJointModelGroup()->isLinkUpdated((*it)->getAttachedLinkName()))
+    {
+      attached_bodies.push_back(*it);      
+      continue;      
+    }    
+  }
+}
+

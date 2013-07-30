@@ -230,6 +230,13 @@ public:
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
   robot_state::Transforms& getTransformsNonConst();
 
+  /** \brief Get the shared ptr to the transforms */
+  const robot_state::TransformsPtr& getTransformsPtr() const
+  {
+    // if we have updated transforms, return those
+    return (ftf_ || !parent_) ? ftf_ : parent_->getTransformsPtr();
+  }
+  
   /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
       Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
   const Eigen::Affine3d& getFrameTransform(const std::string &id) const;
