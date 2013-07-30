@@ -785,6 +785,17 @@ bool robot_state::JointStateGroup::integrateJointVelocity(const Eigen::VectorXd 
     return true;
 }
 
+void robot_state::JointStateGroup::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
+{
+  attached_bodies.clear();
+  for (std::size_t i = 0 ; i < updated_links_.size() ; ++i)
+  {
+    std::vector<const AttachedBody*> ab;
+    updated_links_[i]->getAttachedBodies(ab);
+    attached_bodies.insert(attached_bodies.end(), ab.begin(), ab.end());
+  }
+}
+
 bool robot_state::JointStateGroup::avoidJointLimitsSecondaryTask(const robot_state::JointStateGroup *joint_state_group, Eigen::VectorXd &stvector,
                                                                  double activation_threshold, double gain) const
 {
@@ -1142,15 +1153,4 @@ std::pair<double,int> robot_state::JointStateGroup::getMinDistanceToBounds() con
     }
   }
   return std::pair<double,int>(distance,index);
-}
-
-void robot_state::JointStateGroup::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
-{
-  attached_bodies.clear();
-  for (std::size_t i = 0 ; i < updated_links_.size() ; ++i)
-  {
-    std::vector<const AttachedBody*> ab;
-    updated_links_[i]->getAttachedBodies(ab);
-    attached_bodies.insert(attached_bodies.end(), ab.begin(), ab.end());
-  }
 }
