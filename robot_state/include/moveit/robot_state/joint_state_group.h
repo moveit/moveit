@@ -40,6 +40,7 @@
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/robot_state/link_state.h>
 #include <moveit/robot_state/joint_state.h>
+#include <moveit/robot_state/attached_body.h>
 #include <sensor_msgs/JointState.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <geometry_msgs/Twist.h>
@@ -430,6 +431,9 @@ public:
   double computeCartesianPath(std::vector<boost::shared_ptr<RobotState> > &traj, const std::string &link_name, const EigenSTL::vector_Affine3d &waypoints,
                               bool global_reference_frame, double max_step, double jump_threshold, const StateValidityCallbackFn &validCallback = StateValidityCallbackFn(), const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
+  /** \brief Get all bodies attached to this group */
+  void getAttachedBodies(std::vector<const robot_state::AttachedBody*> &attached_bodies) const;
+
   JointStateGroup& operator=(const JointStateGroup &other);
 
 private:
@@ -464,6 +468,7 @@ private:
       is allocated on a need basis, by the getRandomNumberGenerator() function. Never use the rng_ member directly, but call
       getRandomNumberGenerator() instead. */
   boost::scoped_ptr<random_numbers::RandomNumberGenerator> rng_;
+
 
 };
 }
