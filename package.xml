@@ -1,6 +1,6 @@
 <package>
   <name>moveit_resources</name>
-  <version>0.4.1</version>
+  <version>0.5.0</version>
   <description>Resources used by MoveIt!</description>
   <author email="isucan@willowgarage.edu">Ioan Sucan</author>
   <author email="acorn@willowgarage.edu">Acorn Pooley</author>
