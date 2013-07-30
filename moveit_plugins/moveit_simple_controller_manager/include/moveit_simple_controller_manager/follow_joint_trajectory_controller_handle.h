@@ -44,7 +44,6 @@
 namespace moveit_simple_controller_manager
 {
 
-
 /*
  * This is generally used for arms, but could also be used for multi-dof hands,
  *   or anything using a control_mgs/FollowJointTrajectoryAction.
@@ -102,7 +101,6 @@ protected:
 
   void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback)
   {
-    // TODO?
   }
 };
 
