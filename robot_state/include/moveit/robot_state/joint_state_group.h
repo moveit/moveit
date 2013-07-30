@@ -209,6 +209,9 @@ public:
     return joint_state_vector_;
   }
 
+  /** \brief Get all bodies attached to links that move when updating this group (not only links in this group, but also links that descend from this group) */
+  void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
+
   /** \brief Return the instance of a random number generator */
   random_numbers::RandomNumberGenerator& getRandomNumberGenerator();
 
@@ -439,7 +442,7 @@ private:
                            const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code);
 
   /** \brief The kinematic state this group is part of */
-  RobotState *kinematic_state_;
+  RobotState                             *kinematic_state_;
 
   /** \brief The model of the group that corresponds to this state */
   const robot_model::JointModelGroup     *joint_model_group_;
