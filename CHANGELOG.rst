@@ -2,6 +2,10 @@
 Changelog for package moveit_resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.0 (2013-07-30)
+------------------
+* bump version for hydro
+
 0.4.1 (2013-07-03)
 ------------------
 * fix for missing include path
@@ -9,7 +13,6 @@ Changelog for package moveit_resources
 
 0.4.0 (2013-05-24)
 ------------------
-* Merge pull request `#2 <https://github.com/ros-planning/moveit_resources/issues/2>`_ from acornacorn/master
   fix config.h so it is not created in the source dir
 * fix config.h so it is not created in the source dir
 
@@ -19,7 +22,6 @@ Changelog for package moveit_resources
 
 0.3.0 (2013-03-09)
 ------------------
-* Merge pull request `#1 <https://github.com/ros-planning/moveit_resources/issues/1>`_ from acornacorn/master
   fix srdf robot name
 * change robot name to "pr2" to match urdf
 
