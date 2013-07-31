@@ -131,8 +131,8 @@ void ompl_interface::OMPLInterface::configureContext(const ModelBasedPlanningCon
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                           const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res) const
 {
-  moveit::Profiler::ScopedStart pslv;
-  moveit::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
+  moveit::tools::Profiler::ScopedStart pslv;
+  moveit::tools::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
 
   ModelBasedPlanningContextPtr context = getPlanningContext(planning_scene, req);
   if (context)
@@ -147,8 +147,8 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                       const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const
 {
-  moveit::Profiler::ScopedStart pslv;
-  moveit::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
+  moveit::tools::Profiler::ScopedStart pslv;
+  moveit::tools::Profiler::ScopedBlock sblock("OMPLInterface:Solve");
 
   ModelBasedPlanningContextPtr context = getPlanningContext(planning_scene, req);
   if (context)
