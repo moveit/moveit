@@ -59,8 +59,17 @@ public:
   std::vector<std::string> getKnownObjectNames(bool with_type = false);
 
   /** \brief Get the names of known objects in the world that are located within a bounding region (specified in the frame reported by getPlanningFrame()).
+       +      If \e with_type is set to true, only return objects that have a known type. */
+  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type, std::vector<std::string> &types);  
+
+  /** \brief Get the names of known objects in the world that are located within a bounding region (specified in the frame reported by getPlanningFrame()).
       If \e with_type is set to true, only return objects that have a known type. */
-  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type = false);
+  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type = false)
+  {
+    std::vector<std::string> empty_vector_string;        
+    return getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type, empty_vector_string);
+  };
+
 
   /**@}*/
 

@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan, Dave Coleman, Adam Leeper */
+/* Author: Ioan Sucan, Dave Coleman, Adam Leeper, Sachin Chitta */
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 #include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
@@ -1477,6 +1477,32 @@ void MotionPlanningDisplay::fixedFrameChanged()
   if (int_marker_display_)
     int_marker_display_->setFixedFrame(fixed_frame_);
   changedPlanningGroup();
+}
+
+
+// Pick and place
+void MotionPlanningDisplay::clearPlaceLocationsDisplay()
+{
+  for(std::size_t i=0; i < place_locations_display_.size(); ++i)
+    place_locations_display_[i].reset();
+  place_locations_display_.clear();
+}
+
+void MotionPlanningDisplay::visualizePlaceLocations(const std::vector<geometry_msgs::PoseStamped> &place_poses)
+{
+  clearPlaceLocationsDisplay(); 
+  place_locations_display_.resize(place_poses.size());  
+  for(std::size_t i=0; i < place_poses.size(); ++i)
+  {
+    place_locations_display_[i].reset(new rviz::Shape(rviz::Shape::Sphere, context_->getSceneManager()));        
+    place_locations_display_[i]->setColor(1.0f, 0.0f, 0.0f, 0.3f);
+    Ogre::Vector3 center(place_poses[i].pose.position.x, 
+                         place_poses[i].pose.position.y,
+                         place_poses[i].pose.position.z);    
+    Ogre::Vector3 extents(0.02,0.02,0.02);
+    place_locations_display_[i]->setScale(extents);
+    place_locations_display_[i]->setPosition(center);
+  }
 }
 
 
