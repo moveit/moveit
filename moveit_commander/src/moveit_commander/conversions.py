@@ -107,7 +107,7 @@ def dict_to_trajectory(plan):
                 positions = point["positions"],
                 velocities = point["velocities"],
                 accelerations = point["accelerations"],
-                time_from_start = point["time_from_start"]))
+                time_from_start = rospy.Duration().from_sec(point["time_from_start"])))
     multi_dof_joint_traj = MultiDOFJointTrajectory()
     multi_dof_joint_traj.header.frame_id = plan["multi_dof_joint_trajectory"]["frame_id"]
     multi_dof_joint_traj.joint_names = plan["multi_dof_joint_trajectory"]["joint_names"]
@@ -115,7 +115,7 @@ def dict_to_trajectory(plan):
         multi_dof_joint_traj_point = MultiDOFJointTrajectoryPoint()
         for t in point["transforms"]:
             multi_dof_joint_traj_point.transforms.append(list_to_transform(t))
-        multi_dof_joint_traj_point.time_from_start = point["time_from_start"]
+        multi_dof_joint_traj_point.time_from_start = rospy.Duration().from_sec(point["time_from_start"])
         multi_dof_joint_traj.points.append(multi_dof_joint_traj_point)
     plan_msg.joint_trajectory = joint_traj
     plan_msg.multi_dof_joint_trajectory = multi_dof_joint_traj
@@ -132,7 +132,7 @@ def trajectory_to_dict(plan_msg):
         point["positions"] = p.positions
         point["velocities"] = p.velocities
         point["accelerations"] = p.accelerations
-        point["time_from_start"] = p.time_from_start
+        point["time_from_start"] = p.time_from_start.to_sec()
         joint_trajectory_points.append(point)
     plan["joint_trajectory"]["points"] = joint_trajectory_points
 
@@ -145,7 +145,7 @@ def trajectory_to_dict(plan_msg):
         point["transforms"] = []
         for t in p.transforms:
             point["transforms"].append(transform_to_list(t))
-        point["time_from_start"] = p.time_from_start
+        point["time_from_start"] = p.time_from_start.to_sec()
         multi_dof_joint_trajectory_points.append(point)
     plan["multi_dof_joint_trajectory"]["points"] = multi_dof_joint_trajectory_points
     return plan
