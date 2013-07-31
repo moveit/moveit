@@ -169,6 +169,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     p->approach_ = g.approach;
     p->retreat_ = g.retreat;
     p->goal_pose_ = g.grasp_pose;
+    p->id_ = i;    
     // if no frame of reference was specified, assume the transform to be in the reference frame of the object
     if (p->goal_pose_.header.frame_id.empty())
       p->goal_pose_.header.frame_id = goal.target_name;
@@ -206,7 +207,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       }
     }
   }
-  ROS_INFO("Pickup completed after %lf seconds", last_plan_time_);
+  ROS_INFO("Pickup planning completed after %lf seconds", last_plan_time_);
 
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }

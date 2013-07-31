@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan, Dave Coleman, Adam Leeper */
+/* Author: Ioan Sucan, Dave Coleman, Adam Leeper, Sachin Chitta */
 
 #ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_DISPLAY_
 #define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_DISPLAY_
@@ -119,7 +119,12 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void updateQueryGoalState();
 
   void useApproximateIK(bool flag);
-  
+
+  // Pick Place
+  void clearPlaceLocationsDisplay();
+  void visualizePlaceLocations(const std::vector<geometry_msgs::PoseStamped> &place_poses);
+  std::vector<boost::shared_ptr<rviz::Shape> > place_locations_display_;  
+
   std::string getCurrentPlanningGroup() const;
 
   void changePlanningGroup(const std::string& group);
@@ -230,7 +235,7 @@ protected:
   robot_trajectory::RobotTrajectoryPtr trajectory_message_to_display_;
   std::vector<rviz::Robot*> trajectory_trail_;
   ros::Subscriber trajectory_topic_sub_;
-  ros::NodeHandle private_handle_;
+  ros::NodeHandle private_handle_, node_handle_;
   bool animating_path_;
   int current_state_;
   float current_state_time_;

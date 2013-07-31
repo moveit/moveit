@@ -117,6 +117,11 @@ public:
 
   void publishDebugInformation(bool flag);
 
+  bool isActive() const
+  {
+    return active_;
+  }
+  
 private:
 
   void initialize();
@@ -149,6 +154,9 @@ private:
   ros::NodeHandle nh_;
   ros::ServiceServer save_map_srv_;
   ros::ServiceServer load_map_srv_;
+
+  bool active_;
+  
 };
 
 }
