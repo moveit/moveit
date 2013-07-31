@@ -83,7 +83,7 @@ public:
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_INFO("Could not call planning scene service to get object names");   
+      ROS_WARN("Could not call planning scene service to get object names");   
       return result;
     }
     

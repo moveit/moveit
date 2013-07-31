@@ -132,7 +132,7 @@ private:
 
   void transformTableArray(object_recognition_msgs::TableArray &table_array);
 
-  const planning_scene::PlanningSceneConstPtr &planning_scene_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
 
   ros::NodeHandle node_handle_;
 
@@ -148,10 +148,6 @@ private:
 
   std::map<std::string, object_recognition_msgs::Table> current_tables_in_collision_world_;
   
-  std::string reference_frame_;  
-
-  double place_resolution_;
-
 };
 
 }
