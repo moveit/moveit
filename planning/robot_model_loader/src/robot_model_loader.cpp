@@ -80,8 +80,8 @@ bool canSpecifyPosition(const robot_model::JointModel *jmodel, const unsigned in
 
 void robot_model_loader::RobotModelLoader::configure(const Options &opt)
 {
-  moveit::Profiler::ScopedStart prof_start;
-  moveit::Profiler::ScopedBlock prof_block("RobotModelLoader::configure");
+  moveit::tools::Profiler::ScopedStart prof_start;
+  moveit::tools::Profiler::ScopedBlock prof_block("RobotModelLoader::configure");
 
   ros::WallTime start = ros::WallTime::now();
   if (opt.urdf_doc_ && opt.srdf_doc_)
@@ -99,7 +99,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
 
   if (model_ && !rdf_loader_->getRobotDescription().empty())
   {
-    moveit::Profiler::ScopedBlock prof_block2("RobotModelLoader::configure joint limits");
+    moveit::tools::Profiler::ScopedBlock prof_block2("RobotModelLoader::configure joint limits");
 
     // if there are additional joint limits specified in some .yaml file, read those in
     ros::NodeHandle nh("~");
@@ -192,8 +192,8 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
 
 void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kloader)
 {
-  moveit::Profiler::ScopedStart prof_start;
-  moveit::Profiler::ScopedBlock prof_block("RobotModelLoader::loadKinematicsSolvers");
+  moveit::tools::Profiler::ScopedStart prof_start;
+  moveit::tools::Profiler::ScopedBlock prof_block("RobotModelLoader::loadKinematicsSolvers");
 
   if (rdf_loader_ && model_)
   {

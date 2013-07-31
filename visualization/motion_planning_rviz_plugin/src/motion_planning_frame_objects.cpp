@@ -681,7 +681,7 @@ void MotionPlanningFrame::addObject(const collision_detection::WorldPtr &world, 
 void MotionPlanningFrame::createSceneInteractiveMarker()
 {
   QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
-  if (sel.empty() || planning_display_->getRobotInteraction()->getActiveEndEffectors().empty())
+  if (sel.empty())
     return;
 
   const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();

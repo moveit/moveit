@@ -151,8 +151,8 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
 
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr &scene)
 {
-  moveit::Profiler::ScopedStart prof_start;
-  moveit::Profiler::ScopedBlock prof_block("PlanningSceneMonitor::initialize");
+  moveit::tools::Profiler::ScopedStart prof_start;
+  moveit::tools::Profiler::ScopedBlock prof_block("PlanningSceneMonitor::initialize");
 
   if (monitor_name_.empty())
     monitor_name_ = "planning_scene_monitor";

@@ -37,7 +37,7 @@ namespace benchmark_tool
 
 std::deque<boost::function<void(void)> > JobProcessing::main_loop_jobs_;
 boost::mutex JobProcessing::main_loop_jobs_lock_;
-moveit_rviz_plugin::BackgroundProcessing JobProcessing::background_process_;
+moveit::tools::BackgroundProcessing JobProcessing::background_process_;
 
 void JobProcessing::addBackgroundJob(const boost::function<void(void)> &job)
 {
