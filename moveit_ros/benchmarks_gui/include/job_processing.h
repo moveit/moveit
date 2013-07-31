@@ -32,7 +32,7 @@
 #ifndef BT_JOB_PROCESSING_
 #define BT_JOB_PROCESSING_
 
-#include <moveit/planning_scene_rviz_plugin/background_processing.h>
+#include <moveit/background_processing/background_processing.h>
 
 namespace benchmark_tool
 {
@@ -44,7 +44,7 @@ public:
   static std::deque<boost::function<void(void)> > main_loop_jobs_;
   static boost::mutex main_loop_jobs_lock_;
 
-  static moveit_rviz_plugin::BackgroundProcessing background_process_;
+  static moveit::tools::BackgroundProcessing background_process_;
 
   // pass the execution of this function call to a separate thread that runs in the background
   static void addBackgroundJob(const boost::function<void(void)> &job);

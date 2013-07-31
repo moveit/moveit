@@ -37,7 +37,7 @@
 #ifndef Q_MOC_RUN
 #include <moveit/rviz_plugin_render_tools/planning_scene_render.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/planning_scene_rviz_plugin/background_processing.h>
+#include <moveit/background_processing/background_processing.h>
 #include <ros/ros.h>
 #endif
 
@@ -161,7 +161,7 @@ protected:
   bool model_is_loading_;
   boost::mutex robot_model_loading_lock_;
 
-  BackgroundProcessing background_process_;
+  moveit::tools::BackgroundProcessing background_process_;
   std::deque<boost::function<void()> > main_loop_jobs_;
   boost::mutex main_loop_jobs_lock_;
   boost::condition_variable main_loop_jobs_empty_condition_;

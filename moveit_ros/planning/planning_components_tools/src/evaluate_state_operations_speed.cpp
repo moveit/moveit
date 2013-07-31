@@ -59,39 +59,39 @@ int main(int argc, char **argv)
 
       printf("Evaluating model '%s' using %d trials for each test\n", robot_model->getName().c_str(), N);
 
-      moveit::Profiler::Clear();
-      moveit::Profiler::Start();
+      moveit::tools::Profiler::Clear();
+      moveit::tools::Profiler::Start();
 
       printf("Evaluating FK Default ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
-        moveit::Profiler::Begin("FK Default");
+        moveit::tools::Profiler::Begin("FK Default");
         state.setToDefaultValues();
-        moveit::Profiler::End("FK Default");
+        moveit::tools::Profiler::End("FK Default");
       }
 
       printf("Evaluating FK Random ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
-        moveit::Profiler::Begin("FK Random");
+        moveit::tools::Profiler::Begin("FK Random");
         state.setToRandomValues();
-        moveit::Profiler::End("FK Random");
+        moveit::tools::Profiler::End("FK Random");
       }
       std::vector<robot_state::RobotState*> copies(N, (robot_state::RobotState*)NULL);
       printf("Evaluating Copy State ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
-        moveit::Profiler::Begin("Copy State");
+        moveit::tools::Profiler::Begin("Copy State");
         copies[i] = new robot_state::RobotState(state);
-        moveit::Profiler::End("Copy State");
+        moveit::tools::Profiler::End("Copy State");
       }
 
       printf("Evaluating Free State ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
-        moveit::Profiler::Begin("Free State");
+        moveit::tools::Profiler::Begin("Free State");
         delete copies[i];
-        moveit::Profiler::End("Free State");
+        moveit::tools::Profiler::End("Free State");
       }
 
       const std::vector<std::string> &groups = robot_model->getJointModelGroupNames();
@@ -103,23 +103,23 @@ int main(int argc, char **argv)
         std::string pname = groups[j] + ":FK Default";
         for (int i = 0 ; i < N ; ++i)
         {
-          moveit::Profiler::Begin(pname);
+          moveit::tools::Profiler::Begin(pname);
           jsg->setToDefaultValues();
-          moveit::Profiler::End(pname);
+          moveit::tools::Profiler::End(pname);
         }
 
         printf("%s: Evaluating FK Random ...\n", groups[j].c_str());
         pname = groups[j] + ":FK Random";
         for (int i = 0 ; i < N ; ++i)
         {
-          moveit::Profiler::Begin(pname);
+          moveit::tools::Profiler::Begin(pname);
           jsg->setToRandomValues();
-          moveit::Profiler::End(pname);
+          moveit::tools::Profiler::End(pname);
         }
       }
 
-      moveit::Profiler::Stop();
-      moveit::Profiler::Status();
+      moveit::tools::Profiler::Stop();
+      moveit::tools::Profiler::Status();
     }
     else
       ROS_ERROR("Unable to initialize robot model.");
