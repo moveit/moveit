@@ -38,13 +38,17 @@
 
 #ifndef Q_MOC_RUN
 #include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_interaction/robot_interaction.h>
+#include <moveit/semantic_world/semantic_world.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 #endif
 
+
 #include <moveit_msgs/MotionPlanRequest.h>
+#include <std_msgs/Bool.h>
 #include <map>
 #include <string>
 
@@ -96,7 +100,9 @@ protected:
   Ui::MotionPlanningUI *ui_;
 
   boost::shared_ptr<moveit::planning_interface::MoveGroup> move_group_;
-
+  boost::shared_ptr<moveit::planning_interface::PlanningSceneInterface> planning_scene_interface_;  
+  boost::shared_ptr<moveit::semantic_world::SemanticWorld> semantic_world_;
+  
   boost::shared_ptr<moveit::planning_interface::MoveGroup::Plan> current_plan_;
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
   boost::shared_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
@@ -162,6 +168,13 @@ private Q_SLOTS:
   void setAsStartStateButtonClicked();
   void setAsGoalStateButtonClicked();
 
+  //Pick and place
+  void detectObjectsButtonClicked();  
+  void pickObjectButtonClicked();  
+  void placeObjectButtonClicked();  
+  void selectedDetectedObjectChanged();  
+  void detectedObjectChanged(QListWidgetItem *item);
+   
   //General
   void tabChanged(int index);
 
@@ -211,6 +224,20 @@ private:
   //States tab
   void saveRobotStateButtonClicked(const robot_state::RobotState &state);
   void populateRobotStatesList();
+
+  //Pick and place
+  void detectObjects();
+  void updateDetectedObjectsList(const std::vector<std::string> &object_ids,
+                                 const std::vector<std::string> &objects);
+  void updateSupportSurfacesList(const std::vector<std::string> &tables);
+  ros::Publisher object_recognition_trigger_publisher_;
+  std::map<std::string, std::string> pick_object_name_;
+  std::string place_object_name_;
+  std::vector<geometry_msgs::PoseStamped> place_poses_; 
+  void pickObject(); 
+  void placeObject();
+  void triggerObjectDetection();  
+  std::string support_surface_name_;
 
   //General
   void changePlanningGroupHelper();

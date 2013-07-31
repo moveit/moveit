@@ -696,7 +696,9 @@ public:
     goal.allowed_planning_time = planning_time_;
     goal.support_surface_name = support_surface_;
     goal.planner_id = planner_id_;
-
+    if(!support_surface_.empty())
+      goal.allow_gripper_support_collision = true;
+    
     if (path_constraints_)
       goal.path_constraints = *path_constraints_;
 
@@ -711,6 +713,8 @@ public:
     goal.allowed_planning_time = planning_time_;
     goal.support_surface_name = support_surface_;
     goal.planner_id = planner_id_;
+    if(!support_surface_.empty())
+      goal.allow_gripper_support_collision = true;    
 
     if (path_constraints_)
       goal.path_constraints = *path_constraints_;

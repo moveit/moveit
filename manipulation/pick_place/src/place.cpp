@@ -204,6 +204,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     p->approach_ = pl.approach;
     p->retreat_ = pl.retreat;
     p->retreat_posture_ = pl.post_place_posture;
+    p->id_ = i;    
     if (p->retreat_posture_.name.empty())
       p->retreat_posture_ = attached_body->getDetachPosture();
     pipeline_.push(p);
@@ -240,7 +241,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       }
     }
   }
-  ROS_INFO("Place completed after %lf seconds", last_plan_time_);
+  ROS_INFO("Place planning completed after %lf seconds", last_plan_time_);
 
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }

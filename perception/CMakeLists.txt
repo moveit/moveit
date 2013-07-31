@@ -19,22 +19,26 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   pcl_conversions
   pluginlib
+  object_recognition_msgs
 )
 
 find_package(OpenMP)
 find_package(octomap REQUIRED)
+find_package(OpenCV)
 
 catkin_package(
   INCLUDE_DIRS
     point_containment_filter/include
     occupancy_map_monitor/include
     pointcloud_octomap_updater/include
+    semantic_world/include
     ${OCTOMAP_INCLUDE_DIRS}
     ${PCL_COMMON_INCLUDE_DIRS}
   LIBRARIES
     moveit_point_containment_filter
     moveit_occupancy_map_monitor
     moveit_pointcloud_octomap_updater_core
+    moveit_semantic_world
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core)
@@ -42,8 +46,10 @@ catkin_package(
 include_directories(point_containment_filter/include
                     occupancy_map_monitor/include
 		    pointcloud_octomap_updater/include
+		    semantic_world/include
 		    ${PCL_COMMON_INCLUDE_DIRS}
-                    ${catkin_INCLUDE_DIRS} 
+                    ${catkin_INCLUDE_DIRS}
+		    ${OpenCV_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
                     ${EIGEN_INCLUDE_DIRS}
@@ -56,6 +62,7 @@ link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(point_containment_filter)
 add_subdirectory(occupancy_map_monitor)
 add_subdirectory(pointcloud_octomap_updater)
+add_subdirectory(semantic_world)
 
 install(
   FILES
