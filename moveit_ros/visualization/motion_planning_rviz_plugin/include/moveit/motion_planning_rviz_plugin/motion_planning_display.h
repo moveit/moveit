@@ -206,7 +206,7 @@ protected:
   void updateStateExceptModified(robot_state::RobotState &dest, const robot_state::RobotState &src);
   float getStateDisplayTime();
   void updateBackgroundJobProgressBar();
-  void backgroundJobUpdate(BackgroundProcessing::JobEvent event);
+  void backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent event, const std::string &jobname);
 
   void setQueryStateHelper(bool use_start_state, const std::string &v);
   void populateMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh);
