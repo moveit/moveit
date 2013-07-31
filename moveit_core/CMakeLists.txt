@@ -34,6 +34,7 @@ file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
 
 set(THIS_PACKAGE_INCLUDE_DIRS 
     ${VERSION_FILE_PATH}
+    background_processing/include
     exceptions/include
     collision_detection/include
     collision_detection_fcl/include
@@ -63,6 +64,7 @@ catkin_package(
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_exceptions
+    moveit_background_processing
     moveit_kinematics_base
     moveit_robot_model
     moveit_transforms
@@ -133,6 +135,7 @@ add_subdirectory(version)
 add_subdirectory(macros)
 add_subdirectory(exceptions)
 add_subdirectory(profiler)
+add_subdirectory(background_processing)
 add_subdirectory(kinematics_base)
 add_subdirectory(controller_manager)
 add_subdirectory(sensor_manager)

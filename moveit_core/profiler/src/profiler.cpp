@@ -37,7 +37,7 @@
 
 #include "moveit/profiler/profiler.h"
 
-moveit::Profiler& moveit::Profiler::Instance(void)
+moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
 {
   static Profiler p(false, false);
   return p;
@@ -50,7 +50,7 @@ moveit::Profiler& moveit::Profiler::Instance(void)
 #include <algorithm>
 #include <sstream>
 
-void moveit::Profiler::start(void)
+void moveit::tools::Profiler::start(void)
 {
   lock_.lock();
   if (!running_)
@@ -61,7 +61,7 @@ void moveit::Profiler::start(void)
   lock_.unlock();
 }
 
-void moveit::Profiler::stop(void)
+void moveit::tools::Profiler::stop(void)
 {
   lock_.lock();
   if (running_)
@@ -72,7 +72,7 @@ void moveit::Profiler::stop(void)
   lock_.unlock();
 }
 
-void moveit::Profiler::clear(void)
+void moveit::tools::Profiler::clear(void)
 {
   lock_.lock();
   data_.clear();
@@ -82,14 +82,14 @@ void moveit::Profiler::clear(void)
   lock_.unlock();
 }
 
-void moveit::Profiler::event(const std::string &name, const unsigned int times)
+void moveit::tools::Profiler::event(const std::string &name, const unsigned int times)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].events[name] += times;
   lock_.unlock();
 }
 
-void moveit::Profiler::average(const std::string &name, const double value)
+void moveit::tools::Profiler::average(const std::string &name, const double value)
 {
   lock_.lock();
   AvgInfo &a = data_[boost::this_thread::get_id()].avg[name];
@@ -99,14 +99,14 @@ void moveit::Profiler::average(const std::string &name, const double value)
   lock_.unlock();
 }
 
-void moveit::Profiler::begin(const std::string &name)
+void moveit::tools::Profiler::begin(const std::string &name)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].time[name].set();
   lock_.unlock();
 }
 
-void moveit::Profiler::end(const std::string &name)
+void moveit::tools::Profiler::end(const std::string &name)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].time[name].update();
@@ -123,7 +123,7 @@ inline double to_seconds(const boost::posix_time::time_duration &d)
 
 }
 
-void moveit::Profiler::status(std::ostream &out, bool merge)
+void moveit::tools::Profiler::status(std::ostream &out, bool merge)
 {
   stop();
   lock_.lock();
@@ -167,7 +167,7 @@ void moveit::Profiler::status(std::ostream &out, bool merge)
   lock_.unlock();
 }
 
-void moveit::Profiler::console(void)
+void moveit::tools::Profiler::console(void)
 {
   std::stringstream ss;
   ss << std::endl;
@@ -209,7 +209,7 @@ struct SortDoubleByValue
 }
 /// @endcond
 
-void moveit::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
+void moveit::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
 {
   double total = to_seconds(tinfo_.total);
 
