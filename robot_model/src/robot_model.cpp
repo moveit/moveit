@@ -66,8 +66,8 @@ robot_model::RobotModel::~RobotModel()
 
 void robot_model::RobotModel::buildModel(const urdf::ModelInterface &urdf_model, const srdf::Model &srdf_model)
 {
-  moveit::Profiler::ScopedStart prof_start;
-  moveit::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
+  moveit::tools::Profiler::ScopedStart prof_start;
+  moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
 
   root_joint_ = NULL;
   model_name_ = urdf_model.getName();
@@ -826,7 +826,7 @@ robot_model::LinkModel* robot_model::RobotModel::constructLinkModel(const urdf::
 
 shapes::ShapePtr robot_model::RobotModel::constructShape(const urdf::Geometry *geom)
 {
-  moveit::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
+  moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
 
   shapes::Shape *result = NULL;
   switch (geom->type)

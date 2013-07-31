@@ -65,6 +65,9 @@
 namespace moveit
 {
 
+namespace tools
+{
+
 /** This is a simple thread-safe tool for counting time
     spent in various chunks of code. This is different from
     external profiling tools in that it allows the user to count
@@ -316,6 +319,7 @@ private:
 
 };
 }
+}
 
 #else
 
@@ -325,6 +329,8 @@ private:
 /* If profiling is disabled, provide empty implementations for the
    public functions */
 namespace moveit
+{
+namespace tools
 {
 
 class Profiler
@@ -451,6 +457,8 @@ public:
 };
 
 }
+}
+
 
 #endif
 
