@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
   moveit_ros_robot_interaction
   moveit_ros_warehouse
+  moveit_ros_perception
   eigen_conversions
   geometric_shapes
   interactive_markers
@@ -29,6 +30,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   roscpp
   rosconsole
+  object_recognition_msgs
 )
 
 catkin_package(

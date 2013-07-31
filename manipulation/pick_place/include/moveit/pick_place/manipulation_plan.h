@@ -125,6 +125,10 @@ struct ManipulationPlan
 
   // The processing stage that was last working on this plan, or was about to work on this plan
   std::size_t processing_stage_;
+
+  // An id for this plan
+  std::size_t id_;
+  
 };
 
 typedef boost::shared_ptr<ManipulationPlan> ManipulationPlanPtr;
