@@ -24,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenMP)
 find_package(octomap REQUIRED)
+find_package(OpenCV)
 
 catkin_package(
   INCLUDE_DIRS
@@ -37,6 +38,7 @@ catkin_package(
     moveit_point_containment_filter
     moveit_occupancy_map_monitor
     moveit_pointcloud_octomap_updater_core
+    moveit_semantic_world
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core)
