@@ -499,7 +499,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
 
 bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
 {
-  moveit::Profiler::ScopedBlock sblock("PlanningContext:Solve");
+  moveit::tools::Profiler::ScopedBlock sblock("PlanningContext:Solve");
   ompl::time::point start = ompl::time::now();
   preSolve();
 
