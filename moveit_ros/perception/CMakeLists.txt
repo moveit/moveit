@@ -42,16 +42,16 @@ catkin_package(
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core)
-
+  
 include_directories(point_containment_filter/include
                     occupancy_map_monitor/include
 		    pointcloud_octomap_updater/include
 		    semantic_world/include
-		    ${PCL_COMMON_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
-		    ${OpenCV_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
+		    ${PCL_COMMON_INCLUDE_DIRS}
+		    ${OpenCV_INCLUDE_DIRS}
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
 		    )
