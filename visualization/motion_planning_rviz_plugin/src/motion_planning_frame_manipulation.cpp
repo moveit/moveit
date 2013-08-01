@@ -149,11 +149,12 @@ void MotionPlanningFrame::detectedObjectChanged( QListWidgetItem *item)
 
 void MotionPlanningFrame::triggerObjectDetection()
 {
-  std_msgs::Bool msg;
-  msg.data = true;
-  object_recognition_trigger_publisher_.publish(msg);
-
-  /*  object_recognition_msgs::ObjectRecognitionGoal goal;
+  if(!object_recognition_client_)
+  {
+    ROS_ERROR_STREAM("Actionlib client does not exist");
+    return;    
+  }  
+  object_recognition_msgs::ObjectRecognitionGoal goal;
   object_recognition_client_->sendGoal(goal);
   if (!object_recognition_client_->waitForResult())
   {
@@ -167,13 +168,13 @@ void MotionPlanningFrame::triggerObjectDetection()
   {
     ROS_WARN_STREAM("Fail: " << object_recognition_client_->getState().toString() << ": " << object_recognition_client_->getState().getText());
     //    return false;
-    }*/
+  }
 }
 
 void MotionPlanningFrame::detectObjects()
 {
   triggerObjectDetection(); // Sleep for a small time to allow recognition to happen
-  ros::Duration(3.0).sleep();
+  //  ros::Duration(3.0).sleep();
   std::vector<std::string> objects, object_ids;  
 
   double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
