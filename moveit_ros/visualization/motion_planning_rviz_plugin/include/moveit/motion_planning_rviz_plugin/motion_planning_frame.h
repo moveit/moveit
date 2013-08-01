@@ -48,6 +48,8 @@
 
 
 #include <moveit_msgs/MotionPlanRequest.h>
+#include <actionlib/client/simple_action_client.h>
+#include <object_recognition_msgs/ObjectRecognitionAction.h>
 #include <std_msgs/Bool.h>
 #include <map>
 #include <string>
@@ -238,6 +240,9 @@ private:
   void placeObject();
   void triggerObjectDetection();  
   std::string support_surface_name_;
+  boost::scoped_ptr<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction> > object_recognition_client_;  
+  template<typename T>
+  void waitForAction(const T &action, const ros::NodeHandle &node_handle, const ros::Duration &wait_for_server, const std::string &name);
 
   //General
   void changePlanningGroupHelper();
@@ -257,6 +262,45 @@ private:
   long unsigned int known_collision_objects_version_;
   bool first_time_;
 
+};
+
+template<typename T>
+void MotionPlanningFrame::waitForAction(const T &action, const ros::NodeHandle &node_handle,
+                                        const ros::Duration &wait_for_server, const std::string &name)
+{
+  ROS_DEBUG("Waiting for MoveGroup action server (%s)...", name.c_str());
+
+  // in case ROS time is published, wait for the time data to arrive                                    
+  ros::Time start_time = ros::Time::now();
+  while (start_time == ros::Time::now())
+  {
+    ros::WallDuration(0.01).sleep();
+    ros::spinOnce();
+  }
+
+  // wait for the server (and spin as needed)                                                           
+  if (wait_for_server == ros::Duration(0, 0))
+  {
+    while (node_handle.ok() && !action->isServerConnected())
+    {
+      ros::WallDuration(0.02).sleep();
+      ros::spinOnce();
+    }
+  }
+  else
+  {
+    ros::Time final_time = ros::Time::now() + wait_for_server;
+    while (node_handle.ok() && !action->isServerConnected() && final_time > ros::Time::now())
+    {
+      ros::WallDuration(0.02).sleep();
+      ros::spinOnce();
+    }
+  }
+
+  if (!action->isServerConnected())
+    throw std::runtime_error("Unable to connect to action server within allotted time");
+  else
+    ROS_DEBUG("Connected to '%s'", name.c_str());
 };
 
 }
