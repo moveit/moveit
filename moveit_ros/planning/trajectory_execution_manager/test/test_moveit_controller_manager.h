@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #ifndef TEST_MOVEIT_CONTROLLER_MANAGER_
 #define TEST_MOVEIT_CONTROLLER_MANAGER_
 

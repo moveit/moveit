@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
