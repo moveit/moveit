@@ -523,12 +523,13 @@ void EndEffectorsWidget::doneEditing()
 
   const robot_model::JointModelGroup *jmg =
     config_data_->getRobotModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
+  /*
   if (jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
   {
     QMessageBox::warning( this, "Error Saving", QString::fromStdString("Group " + group_name_field_->currentText().toStdString() + " contains the link " + parent_name_field_->currentText().toStdString() + ". However, the parent link of the end-effector should not belong to the group for the end-effector itself."));
     return;
   }
-
+  */
   if (!parent_group_name_field_->currentText().isEmpty())
   {
     jmg = config_data_->getRobotModel()->getJointModelGroup(parent_group_name_field_->currentText().toStdString());

@@ -76,14 +76,12 @@ struct GroupMetaData
   int kinematics_solver_attempts_; // solver attempts
 };
 
-// ******************************************************************************************
-// Forward Declarations
-// ******************************************************************************************
-//class urdf::Model;
-
-// ******************************************************************************************
-// Class
-// ******************************************************************************************
+/** \brief This class is shared with all widgets and contains the common configuration data
+    needed for generating each robot's MoveIt configuration package.
+    
+    All SRDF data is contained in a subclass of this class -
+    srdf_writer.cpp. This class also contains the functions for writing
+    out the configuration files. */
 class MoveItConfigData
 {
 public:
