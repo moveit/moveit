@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <boost/bind.hpp>
 #include <algorithm>
