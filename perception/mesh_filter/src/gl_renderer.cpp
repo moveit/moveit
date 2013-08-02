@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Suat Gedikli */
 
@@ -73,7 +73,7 @@ mesh_filter::GLRenderer::~GLRenderer ()
 {
   if (program_)
     glDeleteProgram (program_);
-  
+
   deleteFrameBuffers();
   deleteGLContext ();
 }
@@ -113,11 +113,11 @@ void mesh_filter::GLRenderer::setCameraParameters () const
   float right = near_ * (width_ - cx_) / fx_;
   float top = near_ * cy_ / fy_;
   float bottom = near_ * (cy_ - height_) / fy_;
-  
+
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity ();
   glFrustum (left, right, bottom, top, near_, far_);
-  
+
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt (0, 0, 0, 0, 0, 1, 0, -1, 0);
@@ -133,7 +133,7 @@ void mesh_filter::GLRenderer::initFrameBuffers ()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glBindTexture(GL_TEXTURE_2D, 0);
-  
+
   glGenTextures(1, &depth_id_);
   glBindTexture(GL_TEXTURE_2D, depth_id_);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -142,26 +142,26 @@ void mesh_filter::GLRenderer::initFrameBuffers ()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glBindTexture(GL_TEXTURE_2D, 0);
-  
+
   glGenFramebuffers(1, &fbo_id_);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, rgb_id_, 0);
-  
+
   glGenRenderbuffers(1, &rbo_id_);
   glBindRenderbuffer(GL_RENDERBUFFER, rbo_id_);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width_, height_);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_id_);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_id_, 0);
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
-  
+
   GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
   glDrawBuffers(2, DrawBuffers);
-  
+
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-  
+
   if (status != GL_FRAMEBUFFER_COMPLETE) // If the frame buffer does not report back as complete
     throw runtime_error ("Couldn't create frame buffer");
-  
+
   glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer
 }
 
@@ -175,7 +175,7 @@ void mesh_filter::GLRenderer::deleteFrameBuffers()
     glDeleteTextures(1, &depth_id_);
   if (rgb_id_)
     glDeleteTextures(1, &rgb_id_);
-  
+
   rbo_id_ = fbo_id_ = depth_id_ = rgb_id_ = 0;
 }
 
@@ -185,7 +185,7 @@ void mesh_filter::GLRenderer::begin () const
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport (0, 0, width_, height_);
-  glUseProgram (program_);  
+  glUseProgram (program_);
   setCameraParameters ();
 }
 
@@ -223,11 +223,11 @@ GLuint mesh_filter::GLRenderer::setShadersFromFile (const string& vertex_filenam
 {
   if (program_)
     glDeleteProgram (program_);
-  
+
   string vertex_source, fragment_source;
   readShaderCodeFromFile(vertex_filename, vertex_source);
   readShaderCodeFromFile(fragment_filename, fragment_source);
-  
+
   program_ = loadShaders(vertex_source, fragment_source);
   return program_;
 }
@@ -235,7 +235,7 @@ GLuint mesh_filter::GLRenderer::setShadersFromFile (const string& vertex_filenam
 GLuint mesh_filter::GLRenderer::setShadersFromString (const string& vertex_source, const string& fragment_source)
 {
   program_ = loadShaders(vertex_source, fragment_source);
-  return program_;  
+  return program_;
 }
 
 const GLuint& mesh_filter::GLRenderer::getProgramID () const
@@ -256,12 +256,12 @@ const float& mesh_filter::GLRenderer::getFarClippingDistance() const
 GLuint mesh_filter::GLRenderer::createShader (GLuint shaderType, const string& ShaderCode) const
 {
   GLuint ShaderID = glCreateShader(shaderType);
-  
+
   // Compile Shader
   char const * SourcePointer = ShaderCode.c_str();
   glShaderSource(ShaderID, 1, &SourcePointer , NULL);
   glCompileShader(ShaderID);
-  
+
   // Check Shader
   GLint Result = GL_FALSE;
   glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &Result);
@@ -275,7 +275,7 @@ GLuint mesh_filter::GLRenderer::createShader (GLuint shaderType, const string& S
       glGetShaderInfoLog(ShaderID, InfoLogLength, NULL, &ShaderErrorMessage[0]);
       stringstream errorStream;
       errorStream << "Could not compile shader: " << (const char*) &ShaderErrorMessage [0];
-      
+
       glDeleteShader (ShaderID);
       throw runtime_error (errorStream.str());
     }
@@ -310,25 +310,25 @@ GLuint mesh_filter::GLRenderer::loadShaders (const string& vertex_source, const 
 {
   if (vertex_source.empty () && fragment_source.empty ())
     return 0;
-  
+
   GLuint ProgramID = glCreateProgram();
   GLuint VertexShaderID = 0;
   GLuint FragmentShaderID = 0;
-  
+
   if (!vertex_source.empty ())
   {
     GLuint VertexShaderID = createShader (GL_VERTEX_SHADER, vertex_source);
     glAttachShader(ProgramID, VertexShaderID);
   }
-  
+
   if (!fragment_source.empty ())
   {
     GLuint FragmentShaderID = createShader(GL_FRAGMENT_SHADER, fragment_source);
     glAttachShader(ProgramID, FragmentShaderID);
   }
-  
+
   glLinkProgram(ProgramID);
-  
+
   // Check the program
   GLint Result = GL_FALSE;
   GLint InfoLogLength;
@@ -342,13 +342,13 @@ GLuint mesh_filter::GLRenderer::loadShaders (const string& vertex_source, const 
     if (l > 0)
       ROS_ERROR("%s\n", &ProgramErrorMessage[0]);
   }
-  
+
   if (VertexShaderID)
     glDeleteShader(VertexShaderID);
-  
+
   if (FragmentShaderID)
     glDeleteShader(FragmentShaderID);
-  
+
   return ProgramID;
 }
 
@@ -364,7 +364,7 @@ void mesh_filter::GLRenderer::createGLContext ()
     char buffer[1];
     char* args = buffer;
     int n = 1;
-    
+
     glutInit(&n, &args);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitialized_ = true;
@@ -373,7 +373,7 @@ void mesh_filter::GLRenderer::createGLContext ()
   // check if our thread is initialized
   boost::thread::id threadID = boost::this_thread::get_id();
   map<boost::thread::id, pair<unsigned, GLuint> >::iterator contextIt = context_.find(threadID);
-  
+
   if (contextIt == context_.end())
   {
     context_ [threadID] = make_pair<unsigned, GLuint> (1, 0);
@@ -382,21 +382,21 @@ void mesh_filter::GLRenderer::createGLContext ()
     glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH) + 30000, 0);
     glutInitWindowSize(1, 1);
     GLuint window_id = glutCreateWindow( "mesh_filter" );
-    
+
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
       stringstream errorStream;
       errorStream << "Unable to initialize GLEW: " << glewGetErrorString(err);
-      
+
       throw (runtime_error (errorStream.str()));
     }
     glutIconifyWindow();
     glutHideWindow();
-    
+
     for (int i = 0 ; i < 10 ; ++i)
       glutMainLoopEvent ();
-    
+
     context_ [threadID] = make_pair<unsigned, GLuint> (1, window_id);
   }
   else
@@ -414,7 +414,7 @@ void mesh_filter::GLRenderer::deleteGLContext ()
     errorMsg << "No OpenGL context exists for Thread " << threadID;
     throw runtime_error (errorMsg.str ());
   }
-  
+
   if ( --(contextIt->second.first) == 0)
   {
     glutDestroyWindow(contextIt->second.second);

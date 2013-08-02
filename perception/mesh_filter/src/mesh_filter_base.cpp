@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Suat Gedikli */
 
@@ -55,7 +55,7 @@
 using namespace std;
 using namespace Eigen;
 using shapes::Mesh;
-using namespace boost;  
+using namespace boost;
 
 mesh_filter::MeshFilterBase::MeshFilterBase (const TransformCallback& transform_callback,
               const SensorModel::Parameters& sensor_parameters,
@@ -78,10 +78,10 @@ void mesh_filter::MeshFilterBase::initialize (const string& render_vertex_shader
                                               const string& filter_vertex_shader, const string& filter_fragment_shader)
 {
   mesh_renderer_.reset (new GLRenderer (sensor_parameters_->getWidth(), sensor_parameters_->getHeight(),
-                                        sensor_parameters_->getNearClippingPlaneDistance (), 
+                                        sensor_parameters_->getNearClippingPlaneDistance (),
                                         sensor_parameters_->getFarClippingPlaneDistance ()));
   depth_filter_.reset (new GLRenderer (sensor_parameters_->getWidth(), sensor_parameters_->getHeight(),
-                                        sensor_parameters_->getNearClippingPlaneDistance (), 
+                                        sensor_parameters_->getNearClippingPlaneDistance (),
                                         sensor_parameters_->getFarClippingPlaneDistance ()));
 
   mesh_renderer_->setShadersFromString (render_vertex_shader, render_fragment_shader);
@@ -121,7 +121,7 @@ void mesh_filter::MeshFilterBase::initialize (const string& render_vertex_shader
 }
 
 mesh_filter::MeshFilterBase::~MeshFilterBase ()
-{  
+{
   {
     unique_lock<mutex> lock (jobs_mutex_);
     stop_ = true;
@@ -141,7 +141,7 @@ void mesh_filter::MeshFilterBase::addJob (const boost::shared_ptr<Job> &job) con
     unique_lock<mutex> _(jobs_mutex_);
     jobs_queue_.push (job);
   }
-  jobs_condition_.notify_one(); 
+  jobs_condition_.notify_one();
 }
 
 void mesh_filter::MeshFilterBase::deInitialize ()
@@ -164,7 +164,7 @@ void mesh_filter::MeshFilterBase::setSize (unsigned int width, unsigned int heig
 }
 
 void mesh_filter::MeshFilterBase::setTransformCallback (const TransformCallback& transform_callback)
-{ 
+{
   mutex::scoped_lock _(meshes_mutex_);
   transform_callback_ = transform_callback;
 }
@@ -172,7 +172,7 @@ void mesh_filter::MeshFilterBase::setTransformCallback (const TransformCallback&
 mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh (const Mesh& mesh)
 {
   mutex::scoped_lock _(meshes_mutex_);
-  
+
   shared_ptr<Job> job (new FilterJob<void> (boost::bind (&MeshFilterBase::addMeshHelper, this, next_handle_, &mesh)));
   addJob(job);
   job->wait ();
@@ -189,7 +189,7 @@ mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh (const Mesh& mesh)
 }
 
 void mesh_filter::MeshFilterBase::addMeshHelper (MeshHandle handle, const Mesh *cmesh)
-{ 
+{
   meshes_[handle] = shared_ptr<GLMesh> (new GLMesh (*cmesh, handle));
 }
 
@@ -207,7 +207,7 @@ void mesh_filter::MeshFilterBase::removeMesh (MeshHandle handle)
 }
 
 bool mesh_filter::MeshFilterBase::removeMeshHelper (MeshHandle handle)
-{  
+{
   std::size_t erased = meshes_.erase (handle);
   return (erased != 0);
 }
@@ -263,7 +263,7 @@ void mesh_filter::MeshFilterBase::run (const string& render_vertex_shader, const
                                        const string& filter_vertex_shader, const string& filter_fragment_shader)
 {
   initialize (render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader);
-  
+
   while (!stop_)
   {
 
@@ -277,7 +277,7 @@ void mesh_filter::MeshFilterBase::run (const string& render_vertex_shader, const
       shared_ptr<Job> job = jobs_queue_.front ();
       jobs_queue_.pop ();
       lock.unlock ();
-      job->execute ();     
+      job->execute ();
       lock.lock ();
     }
   }
@@ -292,7 +292,7 @@ void mesh_filter::MeshFilterBase::filter (const void* sensor_data, GLushort type
     msg << "unknown type \"" << type << "\". Allowed values are GL_FLOAT or GL_UNSIGNED_SHORT.";
     throw std::runtime_error (msg.str ());
   }
-    
+
   shared_ptr<Job> job (new FilterJob<void> (boost::bind (&MeshFilterBase::doFilter, this, sensor_data, type)));
   addJob(job);
   if (wait)
@@ -300,12 +300,12 @@ void mesh_filter::MeshFilterBase::filter (const void* sensor_data, GLushort type
 }
 
 void mesh_filter::MeshFilterBase::doFilter (const void* sensor_data, const int encoding) const
-{ 
+{
   mutex::scoped_lock _(meshes_mutex_);
 
   mesh_renderer_->begin ();
   sensor_parameters_->setRenderParameters (*mesh_renderer_);
-  
+
   glEnable (GL_TEXTURE_2D);
   glEnable (GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
@@ -315,7 +315,7 @@ void mesh_filter::MeshFilterBase::doFilter (const void* sensor_data, const int e
   glDisable (GL_BLEND);
 
   GLuint padding_coefficients_id = glGetUniformLocation (mesh_renderer_->getProgramID (), "padding_coefficients");
-  Eigen::Vector3f padding_coefficients = sensor_parameters_->getPaddingCoefficients () * padding_scale_ + Eigen::Vector3f (0, 0, padding_offset_);  
+  Eigen::Vector3f padding_coefficients = sensor_parameters_->getPaddingCoefficients () * padding_scale_ + Eigen::Vector3f (0, 0, padding_offset_);
   glUniform3f (padding_coefficients_id, padding_coefficients [0], padding_coefficients [1], padding_coefficients [2]);
 
   Affine3d transform;
@@ -349,7 +349,7 @@ void mesh_filter::MeshFilterBase::doFilter (const void* sensor_data, const int e
   glBindTexture ( GL_TEXTURE_2D, sensor_depth_texture_ );
 
   float scale = 1.0 / (sensor_parameters_->getFarClippingPlaneDistance () - sensor_parameters_->getNearClippingPlaneDistance ());
-  
+
   if (encoding == GL_UNSIGNED_SHORT)
     // unsigned shorts shorts will be mapped to the range 0-1 during transfer. Afterwards we can apply another scale + offset to
     // map the values between near and far clipping plane to 0 - 1. -> scale = (65535 * depth - near ) / (far - near)
@@ -359,7 +359,7 @@ void mesh_filter::MeshFilterBase::doFilter (const void* sensor_data, const int e
   else
     glPixelTransferf (GL_DEPTH_SCALE, scale);
   glPixelTransferf (GL_DEPTH_BIAS, -scale * sensor_parameters_->getNearClippingPlaneDistance ());
-  
+
   glTexImage2D ( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sensor_parameters_->getWidth (), sensor_parameters_->getHeight (), 0, GL_DEPTH_COMPONENT, encoding, sensor_data);
   glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

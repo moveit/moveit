@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Suat Gedikli */
 
@@ -83,12 +83,12 @@ void mesh_filter::DepthSelfFiltering::onInit()
   pub_filtered_label_image_ = filtered_label_transport_->advertiseCamera("/filtered/labels", queue_size_, itssc, itssc, rssc, rssc);
   pub_model_depth_image_ = model_depth_transport_->advertiseCamera("/model/depth", queue_size_, itssc, itssc, rssc, rssc);
   pub_model_label_image_ = model_depth_transport_->advertiseCamera("/model/label", queue_size_, itssc, itssc, rssc, rssc);
-  
+
   filtered_depth_ptr_.reset (new cv_bridge::CvImage);
   filtered_label_ptr_.reset (new cv_bridge::CvImage);
   model_depth_ptr_.reset (new cv_bridge::CvImage);
   model_label_ptr_.reset (new cv_bridge::CvImage);
-  
+
   mesh_filter_.reset (new MeshFilter<StereoCameraModel>(bind(&TransformProvider::getTransform, &transform_provider_, _1, _2),
                                                        mesh_filter::StereoCameraModel::RegisteredPSDKParams));
   mesh_filter_->parameters ().setDepthRange (near_clipping_plane_distance_, far_clipping_plane_distance_);
@@ -109,7 +109,7 @@ void mesh_filter::DepthSelfFiltering::filter (const sensor_msgs::ImageConstPtr& 
   mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters ();
   params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize (depth_msg->width, depth_msg->height);
-  
+
   const float* src = (const float*) &depth_msg->data[0];
   //*
   static unsigned dataSize = 0;
@@ -140,7 +140,7 @@ void mesh_filter::DepthSelfFiltering::filter (const sensor_msgs::ImageConstPtr& 
   {
     model_depth_ptr_->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
     model_depth_ptr_->header = depth_msg->header;
-    
+
     if (model_depth_ptr_->image.cols != depth_msg->width || model_depth_ptr_->image.rows != depth_msg->height)
       model_depth_ptr_->image = cv::Mat (depth_msg->height, depth_msg->width, CV_32FC1);
     mesh_filter_->getModelDepth ((float*)model_depth_ptr_->image.data);
@@ -190,8 +190,8 @@ void mesh_filter::DepthSelfFiltering::addMeshes (MeshFilter<StereoCameraModel>& 
 void mesh_filter::DepthSelfFiltering::connectCb()
 {
   lock_guard<mutex> lock(connect_mutex_);
-  if (pub_filtered_depth_image_.getNumSubscribers() == 0 && 
-      pub_filtered_label_image_.getNumSubscribers() == 0 && 
+  if (pub_filtered_depth_image_.getNumSubscribers() == 0 &&
+      pub_filtered_label_image_.getNumSubscribers() == 0 &&
       pub_model_depth_image_.getNumSubscribers() == 0 &&
       pub_model_label_image_.getNumSubscribers() == 0 )
   {

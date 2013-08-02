@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Suat Gedikli */
 
@@ -184,7 +184,7 @@ void mesh_filter::MeshFilter::getModelDepth (float* depth) const
         *depth = nf / (far - *depth * f_n);
       else
         *depth = 0;
-    
+
     //rest of unaligned data at the end
     unsigned last = (depth_filter_.getWidth () * depth_filter_.getHeight () - first) & 15;
     float* depth2 = depthEnd - last;
@@ -193,10 +193,10 @@ void mesh_filter::MeshFilter::getModelDepth (float* depth) const
         *depth2 = nf / (far - *depth2 * f_n);
       else
         *depth2 = 0;
-    
+
     depthEnd -= last;
   }
-  
+
   const __m128* mmEnd = (__m128*) depthEnd;
   __m128* mmDepth = (__m128*) depth;
   // rest is aligned
@@ -209,14 +209,14 @@ void mesh_filter::MeshFilter::getModelDepth (float* depth) const
     *mmDepth = _mm_and_ps (*mmDepth, mask);
     ++mmDepth;
   }
-  
+
 #else
   // calculate metric depth values from OpenGL normalized depth buffer
   const float near = mesh_renderer_.getNearClippingDistance ();
   const float far = mesh_renderer_.getFarClippingDistance ();
   const float nf = near * far;
   const float f_n = far - near;
-  
+
   const float* depthEnd = depth + mesh_renderer_.getHeight () * mesh_renderer_.getWidth ();
   while (depth < depthEnd)
   {
@@ -224,7 +224,7 @@ void mesh_filter::MeshFilter::getModelDepth (float* depth) const
       *depth = nf / (far - *depth * f_n);
     else
       *depth = 0;
-    
+
     ++depth;
   }
 #endif
@@ -239,7 +239,7 @@ void mesh_filter::MeshFilter::getFilteredDepth (float* depth) const
   const __m128 mmFar = _mm_set1_ps (depth_filter_.getFarClippingDistance ());
   const __m128 mmScale = _mm_sub_ps (mmFar, mmNear);
   float *depthEnd = depth + depth_filter_.getWidth () * depth_filter_.getHeight ();
-  
+
   if (!isAligned16 (depth))
   {
     // first depth value without SSE until we reach aligned data
@@ -251,8 +251,8 @@ void mesh_filter::MeshFilter::getFilteredDepth (float* depth) const
       if (*depth != 0 && *depth != 1.0)
         *depth = *depth * scale + offset;
       else
-        *depth = 0;    
-    
+        *depth = 0;
+
     //rest of unaligned data at the end
     unsigned last = (depth_filter_.getWidth () * depth_filter_.getHeight () - first) & 15;
     float* depth2 = depthEnd - last;
@@ -260,11 +260,11 @@ void mesh_filter::MeshFilter::getFilteredDepth (float* depth) const
       if (*depth2 != 0 && *depth != 1.0)
         *depth2 = *depth2 * scale + offset;
       else
-        *depth2 = 0;    
-    
+        *depth2 = 0;
+
     depthEnd -= last;
   }
-  
+
   const __m128* mmEnd = (__m128*) depthEnd;
   __m128* mmDepth = (__m128*) depth;
   // rest is aligned
@@ -286,8 +286,8 @@ void mesh_filter::MeshFilter::getFilteredDepth (float* depth) const
     if (*depth != 0 && *depth != 1.0)
       *depth = *depth * scale + offset;
     else
-      *depth = 0;    
-    
+      *depth = 0;
+
     ++depth;
   }
   #endif
@@ -492,9 +492,9 @@ string mesh_filter::MeshFilter::filter_vertex_shader_ =
         "#version 120\n"
         "void main ()"
         "{"
-        "	gl_FrontColor = gl_Color;"
-        "	gl_TexCoord[0] = gl_MultiTexCoord0;"
-        "	gl_Position = gl_Vertex;"
+        "    gl_FrontColor = gl_Color;"
+        "    gl_TexCoord[0] = gl_MultiTexCoord0;"
+        "    gl_Position = gl_Vertex;"
         "  gl_Position.w = 1.0;"
         "}";
 
@@ -510,17 +510,17 @@ string mesh_filter::MeshFilter::filter_fragment_shader_ =
         "float threshold = shadow_threshold / f_n;"
         "void main()"
         "{"
-        "	float dValue = float(texture2D(depth, gl_TexCoord[0].st));"
-        "	float zValue = dValue * near / (far - dValue * f_n);"
-        "	float diff = float(texture2D(sensor, gl_TexCoord[0].st)) - zValue;"
-        "	if (diff < 0) {"
-        "		gl_FragColor = vec4 (0, 0, 0, 0);"
-        "		gl_FragDepth = float(texture2D(sensor, gl_TexCoord[0].st));"
-        "	}	else if (diff > threshold) {"
-        "		gl_FragColor = vec4 (0.003921569, 0, 0, 0);"
-        "		gl_FragDepth = float(texture2D(sensor, gl_TexCoord[0].st));"
+        "    float dValue = float(texture2D(depth, gl_TexCoord[0].st));"
+        "    float zValue = dValue * near / (far - dValue * f_n);"
+        "    float diff = float(texture2D(sensor, gl_TexCoord[0].st)) - zValue;"
+        "    if (diff < 0) {"
+        "        gl_FragColor = vec4 (0, 0, 0, 0);"
+        "        gl_FragDepth = float(texture2D(sensor, gl_TexCoord[0].st));"
+        "    }    else if (diff > threshold) {"
+        "        gl_FragColor = vec4 (0.003921569, 0, 0, 0);"
+        "        gl_FragDepth = float(texture2D(sensor, gl_TexCoord[0].st));"
         " } else {"
-        "		gl_FragColor = vec4 (1,1,1,1);"
-        "		gl_FragDepth = 0;"
-        "	}"
+        "        gl_FragColor = vec4 (1,1,1,1);"
+        "        gl_FragDepth = 0;"
+        "    }"
         "}";

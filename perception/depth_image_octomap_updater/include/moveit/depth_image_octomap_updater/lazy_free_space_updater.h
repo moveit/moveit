@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
+ *   * Neither the name of Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -47,12 +47,12 @@ namespace occupancy_map_monitor
 class LazyFreeSpaceUpdater
 {
 public:
-  
+
   LazyFreeSpaceUpdater(const OccMapTreePtr &tree, unsigned int max_batch_size = 10);
   ~LazyFreeSpaceUpdater();
-  
+
   void pushLazyUpdate(octomap::KeySet *occupied_cells, octomap::KeySet *model_cells, const octomap::point3d &sensor_origin);
-    
+
 private:
 
   typedef std::tr1::unordered_map<octomap::OcTreeKey, unsigned int, octomap::OcTreeKey::KeyHash> OcTreeKeyCountMap;
@@ -71,13 +71,13 @@ private:
   std::deque<octomap::KeySet*> model_cells_sets_;
   std::deque<octomap::point3d> sensor_origins_;
   boost::condition_variable update_condition_;
-  boost::mutex update_cell_sets_lock_;  
+  boost::mutex update_cell_sets_lock_;
 
   OcTreeKeyCountMap *process_occupied_cells_set_;
   octomap::KeySet *process_model_cells_set_;
   octomap::point3d process_sensor_origin_;
   boost::condition_variable process_condition_;
-  boost::mutex cell_process_lock_;  
+  boost::mutex cell_process_lock_;
 
   boost::thread update_thread_;
   boost::thread process_thread_;

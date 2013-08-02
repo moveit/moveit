@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
+ *   * Neither the name of Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -51,10 +51,10 @@ namespace occupancy_map_monitor
 class DepthImageOctomapUpdater : public OccupancyMapUpdater
 {
 public:
-  
+
   DepthImageOctomapUpdater();
   virtual ~DepthImageOctomapUpdater();
-  
+
   virtual bool setParams(XmlRpc::XmlRpcValue &params);
   virtual bool initialize();
   virtual void start();
@@ -63,18 +63,18 @@ public:
   virtual void forgetShape(ShapeHandle handle);
 
 private:
-  
+
   void depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
-  bool getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;  
+  bool getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;
   void stopHelper();
-  
-  ros::NodeHandle nh_; 
+
+  ros::NodeHandle nh_;
   boost::shared_ptr<tf::Transformer> tf_;
   image_transport::ImageTransport input_depth_transport_;
   image_transport::ImageTransport model_depth_transport_;
   image_transport::ImageTransport filtered_depth_transport_;
   image_transport::ImageTransport filtered_label_transport_;
-  
+
   image_transport::CameraSubscriber sub_depth_image_;
   image_transport::CameraPublisher pub_model_depth_image_;
   image_transport::CameraPublisher pub_filtered_depth_image_;
@@ -91,7 +91,7 @@ private:
   double padding_offset_;
   unsigned int skip_vertical_pixels_;
   unsigned int skip_horizontal_pixels_;
-  
+
   unsigned int image_callback_count_;
   double average_callback_dt_;
   unsigned int good_tf_;
@@ -99,12 +99,12 @@ private:
 
   boost::scoped_ptr<mesh_filter::MeshFilter<mesh_filter::StereoCameraModel> > mesh_filter_;
   boost::scoped_ptr<LazyFreeSpaceUpdater> free_space_updater_;
-  
+
   std::vector<float> x_cache_, y_cache_;
   double inv_fx_, inv_fy_, K0_, K2_, K4_, K5_;
   std::vector<unsigned int> filtered_labels_;
   ros::WallTime last_depth_callback_start_;
-  
+
 };
 }
 
