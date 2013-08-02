@@ -111,7 +111,7 @@ public:
                         double timeout,
                         std::vector<double> &solution,
                         moveit_msgs::MoveItErrorCodes &error_code,
-			const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -128,7 +128,7 @@ public:
                         const std::vector<double> &consistency_limits,
                         std::vector<double> &solution,
                         moveit_msgs::MoveItErrorCodes &error_code,
-			const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -144,7 +144,7 @@ public:
                         std::vector<double> &solution,
                         const IKCallbackFn &solution_callback,
                         moveit_msgs::MoveItErrorCodes &error_code,
-			const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -163,7 +163,7 @@ public:
                         std::vector<double> &solution,
                         const IKCallbackFn &solution_callback,
                         moveit_msgs::MoveItErrorCodes &error_code,
-			const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
