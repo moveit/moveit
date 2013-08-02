@@ -9,7 +9,7 @@ your own ROS node.
 
 Author: Dave Coleman, CU Boulder
         Based heavily on the arm_kinematic_tools package by Jeremy Zoss, SwRI
-	and the arm_navigation plugin generator by David Butterworth, KAIST
+        and the arm_navigation plugin generator by David Butterworth, KAIST
 Date: March 2013
 
 '''
