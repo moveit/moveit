@@ -30,6 +30,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
 
 #ifndef MOVEIT_PY_BINDINGS_TOOLS_PY_CONVERSIONS_
 #define MOVEIT_PY_BINDINGS_TOOLS_PY_CONVERSIONS_

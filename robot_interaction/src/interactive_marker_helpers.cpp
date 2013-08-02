@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Author: Ioan Sucan, Acorn Pooley, Adam Leeper */
+
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
 #include <tf/transform_datatypes.h>
 
