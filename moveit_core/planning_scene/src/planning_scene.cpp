@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
+ *   * Neither the name of Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -610,14 +610,14 @@ void planning_scene::PlanningScene::getCollidingPairs(collision_detection::Colli
 }
 
 void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
-						      const robot_state::RobotState &kstate) const
+                              const robot_state::RobotState &kstate) const
 {
   getCollidingPairs(contacts, kstate, getAllowedCollisionMatrix());
 }
 
 void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
-						      const robot_state::RobotState &kstate,
-						      const collision_detection::AllowedCollisionMatrix& acm) const
+                              const robot_state::RobotState &kstate,
+                              const collision_detection::AllowedCollisionMatrix& acm) const
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
