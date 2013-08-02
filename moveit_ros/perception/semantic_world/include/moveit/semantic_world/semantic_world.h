@@ -1,5 +1,4 @@
 /*********************************************************************
- *
  * Software License Agreement (BSD License)
  *
  *  Copyright (c) 2013, Willow Garage, Inc.
@@ -15,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
+ *   * Neither the name of Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -61,54 +60,54 @@ public:
 
   /**
    * @brief A (simple) semantic world representation for pick and place and other tasks.
-   * Currently this is used only to represent tables. 
+   * Currently this is used only to represent tables.
    */
-  SemanticWorld(const planning_scene::PlanningSceneConstPtr &planning_scene);  
+  SemanticWorld(const planning_scene::PlanningSceneConstPtr &planning_scene);
 
   /**
    * @brief Get all the tables within a region of interest
    */
-  object_recognition_msgs::TableArray getTablesInROI(double minx, double miny, double minz, 
+  object_recognition_msgs::TableArray getTablesInROI(double minx, double miny, double minz,
                                                      double maxx, double maxy, double maxz);
 
   /**
    * @brief Get all the tables within a region of interest
    */
-  std::vector<std::string> getTableNamesInROI(double minx, double miny, double minz, 
+  std::vector<std::string> getTableNamesInROI(double minx, double miny, double minz,
                                               double maxx, double maxy, double maxz);
 
   /**
-   * @brief Generate possible place poses on the table for a given object. This chooses appropriate 
-   * values for min_distance_from_edge and for height_above_table based on the object properties. 
-   * The assumption is that the object is represented by a mesh. 
+   * @brief Generate possible place poses on the table for a given object. This chooses appropriate
+   * values for min_distance_from_edge and for height_above_table based on the object properties.
+   * The assumption is that the object is represented by a mesh.
    */
   std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const std::string &table_name,
                                                              const shapes::ShapeConstPtr& object_shape,
                                                              const geometry_msgs::Quaternion &object_orientation,
-                                                             double resolution, 
+                                                             double resolution,
                                                              double delta_height = 0.01,
                                                              unsigned int num_heights = 2);
 
   /**
-   * @brief Generate possible place poses on the table for a given object. This chooses appropriate 
-   * values for min_distance_from_edge and for height_above_table based on the object properties. 
+   * @brief Generate possible place poses on the table for a given object. This chooses appropriate
+   * values for min_distance_from_edge and for height_above_table based on the object properties.
    * The assumption is that the object is represented by a mesh.
    */
   std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table &table,
                                                              const shapes::ShapeConstPtr& object_shape,
                                                              const geometry_msgs::Quaternion &object_orientation,
-                                                             double resolution, 
+                                                             double resolution,
                                                              double delta_height = 0.01,
                                                              unsigned int num_heights = 2) const;
   /**
-   * @brief Generate possible place poses on the table. This samples locations in a grid on the table at 
-   * the given resolution (in meters) in both X and Y directions. The locations are sampled at the 
-   * specified height above the table (in meters) and then at subsequent additional heights (num_heights 
+   * @brief Generate possible place poses on the table. This samples locations in a grid on the table at
+   * the given resolution (in meters) in both X and Y directions. The locations are sampled at the
+   * specified height above the table (in meters) and then at subsequent additional heights (num_heights
    * times) incremented by delta_height. Locations are only accepted if they are at least min_distance_from_edge
-   * meters from the edge of the table. 
+   * meters from the edge of the table.
    */
   std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table &table,
-                                                             double resolution, 
+                                                             double resolution,
                                                              double height_above_table,
                                                              double delta_height = 0.01,
                                                              unsigned int num_heights = 2,
@@ -120,15 +119,15 @@ public:
   bool addTablesToCollisionWorld();
 
   visualization_msgs::MarkerArray getPlaceLocationsMarker(const std::vector<geometry_msgs::PoseStamped> &poses) const;
-  
+
 private:
 
   shapes::Mesh* createSolidMeshFromPlanarPolygon (const shapes::Mesh& polygon, double thickness);
 
   shapes::Mesh* orientPlanarPolygon (const shapes::Mesh& polygon);
-  
+
   void tableCallback(const object_recognition_msgs::TableArrayPtr &msg);
-  
+
 
   void transformTableArray(object_recognition_msgs::TableArray &table_array);
 
@@ -144,10 +143,10 @@ private:
 
   ros::Subscriber table_subscriber_;
 
-  ros::Publisher visualization_publisher_, collision_object_publisher_;  
+  ros::Publisher visualization_publisher_, collision_object_publisher_;
 
   std::map<std::string, object_recognition_msgs::Table> current_tables_in_collision_world_;
-  
+
 };
 
 }

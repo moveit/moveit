@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Suat Gedikli */
 
@@ -65,7 +65,7 @@ void TransformProvider::start ()
 }
 
 void TransformProvider::stop ()
-{ 
+{
   stop_ = true;
   thread_.join ();
 }
@@ -96,7 +96,7 @@ void TransformProvider::setFrame (const string& frame)
 bool TransformProvider::getTransform (MeshHandle handle, Affine3d& transform) const
 {
   map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.find(handle);
-  
+
   if (contextIt == handle2context_.end())
   {
     ROS_ERROR("Unable to find mesh with handle %d", handle);
@@ -130,7 +130,7 @@ void TransformProvider::updateTransforms ()
   static Affine3d transformation;
   static robot_state::RobotStatePtr robot_state;
   robot_state = psm_->getStateMonitor()->getCurrentState();
-  
+
   static string error;
   static Stamped<Pose> input_pose, out_pose;
   tf_->getLatestCommonTime(frame_id_, psm_->getPlanningScene()->getPlanningFrame(), input_pose.stamp_, &error);
@@ -140,14 +140,14 @@ void TransformProvider::updateTransforms ()
   {
     transformation = robot_state->getLinkState(contextIt->second->frame_id_)->getGlobalCollisionBodyTransform();
     poseEigenToTF(transformation, input_pose);
-    try 
+    try
     {
       tf_->transformPose(frame_id_, input_pose, out_pose);
     }
     catch (const tf::TransformException& ex)
     {
       handle2context_ [contextIt->first]->mutex_.lock ();
-      handle2context_ [contextIt->first]->transformation_.matrix ().setZero ();      
+      handle2context_ [contextIt->first]->transformation_.matrix ().setZero ();
       handle2context_ [contextIt->first]->mutex_.unlock ();
       continue;
     }

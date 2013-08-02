@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Suat Gedikli */
 
@@ -64,10 +64,10 @@ void mesh_filter::SensorModel::Parameters::setDepthRange (float near, float far)
 {
   if (near <= 0)
     throw std::runtime_error ("Near clipping plane distance needs to be larger than zero!");
-  
+
   if (far <= near)
     throw std::runtime_error ("Far clipping plane distance must be larger than the near clipping plane distance!");
-  
+
   near_clipping_plane_distance_ = near;
   far_clipping_plane_distance_ = far;
 }
@@ -124,7 +124,7 @@ void mesh_filter::SensorModel::Parameters::transformModelDepthToMetricDepth (flo
         *depth = nf / (far - *depth * f_n);
       else
         *depth = 0;
-    
+
     //rest of unaligned data at the end
     unsigned last = (width_ * height_ - first) & 15;
     float* depth2 = depthEnd - last;
@@ -133,10 +133,10 @@ void mesh_filter::SensorModel::Parameters::transformModelDepthToMetricDepth (flo
         *depth2 = nf / (far - *depth2 * f_n);
       else
         *depth2 = 0;
-    
+
     depthEnd -= last;
   }
-  
+
   const __m128* mmEnd = (__m128*) depthEnd;
   __m128* mmDepth = (__m128*) depth;
   // rest is aligned
@@ -149,14 +149,14 @@ void mesh_filter::SensorModel::Parameters::transformModelDepthToMetricDepth (flo
     *mmDepth = _mm_and_ps (*mmDepth, mask);
     ++mmDepth;
   }
-  
+
 #else
   // calculate metric depth values from OpenGL normalized depth buffer
   const float near = near_clipping_plane_distance_;
   const float far = far_clipping_plane_distance_;
   const float nf = near * far;
   const float f_n = far - near;
-  
+
   const float* depthEnd = depth + width_ * height_;
   while (depth < depthEnd)
   {
@@ -164,7 +164,7 @@ void mesh_filter::SensorModel::Parameters::transformModelDepthToMetricDepth (flo
       *depth = nf / (far - *depth * f_n);
     else
       *depth = 0;
-    
+
     ++depth;
   }
 #endif
@@ -178,7 +178,7 @@ void mesh_filter::SensorModel::Parameters::transformFilteredDepthToMetricDepth (
   const __m128 mmFar = _mm_set1_ps (far_clipping_plane_distance_);
   const __m128 mmScale = _mm_sub_ps (mmFar, mmNear);
   float *depthEnd = depth + width_ * height_;
-  
+
   if (!isAligned16 (depth))
   {
     // first depth value without SSE until we reach aligned data
@@ -190,8 +190,8 @@ void mesh_filter::SensorModel::Parameters::transformFilteredDepthToMetricDepth (
       if (*depth != 0 && *depth != 1.0)
         *depth = *depth * scale + offset;
       else
-        *depth = 0;    
-    
+        *depth = 0;
+
     //rest of unaligned data at the end
     unsigned last = (width_ * height_ - first) & 15;
     float* depth2 = depthEnd - last;
@@ -199,11 +199,11 @@ void mesh_filter::SensorModel::Parameters::transformFilteredDepthToMetricDepth (
       if (*depth2 != 0 && *depth != 1.0)
         *depth2 = *depth2 * scale + offset;
       else
-        *depth2 = 0;    
-    
+        *depth2 = 0;
+
     depthEnd -= last;
   }
-  
+
   const __m128* mmEnd = (__m128*) depthEnd;
   __m128* mmDepth = (__m128*) depth;
   // rest is aligned
@@ -226,7 +226,7 @@ void mesh_filter::SensorModel::Parameters::transformFilteredDepthToMetricDepth (
       *depth = *depth * scale + offset;
     else
       *depth = 0;
-    
+
     ++depth;
   }
   #endif

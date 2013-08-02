@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
+ *   * Neither the name of Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -78,7 +78,7 @@ void LazyFreeSpaceUpdater::pushLazyUpdate(octomap::KeySet *occupied_cells, octom
 }
 
 void LazyFreeSpaceUpdater::pushBatchToProcess(OcTreeKeyCountMap *occupied_cells, octomap::KeySet *model_cells, const octomap::point3d &sensor_origin)
-{   
+{
   // this is basically a queue of size 1. if this function is called repeatedly without any work being done by processThread(),
   // data can be lost; this is intentional, to avoid spending too much time clearing the octomap
   if (cell_process_lock_.try_lock())
@@ -99,10 +99,10 @@ void LazyFreeSpaceUpdater::pushBatchToProcess(OcTreeKeyCountMap *occupied_cells,
 
 void LazyFreeSpaceUpdater::processThread()
 {
-  
+
   const float lg_0 = tree_->getClampingThresMinLog() - tree_->getClampingThresMaxLog();
   const float lg_miss = tree_->getProbMissLog();
-  
+
   octomap::KeyRay key_ray1, key_ray2;
   OcTreeKeyCountMap free_cells1, free_cells2;
 
@@ -110,7 +110,7 @@ void LazyFreeSpaceUpdater::processThread()
   {
     free_cells1.clear();
     free_cells2.clear();
-    
+
     boost::unique_lock<boost::mutex> ulock(cell_process_lock_);
     while (!process_occupied_cells_set_ && running_)
       process_condition_.wait(ulock);
@@ -145,7 +145,7 @@ void LazyFreeSpaceUpdater::processThread()
       }
     }
 
-    tree_->unlockRead();  
+    tree_->unlockRead();
 
     for (OcTreeKeyCountMap::iterator it = process_occupied_cells_set_->begin(), end = process_occupied_cells_set_->end(); it != end; ++it)
     {
@@ -160,10 +160,10 @@ void LazyFreeSpaceUpdater::processThread()
     }
     ROS_DEBUG("Marking %lu cells as free...", (long unsigned int)(free_cells1.size() + free_cells2.size()));
 
-    tree_->lockWrite(); 
+    tree_->lockWrite();
 
     try
-    {    
+    {
       // set the logodds to the minimum for the cells that are part of the model
       for (octomap::KeySet::iterator it = process_model_cells_set_->begin(), end = process_model_cells_set_->end(); it != end; ++it)
         tree_->updateNode(*it, lg_0);
@@ -180,9 +180,9 @@ void LazyFreeSpaceUpdater::processThread()
     }
     tree_->unlockWrite();
     tree_->triggerUpdateCallback();
-    
+
     ROS_DEBUG("Marked free cells in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
-    
+
     delete process_occupied_cells_set_;
     process_occupied_cells_set_ = NULL;
     delete process_model_cells_set_;
@@ -196,7 +196,7 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
   octomap::KeySet *model_cells_set = NULL;
   octomap::point3d sensor_origin;
   unsigned int batch_size = 0;
-  
+
   while (running_)
   {
     boost::unique_lock<boost::mutex> ulock(update_cell_sets_lock_);
@@ -220,7 +220,7 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
       sensor_origins_.pop_front();
       batch_size++;
     }
-    
+
     while (!occupied_cells_sets_.empty())
     {
       if ((sensor_origins_.front() - sensor_origin).norm() > max_sensor_delta_)
@@ -231,7 +231,7 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
         break;
       }
       sensor_origins_.pop_front();
-      
+
       octomap::KeySet *add_occ = occupied_cells_sets_.front();
       for (octomap::KeySet::iterator it = add_occ->begin(), end = add_occ->end(); it != end; ++it)
         (*occupied_cells_set)[*it]++;
@@ -243,7 +243,7 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
       delete mod_occ;
       batch_size++;
     }
-    
+
     if (batch_size >= max_batch_size_)
     {
       ROS_DEBUG("Pushing %u sets of occupied/model cells to free cells update thread", batch_size);
@@ -251,7 +251,7 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
       occupied_cells_set = NULL;
       batch_size = 0;
     }
-  }    
+  }
 }
 
 }
