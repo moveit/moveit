@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
+ *   * Neither the name of Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -48,7 +48,7 @@ OccupancyMapMonitor::OccupancyMapMonitor(double map_resolution) :
   nh_("~"),
   map_resolution_(map_resolution),
   mesh_handle_count_(0),
-  debug_info_(false), 
+  debug_info_(false),
   active_(false)
 {
   initialize();
@@ -316,7 +316,7 @@ bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request
 
 void OccupancyMapMonitor::startMonitor()
 {
-  active_ = true;  
+  active_ = true;
   /* initialize all of the occupancy map updaters */
   for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
     map_updaters_[i]->start();
@@ -324,7 +324,7 @@ void OccupancyMapMonitor::startMonitor()
 
 void OccupancyMapMonitor::stopMonitor()
 {
-  active_ = false;  
+  active_ = false;
   for (std::size_t i = 0 ; i < map_updaters_.size() ; ++i)
     map_updaters_[i]->stop();
 }
