@@ -44,7 +44,6 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <moveit_msgs/CollisionMap.h>
 #include <eigen_stl_containers/eigen_stl_containers.h>
 #include <geometric_shapes/shapes.h>
 
