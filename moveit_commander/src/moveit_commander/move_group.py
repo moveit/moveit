@@ -364,6 +364,14 @@ class MoveGroupCommander(object):
         """Execute a previously planned path"""
         return self._g.execute(conversions.trajectory_to_dict(plan_msg))
 
+    def attach_object(self, object_name, link_name = "", touch_links = []):
+        """ Given the name of an object existing in the planning scene, attach it to a link. The link used is specified by the second argument. If left unspecified, the end-effector link is used, if one is known. If there is no end-effector link, the first link in the group is used. If no link is identified, failure is reported. True is returned if an attach request was succesfully sent to the move_group node. This does not verify that the attach request also was successfuly applied by move_group."""
+        return self._g.attach_object(object_name, link_name, touch_links)
+
+    def detach_object(self, name = ""):
+        """ Given the name of a link, detach the object(s) from that link. If no such link exists, the name is interpreted as an object name. If there is no name specified, an attempt is made to detach all objects attached to any link in the group."""
+        return self._g.detach_object(name)
+
     def pick(self, object_name):
         """Pick the named object"""
         return self._g.pick(object_name)
