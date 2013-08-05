@@ -97,7 +97,6 @@ public:
                 const boost::shared_ptr<const srdf::Model> &srdf_model,
                 collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
 
-  static const std::string COLLISION_MAP_NS;
   static const std::string OCTOMAP_NS;
   static const std::string DEFAULT_SCENE_NAME;
 
@@ -419,7 +418,6 @@ public:
 
   void processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld &world);
 
-  void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
   void processOctomapMsg(const octomap_msgs::OctomapWithPose &map);
   void processOctomapMsg(const octomap_msgs::Octomap &map);
   void processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t);
@@ -623,7 +621,6 @@ private:
 
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
-  void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgObjectColors(moveit_msgs::PlanningScene &scene_msg) const;
 
