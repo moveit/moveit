@@ -856,8 +856,7 @@ void MotionPlanningFrame::populateCollisionObjectsList()
       const std::vector<std::string> &collision_object_names = ps->getWorld()->getObjectIds();
       for (std::size_t i = 0 ; i < collision_object_names.size() ; ++i)
       {
-        if (collision_object_names[i] == planning_scene::PlanningScene::OCTOMAP_NS ||
-            collision_object_names[i] == planning_scene::PlanningScene::COLLISION_MAP_NS)
+        if (collision_object_names[i] == planning_scene::PlanningScene::OCTOMAP_NS)
           continue;
 
         QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(collision_object_names[i]),
