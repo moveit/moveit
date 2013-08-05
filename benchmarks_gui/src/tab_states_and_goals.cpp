@@ -858,12 +858,8 @@ void MainWindow::startStateItemDoubleClicked(QListWidgetItem * item)
 
 void MainWindow::runBenchmark(void)
 {
-  run_benchmark_ui_.benchmark_start_state_combo->clear();
-
-  for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
-  {
-    run_benchmark_ui_.benchmark_start_state_combo->addItem(it->first.c_str());
-  }
+  run_benchmark_ui_.benchmark_goal_text->setText(ui_.load_poses_filter_text->text());
+  run_benchmark_ui_.benchmark_start_state_text->setText(ui_.load_states_filter_text->text());
 
   run_benchmark_dialog_->show();
 }
@@ -898,15 +894,15 @@ void MainWindow::saveBenchmarkConfigButtonClicked(void)
     outfile << "planning_frame=" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame() << std::endl;
     outfile << "name=" << scene_display_->getPlanningSceneRO()->getName() << std::endl;
 
-    //TODO: Let the user select the timeout, runs, and start regex
+    //TODO: Let the user select the timeout and runs
     outfile << "timeout=1" << std::endl;
     outfile << "runs=1" << std::endl;
     outfile << "output=" << run_benchmark_ui_.benchmark_output_folder_text->text().toStdString() << "/" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << "_" <<
         scene_display_->getPlanningSceneRO()->getName() << "_" <<
         ros::Time::now() << std::endl;
-    outfile << "start=" << run_benchmark_ui_.benchmark_start_state_combo->currentText().toStdString() << std::endl;
+    outfile << "start=" << run_benchmark_ui_.benchmark_start_state_text->text().toStdString() << std::endl;
     outfile << "query=" << std::endl;
-    outfile << "goal=" << ui_.load_poses_filter_text->text().toStdString() << std::endl;
+    outfile << "goal=" << run_benchmark_ui_.benchmark_goal_text->text().toStdString() << std::endl;
     outfile << "goal_offset_roll=" << ui_.goal_offset_roll->value() << std::endl;
     outfile << "goal_offset_pitch=" << ui_.goal_offset_pitch->value() << std::endl;
     outfile << "goal_offset_yaw=" << ui_.goal_offset_yaw->value() << std::endl << std::endl;
@@ -914,7 +910,7 @@ void MainWindow::saveBenchmarkConfigButtonClicked(void)
     //TODO: Let the user select the planners
     outfile << "[plugin]" << std::endl;
     outfile << "name=ompl_interface_ros/OMPLPlanner" << std::endl;
-    outfile << "planners=RRTConnectkConfigDefault" << std::endl;
+    outfile << "planners=" << std::endl;
 
     outfile.close();
 
