@@ -270,6 +270,11 @@ public:
     return getName().c_str();
   }
 
+  bool attachObjectPython(const std::string &object_name, const std::string &link_name, const bp::list &touch_links)
+  {
+    return attachObject(object_name, link_name, py_bindings_tools::stringFromList(touch_links));
+  }
+  
   bool executePython(bp::dict &plan_dict)
   {
     MoveGroup::Plan plan;
@@ -463,6 +468,8 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("compute_plan", &MoveGroupWrapper::getPlanPythonDict);
   MoveGroupClass.def("compute_cartesian_path", &MoveGroupWrapper::computeCartesianPathPython);
   MoveGroupClass.def("set_support_surface_name", &MoveGroupWrapper::setSupportSurfaceName);
+  MoveGroupClass.def("attach_object", &MoveGroupWrapper::attachObjectPython);
+  MoveGroupClass.def("detach_object", &MoveGroupWrapper::detachObject);
 }
 
 }

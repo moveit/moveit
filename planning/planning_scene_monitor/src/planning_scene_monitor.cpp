@@ -100,6 +100,14 @@ private:
 
 }
 
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC = "/joint_states";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC = "/attached_collision_object";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC = "/collision_object";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC = "/planning_scene_world";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC = "/planning_scene";
+
+const std::string planning_scene_monitor::PlanningSceneMonitor::MONITORED_PLANNING_SCENE_TOPIC = "monitored_planning_scene";
+
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), monitor_name_(name)
 {
@@ -364,8 +372,6 @@ void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vecto
     topics.push_back(planning_scene_subscriber_.getTopic());
   if (collision_object_subscriber_)
     topics.push_back(collision_object_subscriber_->getTopic());
-  if (collision_map_subscriber_)
-    topics.push_back(collision_map_subscriber_->getTopic());
   if (planning_scene_world_subscriber_)
     topics.push_back(planning_scene_world_subscriber_.getTopic());
 }
@@ -501,20 +507,6 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
       scene_->processAttachedCollisionObjectMsg(*obj);
-    }
-    triggerSceneUpdateEvent(UPDATE_GEOMETRY);
-  }
-}
-
-void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map)
-{
-  if (scene_)
-  {
-    updateFrameTransforms();
-    {
-      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
-      last_update_time_ = ros::Time::now();
-      scene_->processCollisionMapMsg(*map);
     }
     triggerSceneUpdateEvent(UPDATE_GEOMETRY);
   }
@@ -790,7 +782,6 @@ bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransformCache(const 
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
-                                                                             const std::string &collision_map_topic,
                                                                              const std::string &planning_scene_world_topic)
 {
   stopWorldGeometryMonitor();
@@ -814,23 +805,6 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     }
   }
 
-  if (!collision_map_topic.empty())
-  {
-    // listen to collision map using filters
-    collision_map_subscriber_.reset(new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, collision_map_topic, 2));
-    if (tf_)
-    {
-      collision_map_filter_.reset(new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2));
-      collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
-      ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
-    }
-    else
-    {
-      collision_map_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
-      ROS_INFO("Listening to '%s'", collision_map_topic.c_str());
-    }
-  }
-
   if (!planning_scene_world_topic.empty())
   {
     planning_scene_world_subscriber_ = root_nh_.subscribe(planning_scene_world_topic, 1, &PlanningSceneMonitor::newPlanningSceneWorldCallback, this);
@@ -851,14 +825,11 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
 
 void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor()
 {
-  if (collision_object_subscriber_ || collision_object_filter_ ||
-      collision_map_subscriber_ || collision_map_filter_)
+  if (collision_object_subscriber_ || collision_object_filter_)
   {
     ROS_INFO("Stopping world geometry monitor");
     collision_object_filter_.reset();
     collision_object_subscriber_.reset();
-    collision_map_filter_.reset();
-    collision_map_subscriber_.reset();
     planning_scene_world_subscriber_.shutdown();
   }
   else
