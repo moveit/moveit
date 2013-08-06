@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -70,13 +70,30 @@ public:
       /** \brief The maintained set of fixed transforms in the monitored scene was updated */
       UPDATE_TRANSFORMS = 2,
 
-      /** \brief The geometry of the scene was updated. This includes receiving new maps, collision objects, attached objects, scene geometry, etc. */
+      /** \brief The geometry of the scene was updated. This includes receiving new octomaps, collision objects, attached objects, scene geometry, etc. */
       UPDATE_GEOMETRY = 4,
 
       /** \brief The entire scene was updated */
       UPDATE_SCENE = 8 + UPDATE_STATE + UPDATE_TRANSFORMS + UPDATE_GEOMETRY
     };
 
+  /// The name of the topic used by default for receiving joint states
+  static const std::string DEFAULT_JOINT_STATES_TOPIC; // "/joint_states"
+
+  /// The name of the topic used by default for attached collision objects
+  static const std::string DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC; // "/attached_collision_object"
+  
+  /// The name of the topic used by default for receiving collision objects in the world
+  static const std::string DEFAULT_COLLISION_OBJECT_TOPIC; // "/collision_object"
+
+  /// The name of the topic used by default for receiving geometry information about a planning scene (complete overwrite of world geometry)
+  static const std::string DEFAULT_PLANNING_SCENE_WORLD_TOPIC; // "/planning_scene_world"
+  
+  /// The name of the topic used by default for receiving full planning scenes or planning scene diffs
+  static const std::string DEFAULT_PLANNING_SCENE_TOPIC; // "/planning_scene"
+  
+  /// The name of the topic used by default for publishing the monitored planning scene (this is without "/" in the name, so the topic is prefixed by the node name)
+  static const std::string MONITORED_PLANNING_SCENE_TOPIC; // "monitored_planning_scene"
 
   /** @brief Constructor
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
@@ -207,7 +224,7 @@ public:
 
   /** \brief Start publishing the maintained planning scene. The first message set out is a complete planning scene.
       Diffs are sent afterwards on updates specified by the \e event bitmask. For UPDATE_SCENE, the full scene is always sent. */
-  void startPublishingPlanningScene(SceneUpdateType event, const std::string &planning_scene_topic = "monitored_planning_scene");
+  void startPublishingPlanningScene(SceneUpdateType event, const std::string &planning_scene_topic = MONITORED_PLANNING_SCENE_TOPIC);
 
   /** \brief Stop publishing the maintained planning scene. */
   void stopPublishingPlanningScene();
@@ -237,7 +254,7 @@ public:
   /** @brief Start the current state monitor
       @param joint_states_topic the topic to listen to for joint states
       @param attached_objects_topic the topic to listen to for attached collision objects */
-  void startStateMonitor(const std::string &joint_states_topic = "joint_states", const std::string &attached_objects_topic = "attached_collision_object");
+  void startStateMonitor(const std::string &joint_states_topic = DEFAULT_JOINT_STATES_TOPIC, const std::string &attached_objects_topic = DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC);
 
   /** @brief Stop the state monitor*/
   void stopStateMonitor();
@@ -257,18 +274,16 @@ public:
   /** @brief Start the scene monitor
    *  @param scene_topic The name of the planning scene topic
    */
-  void startSceneMonitor(const std::string &scene_topic = "planning_scene");
+  void startSceneMonitor(const std::string &scene_topic = DEFAULT_PLANNING_SCENE_TOPIC);
 
   /** @brief Stop the scene monitor*/
   void stopSceneMonitor();
 
   /** @brief Start listening for objects in the world, the collision map and attached collision objects. Additionally, this function starts the OccupancyMapMonitor as well.
    *  @param collision_objects_topic The topic on which to listen for collision objects
-   *  @param collision_map_topic The topic on which to listen for the collision map
    *  @param planning_scene_world_topic The topic to listen to for world scene geometry */
-  void startWorldGeometryMonitor(const std::string &collision_objects_topic = "collision_object",
-                                 const std::string &collision_map_topic = "collision_map",
-                                 const std::string &planning_scene_world_topic = "planning_scene_world");
+  void startWorldGeometryMonitor(const std::string &collision_objects_topic = DEFAULT_COLLISION_OBJECT_TOPIC,
+                                 const std::string &planning_scene_world_topic = DEFAULT_PLANNING_SCENE_WORLD_TOPIC);
 
   /** @brief Stop the world geometry monitor */
   void stopWorldGeometryMonitor();
@@ -328,9 +343,6 @@ protected:
 
   /** @brief Callback for a new planning scene world*/
   void newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr &world);
-
-  /** @brief Callback for a new collision map*/
-  void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
 
   /** @brief Callback for octomap updates */
   void octomapUpdateCallback();
@@ -397,9 +409,6 @@ protected:
 
   boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_;
   boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionObject> > collision_object_filter_;
-
-  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionMap> > collision_map_subscriber_;
-  boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionMap> > collision_map_filter_;
 
   // include a octomap monitor
   boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
