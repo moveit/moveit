@@ -43,6 +43,10 @@
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
 #include <moveit/benchmarks/benchmark_execution.h>
+#include <moveit/planning_interface/planning_interface.h>
+
+#include <pluginlib/class_loader.h>
+
 #include <rviz/display_context.h>
 #include <rviz/window_manager_interface.h>
 
@@ -861,6 +865,54 @@ void MainWindow::runBenchmark(void)
   run_benchmark_ui_.benchmark_goal_text->setText(ui_.load_poses_filter_text->text());
   run_benchmark_ui_.benchmark_start_state_text->setText(ui_.load_states_filter_text->text());
 
+  // Load available planners
+  boost::shared_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader;
+  std::map<std::string, planning_interface::PlannerManagerPtr> planner_interfaces;
+  try
+  {
+    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
+  }
+  catch(pluginlib::PluginlibException& ex)
+  {
+    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
+  }
+
+  // load the planning plugins
+  const std::vector<std::string> &classes = planner_plugin_loader->getDeclaredClasses();
+  for (std::size_t i = 0 ; i < classes.size() ; ++i)
+  {
+    ROS_DEBUG("Attempting to load and configure %s", classes[i].c_str());
+    try
+    {
+      boost::shared_ptr<planning_interface::PlannerManager> p = planner_plugin_loader->createInstance(classes[i]);
+      p->initialize(scene_display_->getPlanningSceneRO()->getRobotModel(), "");
+      planner_interfaces[classes[i]] = p;
+    }
+    catch (pluginlib::PluginlibException& ex)
+    {
+      ROS_ERROR_STREAM("Exception while loading planner '" << classes[i] << "': " << ex.what());
+    }
+  }
+
+  //Get the list of planning interfaces and planning algorithms
+  if (! planner_interfaces.empty())
+  {
+    std::stringstream interfaces_ss, algorithms_ss;
+    for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager> >::const_iterator it = planner_interfaces.begin() ;
+        it != planner_interfaces.end(); ++it)
+    {
+      interfaces_ss << it->first << " ";
+
+      std::vector<std::string> known;
+      it->second->getPlanningAlgorithms(known);
+      for (std::size_t i = 0; i < known.size(); ++i)
+        algorithms_ss << known[i] << " ";
+    }
+    ROS_DEBUG("Available planner instances: %s. Available algorithms: %s", interfaces_ss.str().c_str(), algorithms_ss.str().c_str());
+    run_benchmark_ui_.planning_interfaces_text->setText(QString(interfaces_ss.str().c_str()));
+    run_benchmark_ui_.planning_algorithms_text->setText(QString(algorithms_ss.str().c_str()));
+  }
+
   run_benchmark_dialog_->show();
 }
 
@@ -894,9 +946,8 @@ void MainWindow::saveBenchmarkConfigButtonClicked(void)
     outfile << "planning_frame=" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame() << std::endl;
     outfile << "name=" << scene_display_->getPlanningSceneRO()->getName() << std::endl;
 
-    //TODO: Let the user select the timeout and runs
-    outfile << "timeout=1" << std::endl;
-    outfile << "runs=1" << std::endl;
+    outfile << "timeout=" << run_benchmark_ui_.timeout_spin->value() << std::endl;
+    outfile << "runs=" << run_benchmark_ui_.number_of_runs_spin->value() << std::endl;
     outfile << "output=" << run_benchmark_ui_.benchmark_output_folder_text->text().toStdString() << "/" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << "_" <<
         scene_display_->getPlanningSceneRO()->getName() << "_" <<
         ros::Time::now() << std::endl;
@@ -907,10 +958,9 @@ void MainWindow::saveBenchmarkConfigButtonClicked(void)
     outfile << "goal_offset_pitch=" << ui_.goal_offset_pitch->value() << std::endl;
     outfile << "goal_offset_yaw=" << ui_.goal_offset_yaw->value() << std::endl << std::endl;
 
-    //TODO: Let the user select the planners
     outfile << "[plugin]" << std::endl;
-    outfile << "name=ompl_interface_ros/OMPLPlanner" << std::endl;
-    outfile << "planners=" << std::endl;
+    outfile << "name=" << run_benchmark_ui_.planning_interfaces_text->text().toStdString() << std::endl;
+    outfile << "planners=" << run_benchmark_ui_.planning_algorithms_text->text().toStdString() << std::endl;
 
     outfile.close();
 

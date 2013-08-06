@@ -157,6 +157,10 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect( run_benchmark_ui_.save_config_button, SIGNAL( clicked( ) ), this, SLOT( saveBenchmarkConfigButtonClicked( ) ));
     connect( run_benchmark_ui_.cancel_button, SIGNAL( clicked( ) ), this, SLOT( cancelBenchmarkButtonClicked( ) ));
     connect( run_benchmark_ui_.benchmark_select_folder_button, SIGNAL( clicked( ) ), this, SLOT( benchmarkFolderButtonClicked( ) ));
+    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_interfaces_text,  SLOT(setEnabled(bool)));
+    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_interfaces_label,  SLOT(setEnabled(bool)));
+    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_algorithms_text,  SLOT(setEnabled(bool)));
+    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_algorithms_label,  SLOT(setEnabled(bool)));
 
     //Goal poses
     connect( ui_.goal_poses_add_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
