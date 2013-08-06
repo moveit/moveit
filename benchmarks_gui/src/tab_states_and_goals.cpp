@@ -36,12 +36,13 @@
 
 #include <main_window.h>
 #include <job_processing.h>
+#include <benchmark_processing_thread.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/state_storage.h>
-
+#include <moveit/benchmarks/benchmark_execution.h>
 #include <rviz/display_context.h>
 #include <rviz/window_manager_interface.h>
 
@@ -50,7 +51,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
-
+#include <QProgressDialog>
 
 #include <boost/math/constants/constants.hpp>
 
@@ -857,19 +858,10 @@ void MainWindow::startStateItemDoubleClicked(QListWidgetItem * item)
 
 void MainWindow::runBenchmark(void)
 {
-  QDialog *dialog = new QDialog(0,0);
+  run_benchmark_ui_.benchmark_goal_text->setText(ui_.load_poses_filter_text->text());
+  run_benchmark_ui_.benchmark_start_state_text->setText(ui_.load_states_filter_text->text());
 
-  run_benchmark_ui_.setupUi(dialog);
-  run_benchmark_ui_.benchmark_select_folder_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
-  connect( run_benchmark_ui_.benchmark_button_box, SIGNAL( accepted( ) ), this, SLOT( runBenchmarkOKButtonClicked( ) ));
-  connect( run_benchmark_ui_.benchmark_select_folder_button, SIGNAL( clicked( ) ), this, SLOT( benchmarkFolderButtonClicked( ) ));
-
-  for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
-  {
-    run_benchmark_ui_.benchmark_start_state_combo->addItem(it->first.c_str());
-  }
-
-  dialog->show();
+  run_benchmark_dialog_->show();
 }
 
 void MainWindow::benchmarkFolderButtonClicked(void)
@@ -879,7 +871,12 @@ void MainWindow::benchmarkFolderButtonClicked(void)
   run_benchmark_ui_.benchmark_output_folder_text->setText(dir);
 }
 
-void MainWindow::runBenchmarkOKButtonClicked(void)
+void MainWindow::cancelBenchmarkButtonClicked(void)
+{
+  run_benchmark_dialog_->close();
+}
+
+void MainWindow::saveBenchmarkConfigButtonClicked(void)
 {
   if (run_benchmark_ui_.benchmark_output_folder_text->text().isEmpty())
   {
@@ -897,15 +894,15 @@ void MainWindow::runBenchmarkOKButtonClicked(void)
     outfile << "planning_frame=" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame() << std::endl;
     outfile << "name=" << scene_display_->getPlanningSceneRO()->getName() << std::endl;
 
-    //TODO: Let the user select the timeout, runs, and start regex
+    //TODO: Let the user select the timeout and runs
     outfile << "timeout=1" << std::endl;
     outfile << "runs=1" << std::endl;
-    outfile << "output=" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << "_" <<
-                        scene_display_->getPlanningSceneRO()->getName() << "_" <<
-                        ros::Time::now() << std::endl;
-    outfile << "start=" << run_benchmark_ui_.benchmark_output_folder_text->text().toStdString() << std::endl;
+    outfile << "output=" << run_benchmark_ui_.benchmark_output_folder_text->text().toStdString() << "/" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << "_" <<
+        scene_display_->getPlanningSceneRO()->getName() << "_" <<
+        ros::Time::now() << std::endl;
+    outfile << "start=" << run_benchmark_ui_.benchmark_start_state_text->text().toStdString() << std::endl;
     outfile << "query=" << std::endl;
-    outfile << "goal=" << ui_.load_poses_filter_text->text().toStdString() << std::endl;
+    outfile << "goal=" << run_benchmark_ui_.benchmark_goal_text->text().toStdString() << std::endl;
     outfile << "goal_offset_roll=" << ui_.goal_offset_roll->value() << std::endl;
     outfile << "goal_offset_pitch=" << ui_.goal_offset_pitch->value() << std::endl;
     outfile << "goal_offset_yaw=" << ui_.goal_offset_yaw->value() << std::endl << std::endl;
@@ -913,13 +910,68 @@ void MainWindow::runBenchmarkOKButtonClicked(void)
     //TODO: Let the user select the planners
     outfile << "[plugin]" << std::endl;
     outfile << "name=ompl_interface_ros/OMPLPlanner" << std::endl;
-    outfile << "planners=RRTConnectkConfigDefault" << std::endl;
+    outfile << "planners=" << std::endl;
 
     outfile.close();
+
+    run_benchmark_dialog_->close();
   }
   else
   {
     QMessageBox::warning(this, "Error", QString("Cannot open file ").append(outfilename).append(" for writing"));
+  }
+}
+
+void MainWindow::runBenchmarkButtonClicked(void)
+{
+  QMessageBox msgBox;
+  msgBox.setText("This will run the benchmark pipeline. The process will take several minutes during which you will not be able to interact with the interface. You can follow the progress in the console output");
+  msgBox.setInformativeText("Do you want to continue?");
+  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+  msgBox.setDefaultButton(QMessageBox::Yes);
+  int ret = msgBox.exec();
+
+  switch (ret)
+  {
+    case QMessageBox::Yes:
+    {
+      msgBox.close();
+      saveBenchmarkConfigButtonClicked();
+
+      if (run_benchmark_ui_.benchmark_output_folder_text->text().isEmpty())
+        return;
+
+      QString outfilename =  run_benchmark_ui_.benchmark_output_folder_text->text().append("/config.cfg");
+      moveit_benchmarks::BenchmarkType btype = 0;
+      moveit_benchmarks::BenchmarkExecution be(scene_display_->getPlanningSceneMonitor()->getPlanningScene(), database_host_, database_port_);
+      if (run_benchmark_ui_.benchmark_include_planners_checkbox->isChecked())
+        btype += moveit_benchmarks::BENCHMARK_PLANNERS;
+      if (run_benchmark_ui_.benchmark_check_reachability_checkbox->isChecked())
+        btype += moveit_benchmarks::BENCHMARK_GOAL_EXISTANCE;
+
+      if (be.readOptions(outfilename.toStdString()))
+      {
+        std::stringstream ss;
+        be.printOptions(ss);
+        ROS_INFO_STREAM("Calling benchmark with options:" << std::endl << ss.str() << std::endl);
+
+        BenchmarkProcessingThread benchmark_thread(be, btype, this);
+        benchmark_thread.startAndShow();
+
+        if (benchmark_thread.isRunning())
+        {
+          benchmark_thread.terminate();
+          benchmark_thread.wait();
+          QMessageBox::warning(this, "", "Benchmark computation canceled");
+        }
+        else
+        {
+          QMessageBox::information(this, "Benchmark computation finished", QString("The results were logged into '").append(run_benchmark_ui_.benchmark_output_folder_text->text()));
+        }
+      }
+
+      break;
+    }
   }
 }
 

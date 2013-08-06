@@ -70,6 +70,9 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   robot_loader_dialog_ = new QDialog(0,0);
   load_robot_ui_.setupUi(robot_loader_dialog_);
 
+  run_benchmark_dialog_ = new QDialog(0,0);
+  run_benchmark_ui_.setupUi(run_benchmark_dialog_);
+
   //Rviz render panel
   render_panel_ = new rviz::RenderPanel();
   ui_.render_widget->addWidget(render_panel_);
@@ -148,6 +151,12 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect(ui_.load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
     connect(ui_.planning_scene_list, SIGNAL( itemDoubleClicked (QListWidgetItem *) ), this, SLOT( loadSceneButtonClicked(QListWidgetItem *) ));
     connect(ui_.robot_interaction_button, SIGNAL( clicked() ), this, SLOT( robotInteractionButtonClicked() ));
+
+    run_benchmark_ui_.benchmark_select_folder_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
+    connect( run_benchmark_ui_.run_benchmark_button, SIGNAL( clicked( ) ), this, SLOT( runBenchmarkButtonClicked(  ) ));
+    connect( run_benchmark_ui_.save_config_button, SIGNAL( clicked( ) ), this, SLOT( saveBenchmarkConfigButtonClicked( ) ));
+    connect( run_benchmark_ui_.cancel_button, SIGNAL( clicked( ) ), this, SLOT( cancelBenchmarkButtonClicked( ) ));
+    connect( run_benchmark_ui_.benchmark_select_folder_button, SIGNAL( clicked( ) ), this, SLOT( benchmarkFolderButtonClicked( ) ));
 
     //Goal poses
     connect( ui_.goal_poses_add_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
@@ -563,6 +572,9 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
 
     if (port > 0 && ! host_port[0].isEmpty())
     {
+      database_host_ = host_port[0].toStdString();
+      database_port_ = port;
+
       //Store into settings
       QVariant previous_database_names = settings_->value("database_name", QStringList());
       QStringList name_list = previous_database_names.toStringList();
@@ -579,14 +591,14 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
       JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : yellow }"));
       try
       {
-        planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(host_port[0].toStdString(),
-                                                                                 port, 5.0));
-        robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(host_port[0].toStdString(),
-                                                                           port, 5.0));
-        constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host_port[0].toStdString(),
-                                                                            port, 5.0));
-        trajectory_constraints_storage_.reset(new moveit_warehouse::TrajectoryConstraintsStorage(host_port[0].toStdString(),
-                                                                            port, 5.0));
+        planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(database_host_,
+                                                                                 database_port_, 5.0));
+        robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(database_host_,
+                                                                           database_port_, 5.0));
+        constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(database_host_,
+                                                                            database_port_, 5.0));
+        trajectory_constraints_storage_.reset(new moveit_warehouse::TrajectoryConstraintsStorage(database_host_,
+                                                                                                 database_port_, 5.0));
         JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...", "QPushButton { color : yellow }"));
 
         //Get all the scenes
