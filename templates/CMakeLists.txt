@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   pluginlib
   roscpp
+  tf_conversions
   #eigen_conversions
   )
 
@@ -20,6 +21,7 @@ catkin_package(
   moveit_core
   pluginlib
   roscpp
+  tf_conversions
   #eigen_conversions
   )
 
