@@ -103,7 +103,9 @@ public Q_SLOTS:
   void checkGoalsInCollision(void);
   void checkGoalsReachable(void);
   void runBenchmark(void);
-  void runBenchmarkOKButtonClicked(void);
+  void saveBenchmarkConfigButtonClicked(void);
+  void cancelBenchmarkButtonClicked(void);
+  void runBenchmarkButtonClicked(void);
   void benchmarkFolderButtonClicked(void);
   void loadBenchmarkResults(void);
   void updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state);
@@ -143,7 +145,7 @@ private:
   Ui::MainWindow ui_;
   Ui_BenchmarkDialog run_benchmark_ui_;
   Ui_RobotLoader load_robot_ui_;
-  QDialog *robot_loader_dialog_;
+  QDialog *robot_loader_dialog_, *run_benchmark_dialog_;
   boost::shared_ptr<QSettings> settings_;
 
   //rviz
@@ -165,6 +167,8 @@ private:
   rviz::Display *int_marker_display_;
 
   //Warehouse
+  std::string database_host_;
+  std::size_t database_port_;
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
   boost::shared_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::shared_ptr<moveit_warehouse::TrajectoryConstraintsStorage> trajectory_constraints_storage_;
