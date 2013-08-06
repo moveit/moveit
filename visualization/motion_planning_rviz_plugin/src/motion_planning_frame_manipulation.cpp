@@ -45,7 +45,44 @@ namespace moveit_rviz_plugin
 void MotionPlanningFrame::detectObjectsButtonClicked()
 {
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::detectObjects, this), "detect objects");
+}
+
+void MotionPlanningFrame::processDetectedObjects()
+{  
   pick_object_name_.clear();  
+  
+  std::vector<std::string> objects, object_ids;  
+  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
+  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
+  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
+  
+  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
+  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
+  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
+
+  object_ids = planning_scene_interface_->getKnownObjectNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z, true, objects);
+  ROS_INFO("Found %d objects", (int) object_ids.size());
+  updateDetectedObjectsList(object_ids, objects);
+
+  if(!semantic_world_)
+  {
+    const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+    if(ps)
+    {
+      semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
+      ROS_INFO("Setup semantic world");      
+    }  
+  }  
+  if(semantic_world_)
+  {
+    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::publishCollisionObjects, this), "publish collision objects");
+  }  
+}
+
+void MotionPlanningFrame::publishCollisionObjects()
+{  
+  semantic_world_->addTablesToCollisionWorld();  
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateSupportSurfacesList, this));  
 }
 
 void MotionPlanningFrame::pickObjectButtonClicked()
@@ -151,8 +188,16 @@ void MotionPlanningFrame::triggerObjectDetection()
 {
   if(!object_recognition_client_)
   {
-    ROS_ERROR_STREAM("Actionlib client does not exist");
-    return;    
+    object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
+    try
+    {
+      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION); 
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Object recognition action: %s", ex.what());      
+      return;    
+    }          
   }  
   object_recognition_msgs::ObjectRecognitionGoal goal;
   object_recognition_client_->sendGoal(goal);
@@ -160,37 +205,17 @@ void MotionPlanningFrame::triggerObjectDetection()
   {
     ROS_INFO_STREAM("Object recognition client returned early");
   }
-  if (object_recognition_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-  {
-    //    return true;
-  }
-  else
+  if (object_recognition_client_->getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
   {
     ROS_WARN_STREAM("Fail: " << object_recognition_client_->getState().toString() << ": " << object_recognition_client_->getState().getText());
-    //    return false;
   }
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));  
 }
 
 void MotionPlanningFrame::detectObjects()
 {
   triggerObjectDetection(); // Sleep for a small time to allow recognition to happen
   //  ros::Duration(3.0).sleep();
-  std::vector<std::string> objects, object_ids;  
-
-  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
-  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
-  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
-
-  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
-  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
-  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
-
-  object_ids = planning_scene_interface_->getKnownObjectNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z, true, objects);
-  updateDetectedObjectsList(object_ids, objects);
-
-  semantic_world_->addTablesToCollisionWorld();  
-  std::vector<std::string> support_surfaces = semantic_world_->getTableNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z);  
-  updateSupportSurfacesList(support_surfaces);  
 }
 
 void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string> &object_ids, 
@@ -217,8 +242,18 @@ void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::strin
     ui_->pick_button->setEnabled(true);  
 }
 
-void MotionPlanningFrame::updateSupportSurfacesList(const std::vector<std::string> &support_ids)
+void MotionPlanningFrame::updateSupportSurfacesList()
 {
+  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
+  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
+  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
+  
+  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
+  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
+  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
+  std::vector<std::string> support_ids = semantic_world_->getTableNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z);  
+  ROS_INFO("%d Tables in collision world", (int) support_ids.size());    
+
   ui_->support_surfaces_list->setUpdatesEnabled(false);
   bool oldState = ui_->support_surfaces_list->blockSignals(true);
   ui_->support_surfaces_list->clear();

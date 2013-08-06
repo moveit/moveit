@@ -75,6 +75,8 @@ namespace moveit_rviz_plugin
 {
 class MotionPlanningDisplay;
 
+const std::string OBJECT_RECOGNITION_ACTION = "/recognize_objects";
+
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
@@ -229,9 +231,10 @@ private:
 
   //Pick and place
   void detectObjects();
+  void processDetectedObjects();  
   void updateDetectedObjectsList(const std::vector<std::string> &object_ids,
                                  const std::vector<std::string> &objects);
-  void updateSupportSurfacesList(const std::vector<std::string> &tables);
+  void updateSupportSurfacesList();
   ros::Publisher object_recognition_trigger_publisher_;
   std::map<std::string, std::string> pick_object_name_;
   std::string place_object_name_;
@@ -239,6 +242,7 @@ private:
   void pickObject(); 
   void placeObject();
   void triggerObjectDetection();  
+  void publishCollisionObjects();  
   std::string support_surface_name_;
   boost::scoped_ptr<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction> > object_recognition_client_;  
   template<typename T>
