@@ -5,9 +5,21 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+
+include(${PROJECT_SOURCE_DIR}/cmake/moveit_find_sse.cmake)
+moveit_check_for_sse()
+
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread signals)
 find_package(PCL REQUIRED QUIET COMPONENTS common)
+
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(GLUT REQUIRED)
+if (OPENGL_FOUND)
+  set(gl_LIBS ${gl_LIBS} ${OPENGL_LIBRARIES})
+endif(OPENGL_FOUND)
 
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
@@ -19,6 +31,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   pcl_conversions
   pluginlib
+  image_transport
   object_recognition_msgs
 )
 
@@ -28,6 +41,8 @@ find_package(OpenCV)
 
 catkin_package(
   INCLUDE_DIRS
+    mesh_filter/include
+    depth_image_octomap_updater/include
     point_containment_filter/include
     occupancy_map_monitor/include
     pointcloud_octomap_updater/include
@@ -41,9 +56,12 @@ catkin_package(
     moveit_semantic_world
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
-    moveit_core)
+    moveit_core
+    image_transport)
   
-include_directories(point_containment_filter/include
+include_directories(mesh_filter/include
+                    depth_image_octomap_updater/include
+		    point_containment_filter/include
                     occupancy_map_monitor/include
 		    pointcloud_octomap_updater/include
 		    semantic_world/include
@@ -54,6 +72,8 @@ include_directories(SYSTEM
 		    ${OpenCV_INCLUDE_DIRS}
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
+		    ${GLEW_INCLUDE_DIR}
+		    ${GLUT_INCLUDE_DIR}
 		    )
 
 link_directories(${Boost_LIBRARY_DIRS})
@@ -62,10 +82,14 @@ link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(point_containment_filter)
 add_subdirectory(occupancy_map_monitor)
 add_subdirectory(pointcloud_octomap_updater)
+add_subdirectory(mesh_filter)
+add_subdirectory(depth_image_octomap_updater)
+
 add_subdirectory(semantic_world)
 
 install(
   FILES
     pointcloud_octomap_updater_plugin_description.xml
+    depth_image_octomap_updater_plugin_description.xml
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -99,6 +99,14 @@ private:
 };
 
 }
+
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC = "/joint_states";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC = "/attached_collision_object";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC = "/collision_object";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC = "/planning_scene_world";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC = "/planning_scene";
+
+const std::string planning_scene_monitor::PlanningSceneMonitor::MONITORED_PLANNING_SCENE_TOPIC = "monitored_planning_scene";
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
   nh_("~"), tf_(tf), monitor_name_(name)
@@ -364,8 +372,6 @@ void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vecto
     topics.push_back(planning_scene_subscriber_.getTopic());
   if (collision_object_subscriber_)
     topics.push_back(collision_object_subscriber_->getTopic());
-  if (collision_map_subscriber_)
-    topics.push_back(collision_map_subscriber_->getTopic());
   if (planning_scene_world_subscriber_)
     topics.push_back(planning_scene_world_subscriber_.getTopic());
 }
@@ -501,20 +507,6 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
       scene_->processAttachedCollisionObjectMsg(*obj);
-    }
-    triggerSceneUpdateEvent(UPDATE_GEOMETRY);
-  }
-}
-
-void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map)
-{
-  if (scene_)
-  {
-    updateFrameTransforms();
-    {
-      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
-      last_update_time_ = ros::Time::now();
-      scene_->processCollisionMapMsg(*map);
     }
     triggerSceneUpdateEvent(UPDATE_GEOMETRY);
   }
@@ -790,7 +782,6 @@ bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransformCache(const 
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
-                                                                             const std::string &collision_map_topic,
                                                                              const std::string &planning_scene_world_topic)
 {
   stopWorldGeometryMonitor();
@@ -814,23 +805,6 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     }
   }
 
-  if (!collision_map_topic.empty())
-  {
-    // listen to collision map using filters
-    collision_map_subscriber_.reset(new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, collision_map_topic, 2));
-    if (tf_)
-    {
-      collision_map_filter_.reset(new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2));
-      collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
-      ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
-    }
-    else
-    {
-      collision_map_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
-      ROS_INFO("Listening to '%s'", collision_map_topic.c_str());
-    }
-  }
-
   if (!planning_scene_world_topic.empty())
   {
     planning_scene_world_subscriber_ = root_nh_.subscribe(planning_scene_world_topic, 1, &PlanningSceneMonitor::newPlanningSceneWorldCallback, this);
@@ -851,14 +825,11 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
 
 void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor()
 {
-  if (collision_object_subscriber_ || collision_object_filter_ ||
-      collision_map_subscriber_ || collision_map_filter_)
+  if (collision_object_subscriber_ || collision_object_filter_)
   {
     ROS_INFO("Stopping world geometry monitor");
     collision_object_filter_.reset();
     collision_object_subscriber_.reset();
-    collision_map_filter_.reset();
-    collision_map_subscriber_.reset();
     planning_scene_world_subscriber_.shutdown();
   }
   else
