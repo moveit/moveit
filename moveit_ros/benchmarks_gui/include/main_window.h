@@ -103,7 +103,7 @@ public Q_SLOTS:
   void checkGoalsInCollision(void);
   void checkGoalsReachable(void);
   void runBenchmark(void);
-  void saveBenchmarkConfigButtonClicked(void);
+  bool saveBenchmarkConfigButtonClicked(void);
   void cancelBenchmarkButtonClicked(void);
   void runBenchmarkButtonClicked(void);
   void benchmarkFolderButtonClicked(void);
