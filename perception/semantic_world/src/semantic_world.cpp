@@ -41,6 +41,7 @@
 // MoveIt!
 #include <moveit/semantic_world/semantic_world.h>
 #include <geometric_shapes/shape_operations.h>
+#include <moveit_msgs/PlanningScene.h>
 
 // OpenCV
 #include <opencv2/imgproc/imgproc.hpp>
@@ -59,6 +60,7 @@ SemanticWorld::SemanticWorld(const planning_scene::PlanningSceneConstPtr& planni
   table_subscriber_ = node_handle_.subscribe("table_array", 1, &SemanticWorld::tableCallback, this);
   visualization_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("visualize_place", 20, true);
   collision_object_publisher_ = node_handle_.advertise<moveit_msgs::CollisionObject>("/collision_object", 20);
+  planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
 }
 
 visualization_msgs::MarkerArray SemanticWorld::getPlaceLocationsMarker(const std::vector<geometry_msgs::PoseStamped> &poses) const
@@ -90,16 +92,23 @@ visualization_msgs::MarkerArray SemanticWorld::getPlaceLocationsMarker(const std
 
 bool SemanticWorld::addTablesToCollisionWorld()
 {
-  // Remove the existing tables
-  std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
+  moveit_msgs::PlanningScene planning_scene;
+  planning_scene.is_diff = true;
+
+  // Remove the existing tables  
+  std::map<std::string, object_recognition_msgs::Table>::iterator it;  
   for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
   {
     moveit_msgs::CollisionObject co;
     co.id = it->first;
     co.operation = moveit_msgs::CollisionObject::REMOVE;
-    collision_object_publisher_.publish(co);
+    planning_scene.world.collision_objects.push_back(co);    
+    //    collision_object_publisher_.publish(co);
   }
-  current_tables_in_collision_world_.clear();
+  
+  planning_scene_diff_publisher_.publish(planning_scene);
+  planning_scene.world.collision_objects.clear();  
+  current_tables_in_collision_world_.clear();  
   // Add the new tables
   for(std::size_t i=0; i < table_array_.tables.size(); ++i)
   {
@@ -135,18 +144,18 @@ bool SemanticWorld::addTablesToCollisionWorld()
     co.meshes.push_back(table_shape_msg_mesh);
     co.mesh_poses.push_back(table_array_.tables[i].pose.pose);
     co.header = table_array_.tables[i].pose.header;
-    collision_object_publisher_.publish(co);
-
+    planning_scene.world.collision_objects.push_back(co);    
+    //    collision_object_publisher_.publish(co);
     delete table_shape;
     delete table_mesh_solid;
   }
+  planning_scene_diff_publisher_.publish(planning_scene);
   return true;
 }
 
-object_recognition_msgs::TableArray SemanticWorld::getTablesInROI(double minx, double miny, double minz,
-                                                                  double maxx, double maxy, double maxz)
+object_recognition_msgs::TableArray SemanticWorld::getTablesInROI(double minx, double miny, double minz, 
+                                                                  double maxx, double maxy, double maxz) const
 {
-  boost::mutex::scoped_lock tlock(table_lock_);
   object_recognition_msgs::TableArray tables_in_roi;
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
   for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
@@ -164,10 +173,9 @@ object_recognition_msgs::TableArray SemanticWorld::getTablesInROI(double minx, d
   return tables_in_roi;
 }
 
-std::vector<std::string> SemanticWorld::getTableNamesInROI(double minx, double miny, double minz,
-                                                           double maxx, double maxy, double maxz)
+std::vector<std::string> SemanticWorld::getTableNamesInROI(double minx, double miny, double minz, 
+                                                           double maxx, double maxy, double maxz) const
 {
-  boost::mutex::scoped_lock tlock(table_lock_);
   std::vector<std::string> result;
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
   for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
@@ -187,9 +195,8 @@ std::vector<std::string> SemanticWorld::getTableNamesInROI(double minx, double m
 
 void SemanticWorld::clear()
 {
-  boost::mutex::scoped_lock tlock(table_lock_);
-  table_array_.tables.clear();
-  current_tables_in_collision_world_.clear();
+  table_array_.tables.clear(); 
+  current_tables_in_collision_world_.clear();  
 }
 
 std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const std::string &table_name,
@@ -197,10 +204,9 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
                                                                           const geometry_msgs::Quaternion &object_orientation,
                                                                           double resolution,
                                                                           double delta_height,
-                                                                          unsigned int num_heights)
+                                                                          unsigned int num_heights) const
 {
-  boost::mutex::scoped_lock tlock(table_lock_);
-  object_recognition_msgs::Table chosen_table;
+  object_recognition_msgs::Table chosen_table;  
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it = current_tables_in_collision_world_.find(table_name);
 
   if(it != current_tables_in_collision_world_.end())
@@ -367,38 +373,43 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
 
 void SemanticWorld::tableCallback(const object_recognition_msgs::TableArrayPtr &msg)
 {
-  boost::mutex::scoped_lock tlock(table_lock_);
   table_array_ = *msg;
-  ROS_DEBUG("Table callback with %d tables", (int) table_array_.tables.size());
+  ROS_INFO("Table callback with %d tables", (int) table_array_.tables.size());
   transformTableArray(table_array_);
+  // Callback on an update
+  if(table_callback_)
+  {
+    ROS_INFO("Calling table callback");    
+    table_callback_();  
+  }  
 }
 
-void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray &table_array)
+void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray &table_array) const
 {
   for(std::size_t i=0; i < table_array.tables.size(); ++i)
   {
     std::string original_frame = table_array.tables[i].pose.header.frame_id;
     if(table_array.tables[i].convex_hull.vertices.empty())
       continue;
-    ROS_DEBUG_STREAM("Original pose: " << table_array.tables[i].pose.pose.position.x << ","
-                    << table_array.tables[i].pose.pose.position.y << ","
+    ROS_INFO_STREAM("Original pose: " << table_array.tables[i].pose.pose.position.x << "," 
+                    << table_array.tables[i].pose.pose.position.y << "," 
                     << table_array.tables[i].pose.pose.position.z);
     std::string error_text;
     const Eigen::Affine3d& original_transform = planning_scene_->getTransforms().getTransform(original_frame);
     Eigen::Affine3d original_pose;
     tf::poseMsgToEigen(table_array.tables[i].pose.pose, original_pose);
     original_pose = original_transform * original_pose;
-    tf::poseEigenToMsg(original_pose, table_array.tables[i].pose.pose);
-    table_array.tables[i].pose.header.frame_id = planning_scene_->getTransforms().getTargetFrame();
-    ROS_DEBUG_STREAM("Successfully transformed table array from " << original_frame <<
+    tf::poseEigenToMsg(original_pose, table_array.tables[i].pose.pose);    
+    table_array.tables[i].pose.header.frame_id = planning_scene_->getTransforms().getTargetFrame();    
+    ROS_INFO_STREAM("Successfully transformed table array from " << original_frame << 
                     "to " << table_array.tables[i].pose.header.frame_id);
-    ROS_DEBUG_STREAM("Transformed pose: " << table_array.tables[i].pose.pose.position.x << ","
-                     << table_array.tables[i].pose.pose.position.y << ","
+    ROS_INFO_STREAM("Transformed pose: " << table_array.tables[i].pose.pose.position.x << "," 
+                     << table_array.tables[i].pose.pose.position.y << "," 
                      << table_array.tables[i].pose.pose.position.z);
   }
 }
 
-shapes::Mesh* SemanticWorld::orientPlanarPolygon (const shapes::Mesh& polygon)
+shapes::Mesh* SemanticWorld::orientPlanarPolygon (const shapes::Mesh& polygon) const
 {
   if (polygon.vertex_count < 3 || polygon.triangle_count < 1)
    return 0;
@@ -450,7 +461,7 @@ shapes::Mesh* SemanticWorld::orientPlanarPolygon (const shapes::Mesh& polygon)
   return solid;
 }
 
-shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon (const shapes::Mesh& polygon, double thickness)
+shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon (const shapes::Mesh& polygon, double thickness) const
 {
   if (polygon.vertex_count < 3 || polygon.triangle_count < 1 || thickness <= 0)
    return 0;

@@ -1,3 +1,4 @@
+set(CMAKE_BUILD_TYPE Debug)
 set(MOVEIT_LIB_NAME moveit_semantic_world)
 
 add_library(${MOVEIT_LIB_NAME} src/semantic_world.cpp)
