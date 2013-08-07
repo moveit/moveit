@@ -58,6 +58,9 @@ class SemanticWorld
 {
 public:
 
+  /** @brief The signature for a callback on receiving table messages*/
+  typedef boost::function<void()> TableCallbackFn;
+
   /**
    * @brief A (simple) semantic world representation for pick and place and other tasks.
    * Currently this is used only to represent tables.
@@ -120,6 +123,11 @@ public:
 
   visualization_msgs::MarkerArray getPlaceLocationsMarker(const std::vector<geometry_msgs::PoseStamped> &poses) const;
 
+  void addTableCallback(const TableCallbackFn &table_callback)
+  {
+    table_callback_ = table_callback;
+  }  
+
 private:
 
   shapes::Mesh* createSolidMeshFromPlanarPolygon (const shapes::Mesh& polygon, double thickness) const;
@@ -145,6 +153,8 @@ private:
   ros::Subscriber table_subscriber_;
 
   ros::Publisher visualization_publisher_, collision_object_publisher_;  
+  
+  TableCallbackFn table_callback_;
   
 };
 

@@ -367,6 +367,12 @@ void SemanticWorld::tableCallback(const object_recognition_msgs::TableArrayPtr &
   table_array_ = *msg;
   ROS_INFO("Table callback with %d tables", (int) table_array_.tables.size());
   transformTableArray(table_array_);
+  // Callback on an update
+  if(table_callback_)
+  {
+    ROS_INFO("Calling table callback");    
+    table_callback_();  
+  }  
 }
 
 void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray &table_array) const
