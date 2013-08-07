@@ -46,8 +46,22 @@
 namespace moveit_rviz_plugin
 {
 
+/////////////// Object Detection ///////////////////////
 void MotionPlanningFrame::detectObjectsButtonClicked()
 {
+  if(!semantic_world_)
+  {
+    const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+    if(ps)
+    {
+      semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
+      ROS_INFO("Setup semantic world");      
+    }  
+    if(semantic_world_)
+    {
+      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));    
+    }  
+  }  
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::triggerObjectDetection, this), "detect objects");
 }
 
@@ -73,25 +87,97 @@ void MotionPlanningFrame::processDetectedObjects()
   
   ROS_DEBUG("Found %d objects", (int) object_ids.size());
   updateDetectedObjectsList(object_ids, objects);
-
-  if(!semantic_world_)
-  {
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-    if(ps)
-    {
-      semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
-      ROS_INFO("Setup semantic world");      
-    }  
-    if(semantic_world_)
-    {
-      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));    
-    }  
-  }  
 }
 
+void MotionPlanningFrame::selectedDetectedObjectChanged()
+{
+  QList<QListWidgetItem *> sel = ui_->detected_objects_list->selectedItems();
+  if(sel.empty())
+  {
+    ROS_INFO("No objects to select");
+    return;
+  }
+  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+  std_msgs::ColorRGBA pick_object_color;
+  pick_object_color.r = 1.0;
+  pick_object_color.g = 0.0;
+  pick_object_color.b = 0.0;
+  pick_object_color.a = 1.0;
+
+  if (ps)
+  {
+    if(!selected_object_name_.empty())
+      ps->removeObjectColor(selected_object_name_);
+    selected_object_name_ = sel[0]->text().toStdString();  
+    ps->setObjectColor(selected_object_name_, pick_object_color);
+  }
+}
+
+void MotionPlanningFrame::detectedObjectChanged( QListWidgetItem *item)
+{
+}
+
+void MotionPlanningFrame::triggerObjectDetection()
+{
+  if(!object_recognition_client_)
+  {
+    object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
+    try
+    {
+      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION); 
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Object recognition action: %s", ex.what());      
+      return;    
+    }          
+  }  
+  object_recognition_msgs::ObjectRecognitionGoal goal;
+  object_recognition_client_->sendGoal(goal);
+  if (!object_recognition_client_->waitForResult())
+  {
+    ROS_INFO_STREAM("Object recognition client returned early");
+  }
+  if (object_recognition_client_->getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+  {
+    ROS_WARN_STREAM("Fail: " << object_recognition_client_->getState().toString() << ": " << object_recognition_client_->getState().getText());
+  }
+}
+
+void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg)
+{
+  ros::Duration(1.0).sleep();  
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));  
+}
+
+void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string> &object_ids,
+                                                    const std::vector<std::string> &objects)
+{
+  ui_->detected_objects_list->setUpdatesEnabled(false);
+  bool oldState = ui_->detected_objects_list->blockSignals(true);
+  ui_->detected_objects_list->clear();
+  {
+    for(std::size_t i = 0; i < object_ids.size(); ++i)
+    {
+      QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(object_ids[i]),
+                                                   ui_->detected_objects_list, (int)i);
+      item->setToolTip(item->text());
+      Qt::ItemFlags flags = item->flags();
+      flags &= ~(Qt::ItemIsUserCheckable);
+      item->setFlags(flags);
+      ui_->detected_objects_list->addItem(item);
+    }
+  }
+  ui_->detected_objects_list->blockSignals(oldState);
+  ui_->detected_objects_list->setUpdatesEnabled(true);
+  if(!object_ids.empty())
+    ui_->pick_button->setEnabled(true);
+}
+
+/////////////////////// Support Surfaces ///////////////////////
 void MotionPlanningFrame::updateTables()
 {  
-  ROS_INFO("Update table callback");  
+  ROS_DEBUG("Update table callback");  
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::publishTables, this), "publish tables");
 }
 
@@ -101,6 +187,62 @@ void MotionPlanningFrame::publishTables()
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateSupportSurfacesList, this));  
 }
 
+void MotionPlanningFrame::selectedSupportSurfaceChanged()
+{
+  QList<QListWidgetItem *> sel = ui_->support_surfaces_list->selectedItems();
+  if(sel.empty())
+  {
+    ROS_INFO("No tables to select");
+    return;
+  }
+  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+  std_msgs::ColorRGBA selected_support_surface_color;
+  selected_support_surface_color.r = 0.0;
+  selected_support_surface_color.g = 0.0;
+  selected_support_surface_color.b = 1.0;
+  selected_support_surface_color.a = 1.0;
+
+  if (ps)
+  {
+    if(!selected_support_surface_name_.empty())
+      ps->removeObjectColor(selected_support_surface_name_);
+    selected_support_surface_name_ = sel[0]->text().toStdString();  
+    ps->setObjectColor(selected_support_surface_name_, selected_support_surface_color);
+  }
+}
+
+void MotionPlanningFrame::updateSupportSurfacesList()
+{
+  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
+  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
+  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
+  
+  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
+  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
+  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
+  std::vector<std::string> support_ids = semantic_world_->getTableNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z);  
+  ROS_INFO("%d Tables in collision world", (int) support_ids.size());    
+
+  ui_->support_surfaces_list->setUpdatesEnabled(false);
+  bool oldState = ui_->support_surfaces_list->blockSignals(true);
+  ui_->support_surfaces_list->clear();
+  {
+    for(std::size_t i = 0; i < support_ids.size(); ++i)
+    {
+      QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(support_ids[i]),
+                                                   ui_->support_surfaces_list, (int)i);
+      item->setToolTip(item->text());
+      Qt::ItemFlags flags = item->flags();
+      flags &= ~(Qt::ItemIsUserCheckable);
+      item->setFlags(flags);
+      ui_->support_surfaces_list->addItem(item);
+    }
+  }
+  ui_->support_surfaces_list->blockSignals(oldState);
+  ui_->support_surfaces_list->setUpdatesEnabled(true);
+}
+
+/////////////////////////////// Pick & Place /////////////////////////////////
 void MotionPlanningFrame::pickObjectButtonClicked()
 {
   QList<QListWidgetItem *> sel = ui_->detected_objects_list->selectedItems();
@@ -190,102 +332,6 @@ void MotionPlanningFrame::placeObject()
 {
   move_group_->place(place_object_name_, place_poses_);
   return;
-}
-
-void MotionPlanningFrame::selectedDetectedObjectChanged()
-{
-}
-
-void MotionPlanningFrame::detectedObjectChanged( QListWidgetItem *item)
-{
-}
-
-void MotionPlanningFrame::triggerObjectDetection()
-{
-  if(!object_recognition_client_)
-  {
-    object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
-    try
-    {
-      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION); 
-    }
-    catch(std::runtime_error &ex)
-    {
-      ROS_ERROR("Object recognition action: %s", ex.what());      
-      return;    
-    }          
-  }  
-  object_recognition_msgs::ObjectRecognitionGoal goal;
-  object_recognition_client_->sendGoal(goal);
-  if (!object_recognition_client_->waitForResult())
-  {
-    ROS_INFO_STREAM("Object recognition client returned early");
-  }
-  if (object_recognition_client_->getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
-  {
-    ROS_WARN_STREAM("Fail: " << object_recognition_client_->getState().toString() << ": " << object_recognition_client_->getState().getText());
-  }
-}
-
-void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg)
-{
-  ros::Duration(1.0).sleep();  
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));  
-}
-
-void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string> &object_ids,
-                                                    const std::vector<std::string> &objects)
-{
-  ui_->detected_objects_list->setUpdatesEnabled(false);
-  bool oldState = ui_->detected_objects_list->blockSignals(true);
-  ui_->detected_objects_list->clear();
-  {
-    for(std::size_t i = 0; i < object_ids.size(); ++i)
-    {
-      QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(object_ids[i]),
-                                                   ui_->detected_objects_list, (int)i);
-      item->setToolTip(item->text());
-      Qt::ItemFlags flags = item->flags();
-      flags &= ~(Qt::ItemIsUserCheckable);
-      item->setFlags(flags);
-      ui_->detected_objects_list->addItem(item);
-    }
-  }
-  ui_->detected_objects_list->blockSignals(oldState);
-  ui_->detected_objects_list->setUpdatesEnabled(true);
-  if(!object_ids.empty())
-    ui_->pick_button->setEnabled(true);
-}
-
-void MotionPlanningFrame::updateSupportSurfacesList()
-{
-  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
-  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
-  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
-  
-  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
-  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
-  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
-  std::vector<std::string> support_ids = semantic_world_->getTableNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z);  
-  ROS_INFO("%d Tables in collision world", (int) support_ids.size());    
-
-  ui_->support_surfaces_list->setUpdatesEnabled(false);
-  bool oldState = ui_->support_surfaces_list->blockSignals(true);
-  ui_->support_surfaces_list->clear();
-  {
-    for(std::size_t i = 0; i < support_ids.size(); ++i)
-    {
-      QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(support_ids[i]),
-                                                   ui_->support_surfaces_list, (int)i);
-      item->setToolTip(item->text());
-      Qt::ItemFlags flags = item->flags();
-      flags &= ~(Qt::ItemIsUserCheckable);
-      item->setFlags(flags);
-      ui_->support_surfaces_list->addItem(item);
-    }
-  }
-  ui_->support_surfaces_list->blockSignals(oldState);
-  ui_->support_surfaces_list->setUpdatesEnabled(true);
 }
 
 }
