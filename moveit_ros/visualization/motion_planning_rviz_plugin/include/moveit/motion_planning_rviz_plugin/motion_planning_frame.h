@@ -183,6 +183,7 @@ private Q_SLOTS:
   void placeObjectButtonClicked();
   void selectedDetectedObjectChanged();
   void detectedObjectChanged(QListWidgetItem *item);
+  void selectedSupportSurfaceChanged();  
 
   //General
   void tabChanged(int index);
@@ -249,6 +250,10 @@ private:
   void triggerObjectDetection();  
   void updateTables();  
   std::string support_surface_name_;
+  // For coloring
+  std::string selected_object_name_;
+  std::string selected_support_surface_name_;  
+  
   boost::scoped_ptr<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction> > object_recognition_client_;  
   template<typename T>
   void waitForAction(const T &action, const ros::NodeHandle &node_handle, const ros::Duration &wait_for_server, const std::string &name);

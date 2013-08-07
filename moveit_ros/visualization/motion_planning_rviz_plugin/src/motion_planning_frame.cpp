@@ -115,6 +115,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->place_button, SIGNAL( clicked() ), this, SLOT( placeObjectButtonClicked() ));
   connect( ui_->detected_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedDetectedObjectChanged() ));
   connect( ui_->detected_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( detectedObjectChanged( QListWidgetItem * ) ));
+  connect( ui_->support_surfaces_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedSupportSurfaceChanged() ));
 
   connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
 
