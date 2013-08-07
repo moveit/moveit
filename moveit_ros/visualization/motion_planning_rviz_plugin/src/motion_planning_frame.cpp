@@ -134,6 +134,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
  
   //  object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
   object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
+  object_recognition_subscriber_ = nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
+
   if(object_recognition_client_)
   {
     try
@@ -164,6 +166,10 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
     }
     else
       semantic_world_.reset();    
+    if(semantic_world_)
+    {
+      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));    
+    }  
   } 
   catch(std::runtime_error &ex)
   {

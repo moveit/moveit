@@ -48,7 +48,7 @@ namespace moveit_rviz_plugin
 
 void MotionPlanningFrame::detectObjectsButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::detectObjects, this), "detect objects");
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::triggerObjectDetection, this), "detect objects");
 }
 
 void MotionPlanningFrame::processDetectedObjects()
@@ -64,8 +64,14 @@ void MotionPlanningFrame::processDetectedObjects()
   double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
   double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
 
-  object_ids = planning_scene_interface_->getKnownObjectNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z, true, objects);
-  ROS_INFO("Found %d objects", (int) object_ids.size());
+  ros::Time start_time = ros::Time::now();  
+  while(object_ids.empty() && ros::Time::now() - start_time <= ros::Duration(3.0))
+  {
+    object_ids = planning_scene_interface_->getKnownObjectNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z, true, objects);
+    ros::Duration(0.5).sleep();    
+  }
+  
+  ROS_DEBUG("Found %d objects", (int) object_ids.size());
   updateDetectedObjectsList(object_ids, objects);
 
   if(!semantic_world_)
@@ -76,16 +82,22 @@ void MotionPlanningFrame::processDetectedObjects()
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
       ROS_INFO("Setup semantic world");      
     }  
-  }  
-  if(semantic_world_)
-  {
-    planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::publishCollisionObjects, this), "publish collision objects");
+    if(semantic_world_)
+    {
+      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));    
+    }  
   }  
 }
 
-void MotionPlanningFrame::publishCollisionObjects()
+void MotionPlanningFrame::updateTables()
 {  
-  semantic_world_->addTablesToCollisionWorld();  
+  ROS_INFO("Update table callback");  
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::publishTables, this), "publish tables");
+}
+
+void MotionPlanningFrame::publishTables()
+{
+  semantic_world_->addTablesToCollisionWorld();    
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateSupportSurfacesList, this));  
 }
 
@@ -213,13 +225,12 @@ void MotionPlanningFrame::triggerObjectDetection()
   {
     ROS_WARN_STREAM("Fail: " << object_recognition_client_->getState().toString() << ": " << object_recognition_client_->getState().getText());
   }
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));  
 }
 
-void MotionPlanningFrame::detectObjects()
+void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg)
 {
-  triggerObjectDetection(); // Sleep for a small time to allow recognition to happen
-  //  ros::Duration(3.0).sleep();
+  ros::Duration(1.0).sleep();  
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));  
 }
 
 void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string> &object_ids,

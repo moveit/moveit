@@ -235,10 +235,10 @@ private:
   void populateRobotStatesList();
 
   //Pick and place
-  void detectObjects();
   void processDetectedObjects();  
   void updateDetectedObjectsList(const std::vector<std::string> &object_ids,
                                  const std::vector<std::string> &objects);
+  void publishTables();  
   void updateSupportSurfacesList();
   ros::Publisher object_recognition_trigger_publisher_;
   std::map<std::string, std::string> pick_object_name_;
@@ -247,11 +247,13 @@ private:
   void pickObject();
   void placeObject();
   void triggerObjectDetection();  
-  void publishCollisionObjects();  
+  void updateTables();  
   std::string support_surface_name_;
   boost::scoped_ptr<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction> > object_recognition_client_;  
   template<typename T>
   void waitForAction(const T &action, const ros::NodeHandle &node_handle, const ros::Duration &wait_for_server, const std::string &name);
+  void listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg);  
+  ros::Subscriber object_recognition_subscriber_;  
 
   //General
   void changePlanningGroupHelper();
