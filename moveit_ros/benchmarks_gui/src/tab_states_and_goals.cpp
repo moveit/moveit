@@ -62,6 +62,67 @@
 namespace benchmark_tool
 {
 
+
+void MainWindow::createGoalAtPose(const std::string &name, const Eigen::Affine3d &pose)
+{
+  goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(name, pose));
+
+  geometry_msgs::Pose marker_pose;
+  tf::poseEigenToMsg(pose * goal_offset_, marker_pose);
+  static const float marker_scale = 0.15;
+
+  GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getRobotModel()->getModelFrame(),
+                                               robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED));
+  goal_poses_.insert(GoalPosePair(name,  goal_pose));
+
+  // Connect signals
+  goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+
+  //If connected to a database, store the constraint
+  if (constraints_storage_)
+  {
+    moveit_msgs::Constraints c;
+    c.name = name;
+
+    shape_msgs::SolidPrimitive sp;
+    sp.type = sp.BOX;
+    sp.dimensions.resize(3, std::numeric_limits<float>::epsilon() * 10.0);
+
+    moveit_msgs::PositionConstraint pc;
+    pc.constraint_region.primitives.push_back(sp);
+    geometry_msgs::Pose posemsg;
+    posemsg.position.x = goal_pose->imarker->getPosition().x;
+    posemsg.position.y = goal_pose->imarker->getPosition().y;
+    posemsg.position.z = goal_pose->imarker->getPosition().z;
+    posemsg.orientation.x = 0.0;
+    posemsg.orientation.y = 0.0;
+    posemsg.orientation.z = 0.0;
+    posemsg.orientation.w = 1.0;
+    pc.constraint_region.primitive_poses.push_back(posemsg);
+    pc.weight = 1.0;
+    c.position_constraints.push_back(pc);
+
+    moveit_msgs::OrientationConstraint oc;
+    oc.orientation.x = goal_pose->imarker->getOrientation().x;
+    oc.orientation.y = goal_pose->imarker->getOrientation().y;
+    oc.orientation.z = goal_pose->imarker->getOrientation().z;
+    oc.orientation.w = goal_pose->imarker->getOrientation().w;
+    oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
+        oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
+    oc.weight = 1.0;
+    c.orientation_constraints.push_back(oc);
+
+    try
+    {
+      constraints_storage_->addConstraints(c);
+    }
+    catch (std::runtime_error &ex)
+    {
+      ROS_ERROR("Cannot save constraint on database: %s", ex.what());
+    }
+  }
+}
+
 void MainWindow::createGoalPoseButtonClicked(void)
 {
   std::stringstream ss;
@@ -96,67 +157,64 @@ void MainWindow::createGoalPoseButtonClicked(void)
       {
         //Create the new goal pose at the current eef pose, and attach an interactive marker to it
         Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getLinkState(robot_interaction_->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
-        goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(name, tip_pose));
-
-        geometry_msgs::Pose marker_pose;
-        tf::poseEigenToMsg(tip_pose * goal_offset_, marker_pose);
-        static const float marker_scale = 0.15;
-
-        GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getRobotModel()->getModelFrame(),
-                                robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED));
-        goal_poses_.insert(GoalPosePair(name,  goal_pose));
-
-        // Connect signals
-        goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
-
-        //If connected to a database, store the constraint
-        if (constraints_storage_)
-        {
-          moveit_msgs::Constraints c;
-          c.name = name;
-
-          shape_msgs::SolidPrimitive sp;
-          sp.type = sp.BOX;
-          sp.dimensions.resize(3, std::numeric_limits<float>::epsilon() * 10.0);
-
-          moveit_msgs::PositionConstraint pc;
-          pc.constraint_region.primitives.push_back(sp);
-          geometry_msgs::Pose posemsg;
-          posemsg.position.x = goal_pose->imarker->getPosition().x;
-          posemsg.position.y = goal_pose->imarker->getPosition().y;
-          posemsg.position.z = goal_pose->imarker->getPosition().z;
-          posemsg.orientation.x = 0.0;
-          posemsg.orientation.y = 0.0;
-          posemsg.orientation.z = 0.0;
-          posemsg.orientation.w = 1.0;
-          pc.constraint_region.primitive_poses.push_back(posemsg);
-          pc.weight = 1.0;
-          c.position_constraints.push_back(pc);
-
-          moveit_msgs::OrientationConstraint oc;
-          oc.orientation.x = goal_pose->imarker->getOrientation().x;
-          oc.orientation.y = goal_pose->imarker->getOrientation().y;
-          oc.orientation.z = goal_pose->imarker->getOrientation().z;
-          oc.orientation.w = goal_pose->imarker->getOrientation().w;
-          oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
-            oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
-          oc.weight = 1.0;
-          c.orientation_constraints.push_back(oc);
-
-          try
-          {
-            constraints_storage_->addConstraints(c);
-          }
-          catch (std::runtime_error &ex)
-          {
-            ROS_ERROR("Cannot save constraint on database: %s", ex.what());
-          }
-        }
+        createGoalAtPose(name, tip_pose);
       }
     }
     else
       QMessageBox::warning(this, "Goal not created", "Cannot use an empty name for a new goal pose.");
   }
+
+  populateGoalPosesList();
+}
+
+void MainWindow::showBBoxGoalsDialog()
+{
+  std::string goals_base_name;
+  {
+    const planning_scene_monitor::LockedPlanningSceneRO &ps = scene_display_->getPlanningSceneRO();
+    if ( ! ps || robot_interaction_->getActiveEndEffectors().empty() )
+    {
+      if ( ! ps ) ROS_ERROR("No planning scene");
+      if ( robot_interaction_->getActiveEndEffectors().empty() ) ROS_ERROR("No end effector");
+      return;
+    }
+    goals_base_name = ps->getName() + "_pose_";
+  }
+
+  bbox_dialog_ui_.base_name_text->setText(QString(goals_base_name.c_str()));
+
+  bbox_dialog_->exec();
+}
+
+void MainWindow::createBBoxGoalsButtonClicked(void)
+{
+  bbox_dialog_->close();
+
+  double minx = bbox_dialog_ui_.center_x_text->text().toDouble() - bbox_dialog_ui_.size_x_text->text().toDouble() / 2.0;
+  double maxx = bbox_dialog_ui_.center_x_text->text().toDouble() + bbox_dialog_ui_.size_x_text->text().toDouble() / 2.0;
+  double stepx = (maxx - minx) / std::max<double>(bbox_dialog_ui_.ngoals_x_text->text().toDouble() - 1, 1);
+  double miny = bbox_dialog_ui_.center_y_text->text().toDouble() - bbox_dialog_ui_.size_y_text->text().toDouble() / 2.0;
+  double maxy = bbox_dialog_ui_.center_y_text->text().toDouble() + bbox_dialog_ui_.size_y_text->text().toDouble() / 2.0;
+  double stepy = (maxy - miny) / std::max<double>(bbox_dialog_ui_.ngoals_y_text->text().toDouble() - 1, 1);
+  double minz = bbox_dialog_ui_.center_z_text->text().toDouble() - bbox_dialog_ui_.size_z_text->text().toDouble() / 2.0;
+  double maxz = bbox_dialog_ui_.center_z_text->text().toDouble() + bbox_dialog_ui_.size_z_text->text().toDouble() / 2.0;
+  double stepz = (maxz - minz) / std::max<double>(bbox_dialog_ui_.ngoals_z_text->text().toDouble() - 1, 1);
+
+  Eigen::Affine3d goal_pose;
+  goal_pose.setIdentity();
+  for (std::size_t x = 0; x < bbox_dialog_ui_.ngoals_x_text->text().toShort(); ++x)
+    for (std::size_t y = 0; y < bbox_dialog_ui_.ngoals_y_text->text().toShort(); ++y)
+      for (std::size_t z = 0; z < bbox_dialog_ui_.ngoals_z_text->text().toShort(); ++z)
+      {
+        goal_pose(0,3) = minx + x * stepx;
+        goal_pose(1,3) = miny + y * stepy;
+        goal_pose(2,3) = minz + z * stepz;
+
+        std::stringstream ss;
+        ss << bbox_dialog_ui_.base_name_text->text().toStdString() << std::setfill('0') << std::setw(4) << goal_poses_.size();
+
+        createGoalAtPose(ss.str(), goal_pose);
+      }
 
   populateGoalPosesList();
 }

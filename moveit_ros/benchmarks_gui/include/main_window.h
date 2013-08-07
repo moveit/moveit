@@ -44,6 +44,7 @@
 #include "ui_main_window.h"
 #include "ui_run_benchmark_dialog.h"
 #include "ui_robot_loader.h"
+#include "ui_bounding_box_goals.h"
 
 #ifndef Q_MOC_RUN
 
@@ -92,7 +93,10 @@ public Q_SLOTS:
 
   //Goals and states
   void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void createGoalAtPose(const std::string &name, const Eigen::Affine3d &pose);
   void createGoalPoseButtonClicked(void);
+  void showBBoxGoalsDialog();
+  void createBBoxGoalsButtonClicked(void);
   void removeSelectedGoalsButtonClicked(void);
   void removeAllGoalsButtonClicked(void);
   void goalPoseSelectionChanged(void);
@@ -145,7 +149,8 @@ private:
   Ui::MainWindow ui_;
   Ui_BenchmarkDialog run_benchmark_ui_;
   Ui_RobotLoader load_robot_ui_;
-  QDialog *robot_loader_dialog_, *run_benchmark_dialog_;
+  Ui_BoundingBoxGoalsDialog bbox_dialog_ui_;
+  QDialog *robot_loader_dialog_, *run_benchmark_dialog_, *bbox_dialog_;
   boost::shared_ptr<QSettings> settings_;
 
   //rviz
