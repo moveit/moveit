@@ -131,10 +131,24 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
+ 
+  //  object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
+  object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
+  object_recognition_subscriber_ = nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
 
-  object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
-
-  try
+  if(object_recognition_client_)
+  {
+    try
+    {
+      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION); 
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Object recognition action: %s", ex.what());      
+      object_recognition_client_.reset();      
+    }          
+  }  
+  try  
   {
     planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
   }
@@ -150,7 +164,13 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
     {
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
     }
-  }
+    else
+      semantic_world_.reset();    
+    if(semantic_world_)
+    {
+      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));    
+    }  
+  } 
   catch(std::runtime_error &ex)
   {
     ROS_ERROR("%s", ex.what());
