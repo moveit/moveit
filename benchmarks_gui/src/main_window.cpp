@@ -73,6 +73,9 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   run_benchmark_dialog_ = new QDialog(0,0);
   run_benchmark_ui_.setupUi(run_benchmark_dialog_);
 
+  bbox_dialog_ = new QDialog(0,0);
+  bbox_dialog_ui_.setupUi(bbox_dialog_);
+
   //Rviz render panel
   render_panel_ = new rviz::RenderPanel();
   ui_.render_widget->addWidget(render_panel_);
@@ -163,7 +166,16 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_algorithms_label,  SLOT(setEnabled(bool)));
 
     //Goal poses
-    connect( ui_.goal_poses_add_button, SIGNAL( clicked() ), this, SLOT( createGoalPoseButtonClicked() ));
+    QMenu *add_button_menu = new QMenu(ui_.goal_poses_add_button);
+    QAction *add_single_goal_action = new QAction("Single goal", add_button_menu);
+    QAction *bbox_goals_action = new QAction("Goals in a bounding box", add_button_menu);
+    add_button_menu->addAction(add_single_goal_action);
+    add_button_menu->addAction(bbox_goals_action);
+    ui_.goal_poses_add_button->setMenu(add_button_menu);
+    connect( add_single_goal_action, SIGNAL( triggered() ), this, SLOT( createGoalPoseButtonClicked() ));
+    connect( bbox_goals_action, SIGNAL( triggered() ), this, SLOT( showBBoxGoalsDialog() ));
+    connect( bbox_dialog_ui_.ok_button, SIGNAL(clicked()), this, SLOT(createBBoxGoalsButtonClicked()));
+    connect( bbox_dialog_ui_.cancel_button, SIGNAL(clicked()), bbox_dialog_, SLOT(hide()));
     connect( ui_.goal_poses_remove_button, SIGNAL( clicked() ), this, SLOT( deleteGoalsOnDBButtonClicked() ));
     connect( ui_.load_poses_filter_text, SIGNAL( returnPressed() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
     connect( ui_.goal_poses_open_button, SIGNAL( clicked() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
@@ -190,7 +202,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     connect( ui_.start_states_save_button, SIGNAL( clicked() ), this, SLOT( saveStatesOnDBButtonClicked() ));
     connect( ui_.start_states_list, SIGNAL( itemDoubleClicked(QListWidgetItem*) ), this, SLOT( startStateItemDoubleClicked(QListWidgetItem*) ));
 
-    QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_.goal_poses_list);
+    QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), ui_.goal_poses_list);
     connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
 
     //Trajectories
