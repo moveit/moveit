@@ -473,7 +473,7 @@ reachability</string>
                <item>
                 <widget class="QPushButton" name="run_benchmark_button">
                  <property name="text">
-                  <string>Generate benchmark config file</string>
+                  <string>Run benchmark or generate config file</string>
                  </property>
                 </widget>
                </item>
