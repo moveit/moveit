@@ -334,7 +334,7 @@
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>Press Ctrl+C to duplicate the selected goals</string>
+                  <string>Press Ctrl+D to duplicate the selected goals</string>
                  </property>
                  <property name="editTriggers">
                   <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
