@@ -275,6 +275,7 @@ private:
 
 };
 
+// \todo THIS IS REALLY BAD. NEED TO MOVE THIS AND RELATED FUNCTIONALITY OUT OF HERE
 template<typename T>
 void MotionPlanningFrame::waitForAction(const T &action, const ros::NodeHandle &node_handle,
                                         const ros::Duration &wait_for_server, const std::string &name)

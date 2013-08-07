@@ -170,7 +170,7 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detec
     robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_));
     traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan_execution::ExecutableTrajectory et(traj, name);
-    et.trajectory_monitoring_ = false;
+    et.trajectory_monitoring_ = false; // \todo THIS IS BAD. NEEDS TO BE RE-ENABLED; THIS FLAG IS INCORRECTLY SET THROUGHOUT THE PICK&PLACE CODE
     et.effect_on_success_ = boost::bind(&executeAttachObject, plan->shared_data_, plan->approach_posture_, _1);
     et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
@@ -179,21 +179,6 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detec
   {
     ROS_WARN_STREAM("No joint states of grasp postures have been defined in the pick place action.");
   }
-}
-
-/**
- * \brief Compares if a frame_id and a link name are the same, removing slashes
- * \param frame_id a tf frame
- * \param link_name a robot link
- * \return true if they are the same
- */
-bool isEqualFrameLink(const std::string& frame_id, const std::string& link_name)
-{
-  // Remove preceeding '/' from frame names, eg /base_link
-  if (!frame_id.empty() && frame_id[0] == '/')
-    return isEqualFrameLink(frame_id.substr(1), link_name);
-
-  return frame_id == link_name;
 }
 
 } // annonymous namespace
@@ -211,8 +196,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
   tf::vectorMsgToEigen(plan->retreat_.direction.vector, retreat_direction);
 
   // if translation vectors are specified in the frame of the ik link name, then we assume the frame is local; otherwise, the frame is global
-  bool approach_direction_is_global_frame = !isEqualFrameLink(plan->approach_.direction.header.frame_id, plan->shared_data_->ik_link_name_);
-  bool retreat_direction_is_global_frame  = !isEqualFrameLink(plan->retreat_.direction.header.frame_id,  plan->shared_data_->ik_link_name_);
+  bool approach_direction_is_global_frame = !robot_state::Transforms::sameFrame(plan->approach_.direction.header.frame_id, plan->shared_data_->ik_link_name_);
+  bool retreat_direction_is_global_frame  = !robot_state::Transforms::sameFrame(plan->retreat_.direction.header.frame_id,  plan->shared_data_->ik_link_name_);
 
   // transform the input vectors in accordance to frame specified in the header;
   if (approach_direction_is_global_frame)
