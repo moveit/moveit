@@ -41,6 +41,7 @@
 // MoveIt!
 #include <moveit/semantic_world/semantic_world.h>
 #include <geometric_shapes/shape_operations.h>
+#include <moveit_msgs/PlanningScene.h>
 
 // OpenCV
 #include <opencv2/imgproc/imgproc.hpp>
@@ -59,6 +60,7 @@ SemanticWorld::SemanticWorld(const planning_scene::PlanningSceneConstPtr& planni
   table_subscriber_ = node_handle_.subscribe("table_array", 1, &SemanticWorld::tableCallback, this);
   visualization_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("visualize_place", 20, true);
   collision_object_publisher_ = node_handle_.advertise<moveit_msgs::CollisionObject>("/collision_object", 20);
+  planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
 }
 
 visualization_msgs::MarkerArray SemanticWorld::getPlaceLocationsMarker(const std::vector<geometry_msgs::PoseStamped> &poses) const
@@ -90,7 +92,9 @@ visualization_msgs::MarkerArray SemanticWorld::getPlaceLocationsMarker(const std
 
 bool SemanticWorld::addTablesToCollisionWorld()
 {
-  //  boost::mutex::scoped_lock tlock(table_lock_);
+  moveit_msgs::PlanningScene planning_scene;
+  planning_scene.is_diff = true;
+
   // Remove the existing tables  
   std::map<std::string, object_recognition_msgs::Table>::iterator it;  
   for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
@@ -98,8 +102,12 @@ bool SemanticWorld::addTablesToCollisionWorld()
     moveit_msgs::CollisionObject co;
     co.id = it->first;
     co.operation = moveit_msgs::CollisionObject::REMOVE;
-    collision_object_publisher_.publish(co);
+    planning_scene.world.collision_objects.push_back(co);    
+    //    collision_object_publisher_.publish(co);
   }
+  
+  planning_scene_diff_publisher_.publish(planning_scene);
+  planning_scene.world.collision_objects.clear();  
   current_tables_in_collision_world_.clear();  
   // Add the new tables
   for(std::size_t i=0; i < table_array_.tables.size(); ++i)
@@ -136,11 +144,12 @@ bool SemanticWorld::addTablesToCollisionWorld()
     co.meshes.push_back(table_shape_msg_mesh);
     co.mesh_poses.push_back(table_array_.tables[i].pose.pose);
     co.header = table_array_.tables[i].pose.header;
-    collision_object_publisher_.publish(co);
-
+    planning_scene.world.collision_objects.push_back(co);    
+    //    collision_object_publisher_.publish(co);
     delete table_shape;
     delete table_mesh_solid;
   }
+  planning_scene_diff_publisher_.publish(planning_scene);
   return true;
 }
 

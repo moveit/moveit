@@ -155,6 +155,8 @@ private:
   ros::Publisher visualization_publisher_, collision_object_publisher_;  
   
   TableCallbackFn table_callback_;
+
+  ros::Publisher planning_scene_diff_publisher_;  
   
 };
 
