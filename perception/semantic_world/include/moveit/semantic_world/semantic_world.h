@@ -117,9 +117,6 @@ public:
                                                              double min_distance_from_edge = 0.10) const;
 
   
-  bool isOnTable(const geometry_msgs::Pose &pose,
-                 const std::string &table_name) const;
-
   void clear();
 
   bool addTablesToCollisionWorld();
