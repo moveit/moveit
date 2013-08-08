@@ -347,8 +347,8 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
       for(std::size_t mm=0; mm < num_heights; ++mm)
       {
         int point_y = k * resolution * scale_factor;
-        cv::Point2f point(point_x, point_y);
-        double result = cv::pointPolygonTest(contours[0], point, true);
+        cv::Point2f point2f(point_x, point_y);
+        double result = cv::pointPolygonTest(contours[0], point2f, true);
         if((int) result >= (int) (min_distance_from_edge*scale_factor))
         {
           Eigen::Vector3d point((double) (point_x)/scale_factor + table.x_min,
@@ -370,6 +370,79 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
   }
   return place_poses;
 }
+
+bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose &pose,
+                                         const object_recognition_msgs::Table &table,
+                                         double min_distance_from_edge,
+                                         double min_vertical_offset) const
+{
+  // Assumption that the table's normal is along the Z axis
+  if(table.convex_hull.vertices.empty())
+     return false;
+  const int scale_factor = 100;
+  std::vector<cv::Point2f> table_contour;
+  for(std::size_t j=0; j < table.convex_hull.vertices.size(); ++j)
+    table_contour.push_back(cv::Point((table.convex_hull.vertices[j].x-table.x_min)*scale_factor,
+                                      (table.convex_hull.vertices[j].y-table.y_min)*scale_factor));
+
+  double x_range = fabs(table.x_max-table.x_min);
+  double y_range = fabs(table.y_max-table.y_min);
+  int max_range = (int) x_range + 1;
+  if(max_range < (int) y_range + 1)
+    max_range = (int) y_range + 1;
+
+  int image_scale = std::max<int>(max_range, 4);
+  cv::Mat src = cv::Mat::zeros(image_scale*scale_factor, image_scale*scale_factor, CV_8UC1);
+
+  for(std::size_t j = 0; j < table.convex_hull.vertices.size(); ++j )
+  {
+    cv::line(src, table_contour[j],  table_contour[(j+1)%table.convex_hull.vertices.size()],
+             cv::Scalar( 255 ), 3, 8 );
+  }
+
+  std::vector<std::vector<cv::Point> > contours;
+  std::vector<cv::Vec4i> hierarchy;
+  cv::findContours(src, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+
+  Eigen::Vector3d point(pose.position.x, pose.position.y, pose.position.z);
+  Eigen::Affine3d pose_table;
+  tf::poseMsgToEigen(table.pose.pose, pose_table);
+
+  // Point in table frame
+  point = pose_table.inverse() * point;
+  //Assuming Z axis points upwards for the table
+  if(point.z() < -fabs(min_vertical_offset))
+  {
+    ROS_ERROR("Object is not above table");    
+    return false;  
+  }  
+
+  int point_x = (point.x() -table.x_min) * scale_factor;
+  int point_y = (point.y() -table.y_min) * scale_factor;
+  cv::Point2f point2f(point_x, point_y);
+  double result = cv::pointPolygonTest(contours[0], point2f, true);
+  ROS_DEBUG("table distance: %f", result);
+  
+  if((int) result >= (int) (min_distance_from_edge*scale_factor))
+    return true;
+
+  return false;  
+}
+
+std::string SemanticWorld::findObjectTable(const geometry_msgs::Pose &pose,
+                                           double min_distance_from_edge,
+                                           double min_vertical_offset) const
+{
+  std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
+  for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
+  {
+    ROS_DEBUG("Testing table: %s", it->first.c_str());    
+    if(isInsideTableContour(pose, it->second, min_distance_from_edge, min_vertical_offset))
+      return it->first;    
+  }  
+  return std::string();  
+}
+
 
 void SemanticWorld::tableCallback(const object_recognition_msgs::TableArrayPtr &msg)
 {

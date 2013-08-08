@@ -259,8 +259,23 @@ void MotionPlanningFrame::pickObjectButtonClicked()
   if(!sel_table.empty())
     support_surface_name_ = sel_table[0]->text().toStdString();
   else
-    support_surface_name_.clear();
-
+  {
+    if(semantic_world_)
+    {
+      std::vector<std::string> object_names;
+      object_names.push_back(pick_object_name_[group_name]);
+      std::map<std::string, geometry_msgs::Pose> object_poses = planning_scene_interface_->getObjectPoses(object_names);
+      if(object_poses.find(pick_object_name_[group_name]) != object_poses.end())
+      {
+        ROS_DEBUG("Finding current table for object: %s", pick_object_name_[group_name].c_str());        
+        support_surface_name_ = semantic_world_->findObjectTable(object_poses[pick_object_name_[group_name]]);
+      }      
+      else
+        support_surface_name_.clear();      
+    }    
+    else
+      support_surface_name_.clear();
+  }
   ROS_INFO("Trying to pick up object %s from support surface %s",
            pick_object_name_[group_name].c_str(),
            support_surface_name_.c_str());
@@ -275,7 +290,11 @@ void MotionPlanningFrame::placeObjectButtonClicked()
   if(!sel_table.empty())
     support_surface_name_ = sel_table[0]->text().toStdString();
   else
+  {
     support_surface_name_.clear();
+    ROS_ERROR("Need to specify table to place object on");    
+    return;
+  }
 
   ui_->pick_button->setEnabled(false);
   ui_->place_button->setEnabled(false);

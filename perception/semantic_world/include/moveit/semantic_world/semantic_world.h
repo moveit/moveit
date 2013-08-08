@@ -116,6 +116,9 @@ public:
                                                              unsigned int num_heights = 2,
                                                              double min_distance_from_edge = 0.10) const;
 
+  
+  bool isOnTable(const geometry_msgs::Pose &pose,
+                 const std::string &table_name) const;
 
   void clear();
 
@@ -128,6 +131,15 @@ public:
     table_callback_ = table_callback;
   }  
 
+  std::string findObjectTable(const geometry_msgs::Pose &pose,
+                              double min_distance_from_edge = 0.0,
+                              double min_vertical_offset = 0.0) const;  
+  
+  bool isInsideTableContour(const geometry_msgs::Pose &pose,
+                            const object_recognition_msgs::Table &table,
+                            double min_distance_from_edge = 0.0,
+                            double min_vertical_offset = 0.0) const;
+  
 private:
 
   shapes::Mesh* createSolidMeshFromPlanarPolygon (const shapes::Mesh& polygon, double thickness) const;
