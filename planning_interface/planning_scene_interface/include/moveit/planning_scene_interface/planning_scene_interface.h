@@ -70,6 +70,7 @@ public:
     return getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type, empty_vector_string);
   };
 
+  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string> &object_ids);  
 
   /**@}*/
 
