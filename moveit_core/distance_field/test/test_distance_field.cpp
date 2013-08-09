@@ -71,8 +71,8 @@ int dist_sq(int x, int y, int z)
 void print( PropagationDistanceField& pdf, int numX, int numY, int numZ)
 {
   for (int z=0; z<numZ; z++) {
-    for (int x=0; x<numX; x++) {
-      for (int y=0; y<numY; y++) {
+    for (int y=0; y<numY; y++) {
+      for (int x=0; x<numX; x++) {
         std::cout << pdf.getCell(x,y,z).distance_square_ << " ";
       }
       std::cout << std::endl;
@@ -80,8 +80,8 @@ void print( PropagationDistanceField& pdf, int numX, int numY, int numZ)
     std::cout << std::endl;
   }
   for (int z=0; z<numZ; z++) {
-    for (int x=0; x<numX; x++) {
-      for (int y=0; y<numY; y++) {
+    for (int y=0; y<numY; y++) {
+      for (int x=0; x<numX; x++) {
         if(pdf.getCell(x,y,z).distance_square_ == 0) {
           //logInform("Obstacle cell %d %d %d", x, y, z);
         }
@@ -93,8 +93,8 @@ void print( PropagationDistanceField& pdf, int numX, int numY, int numZ)
 void printNeg(PropagationDistanceField& pdf, int numX, int numY, int numZ)
 {
   for (int z=0; z<numZ; z++) {
-    for (int x=0; x<numX; x++) {
-      for (int y=0; y<numY; y++) {
+    for (int y=0; y<numY; y++) {
+      for (int x=0; x<numX; x++) {
         std::cout << pdf.getCell(x,y,z).negative_distance_square_ << " ";
       }
       std::cout << std::endl;
