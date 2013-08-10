@@ -39,11 +39,13 @@
 #include <moveit/distance_field/voxel_grid.h>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <moveit/distance_field/distance_field_common.h>
+#include <moveit/distance_field/find_internal_points.h>
 #include <console_bridge/console.h>
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <octomap/octomap.h>
 #include <boost/make_shared.hpp>
+
 
 using namespace distance_field;
 
@@ -103,6 +105,26 @@ void printNeg(PropagationDistanceField& pdf, int numX, int numY, int numZ)
   }
 }
 
+void printPointCoords(const Eigen::Vector3i& p)
+{
+  if (p.x() < 0)
+    std::cout << '-';
+  else
+    std::cout << p.x();
+
+  if (p.y() < 0)
+    std::cout << '-';
+  else
+    std::cout << p.y();
+
+  if (p.z() < 0)
+    std::cout << '-';
+  else
+    std::cout << p.z();
+
+  std::cout << " ";
+}
+
 void printBoth(PropagationDistanceField& pdf, int numX, int numY, int numZ)
 {
   std::cout << "Positive distance square ... negative distance square" << std::endl;
@@ -115,6 +137,14 @@ void printBoth(PropagationDistanceField& pdf, int numX, int numY, int numZ)
       std::cout << "   ";
       for (int x=0; x<numX; x++) {
         std::cout << pdf.getCell(x,y,z).negative_distance_square_ << " ";
+      }
+      std::cout << "     ";
+      for (int x=0; x<numX; x++) {
+        printPointCoords(pdf.getCell(x,y,z).closest_point_);
+      }
+      std::cout << "   ";
+      for (int x=0; x<numX; x++) {
+        printPointCoords(pdf.getCell(x,y,z).closest_negative_point_);
       }
       std::cout << std::endl;
     }
@@ -448,6 +478,19 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
 
         EXPECT_EQ(ncell_dist, dist);
 
+        if (ncell == NULL)
+        {
+          if (ncell_dist > 0)
+          {
+            EXPECT_GE(ncell_dist, gradient_df.getUninitializedDistance()) << "dist=" << dist << " xyz=" << x << " " << y << " " << z << " ncell=" << ncell_pos.x() << " " << ncell_pos.y() << " " << ncell_pos.z() << std::endl;
+
+          }
+          else if (ncell_dist < 0)
+          {
+            EXPECT_LE(ncell_dist, -gradient_df.getUninitializedDistance()) << "dist=" << dist << " xyz=" << x << " " << y << " " << z << " ncell=" << ncell_pos.x() << " " << ncell_pos.y() << " " << ncell_pos.z() << std::endl;
+          }
+        }
+
         if(gradient_df.getCell(x,y,z).negative_distance_square_ > 0) {
           ASSERT_LT(dist, 0) << "Pos " << gradient_df.getCell(x,y,z).distance_square_ << " " << gradient_df.getCell(x,y,z).negative_distance_square_;
           double wx, wy, wz;
@@ -459,9 +502,10 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
           ASSERT_TRUE(grad_in_bounds) << x << " " << y << " " << z;
           ASSERT_NEAR(dist, dist_grad, .0001);
 
-          ASSERT_TRUE(ncell != NULL);
+          if (!ncell)
+            continue;
 
-          EXPECT_GE(gradient_df.getCell(ncell_pos.x(), ncell_pos.y(), ncell_pos.z()).distance_square_, 1) << dist << " " << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << std::endl;
+          EXPECT_GE(gradient_df.getCell(ncell_pos.x(), ncell_pos.y(), ncell_pos.z()).distance_square_, 1) << "dist=" << dist << " xyz=" << x << " " << y << " " << z << " grad=" << grad.x() << " " << grad.y() << " " << grad.z() << " ncell=" << ncell_pos.x() << " " << ncell_pos.y() << " " << ncell_pos.z() << std::endl;
 
           double grad_size_sq = grad.squaredNorm();
           if (grad_size_sq < std::numeric_limits<double>::epsilon())
@@ -526,7 +570,8 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   Eigen::Affine3d pose_e;
   tf::poseMsgToEigen(p, pose_e);
   body->setPose(pose_e);
-  EigenSTL::vector_Vector3d point_vec = distance_field::determineCollisionPoints(body, resolution);
+  EigenSTL::vector_Vector3d point_vec;
+  findInternalPointsConvex(*body, resolution, point_vec);
   delete body;
   check_distance_field(df, point_vec,
                        numX, numY, numZ, true);
@@ -543,7 +588,8 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   tf::poseMsgToEigen(np, npose_e);
   body->setPose(npose_e);
 
-  EigenSTL::vector_Vector3d point_vec_2 = distance_field::determineCollisionPoints(body, resolution);
+  EigenSTL::vector_Vector3d point_vec_2;
+  findInternalPointsConvex(*body, resolution, point_vec_2);
   delete body;
   EigenSTL::vector_Vector3d point_vec_union = point_vec_2;
   point_vec_union.insert(point_vec_union.end(),
