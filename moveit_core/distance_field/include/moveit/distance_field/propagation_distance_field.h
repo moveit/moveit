@@ -415,18 +415,20 @@ public:
    */
   const PropDistanceFieldVoxel* getNearestCell(int x, int y, int z, double& dist, Eigen::Vector3i& pos) const
   {
-    const PropDistanceFieldVoxel& cell = voxel_grid_->getCell(x, y, z);
-    if (cell.distance_square_ > 0)
+    const PropDistanceFieldVoxel* cell = &voxel_grid_->getCell(x, y, z);
+    if (cell->distance_square_ > 0)
     {
-      dist = sqrt_table_[cell.distance_square_];
-      pos = cell.closest_point_;
-      return &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
+      dist = sqrt_table_[cell->distance_square_];
+      pos = cell->closest_point_;
+      const PropDistanceFieldVoxel* ncell = &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
+      return ncell == cell ? NULL : ncell;
     }
-    if (cell.negative_distance_square_ > 0)
+    if (cell->negative_distance_square_ > 0)
     {
-      dist = -sqrt_table_[cell.negative_distance_square_];
-      pos = cell.closest_negative_point_;
-      return &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
+      dist = -sqrt_table_[cell->negative_distance_square_];
+      pos = cell->closest_negative_point_;
+      const PropDistanceFieldVoxel* ncell = &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
+      return ncell == cell ? NULL : ncell;
     }
     dist = 0.0;
     pos.x() = x;
