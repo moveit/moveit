@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Mrinal Kalakrishnan */
+/* Author: Mrinal Kalakrishnan, Acorn Pooley */
 
 #ifndef MOVEIT_DISTANCE_FIELD_VOXEL_GRID_
 #define MOVEIT_DISTANCE_FIELD_VOXEL_GRID_
@@ -239,8 +239,8 @@ public:
    *
    * @return True, as there is no check that the integer locations are valid
    */
-  bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
-  bool gridToWorld(const Eigen::Vector3i& grid, Eigen::Vector3i& world) const;
+  void gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
+  void gridToWorld(const Eigen::Vector3i& grid, Eigen::Vector3i& world) const;
 
   /**
    * \brief Converts from a world location to a set of integer
@@ -259,7 +259,7 @@ public:
    * that pass a validity check; otherwise False.
    */
   bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
-  bool worldToGrid(const Eigen::Vector3i& world, Eigen::Vector3i& grid_ const;
+  bool worldToGrid(const Eigen::Vector3i& world, Eigen::Vector3i& grid) const;
 
   /**
    * \brief Checks if the given cell in integer coordinates is within the voxel grid
@@ -578,7 +578,7 @@ inline bool VoxelGrid<T>::worldToGrid(const Eigen::Vector3i& world, Eigen::Vecto
   grid.x() = getCellFromLocation(DIM_X, world.x());
   grid.y() = getCellFromLocation(DIM_Y, world.y());
   grid.z() = getCellFromLocation(DIM_Z, world.z());
-  return isCellValid(x,y,z);
+  return isCellValid(grid.x(), grid.y(), grid.z());
 }
 
 } // namespace distance_field
