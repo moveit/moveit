@@ -38,7 +38,6 @@
 
 #include <moveit/distance_field/voxel_grid.h>
 #include <moveit/distance_field/propagation_distance_field.h>
-#include <moveit/distance_field/distance_field_common.h>
 #include <moveit/distance_field/find_internal_points.h>
 #include <console_bridge/console.h>
 #include <geometric_shapes/body_operations.h>

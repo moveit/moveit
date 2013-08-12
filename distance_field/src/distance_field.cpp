@@ -35,7 +35,6 @@
 /* Author: Mrinal Kalakrishnan, Ken Anderson, E. Gil Jones */
 
 #include <moveit/distance_field/distance_field.h>
-#include <moveit/distance_field/distance_field_common.h>
 #include <moveit/distance_field/find_internal_points.h>
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
