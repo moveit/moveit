@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* make pick more general
+* use message serialization for python bindings
+* remove CollisionMap, expose topic names in PlanningSceneMonitor, implement detach / attach operations as requested by `#280 <https://github.com/ros-planning/moveit_ros/issues/280>`_
+* make headers and author definitions aligned the same way; white space fixes
+
 0.5.2 (2013-07-15)
 ------------------
 * move msgs to common_msgs
