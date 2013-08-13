@@ -2,8 +2,9 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.4 (2013-08-14)
+------------------
+
 * make headers and author definitions aligned the same way; white space fixes
 * Dependency for move_group_capabilities_base fixed.
 

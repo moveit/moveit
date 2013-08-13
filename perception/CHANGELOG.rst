@@ -2,8 +2,10 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.4 (2013-08-14)
+------------------
+* add dependency on OpenCV2
+
 * Pointcloud_octomap_updater compilation flags fixed
 
 0.5.2 (2013-07-15)

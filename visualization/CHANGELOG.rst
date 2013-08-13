@@ -2,8 +2,9 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.4 (2013-08-14)
+------------------
+
 * Added manipulation tab, added plan id to manipulation request
 * make headers and author definitions aligned the same way; white space fixes
 * using action client for object recognition instead of topic
