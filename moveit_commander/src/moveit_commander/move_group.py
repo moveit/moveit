@@ -34,6 +34,7 @@
 
 from geometry_msgs.msg import Pose, PoseStamped
 from moveit_msgs.msg import RobotTrajectory
+from manipulation_msgs.msg import Grasp
 from sensor_msgs.msg import JointState
 import rospy
 import tf
@@ -376,9 +377,12 @@ class MoveGroupCommander(object):
         """ Given the name of a link, detach the object(s) from that link. If no such link exists, the name is interpreted as an object name. If there is no name specified, an attempt is made to detach all objects attached to any link in the group."""
         return self._g.detach_object(name)
 
-    def pick(self, object_name):
-        """Pick the named object"""
-        return self._g.pick(object_name)
+    def pick(self, object_name, grasp = []):
+        """Pick the named object. A grasp message, or a list of Grasp messages can also be specified as argument."""
+        if type(grasp) is Grasp:
+            return self._g.pick(object_name, conversions.msg_to_string(grasp))
+        else:
+            return self._g.pick(object_name, [conversions.msg_to_string(x) for x in grasp])
 
     def place(self, object_name, pose):
         """Place the named object at a particular location in the environment"""
