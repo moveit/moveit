@@ -34,45 +34,42 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PY_BINDINGS_TOOLS_ROSCPP_INITIALIZER_
-#define MOVEIT_PY_BINDINGS_TOOLS_ROSCPP_INITIALIZER_
+#ifndef MOVEIT_PY_BINDINGS_TOOLS_SERIALIZE_MSG_
+#define MOVEIT_PY_BINDINGS_TOOLS_SERIALIZE_MSG_
 
-#include <boost/python.hpp>
-#include <string>
+#include <ros/ros.h>
 
 namespace moveit
 {
-
-/** \brief Tools for creating python bindings for MoveIt */
 namespace py_bindings_tools
 {
 
-/** \brief The constructor of this class ensures that ros::init() has
-    been called.  Thread safety and multiple initialization is
-    properly handled. When the process terminates, ros::shotdown() is
-    also called, if needed. */
-class ROScppInitializer
+/** \brief Convert a ROS message to a string */
+template<typename T>
+std::string serializeMsg(const T &msg)
 {
-public:
-  ROScppInitializer();
-  ROScppInitializer(boost::python::list &argv);
-  ROScppInitializer(const std::string &node_name, boost::python::list &argv);
-};
+  // we use the fact char is same size as uint8_t;
+  assert(sizeof(uint8_t) == sizeof(char));
+  std::size_t size = ros::serialization::serializationLength(msg);
+  std::string result(size, '\0');
+  if (size)
+  {
+    // we convert the message into a string because that is easy to sent back & forth with Python
+    // This is fine since C0x because &string[0] is guaranteed to point to a contiguous block of memory
+    ros::serialization::OStream stream_arg(reinterpret_cast<uint8_t*>(&result[0]), size);
+    ros::serialization::serialize(stream_arg, msg);
+  }
+  return result;
+}
 
-/** \brief This function can be used to specify the ROS command line arguments for the internal ROScpp instance;
-    Usually this function would also be exposed in the py module that uses ROScppInitializer. */
-void roscpp_set_arguments(const std::string &node_name, boost::python::list &argv);
-
-/** \brief Initialize ROScpp with specified command line args */
-void roscpp_init(const std::string &node_name, boost::python::list &argv);
-
-/** \brief Initialize ROScpp with specified command line args */
-void roscpp_init(boost::python::list &argv);
-
-/** \brief Initialize ROScpp with default command line args */
-void roscpp_init();
-
-void roscpp_shutdown();
+/** \brief Convert a string to a ROS message */
+template<typename T>
+void deserializeMsg(const std::string &data, T &msg)
+{
+  assert(sizeof(uint8_t) == sizeof(char));
+  ros::serialization::IStream stream_arg(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&data[0])), data.size());
+  ros::serialization::deserialize(stream_arg, msg);
+}
 
 }
 }
