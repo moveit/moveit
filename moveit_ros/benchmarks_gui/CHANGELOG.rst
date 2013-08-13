@@ -2,8 +2,9 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.4 (2013-08-14)
+------------------
+
 * allow creating goals uniformly distributed in a bounding box
 * Duplicate goals with Ctrl-D instead of Ctrl-C
 * better error checking

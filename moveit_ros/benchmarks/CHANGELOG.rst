@@ -2,8 +2,9 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.4 (2013-08-14)
+------------------
+
 * make headers and author definitions aligned the same way; white space fixes
 
 0.5.2 (2013-07-15)
