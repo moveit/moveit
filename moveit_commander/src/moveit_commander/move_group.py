@@ -33,6 +33,7 @@
 # Author: Ioan Sucan
 
 from geometry_msgs.msg import Pose, PoseStamped
+from moveit_msgs.msg import RobotTrajectory
 from sensor_msgs.msg import JointState
 import rospy
 import tf
@@ -352,17 +353,20 @@ class MoveGroupCommander(object):
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
             except:
                 self.set_joint_value_target(joints)
-        plan = self._g.compute_plan()
-        return conversions.dict_to_trajectory(plan)
+        plan = RobotTrajectory()
+        plan.deserialize(self._g.compute_plan())
+        return plan
 
     def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions = True):
         """ Compute a sequence of waypoints that make the end-effector move in straight line segments that follow the poses specified as waypoints. Configurations are computed for every eef_step meters; The jump_threshold specifies the maximum distance in configuration space between consecutive points in the resultingpath. The return value is a tuple: a fraction of how much of the path was followed, the actual RobotTrajectory. """
-        (dpath, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions)
-        return (conversions.dict_to_trajectory(dpath), fraction)
+        (ser_path, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions)
+        path = RobotTrajectory()
+        path.deserialize(ser_path)
+        return (path, fraction)
 
     def execute(self, plan_msg):
         """Execute a previously planned path"""
-        return self._g.execute(conversions.trajectory_to_dict(plan_msg))
+        return self._g.execute(conversions.msg_to_string(plan_msg))
 
     def attach_object(self, object_name, link_name = "", touch_links = []):
         """ Given the name of an object existing in the planning scene, attach it to a link. The link used is specified by the second argument. If left unspecified, the end-effector link is used, if one is known. If there is no end-effector link, the first link in the group is used. If no link is identified, failure is reported. True is returned if an attach request was succesfully sent to the move_group node. This does not verify that the attach request also was successfuly applied by move_group."""

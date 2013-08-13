@@ -30,14 +30,21 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Ioan Sucan, Sarah Elliott
+# Author: Ioan Sucan
 
+import StringIO
 from moveit_commander import MoveItCommanderException
-from geometry_msgs.msg import Pose, PoseStamped, Transform, TransformStamped
-from moveit_msgs.msg import RobotTrajectory
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
+from geometry_msgs.msg import Pose, PoseStamped, Transform
 import rospy
 import tf
+
+def msg_to_string(msg):
+    buf = StringIO.StringIO()
+    msg.serialize(buf)
+    return buf.getvalue()
+
+def msg_from_string(msg, data):
+    msg.deserialize(data)
 
 def pose_to_list(pose_msg):
     pose = []
@@ -50,6 +57,36 @@ def pose_to_list(pose_msg):
     pose.append(pose_msg.orientation.w)
     return pose
 
+def list_to_pose(pose_list):
+    pose_msg = Pose()
+    if len(pose_list) == 7:
+        pose_msg.position.x = pose_list[0]
+        pose_msg.position.y = pose_list[1]
+        pose_msg.position.z = pose_list[2]
+        pose_msg.orientation.x = pose_list[3]
+        pose_msg.orientation.y = pose_list[4]
+        pose_msg.orientation.z = pose_list[5]
+        pose_msg.orientation.w = pose_list[6]
+    elif len(pose_list) == 6: 
+        pose_msg.position.x = pose_list[0]
+        pose_msg.position.y = pose_list[1]
+        pose_msg.position.z = pose_list[2]
+        q = tf.transformations.quaternion_from_euler(pose_list[3], pose_list[4], pose_list[5])
+        pose_msg.orientation.x = q[0]
+        pose_msg.orientation.y = q[1]
+        pose_msg.orientation.z = q[2]
+        pose_msg.orientation.w = q[3]
+    else:
+        raise MoveItCommanderException("Expected either 6 or 7 elements in list: (x,y,z,r,p,y) or (x,y,z,qx,qy,qz,qw)")
+    return pose_msg
+
+def list_to_pose_stamped(pose_list, target_frame):
+    pose_msg = PoseStamped()
+    pose_msg.pose = list_to_pose(pose_list)
+    pose_msg.header.frame_id = target_frame
+    pose_msg.header.stamp = rospy.Time.now()
+    return pose_msg
+
 def transform_to_list(trf_msg):
     trf = []
     trf.append(trf_msg.translation.x)
@@ -61,31 +98,6 @@ def transform_to_list(trf_msg):
     trf.append(trf_msg.rotation.w)
     return trf
 
-def list_to_pose_stamped(pose_list, target_frame):
-    pose_msg = PoseStamped()
-    if len(pose_list) == 7:
-        pose_msg.pose.position.x = pose_list[0]
-        pose_msg.pose.position.y = pose_list[1]
-        pose_msg.pose.position.z = pose_list[2]
-        pose_msg.pose.orientation.x = pose_list[3]
-        pose_msg.pose.orientation.y = pose_list[4]
-        pose_msg.pose.orientation.z = pose_list[5]
-        pose_msg.pose.orientation.w = pose_list[6]
-    elif len(pose_list) == 6: 
-        pose_msg.pose.position.x = pose_list[0]
-        pose_msg.pose.position.y = pose_list[1]
-        pose_msg.pose.position.z = pose_list[2]
-        q = tf.transformations.quaternion_from_euler(pose_list[3], pose_list[4], pose_list[5])
-        pose_msg.pose.orientation.x = q[0]
-        pose_msg.pose.orientation.y = q[1]
-        pose_msg.pose.orientation.z = q[2]
-        pose_msg.pose.orientation.w = q[3]
-    else:
-        raise MoveItCommanderException("Expected either 6 or 7 elements in list: (x,y,z,r,p,y) or (x,y,z,qx,qy,qz,qw)")
-    pose_msg.header.frame_id = target_frame
-    pose_msg.header.stamp = rospy.Time.now()
-    return pose_msg
-
 def list_to_transform(trf_list):
     trf_msg = Transform()
     trf_msg.translation.x = trf_list[0]
@@ -96,56 +108,3 @@ def list_to_transform(trf_list):
     trf_msg.rotation.z = trf_list[5]
     trf_msg.rotation.w = trf_list[6]
     return trf_msg
-
-def dict_to_trajectory(plan):
-    plan_msg = RobotTrajectory()
-    joint_traj = JointTrajectory()
-    joint_traj.header.frame_id = plan["joint_trajectory"]["frame_id"]
-    joint_traj.joint_names = plan["joint_trajectory"]["joint_names"]
-    for point in plan["joint_trajectory"]["points"]:
-        joint_traj.points.append(JointTrajectoryPoint(
-                positions = point["positions"],
-                velocities = point["velocities"],
-                accelerations = point["accelerations"],
-                time_from_start = rospy.Duration().from_sec(point["time_from_start"])))
-    multi_dof_joint_traj = MultiDOFJointTrajectory()
-    multi_dof_joint_traj.header.frame_id = plan["multi_dof_joint_trajectory"]["frame_id"]
-    multi_dof_joint_traj.joint_names = plan["multi_dof_joint_trajectory"]["joint_names"]
-    for point in plan["multi_dof_joint_trajectory"]["points"]:
-        multi_dof_joint_traj_point = MultiDOFJointTrajectoryPoint()
-        for t in point["transforms"]:
-            multi_dof_joint_traj_point.transforms.append(list_to_transform(t))
-        multi_dof_joint_traj_point.time_from_start = rospy.Duration().from_sec(point["time_from_start"])
-        multi_dof_joint_traj.points.append(multi_dof_joint_traj_point)
-    plan_msg.joint_trajectory = joint_traj
-    plan_msg.multi_dof_joint_trajectory = multi_dof_joint_traj
-    return plan_msg    
-
-def trajectory_to_dict(plan_msg):
-    plan = {}
-    plan["joint_trajectory"] = {}
-    plan["joint_trajectory"]["frame_id"] = plan_msg.joint_trajectory.header.frame_id
-    plan["joint_trajectory"]["joint_names"] = plan_msg.joint_trajectory.joint_names
-    joint_trajectory_points = []
-    for p in plan_msg.joint_trajectory.points:
-        point = {}
-        point["positions"] = p.positions
-        point["velocities"] = p.velocities
-        point["accelerations"] = p.accelerations
-        point["time_from_start"] = p.time_from_start.to_sec()
-        joint_trajectory_points.append(point)
-    plan["joint_trajectory"]["points"] = joint_trajectory_points
-
-    plan["multi_dof_joint_trajectory"] = {}
-    plan["multi_dof_joint_trajectory"]["frame_id"] = plan_msg.multi_dof_joint_trajectory.header.frame_id
-    plan["multi_dof_joint_trajectory"]["joint_names"] = plan_msg.multi_dof_joint_trajectory.joint_names
-    multi_dof_joint_trajectory_points = []
-    for p in plan_msg.multi_dof_joint_trajectory.points:
-        point = {}
-        point["transforms"] = []
-        for t in p.transforms:
-            point["transforms"].append(transform_to_list(t))
-        point["time_from_start"] = p.time_from_start.to_sec()
-        multi_dof_joint_trajectory_points.append(point)
-    plan["multi_dof_joint_trajectory"]["points"] = multi_dof_joint_trajectory_points
-    return plan
