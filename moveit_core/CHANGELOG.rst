@@ -2,6 +2,15 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.1 (2013-08-13)
+------------------
+* remove CollisionMap message, allow no link name in for AttachedCollisionObject REMOVE operations
+* make headers and author definitions aligned the same way; white space fixes
+* move background_processing lib to core
+* enable RTTI for CollisionRequest
+* added ability to find attached objects for a group
+* add function for getting contact pairs
+
 0.5.0 (2013-07-15)
 ------------------
 * move msgs to common_msgs
