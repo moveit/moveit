@@ -298,7 +298,23 @@ public:
     double fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory, avoid_collisions);
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
+  
+  bool pickGrasp(const std::string &object, const std::string &grasp_str)
+  {
+    manipulation_msgs::Grasp grasp;    
+    py_bindings_tools::deserializeMsg(grasp_str, grasp);
+    return pick(object, grasp);
+  } 
 
+  bool pickGrasps(const std::string &object, const bp::list &grasp_list)
+  {
+    int l = bp::len(grasp_list);
+    std::vector<manipulation_msgs::Grasp> grasps(l);
+    for (int i = 0; i < l ; ++i)
+      py_bindings_tools::deserializeMsg(bp::extract<std::string>(grasp_list[i]), grasps[i]);
+    return pick(object, grasps);
+  }
+  
 };
 
 static void wrap_move_group_interface()
@@ -310,6 +326,8 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
   bool (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
+  MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasp);
+  MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasps);
   MoveGroupClass.def("place", &MoveGroupWrapper::placePython);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
