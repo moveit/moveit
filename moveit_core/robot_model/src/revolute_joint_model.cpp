@@ -1,90 +1,112 @@
 /*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2008, Willow Garage, Inc.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2008, Willow Garage, Inc.
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
 
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_model/revolute_joint_model.h>
 #include <boost/math/constants/constants.hpp>
+#include <algorithm>
 #include <limits>
 #include <cmath>
 
-robot_model::RevoluteJointModel::RevoluteJointModel(const std::string& name) : JointModel(name),
-                                                                                   axis_(0.0, 0.0, 0.0), continuous_(false)
+moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name) 
+  : JointModel(name)
+  , axis_(0.0, 0.0, 0.0)
+  , continuous_(false)
 {
   type_ = REVOLUTE;
-  variable_bounds_.push_back(std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>()));
   variable_names_.push_back(name_);
+  variable_bounds_.resize(1);
+  variable_bounds_[0].position_bounded_ = true;
+  variable_bounds_[0].min_position_ = -boost::math::constants::pi<double>();
+  variable_bounds_[0].max_position_ = boost::math::constants::pi<double>();
+  variable_index_map_[name_] = 0;
+  computeVariableBoundsMsg();
 }
 
-unsigned int robot_model::RevoluteJointModel::getStateSpaceDimension() const
+unsigned int moveit::core::RevoluteJointModel::getStateSpaceDimension() const
 {
   return 1;
 }
 
-double robot_model::RevoluteJointModel::getMaximumExtent(const Bounds &other_bounds) const
+void moveit::core::RevoluteJointModel::setContinuous(bool flag)
 {
-  return other_bounds[0].second - other_bounds[0].first;
+  continuous_ = flag;
+  if (flag)
+  {
+    variable_bounds_[0].position_bounded_ = false;
+    variable_bounds_[0].min_position_ = -boost::math::constants::pi<double>();
+    variable_bounds_[0].max_position_ = boost::math::constants::pi<double>();
+  }
+  else
+    variable_bounds_[0].position_bounded_ = true;
+  computeVariableBoundsMsg();
 }
 
-void robot_model::RevoluteJointModel::getVariableDefaultValues(std::vector<double> &values, const Bounds &bounds) const
+double moveit::core::RevoluteJointModel::getMaximumExtent(const Bounds &other_bounds) const
+{
+  return variable_bounds_[0].max_position_ - variable_bounds_[0].min_position_;
+}
+
+void moveit::core::RevoluteJointModel::getVariableDefaultValues(double *values, const Bounds &bounds) const
 {
   // if zero is a valid value
-  if (bounds[0].first <= 0.0 && bounds[0].second >= 0.0)
-    values.push_back(0.0);
+  if (bounds[0].min_position_ <= 0.0 && bounds[0].max_position_ >= 0.0)
+    values[0] = 0.0;
   else
-    values.push_back((bounds[0].first + bounds[0].second)/2.0);
+    values[0] = (bounds[0].min_position_ + bounds[0].max_position_) / 2.0;
 }
 
-void robot_model::RevoluteJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds) const
+void moveit::core::RevoluteJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds) const
 {
-  values.push_back(rng.uniformReal(bounds[0].first, bounds[0].second));
+  values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
 }
 
-void robot_model::RevoluteJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
-                                                                        const std::vector<double> &near, const double distance) const
+void moveit::core::RevoluteJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
+                                                                     const double *near, const double distance) const
 {
   if (continuous_)
   {
-    values.push_back(rng.uniformReal(near[values.size()] - distance, near[values.size()] + distance));
+    values[0] = rng.uniformReal(near[0] - distance, near[0] + distance);
     enforceBounds(values, bounds);
   }
   else
-    values.push_back(rng.uniformReal(std::max(bounds[0].first, near[values.size()] - distance),
-                                     std::min(bounds[0].second, near[values.size()] + distance)));
+    values[0] = rng.uniformReal(std::max(bounds[0].min_position_, near[0] - distance),
+                                std::min(bounds[0].max_position_, near[0] + distance));
 }
 
-void robot_model::RevoluteJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+void moveit::core::RevoluteJointModel::interpolate(const double *from, const double *to, const double t, double *state) const
 {
   if (continuous_)
   {
@@ -110,10 +132,8 @@ void robot_model::RevoluteJointModel::interpolate(const std::vector<double> &fro
     state[0] = from[0] + (to[0] - from[0]) * t;
 }
 
-double robot_model::RevoluteJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+double moveit::core::RevoluteJointModel::distance(const double *values1, const double *values2) const
 {
-  assert(values1.size() == 1);
-  assert(values2.size() == 1);
   if (continuous_)
   {
     double d = fabs(values1[0] - values2[0]);
@@ -123,59 +143,53 @@ double robot_model::RevoluteJointModel::distance(const std::vector<double> &valu
     return fabs(values1[0] - values2[0]);
 }
 
-bool robot_model::RevoluteJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
+bool moveit::core::RevoluteJointModel::satisfiesBounds(const double *values, const Bounds &bounds, double margin) const
 {
-  if (continuous_)
-    return true;
-  assert(bounds.size() > 0);
-  if (values[0] < bounds[0].first - margin || values[0] > bounds[0].second + margin)
+  if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
     return false;
   return true;
 }
 
-void robot_model::RevoluteJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
+bool moveit::core::RevoluteJointModel::enforceBounds(double *values, const Bounds &bounds) const
 {
   if (continuous_)
   {
     double &v = values[0];
-    v = fmod(v, 2.0 * boost::math::constants::pi<double>());
-    if (v < -boost::math::constants::pi<double>())
-      v += 2.0 * boost::math::constants::pi<double>();
-    else
-      if (v > boost::math::constants::pi<double>())
-        v -= 2.0 * boost::math::constants::pi<double>();
+    if (v <= -boost::math::constants::pi<double>() || v > boost::math::constants::pi<double>())
+    {
+      v = fmod(v, 2.0 * boost::math::constants::pi<double>());
+      if (v <= -boost::math::constants::pi<double>())
+        v += 2.0 * boost::math::constants::pi<double>();
+      else
+        if (v > boost::math::constants::pi<double>())
+          v -= 2.0 * boost::math::constants::pi<double>();
+      return true;
+    }
   }
   else
   {
-    const std::pair<double, double> &b = bounds[0];
-    if (values[0] < b.first)
-      values[0] = b.first;
+    if (values[0] < bounds[0].min_position_)
+    {
+      values[0] = bounds[0].min_position_;
+      return true;
+    }
     else
-      if (values[0] > b.second)
-        values[0] = b.second;
+      if (values[0] > bounds[0].max_position_)
+      {
+        values[0] = bounds[0].max_position_;
+        return true;
+      }
   }
+  return false;
 }
 
-void robot_model::RevoluteJointModel::computeDefaultVariableLimits()
-{
-  JointModel::computeDefaultVariableLimits();
-  if (continuous_)
-    default_limits_[0].has_position_limits = false;
-}
-
-void robot_model::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
-{
-  updateTransform(joint_values, transf);
-}
-
-void robot_model::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
+void moveit::core::RevoluteJointModel::computeTransform(const double *joint_values, Eigen::Affine3d &transf) const
 {
   transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_));
 }
 
-void robot_model::RevoluteJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
+void moveit::core::RevoluteJointModel::computeVariableValues(const Eigen::Affine3d& transf, double *joint_values) const
 {
-  joint_values.resize(1);
   Eigen::Quaterniond q(transf.rotation());
   q.normalize();
   joint_values[0] = acos(q.w())*2.0f;

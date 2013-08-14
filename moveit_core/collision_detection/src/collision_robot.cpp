@@ -67,23 +67,23 @@ static inline bool validatePadding(double padding)
   return true;
 }
 
-collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr &kmodel, double padding, double scale) : kmodel_(kmodel)
+collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr &model, double padding, double scale) 
+  : robot_model_(model)
 {
   if (!validateScale(scale))
     scale = 1.0;
   if (!validatePadding(padding))
     padding = 0.0;
 
-  const std::vector<const robot_model::LinkModel*>& links = kmodel_->getLinkModels();
+  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0 ; i < links.size() ; ++i)
-    if (links[i] && links[i]->getShape())
-    {
-      link_padding_[links[i]->getName()] = padding;
-      link_scale_[links[i]->getName()] = scale;
-    }
+  {
+    link_padding_[links[i]->getName()] = padding;
+    link_scale_[links[i]->getName()] = scale;
+  }
 }
 
-collision_detection::CollisionRobot::CollisionRobot(const CollisionRobot &other) : kmodel_(other.kmodel_)
+collision_detection::CollisionRobot::CollisionRobot(const CollisionRobot &other) : robot_model_(other.robot_model_)
 {
   link_padding_ = other.link_padding_;
   link_scale_ = other.link_scale_;
@@ -94,14 +94,13 @@ void collision_detection::CollisionRobot::setPadding(double padding)
   if (!validatePadding(padding))
     return;
   std::vector<std::string> u;
-  const std::vector<const robot_model::LinkModel*>& links = kmodel_->getLinkModels();
+  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0 ; i < links.size() ; ++i)
-    if (links[i] && links[i]->getShape())
-    {
-      if (getLinkPadding(links[i]->getName()) != padding)
-        u.push_back(links[i]->getName());
-      link_padding_[links[i]->getName()] = padding;
-    }
+  {
+    if (getLinkPadding(links[i]->getName()) != padding)
+      u.push_back(links[i]->getName());
+    link_padding_[links[i]->getName()] = padding;
+  }
   if (!u.empty())
     updatedPaddingOrScaling(u);
 }
@@ -111,14 +110,13 @@ void collision_detection::CollisionRobot::setScale(double scale)
   if (!validateScale(scale))
     return;
   std::vector<std::string> u;
-  const std::vector<const robot_model::LinkModel*>& links = kmodel_->getLinkModels();
+  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0 ; i < links.size() ; ++i)
-    if (links[i] && links[i]->getShape())
-    {
-      if (getLinkScale(links[i]->getName()) != scale)
-        u.push_back(links[i]->getName());
-      link_scale_[links[i]->getName()] = scale;
-    }
+  {
+    if (getLinkScale(links[i]->getName()) != scale)
+      u.push_back(links[i]->getName());
+    link_scale_[links[i]->getName()] = scale;
+  }
   if (!u.empty())
     updatedPaddingOrScaling(u);
 }

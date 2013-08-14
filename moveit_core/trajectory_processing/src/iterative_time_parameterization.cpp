@@ -55,7 +55,9 @@ IterativeParabolicTimeParameterization::IterativeParabolicTimeParameterization(u
 IterativeParabolicTimeParameterization::~IterativeParabolicTimeParameterization()
 {}
 
-void IterativeParabolicTimeParameterization::printPoint(const trajectory_msgs::JointTrajectoryPoint& point, unsigned int i) const
+namespace
+{
+void printPoint(const trajectory_msgs::JointTrajectoryPoint& point, std::size_t i) 
 {
   logDebug(  " time   [%i]= %f",i,point.time_from_start.toSec());
   if(point.positions.size() >= 7 )
@@ -75,8 +77,7 @@ void IterativeParabolicTimeParameterization::printPoint(const trajectory_msgs::J
   }
 }
 
-void IterativeParabolicTimeParameterization::printStats(const trajectory_msgs::JointTrajectory& trajectory,
-                                                        const std::vector<moveit_msgs::JointLimits>& limits) const
+void printStats(const trajectory_msgs::JointTrajectory& trajectory, const std::vector<moveit_msgs::JointLimits>& limits)
 {
   logDebug("jointNames= %s %s %s %s %s %s %s",
            limits[0].joint_name.c_str(),limits[1].joint_name.c_str(),limits[2].joint_name.c_str(),
@@ -91,55 +92,37 @@ void IterativeParabolicTimeParameterization::printStats(const trajectory_msgs::J
            limits[3].max_acceleration,limits[4].max_acceleration,limits[5].max_acceleration,
            limits[6].max_acceleration);
   // for every point in time:
-  for (unsigned int i=0; i<trajectory.points.size(); ++i)
-  {
-    const trajectory_msgs::JointTrajectoryPoint& point = trajectory.points[i];
-    printPoint(point, i);
-  }
+  for (std::size_t i = 0; i<trajectory.points.size(); ++i)
+    printPoint(trajectory.points[i], i);
+}
 }
 
 // Applies velocity
 void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
-                                                                      const std::vector<std::string>& active_joints,
-                                                                      const std::vector<moveit_msgs::JointLimits>& limits,
                                                                       std::vector<double> &time_diff) const
 {
-
-  robot_state::RobotStatePtr curr_waypoint;
-  robot_state::RobotStatePtr next_waypoint;
-  std::map<std::string, double> curr_state_values;
-  std::map<std::string, double> next_state_values;
-
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
-  const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
+  const std::vector<std::string> &vars = group->getVariableNames();
+  const std::vector<int> &idx = group->getVariableIndexList();
+  const robot_model::RobotModel &rmodel = group->getParentModel();
+  const int num_points = rob_trajectory.getWayPointCount();
 
-  const unsigned int num_points = rob_trajectory.getWayPointCount();
-  const unsigned int num_joints = group->getVariableCount();
-
-  for( unsigned int i=0; i<num_points-1; ++i )
+  for (int i = 0 ; i < num_points-1 ; ++i)
   {
-    curr_waypoint = rob_trajectory.getWayPointPtr(i);
-    next_waypoint = rob_trajectory.getWayPointPtr(i+1);
-
-    curr_waypoint->getStateValues(curr_state_values);
-    next_waypoint->getStateValues(next_state_values);
-
-    for (unsigned int joint=0; joint < active_joints.size(); joint++)
+    const robot_state::RobotStatePtr &curr_waypoint = rob_trajectory.getWayPointPtr(i);
+    const robot_state::RobotStatePtr &next_waypoint = rob_trajectory.getWayPointPtr(i+1);
+    
+    for (std::size_t j = 0 ; j < vars.size() ; ++j)
     {
       double v_max = 1.0;
-
-      if( limits[joint].has_velocity_limits )
-      {
-        v_max = limits[joint].max_velocity;
-      }
-      const double dq1 = curr_state_values[active_joints[joint]];
-      const double dq2 = next_state_values[active_joints[joint]];
+      const robot_model::VariableBounds &b = rmodel.getVariableBounds(idx[j]);
+      if (b.velocity_bounded_)
+        v_max = std::min(fabs(b.max_velocity_), fabs(b.min_velocity_));
+      const double dq1 = curr_waypoint->getVariablePosition(idx[j]);
+      const double dq2 = next_waypoint->getVariablePosition(idx[j]);
       const double t_min = std::abs(dq2-dq1) / v_max;
-      if( t_min > time_diff[i] )
-      {
+      if (t_min > time_diff[i])
         time_diff[i] = t_min;
-      }
-
     }
   }
 }
@@ -147,11 +130,11 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
 // Iteratively expand dt1 interval by a constant factor until within acceleration constraint
 // In the future we may want to solve to quadratic equation to get the exact timing interval.
 // To do this, use the CubicTrajectory::quadSolve() function in cubic_trajectory.h
-double IterativeParabolicTimeParameterization::findT1( const double dq1,
-                                                       const double dq2,
-                                                       double dt1,
-                                                       const double dt2,
-                                                       const double a_max) const
+double IterativeParabolicTimeParameterization::findT1(const double dq1,
+                                                      const double dq2,
+                                                      double dt1,
+                                                      const double dt2,
+                                                      const double a_max) const
 {
   const double mult_factor = 1.01;
   double v1 = (dq1)/dt1;
@@ -197,62 +180,48 @@ namespace
 // Takes the time differences, and updates the timestamps, velocities and accelerations
 // in the trajectory.
 void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
-                      const std::vector<std::string>& active_joints,
                       const std::vector<double>& time_diff)
 {
+  // Error check
+  if (time_diff.size() < 1)
+    return;
 
   double time_sum = 0.0;
-
+  
   robot_state::RobotStatePtr prev_waypoint;
   robot_state::RobotStatePtr curr_waypoint;
   robot_state::RobotStatePtr next_waypoint;
-  std::map<std::string, double> prev_state_values;
-  std::map<std::string, double> curr_state_values;
-  std::map<std::string, double> next_state_values;
-  robot_state::JointState *jst;
 
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
-  const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
+  const std::vector<std::string> &vars = group->getVariableNames();
+  const std::vector<int> &idx = group->getVariableIndexList();
+  const robot_model::RobotModel &rmodel = group->getParentModel();
 
-  unsigned int num_points = rob_trajectory.getWayPointCount();
-  const unsigned int num_joints = group->getVariableCount();
-
-  // Error check
-  if(time_diff.size() < 1)
-    return;
-
+  int num_points = rob_trajectory.getWayPointCount();
+  
   rob_trajectory.setWayPointDurationFromPrevious(0, time_sum);
 
   // Times
-  for (unsigned int i=1; i<num_points; ++i)
-  {
+  for (int i = 1; i < num_points; ++i)
     // Update the time between the waypoints in the robot_trajectory.
     rob_trajectory.setWayPointDurationFromPrevious(i, time_diff[i-1]);
-  }
-
+  
   // Return if there is only one point in the trajectory!
-  if(num_points <= 1) return;
+  if (num_points <= 1)
+    return;
 
   // Accelerations
-  for (unsigned int i=0; i<num_points; ++i)
+  for (int i = 0; i < num_points; ++i)
   {
     curr_waypoint = rob_trajectory.getWayPointPtr(i);
-    curr_waypoint->getStateValues(curr_state_values);
-
+    
     if (i > 0)
-    {
       prev_waypoint = rob_trajectory.getWayPointPtr(i-1);
-      prev_waypoint->getStateValues(prev_state_values);
-    }
 
     if (i < num_points-1)
-    {
       next_waypoint = rob_trajectory.getWayPointPtr(i+1);
-      next_waypoint->getStateValues(next_state_values);
-    }
-
-
-    for (unsigned int j=0; j<num_joints; ++j)
+    
+    for (std::size_t j = 0; j < vars.size(); ++j)
     {
       double q1;
       double q2;
@@ -260,38 +229,40 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
       double dt1;
       double dt2;
 
-      if(i==0)
-      { // First point
-        q1 = next_state_values[active_joints[j]];
-        q2 = curr_state_values[active_joints[j]];
-        q3 = next_state_values[active_joints[j]];
-
-        dt1 = time_diff[i];
-        dt2 = time_diff[i];
-      }
-      else if(i < num_points-1)
-      { // middle points
-        q1 = prev_state_values[active_joints[j]];
-        q2 = curr_state_values[active_joints[j]];
-        q3 = next_state_values[active_joints[j]];
-
-        dt1 = time_diff[i-1];
-        dt2 = time_diff[i];
+      if (i == 0)
+      { 
+        // First point
+        q1 = next_waypoint->getVariablePosition(idx[j]);
+        q2 = curr_waypoint->getVariablePosition(idx[j]);
+        q3 = q1;
+        
+        dt1 = dt2 = time_diff[i];
       }
       else
-      { // last point
-        q1 = prev_state_values[active_joints[j]];
-        q2 = curr_state_values[active_joints[j]];
-        q3 = prev_state_values[active_joints[j]];
-
-        dt1 = time_diff[i-1];
-        dt2 = time_diff[i-1];
-      }
-
+        if (i < num_points-1)
+        {
+          // middle points
+          q1 = prev_waypoint->getVariablePosition(idx[j]);
+          q2 = curr_waypoint->getVariablePosition(idx[j]);
+          q3 = next_waypoint->getVariablePosition(idx[j]);
+          
+          dt1 = time_diff[i-1];
+          dt2 = time_diff[i];
+        }
+        else
+        { 
+          // last point
+          q1 = prev_waypoint->getVariablePosition(idx[j]);
+          q2 = curr_waypoint->getVariablePosition(idx[j]);
+          q3 = q1;
+          
+          dt1 = dt2 = time_diff[i-1];
+        }
+      
       double v1, v2, a;
 
       bool start_velocity = false;
-      if(dt1 == 0.0 || dt2 == 0.0)
+      if (dt1 == 0.0 || dt2 == 0.0)
       {
         v1 = 0.0;
         v2 = 0.0;
@@ -299,50 +270,42 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
       }
       else
       {
-        if(i==0)
-    {
-          const std::vector<double> &vel = curr_waypoint->getJointState(active_joints[j])->getVelocities();
-      if(!vel.empty())
-      {
-        start_velocity = true;
-            v1 = vel[0];
+        if (i == 0)
+        {
+          if (curr_waypoint->hasVelocities())
+          {
+            start_velocity = true;
+            v1 = curr_waypoint->getVariableVelocity(idx[j]);
           }
         }
         v1 = start_velocity ? v1 : (q2-q1)/dt1;
         //v2 = (q3-q2)/dt2;
         v2 = start_velocity ? v1 : (q3-q2)/dt2; // Needed to ensure continuous velocity for first point
-        a = 2*(v2-v1)/(dt1+dt2);
+        a = 2.0*(v2-v1)/(dt1+dt2);
       }
-
-      jst = curr_waypoint->getJointState(active_joints[j]);
-      // Update the velocities
-      jst->getVelocities().resize(1);
-      jst->getVelocities()[0] = (v2+v1)/2;
-      // Update the accelerations
-      jst->getAccelerations().resize(1);
-      jst->getAccelerations()[0] = a;
+      
+      curr_waypoint->setVariableVelocity(idx[j], (v2+v1)/2.0);
+      curr_waypoint->setVariableAcceleration(idx[j], a);
     }
   }
 }
 }
 
+
 // Applies Acceleration constraints
 void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
-                                                                          const std::vector<std::string>& active_joints,
-                                                                          const std::vector<moveit_msgs::JointLimits>& limits,
                                                                           std::vector<double> & time_diff) const
 {
   robot_state::RobotStatePtr prev_waypoint;
   robot_state::RobotStatePtr curr_waypoint;
   robot_state::RobotStatePtr next_waypoint;
-  std::map<std::string, double> prev_state_values;
-  std::map<std::string, double> curr_state_values;
-  std::map<std::string, double> next_state_values;
 
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
-  const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
-
-  const unsigned int num_points = rob_trajectory.getWayPointCount();
+  const std::vector<std::string> &vars = group->getVariableNames();
+  const std::vector<int> &idx = group->getVariableIndexList();
+  const robot_model::RobotModel &rmodel = group->getParentModel();
+  
+  const int num_points = rob_trajectory.getWayPointCount();
   const unsigned int num_joints = group->getVariableCount();
   int num_updates = 0;
   int iteration = 0;
@@ -366,107 +329,102 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
     for (unsigned int j = 0; j < num_joints ; ++j)
     {
       // Loop forwards, then backwards
-      for( int count=0; count<2; count++)
+      for (int count = 0; count < 2; ++count)
       {
-        for (unsigned int i=0; i<num_points-1; ++i)
+        for (int i = 0 ; i < num_points-1; ++i)
         {
-          unsigned int index = i;
-          if(backwards)
-          {
-            index = (num_points-1)-i;
-          }
-
+          int index = backwards ? (num_points-1)-i : i;
+          
           curr_waypoint = rob_trajectory.getWayPointPtr(index);
-          curr_waypoint->getStateValues(curr_state_values);
 
           if (index > 0)
-          {
             prev_waypoint = rob_trajectory.getWayPointPtr(index-1);
-            prev_waypoint->getStateValues(prev_state_values);
-          }
-
+          
           if (index < num_points-1)
-          {
             next_waypoint = rob_trajectory.getWayPointPtr(index+1);
-            next_waypoint->getStateValues(next_state_values);
-          }
 
           // Get acceleration limits
           double a_max = 1.0;
-          if( limits[j].has_acceleration_limits )
-          {
-            a_max = limits[j].max_acceleration;
-          }
+          const robot_model::VariableBounds &b = rmodel.getVariableBounds(idx[j]);
+          if (b.acceleration_bounded_)
+            a_max = std::min(fabs(b.max_acceleration_), fabs(b.min_acceleration_));
+          
+          if (index == 0)
+          { 
+            // First point
+            q1 = next_waypoint->getVariablePosition(idx[j]);
+            q2 = curr_waypoint->getVariablePosition(idx[j]);
+            q3 = next_waypoint->getVariablePosition(idx[j]);
 
-          if(index==0)
-          {     // First point
-            q1 = next_state_values[active_joints[j]];
-            q2 = curr_state_values[active_joints[j]];
-            q3 = next_state_values[active_joints[j]];
-
-            dt1 = time_diff[index];
-            dt2 = time_diff[index];
+            dt1 = dt2 = time_diff[index];
             assert(!backwards);
           }
-          else if(index < num_points-1)
-          { // middle points
-            q1 = prev_state_values[active_joints[j]];
-            q2 = curr_state_values[active_joints[j]];
-            q3 = next_state_values[active_joints[j]];
-
-            dt1 = time_diff[index-1];
-            dt2 = time_diff[index];
-          }
           else
-          { // last point - careful, there are only numpoints-1 time intervals
-            q1 = prev_state_values[active_joints[j]];
-            q2 = curr_state_values[active_joints[j]];
-            q3 = prev_state_values[active_joints[j]];
-
-            dt1 = time_diff[index-1];
-            dt2 = time_diff[index-1];
-            assert(backwards);
-          }
-
-          if(dt1 == 0.0 || dt2 == 0.0) {
+            if (index < num_points-1)
+            {
+              // middle points
+              q1 = prev_waypoint->getVariablePosition(idx[j]);
+              q2 = curr_waypoint->getVariablePosition(idx[j]);
+              q3 = next_waypoint->getVariablePosition(idx[j]);
+              
+              dt1 = time_diff[index-1];
+              dt2 = time_diff[index];
+            }
+            else
+            { 
+              // last point - careful, there are only numpoints-1 time intervals
+              q1 = prev_waypoint->getVariablePosition(idx[j]);
+              q2 = curr_waypoint->getVariablePosition(idx[j]);
+              q3 = prev_waypoint->getVariablePosition(idx[j]);
+              
+              dt1 = dt2 = time_diff[index-1];
+              assert(backwards);
+            }
+          
+          if (dt1 == 0.0 || dt2 == 0.0)
+          {
             v1 = 0.0;
             v2 = 0.0;
             a = 0.0;
-          } else {
+          } 
+          else
+          {
             bool start_velocity = false;
-            if(index==0)
+            if (index == 0)
             {
-              const std::vector<double> &vel = curr_waypoint->getJointState(active_joints[j])->getVelocities();
-              if(!vel.empty())
+              if (curr_waypoint->hasVelocities())
               {
                 start_velocity = true;
-                v1 = vel[0];
+                v1 = curr_waypoint->getVariableVelocity(idx[j]);
               }
             }
             v1 = start_velocity ? v1 : (q2-q1)/dt1;
             v2 = (q3-q2)/dt2;
-            a = 2*(v2-v1)/(dt1+dt2);
+            a = 2.0*(v2-v1)/(dt1+dt2);
           }
 
-          if( std::abs( a ) > a_max + ROUNDING_THRESHOLD )
+          if (fabs(a) > a_max + ROUNDING_THRESHOLD)
           {
-            if(!backwards)
+            if (!backwards)
             {
-              dt2 = std::min( dt2+max_time_change_per_it_, findT2( q2-q1, q3-q2, dt1, dt2, a_max) );
+              dt2 = std::min(dt2 + max_time_change_per_it_, findT2(q2-q1, q3-q2, dt1, dt2, a_max));
               time_diff[index] = dt2;
             }
             else
             {
-              dt1 = std::min( dt1+max_time_change_per_it_, findT1( q2-q1, q3-q2, dt1, dt2, a_max) );
+              dt1 = std::min(dt1 + max_time_change_per_it_, findT1(q2-q1, q3-q2, dt1, dt2, a_max));
               time_diff[index-1] = dt1;
             }
             num_updates++;
-
-            if(dt1 == 0.0 || dt2 == 0.0) {
+            
+            if (dt1 == 0.0 || dt2 == 0.0)
+            {
               v1 = 0.0;
               v2 = 0.0;
               a = 0.0;
-            } else {
+            } 
+            else
+            {
               v1 = (q2-q1)/dt1;
               v2 = (q3-q2)/dt2;
               a = 2*(v2-v1)/(dt1+dt2);
@@ -477,15 +435,11 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
       }
     }
     //logDebug("applyAcceleration: num_updates=%i", num_updates);
-  } while(num_updates > 0 && iteration < max_iterations_);
+  } while (num_updates > 0 && iteration < max_iterations_);
 }
 
 bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory) const
 {
-  bool success = true;
-  robot_state::RobotStatePtr curr_waypoint;
-  const robot_state::JointState *jst;
-
   if (trajectory.empty())
     return true;
 
@@ -498,27 +452,23 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
 
   const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
   for (std::size_t i = 0 ; i < jnt.size() ; ++i)
-    if (jnt[i]->getVariableCount() != 1)
+    if (jnt[i]->getVariableCount() > 1)
     {
       logWarn("Time parametrization works for single-dof joints only");
       return false;
     }
 
-  const std::vector<moveit_msgs::JointLimits> &limits = trajectory.getGroup()->getVariableLimits();
-  const std::vector<std::string> &active_joints = group->getJointModelNames();
-
   // this lib does not actually work properly when angles wrap around, so we need to unwind the path first
   trajectory.unwind();
 
-  const std::size_t num_points = trajectory.getWayPointCount();
-
+  const int num_points = trajectory.getWayPointCount();
   std::vector<double> time_diff(num_points-1, 0.0);       // the time difference between adjacent points
-
-  applyVelocityConstraints(trajectory, active_joints, limits, time_diff);
-  applyAccelerationConstraints(trajectory, active_joints, limits, time_diff);
-
-  updateTrajectory(trajectory, active_joints, time_diff);
-  return success;
+  
+  applyVelocityConstraints(trajectory, time_diff);
+  applyAccelerationConstraints(trajectory, time_diff);
+  
+  updateTrajectory(trajectory, time_diff);
+  return true;
 }
 
 }

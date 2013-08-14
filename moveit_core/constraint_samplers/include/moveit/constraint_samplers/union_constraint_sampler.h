@@ -144,15 +144,15 @@ public:
    * passed in as an argument.  If any sampler fails, the sample fails
    * altogether.
    *
-   * @param [in] jsg A joint state group, which only needs to have a valid associated kinematic model
-   * @param [in] ks Reference kinematic state that will be passed through to samplers
+   * @param [in] state State where the group sample is written to
+   * @param [in] reference_state Reference kinematic state that will be passed through to samplers
    * @param [in] max_attempts Max attempts, which will be passed through to samplers
    *
    * @return True if all invidual samplers return true
    */
-  virtual bool sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts);
+  virtual bool sample(robot_state::RobotState &state, const robot_state::RobotState &reference_state, unsigned int max_attempts);
 
-  virtual bool project(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts);
+  virtual bool project(robot_state::RobotState &state, unsigned int max_attempts);
 
 protected:
 

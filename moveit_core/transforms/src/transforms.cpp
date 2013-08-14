@@ -39,7 +39,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <console_bridge/console.h>
 
-robot_state::Transforms::Transforms(const std::string &target_frame) : target_frame_(target_frame)
+moveit::core::Transforms::Transforms(const std::string &target_frame) : target_frame_(target_frame)
 {
   boost::trim(target_frame_);
   if (target_frame_.empty())
@@ -55,7 +55,7 @@ robot_state::Transforms::Transforms(const std::string &target_frame) : target_fr
   }
 }
 
-bool robot_state::Transforms::sameFrame(const std::string &frame1, const std::string &frame2)
+bool moveit::core::Transforms::sameFrame(const std::string &frame1, const std::string &frame2)
 {
   if (frame1.empty() || frame2.empty())
     return false;
@@ -66,26 +66,26 @@ bool robot_state::Transforms::sameFrame(const std::string &frame1, const std::st
   return frame1 == frame2;
 }
 
-robot_state::Transforms::~Transforms()
+moveit::core::Transforms::~Transforms()
 {
 }
 
-const std::string& robot_state::Transforms::getTargetFrame() const
+const std::string& moveit::core::Transforms::getTargetFrame() const
 {
   return target_frame_;
 }
 
-const robot_state::FixedTransformsMap& robot_state::Transforms::getAllTransforms() const
+const moveit::core::FixedTransformsMap& moveit::core::Transforms::getAllTransforms() const
 {
   return transforms_;
 }
 
-void robot_state::Transforms::setAllTransforms(const FixedTransformsMap &transforms)
+void moveit::core::Transforms::setAllTransforms(const FixedTransformsMap &transforms)
 {
   transforms_ = transforms;
 }
 
-bool robot_state::Transforms::isFixedFrame(const std::string &frame) const
+bool moveit::core::Transforms::isFixedFrame(const std::string &frame) const
 {
   if (frame.empty())
     return false;
@@ -93,7 +93,7 @@ bool robot_state::Transforms::isFixedFrame(const std::string &frame) const
     return (frame[0] == '/' ? transforms_.find(frame) : transforms_.find('/' + frame)) != transforms_.end();
 }
 
-const Eigen::Affine3d& robot_state::Transforms::getTransform(const std::string &from_frame) const
+const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string &from_frame) const
 {
   if (!from_frame.empty())
   {
@@ -109,7 +109,7 @@ const Eigen::Affine3d& robot_state::Transforms::getTransform(const std::string &
   return identity;
 }
 
-bool robot_state::Transforms::canTransform(const std::string &from_frame) const
+bool moveit::core::Transforms::canTransform(const std::string &from_frame) const
 {
   if (from_frame.empty())
     return false;
@@ -117,7 +117,7 @@ bool robot_state::Transforms::canTransform(const std::string &from_frame) const
     return (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame)) != transforms_.end();
 }
 
-void robot_state::Transforms::setTransform(const Eigen::Affine3d &t, const std::string &from_frame)
+void moveit::core::Transforms::setTransform(const Eigen::Affine3d &t, const std::string &from_frame)
 {
   if (from_frame.empty())
     logError("Cannot record transform with empty name");
@@ -133,7 +133,7 @@ void robot_state::Transforms::setTransform(const Eigen::Affine3d &t, const std::
   }
 }
 
-void robot_state::Transforms::setTransform(const geometry_msgs::TransformStamped &transform)
+void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStamped &transform)
 {
   if (sameFrame(transform.child_frame_id, target_frame_))
   {
@@ -147,13 +147,13 @@ void robot_state::Transforms::setTransform(const geometry_msgs::TransformStamped
   }
 }
 
-void robot_state::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms)
+void moveit::core::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms)
 {
   for (std::size_t i = 0 ; i < transforms.size() ; ++i)
     setTransform(transforms[i]);
 }
 
-void robot_state::Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const
+void moveit::core::Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;

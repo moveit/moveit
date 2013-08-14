@@ -134,13 +134,13 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
     }
   }
 
-
   if (joint_model_)
   {
     joint_is_continuous_ = false;
     joint_tolerance_above_ = jc.tolerance_above;
     joint_tolerance_below_ = jc.tolerance_below;
-
+    joint_variable_index_ = robot_model_->getVariableIndex(joint_variable_name_);
+    
     // check if we have to wrap angles when computing distances
     joint_is_continuous_ = false;
     if (joint_model_->getType() == robot_model::JointModel::REVOLUTE)
@@ -163,20 +163,18 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
     else
     {
       joint_position_ = jc.position;
+      const robot_model::VariableBounds& bounds = joint_model_->getVariableBounds(joint_variable_name_);
 
-      std::pair<double, double> bounds;
-      joint_model_->getVariableBounds(joint_variable_name_, bounds);
-
-      if (bounds.first > joint_position_ + joint_tolerance_above_)
+      if (bounds.min_position_ > joint_position_ + joint_tolerance_above_)
       {
-        joint_position_ = bounds.first;
+        joint_position_ = bounds.min_position_;
         joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
         logWarn("Joint %s is constrained to be below the minimum bounds. Assuming minimum bounds instead.", jc.joint_name.c_str());
       }
       else
-        if (bounds.second < joint_position_ - joint_tolerance_below_)
+        if (bounds.max_position_ < joint_position_ - joint_tolerance_below_)
         {
-          joint_position_ = bounds.second;
+          joint_position_ = bounds.max_position_;
           joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
           logWarn("Joint %s is constrained to be above the maximum bounds. Assuming maximum bounds instead.", jc.joint_name.c_str());
         }
@@ -210,28 +208,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
   if (!joint_model_)
     return ConstraintEvaluationResult(true, 0.0);
 
-  const robot_state::JointState *joint = state.getJointState(joint_model_->getName());
-
-  if (!joint)
-  {
-    logWarn("No joint in state with name '%s'", joint_model_->getName().c_str());
-    return ConstraintEvaluationResult(true, 0.0);
-  }
-
-  double current_joint_position = joint->getVariableValues()[0];
-  if (!local_variable_name_.empty())
-  {
-    const std::map<std::string, unsigned int> &index_map = joint->getVariableIndexMap();
-    std::map<std::string, unsigned int>::const_iterator it = index_map.find(joint_variable_name_);
-    if (it == index_map.end())
-    {
-      logWarn("Local name '%s' is not known to joint state with name '%s'", local_variable_name_.c_str(), joint_model_->getName().c_str());
-      return ConstraintEvaluationResult(true, 0.0);
-    }
-    else
-      current_joint_position = joint->getVariableValues()[it->second];
-  }
-
+  double current_joint_position = state.getVariablePosition(joint_variable_index_);
   double dif = 0.0;
 
   // compute signed shortest distance for continuous joints
@@ -249,7 +226,8 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
     dif = current_joint_position - joint_position_;
 
   // check bounds
-  bool result = dif <= (joint_tolerance_above_+2*std::numeric_limits<double>::epsilon()) && dif >= (-joint_tolerance_below_-2*std::numeric_limits<double>::epsilon());
+  bool result = dif <= (joint_tolerance_above_ + 2.0 * std::numeric_limits<double>::epsilon()) &&
+    dif >= (-joint_tolerance_below_ - 2.0 * std::numeric_limits<double>::epsilon());
   if (verbose)
     logInform("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
               result ? "satisfied" : "violated", joint_variable_name_.c_str(),
@@ -265,6 +243,7 @@ bool kinematic_constraints::JointConstraint::enabled() const
 void kinematic_constraints::JointConstraint::clear()
 {
   joint_model_ = NULL;
+  joint_variable_index_ = -1;
   joint_is_continuous_ = false;
   local_variable_name_ = "";
   joint_variable_name_ = "";
@@ -451,15 +430,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Positio
   if (!link_model_ || constraint_region_.empty())
     return ConstraintEvaluationResult(true, 0.0);
 
-  const robot_state::LinkState *link_state = state.getLinkState(link_model_->getName());
-
-  if (!link_state)
-  {
-    logWarn("No link in state with name '%s'", link_model_->getName().c_str());
-    return ConstraintEvaluationResult(false, 0.0);
-  }
-
-  Eigen::Vector3d pt = link_state->getGlobalLinkTransform() * offset_;
+  Eigen::Vector3d pt = state.getGlobalLinkTransform(link_model_) * offset_;
   if (mobile_frame_)
   {
     for (std::size_t i = 0 ; i < constraint_region_.size() ; ++i)
@@ -609,25 +580,17 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Orienta
   if (!link_model_)
     return ConstraintEvaluationResult(true, 0.0);
 
-  const robot_state::LinkState *link_state = state.getLinkState(link_model_->getName());
-
-  if (!link_state)
-  {
-    logWarn("No link in state with name '%s'", link_model_->getName().c_str());
-    return ConstraintEvaluationResult(false, 0.0);
-  }
-
   Eigen::Vector3d xyz;
   if (mobile_frame_)
   {
     Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).rotation() * desired_rotation_matrix_;
-    Eigen::Affine3d diff(tmp.inverse() * link_state->getGlobalLinkTransform().rotation());
+    Eigen::Affine3d diff(tmp.inverse() * state.getGlobalLinkTransform(link_model_).rotation());
     xyz = diff.rotation().eulerAngles(0, 1, 2);
     // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
   else
   {
-    Eigen::Affine3d diff(desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().rotation());
+    Eigen::Affine3d diff(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).rotation());
     xyz = diff.rotation().eulerAngles(0, 1, 2); // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
 
@@ -640,7 +603,7 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Orienta
 
   if (verbose)
   {
-    Eigen::Quaterniond q_act(link_state->getGlobalLinkTransform().rotation());
+    Eigen::Quaterniond q_act(state.getGlobalLinkTransform(link_model_).rotation());
     Eigen::Quaterniond q_des(desired_rotation_matrix_);
     logInform("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion actual: %f %f %f %f, error: x=%f, y=%f, z=%f, tolerance: x=%f, y=%f, z=%f",
              result ? "satisfied" : "violated", link_model_->getName().c_str(),
