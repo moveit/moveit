@@ -91,9 +91,7 @@ namespace collision_detection
     double distanceOtherHelper(const robot_state::RobotState &state, const CollisionRobot &other_robot,
                                const robot_state::RobotState &other_state, const AllowedCollisionMatrix *acm) const;
 
-    std::vector<const robot_model::LinkModel*> links_;
-    std::vector<FCLGeometryConstPtr>               geoms_;
-    std::map<std::string, std::size_t>             index_map_;
+    std::vector<FCLGeometryConstPtr> geoms_;
   };
 
 }

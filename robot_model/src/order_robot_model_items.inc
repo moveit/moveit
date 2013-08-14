@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2011, Willow Garage, Inc.
+ *  Copyright (c) 2013, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of the Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,45 +32,39 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ken Anderson */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_TRAJECTORY_PROCESSING_ITERATIVE_PARABOLIC_SMOOTHER_
-#define MOVEIT_TRAJECTORY_PROCESSING_ITERATIVE_PARABOLIC_SMOOTHER_
-
-#include <trajectory_msgs/JointTrajectory.h>
-#include <moveit_msgs/JointLimits.h>
-#include <moveit_msgs/RobotState.h>
-#include <moveit/robot_trajectory/robot_trajectory.h>
-
-namespace trajectory_processing
+namespace moveit
+{
+namespace core
+{
+namespace
 {
 
-/// \brief This class  modifies the timestamps of a trajectory to respect
-/// velocity and acceleration constraints.
-class IterativeParabolicTimeParameterization
+struct OrderLinksByIndex
 {
-public:
-  IterativeParabolicTimeParameterization(unsigned int max_iterations = 100,
-                                         double max_time_change_per_it = .01);
-  ~IterativeParabolicTimeParameterization();
+  bool operator()(const LinkModel *a, const LinkModel *b) const
+  {
+    return a->getLinkIndex() < b->getLinkIndex();
+  }
+};
 
-  bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory) const;
+struct OrderJointsByIndex
+{
+  bool operator()(const JointModel *a, const JointModel *b) const
+  {
+    return a->getJointIndex() < b->getJointIndex();
+  }
+};
 
-private:
-
-  unsigned int max_iterations_;         /// @brief maximum number of iterations to find solution
-  double max_time_change_per_it_;       /// @brief maximum allowed time change per iteration in seconds
-
-  void applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
-                                std::vector<double> &time_diff) const;
-
-  void applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
-                                    std::vector<double> & time_diff) const;
-
-  double findT1( const double d1, const double d2, double t1, const double t2, const double a_max) const;
-  double findT2( const double d1, const double d2, const double t1, double t2, const double a_max) const;
+struct OrderGroupsByName
+{
+  bool operator()(const JointModelGroup *a, const JointModelGroup *b) const
+  {
+    return a->getName() < b->getName();
+  }
 };
 
 }
-
-#endif
+}
+}

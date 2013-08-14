@@ -36,42 +36,34 @@
 
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 
-collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
+collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr &model, double padding, double scale) 
+  : CollisionRobot(model, padding, scale)
 {
-  links_ = kmodel_->getLinkModels();
-
+  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
+  geoms_.resize(robot_model_->getLinkGeometryCount());
   // we keep the same order of objects as what RobotState *::getLinkState() returns
-  for (std::size_t i = 0 ; i < links_.size() ; ++i)
-    if (links_[i] && links_[i]->getShape())
+  for (std::size_t i = 0 ; i < links.size() ; ++i)
+    for (std::size_t j = 0 ; j < links[i]->getShapes().size() ; ++j)
     {
-      FCLGeometryConstPtr g = createCollisionGeometry(links_[i]->getShape(), getLinkScale(links_[i]->getName()), getLinkPadding(links_[i]->getName()), links_[i]);
+      FCLGeometryConstPtr g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()), getLinkPadding(links[i]->getName()), links[i], j);
       if (g)
-        index_map_[links_[i]->getName()] = geoms_.size();
+        geoms_[links[i]->getFirstCollisionBodyTransformIndex() + j] = g;
       else
-        links_[i] = NULL;
-      geoms_.push_back(g);
-    }
-    else
-    {
-      links_[i] = NULL;
-      geoms_.push_back(FCLGeometryConstPtr());
+        logError("Unable to construct collision geometry for link '%s'", links[i]->getName().c_str());
     }
 }
 
 collision_detection::CollisionRobotFCL::CollisionRobotFCL(const CollisionRobotFCL &other) : CollisionRobot(other)
 {
-  links_ = other.links_;
   geoms_ = other.geoms_;
-  index_map_ = other.index_map_;
 }
 
-void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_state::AttachedBody *ab,
-                                                                    std::vector<FCLGeometryConstPtr> &geoms) const
+void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_state::AttachedBody *ab, std::vector<FCLGeometryConstPtr> &geoms) const
 {
   const std::vector<shapes::ShapeConstPtr> &shapes = ab->getShapes();
   for (std::size_t i = 0 ; i < shapes.size() ; ++i)
   {
-    FCLGeometryConstPtr co = createCollisionGeometry(shapes[i], ab);
+    FCLGeometryConstPtr co = createCollisionGeometry(shapes[i], ab, i);
     if (co)
       geoms.push_back(co);
   }
@@ -79,34 +71,33 @@ void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_
 
 void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_state::RobotState &state, FCLObject &fcl_obj) const
 {
-  const std::vector<robot_state::LinkState*> &link_states = state.getLinkStateVector();
   fcl_obj.collision_objects_.reserve(geoms_.size());
-
+  
   for (std::size_t i = 0 ; i < geoms_.size() ; ++i)
-  {
     if (geoms_[i] && geoms_[i]->collision_geometry_)
     {
-      fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms_[i]->collision_geometry_, transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));
+      fcl::CollisionObject *collObj = new fcl::CollisionObject
+        (geoms_[i]->collision_geometry_, transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link, geoms_[i]->collision_geometry_data_->shape_index)));
       fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
       // the CollisionGeometryData is already stored in the class member geoms_, so we need not copy it
     }
-    std::vector<const robot_state::AttachedBody*> ab;
-    link_states[i]->getAttachedBodies(ab);
-    for (std::size_t j = 0 ; j < ab.size() ; ++j)
-    {
-      std::vector<FCLGeometryConstPtr> objs;
-      getAttachedBodyObjects(ab[j], objs);
-      const EigenSTL::vector_Affine3d &ab_t = ab[j]->getGlobalCollisionBodyTransforms();
-      for (std::size_t k = 0 ; k < objs.size() ; ++k)
-        if (objs[k]->collision_geometry_)
-        {
-          fcl::CollisionObject *collObj = new fcl::CollisionObject(objs[k]->collision_geometry_, transform2fcl(ab_t[k]));
-          fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
-          // we copy the shared ptr to the CollisionGeometryData, as this is not stored by the class itself,
-          // and would be destroyed when objs goes out of scope.
-          fcl_obj.collision_geometry_.push_back(objs[k]);
-        }
-    }
+  
+  std::vector<const robot_state::AttachedBody*> ab;
+  state.getAttachedBodies(ab);
+  for (std::size_t j = 0 ; j < ab.size() ; ++j)
+  {
+    std::vector<FCLGeometryConstPtr> objs;
+    getAttachedBodyObjects(ab[j], objs);
+    const EigenSTL::vector_Affine3d &ab_t = ab[j]->getGlobalCollisionBodyTransforms();
+    for (std::size_t k = 0 ; k < objs.size() ; ++k)
+      if (objs[k]->collision_geometry_)
+      {
+        fcl::CollisionObject *collObj = new fcl::CollisionObject(objs[k]->collision_geometry_, transform2fcl(ab_t[k]));
+        fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
+        // we copy the shared ptr to the CollisionGeometryData, as this is not stored by the class itself,
+        // and would be destroyed when objs goes out of scope.
+        fcl_obj.collision_geometry_.push_back(objs[k]);
+      }
   }
 }
 
@@ -202,12 +193,15 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
 {
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
-    std::map<std::string, std::size_t>::const_iterator it = index_map_.find(links[i]);
-    const robot_model::LinkModel *lmodel = kmodel_->getLinkModel(links[i]);
-    if (it != index_map_.end() && lmodel)
+    const robot_model::LinkModel *lmodel = robot_model_->getLinkModel(links[i]);
+    if (lmodel)
     {
-      FCLGeometryConstPtr g = createCollisionGeometry(lmodel->getShape(), getLinkScale(links[i]), getLinkPadding(links[i]), lmodel);
-      geoms_[it->second] = g;
+      for (std::size_t j = 0 ; j < lmodel->getShapes().size() ; ++j)
+      {
+        FCLGeometryConstPtr g = createCollisionGeometry(lmodel->getShapes()[j], getLinkScale(lmodel->getName()), getLinkPadding(lmodel->getName()), lmodel, j);
+        if (g)
+          geoms_[lmodel->getFirstCollisionBodyTransformIndex() + j] = g;
+      }
     }
     else
       logError("Updating padding or scaling for unknown link: '%s'", links[i].c_str());

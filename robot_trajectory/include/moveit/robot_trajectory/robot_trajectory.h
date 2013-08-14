@@ -52,7 +52,7 @@ public:
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return kmodel_;
+    return robot_model_;
   }
 
   const robot_model::JointModelGroup* getGroup() const
@@ -203,7 +203,7 @@ public:
 
 private:
 
-  robot_model::RobotModelConstPtr kmodel_;
+  robot_model::RobotModelConstPtr robot_model_;
   const robot_model::JointModelGroup *group_;
   std::deque<robot_state::RobotStatePtr> waypoints_;
   std::deque<double> duration_from_previous_;

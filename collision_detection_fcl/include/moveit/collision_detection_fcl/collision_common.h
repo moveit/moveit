@@ -49,17 +49,23 @@ namespace collision_detection
 
 struct CollisionGeometryData
 {
-  CollisionGeometryData(const robot_model::LinkModel *link) : type(BodyTypes::ROBOT_LINK)
+  CollisionGeometryData(const robot_model::LinkModel *link, int index)
+    : type(BodyTypes::ROBOT_LINK)
+    , shape_index(index)
   {
     ptr.link = link;
   }
 
-  CollisionGeometryData(const robot_state::AttachedBody *ab) : type(BodyTypes::ROBOT_ATTACHED)
+  CollisionGeometryData(const robot_state::AttachedBody *ab, int index)
+    : type(BodyTypes::ROBOT_ATTACHED)
+    , shape_index(index)
   {
     ptr.ab = ab;
   }
 
-  CollisionGeometryData(const World::Object *obj) : type(BodyTypes::WORLD_OBJECT)
+  CollisionGeometryData(const World::Object *obj, int index)
+    : type(BodyTypes::WORLD_OBJECT)
+    , shape_index(index)
   {
     ptr.obj = obj;
   }
@@ -93,12 +99,13 @@ struct CollisionGeometryData
   }
 
   BodyType type;
+  int shape_index;
   union
   {
     const robot_model::LinkModel    *link;
     const robot_state::AttachedBody *ab;
-    const World::Object        *obj;
-    const void                          *raw;
+    const World::Object             *obj;
+    const void                      *raw;
   } ptr;
 };
 
@@ -145,31 +152,31 @@ struct FCLGeometry
   {
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const robot_model::LinkModel *link) :
-    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link))
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const robot_model::LinkModel *link, int shape_index) :
+    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const robot_state::AttachedBody *ab) :
-    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab))
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const robot_state::AttachedBody *ab, int shape_index) :
+    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const World::Object *obj) :
-    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj))
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const World::Object *obj, int shape_index) :
+    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
   template<typename T>
-  void updateCollisionGeometryData(const T* data, bool newType)
+  void updateCollisionGeometryData(const T* data, int shape_index, bool newType)
   {
     if (!newType && collision_geometry_data_)
       if (collision_geometry_data_->ptr.raw == reinterpret_cast<const void*>(data))
         return;
-    collision_geometry_data_.reset(new CollisionGeometryData(data));
+    collision_geometry_data_.reset(new CollisionGeometryData(data, shape_index));
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
@@ -201,16 +208,18 @@ bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void 
 bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *data, double& min_dist);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_model::LinkModel *link);
+                                            const robot_model::LinkModel *link,
+                                            int shape_index);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_state::AttachedBody *ab);
+                                            const robot_state::AttachedBody *ab,
+                                            int shape_index);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const World::Object *obj);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_model::LinkModel *link);
+                                            const robot_model::LinkModel *link, int shape_index);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_state::AttachedBody *ab);
+                                            const robot_state::AttachedBody *ab, int shape_index);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const World::Object *obj);
 void cleanCollisionGeometryCache();

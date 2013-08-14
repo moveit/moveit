@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2013, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,108 +32,84 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_state/transforms.h>
+#include <moveit/test_resources/config.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <boost/filesystem/path.hpp>
+#include <moveit/profiler/profiler.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-
+  
   virtual void SetUp()
   {
-    srdf_model_.reset(new srdf::Model());
-
+    srdf_model.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file("test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file((boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
-      while ( xml_file.good() )
+      while (xml_file.good())
       {
         std::string line;
-        std::getline( xml_file, line);
+        std::getline(xml_file, line);
         xml_string += (line + "\n");
       }
       xml_file.close();
-      urdf_model_ = urdf::parseURDF(xml_string);
-      urdf_ok_ = urdf_model_;
+      urdf_model = urdf::parseURDF(xml_string);
     }
-    else
-      urdf_ok_ = false;
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "test/srdf/robot.xml");
+    srdf_model->initFile(*urdf_model, (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "srdf/robot.xml").string());
+    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
   };
-
+  
   virtual void TearDown()
   {
   }
-
+  
 protected:
-
-  boost::shared_ptr<urdf::ModelInterface> urdf_model_;
-  boost::shared_ptr<srdf::Model> srdf_model_;
-  bool                           urdf_ok_;
-  bool                           srdf_ok_;
-
+  
+  boost::shared_ptr<urdf::ModelInterface> urdf_model;
+  boost::shared_ptr<srdf::Model> srdf_model;
+  moveit::core::RobotModelConstPtr robot_model;
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
 {
-  ASSERT_TRUE(urdf_ok_);
-  ASSERT_EQ(urdf_model_->getName(), "pr2_test");
+  ASSERT_EQ(urdf_model->getName(), "pr2");
+  ASSERT_EQ(srdf_model->getName(), "pr2");
+}
 
-  robot_model::RobotModelPtr kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));
-  robot_state::RobotState ks(kmodel);
-  ks.setToRandomValues();
-  ks.setToDefaultValues();
-
-
-  robot_state::Transforms tf(kmodel->getModelFrame());
-
-  Eigen::Affine3d t1;
-  t1.setIdentity();
-  t1.translation() = Eigen::Vector3d(10.0, 1.0, 0.0);
-  tf.setTransform(t1, "some_frame_1");
-
-  Eigen::Affine3d t2(Eigen::Translation3d(10.0, 1.0, 0.0)*Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitY()));
-  tf.setTransform(t2, "some_frame_2");
-
-  Eigen::Affine3d t3;
-  t3.setIdentity();
-  t3.translation() = Eigen::Vector3d(0.0, 1.0, -1.0);
-  tf.setTransform(t3, "some_frame_3");
-
-
-  EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
-  EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
-  EXPECT_TRUE(tf.isFixedFrame(kmodel->getModelFrame()));
-
-  Eigen::Affine3d x;
-  x.setIdentity();
-  tf.transformPose(ks, "some_frame_2", x, x);
-
-  EXPECT_TRUE(t2.translation() == x.translation());
-  EXPECT_TRUE(t2.rotation() == x.rotation());
-
-  tf.transformPose(ks, kmodel->getModelFrame(), x, x);
-  EXPECT_TRUE(t2.translation() == x.translation());
-  EXPECT_TRUE(t2.rotation() == x.rotation());
-
-  x.setIdentity();
-  tf.transformPose(ks, "r_wrist_roll_link", x, x);
-
-  EXPECT_NEAR(x.translation().x(), 0.585315, 1e-4);
-  EXPECT_NEAR(x.translation().y(), -0.188, 1e-4);
-  EXPECT_NEAR(x.translation().z(), 1.24001, 1e-4);
+TEST_F(LoadPlanningModelsPr2, Model)
+{
+  const std::vector<const moveit::core::JointModel*> &joints = robot_model->getJointModels();
+  for (std::size_t i = 0 ; i < joints.size() ; ++i)
+  {
+    ASSERT_EQ(joints[i]->getJointIndex(), i);
+    ASSERT_EQ(robot_model->getJointModel(joints[i]->getName()), joints[i]);
+    std::cout << joints[i]->getName() << " ";    
+    const std::vector<const moveit::core::LinkModel*> &d = joints[i]->getDescendantLinkModels();
+    for (std::size_t j = 0 ; j < d.size() ; ++j)
+      std::cout << d[j]->getLinkIndex() << " ";
+    std::cout << std::endl;
+  }
+  const std::vector<const moveit::core::LinkModel*> &links = robot_model->getLinkModels();
+  for (std::size_t i = 0 ; i < links.size() ; ++i)
+  {
+    ASSERT_EQ(links[i]->getLinkIndex(), i);
+    //    std::cout << joints[i]->getName() << std::endl;
+    
+  }
+  moveit::tools::Profiler::Status();
+  
 }
 
 
 int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
