@@ -885,6 +885,14 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
   }
 }
 
+Eigen::MatrixXd moveit::core::RobotState::getJacobian(const JointModelGroup *group, const Eigen::Vector3d &reference_point_position) const
+{
+  Eigen::MatrixXd result;
+  if (!getJacobian(group, group->getLinkModels().back(), reference_point_position, result, false))
+    throw Exception("Unable to compute Jacobian");
+  return result;
+}
+
 bool moveit::core::RobotState::getJacobian(const JointModelGroup *group, const LinkModel *link, const Eigen::Vector3d &reference_point_position,
                                            Eigen::MatrixXd& jacobian, bool use_quaternion_representation) const
 {
