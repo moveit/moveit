@@ -1214,7 +1214,8 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
       else
         if (handles[i]->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::SUCCEEDED)
         {
-          ROS_WARN("Controller handle reports status %s", handles[i]->getLastExecutionStatus().asString().c_str());
+          ROS_WARN_STREAM("Controller handle " << handles[i]->getName() << " reports status "
+            << handles[i]->getLastExecutionStatus().asString());
           last_execution_status_ = handles[i]->getLastExecutionStatus();
           result = false;
         }
