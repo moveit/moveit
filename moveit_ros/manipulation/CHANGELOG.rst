@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.4 (2013-08-14)
+------------------
+
+* make headers and author definitions aligned the same way; white space fixes
+* adding manipulation tab, fixed bugs in planning scene interface
+
 0.5.2 (2013-07-15)
 ------------------
 

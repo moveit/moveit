@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_perception</name>
-  <version>0.5.2</version>
+  <version>0.5.4</version>
   <description>Components of MoveIt connecting to perception</description>
 
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
@@ -26,10 +26,11 @@
   <build_depend>message_filters</build_depend>
   <build_depend>octomap</build_depend>
   <build_depend>pluginlib</build_depend>
-  <run_depend>image_transport</run_depend>
-  <run_depend>glut</run_depend>
-  <run_depend>libglew-dev</run_depend>
-  <run_depend>opengl</run_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>glut</build_depend>
+  <build_depend>libglew-dev</build_depend>
+  <build_depend>opengl</build_depend>
+  <build_depend>opencv2</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>pcl</run_depend>
@@ -42,12 +43,13 @@
   <run_depend>message_filters</run_depend>
   <run_depend>octomap</run_depend>
   <run_depend>pluginlib</run_depend>
-  <build_depend>image_transport</build_depend>
-  <build_depend>glut</build_depend>
-  <build_depend>libglew-dev</build_depend>
-  <build_depend>opengl</build_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>glut</run_depend>
+  <run_depend>libglew-dev</run_depend>
+  <run_depend>opengl</run_depend>
+  <run_depend>opencv2</run_depend>
 
- <export>
+  <export>
     <moveit_ros_perception plugin="${prefix}/pointcloud_octomap_updater_plugin_description.xml"/>
     <moveit_ros_perception plugin="${prefix}/depth_image_octomap_updater_plugin_description.xml"/>
   </export>

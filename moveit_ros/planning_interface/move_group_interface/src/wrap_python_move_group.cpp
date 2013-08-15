@@ -37,6 +37,7 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <moveit/py_bindings_tools/py_conversions.h>
+#include <moveit/py_bindings_tools/serialize_msg.h>
 #include <eigen_conversions/eigen_msg.h>
 
 #include <boost/python.hpp>
@@ -275,98 +276,18 @@ public:
     return attachObject(object_name, link_name, py_bindings_tools::stringFromList(touch_links));
   }
   
-  bool executePython(bp::dict &plan_dict)
+  bool executePython(const std::string &plan_str)
   {
     MoveGroup::Plan plan;
-    convertDictToTrajectory(plan_dict, plan.trajectory_);
+    py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
     return execute(plan);
   }
-
-  void convertDictToTrajectory(const bp::dict &plan, moveit_msgs::RobotTrajectory &traj) const
-  {
-    traj.joint_trajectory.joint_names = py_bindings_tools::stringFromList(bp::extract<bp::list>(plan["joint_trajectory"]["joint_names"]));
-    traj.multi_dof_joint_trajectory.joint_names = py_bindings_tools::stringFromList(bp::extract<bp::list>(plan["multi_dof_joint_trajectory"]["joint_names"]));
-    traj.joint_trajectory.header.frame_id = bp::extract<std::string>(plan["joint_trajectory"]["frame_id"]);
-    traj.multi_dof_joint_trajectory.header.frame_id = bp::extract<std::string>(plan["multi_dof_joint_trajectory"]["frame_id"]);
-
-    const bp::list &joint_trajectory_points = bp::extract<bp::list>(plan["joint_trajectory"]["points"]);
-    int l = boost::python::len(joint_trajectory_points);
-    for (int i = 0 ; i < l ; ++i)
-    {
-      trajectory_msgs::JointTrajectoryPoint pt;
-      pt.positions = py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["positions"]));
-      pt.velocities = py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["velocities"]));
-      pt.accelerations = py_bindings_tools::doubleFromList(bp::extract<bp::list>(joint_trajectory_points[i]["accelerations"]));
-      pt.time_from_start = ros::Duration(bp::extract<double>(joint_trajectory_points[i]["time_from_start"]));
-      traj.joint_trajectory.points.push_back(pt);
-    }
-    const bp::list &multi_dof_joint_trajectory_points = bp::extract<bp::list>(plan["multi_dof_joint_trajectory"]["points"]);
-    l = boost::python::len(multi_dof_joint_trajectory_points);
-    for (int i = 0 ; i < l ; ++i)
-    {
-      trajectory_msgs::MultiDOFJointTrajectoryPoint pt;
-      const bp::list &tf = bp::extract<bp::list>(multi_dof_joint_trajectory_points[i]["transforms"]);
-      int lk = boost::python::len(tf);
-      for (int k = 0 ; k < lk ; ++k)
-      {
-    geometry_msgs::Transform tf_msg;
-    convertListToTransform(bp::extract<bp::list>(tf[k]), tf_msg);
-    pt.transforms.push_back(tf_msg);
-      }
-      pt.time_from_start = ros::Duration(bp::extract<double>(multi_dof_joint_trajectory_points[i]["time_from_start"]));
-      traj.multi_dof_joint_trajectory.points.push_back(pt);
-    }
-
-  }
-
-  bp::dict convertTrajectoryToDict(moveit_msgs::RobotTrajectory &traj) const
-  {
-    bp::list joint_names = py_bindings_tools::listFromString(traj.joint_trajectory.joint_names);
-    bp::dict joint_trajectory, multi_dof_joint_trajectory;
-    joint_trajectory["joint_names"] = joint_names;
-    multi_dof_joint_trajectory["joint_names"] = joint_names;
-    joint_trajectory["frame_id"] = traj.joint_trajectory.header.frame_id;
-    multi_dof_joint_trajectory["frame_id"] = traj.multi_dof_joint_trajectory.header.frame_id;
-
-    bp::list joint_traj_points;
-    for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = traj.joint_trajectory.points.begin() ;
-         it != traj.joint_trajectory.points.end() ; ++it)
-    {
-      bp::dict joint_traj_point;
-      joint_traj_point["positions"] = py_bindings_tools::listFromDouble(it->positions);
-      joint_traj_point["velocities"] = py_bindings_tools::listFromDouble(it->velocities);
-      joint_traj_point["accelerations"] = py_bindings_tools::listFromDouble(it->accelerations);
-      joint_traj_point["time_from_start"] = it->time_from_start.toSec();
-      joint_traj_points.append(joint_traj_point);
-    }
-
-    joint_trajectory["points"] = joint_traj_points;
-
-    bp::list multi_dof_traj_points;
-    for (std::vector<trajectory_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = traj.multi_dof_joint_trajectory.points.begin() ;
-         it != traj.multi_dof_joint_trajectory.points.end() ; ++it)
-    {
-      bp::dict multi_dof_traj_point;
-      bp::list transforms;
-      for (std::vector<geometry_msgs::Transform>::const_iterator itr = it->transforms.begin() ; itr != it->transforms.end() ; ++itr)
-        transforms.append(convertTransformToList(*itr));
-      multi_dof_traj_point["transforms"] = transforms;
-      multi_dof_traj_point["time_from_start"] = it->time_from_start.toSec();
-      multi_dof_traj_points.append(multi_dof_traj_point);
-    }
-    multi_dof_joint_trajectory["points"] = multi_dof_traj_points;
-
-    bp::dict plan_dict;
-    plan_dict["joint_trajectory"] = joint_trajectory;
-    plan_dict["multi_dof_joint_trajectory"] = multi_dof_joint_trajectory;
-    return plan_dict;
-  }
-
-  bp::dict getPlanPythonDict()
+  
+  std::string getPlanPythonDict()
   {
     MoveGroup::Plan plan;
     MoveGroup::plan(plan);
-    return convertTrajectoryToDict(plan.trajectory_);
+    return py_bindings_tools::serializeMsg(plan.trajectory_);
   }
 
   bp::tuple computeCartesianPathPython(const bp::list &waypoints, double eef_step, double jump_threshold, bool avoid_collisions)
@@ -375,9 +296,25 @@ public:
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
     double fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory, avoid_collisions);
-    return bp::make_tuple(convertTrajectoryToDict(trajectory), fraction);
+    return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
+  
+  bool pickGrasp(const std::string &object, const std::string &grasp_str)
+  {
+    manipulation_msgs::Grasp grasp;    
+    py_bindings_tools::deserializeMsg(grasp_str, grasp);
+    return pick(object, grasp);
+  } 
 
+  bool pickGrasps(const std::string &object, const bp::list &grasp_list)
+  {
+    int l = bp::len(grasp_list);
+    std::vector<manipulation_msgs::Grasp> grasps(l);
+    for (int i = 0; i < l ; ++i)
+      py_bindings_tools::deserializeMsg(bp::extract<std::string>(grasp_list[i]), grasps[i]);
+    return pick(object, grasps);
+  }
+  
 };
 
 static void wrap_move_group_interface()
@@ -389,6 +326,8 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
   bool (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
+  MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasp);
+  MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasps);
   MoveGroupClass.def("place", &MoveGroupWrapper::placePython);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
