@@ -544,6 +544,24 @@ public:
     updateLinkTransforms();
     return const_cast<const RobotState*>(this)->getJacobian(group, link, reference_point_position, jacobian, use_quaternion_representation);
   }
+
+  /** \brief Compute the Jacobian with reference to the last link of a specified group. If the group is not a chain, an exception is thrown.
+   * \param group The group to compute the Jacobian for 
+   * \param reference_point_position The reference point position (with respect to the link specified in link_name)
+   * \return The computed Jacobian.
+   */  
+  Eigen::MatrixXd getJacobian(const JointModelGroup *group, const Eigen::Vector3d &reference_point_position = Eigen::Vector3d(0.0, 0.0, 0.0)) const;
+
+  /** \brief Compute the Jacobian with reference to the last link of a specified group. If the group is not a chain, an exception is thrown.
+   * \param group The group to compute the Jacobian for 
+   * \param reference_point_position The reference point position (with respect to the link specified in link_name)
+   * \return The computed Jacobian.
+   */
+  Eigen::MatrixXd getJacobian(const JointModelGroup *group, const Eigen::Vector3d &reference_point_position = Eigen::Vector3d(0.0, 0.0, 0.0))
+  {
+    updateLinkTransforms();
+    return const_cast<const RobotState*>(this)->getJacobian(group, reference_point_position);
+  }
   
   /** \brief Given a twist for a particular link (\e tip), compute the corresponding velocity for every variable and store it in \e qdot */
   void computeVariableVelocity(const JointModelGroup *jmg, Eigen::VectorXd &qdot,
