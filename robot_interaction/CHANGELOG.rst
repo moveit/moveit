@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.4 (2013-08-14)
+------------------
+
+* make headers and author definitions aligned the same way; white space fixes
+* fix `#283 <https://github.com/ros-planning/moveit_ros/issues/283>`_
+
 0.5.2 (2013-07-15)
 ------------------
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package>
   <name>moveit_ros_planning</name>
-  <version>0.5.2</version>
+  <version>0.5.4</version>
   <description>Planning components of MoveIt that use ROS</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
   <author email="sachinc@willowgarage.com">Sachin Chitta</author>

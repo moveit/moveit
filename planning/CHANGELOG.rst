@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.4 (2013-08-14)
+------------------
+
+* remove CollisionMap, expose topic names in PlanningSceneMonitor, implement detach / attach operations as requested by `#280 <https://github.com/ros-planning/moveit_ros/issues/280>`_
+* make headers and author definitions aligned the same way; white space fixes
+* move background_processing lib to core
+* add option to disable trajectory monitoring
+
 0.5.2 (2013-07-15)
 ------------------
 
