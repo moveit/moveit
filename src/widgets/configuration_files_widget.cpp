@@ -295,7 +295,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   gen_files_.push_back(file);
 
   // ompl_planning_pipeline.launch --------------------------------------------------------------------------------------
-  file.file_name_   = "ompl_planning_pipeline.launch";
+  file.file_name_   = "ompl_planning_pipeline.launch.xml";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
   template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
   file.description_ = "Intended to be included in other launch files that require the OMPL planning plugin. Defines the proper plugin name on the parameter server and a default selection of planning request adapters.";
@@ -303,7 +303,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   gen_files_.push_back(file);
 
   // planning_pipeline.launch --------------------------------------------------------------------------------------
-  file.file_name_   = "planning_pipeline.launch";
+  file.file_name_   = "planning_pipeline.launch.xml";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
   template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
   file.description_ = "Helper launch file that can choose between different planning pipelines to be loaded.";
@@ -311,7 +311,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   gen_files_.push_back(file);
 
   // warehouse_settings.launch --------------------------------------------------------------------------------------
-  file.file_name_   = "warehouse_settings.launch";
+  file.file_name_   = "warehouse_settings.launch.xml";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
   template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
   file.description_ = "Helper launch file that specifies default settings for MongoDB.";
@@ -343,7 +343,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   gen_files_.push_back(file);
 
   // sensor_manager.launch --------------------------------------------------------------------------------------
-  file.file_name_   = "sensor_manager.launch";
+  file.file_name_   = "sensor_manager.launch.xml";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
   template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
   file.description_ = "Helper launch file that can choose between different sensor managers to be loaded.";
@@ -351,23 +351,23 @@ bool ConfigurationFilesWidget::loadGenFiles()
   gen_files_.push_back(file);
 
   // robot_moveit_controller_manager.launch ------------------------------------------------------------------
-  file.file_name_   = robot_name + "_moveit_controller_manager.launch";
+  file.file_name_   = robot_name + "_moveit_controller_manager.launch.xml";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
-  template_path     = config_data_->appendPaths( template_launch_path, "moveit_controller_manager.launch" );
+  template_path     = config_data_->appendPaths( template_launch_path, "moveit_controller_manager.launch.xml" );
   file.description_ = "Placeholder for settings specific to the MoveIt controller manager implemented for you robot.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
   // robot_moveit_sensor_manager.launch ------------------------------------------------------------------
-  file.file_name_   = robot_name + "_moveit_sensor_manager.launch";
+  file.file_name_   = robot_name + "_moveit_sensor_manager.launch.xml";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
-  template_path     = config_data_->appendPaths( template_launch_path, "moveit_sensor_manager.launch" );
+  template_path     = config_data_->appendPaths( template_launch_path, "moveit_sensor_manager.launch.xml" );
   file.description_ = "Placeholder for settings specific to the MoveIt sensor manager implemented for you robot.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
   // trajectory_execution.launch ------------------------------------------------------------------
-  file.file_name_   = "trajectory_execution.launch";
+  file.file_name_   = "trajectory_execution.launch.xml";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
   template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
   file.description_ = "Loads settings for the ROS parameter server required for executing trajectories using the trajectory_execution_manager::TrajectoryExecutionManager.";
