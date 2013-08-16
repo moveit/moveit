@@ -521,6 +521,12 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
         urdf_string += buffer;
     }
     pclose(pipe);
+    
+    if (urdf_string.empty())
+    {
+      QMessageBox::warning( this, "Error Loading Files", QString( "Unable to parse XACRO file: " ).append( urdf_file_path.c_str() ) );
+      return false;
+    }
     xacro = true;
   }
   else
@@ -536,7 +542,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
   if( !config_data_->urdf_model_->initString( urdf_string ) )
   {
     QMessageBox::warning( this, "Error Loading Files",
-                          "URDF/COLLADA file is not a valid robot model. Is the URDF still in XACRO format?" );
+                          "URDF/COLLADA file is not a valid robot model." );
     return false;
   }
   config_data_->urdf_from_xacro_ = xacro;
@@ -642,7 +648,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
   // Copy path into vector of parts
   for (fs::path::iterator it = urdf_directory.begin(); it != urdf_directory.end(); ++it)
     path_parts.push_back( it->native() );
-
+  
   bool packageFound = false;
 
   // reduce the generated directoy path's folder count by 1 each loop
@@ -673,7 +679,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
     {
       // now generate the relative path
       for( size_t relative_count = segment_length; relative_count < path_parts.size(); ++relative_count )
-        relative_path /= path_parts[ segment_length ];
+        relative_path /= path_parts[ relative_count ];
 
       // add the URDF filename at end of relative path
       relative_path /= urdf_path.filename();
