@@ -15,16 +15,16 @@
   <arg name="jiggle_fraction" default="0.05" />
   <arg name="publish_monitored_planning_scene" default="true"/>
 
-  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch">
+  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
     <arg name="pipeline" value="ompl" />
   </include>
 
-  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/trajectory_execution.launch" if="$(arg allow_trajectory_execution)">
+  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_controller_manager" value="[ROBOT_NAME]" /> 
     <arg name="moveit_manage_controllers" value="true" />
   </include>
 
-  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/sensor_manager.launch" if="$(arg allow_trajectory_execution)">
+  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/sensor_manager.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_sensor_manager" value="[ROBOT_NAME]" /> 
   </include>
 
