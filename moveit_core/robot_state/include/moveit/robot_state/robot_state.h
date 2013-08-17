@@ -726,60 +726,42 @@ public:
   
   double distance(const RobotState &other) const
   {
-    return distance(other.getVariablePositions());
+    return robot_model_->distance(position_, other.getVariablePositions());
   }
-  double distance(const double *state_position) const;
 
   double distance(const RobotState &other, const JointModelGroup *joint_group) const;
-  double distance(const double *joint_group_position, const JointModelGroup *joint_group) const;
   
   double distance(const RobotState &other, const JointModel *joint) const
   {
-    return distance(other.getJointPositions(joint), joint);
+    const int idx = joint->getFirstVariableIndex();
+    return joint->distance(position_ + idx, other.position_ + idx);
   }
-  double distance(const double *joint_position, const JointModel *joint) const
-  {
-    return joint->distance(joint_position, position_ + joint->getFirstVariableIndex());
-  }
-  
   
   /** \brief Interpolate from this state towards state \e to, at time \e t in [0,1]. 
       The result is stored in \e state, mimic joints are correctly updated and flags are set 
       so that FK is recomputed when needed. */
   void interpolate(const RobotState &to, double t, RobotState &state) const
   {
-    interpolate(to.getVariablePositions(), t, state.getVariablePositions());
+    robot_model_->interpolate(getVariablePositions(), to.getVariablePositions(), t, state.getVariablePositions());
     state.dirtyJointTransforms(robot_model_->getRootJoint());
-  }
-
-  /** \brief Interpolate from this state towards state \e to, at time \e t in [0,1].  The result is stored in \e state,
-      mimic joints are correctly updated. This call has no effect of any transformation matrices.*/
-  void interpolate(const double *to, double t, double *state) const;
-
-  /** \brief Update \e state by interpolating form this state towards \e to, at time \e t in [0,1] but only for 
-      the joint \e joint. If there are joints that mimic this joint, they are updated. Flags are set so that
-      FK computation is triggered as needed. */
-  void interpolate(const RobotState &to, double t, RobotState &state, const JointModel *joint) const
-  {
-    interpolate(to.getJointPositions(joint), t, const_cast<double*>(state.getJointPositions(joint)), joint);
-    state.updateMimicJoint(joint);
-    state.dirtyJointTransforms(joint);
-  }
-  /** \brief Interpolate the variable values for a single joint. No mimic joints are updated since we only have access to
-      the memory for one individual joint. */
-  void interpolate(const double *to, double t, double *state, const JointModel *joint) const
-  {
-    joint->interpolate(position_ + joint->getFirstVariableIndex(), to, t, state);
   }
   
   /** \brief Interpolate from this state towards \e to, at time \e t in [0,1], but only for the joints in the
       specified group. If mimic joints need to be updated, they are updated accordingly. Flags are set so that FK
       computation is triggered when needed. */
   void interpolate(const RobotState &to, double t, RobotState &state, const JointModelGroup *joint_group) const;
-  
 
-  void interpolate(const double *to, double t, double *state, const JointModelGroup *joint_group) const;
-    
+  /** \brief Update \e state by interpolating form this state towards \e to, at time \e t in [0,1] but only for 
+      the joint \e joint. If there are joints that mimic this joint, they are updated. Flags are set so that
+      FK computation is triggered as needed. */
+  void interpolate(const RobotState &to, double t, RobotState &state, const JointModel *joint) const
+  {
+    const int idx = joint->getFirstVariableIndex();
+    joint->interpolate(position_ + idx, to.position_ + idx, t, state.position_ + idx);
+    state.updateMimicJoint(joint);
+    state.dirtyJointTransforms(joint);
+  }
+
   void enforceBounds();
   void enforceBounds(const JointModelGroup *joint_group);
   void enforceBounds(const JointModel *joint)

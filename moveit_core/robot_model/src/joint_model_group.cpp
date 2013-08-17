@@ -139,6 +139,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
         active_joint_model_vector_.push_back(joint_model_vector_[i]);
         active_joint_model_name_vector_.push_back(joint_model_vector_[i]->getName());
         active_joint_model_start_index_.push_back(variable_count_);
+        active_joint_models_bounds_.push_back(joint_model_vector_[i]->getVariableBounds());
       }
       else
         mimic_joints_.push_back(joint_model_vector_[i]);
@@ -196,14 +197,6 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
       int src = joint_variables_index_map_[mimic_joints_[i]->getMimic()->getName()];
       int dest = joint_variables_index_map_[mimic_joints_[i]->getName()];
       GroupMimicUpdate mu(src, dest, mimic_joints_[i]->getMimicFactor(), mimic_joints_[i]->getMimicOffset());
-      group_mimic_update_.push_back(mu);
-    }
-    else
-    {
-      // if the joint mimic is not in the group, we make sure the destination value will be set to 0
-      int src = 0; // it does not matter what we read
-      int dest = joint_variables_index_map_[mimic_joints_[i]->getName()];
-      GroupMimicUpdate mu(src, dest, 0.0, 0.0);
       group_mimic_update_.push_back(mu);
     }
   
@@ -320,23 +313,32 @@ const moveit::core::JointModel* moveit::core::JointModelGroup::getJointModel(con
   return it->second;
 }
 
-void moveit::core::JointModelGroup::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values) const
+void moveit::core::JointModelGroup::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values,
+                                                            const std::vector<JointModel::Bounds> &active_joint_bounds) const
 {
+  assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    active_joint_model_vector_[i]->getVariableRandomValues(rng, values + active_joint_model_start_index_[i]);
+    active_joint_model_vector_[i]->getVariableRandomValues(rng, values + active_joint_model_start_index_[i], active_joint_bounds[i]);
 
   updateMimicJoints(values);
 }
 
-void moveit::core::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const double *near, double distance) const
+void moveit::core::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                                                  const std::vector<JointModel::Bounds> &active_joint_bounds,
+                                                                  const double *near, double distance) const
 {
+  assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    active_joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values + active_joint_model_start_index_[i], near + active_joint_model_start_index_[i], distance);
+    active_joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values + active_joint_model_start_index_[i], active_joint_bounds[i],
+                                                                 near + active_joint_model_start_index_[i], distance);
   updateMimicJoints(values);
 }
 
-void moveit::core::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const double *near, const std::map<JointModel::JointType, double> &distance_map) const
+void moveit::core::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                                                  const std::vector<JointModel::Bounds> &active_joint_bounds,
+                                                                  const double *near, const std::map<JointModel::JointType, double> &distance_map) const
 {
+  assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0  ; i < active_joint_model_vector_.size() ; ++i)
   {
     double distance = 0.0;
@@ -345,20 +347,74 @@ void moveit::core::JointModelGroup::getVariableRandomValuesNearBy(random_numbers
       distance = iter->second;
     else
       logWarn("Did not pass in distance for '%s'", active_joint_model_vector_[i]->getName().c_str());
-    active_joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values + active_joint_model_start_index_[i], near + active_joint_model_start_index_[i], distance);
+    active_joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values + active_joint_model_start_index_[i], active_joint_bounds[i],
+                                                                 near + active_joint_model_start_index_[i], distance);
   }
   updateMimicJoints(values);
 }
 
-void moveit::core::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const double *near, const std::vector<double> &distances) const
+void moveit::core::JointModelGroup::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                                                  const std::vector<JointModel::Bounds> &active_joint_bounds,
+                                                                  const double *near, const std::vector<double> &distances) const
 {
+  assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   if (distances.size() != active_joint_model_vector_.size())
     throw Exception("When sampling random values nearby for group '" + name_ + "', distances vector should be of size " + 
                     boost::lexical_cast<std::string>(active_joint_model_vector_.size()) + ", but it is of size " + 
                     boost::lexical_cast<std::string>(distances.size()));  
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    active_joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values + active_joint_model_start_index_[i], near + active_joint_model_start_index_[i], distances[i]);
+    active_joint_model_vector_[i]->getVariableRandomValuesNearBy(rng, values + active_joint_model_start_index_[i], active_joint_bounds[i],
+                                                                 near + active_joint_model_start_index_[i], distances[i]);
   updateMimicJoints(values);
+}
+
+bool moveit::core::JointModelGroup::satisfiesBounds(const double *state, const std::vector<JointModel::Bounds> &active_joint_bounds, double margin) const
+{
+  assert(active_joint_bounds.size() == active_joint_model_vector_.size());
+  for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
+    if (!active_joint_model_vector_[i]->satisfiesBounds(state + active_joint_model_start_index_[i], active_joint_bounds[i], margin))
+      return false;
+  return true;
+}
+
+bool moveit::core::JointModelGroup::enforceBounds(double *state, const std::vector<JointModel::Bounds> &active_joint_bounds) const
+{
+  assert(active_joint_bounds.size() == active_joint_model_vector_.size());
+  bool change = false;
+  for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
+    if (active_joint_model_vector_[i]->enforceBounds(state + active_joint_model_start_index_[i], active_joint_bounds[i]))
+      change = true;
+  if (change)
+    updateMimicJoints(state);
+  return change;  
+}
+
+double moveit::core::JointModelGroup::getMaximumExtent(const std::vector<JointModel::Bounds> &active_joint_bounds) const
+{
+  double max_distance = 0.0;
+  for (std::size_t j = 0 ; j < active_joint_model_vector_.size() ; ++j)
+    max_distance += active_joint_model_vector_[j]->getMaximumExtent(active_joint_bounds[j]) * active_joint_model_vector_[j]->getDistanceFactor();
+  return max_distance;
+}
+
+double moveit::core::JointModelGroup::distance(const double *state1, const double *state2) const
+{
+  double d = 0.0;
+  for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
+    d += active_joint_model_vector_[i]->getDistanceFactor() * 
+      active_joint_model_vector_[i]->distance(state1 + active_joint_model_start_index_[i], state2 + active_joint_model_start_index_[i]);
+  return d;
+}
+
+void moveit::core::JointModelGroup::interpolate(const double *from, const double *to, double t, double *state) const
+{
+  // we interpolate values only for active joint models (non-mimic)
+  for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
+    active_joint_model_vector_[i]->interpolate(from + active_joint_model_start_index_[i], to + active_joint_model_start_index_[i],
+                                               t, state + active_joint_model_start_index_[i]);
+  
+  // now we update mimic as needed
+  updateMimicJoints(state);
 }
 
 void moveit::core::JointModelGroup::updateMimicJoints(double *values) const
@@ -366,14 +422,6 @@ void moveit::core::JointModelGroup::updateMimicJoints(double *values) const
   // update mimic (only local joints as we are dealing with a local group state)
   for (std::size_t i = 0 ; i < group_mimic_update_.size() ; ++i)
     values[group_mimic_update_[i].dest] = values[group_mimic_update_[i].src] * group_mimic_update_[i].factor + group_mimic_update_[i].offset;
-}
-
-double moveit::core::JointModelGroup::getMaximumExtent(void) const
-{
-  double max_distance = 0.0;
-  for (std::size_t j = 0 ; j < active_joint_model_vector_.size() ; ++j)
-    max_distance += active_joint_model_vector_[j]->getMaximumExtent() * active_joint_model_vector_[j]->getDistanceFactor();
-  return max_distance;
 }
 
 void moveit::core::JointModelGroup::addDefaultState(const std::string &name, const std::map<std::string, double> &default_state)
