@@ -113,8 +113,7 @@ public:
     return joint_model_name_vector_;
   }
 
-  /** \brief Get the active joints in this group (that  have controllable DOF).
-      This may not be the complete set of joints (see getFixedJointModels() and getMimicJointModels() ) */
+  /** \brief Get the active joints in this group (that  have controllable DOF). This does not include mimic joints. */
   const std::vector<const JointModel*>& getActiveJointModels() const
   {
     return active_joint_model_vector_;
@@ -339,6 +338,12 @@ public:
     return is_chain_;
   }
 
+  /** \brief Return true if the group consists only of joints that are single DOF */
+  bool isSingleDOFJoints() const
+  {
+    return is_single_dof_;
+  }
+  
   /** \brief Check if this group was designated as an end-effector in the SRDF */
   bool isEndEffector() const
   {
@@ -572,6 +577,8 @@ protected:
   std::string                                                end_effector_name_;
 
   bool                                                       is_chain_;
+
+  bool                                                       is_single_dof_;
 
   std::pair<SolverAllocatorFn, SolverAllocatorMapFn>         solver_allocators_;
 

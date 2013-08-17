@@ -156,13 +156,13 @@ public:
     return joint_model_names_vector_;
   }
   
-  /** \brief Get the arra of joints that are active (not fixed, not mimic) in this model */
+  /** \brief Get the array of joints that are active (not fixed, not mimic) in this model. */
   const std::vector<const JointModel*>& getActiveJointModels() const
   {
     return active_joint_model_vector_const_;
   }
 
-  /** \brief Get the arra of joints that are active (not fixed, not mimic) in this model */
+  /** \brief Get the array of joints that are active (not fixed, not mimic) in this model */
   const std::vector<JointModel*>& getActiveJointModels()
   {
     return active_joint_model_vector_;
@@ -366,7 +366,7 @@ public:
     return variable_names_;
   }
 
-  /** \brief Get bounds for all the variables in this model. Bounds are returned as a std::pair<lower,upper> */
+  /** \brief Get bounds for all the variables in this model. */
   const VariableBoundsMap& getAllVariableBounds() const
   {
     return variable_bounds_map_;
