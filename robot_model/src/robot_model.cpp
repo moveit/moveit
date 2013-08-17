@@ -276,6 +276,7 @@ void moveit::core::RobotModel::buildJointInfo()
         active_joint_model_start_index_.push_back(variable_count_);
         active_joint_model_vector_.push_back(joint_model_vector_[i]);
         active_joint_model_vector_const_.push_back(joint_model_vector_[i]);
+        active_joint_models_bounds_.push_back(joint_model_vector_[i]->getVariableBounds());
       }
 
       if (joint_model_vector_[i]->getType() == JointModel::REVOLUTE && static_cast<const RevoluteJointModel*>(joint_model_vector_[i])->isContinuous())
@@ -1150,6 +1151,54 @@ int moveit::core::RobotModel::getVariableIndex(const std::string &variable) cons
   return it->second;
 }
 
+double moveit::core::RobotModel::getMaximumExtent(const std::vector<JointModel::Bounds> &active_joint_bounds) const
+{
+  double max_distance = 0.0;
+  for (std::size_t j = 0 ; j < active_joint_model_vector_.size() ; ++j)
+    max_distance += active_joint_model_vector_[j]->getMaximumExtent(active_joint_bounds[j]) * active_joint_model_vector_[j]->getDistanceFactor();
+  return max_distance;
+}
+
+bool moveit::core::RobotModel::satisfiesBounds(const double *state, const std::vector<JointModel::Bounds> &active_joint_bounds, double margin) const
+{
+  assert(active_joint_bounds.size() == active_joint_model_vector_.size());
+  for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
+    if (!active_joint_model_vector_[i]->satisfiesBounds(state + active_joint_model_start_index_[i], active_joint_bounds[i], margin))
+      return false;
+  return true;
+}
+
+bool moveit::core::RobotModel::enforceBounds(double *state, const std::vector<JointModel::Bounds> &active_joint_bounds) const
+{
+  assert(active_joint_bounds.size() == active_joint_model_vector_.size());
+  bool change = false;
+  for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
+    if (active_joint_model_vector_[i]->enforceBounds(state + active_joint_model_start_index_[i], active_joint_bounds[i]))
+      change = true;
+  if (change)
+    updateMimicJoints(state);
+  return change;  
+}
+
+double moveit::core::RobotModel::distance(const double *state1, const double *state2) const
+{
+  double d = 0.0;
+  for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
+    d += active_joint_model_vector_[i]->getDistanceFactor() * 
+      active_joint_model_vector_[i]->distance(state1 + active_joint_model_start_index_[i], state2 + active_joint_model_start_index_[i]);
+  return d;
+}
+
+void moveit::core::RobotModel::interpolate(const double *from, const double *to, double t, double *state) const
+{
+  // we interpolate values only for active joint models (non-mimic)
+  for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
+    active_joint_model_vector_[i]->interpolate(from + active_joint_model_start_index_[i], to + active_joint_model_start_index_[i],
+                                               t, state + active_joint_model_start_index_[i]);
+  // now we update mimic as needed
+  updateMimicJoints(state);
+}
+
 void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn> &allocators)
 {
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
@@ -1239,27 +1288,7 @@ void moveit::core::RobotModel::printModelInfo(std::ostream &out) const
 
   out << "Available groups: " << std::endl;
   for (std::size_t i = 0 ; i < joint_model_groups_.size() ; ++i)
-    joint_model_groups_[i]->printGroupInfo(out);
-  
-  /*
-  for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
-  {
-    out << "   " << it->first << " (of dimension " << it->second->getVariableCount() << "):" << std::endl;
-    out << "     joints:" << std::endl;
-    const std::vector<std::string> &jnt = it->second->getJointModelNames();
-    for (std::size_t k = 0 ; k < jnt.size() ; ++k)
-      out << "      " << jnt[k] << std::endl;
-    out << "     links:" << std::endl;
-    const std::vector<std::string> &lnk = it->second->getLinkModelNames();
-    for (std::size_t k = 0 ; k < lnk.size() ; ++k)
-      out << "      " << lnk[k] << std::endl;
-    out << "     roots:" << std::endl;
-    const std::vector<const JointModel*> &jr = it->second->getJointRoots();
-    for (std::size_t k = 0 ; k < jr.size() ; ++k)
-      out << "      " << jr[k]->getName() << std::endl;
-
-  }
-  */
+    joint_model_groups_[i]->printGroupInfo(out);  
 }
 
 void moveit::core::RobotModel::computeFixedTransforms(const LinkModel *link, const Eigen::Affine3d &transform,

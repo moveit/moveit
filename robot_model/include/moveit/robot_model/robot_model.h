@@ -302,8 +302,24 @@ public:
   /** \brief Compute the default values for a RobotState */
   void getVariableDefaultValues(std::map<std::string, double> &values) const;
 
-  /** \brief Update the variable values for the state of a group with respect to the mimic joints. */
-  void updateMimicJoints(double *values) const;
+  bool enforceBounds(double *state) const
+  {
+    return enforceBounds(state, active_joint_models_bounds_);
+  }
+  bool enforceBounds(double *state, const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  bool satisfiesBounds(const double *state, double margin = 0.0) const
+  {
+    return satisfiesBounds(state, active_joint_models_bounds_, margin);
+  }
+  bool satisfiesBounds(const double *state, const std::vector<JointModel::Bounds> &active_joint_bounds, double margin = 0.0) const;
+  double getMaximumExtent() const
+  {
+    return getMaximumExtent(active_joint_models_bounds_);
+  }
+  double getMaximumExtent(const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+
+  double distance(const double *state1, const double *state2) const;  
+  void interpolate(const double *from, const double *to, double t, double *state) const;
 
   /** \defgroup RobotModel_JointGroupModelAccess Access to joint groups
    *  @{
@@ -366,27 +382,18 @@ public:
     return variable_names_;
   }
 
-  /** \brief Get bounds for all the variables in this model. */
-  const VariableBoundsMap& getAllVariableBounds() const
-  {
-    return variable_bounds_map_;
-  }
-  
   /** \brief Get the bounds for a specific variable. Throw an exception of variable is not found. */
   const VariableBounds& getVariableBounds(const std::string& variable) const;
 
   /** \brief Get the bounds for a specific variable */
   const VariableBounds& getVariableBounds(int variable_index) const;
   
-  /** \brief Get the joint variables index map.
-      The state includes all the joint variables that make up the joints the state consists of.
-      This map gives the position in the state vector of the group for each of these variables.
-      Additionaly, it includes the names of the joints and the index for the first variable of that joint.*/
-  const VariableIndexMap& getJointVariablesIndexMap() const
+  /** \brief Get the bounds for all the active joints */
+  const std::vector<JointModel::Bounds>& getActiveJointModelsBounds() const
   {
-    return joint_variables_index_map_;
+    return active_joint_models_bounds_;
   }
-
+  
   void getMissingVariableNames(const std::vector<std::string> &variables, std::vector<std::string> &missing_variables) const;
   
   /** \brief Get the index of a variable in the robot state */
@@ -412,6 +419,9 @@ protected:
 
   /** \brief Given two joints, find their common root */
   const JointModel* computeCommonRoot(const JointModel *a, const JointModel *b) const;
+
+  /** \brief Update the variable values for the state of a group with respect to the mimic joints. */
+  void updateMimicJoints(double *values) const;
   
   // GENERIC INFO
   
@@ -514,7 +524,10 @@ protected:
   
   /** \brief The bounds for all the variables that make up the joints in this model */
   std::vector<VariableBounds>                   variable_bounds_;
-  
+
+  /** \brief The bounds for all the active joint models */
+  std::vector<JointModel::Bounds>               active_joint_models_bounds_;
+
   /** \brief The joints that correspond to each variable index */
   std::vector<const JointModel*>                joints_of_variable_;
   

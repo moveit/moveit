@@ -239,7 +239,7 @@ public:
   {
     return variable_index_list_;
   }
-  
+
   /** \brief Get the index of a variable within the group. Return -1 on error. */
   int getVariableGroupIndex(const std::string &variable) const;  
   
@@ -268,47 +268,80 @@ public:
   void getVariableDefaultValues(double *values) const;
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values) const;
-  
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values) const
+  {
+    getVariableRandomValues(rng, values, active_joint_models_bounds_);
+  }
+
   /** \brief Compute random values for the state of the joint group */
   void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
   {
     values.resize(variable_count_);
-    getVariableRandomValues(rng, &values[0]);
+    getVariableRandomValues(rng, &values[0], active_joint_models_bounds_);
   }
-  
+
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const double *near, const double distance) const;
-  
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                     const double *near, const double distance) const
+  {
+    getVariableRandomValuesNearBy(rng, values, active_joint_models_bounds_, near, distance);
+  }
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, double distance) const
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
+                                     const std::vector<double> &near, double distance) const
   {
     values.resize(variable_count_);
-    getVariableRandomValuesNearBy(rng, &values[0], &near[0], distance);
+    getVariableRandomValuesNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distance);
   }  
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const double *near, const std::map<JointModel::JointType, double> &distance_map) const;
-
-  /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::map<JointModel::JointType, double> &distance_map) const
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
+                                     const std::vector<double> &near, const std::map<JointModel::JointType, double> &distance_map) const
   {
     values.resize(variable_count_);
-    getVariableRandomValuesNearBy(rng, &values[0], &near[0], distance_map);
+    getVariableRandomValuesNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distance_map);
   }
-  
+
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const double *near, const std::vector<double> &distances) const;
-  
-  /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const std::vector<double> &near, const std::vector<double> &distances) const
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, 
+                                     const std::vector<double> &near, const std::vector<double> &distances) const
   {
     values.resize(variable_count_);
-    getVariableRandomValuesNearBy(rng, &values[0], &near[0], distances);
+    getVariableRandomValuesNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distances);
   }  
+  
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  
+  /** \brief Compute random values for the state of the joint group */
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const std::vector<JointModel::Bounds> &active_joint_bounds,
+                                     const double *near, const double distance) const;
+  
+  /** \brief Compute random values for the state of the joint group */
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const std::vector<JointModel::Bounds> &active_joint_bounds,
+                                     const double *near, const std::map<JointModel::JointType, double> &distance_map) const;
 
-  /** \brief Update the variable values for the state of a group with respect to the mimic joints. This only updates mimic joints that have the parent in this group. If there is a joint mimicking one that is outside the group, there are no values to be read (\e values is only the group state) */
-  void updateMimicJoints(double *values) const;
+  /** \brief Compute random values for the state of the joint group */
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const std::vector<JointModel::Bounds> &active_joint_bounds,
+                                     const double *near, const std::vector<double> &distances) const;
+
+  bool enforceBounds(double *state) const
+  {
+    return enforceBounds(state, active_joint_models_bounds_);
+  }
+  bool enforceBounds(double *state, const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  bool satisfiesBounds(const double *state, double margin = 0.0) const
+  {
+    return satisfiesBounds(state, active_joint_models_bounds_, margin);
+  }
+  bool satisfiesBounds(const double *state, const std::vector<JointModel::Bounds> &active_joint_bounds, double margin = 0.0) const;
+  double getMaximumExtent() const
+  {
+    return getMaximumExtent(active_joint_models_bounds_);
+  }
+  double getMaximumExtent(const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  
+  double distance(const double *state1, const double *state2) const;  
+  void interpolate(const double *from, const double *to, double t, double *state) const;
   
   /** \brief Get the number of variables that describe this joint group. This includes variables necessary for mimic joints, so will always be >=
       the number of items returned by getActiveVariableNames() */
@@ -382,15 +415,18 @@ public:
     return attached_end_effector_names_;
   }
   
-  /** \brief Get the extent of the state space (the maximum value distance() can ever report for this group) */
-  double getMaximumExtent(void) const;
-
   /** \brief Get the joint limits (combined from the contained joints) */
   const std::vector<moveit_msgs::JointLimits>& getVariableBoundsMsg() const
   {
     return variable_bounds_msg_;
   }
   
+  /** \brief Get the bounds for all the active joints */
+  const std::vector<JointModel::Bounds>& getActiveJointModelsBounds() const
+  {
+    return active_joint_models_bounds_;
+  }
+
   /** \brief Override joint limits */
   void setVariableBounds(const std::vector<moveit_msgs::JointLimits>& jlim);
 
@@ -458,6 +494,9 @@ public:
 protected:
 
   void computeVariableBoundsMsg();
+  
+  /** \brief Update the variable values for the state of a group with respect to the mimic joints. This only updates mimic joints that have the parent in this group. If there is a joint mimicking one that is outside the group, there are no values to be read (\e values is only the group state) */
+  void updateMimicJoints(double *values) const;
 
   /** \brief Owner model */
   const RobotModel                                          *parent_model_;
@@ -505,6 +544,9 @@ protected:
       This map gives the position in the state vector of the group for each of these variables.
       Additionaly, it includes the names of the joints and the index for the first variable of that joint. */
   VariableIndexMap                                           joint_variables_index_map_;
+
+  /** \brief The bounds for all the active joint models */
+  std::vector<JointModel::Bounds>                            active_joint_models_bounds_;
 
   /** \brief The list of index values this group includes, with respect to a full robot state; this includes mimic joints. */
   std::vector<int>                                           variable_index_list_;

@@ -549,7 +549,7 @@ void moveit::core::RobotState::updateStateWithLinkAt(const LinkModel *link, cons
 
 bool moveit::core::RobotState::satisfiesBounds(double margin) const
 {
-  const std::vector<const JointModel*> &jm = robot_model_->getJointModels();
+  const std::vector<const JointModel*> &jm = robot_model_->getActiveJointModels();
   for (std::size_t i = 0 ; i < jm.size() ; ++i)
     if (!satisfiesBounds(jm[i], margin))
       return false;
@@ -558,7 +558,7 @@ bool moveit::core::RobotState::satisfiesBounds(double margin) const
 
 bool moveit::core::RobotState::satisfiesBounds(const JointModelGroup *group, double margin) const
 {
-  const std::vector<const JointModel*> &jm = group->getJointModels();
+  const std::vector<const JointModel*> &jm = group->getActiveJointModels();
   for (std::size_t i = 0 ; i < jm.size() ; ++i)
     if (!satisfiesBounds(jm[i], margin))
       return false;
@@ -567,84 +567,28 @@ bool moveit::core::RobotState::satisfiesBounds(const JointModelGroup *group, dou
 
 void moveit::core::RobotState::enforceBounds()
 {
-  const std::vector<const JointModel*> &jm = robot_model_->getJointModels();
+  const std::vector<const JointModel*> &jm = robot_model_->getActiveJointModels();
   for (std::size_t i = 0 ; i < jm.size() ; ++i)
     enforceBounds(jm[i]);
 }
 
 void moveit::core::RobotState::enforceBounds(const JointModelGroup *joint_group)
 {
-  const std::vector<const JointModel*> &jm = joint_group->getJointModels();
+  const std::vector<const JointModel*> &jm = joint_group->getActiveJointModels();
   for (std::size_t i = 0 ; i < jm.size() ; ++i)
     enforceBounds(jm[i]);
-}
-
-double moveit::core::RobotState::distance(const double *state_position) const
-{
-  double d = 0.0;
-  const std::vector<const JointModel*> &jm = robot_model_->getJointModels();
-  for (std::size_t i = 0 ; i < jm.size() ; ++i)
-  {
-    const int idx = jm[i]->getFirstVariableIndex();
-    d += jm[i]->getDistanceFactor() * jm[i]->distance(position_ + idx, state_position + idx);
-  }
-  return d;
 }
 
 double moveit::core::RobotState::distance(const RobotState &other, const JointModelGroup *joint_group) const
 {
   double d = 0.0;
-  const std::vector<const JointModel*> &jm = joint_group->getJointModels();
+  const std::vector<const JointModel*> &jm = joint_group->getActiveJointModels();
   for (std::size_t i = 0 ; i < jm.size() ; ++i)
   {
     const int idx = jm[i]->getFirstVariableIndex();
     d += jm[i]->getDistanceFactor() * jm[i]->distance(position_ + idx, other.position_ + idx);
   }
   return d;  
-}
-
-double moveit::core::RobotState::distance(const double *joint_group_position, const JointModelGroup *joint_group) const
-{
-  double d = 0.0;
-  const std::vector<const JointModel*> &jm = joint_group->getJointModels();
-  unsigned int i2 = 0;
-  for (std::size_t i = 0 ; i < jm.size() ; ++i)
-  {
-    const int idx = jm[i]->getFirstVariableIndex();
-    d += jm[i]->getDistanceFactor() * jm[i]->distance(position_ + idx, joint_group_position + i2);
-    i2 += jm[i]->getVariableCount();
-  }
-  return d;
-}
-
-void moveit::core::RobotState::interpolate(const double *to, double t, double *state) const
-{
-  // we interpolate values only for active joint models (non-mimic)
-  const std::vector<const JointModel*> &jm = robot_model_->getActiveJointModels();
-  for (std::size_t i = 0 ; i < jm.size() ; ++i)
-  {
-    const int idx = jm[i]->getFirstVariableIndex();
-    jm[i]->interpolate(position_ + idx, to + idx, t, state + idx);
-  }
-  // now we update mimic as needed
-  robot_model_->updateMimicJoints(state);
-}
-
-void moveit::core::RobotState::interpolate(const double *to, double t, double *state, const JointModelGroup *joint_group) const
-{
-  // we use the mimic joints here as well (not just the active joints)
-  // because there may be updates to mimic joints we cannot do (the parent joint values are not part of the group)
-  const std::vector<const JointModel*> &jm = joint_group->getJointModels();
-  unsigned int i2 = 0;
-  for (std::size_t i = 0 ; i < jm.size() ; ++i)
-  {
-    const int idx = jm[i]->getFirstVariableIndex();
-    jm[i]->interpolate(position_ + idx, to + i2, t, state + i2);
-    i2 += jm[i]->getVariableCount();
-  }
-
-  // update mimic (only local joints as we are dealing with a local group state)
-  joint_group->updateMimicJoints(state);
 }
 
 void moveit::core::RobotState::interpolate(const RobotState &to, double t, RobotState &state, const JointModelGroup *joint_group) const
