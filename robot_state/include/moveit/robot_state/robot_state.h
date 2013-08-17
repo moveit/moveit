@@ -597,7 +597,9 @@ public:
   void setToDefaultValues();
   void setToRandomPositions();
   void setToRandomPositions(const JointModelGroup *group);
-  
+  void setToRandomPositionsNearBy(const JointModelGroup *group, const RobotState &near, double distance);
+  void setToRandomPositionsNearBy(const JointModelGroup *group, const RobotState &near, const std::vector<double> &distances);
+
   /** @} */
   
   /** \defgroup RobotStateGetTransforms Updating and getting transforms
@@ -628,7 +630,7 @@ public:
     // this actually triggers all needed updates
     updateCollisionBodyTransforms();
   }
-  
+
   /** \brief Update the state after setting a particular link to the input global transform pose.*/
   void updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool backward = false)
   {
@@ -867,6 +869,25 @@ public:
   void setAttachedBodyUpdateCallback(const AttachedBodyCallback &callback);
   /** @} */
 
+  /** \brief Compute an axis-aligned bounding box that contains the current state. 
+      The format for \e aabb is (minx, miny, minz, maxx, maxy, maxz) */
+  void computeAABB(std::vector<double> &aabb) const;
+
+  /** \brief Compute an axis-aligned bounding box that contains the current state. 
+      The format for \e aabb is (minx, miny, minz, maxx, maxy, maxz) */
+  void computeAABB(std::vector<double> &aabb)
+  {
+    updateLinkTransforms();
+    const_cast<const RobotState*>(this)->computeAABB(aabb);
+  }
+  
+  /** \brief Return the instance of a random number generator */
+  random_numbers::RandomNumberGenerator& getRandomNumberGenerator()
+  {
+    if (!rng_)
+      rng_ = new random_numbers::RandomNumberGenerator();
+    return *rng_;
+  }
 
   const Eigen::Affine3d& getFrameTransform(const std::string &id);
   const Eigen::Affine3d& getFrameTransform(const std::string &id) const;
@@ -934,14 +955,6 @@ private:
   }
   
   void updateLinkTransformsInternal(const JointModel *start);
-  
-  /** \brief Return the instance of a random number generator */
-  random_numbers::RandomNumberGenerator& getRandomNumberGenerator()
-  {
-    if (!rng_)
-      rng_ = new random_numbers::RandomNumberGenerator();
-    return *rng_;
-  }
   
   void getMissingKeys(const std::map<std::string, double> &variable_map, std::vector<std::string> &missing_variables) const;
   void getStateTreeJointString(std::ostream& ss, const JointModel* jm, const std::string& pfx0, bool last) const;

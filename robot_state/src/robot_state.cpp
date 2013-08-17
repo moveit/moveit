@@ -231,6 +231,8 @@ void moveit::core::RobotState::setToRandomPositions()
 
 void moveit::core::RobotState::setToRandomPositions(const JointModelGroup *group)
 {
+  // we do not make calls to RobotModel for random number generation because mimic joints
+  // could trigger updates outside the state of the group itself
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
   const std::vector<const JointModel*> &joints = group->getActiveJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
@@ -241,9 +243,44 @@ void moveit::core::RobotState::setToRandomPositions(const JointModelGroup *group
   dirtyJointTransforms(group->getCommonRoot());
 }
 
+void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup *group, const RobotState &near, const std::vector<double> &distances)
+{
+  // we do not make calls to RobotModel for random number generation because mimic joints
+  // could trigger updates outside the state of the group itself
+  random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+  const std::vector<const JointModel*> &joints = group->getActiveJointModels();
+  assert(distances.size() == joints.size());
+  for (std::size_t i = 0 ; i < joints.size() ; ++i)
+  {
+    const int idx = joints[i]->getFirstVariableIndex();
+    joints[i]->getVariableRandomValuesNearBy(rng, position_ + joints[i]->getFirstVariableIndex(), near.position_ + idx, distances[i]);
+  }
+  const std::vector<const JointModel*> &mimic = group->getMimicJointModels();
+  for (std::size_t i = 0 ; i < mimic.size() ; ++i)
+    updateMimicJoint(mimic[i]);
+  dirtyJointTransforms(group->getCommonRoot());
+}
+
+void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup *group, const RobotState &near, double distance)
+{
+  // we do not make calls to RobotModel for random number generation because mimic joints
+  // could trigger updates outside the state of the group itself
+  random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+  const std::vector<const JointModel*> &joints = group->getActiveJointModels();
+  for (std::size_t i = 0 ; i < joints.size() ; ++i)
+  {
+    const int idx = joints[i]->getFirstVariableIndex();
+    joints[i]->getVariableRandomValuesNearBy(rng, position_ + joints[i]->getFirstVariableIndex(), near.position_ + idx, distance);
+  }
+  const std::vector<const JointModel*> &mimic = group->getMimicJointModels();
+  for (std::size_t i = 0 ; i < mimic.size() ; ++i)
+    updateMimicJoint(mimic[i]);
+  dirtyJointTransforms(group->getCommonRoot());
+}
+
 void moveit::core::RobotState::setToDefaultValues()
 {
-  robot_model_->getVariableDefaultValues(position_);
+  robot_model_->getVariableDefaultValues(position_); // mimic values are updated
   if (velocity_)
     memset(velocity_, 0, sizeof(double) * robot_model_->getVariableCount());
   if (acceleration_)
@@ -1486,6 +1523,66 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   }
   
   return false;
+}
+
+namespace
+{
+static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e, std::vector<double> &aabb)
+{
+  Eigen::Vector3d v = e / 2.0;
+  Eigen::Vector3d c2 = t * v;
+  v = -v;
+  Eigen::Vector3d c1 = t * v;
+  if (aabb.empty())
+  {
+    aabb.resize(6);
+    aabb[0] = c1.x();
+    aabb[2] = c1.y();
+    aabb[4] = c1.z();
+    aabb[1] = c2.x();
+    aabb[3] = c2.y();
+    aabb[5] = c2.z();
+  }
+  else
+  {
+    if (aabb[0] > c1.x())
+      aabb[0] = c1.x();
+    if (aabb[2] > c1.y())
+      aabb[2] = c1.y();
+    if (aabb[4] > c1.z())
+      aabb[4] = c1.z();
+    if (aabb[1] < c2.x())
+      aabb[1] = c2.x();
+    if (aabb[3] < c2.y())
+      aabb[3] = c2.y();
+    if (aabb[5] < c2.z())
+      aabb[5] = c2.z();
+  }
+}
+}
+
+void robot_state::RobotState::computeAABB(std::vector<double> &aabb) const
+{
+  aabb.clear();
+  std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
+  for (std::size_t i = 0 ; i < links.size() ; ++i)
+  {
+    const Eigen::Affine3d &t = getGlobalLinkTransform(links[i]);
+    const Eigen::Vector3d &e = links[i]->getShapeExtentsAtOrigin();
+    updateAABB(t, e, aabb);
+  }
+  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ; ++it)
+  {
+    const EigenSTL::vector_Affine3d &ts = it->second->getGlobalCollisionBodyTransforms();
+    const std::vector<shapes::ShapeConstPtr> &ss = it->second->getShapes();
+    for (std::size_t i = 0 ; i < ts.size() ; ++i)
+    {
+      Eigen::Vector3d e = shapes::computeShapeExtents(ss[i].get());
+      updateAABB(ts[i], e, aabb);
+    }
+  }
+  if (aabb.empty())
+    aabb.resize(6, 0.0);
 }
 
 

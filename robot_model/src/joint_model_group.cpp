@@ -112,6 +112,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
   , variable_count_(0)
   , is_contiguous_index_list_(true)
   , is_chain_(false)
+  , is_single_dof_(true)
   , default_ik_timeout_(0.5)
   , default_ik_attempts_(2)
   , config_(config)
@@ -130,6 +131,8 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
     unsigned int vc = joint_model_vector_[i]->getVariableCount();
     if (vc > 0)
     {
+      if (vc > 1)
+        is_single_dof_ = false;
       const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
       if (joint_model_vector_[i]->getMimic() == NULL)
       {
