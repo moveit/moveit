@@ -99,21 +99,22 @@ public:
               if (!links.empty())
               {
                 const std::string &base = links.front()->getParentJointModel()->getParentLinkModel() ?
-                  links.front()->getParentJointModel()->getParentLinkModel()->getName() : jmg->getParentModel()->getModelFrame();
+                  links.front()->getParentJointModel()->getParentLinkModel()->getName() : jmg->getParentModel().getModelFrame();
                 std::map<std::string, std::string>::const_iterator ik_it = ik_links_.find(jmg->getName());
                 const std::string &tip = ik_it != ik_links_.end() ? ik_it->second : links.back()->getName();
                 double search_res = search_res_.find(jmg->getName())->second[i]; // we know this exists, by construction
-                if (!result->initialize(robot_description_, jmg->getName(), base, tip, search_res))
+                if (!result->initialize(robot_description_, jmg->getName(),
+                                        (base.empty() || base[0] != '/') ? base : base.substr(1) , tip, search_res))
                 {
                   ROS_ERROR("Kinematics solver of type '%s' could not be initialized for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
                   result.reset();
                 }
                 else
-        {
-          result->setDefaultTimeout(jmg->getDefaultIKTimeout());
+                {
+                  result->setDefaultTimeout(jmg->getDefaultIKTimeout());
                   ROS_DEBUG("Successfully allocated and initialized a kinematics solver of type '%s' with search resolution %lf for group '%s' at address %p",
                             it->second[i].c_str(), search_res, jmg->getName().c_str(), result.get());
-        }
+                }
               }
               else
                 ROS_ERROR("No links specified for group '%s'", jmg->getName().c_str());

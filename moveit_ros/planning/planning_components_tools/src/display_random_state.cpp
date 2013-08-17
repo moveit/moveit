@@ -97,7 +97,7 @@ int main(int argc, char **argv)
         do
         {
           attempts++;
-          psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
+          psm.getPlanningScene()->getCurrentStateNonConst().setToRandomPositions();
           collision_detection::CollisionRequest req;
           collision_detection::CollisionResult res;
           psm.getPlanningScene()->checkCollision(req, res);
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
           do
           {
             attempts++;
-            psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
+            psm.getPlanningScene()->getCurrentStateNonConst().setToRandomPositions();
             collision_detection::CollisionRequest req;
             collision_detection::CollisionResult res;
             psm.getPlanningScene()->checkCollision(req, res);
@@ -130,12 +130,12 @@ int main(int argc, char **argv)
           }
         }
         else
-          psm.getPlanningScene()->getCurrentStateNonConst().setToRandomValues();
+          psm.getPlanningScene()->getCurrentStateNonConst().setToRandomPositions();
 
       moveit_msgs::PlanningScene psmsg;
       psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
       pub_scene.publish(psmsg);
-      psm.getPlanningScene()->getCurrentState().printStateInfo();
+      std::cout << psm.getPlanningScene()->getCurrentState() << std::endl;
 
       sleep(1);
     }

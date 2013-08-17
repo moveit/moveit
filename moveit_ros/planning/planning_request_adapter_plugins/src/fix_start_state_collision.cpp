@@ -118,23 +118,22 @@ public:
         ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
 
       robot_state::RobotStatePtr prefix_state(new robot_state::RobotState(start_state));
-      random_numbers::RandomNumberGenerator rng;
-
-      const std::vector<robot_state::JointState*> &jstates =
+      random_numbers::RandomNumberGenerator &rng = prefix_state->getRandomNumberGenerator();
+      
+      const std::vector<const robot_model::JointModel*> &jmodels =
         planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
-        start_state.getJointStateGroup(req.group_name)->getJointStateVector() :
-        start_state.getJointStateVector();
+        planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
+        planning_scene->getRobotModel()->getJointModels();
+      
       bool found = false;
       for (int c = 0 ; !found && c < sampling_attempts_ ; ++c)
       {
-        for (std::size_t i = 0 ; !found && i < jstates.size() ; ++i)
+        for (std::size_t i = 0 ; !found && i < jmodels.size() ; ++i)
         {
-          std::vector<double> sampled_variable_values;
-          const std::vector<double> &original_values = prefix_state->getJointState(jstates[i]->getName())->getVariableValues();
-          jstates[i]->getJointModel()->getVariableRandomValuesNearBy(rng, sampled_variable_values, jstates[i]->getVariableBounds(), original_values,
-                                                                     jstates[i]->getJointModel()->getMaximumExtent() * jiggle_fraction_);
-          jstates[i]->setVariableValues(sampled_variable_values);
-          start_state.updateLinkTransforms();
+          std::vector<double> sampled_variable_values(jmodels[i]->getVariableCount());
+          const double *original_values = prefix_state->getJointPositions(jmodels[i]);
+          jmodels[i]->getVariableRandomValuesNearBy(rng, &sampled_variable_values[0], original_values, jmodels[i]->getMaximumExtent() * jiggle_fraction_);
+          start_state.setJointPositions(jmodels[i], sampled_variable_values);
           collision_detection::CollisionResult cres;
           planning_scene->checkCollision(creq, cres, start_state);
           if (!cres.collision)

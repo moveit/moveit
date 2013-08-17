@@ -55,17 +55,15 @@ namespace kdl_kinematics_plugin
 
   KDLKinematicsPlugin::KDLKinematicsPlugin():active_(false) {}
 
-void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array,
-                                                 bool lock_redundancy) const
+void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array, bool lock_redundancy) const
 {
-  std::vector<double> jnt_array_vector(dimension_,0.0);
-  robot_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
-  joint_state_group->setToRandomValues();
-  joint_state_group->getVariableValues(jnt_array_vector);
-  for(std::size_t i=0; i < dimension_; ++i)
+  std::vector<double> jnt_array_vector(dimension_, 0.0);
+  state_->setToRandomPositions(joint_model_group_);
+  state_->copyJointGroupPositions(joint_model_group_, &jnt_array_vector[0]);
+  for (std::size_t i = 0; i < dimension_; ++i)
   {
-    if(lock_redundancy)
-      if(isRedundantJoint(i))
+    if (lock_redundancy)
+      if (isRedundantJoint(i))
         continue;
     jnt_array(i) = jnt_array_vector[i];
   }
@@ -73,8 +71,8 @@ void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array,
 
 bool KDLKinematicsPlugin::isRedundantJoint(unsigned int index) const
 {
-  for(std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
-    if(redundant_joint_indices_[j] == index)
+  for (std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
+    if (redundant_joint_indices_[j] == index)
       return true;
   return false;
 }
@@ -84,20 +82,24 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state
                                                  KDL::JntArray &jnt_array,
                                                  bool lock_redundancy) const
 {
-  std::vector<double> values, near;
-  for(std::size_t i=0; i < dimension_; ++i)
+  std::vector<double> values(dimension_, 0.0);
+  std::vector<double> near(dimension_, 0.0);
+  for (std::size_t i = 0 ; i < dimension_; ++i)
+    near[i] = seed_state(i);
+  joint_model_group_->getVariableRandomValuesNearBy(state_->getRandomNumberGenerator(), &values[0], &near[0], consistency_limits);
+  
+  for (std::size_t i = 0; i < dimension_; ++i)
   {
-    near.push_back(seed_state(i));
-  }
-  robot_state::JointStateGroup*  joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
-  joint_state_group->setToRandomValuesNearBy(near, consistency_limits);
-  joint_state_group->getVariableValues(values);
-  for(std::size_t i=0; i < dimension_; ++i)
-  {
-    if(lock_redundancy)
-      for(std::size_t j=0; j < redundant_joint_indices_.size(); ++j)
-        if(redundant_joint_indices_[j] == i)
-          continue;
+    bool skip = false;
+    if (lock_redundancy)
+      for (std::size_t j = 0; j < redundant_joint_indices_.size(); ++j)
+        if (redundant_joint_indices_[j] == i)
+        {
+          skip = true;
+          break;
+        }
+    if (skip)
+      continue;
     jnt_array(i) = values[i];
   }
 }
@@ -106,26 +108,9 @@ bool KDLKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
                                            const std::vector<double> &consistency_limits,
                                            const KDL::JntArray& solution) const
 {
-  std::vector<double> seed_state_vector(dimension_), solution_vector(dimension_);
-  for(std::size_t i = 0; i < dimension_; ++i)
-  {
-    seed_state_vector[i] = seed_state(i);
-    solution_vector[i] = solution(i);
-  }
-  robot_state::JointStateGroup* joint_state_group = kinematic_state_->getJointStateGroup(getGroupName());
-  robot_state::JointStateGroup* joint_state_group_2 = kinematic_state_2_->getJointStateGroup(getGroupName());
-  joint_state_group->setVariableValues(seed_state_vector);
-  joint_state_group_2->setVariableValues(solution_vector);
-
-  const std::vector<robot_state::JointState*>& joint_state_vector = joint_state_group->getJointStateVector();
-  const std::vector<robot_state::JointState*>& joint_state_vector_2 = joint_state_group_2->getJointStateVector();
-
-  for(std::size_t i = 0; i < joint_state_vector.size(); ++i)
-  {
-    if(joint_state_vector[i]->distance(joint_state_vector_2[i]) > consistency_limits[i])
+  for (std::size_t i = 0; i < dimension_; ++i)
+    if (fabs(seed_state(i) - solution(i)) > consistency_limits[i])
       return false;
-  }
-
   return true;
 }
 
@@ -148,17 +133,20 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     return false;
   }
 
-  kinematic_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
+  robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
 
-  if(!kinematic_model_->hasJointModelGroup(group_name))
-  {
-    ROS_ERROR_NAMED("kdl","Kinematic model does not contain group %s", group_name.c_str());
+  robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
+  if (!joint_model_group)
     return false;
-  }
-  robot_model::JointModelGroup* joint_model_group = kinematic_model_->getJointModelGroup(group_name);
+  
   if(!joint_model_group->isChain())
   {
     ROS_ERROR_NAMED("kdl","Group '%s' is not a chain", group_name.c_str());
+    return false;
+  }
+  if(!joint_model_group->isSingleDOFJoints())
+  {
+    ROS_ERROR_NAMED("kdl","Group '%s' includes joints that have more than 1 DOF", group_name.c_str());
     return false;
   }
 
@@ -177,7 +165,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   dimension_ = joint_model_group->getVariableCount();
   ik_chain_info_.joint_names = joint_model_group->getJointModelNames();
-  ik_chain_info_.limits = joint_model_group->getVariableLimits();
+  ik_chain_info_.limits = joint_model_group->getVariableBoundsMsg();
   fk_chain_info_.joint_names = ik_chain_info_.joint_names;
   fk_chain_info_.limits = ik_chain_info_.limits;
 
@@ -219,14 +207,16 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   bool has_mimic_joints = joint_model_group->getMimicJointModels().size() > 0;
   std::vector<unsigned int> redundant_joints_map_index;
 
-  std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;
+  std::vector<JointMimic> mimic_joints;
   unsigned int joint_counter = 0;
-  for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
+  for (std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); ++i)
   {
+    const robot_model::JointModel *jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
+    
     //first check whether it belongs to the set of active joints in the group
-    if(joint_model_group->isActiveDOF(kdl_chain_.segments[i].getJoint().getName()))
+    if (jm->getMimic() == NULL && jm->getVariableCount() > 0)
     {
-      kdl_kinematics_plugin::JointMimic mimic_joint;
+      JointMimic mimic_joint;
       mimic_joint.reset(joint_counter);
       mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
       mimic_joint.active = true;
@@ -234,21 +224,21 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
       ++joint_counter;
       continue;
     }
-    if(joint_model_group->hasJointModel(kdl_chain_.segments[i].getJoint().getName()))
+    if (joint_model_group->hasJointModel(jm->getName()))
     {
-      if(joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimic())
+      if (joint_model_group->hasJointModel(jm->getMimic()->getName()))
       {
-        kdl_kinematics_plugin::JointMimic mimic_joint;
+        JointMimic mimic_joint;
         mimic_joint.reset(joint_counter);
         mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
-        mimic_joint.offset = joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimicOffset();
-        mimic_joint.multiplier = joint_model_group->getJointModel(kdl_chain_.segments[i].getJoint().getName())->getMimicFactor();
+        mimic_joint.offset = jm->getMimicOffset();
+        mimic_joint.multiplier = jm->getMimicFactor();
         mimic_joints.push_back(mimic_joint);
         continue;
       }
     }
   }
-  for(std::size_t i=0; i < mimic_joints.size(); ++i)
+  for (std::size_t i = 0; i < mimic_joints.size(); ++i)
   {
     if(!mimic_joints[i].active)
     {
@@ -265,8 +255,8 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   mimic_joints_ = mimic_joints;
 
   // Setup the joint state groups that we need
-  kinematic_state_.reset(new robot_state::RobotState((const robot_model::RobotModelConstPtr) kinematic_model_));
-  kinematic_state_2_.reset(new robot_state::RobotState((const robot_model::RobotModelConstPtr) kinematic_model_));
+  state_.reset(new robot_state::RobotState(robot_model_));
+  state_2_.reset(new robot_state::RobotState(robot_model_));
 
   // Store things for when the set of redundant joints may change
   position_ik_ = position_ik;
