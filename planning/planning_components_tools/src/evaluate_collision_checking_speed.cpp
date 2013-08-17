@@ -102,7 +102,7 @@ int main(int argc, char **argv)
       collision_detection::CollisionRequest req;
       do
       {
-        state->setToRandomValues();
+        state->setToRandomPositions();
         collision_detection::CollisionResult res;
         psm.getPlanningScene()->checkCollision(req, res);
         if (!res.collision)

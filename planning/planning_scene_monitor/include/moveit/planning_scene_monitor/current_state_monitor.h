@@ -57,10 +57,10 @@ class CurrentStateMonitor
 public:
 
   /** @brief Constructor
-   *  @param kmodel The current kinematic model to build on
+   *  @param robot_model The current kinematic model to build on
    *  @param tf A pointer to the tf transformer to use
    */
-  CurrentStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf);
 
   ~CurrentStateMonitor();
 
@@ -79,7 +79,7 @@ public:
   /** @brief Get the RobotModel for which we are monitoring state */
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return kmodel_;
+    return robot_model_;
   }
 
   /** @brief Get the name of the topic being monitored. Returns an empty string if the monitor is inactive. */
@@ -113,6 +113,9 @@ public:
    *  @return Returns the current state */
   robot_state::RobotStatePtr getCurrentState() const;
 
+  /** @brief Set the state \e upd to the current state maintained by this class. */
+  void setToCurrentState(robot_state::RobotState &upd) const;
+  
   /** @brief Get the time stamp for the current state */
   ros::Time getCurrentStateTime() const;
 
@@ -167,9 +170,8 @@ private:
 
   ros::NodeHandle                              nh_;
   boost::shared_ptr<tf::Transformer>           tf_;
-  robot_model::RobotModelConstPtr              kmodel_;
-  robot_state::RobotState                      kstate_;
-  robot_state::JointState                     *root_;
+  robot_model::RobotModelConstPtr              robot_model_;
+  robot_state::RobotState                      robot_state_;
   std::map<std::string, ros::Time>             joint_time_;
   bool                                         state_monitor_started_;
   ros::Time                                    monitor_start_time_;
@@ -181,8 +183,8 @@ private:
   std::vector< JointStateUpdateCallback >      update_callbacks_;
 };
 
-typedef boost::shared_ptr<CurrentStateMonitor> CurrentStateMonitorPtr;
-typedef boost::shared_ptr<const CurrentStateMonitor> CurrentStateMonitorConstPtr;
+MOVEIT_CLASS_FORWARD(CurrentStateMonitor);
+
 }
 
 #endif

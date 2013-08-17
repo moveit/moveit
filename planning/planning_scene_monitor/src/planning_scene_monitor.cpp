@@ -517,21 +517,24 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeRobotLinksFromOctree()
   boost::recursive_mutex::scoped_lock _(shape_handles_lock_);
 
   includeRobotLinksInOctree();
-  const std::vector<robot_model::LinkModel*> &links = getRobotModel()->getLinkModelsWithCollisionGeometry();
+  const std::vector<const robot_model::LinkModel*> &links = getRobotModel()->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
-    shapes::ShapeConstPtr shape = links[i]->getShape();
-    // merge mesh vertices up to 0.1 mm apart
-    if (links[i]->getShape()->type == shapes::MESH)
+    std::vector<shapes::ShapeConstPtr> shapes = links[i]->getShapes(); // copy shared ptrs on purpuse
+    for (std::size_t j = 0 ; j < shapes.size() ; ++j)
     {
-      shapes::Mesh *m = static_cast<shapes::Mesh*>(links[i]->getShape()->clone());
-      m->mergeVertices(1e-4);
-      shape.reset(m);
+      // merge mesh vertices up to 0.1 mm apart
+      if (shapes[j]->type == shapes::MESH)
+      {
+        shapes::Mesh *m = static_cast<shapes::Mesh*>(shapes[j]->clone());
+        m->mergeVertices(1e-4);
+        shapes[j].reset(m);
+      }
+      
+      occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(shapes[j]);
+      if (h)
+        link_shape_handles_[links[i]].push_back(std::make_pair(h, j));
     }
-
-    occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(shape);
-    if (h)
-      link_shape_handles_[links[i]->getName()] = h;
   }
 }
 
@@ -543,7 +546,8 @@ void planning_scene_monitor::PlanningSceneMonitor::includeRobotLinksInOctree()
   boost::recursive_mutex::scoped_lock _(shape_handles_lock_);
 
   for (LinkShapeHandles::iterator it = link_shape_handles_.begin() ; it != link_shape_handles_.end() ; ++it)
-    octomap_monitor_->forgetShape(it->second);
+    for (std::size_t i = 0 ; i < it->second.size() ; ++i)
+      octomap_monitor_->forgetShape(it->second[i].first);
   link_shape_handles_.clear();
 }
 
@@ -749,10 +753,11 @@ bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransformCache(const 
     for (LinkShapeHandles::const_iterator it = link_shape_handles_.begin() ; it != link_shape_handles_.end() ; ++it)
     {
       tf::StampedTransform tr;
-      tf_->lookupTransform(target_frame, it->first, target_time, tr);
-      Eigen::Affine3d &transform = cache[it->second];
-      tf::transformTFToEigen(tr, transform);
-      transform = transform * getRobotModel()->getLinkModel(it->first)->getCollisionOriginTransform();
+      tf_->lookupTransform(target_frame, it->first->getName(), target_time, tr);
+      Eigen::Affine3d ttr;
+      tf::transformTFToEigen(tr, ttr);
+      for (std::size_t j = 0 ; j < it->second.size() ; ++j)
+        cache[it->second[j].first] = ttr * it->first->getCollisionOriginTransforms()[it->second[j].second];
     }
     for (AttachedBodyShapeHandles::const_iterator it = attached_body_shape_handles_.begin() ; it != attached_body_shape_handles_.end() ; ++it)
     {
@@ -925,8 +930,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
 
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
-      const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
-      scene_->getCurrentStateNonConst().setStateValues(v);
+      current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
       last_update_time_ = ros::Time::now();
     }
     triggerSceneUpdateEvent(UPDATE_STATE);

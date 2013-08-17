@@ -44,10 +44,10 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "inverse_kinematics_test");
-
+  
   ros::AsyncSpinner spinner(1);
   spinner.start();
-
+  
   if (argc <= 1)
     ROS_ERROR("An argument specifying the group name is needed");
   else
@@ -55,69 +55,68 @@ int main(int argc, char **argv)
     robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
     std::string group = argv[1];
     ROS_INFO_STREAM("Evaluating IK for " << group);
-
+    
     const robot_model::JointModelGroup *jmg = rml.getModel()->getJointModelGroup(group);
     if (jmg)
     {
       const kinematics::KinematicsBaseConstPtr &solver = jmg->getSolverInstance();
       if (solver)
       {
-    const std::string &tip = solver->getTipFrame();
-    robot_state::RobotState state(rml.getModel());
-    state.setToDefaultValues();
-    robot_state::JointStateGroup *jsg = state.getJointStateGroup(group);
-
-    ROS_INFO_STREAM("Tip Frame:  " << solver->getTipFrame());
-    ROS_INFO_STREAM("Base Frame: " << solver->getBaseFrame());
-    ROS_INFO_STREAM("IK Timeout: " << solver->getDefaultTimeout());
-    ROS_INFO_STREAM("Search res: " << solver->getSearchDiscretization());
-
-    unsigned int test_count = 1000;
-    if (argc > 2)
-      try
-      {
-        test_count = boost::lexical_cast<unsigned int>(argv[2]);
-      }
-      catch(...)
-      {
-      }
-
-    ROS_INFO("Running %u tests", test_count);
-
-    moveit::tools::Profiler::Start();
-    for (int i = 0 ; i < test_count ; ++i)
-    {
-      jsg->setToRandomValues();
-      Eigen::Affine3d pose = state.getLinkState(tip)->getGlobalLinkTransform();
-      jsg->setToRandomValues();
-      moveit::tools::Profiler::Begin("IK");
-      jsg->setFromIK(pose);
-      moveit::tools::Profiler::End("IK");
-      const Eigen::Affine3d &pose_upd = state.getLinkState(tip)->getGlobalLinkTransform();
-      Eigen::Affine3d diff = pose_upd * pose.inverse();
-      double rot_err = (diff.rotation() - Eigen::Matrix3d::Identity()).norm();
-      double trans_err = diff.translation().norm();
-      moveit::tools::Profiler::Average("Rotation error", rot_err);
-      moveit::tools::Profiler::Average("Translation error", trans_err);
-      if (rot_err < 1e-3 && trans_err < 1e-3)
-      {
-        moveit::tools::Profiler::Event("Valid IK");
-        moveit::tools::Profiler::Average("Success Rate", 100);
+        const std::string &tip = solver->getTipFrame();
+        robot_state::RobotState state(rml.getModel());
+        state.setToDefaultValues();
+        
+        ROS_INFO_STREAM("Tip Frame:  " << solver->getTipFrame());
+        ROS_INFO_STREAM("Base Frame: " << solver->getBaseFrame());
+        ROS_INFO_STREAM("IK Timeout: " << solver->getDefaultTimeout());
+        ROS_INFO_STREAM("Search res: " << solver->getSearchDiscretization());
+        
+        unsigned int test_count = 1000;
+        if (argc > 2)
+          try
+          {
+            test_count = boost::lexical_cast<unsigned int>(argv[2]);
+          }
+          catch(...)
+          {
+          }
+        
+        ROS_INFO("Running %u tests", test_count);
+        
+        moveit::tools::Profiler::Start();
+        for (int i = 0 ; i < test_count ; ++i)
+        {
+          state.setToRandomPositions(jmg);
+          Eigen::Affine3d pose = state.getGlobalLinkTransform(tip);
+          state.setToRandomPositions(jmg);
+          moveit::tools::Profiler::Begin("IK");
+          state.setFromIK(jmg, pose);
+          moveit::tools::Profiler::End("IK");
+          const Eigen::Affine3d &pose_upd = state.getGlobalLinkTransform(tip);
+          Eigen::Affine3d diff = pose_upd * pose.inverse();
+          double rot_err = (diff.rotation() - Eigen::Matrix3d::Identity()).norm();
+          double trans_err = diff.translation().norm();
+          moveit::tools::Profiler::Average("Rotation error", rot_err);
+          moveit::tools::Profiler::Average("Translation error", trans_err);
+          if (rot_err < 1e-3 && trans_err < 1e-3)
+          {
+            moveit::tools::Profiler::Event("Valid IK");
+            moveit::tools::Profiler::Average("Success Rate", 100);
+          }
+          else
+          {
+            moveit::tools::Profiler::Event("Invalid IK");
+            moveit::tools::Profiler::Average("Success Rate", 0);
+          }
+        }
+        moveit::tools::Profiler::Stop();
+        moveit::tools::Profiler::Status();
       }
       else
-      {
-        moveit::tools::Profiler::Event("Invalid IK");
-        moveit::tools::Profiler::Average("Success Rate", 0);
-      }
-    }
-    moveit::tools::Profiler::Stop();
-    moveit::tools::Profiler::Status();
-      }
-      else
-    ROS_ERROR_STREAM("No kinematics solver specified for group " << group);
+        ROS_ERROR_STREAM("No kinematics solver specified for group " << group);
     }
   }
-
+  
   ros::shutdown();
   return 0;
 }

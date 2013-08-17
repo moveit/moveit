@@ -215,9 +215,9 @@ namespace kdl_kinematics_plugin
 
     mutable random_numbers::RandomNumberGenerator random_number_generator_;
 
-    robot_model::RobotModelPtr kinematic_model_;
+    robot_model::RobotModelPtr robot_model_;
 
-    robot_state::RobotStatePtr kinematic_state_, kinematic_state_2_;
+    robot_state::RobotStatePtr state_, state_2_;
 
     int num_possible_redundant_joints_;
     std::vector<unsigned int> redundant_joints_map_index_;
@@ -227,7 +227,7 @@ namespace kdl_kinematics_plugin
     robot_model::JointModelGroup* joint_model_group_;
     double max_solver_iterations_;
     double epsilon_;
-    std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints_;
+    std::vector<JointMimic> mimic_joints_;
 
   };
 }
