@@ -53,10 +53,10 @@ namespace core
 class RobotModel;
 class JointModelGroup;
 
-/// Function type that allocates a kinematics solver for a particular group
+/// Function type that allocates a kinematics solver for a particular group  
 typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup*)> SolverAllocatorFn;
 
-/// Map from group instances to allocator functions
+/// Map from group instances to allocator functions & bijections
 typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn;
 
 /// Map of names to instances for JointModelGroup
@@ -65,7 +65,48 @@ typedef boost::container::flat_map<std::string, JointModelGroup*> JointModelGrou
 class JointModelGroup
 {
 public:
+  
+  struct KinematicsSolver
+  {
+    KinematicsSolver() 
+      : default_ik_timeout_(0.5)
+      , default_ik_attempts_(2)
+    {
+    }
+    
+    /// Return a flag indicating whether the state of the solver is initialized
+    operator bool() const
+    {
+      return allocator_ && !bijection_.empty() && solver_instance_;
+    }
 
+    void reset()
+    {
+      solver_instance_.reset();
+      solver_instance_const_.reset();
+      bijection_.clear();
+    }
+    
+    /// Function type that allocates a kinematics solver for a particular group  
+    SolverAllocatorFn allocator_;
+    
+    /** \brief The mapping between the order of the joints in the group and the order of the joints in the kinematics solver.
+        An element bijection[i] at index \e i in this array, maps the variable at index bijection[i] in this group to the variable at index
+        i in the kinematic solver. */
+    std::vector<unsigned int> bijection_;
+
+    kinematics::KinematicsBaseConstPtr solver_instance_const_;
+    
+    kinematics::KinematicsBasePtr solver_instance_;
+
+    double default_ik_timeout_;
+
+    unsigned int default_ik_attempts_;
+  };
+  
+  /// Map from group instances to allocator functions & bijections
+  typedef std::map<const JointModelGroup*, KinematicsSolver> KinematicsSolverMap;
+  
   JointModelGroup(const std::string& name, const srdf::Model::Group &config,
                   const std::vector<const JointModel*>& joint_vector, const RobotModel *parent_model);
 
@@ -430,9 +471,9 @@ public:
   /** \brief Override joint limits */
   void setVariableBounds(const std::vector<moveit_msgs::JointLimits>& jlim);
 
-  const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& getSolverAllocators() const
+  const std::pair<KinematicsSolver, KinematicsSolverMap>& getGroupKinematics() const
   {
-    return solver_allocators_;
+    return group_kinematics_;
   }
 
   void setSolverAllocators(const SolverAllocatorFn &solver, const SolverAllocatorMapFn &solver_map = SolverAllocatorMapFn())
@@ -444,27 +485,27 @@ public:
 
   const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
   {
-    return solver_instance_const_;
+    return group_kinematics_.first.solver_instance_const_;
   }
 
   const kinematics::KinematicsBasePtr& getSolverInstance()
   {
-    return solver_instance_;
+    return group_kinematics_.first.solver_instance_;
   }
 
   bool canSetStateFromIK(const std::string &tip) const;
 
   bool setRedundantJoints(const std::vector<std::string> &joints)
   {
-    if (solver_instance_)
-      return solver_instance_->setRedundantJoints(joints);
+    if (group_kinematics_.first.solver_instance_)
+      return group_kinematics_.first.solver_instance_->setRedundantJoints(joints);
     return false;
   }
 
   /** \brief Get the default IK timeout */
   double getDefaultIKTimeout() const
   {
-    return default_ik_timeout_;
+    return group_kinematics_.first.default_ik_timeout_;
   }
 
   /** \brief Set the default IK timeout */
@@ -473,19 +514,18 @@ public:
   /** \brief Get the default IK attempts */
   unsigned int getDefaultIKAttempts() const
   {
-    return default_ik_attempts_;
+    return group_kinematics_.first.default_ik_attempts_;
   }
 
   /** \brief Set the default IK attempts */
-  void setDefaultIKAttempts(unsigned int ik_attempts)
-  {
-    default_ik_attempts_ = ik_attempts;
-  }
+  void setDefaultIKAttempts(unsigned int ik_attempts);
 
-  /** \brief Return the mapping between the order of the joints in this group and the order of the joints in the kinematics solver */
+  /** \brief Return the mapping between the order of the joints in this group and the order of the joints in the kinematics solver.
+      An element bijection[i] at index \e i in this array, maps the variable at index bijection[i] in this group to the variable at index
+      i in the kinematic solver. */
   const std::vector<unsigned int>& getKinematicsSolverJointBijection() const
   {
-    return ik_joint_bijection_;
+    return group_kinematics_.first.bijection_;
   }
 
   /** \brief Print information about the constructed model */
@@ -494,6 +534,7 @@ public:
 protected:
 
   void computeVariableBoundsMsg();
+  bool computeIKIndexBijection(const std::vector<std::string> &ik_jnames, std::vector<unsigned int> &joint_bijection) const;
   
   /** \brief Update the variable values for the state of a group with respect to the mimic joints. This only updates mimic joints that have the parent in this group. If there is a joint mimicking one that is outside the group, there are no values to be read (\e values is only the group state) */
   void updateMimicJoints(double *values) const;
@@ -622,14 +663,6 @@ protected:
 
   bool                                                       is_single_dof_;
 
-  std::pair<SolverAllocatorFn, SolverAllocatorMapFn>         solver_allocators_;
-
-  kinematics::KinematicsBaseConstPtr                         solver_instance_const_;
-
-  kinematics::KinematicsBasePtr                              solver_instance_;
-
-  std::vector<unsigned int>                                  ik_joint_bijection_;
-
   struct GroupMimicUpdate
   {
     GroupMimicUpdate(int s, int d, double f, double o) : src(s), dest(d), factor(f), offset(o)
@@ -642,11 +675,9 @@ protected:
   };
   
   std::vector<GroupMimicUpdate>                              group_mimic_update_;
+
+  std::pair<KinematicsSolver, KinematicsSolverMap>           group_kinematics_;
   
-  double                                                     default_ik_timeout_;
-
-  unsigned int                                               default_ik_attempts_;
-
   srdf::Model::Group                                         config_;
   
   /** \brief The set of default states specified for this group in the SRDF */

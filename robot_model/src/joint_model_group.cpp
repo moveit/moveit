@@ -113,8 +113,6 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
   , is_contiguous_index_list_(true)
   , is_chain_(false)
   , is_single_dof_(true)
-  , default_ik_timeout_(0.5)
-  , default_ik_attempts_(2)
   , config_(config)
 {
   // sort joints in Depth-First order
@@ -500,37 +498,70 @@ int moveit::core::JointModelGroup::getVariableGroupIndex(const std::string &vari
 
 void moveit::core::JointModelGroup::setDefaultIKTimeout(double ik_timeout)
 {
-  default_ik_timeout_ = ik_timeout;
-  if (solver_instance_)
-    solver_instance_->setDefaultTimeout(ik_timeout);
+  group_kinematics_.first.default_ik_timeout_ = ik_timeout;
+  if (group_kinematics_.first.solver_instance_)
+    group_kinematics_.first.solver_instance_->setDefaultTimeout(ik_timeout);
+  for (KinematicsSolverMap::iterator it = group_kinematics_.second.begin() ; it != group_kinematics_.second.end() ; ++it)
+    it->second.default_ik_timeout_ = ik_timeout;
+}
+
+void moveit::core::JointModelGroup::setDefaultIKAttempts(unsigned int ik_attempts)
+{
+  group_kinematics_.first.default_ik_attempts_ = ik_attempts;
+  for (KinematicsSolverMap::iterator it = group_kinematics_.second.begin() ; it != group_kinematics_.second.end() ; ++it)
+    it->second.default_ik_attempts_ = ik_attempts;
+}
+
+bool moveit::core::JointModelGroup::computeIKIndexBijection(const std::vector<std::string> &ik_jnames, std::vector<unsigned int> &joint_bijection) const
+{
+  joint_bijection.clear();
+  for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
+  {
+    VariableIndexMap::const_iterator it = joint_variables_index_map_.find(ik_jnames[i]);
+    if (it == joint_variables_index_map_.end())
+    {
+      logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a joint.", ik_jnames[i].c_str(), getName().c_str());
+      return false;
+    }
+    const JointModel *jm = getJointModel(ik_jnames[i]);
+    for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
+      joint_bijection.push_back(it->second + k);
+  }
+  return true;
 }
 
 void moveit::core::JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers)
 {
-  solver_allocators_ = solvers;
-  if (solver_allocators_.first)
+  if (solvers.first)
   {
-    solver_instance_ = solver_allocators_.first(this);
-    if (solver_instance_)
+    group_kinematics_.first.allocator_ = solvers.first;
+    group_kinematics_.first.solver_instance_ = solvers.first(this);
+    if (group_kinematics_.first.solver_instance_)
     {
-      ik_joint_bijection_.clear();
-      const std::vector<std::string> &ik_jnames = solver_instance_->getJointNames();
-      for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
-      {
-        VariableIndexMap::const_iterator it = joint_variables_index_map_.find(ik_jnames[i]);
-        if (it == joint_variables_index_map_.end())
-        {
-          logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a joint.", ik_jnames[i].c_str(), getName().c_str());
-          solver_instance_.reset();
-          return;
-        }
-        const JointModel *jm = getJointModel(ik_jnames[i]);
-        for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
-          ik_joint_bijection_.push_back(it->second + k);
-      }
-      solver_instance_const_ = solver_instance_;
+      group_kinematics_.first.solver_instance_->setDefaultTimeout(group_kinematics_.first.default_ik_timeout_);
+      group_kinematics_.first.solver_instance_const_ = group_kinematics_.first.solver_instance_;
+      if (!computeIKIndexBijection(group_kinematics_.first.solver_instance_->getJointNames(),
+                                   group_kinematics_.first.bijection_))
+        group_kinematics_.first.reset();
     }
   }
+  else
+    // we now compute a joint bijection only if we have a solver map
+    for (SolverAllocatorMapFn::const_iterator it = solvers.second.begin() ; it != solvers.second.end() ; ++it)
+      if (it->first->getSolverInstance())
+      {
+        KinematicsSolver &ks = group_kinematics_.second[it->first];
+        ks.allocator_ = it->second;
+        ks.solver_instance_ = const_cast<JointModelGroup*>(it->first)->getSolverInstance();
+        ks.solver_instance_const_ = ks.solver_instance_;
+        ks.default_ik_timeout_ = group_kinematics_.first.default_ik_timeout_;
+        ks.default_ik_attempts_ = group_kinematics_.first.default_ik_attempts_;
+        if (!computeIKIndexBijection(ks.solver_instance_->getJointNames(), ks.bijection_))
+        {
+          group_kinematics_.second.clear();
+          break;
+        }
+      }
 }
 
 bool moveit::core::JointModelGroup::canSetStateFromIK(const std::string &tip) const
@@ -589,6 +620,26 @@ void moveit::core::JointModelGroup::printGroupInfo(std::ostream &out) const
   else
     out << "(non-contiguous)";
   out << std::endl;
+  if (group_kinematics_.first)
+  {
+    out << "  * Kinematics solver bijection:" << std::endl;
+    out << "    ";
+    for (std::size_t i = 0 ; i < group_kinematics_.first.bijection_.size() ; ++i)
+      out << group_kinematics_.first.bijection_[i] << " ";
+    out << std::endl;
+  }
+  if (!group_kinematics_.second.empty())
+  {
+    out << "  * Compound kinematics solver:" << std::endl;
+    for (KinematicsSolverMap::const_iterator it = group_kinematics_.second.begin() ; it != group_kinematics_.second.end() ; ++it)
+    {
+      out << "    " << it->first->getName();
+      for (std::size_t i = 0 ; i < it->second.bijection_.size() ; ++i)
+        out << it->second.bijection_[i] << " ";
+      out << std::endl;
+    }
+  }
+  
   if (!group_mimic_update_.empty())
   {
     out << "  * Local Mimic Updates:" << std::endl;

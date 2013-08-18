@@ -519,7 +519,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
 
   assert(vals.size() == ik_joint_bijection.size());
   for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
-    seed[ik_joint_bijection[i]] = vals[i];
+    seed[i] = vals[ik_joint_bijection[i]];
 
   std::vector<double> ik_sol;
   moveit_msgs::MoveItErrorCodes error;
@@ -531,7 +531,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
     assert(ik_sol.size() == ik_joint_bijection.size());
     std::vector<double> solution(ik_joint_bijection.size());
     for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
-      solution[i] = ik_sol[ik_joint_bijection[i]];
+      solution[ik_joint_bijection[i]] = ik_sol[i];
     state.setJointGroupPositions(jmg_, solution);
 
     assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getRobotState(), verbose_).satisfied);
