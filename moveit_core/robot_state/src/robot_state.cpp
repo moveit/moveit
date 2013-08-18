@@ -1109,7 +1109,7 @@ bool ikCallbackFnAdapter(const JointModelGroup *group, const GroupStateValidityC
   const std::vector<unsigned int> &bij = group->getKinematicsSolverJointBijection();
   std::vector<double> solution(bij.size());
   for (std::size_t i = 0 ; i < bij.size() ; ++i)
-    solution[i] = ik_sol[bij[i]];
+    solution[bij[i]] = ik_sol[i];
   if (constraint(group, &solution[0]))
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
@@ -1221,7 +1221,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     {
       first_seed = false;
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
-        seed[bij[i]] = initial_values[i];
+        seed[i] = initial_values[bij[i]];
     }
     else
     {
@@ -1230,14 +1230,14 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       std::vector<double> random_values;
       jmg->getVariableRandomValues(rng, random_values);
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
-        seed[bij[i]] = random_values[i];
+        seed[i] = random_values[bij[i]];
       
       if (options.lock_redundant_joints)
       {
         std::vector<unsigned int> red_joints;
         solver->getRedundantJoints(red_joints);
         for(std::size_t i = 0 ; i < red_joints.size(); ++i)
-          seed[bij[red_joints[i]]] = initial_values[red_joints[i]];
+          seed[red_joints[i]] = initial_values[bij[red_joints[i]]];
       }
     }
     
@@ -1250,7 +1250,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     {
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
-        solution[i] = ik_sol[bij[i]];
+        solution[bij[i]] = ik_sol[i];
       setJointGroupPositions(jmg, solution);
       return true;
     }
@@ -1424,7 +1424,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
         std::vector<double> initial_values;
         copyJointGroupPositions(sub_groups[sg], initial_values);
         for (std::size_t i = 0 ; i < bij.size() ; ++i)
-          seed[bij[i]] = initial_values[i];
+          seed[i] = initial_values[bij[i]];
       }
       else
       {
@@ -1433,7 +1433,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
         std::vector<double> random_values;
         sub_groups[sg]->getVariableRandomValues(rng, random_values);
         for (std::size_t i = 0 ; i < bij.size() ; ++i)
-          seed[bij[i]] = random_values[i];
+          seed[i] = random_values[bij[i]];
       }
 
       // compute the IK solution
@@ -1444,7 +1444,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       {
         std::vector<double> solution(bij.size());
         for (std::size_t i = 0 ; i < bij.size() ; ++i)
-          solution[i] = ik_sol[bij[i]];
+          solution[bij[i]] = ik_sol[i];
         setJointGroupPositions(sub_groups[sg], solution);
       }
       else

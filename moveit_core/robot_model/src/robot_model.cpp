@@ -1201,6 +1201,19 @@ void moveit::core::RobotModel::interpolate(const double *from, const double *to,
 
 void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn> &allocators)
 {
+  // we first set all the "simple" allocators -- where a group has one IK solver
+  for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
+  {
+    std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(it->second->getName());
+    if (jt != allocators.end())
+    {
+      std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
+      result.first = jt->second;
+      it->second->setSolverAllocators(result);
+    }
+  }
+  
+  // now we set compound IK solvers; we do this later because we need the index maps computed by the previous calls to setSolverAllocators()
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
   {
     JointModelGroup *jmg = it->second;
@@ -1247,11 +1260,8 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
         }
         logDebug("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
       }
+      jmg->setSolverAllocators(result);
     }
-    else
-      // if the IK allocator is for this group, we use it
-      result.first = jt->second;
-    jmg->setSolverAllocators(result);
   }
 }
 
