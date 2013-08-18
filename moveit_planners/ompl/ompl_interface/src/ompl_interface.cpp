@@ -78,19 +78,19 @@ ompl_interface::OMPLInterface::~OMPLInterface()
 void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig)
 {
   planning_interface::PlannerConfigurationMap pconfig2 = pconfig;
-
+  
   // construct default configurations
-  const std::map<std::string, robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
-  for (std::map<std::string, robot_model::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
+  const std::vector<const robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroups();
+  for (std::size_t i = 0 ; i < groups.size() ; ++i)
   {
-    if (pconfig.find(it->first) == pconfig.end())
+    if (pconfig.find(groups[i]->getName()) == pconfig.end())
     {
       planning_interface::PlannerConfigurationSettings empty;
-      empty.name = empty.group = it->first;
+      empty.name = empty.group = groups[i]->getName();
       pconfig2[empty.name] = empty;
     }
   }
-
+  
   context_manager_.setPlannerConfigurations(pconfig2);
 }
 

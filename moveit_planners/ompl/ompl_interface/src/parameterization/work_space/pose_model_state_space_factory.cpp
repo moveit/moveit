@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
@@ -49,23 +49,26 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::s
   const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
   if (jmg)
   {
-    const std::pair<robot_model::SolverAllocatorFn, robot_model::SolverAllocatorMapFn>& slv = jmg->getSolverAllocators();
+    const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap>& slv = jmg->getGroupKinematics();
     bool ik = false;
     // check that we have a direct means to compute IK
     if (slv.first)
-      ik = true;
+      ik = jmg->getVariableCount() == slv.first.bijection_.size();
     else
       if (!slv.second.empty())
       {
         // or an IK solver for each of the subgroups
         unsigned int vc = 0;
-        for (robot_model::SolverAllocatorMapFn::const_iterator jt = slv.second.begin() ; jt != slv.second.end() ; ++jt)
-          if (jt->first)
-            vc += jt->first->getVariableCount();
-        if (vc == jmg->getVariableCount())
+        unsigned int bc = 0;
+        for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator jt = slv.second.begin() ; jt != slv.second.end() ; ++jt)
+        {
+          vc += jt->first->getVariableCount();
+          bc += jt->second.bijection_.size();
+        }
+        if (vc == jmg->getVariableCount() && vc == bc)
           ik = true;
       }
-
+    
     if (ik)
     {
       // if we have path constraints, we prefer interpolating in pose space

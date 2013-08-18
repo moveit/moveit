@@ -38,11 +38,14 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
 
-ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc, const constraint_samplers::ConstraintSamplerPtr &cs) :
-  ob::StateSampler(pc->getOMPLStateSpace().get()), planning_context_(pc), default_(space_->allocDefaultStateSampler()),
-  constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()),
-  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getGroupName())),
-  constrained_success_(0), constrained_failure_(0)
+ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc, const constraint_samplers::ConstraintSamplerPtr &cs)
+  : ob::StateSampler(pc->getOMPLStateSpace().get())
+  , planning_context_(pc)
+  , default_(space_->allocDefaultStateSampler())
+  , constraint_sampler_(cs)
+  , work_state_(pc->getCompleteInitialRobotState())
+  , constrained_success_(0)
+  , constrained_failure_(0)
 {
   inv_dim_ = space_->getDimension() > 0 ? 1.0 / (double)space_->getDimension() : 1.0;
 }
@@ -59,9 +62,9 @@ bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
 {
   //  moveit::Profiler::ScopedBlock sblock("sampleWithConstraints");
 
-  if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
+  if (constraint_sampler_->sample(work_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
   {
-    planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
+    planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_state_);
     if (space_->satisfiesBounds(state))
     {
       ++constrained_success_;

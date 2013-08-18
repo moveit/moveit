@@ -204,8 +204,6 @@ public:
   virtual void deserialize(ompl::base::State *state, const void *serialization) const;
   virtual double* getValueAddressAtIndex(ompl::base::State *state, const unsigned int index) const;
 
-  virtual ompl::base::StateSamplerPtr allocStateSampler() const;
-  virtual ompl::base::StateSamplerPtr allocSubspaceStateSampler(const ompl::base::StateSpace *subspace) const;
   virtual ompl::base::StateSamplerPtr allocDefaultStateSampler() const;
 
   
@@ -235,43 +233,24 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 
-  const robot_model::JointModel::Bounds& getJointsBounds() const
+  const std::vector<robot_model::JointModel::Bounds>& getJointsBounds() const
   {
-    return spec_.joints_bounds_;
+    return spec_.joint_bounds_;
   }
 
   /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToRobotState(robot_state::JointStateGroup* jsg, const ompl::base::State *state) const;
-
-  /// Copy the data from an OMPL state to a kinematic state. The join states \b must be specified in the same order as the joint models in the constructor. This function is implemented in terms of the previous definition with the same name.
-  void copyToRobotState(robot_state::RobotState &kstate, const ompl::base::State *state) const
-  {
-    copyToRobotState(kstate.getJointStateGroup(getJointModelGroupName()), state);
-  }
-
-  /// Copy the data from a value vector that corresponds to the state of the considered joint model group (or array of joints)
-  //  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const = 0;
-
-  /// Copy the data from a kinematic state to an OMPL state. Only needed joint states are copied. This function is implemented in terms of the previous definition with the same name.
-  void copyToOMPLState(ompl::base::State *state, const robot_state::RobotState &kstate) const
-  {
-    copyToOMPLState(state, kstate.getJointStateGroup(getJointModelGroupName()));
-  }
+  virtual void copyToRobotState(robot_state::RobotState &rstate, const ompl::base::State *state) const;
 
   /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToOMPLState(ompl::base::State *state, const robot_state::JointStateGroup* jsg) const;
-
+  virtual void copyToOMPLState(ompl::base::State *state, const robot_state::RobotState &rstate) const;
+  
   double getTagSnapToSegment() const;
   void setTagSnapToSegment(double snap);
 
 protected:
-  friend class WrappedStateSampler;
-
-  virtual void afterStateSample(ompl::base::State *sample) const;
 
   ModelBasedStateSpaceSpecification spec_;
   std::vector<const robot_model::JointModel*> joint_model_vector_;
-  std::vector<int> start_index_list_;
   unsigned int variable_count_;
   size_t state_values_size_;
   

@@ -1,51 +1,54 @@
 /*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2011, Willow Garage, Inc.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2011, Willow Garage, Inc.
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
 
-/* Author: Ioan Sucan, Dave Coleman */
+/* Author: Ioan Sucan */
 
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
 #include <ros/ros.h>
 
-ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
-  ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
-  group_name_(pc->getGroupName()), tss_(pc->getCompleteInitialRobotState()), verbose_(false)
+ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc)
+  : ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation())
+  , planning_context_(pc)
+  , group_name_(pc->getGroupName())
+  , tss_(pc->getCompleteInitialRobotState())
+  , verbose_(false)
 {
   specs_.clearanceComputationType = ompl::base::StateValidityCheckerSpecs::APPROXIMATE;
   specs_.hasValidDirectionComputation = false;
-
+  
   collision_request_with_distance_.distance = true;
   collision_request_with_cost_.cost = true;
 
@@ -79,61 +82,16 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 
 double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state) const
 {
-  bool useCollisionDistanceCost = false; // TODO - set this somewhere else
   double cost = 0.0;
-
-  if( useCollisionDistanceCost ) // proximity to collisions cost
-  {
-    robot_state::RobotState *kstate = tss_.getStateStorage();
-    planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
-
-    collision_detection::CollisionResult res;
-    planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
-
-    for (std::set<collision_detection::CostSource>::const_iterator it = res.cost_sources.begin() ; it != res.cost_sources.end() ; ++it)
-      cost += it->cost * it->getVolume();
-  }
-  else // use distance between joints cost
-  {
-    static std::vector<double> prev_joint_values;
-    static bool first_time = true;
-    static boost::thread::id thread_id = boost::this_thread::get_id();
-
-    // Check that we are still on same thread
-    if( thread_id != boost::this_thread::get_id() )
-      ROS_ERROR_STREAM("Multiple threads are not implemented here...");
-
-    // Get current robot state
-    robot_state::RobotState *kstate = tss_.getStateStorage();
-    planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
-
-    std::vector<double> new_joint_values;
-
-    // get joint state values
-    kstate->getStateValues(new_joint_values);
-
-    // calculate cost
-    for (std::size_t i = 0; i < new_joint_values.size(); ++i)
-    {
-      double value = 0;
-      // Check if first time
-      if (first_time)
-      {
-        first_time = false;
-        prev_joint_values.resize(new_joint_values.size());
-      }
-      else
-      {
-        // get abs of difference in each joint value
-        value = fabs(prev_joint_values[i] - new_joint_values[i]);
-      }
-
-      cost += value;
-
-      // copy new value to old vector
-      prev_joint_values[i] = new_joint_values[i];
-    }
-  }
+  
+  robot_state::RobotState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
+  
+  collision_detection::CollisionResult res;
+  planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
+  
+  for (std::set<collision_detection::CostSource>::const_iterator it = res.cost_sources.begin() ; it != res.cost_sources.end() ; ++it)
+    cost += it->cost * it->getVolume();
 
   return cost;
 }

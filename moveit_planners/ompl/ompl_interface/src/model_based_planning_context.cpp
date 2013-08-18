@@ -100,27 +100,31 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
     {
       std::string joints = peval.substr(7, peval.length() - 8);
       boost::replace_all(joints, ",", " ");
-      std::vector<std::pair<std::string, unsigned int> > j;
+      std::vector<unsigned int> j;
       std::stringstream ss(joints);
       while (ss.good() && !ss.eof())
       {
-    std::string v; ss >> v >> std::ws;
-    if (getJointModelGroup()->hasJointModel(v))
-    {
-      unsigned int vc = getJointModelGroup()->getJointModel(v)->getVariableCount();
-      if (vc > 0)
-        j.push_back(std::make_pair(v, vc));
-      else
-        logWarn("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
-    }
-    else
-      logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the group '%s'.",
+        std::string v; ss >> v >> std::ws;
+        if (getJointModelGroup()->hasJointModel(v))
+        {
+          unsigned int vc = getJointModelGroup()->getJointModel(v)->getVariableCount();
+          if (vc > 0)
+          {
+            int idx = getJointModelGroup()->getVariableGroupIndex(v);
+            for (int q = 0 ; q < vc ; ++q)
+              j.push_back(idx + q);
+          }
+          else
+            logWarn("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
+        }
+        else
+          logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the group '%s'.",
                    name_.c_str(), v.c_str(), getGroupName().c_str());
       }
       if (j.empty())
-    logError("%s: No valid joints specified for joint projection", name_.c_str());
+        logError("%s: No valid joints specified for joint projection", name_.c_str());
       else
-    return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j));
+        return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j));
     }
     else
       logError("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
