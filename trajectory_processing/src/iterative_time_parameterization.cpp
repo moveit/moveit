@@ -115,7 +115,7 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
     for (std::size_t j = 0 ; j < vars.size() ; ++j)
     {
       double v_max = 1.0;
-      const robot_model::VariableBounds &b = rmodel.getVariableBounds(idx[j]);
+      const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
       if (b.velocity_bounded_)
         v_max = std::min(fabs(b.max_velocity_), fabs(b.min_velocity_));
       const double dq1 = curr_waypoint->getVariablePosition(idx[j]);
@@ -345,7 +345,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
 
           // Get acceleration limits
           double a_max = 1.0;
-          const robot_model::VariableBounds &b = rmodel.getVariableBounds(idx[j]);
+          const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
           if (b.acceleration_bounded_)
             a_max = std::min(fabs(b.max_acceleration_), fabs(b.min_acceleration_));
           
