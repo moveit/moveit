@@ -40,10 +40,12 @@
 
 ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBasedPlanningContext *pc,
                                                                  const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                                                                 const constraint_samplers::ConstraintSamplerPtr &cs) :
-  ob::ValidStateSampler(pc->getOMPLSimpleSetup().getSpaceInformation().get()),
-  planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()),
-  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getGroupName()))
+                                                                 const constraint_samplers::ConstraintSamplerPtr &cs)
+  : ob::ValidStateSampler(pc->getOMPLSimpleSetup().getSpaceInformation().get())
+  , planning_context_(pc)
+  , kinematic_constraint_set_(ks)
+  , constraint_sampler_(cs)
+  , work_state_(pc->getCompleteInitialRobotState())
 {
   if (!constraint_sampler_)
     default_sampler_ = si_->allocStateSampler();
@@ -55,12 +57,12 @@ bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State *state)
 {
   if (constraint_sampler_)
   {
-    planning_context_->getOMPLStateSpace()->copyToRobotState(work_joint_group_state_, state);
-    if (constraint_sampler_->project(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
+    planning_context_->getOMPLStateSpace()->copyToRobotState(work_state_, state);
+    if (constraint_sampler_->project(work_state_, planning_context_->getMaximumStateSamplingAttempts()))
     {
       if (kinematic_constraint_set_->decide(work_state_).satisfied)
       {
-        planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
+        planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_state_);
         return true;
       }
     }
@@ -73,11 +75,11 @@ bool ompl_interface::ValidConstrainedSampler::sample(ob::State *state)
   //  moveit::Profiler::ScopedBlock pblock("ValidConstrainedSampler::sample");
   if (constraint_sampler_)
   {
-    if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
+    if (constraint_sampler_->sample(work_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
     {
       if (kinematic_constraint_set_->decide(work_state_).satisfied)
       {
-        planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
+        planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_state_);
         return true;
       }
     }
@@ -85,7 +87,7 @@ bool ompl_interface::ValidConstrainedSampler::sample(ob::State *state)
   else
   {
     default_sampler_->sampleUniform(state);
-    planning_context_->getOMPLStateSpace()->copyToRobotState(work_joint_group_state_, state);
+    planning_context_->getOMPLStateSpace()->copyToRobotState(work_state_, state);
     if (kinematic_constraint_set_->decide(work_state_).satisfied)
       return true;
   }
@@ -102,7 +104,7 @@ bool ompl_interface::ValidConstrainedSampler::sampleNear(ompl::base::State *stat
   {
     double dist = pow(rng_.uniform01(), inv_dim_) * distance;
     si_->getStateSpace()->interpolate(near, state, dist / total_d, state);
-    planning_context_->getOMPLStateSpace()->copyToRobotState(work_joint_group_state_, state);
+    planning_context_->getOMPLStateSpace()->copyToRobotState(work_state_, state);
     if (!kinematic_constraint_set_->decide(work_state_).satisfied)
       return false;
   }
