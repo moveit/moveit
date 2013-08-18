@@ -385,9 +385,6 @@ public:
   /** \brief Get the bounds for a specific variable. Throw an exception of variable is not found. */
   const VariableBounds& getVariableBounds(const std::string& variable) const;
 
-  /** \brief Get the bounds for a specific variable */
-  const VariableBounds& getVariableBounds(int variable_index) const;
-  
   /** \brief Get the bounds for all the active joints */
   const std::vector<JointModel::Bounds>& getActiveJointModelsBounds() const
   {
