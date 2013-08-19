@@ -84,19 +84,19 @@ public:
     else
       return bp::list();
   }
-
+  
   bp::list getGroupNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getJointModelGroupNames());
   }
-
+  
   bp::list getJointLimits(const std::string &name) const
   {
     bp::list result;
     const robot_model::JointModel *jm = robot_model_->getJointModel(name);
     if (jm)
     {
-      const std::vector<moveit_msgs::JointLimits> &lim = jm->getVariableLimits();
+      const std::vector<moveit_msgs::JointLimits> &lim = jm->getVariableBoundsMsg();
       for (std::size_t i = 0 ; i < lim.size() ; ++i)
       {
         bp::list l;
@@ -107,22 +107,22 @@ public:
     }
     return result;
   }
-
+  
   const char* getPlanningFrame() const
   {
     return robot_model_->getModelFrame().c_str();
   }
-
+  
   bp::list getLinkPose(const std::string &name)
   {
     bp::list l;
     if (!ensureCurrentState())
       return l;
     robot_state::RobotStatePtr state = current_state_monitor_->getCurrentState();
-    const robot_state::LinkState *ls = state->getLinkState(name);
-    if (ls)
+    const robot_model::LinkModel *lm = state->getLinkModel(name);
+    if (lm)
     {
-      const Eigen::Affine3d &t = ls->getGlobalLinkTransform();
+      const Eigen::Affine3d &t = state->getGlobalLinkTransform(lm);
       std::vector<double> v(7);
       v[0] = t.translation().x();
       v[1] = t.translation().y();
@@ -136,19 +136,25 @@ public:
     }
     return l;
   }
-
+  
   bp::list getCurrentJointValues(const std::string &name)
   {
     bp::list l;
     if (!ensureCurrentState())
       return l;
     robot_state::RobotStatePtr state = current_state_monitor_->getCurrentState();
-    const robot_state::JointState *js = state->getJointState(name);
-    if (js)
-      l = py_bindings_tools::listFromDouble(js->getVariableValues());
+    const robot_model::JointModel *jm = state->getJointModel(name);
+    if (jm)
+    {
+      const double *pos = state->getJointPositions(jm);
+      const unsigned int sz = jm->getVariableCount();
+      for (unsigned int i = 0 ; i < sz ; ++i)
+        l.append(pos[i]);
+    }
+    
     return l;
   }
-
+  
   bool ensureCurrentState()
   {
     if (!current_state_monitor_)
@@ -156,7 +162,7 @@ public:
       ROS_ERROR("Unable to get current robot state");
       return false;
     }
-
+    
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
     {
@@ -166,7 +172,7 @@ public:
     }
     return true;
   }
-
+  
   bp::dict getCurrentVariableValues()
   {
     bp::dict d;
@@ -175,7 +181,7 @@ public:
       ROS_ERROR("Unable to get current robot state");
       return d;
     }
-
+    
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
       current_state_monitor_->startStateMonitor();
