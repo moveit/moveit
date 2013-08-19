@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta, Acorn Pooley, Mario Prats */
 
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/transforms/transforms.h>
@@ -276,6 +276,15 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup 
   for (std::size_t i = 0 ; i < mimic.size() ; ++i)
     updateMimicJoint(mimic[i]);
   dirtyJointTransforms(group->getCommonRoot());
+}
+
+bool moveit::core::RobotState::setToDefaultValues(const JointModelGroup *group, const std::string &name)
+{
+  std::map<std::string, double> m;
+  bool r = group->getVariableDefaultValues(name, m); // mimic values are updated
+  setVariablePositions(m);
+  dirtyJointTransforms(group->getCommonRoot());
+  return r;
 }
 
 void moveit::core::RobotState::setToDefaultValues()
@@ -1042,7 +1051,7 @@ bool moveit::core::RobotState::integrateVariableVelocity(const JointModelGroup *
   {
     std::vector<double> values;
     copyJointGroupPositions(jmg, values);
-    return constraint(jmg, &values[0]);
+    return constraint(this, jmg, &values[0]);
   }
   else
     return true;
@@ -1103,14 +1112,14 @@ namespace core
 {
 namespace
 {
-bool ikCallbackFnAdapter(const JointModelGroup *group, const GroupStateValidityCallbackFn &constraint,
+bool ikCallbackFnAdapter(RobotState *state, const JointModelGroup *group, const GroupStateValidityCallbackFn &constraint,
                          const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
 {
   const std::vector<unsigned int> &bij = group->getKinematicsSolverJointBijection();
   std::vector<double> solution(bij.size());
   for (std::size_t i = 0 ; i < bij.size() ; ++i)
     solution[bij[i]] = ik_sol[i];
-  if (constraint(group, &solution[0]))
+  if (constraint(state, group, &solution[0]))
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
@@ -1132,7 +1141,9 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
   Eigen::Affine3d pose = pose_in;
   std::string tip = tip_in;
-
+  if (!tip.empty() && tip[0] == '/')
+    tip = tip.substr(1);
+  
   // bring the pose to the frame of the IK solver
   const std::string &ik_frame = solver->getBaseFrame();
   if (!Transforms::sameFrame(ik_frame, robot_model_->getModelFrame()))
@@ -1207,7 +1218,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
-    ik_callback_fn = boost::bind(&ikCallbackFnAdapter, jmg, constraint, _1, _2, _3);
+    ik_callback_fn = boost::bind(&ikCallbackFnAdapter, this, jmg, constraint, _1, _2, _3);
 
   bool first_seed = true;
   std::vector<double> initial_values;
@@ -1388,7 +1399,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   std::vector<geometry_msgs::Pose> ik_queries(poses_in.size());
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
-    ik_callback_fn = boost::bind(&ikCallbackFnAdapter, jmg, constraint, _1, _2, _3);
+    ik_callback_fn = boost::bind(&ikCallbackFnAdapter, this, jmg, constraint, _1, _2, _3);
 
   for (std::size_t i = 0; i < transformed_poses.size() ; ++i)
   {
@@ -1458,7 +1469,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     {
       std::vector<double> full_solution;
       copyJointGroupPositions(jmg, full_solution);
-      if (constraint ? constraint(jmg, &full_solution[0]) : true)
+      if (constraint ? constraint(this, jmg, &full_solution[0]) : true)
       {
         logDebug("Found IK solution");
         return true;
@@ -1467,6 +1478,123 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   }
   
   return false;
+}
+
+double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *group, std::vector<RobotStatePtr> &traj, const LinkModel *link,
+                                                      const Eigen::Vector3d &direction, bool global_reference_frame, double distance, double max_step, double jump_threshold,
+                                                      const GroupStateValidityCallbackFn &validCallback,
+                                                      const kinematics::KinematicsQueryOptions &options)
+{
+  //this is the Cartesian pose we start from, and have to move in the direction indicated
+  const Eigen::Affine3d &start_pose = getGlobalLinkTransform(link);
+  
+  //the direction can be in the local reference frame (in which case we rotate it)
+  const Eigen::Vector3d &rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
+
+  //The target pose is built by applying a translation to the start pose for the desired direction and distance
+  Eigen::Affine3d target_pose = start_pose;
+  target_pose.translation() += rotated_direction * distance;
+
+  //call computeCartesianPath for the computed target pose in the global reference frame
+  return (distance * computeCartesianPath(group, traj, link, target_pose, true, max_step, jump_threshold, validCallback, options));
+}
+
+double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *group, std::vector<RobotStatePtr> &traj, const LinkModel *link,
+                                                      const Eigen::Affine3d &target, bool global_reference_frame, double max_step, double jump_threshold,
+                                                      const GroupStateValidityCallbackFn &validCallback,
+                                                      const kinematics::KinematicsQueryOptions &options)
+{
+  const std::vector<const JointModel*> &cjnt = group->getContinuousJointModels();
+  // make sure that continuous joints wrap
+  for (std::size_t i = 0 ; i < cjnt.size() ; ++i)
+    enforceBounds(cjnt[i]);
+
+  // this is the Cartesian pose we start from, and we move in the direction indicated
+  Eigen::Affine3d start_pose = getGlobalLinkTransform(link);
+
+  // the target can be in the local reference frame (in which case we rotate it)
+  Eigen::Affine3d rotated_target = global_reference_frame ? target : start_pose * target;
+  
+  bool test_joint_space_jump = jump_threshold > 0.0;
+  
+  // decide how many steps we will need for this trajectory
+  double distance = (rotated_target.translation() - start_pose.translation()).norm();
+  unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
+  
+  traj.clear();
+  traj.push_back(RobotStatePtr(new RobotState(*this)));
+  
+  std::vector<double> dist_vector;
+  double total_dist = 0.0;
+  
+  double last_valid_percentage = 0.0;
+  Eigen::Quaterniond start_quaternion(start_pose.rotation());
+  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
+  for (unsigned int i = 1; i <= steps ; ++i)
+  {
+    double percentage = (double)i / (double)steps;
+
+    Eigen::Affine3d pose(start_quaternion.slerp(percentage, target_quaternion));
+    pose.translation() = percentage * rotated_target.translation() + (1 - percentage) * start_pose.translation();
+
+    if (setFromIK(group, pose, link->getName(), 1, 0.0, validCallback, options))
+    {
+      traj.push_back(RobotStatePtr(new RobotState(*this)));
+
+      // compute the distance to the previous point (infinity norm)
+      if (test_joint_space_jump)
+      {
+        double dist_prev_point = traj.back()->distance(*traj[traj.size() - 2], group);
+        dist_vector.push_back(dist_prev_point);
+        total_dist += dist_prev_point;
+      }
+    }
+    else
+      break;
+    last_valid_percentage = percentage;
+  }
+
+  if (test_joint_space_jump)
+  {
+    // compute the average distance between the states we looked at
+    double thres = jump_threshold * (total_dist / (double)dist_vector.size());
+    for (std::size_t i = 0 ; i < dist_vector.size() ; ++i)
+      if (dist_vector[i] > thres)
+      {
+        logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
+        last_valid_percentage = (double)i / (double)steps;
+        traj.resize(i);
+        break;
+      }
+  }
+
+  return last_valid_percentage;
+}
+
+double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *group, std::vector<RobotStatePtr> &traj, const LinkModel *link,
+                                                      const EigenSTL::vector_Affine3d &waypoints, bool global_reference_frame, double max_step, double jump_threshold,
+                                                      const GroupStateValidityCallbackFn &validCallback,
+                                                      const kinematics::KinematicsQueryOptions &options)
+{
+  double percentage_solved = 0.0;
+  for (std::size_t i = 0; i < waypoints.size(); ++i)
+  {
+    std::vector<RobotStatePtr> waypoint_traj;
+    double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame, max_step, jump_threshold, validCallback);
+    if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
+    {
+      percentage_solved = (double)(i + 1) / (double)waypoints.size();
+      traj.insert(traj.end(), waypoint_traj.begin(), waypoint_traj.end());
+    }
+    else
+    {
+      percentage_solved += wp_percentage_solved / (double)waypoints.size();
+      traj.insert(traj.end(), waypoint_traj.begin(), waypoint_traj.end());
+      break;
+    }
+  }
+  
+  return percentage_solved;
 }
 
 namespace

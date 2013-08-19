@@ -442,14 +442,14 @@ namespace constraint_samplers
 {
 namespace
 {
-void samplingIkCallbackFnAdapter(const robot_model::JointModelGroup *jmg, const robot_state::GroupStateValidityCallbackFn &constraint,
+void samplingIkCallbackFnAdapter(robot_state::RobotState *state, const robot_model::JointModelGroup *jmg, const robot_state::GroupStateValidityCallbackFn &constraint,
                                  const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
 {
   const std::vector<unsigned int> &bij = jmg->getKinematicsSolverJointBijection();
   std::vector<double> solution(bij.size());
   for (std::size_t i = 0 ; i < bij.size() ; ++i)
     solution[i] = ik_sol[bij[i]];
-  if (constraint(jmg, &solution[0]))
+  if (constraint(state, jmg, &solution[0]))
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
@@ -469,7 +469,7 @@ bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::RobotSt
 
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
   if (group_state_validity_callback_)
-    adapted_ik_validity_callback = boost::bind(&samplingIkCallbackFnAdapter, jmg_, group_state_validity_callback_, _1, _2, _3);
+    adapted_ik_validity_callback = boost::bind(&samplingIkCallbackFnAdapter, &state, jmg_, group_state_validity_callback_, _1, _2, _3);
 
   for (unsigned int a = 0 ; a < max_attempts ; ++a)
   {
