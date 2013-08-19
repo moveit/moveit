@@ -208,12 +208,12 @@ public:
       return update_callback_;
     }
 
-    void setStateValidityCallback(const robot_state::StateValidityCallbackFn &callback)
+    void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn &callback)
     {
       state_validity_callback_fn_ = callback;
     }
 
-    const robot_state::StateValidityCallbackFn& getStateValidityCallback() const
+    const robot_state::GroupStateValidityCallbackFn& getGroupStateValidityCallback() const
     {
       return state_validity_callback_fn_;
     }
@@ -409,7 +409,7 @@ public:
     // error_state_changed is true if an end effector's error state may have changed.
     boost::function<void(InteractionHandler* handler, bool error_state_changed)> update_callback_;
 
-    robot_state::StateValidityCallbackFn state_validity_callback_fn_;
+    robot_state::GroupStateValidityCallbackFn state_validity_callback_fn_;
     double ik_timeout_;
     unsigned int ik_attempts_;
 
@@ -484,7 +484,7 @@ public:
 
   static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout,
-                          const robot_state::StateValidityCallbackFn &validity_callback = robot_state::StateValidityCallbackFn(),
+                          const robot_state::GroupStateValidityCallbackFn &validity_callback = robot_state::GroupStateValidityCallbackFn(),
                           const kinematics::KinematicsQueryOptions &kinematics_query_options = kinematics::KinematicsQueryOptions());
   static bool updateState(robot_state::RobotState &state, const Joint &vj, const geometry_msgs::Pose &pose);
 

@@ -102,20 +102,21 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
                           const collision_detection::AllowedCollisionMatrix *collision_matrix,
                           bool verbose,
                           const sensor_msgs::JointState *grasp_posture,
-                          robot_state::JointStateGroup *joint_state_group,
-                          const std::vector<double> &joint_group_variable_values)
+                          robot_state::RobotState *state,
+                          const robot_state::JointModelGroup *group,
+                          const double *joint_group_variable_values)
 {
-  joint_state_group->setVariableValues(joint_group_variable_values);
+  state->setJointGroupPositions(group, joint_group_variable_values);
   // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-  joint_state_group->getRobotState()->setStateValues(*grasp_posture);
+  state->setVariableValues(*grasp_posture);
 
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
   collision_detection::CollisionResult res;
-  req.group_name = joint_state_group->getName();
-  planning_scene->checkCollision(req, res, *joint_state_group->getRobotState(), *collision_matrix);
+  req.group_name = group->getName();
+  planning_scene->checkCollision(req, res, *state, *collision_matrix);
   if (res.collision == false)
-    return planning_scene->isStateFeasible(*joint_state_group->getRobotState());
+    return planning_scene->isStateFeasible(*state);
   else
     return false;
 }
@@ -124,15 +125,15 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
 {
   // initialize with scene state
   robot_state::RobotStatePtr token_state(new robot_state::RobotState(reference_state));
-  robot_state::JointStateGroup *jsg = token_state->getJointStateGroup(plan->shared_data_->planning_group_);
+  const robot_state::JointModelGroup *jmg = plan->shared_data_->planning_group_;
   for (unsigned int j = 0 ; j < attempts ; ++j)
   {
     double min_d = std::numeric_limits<double>::infinity();
-    if (plan->goal_sampler_->sample(jsg, *token_state, plan->shared_data_->max_goal_sampling_attempts_))
+    if (plan->goal_sampler_->sample(*token_state, plan->shared_data_->max_goal_sampling_attempts_))
     {
       for (std::size_t i = 0 ; i < plan->possible_goal_states_.size() ; ++i)
       {
-        double d = plan->possible_goal_states_[i]->getJointStateGroup(plan->shared_data_->planning_group_)->distance(jsg);
+        double d = plan->possible_goal_states_[i]->distance(*token_state, plan->shared_data_->planning_group_);
         if (d < min_d)
           min_d = d;
       }
@@ -166,8 +167,8 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detec
   if (!plan->retreat_posture_.name.empty())
   {
     robot_state::RobotStatePtr state(new robot_state::RobotState(plan->trajectories_.back().trajectory_->getLastWayPoint()));
-    state->setStateValues(plan->retreat_posture_);
-    robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_));
+    state->setVariableValues(plan->retreat_posture_);
+    robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
     traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan_execution::ExecutableTrajectory et(traj, name);
     et.trajectory_monitoring_ = false; // \todo THIS IS BAD. NEEDS TO BE RE-ENABLED; THIS FLAG IS INCORRECTLY SET THROUGHOUT THE PICK&PLACE CODE
@@ -185,7 +186,7 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detec
 
 bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
 {
-  const robot_model::JointModelGroup *jmg = planning_scene_->getRobotModel()->getJointModelGroup(plan->shared_data_->planning_group_);
+  const robot_model::JointModelGroup *jmg = plan->shared_data_->planning_group_;
   // compute what the maximum distance reported between any two states in the planning group could be, and keep 1% of that;
   // this is the minimum distance between sampled goal states
   const double min_distance = 0.01 * jmg->getMaximumExtent();
@@ -196,8 +197,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
   tf::vectorMsgToEigen(plan->retreat_.direction.vector, retreat_direction);
 
   // if translation vectors are specified in the frame of the ik link name, then we assume the frame is local; otherwise, the frame is global
-  bool approach_direction_is_global_frame = !robot_state::Transforms::sameFrame(plan->approach_.direction.header.frame_id, plan->shared_data_->ik_link_name_);
-  bool retreat_direction_is_global_frame  = !robot_state::Transforms::sameFrame(plan->retreat_.direction.header.frame_id,  plan->shared_data_->ik_link_name_);
+  bool approach_direction_is_global_frame = !robot_state::Transforms::sameFrame(plan->approach_.direction.header.frame_id, plan->shared_data_->ik_link_->getName());
+  bool retreat_direction_is_global_frame  = !robot_state::Transforms::sameFrame(plan->retreat_.direction.header.frame_id,  plan->shared_data_->ik_link_->getName());
 
   // transform the input vectors in accordance to frame specified in the header;
   if (approach_direction_is_global_frame)
@@ -206,8 +207,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
     retreat_direction = planning_scene_->getFrameTransform(plan->retreat_.direction.header.frame_id).rotation() * retreat_direction;
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
-  robot_state::StateValidityCallbackFn approach_validCallback = boost::bind(&isStateCollisionFree, planning_scene_.get(),
-                                                                            collision_matrix_.get(), verbose_, &plan->approach_posture_, _1, _2);
+  robot_state::GroupStateValidityCallbackFn approach_validCallback = boost::bind(&isStateCollisionFree, planning_scene_.get(),
+                                                                                 collision_matrix_.get(), verbose_, &plan->approach_posture_, _1, _2, _3);
   plan->goal_sampler_->setVerbose(verbose_);
   std::size_t attempted_possible_goal_states = 0;
   do
@@ -220,11 +221,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
         static const double MAX_CLOSE_UP_DIST = 1.0;
         robot_state::RobotStatePtr close_up_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
         std::vector<robot_state::RobotStatePtr> close_up_states;
-        double d_close_up = close_up_state->getJointStateGroup(plan->shared_data_->planning_group_)->
-          computeCartesianPath(close_up_states, plan->shared_data_->ik_link_name_,
+        double d_close_up = close_up_state->
+          computeCartesianPath(plan->shared_data_->planning_group_,
+                               close_up_states, plan->shared_data_->ik_link_,
                                approach_direction, approach_direction_is_global_frame, MAX_CLOSE_UP_DIST,
                                max_step_, jump_factor_, approach_validCallback);
-        ROS_ERROR("close up = %lf", d_close_up);
         // if progress towards the object was made, update the desired goal state
         if (d_close_up > 0.0 && close_up_states.size() > 1)
           *plan->possible_goal_states_[i]  = *close_up_states[close_up_states.size() - 2];
@@ -234,10 +235,9 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
       robot_state::RobotStatePtr first_approach_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
 
       std::vector<robot_state::RobotStatePtr> approach_states;
-      double d_approach = first_approach_state->getJointStateGroup(plan->shared_data_->planning_group_)->
-        computeCartesianPath(approach_states, plan->shared_data_->ik_link_name_,
-                             -approach_direction, approach_direction_is_global_frame, plan->approach_.desired_distance,
-                             max_step_, jump_factor_, approach_validCallback);
+      double d_approach = first_approach_state->computeCartesianPath(plan->shared_data_->planning_group_, approach_states, plan->shared_data_->ik_link_,
+                                                                     -approach_direction, approach_direction_is_global_frame, plan->approach_.desired_distance,
+                                                                     max_step_, jump_factor_, approach_validCallback);
 
       // if we were able to follow the approach direction for sufficient length, try to compute a retreat direction
       if (d_approach > plan->approach_.min_distance && !signal_stop_)
@@ -254,26 +254,25 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
           planning_scene_after_approach->processAttachedCollisionObjectMsg(plan->shared_data_->diff_attached_object_);
 
           // state validity checking during the retreat after the grasp must ensure the gripper posture is that of the actual grasp
-          robot_state::StateValidityCallbackFn retreat_validCallback = boost::bind(&isStateCollisionFree, planning_scene_after_approach.get(),
-                                                                                   collision_matrix_.get(), verbose_, &plan->retreat_posture_, _1, _2);
+          robot_state::GroupStateValidityCallbackFn retreat_validCallback = boost::bind(&isStateCollisionFree, planning_scene_after_approach.get(),
+                                                                                        collision_matrix_.get(), verbose_, &plan->retreat_posture_, _1, _2, _3);
 
           // try to compute a straight line path that moves from the goal in a desired direction
           robot_state::RobotStatePtr last_retreat_state(new robot_state::RobotState(planning_scene_after_approach->getCurrentState()));
-          std::vector<robot_state::RobotStatePtr> retreat_states;
-          double d_retreat = last_retreat_state->getJointStateGroup(plan->shared_data_->planning_group_)->
-            computeCartesianPath(retreat_states, plan->shared_data_->ik_link_name_,
-                                 retreat_direction, retreat_direction_is_global_frame, plan->retreat_.desired_distance,
-                                 max_step_, jump_factor_, retreat_validCallback);
+           std::vector<robot_state::RobotStatePtr> retreat_states;
+           double d_retreat = last_retreat_state->computeCartesianPath(plan->shared_data_->planning_group_, retreat_states, plan->shared_data_->ik_link_,
+                                                                       retreat_direction, retreat_direction_is_global_frame, plan->retreat_.desired_distance,
+                                                                       max_step_, jump_factor_, retreat_validCallback);
 
-          // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
-          if (d_retreat > plan->retreat_.min_distance && !signal_stop_)
-          {
-            std::reverse(approach_states.begin(), approach_states.end());
-            robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(planning_scene_->getRobotModel(), plan->shared_data_->planning_group_));
+           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for future stages
+           if (d_retreat > plan->retreat_.min_distance && !signal_stop_)
+           {
+             std::reverse(approach_states.begin(), approach_states.end());
+             robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(planning_scene_->getRobotModel(), plan->shared_data_->planning_group_->getName()));
             for (std::size_t k = 0 ; k < approach_states.size() ; ++k)
               approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
 
-            robot_trajectory::RobotTrajectoryPtr retreat_traj(new robot_trajectory::RobotTrajectory(planning_scene_->getRobotModel(), plan->shared_data_->planning_group_));
+            robot_trajectory::RobotTrajectoryPtr retreat_traj(new robot_trajectory::RobotTrajectory(planning_scene_->getRobotModel(), plan->shared_data_->planning_group_->getName()));
             for (std::size_t k = 0 ; k < retreat_states.size() ; ++k)
               retreat_traj->addSuffixWayPoint(retreat_states[k], 0.0);
 
@@ -299,7 +298,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
         {
           plan->approach_state_.swap(first_approach_state);
           std::reverse(approach_states.begin(), approach_states.end());
-          robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(planning_scene_->getRobotModel(), plan->shared_data_->planning_group_));
+          robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(planning_scene_->getRobotModel(), plan->shared_data_->planning_group_->getName()));
           for (std::size_t k = 0 ; k < approach_states.size() ; ++k)
             approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
 

@@ -861,13 +861,14 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData &rundata,
 namespace
 {
 bool isIKSolutionCollisionFree(const planning_scene::PlanningScene *scene,
-                               robot_state::JointStateGroup *group,
-                               const std::vector<double> &ik_solution,
+                               robot_state::RobotState *state,
+                               const robot_model::JointModelGroup *group,
+                               const double *ik_solution,
                                bool *reachable)
 {
-  group->setVariableValues(ik_solution);
+  state->setJointGroupPositions(group, ik_solution);
   *reachable = true;
-  if (scene->isStateColliding(*group->getRobotState(), group->getName(), false))
+  if (scene->isStateColliding(*state, group->getName(), false))
     return false;
   else
     return true;
@@ -1234,9 +1235,9 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     // Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
     ros::WallTime startTime = ros::WallTime::now();
-    success = robot_state.getJointStateGroup(req.motion_plan_request.group_name)->
-      setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
-                boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(),  _1, _2, &reachable));
+    success = robot_state.setFromIK(robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
+                                    req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
+                                    boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
     if (success)
     {
       ROS_INFO("  Success!");
@@ -1302,9 +1303,9 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
       // Compute IK
       ROS_INFO_STREAM("Processing trajectory waypoint " << req.motion_plan_request.trajectory_constraints.constraints[tc].name << " ...");
       startTime = ros::WallTime::now();
-      success = robot_state.getJointStateGroup(req.motion_plan_request.group_name)->
-        setFromIK(ik_pose, req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
-                  boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, &reachable));
+      success = robot_state.setFromIK(robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
+                                      req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
+                                      boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
       double duration = (ros::WallTime::now() - startTime).toSec();
 
       if (success)

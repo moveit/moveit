@@ -98,7 +98,8 @@ public:
       ROS_FATAL_STREAM(error);
       throw std::runtime_error(error);
     }
-
+    joint_model_group_ = getRobotModel()->getJointModelGroup(opt.group_name_);
+    
     joint_state_target_.reset(new robot_state::RobotState(getRobotModel()));
     joint_state_target_->setToDefaultValues();
     active_target_ = JOINT;
@@ -111,35 +112,29 @@ public:
     planning_time_ = 5.0;
     initializing_constraints_ = false;
 
-    const robot_model::JointModelGroup *joint_model_group = getRobotModel()->getJointModelGroup(opt.group_name_);
-    if (joint_model_group)
-    {
-      if (joint_model_group->isChain())
-        end_effector_link_ = joint_model_group->getLinkModelNames().back();
-      pose_reference_frame_ = getRobotModel()->getModelFrame();
-
-      trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
-      attached_object_publisher_ = node_handle_.advertise<moveit_msgs::AttachedCollisionObject>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC, 1, false);
-
-      current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_);
-
-      move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>(move_group::MOVE_ACTION, false));
-      waitForAction(move_action_client_, wait_for_server, move_group::MOVE_ACTION);
-
-      pick_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PickupAction>(move_group::PICKUP_ACTION, false));
-      waitForAction(pick_action_client_, wait_for_server, move_group::PICKUP_ACTION);
-
-      place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>(move_group::PLACE_ACTION, false));
-      waitForAction(place_action_client_, wait_for_server, move_group::PLACE_ACTION);
-
-      execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
-      query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
-      cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
-
-      ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
-    }
-    else
-      ROS_ERROR("Unable to initialize MoveGroup interface.");
+    if (joint_model_group_->isChain())
+      end_effector_link_ = joint_model_group_->getLinkModelNames().back();
+    pose_reference_frame_ = getRobotModel()->getModelFrame();
+    
+    trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
+    attached_object_publisher_ = node_handle_.advertise<moveit_msgs::AttachedCollisionObject>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC, 1, false);
+    
+    current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_);
+    
+    move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>(move_group::MOVE_ACTION, false));
+    waitForAction(move_action_client_, wait_for_server, move_group::MOVE_ACTION);
+    
+    pick_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PickupAction>(move_group::PICKUP_ACTION, false));
+    waitForAction(pick_action_client_, wait_for_server, move_group::PICKUP_ACTION);
+    
+    place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>(move_group::PLACE_ACTION, false));
+    waitForAction(place_action_client_, wait_for_server, move_group::PLACE_ACTION);
+    
+    execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
+    query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
+    cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
+    
+    ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
   }
 
   template<typename T>
@@ -201,6 +196,11 @@ public:
     return robot_model_;
   }
 
+  const robot_model::JointModelGroup* getJointModelGroup() const
+  {
+    return joint_model_group_;
+  }
+  
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc)
   {
     moveit_msgs::QueryPlannerInterfaces::Request req;
@@ -219,16 +219,16 @@ public:
     planner_id_ = planner_id;
   }
 
-  robot_state::JointStateGroup* getJointStateTarget()
+  robot_state::RobotState& getJointStateTarget()
   {
-    return joint_state_target_->getJointStateGroup(opt_.group_name_);
+    return *joint_state_target_;
   }
 
   void setStartState(const robot_state::RobotState &start_state)
   {
     considered_start_state_.reset(new robot_state::RobotState(start_state));
   }
-
+  
   void setStartStateToCurrentState()
   {
     considered_start_state_.reset();
@@ -551,11 +551,11 @@ public:
     {
       if (res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
       {
-    msg = res.solution;
-    return res.fraction;
+        msg = res.solution;
+        return res.fraction;
       }
       else
-    return -1.0;
+        return -1.0;
     }
     else
       return -1.0;
@@ -576,7 +576,7 @@ public:
     std::string l = link.empty() ? getEndEffectorLink() : link;
     if (l.empty())
     {
-      const std::vector<std::string> &links = getJointStateTarget()->getJointModelGroup()->getLinkModelNames();
+      const std::vector<std::string> &links = joint_model_group_->getLinkModelNames();
       if (!links.empty())
         l = links[0];
     }
@@ -601,7 +601,7 @@ public:
   {
     moveit_msgs::AttachedCollisionObject aco;
     // if name is a link
-    if (!name.empty() && getJointStateTarget()->getJointModelGroup()->hasLinkModel(name))
+    if (!name.empty() && joint_model_group_->hasLinkModel(name))
       aco.link_name = name;
     else
       aco.object.id = name;
@@ -609,7 +609,7 @@ public:
     if (aco.link_name.empty() && aco.object.id.empty())
     {
       // we only want to detach objects for this group
-      const std::vector<std::string> &lnames = getJointStateTarget()->getJointModelGroup()->getLinkModelNames();
+      const std::vector<std::string> &lnames = joint_model_group_->getLinkModelNames();
       for (std::size_t i = 0 ; i < lnames.size() ; ++i)
       {
         aco.link_name = lnames[i];
@@ -700,7 +700,7 @@ public:
     if (active_target_ == JOINT)
     {
       goal.request.goal_constraints.resize(1);
-      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget(), goal_joint_tolerance_);
+      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget(), joint_model_group_, goal_joint_tolerance_);
     }
     else
       if (active_target_ == POSE || active_target_ == POSITION || active_target_ == ORIENTATION)
@@ -875,7 +875,8 @@ private:
 
   // joint state goal
   robot_state::RobotStatePtr joint_state_target_;
-
+  const robot_model::JointModelGroup *joint_model_group_;
+  
   // pose goal;
   // for each link we have a set of possible goal locations;
   std::map<std::string, std::vector<geometry_msgs::PoseStamped> > pose_targets_;
@@ -1015,7 +1016,7 @@ void moveit::planning_interface::MoveGroup::setStartStateToCurrentState()
 
 void moveit::planning_interface::MoveGroup::setRandomTarget()
 {
-  impl_->getJointStateTarget()->setToRandomValues();
+  impl_->getJointStateTarget().setToRandomPositions();
   impl_->setTargetType(JOINT);
 }
 
@@ -1028,7 +1029,7 @@ bool moveit::planning_interface::MoveGroup::setNamedTarget(const std::string &na
   }
   else
   {
-    if (impl_->getJointStateTarget()->setToDefaultState(name))
+    if (impl_->getJointStateTarget().setToDefaultValues(impl_->getJointModelGroup(), name))
     {
       impl_->setTargetType(JOINT);
       return true;
@@ -1040,8 +1041,8 @@ bool moveit::planning_interface::MoveGroup::setNamedTarget(const std::string &na
 bool moveit::planning_interface::MoveGroup::setJointValueTarget(const std::vector<double> &joint_values)
 {
   impl_->setTargetType(JOINT);
-  if (impl_->getJointStateTarget()->setVariableValues(joint_values))
-    return impl_->getJointStateTarget()->satisfiesBounds(impl_->getGoalJointTolerance());
+  if (impl_->getJointStateTarget().setVariablePositions(joint_values))
+    return impl_->getJointStateTarget().satisfiesBounds(impl_->getGoalJointTolerance());
   else
     return false;
 }
@@ -1056,13 +1057,6 @@ bool moveit::planning_interface::MoveGroup::setJointValueTarget(const std::map<s
 bool moveit::planning_interface::MoveGroup::setJointValueTarget(const robot_state::RobotState &kinematic_state)
 {
   return setJointValueTarget(*kinematic_state.getJointStateGroup(getName()));
-}
-
-bool moveit::planning_interface::MoveGroup::setJointValueTarget(const robot_state::JointStateGroup &joint_state_group)
-{
-  std::map<std::string, double> variable_values;
-  joint_state_group.getVariableValues(variable_values);
-  return setJointValueTarget(variable_values);
 }
 
 bool moveit::planning_interface::MoveGroup::setJointValueTarget(const robot_state::JointState &joint_state)
@@ -1093,7 +1087,7 @@ bool moveit::planning_interface::MoveGroup::setJointValueTarget(const sensor_msg
   return impl_->getJointStateTarget()->satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
-const robot_state::JointStateGroup& moveit::planning_interface::MoveGroup::getJointValueTarget() const
+const robot_state::RobotState& moveit::planning_interface::MoveGroup::getJointValueTarget() const
 {
   return *impl_->getJointStateTarget();
 }

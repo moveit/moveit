@@ -55,11 +55,7 @@ public:
   virtual bool evaluate(const ManipulationPlanPtr &plan) const;
 
 private:
-
-  bool isStateCollisionFree(const ManipulationPlan *manipulation_plan,
-                            robot_state::JointStateGroup *joint_state_group,
-                            const std::vector<double> &joint_group_variable_values) const;
-
+  
   bool isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;

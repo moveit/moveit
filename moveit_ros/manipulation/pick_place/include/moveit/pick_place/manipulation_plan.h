@@ -54,11 +54,18 @@ namespace pick_place
 
 struct ManipulationPlanSharedData
 {
-  std::string planning_group_;
-
-  std::string end_effector_group_;
-
-  std::string ik_link_name_;
+  ManipulationPlanSharedData() 
+    : planning_group_(NULL)
+    , end_effector_group_(NULL)
+    , ik_link_(NULL)
+    , max_goal_sampling_attempts_(0)
+    , minimize_object_distance_(false)
+  {
+  }
+  
+  const robot_model::JointModelGroup *planning_group_;
+  const robot_model::JointModelGroup *end_effector_group_;
+  const robot_model::LinkModel *ik_link_;
 
   unsigned int max_goal_sampling_attempts_;
 

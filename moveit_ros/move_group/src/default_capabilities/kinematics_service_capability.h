@@ -58,7 +58,7 @@ private:
   bool computeFKService(moveit_msgs::GetPositionFK::Request &req, moveit_msgs::GetPositionFK::Response &res);
 
   void computeIK(moveit_msgs::PositionIKRequest &req, moveit_msgs::RobotState &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                 const robot_state::StateValidityCallbackFn &constraint = robot_state::StateValidityCallbackFn()) const;
+                 robot_state::RobotState &rs, const robot_state::GroupStateValidityCallbackFn &constraint = robot_state::GroupStateValidityCallbackFn()) const;
 
   ros::ServiceServer fk_service_;
   ros::ServiceServer ik_service_;
