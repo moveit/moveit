@@ -50,7 +50,9 @@ namespace core
 
 MOVEIT_CLASS_FORWARD(RobotState); 
 
-typedef boost::function<bool(const JointModelGroup *joint_group, const double *joint_group_variable_values)> GroupStateValidityCallbackFn;
+/** \brief Signature for functions that can verify that if the group \e joint_group in \e robot_state is set to \e joint_group_variable_values
+    the state is valid or not. Returns true if the state is valid. This call is allowed to modify \e robot_state (e.g., set \e joint_group_variable_values) */
+typedef boost::function<bool(RobotState *robot_state, const JointModelGroup *joint_group, const double *joint_group_variable_values)> GroupStateValidityCallbackFn;
 
 class RobotState
 {
@@ -96,6 +98,11 @@ public:
   const JointModel* getJointModel(const std::string &joint) const
   {
     return robot_model_->getJointModel(joint);
+  }
+
+  const JointModelGroup* getJointModelGroup(const std::string &group) const
+  {
+    return robot_model_->getJointModelGroup(group);
   }
   
   /** \defgroup setVariablePosition_Fn Getting and setting variable position
@@ -518,7 +525,79 @@ public:
   bool setFromDiffIK(const JointModelGroup *group, 
                      const geometry_msgs::Twist &twist, const std::string &tip, double dt,
                      const GroupStateValidityCallbackFn &constraint = GroupStateValidityCallbackFn());
-  
+
+
+  /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path for a particular group.
+
+      The Cartesian path to be followed is specified as a direction of motion (\e direction, unit vector) for the origin of a robot
+      link (\e link_name). The direction is assumed to be either in a global reference frame or in the local reference frame of the
+      link. In the latter case (\e global_reference_frame is false) the \e direction is rotated accordingly. The link needs to move in a
+      straight line, following the specified direction, for the desired \e distance. The resulting joint values are stored in
+      the vector \e traj, one by one. The maximum distance in Cartesian space between consecutive points on the resulting path
+      is specified by \e max_step.  If a \e validCallback is specified, this is passed to the internal call to
+      setFromIK(). In case of IK failure, the computation of the path stops and the value returned corresponds to the distance that
+      was computed and for which corresponding states were added to the path.  At the end of the function call, the state of the
+      group corresponds to the last attempted Cartesian pose.  During the computation of the trajectory, it is sometimes preferred if
+      consecutive joint values do not 'jump' by a large amount in joint space, even if the Cartesian distance between the
+      corresponding points is as expected. To account for this, the \e jump_threshold parameter is provided.  As the joint values
+      corresponding to the Cartesian path are computed, distances in joint space between consecutive points are also computed. Once
+      the sequence of joint values is computed, the average distance between consecutive points (in joint space) is also computed. It
+      is then verified that none of the computed distances is above the average distance by a factor larger than \e jump_threshold. If
+      a point in joint is found such that it is further away than the previous one by more than average_consecutive_distance * \e jump_threshold,
+      that is considered a failure and the returned path is truncated up to just before the jump. The jump detection can be disabled
+      by setting \e jump_threshold to 0.0*/
+  double computeCartesianPath(const JointModelGroup *group, std::vector<RobotStatePtr> &traj, const LinkModel *link,
+                              const Eigen::Vector3d &direction, bool global_reference_frame, double distance, double max_step, double jump_threshold,
+                              const GroupStateValidityCallbackFn &validCallback = GroupStateValidityCallbackFn(),
+                              const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
+
+  /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path, for a particular group.
+
+      The Cartesian path to be followed is specified as a target frame to be reached (\e target) for the origin of a robot
+      link (\e link_name). The target frame is assumed to be either in a global reference frame or in the local reference frame of the
+      link. In the latter case (\e global_reference_frame is false) the \e target is rotated accordingly. The link needs to move in a
+      straight line towards the target. The resulting joint values are stored in
+      the vector \e traj, one by one. The maximum distance in Cartesian space between consecutive points on the resulting path
+      is specified by \e max_step.  If a \e validCallback is specified, this is passed to the internal call to
+      setFromIK(). In case of IK failure, the computation of the path stops and the value returned corresponds to the percentage of the
+      path (between 0 and 1) that was completed and for which corresponding states were added to the path.  At the end of the function call,
+      the state of the group corresponds to the last attempted Cartesian pose.  During the computation of the trajectory, it is sometimes preferred if
+      consecutive joint values do not 'jump' by a large amount in joint space, even if the Cartesian distance between the
+      corresponding points is as expected. To account for this, the \e jump_threshold parameter is provided.  As the joint values
+      corresponding to the Cartesian path are computed, distances in joint space between consecutive points are also computed. Once
+      the sequence of joint values is computed, the average distance between consecutive points (in joint space) is also computed. It
+      is then verified that none of the computed distances is above the average distance by a factor larger than \e jump_threshold. If
+      a point in joint is found such that it is further away than the previous one by more than average_consecutive_distance * \e jump_threshold,
+      that is considered a failure and the returned path is truncated up to just before the jump. The jump detection can be disabled
+      by setting \e jump_threshold to 0.0*/
+  double computeCartesianPath(const JointModelGroup *group, std::vector<RobotStatePtr> &traj, const LinkModel *link,
+                              const Eigen::Affine3d &target, bool global_reference_frame, double max_step, double jump_threshold,
+                              const GroupStateValidityCallbackFn &validCallback = GroupStateValidityCallbackFn(),
+                              const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
+
+  /** \brief Compute the sequence of joint values that perform a general Cartesian path.
+
+      The Cartesian path to be followed is specified as a set of \e waypoints to be sequentially reached for the origin of a robot
+      link (\e link_name). The waypoints are transforms given either in a global reference frame or in the local reference frame of the
+      link at the immediately preceeding waypoint. The link needs to move in a straight line between two consecutive waypoints.
+      The resulting joint values are stored in the vector \e traj, one by one. The maximum distance in Cartesian space between
+      consecutive points on the resulting path is specified by \e max_step.  If a \e validCallback is specified, this is passed to the
+      internal call to setFromIK(). In case of IK failure, the computation of the path stops and the value returned corresponds to the
+      percentage of the path (between 0 and 1) that was completed and for which corresponding states were added to the path.  At the end
+      of the function call, the state of the group corresponds to the last attempted Cartesian pose.  During the computation of the
+      trajectory, it is sometimes preferred if consecutive joint values do not 'jump' by a large amount in joint space, even if the
+      Cartesian distance between the corresponding points is as expected. To account for this, the \e jump_threshold parameter is
+      provided.  As the joint values corresponding to the Cartesian path are computed, distances in joint space between consecutive
+      points are also computed. Once the sequence of joint values is computed, the average distance between consecutive points (in
+      joint space) is also computed. It is then verified that none of the computed distances is above the average distance by a
+      factor larger than \e jump_threshold. If a point in joint is found such that it is further away than the previous one by more
+      than average_consecutive_distance * \e jump_threshold, that is considered a failure and the returned path is truncated up to
+      just before the jump. The jump detection can be disabled by setting \e jump_threshold to 0.0*/
+  double computeCartesianPath(const JointModelGroup *group, std::vector<RobotStatePtr> &traj, const LinkModel *link,
+                              const EigenSTL::vector_Affine3d &waypoints, bool global_reference_frame, double max_step, double jump_threshold,
+                              const GroupStateValidityCallbackFn &validCallback = GroupStateValidityCallbackFn(),
+                              const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
+
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.
    * \param group The group to compute the Jacobian for 
    * \param link_name The name of the link
@@ -595,6 +674,7 @@ public:
   }
   
   void setToDefaultValues();
+  bool setToDefaultValues(const JointModelGroup *group, const std::string &name);
   void setToRandomPositions();
   void setToRandomPositions(const JointModelGroup *group);
   void setToRandomPositionsNearBy(const JointModelGroup *group, const RobotState &near, double distance);

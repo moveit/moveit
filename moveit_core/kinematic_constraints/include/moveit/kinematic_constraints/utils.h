@@ -94,7 +94,7 @@ moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState 
  *
  * @return A full constraint message containing all the joint constraints
  */
-moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState &jsg, const robot_model::JointModelGroup *jmg,
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
                                                   double tolerance = std::numeric_limits<double>::epsilon());
 
 
