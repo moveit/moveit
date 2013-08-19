@@ -186,13 +186,6 @@ public:
       Values from state for joints not in this MoveGroup's group are ignored. */
   bool setJointValueTarget(const robot_state::RobotState &robot_state);
 
-  /** \brief Set the joint state goal from corresponding joint values from the specified group.
-      joint_state_group must represent the same group as this MoveGroup. */
-  bool setJointValueTarget(const robot_state::JointStateGroup &joint_state_group);
-
-  /** \brief Set the joint state goal for a particular joint */
-  bool setJointValueTarget(const robot_state::JointState &joint_state);
-
   /** \brief Set the joint state goal for a particular joint */
   bool setJointValueTarget(const std::string &joint_name, const std::vector<double> &values);
 
@@ -210,7 +203,7 @@ public:
   bool setNamedTarget(const std::string &name);
 
   /// Get the currently set joint state goal
-  const robot_state::JointStateGroup& getJointValueTarget() const;
+  const robot_state::RobotState& getJointValueTarget() const;
 
   /**@}*/
 

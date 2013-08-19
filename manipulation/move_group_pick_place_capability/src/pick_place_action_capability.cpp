@@ -286,19 +286,20 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
 }
 
 void move_group::MoveGroupPickPlaceAction::addGraspToPickupResult(const plan_execution::ExecutableMotionPlan &plan,
-                                  moveit_msgs::PickupResult &action_res) const
+                                                                  moveit_msgs::PickupResult &action_res) const
 {
+  // \todo This functions looks like it should not exist; at least, not here
   for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
   {
-    if(plan.plan_components_[i].description_ == "pre_grasp")
+    if (plan.plan_components_[i].description_ == "pre_grasp") // should not use description names here
     {
       action_res.grasp.pre_grasp_posture.name = plan.plan_components_[i].trajectory_->getGroup()->getJointModelNames();
-      plan.plan_components_[i].trajectory_->getLastWayPoint().getJointStateGroup(plan.plan_components_[i].trajectory_->getGroupName())->getVariableValues(action_res.grasp.pre_grasp_posture.position);
+      plan.plan_components_[i].trajectory_->getLastWayPoint().copyJointGroupPositions(plan.plan_components_[i].trajectory_->getGroup(), action_res.grasp.pre_grasp_posture.position);
     }
     if(plan.plan_components_[i].description_ == "grasp")
     {
       action_res.grasp.grasp_posture.name = plan.plan_components_[i].trajectory_->getGroup()->getJointModelNames();
-      plan.plan_components_[i].trajectory_->getLastWayPoint().getJointStateGroup(plan.plan_components_[i].trajectory_->getGroupName())->getVariableValues(action_res.grasp.grasp_posture.position);
+      plan.plan_components_[i].trajectory_->getLastWayPoint().copyJointGroupPositions(plan.plan_components_[i].trajectory_->getGroup(), action_res.grasp.grasp_posture.position);
     }
   }
 }

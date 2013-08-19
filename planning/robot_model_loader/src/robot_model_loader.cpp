@@ -210,27 +210,3 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
     }
   }
 }
-
-std::map<std::string, kinematics::KinematicsBasePtr> robot_model_loader::RobotModelLoader::generateKinematicsSolversMap() const
-{
-  std::map<std::string, kinematics::KinematicsBasePtr> result;
-  if (kinematics_loader_ && model_)
-  {
-    const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
-    for (std::size_t i = 0 ; i < groups.size() ; ++i)
-    {
-      if (!model_->hasJointModelGroup(groups[i]))
-        continue;
-      const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
-      if (jmg)
-      {
-        robot_model::SolverAllocatorFn a = jmg->getSolverAllocators().first;
-        if (a)
-          result[jmg->getName()] = a(jmg);
-      }
-    }
-  }
-  else
-    ROS_WARN("Kinematic solvers not yet loaded. Call loadKinematicSolvers() first.");
-  return result;
-}

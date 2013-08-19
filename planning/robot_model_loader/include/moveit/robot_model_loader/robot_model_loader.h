@@ -136,9 +136,6 @@ public:
     return kinematics_loader_;
   }
 
-  /** @brief Get a map from group name to a configured instance of a kinematic solver */
-  std::map<std::string, kinematics::KinematicsBasePtr> generateKinematicsSolversMap() const;
-
   /** @brief Load the kinematics solvers into the kinematic model. This is done by default, unless disabled explicitly by the options passed to the constructor */
   void loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kloader = kinematics_plugin_loader::KinematicsPluginLoaderPtr());
 

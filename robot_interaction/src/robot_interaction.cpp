@@ -346,13 +346,9 @@ void RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::
   if (!vj.parent_frame.empty() && !robot_state::Transforms::sameFrame(vj.parent_frame, planning_frame_))
   {
     robot_state::RobotStatePtr state = getUniqueStateAccess();
-    const robot_state::LinkState *ls = state->getLinkState(vj.parent_frame);
-    if (ls)
-    {
-      Eigen::Affine3d p;
-      tf::poseMsgToEigen(tpose.pose, p);
-      tf::poseEigenToMsg(ls->getGlobalLinkTransform().inverse() * p, tpose.pose);
-    }
+    Eigen::Affine3d p;
+    tf::poseMsgToEigen(tpose.pose, p);
+    tf::poseEigenToMsg(state->getGlobalLinkTransform(vj.parent_frame).inverse() * p, tpose.pose);
     robot_interaction::RobotInteraction::updateState(*state, vj, tpose.pose);
     setStateToAccess(state);
   }
@@ -488,15 +484,15 @@ double RobotInteraction::computeGroupMarkerSize(const std::string &group)
 
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
-    robot_state::LinkState *ls = default_state.getLinkState(links[i]);
-    if (!ls)
+    const robot_model::LinkModel *lm = default_state.getLinkModel(links[i]);
+    if (!lm)
       continue;
-    const Eigen::Vector3d &ext = ls->getLinkModel()->getShapeExtentsAtOrigin();
+    const Eigen::Vector3d &ext = lm->getShapeExtentsAtOrigin();
 
     Eigen::Vector3d corner1 = ext/2.0;
-    corner1 = ls->getGlobalLinkTransform() * corner1;
+    corner1 = default_state.getGlobalLinkTransform(lm) * corner1;
     Eigen::Vector3d corner2 = ext/-2.0;
-    corner2 = ls->getGlobalLinkTransform() * corner2;
+    corner2 = default_state.getGlobalLinkTransform(lm) * corner2;
     lo = lo.cwiseMin(corner1);
     hi = hi.cwiseMax(corner2);
   }
@@ -544,6 +540,8 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
           Joint v;
           v.connecting_link = vj[i].child_link_;
           v.parent_frame = vj[i].parent_frame_;
+          if (!v.parent_frame.empty() && v.parent_frame[0] == '/')
+            v.parent_frame = v.parent_frame.substr(1);
           v.joint_name = vj[i].name_;
           if (vj[i].type_ == "planar")
             v.dof = 3;
@@ -600,7 +598,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, EndEff
   }
 
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
-  const std::pair<robot_model::SolverAllocatorFn, robot_model::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
+  const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap> &smap = jmg->getGroupKinematics();
 
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)
@@ -633,8 +631,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, EndEff
   {
     if (!smap.second.empty())
     {
-      for (std::map<const robot_model::JointModelGroup*, robot_model::SolverAllocatorFn>::const_iterator it = smap.second.begin() ;
-           it != smap.second.end() ; ++it)
+      for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator it = smap.second.begin() ; it != smap.second.end() ; ++it)
       {
         for (std::size_t i = 0 ; i < eef.size() ; ++i)
           if ((it->first->hasLinkModel(eef[i].parent_link_) || jmg->getName() == eef[i].parent_group_) && it->first->canSetStateFromIK(eef[i].parent_link_))
@@ -717,14 +714,14 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr &handle
   marker_color.b = color[2];
   marker_color.a = color[3];
 
-  robot_state::RobotStateConstPtr kinematic_state = handler->getState();
-  const std::vector<std::string> &link_names = kinematic_state->getJointStateGroup(eef.eef_group)->getJointModelGroup()->getLinkModelNames();
+  robot_state::RobotStateConstPtr rstate = handler->getState();
+  const std::vector<std::string> &link_names = rstate->getJointModelGroup(eef.eef_group)->getLinkModelNames();
   visualization_msgs::MarkerArray marker_array;
-  kinematic_state->getRobotMarkers(marker_array, link_names, marker_color, eef.eef_group, ros::Duration());
+  rstate->getRobotMarkers(marker_array, link_names, marker_color, eef.eef_group, ros::Duration());
   tf::Pose tf_root_to_link;
-  tf::poseEigenToTF(kinematic_state->getLinkState(eef.parent_link)->getGlobalLinkTransform(), tf_root_to_link);
+  tf::poseEigenToTF(rstate->getGlobalLinkTransform(eef.parent_link), tf_root_to_link);
   // Release the ptr count on the kinematic state
-  kinematic_state.reset();
+  rstate.reset();
 
   for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
   {
@@ -831,8 +828,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
       geometry_msgs::PoseStamped pose;
       pose.header.frame_id = robot_model_->getModelFrame();
       pose.header.stamp = ros::Time::now();
-      const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
-      tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose.pose);
+      tf::poseEigenToMsg(s->getGlobalLinkTransform(active_vj_[i].connecting_link), pose.pose);
       std::string marker_name = getMarkerName(handler, active_vj_[i]);
       shown_markers_[marker_name] = i;
 
@@ -870,11 +866,9 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr &handle
 void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr &handler, const EndEffector &eef, const robot_state::RobotState &robot_state,
                                          geometry_msgs::Pose &pose, geometry_msgs::Pose &control_to_eef_tf) const
 {
-  const robot_state::LinkState *ls = robot_state.getLinkState(eef.parent_link);
-
   // Need to allow for control pose offsets
   tf::Transform tf_root_to_link, tf_root_to_control;
-  tf::poseEigenToTF(ls->getGlobalLinkTransform(), tf_root_to_link);
+  tf::poseEigenToTF(robot_state.getGlobalLinkTransform(eef.parent_link), tf_root_to_link);
 
   geometry_msgs::Pose msg_link_to_control;
   if (handler->getPoseOffset(eef, msg_link_to_control))
@@ -914,8 +908,7 @@ void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr &han
     for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
     {
       std::string marker_name = getMarkerName(handler, active_vj_[i]);
-      const robot_state::LinkState *ls = s->getLinkState(active_vj_[i].connecting_link);
-      tf::poseEigenToMsg(ls->getGlobalLinkTransform(), pose_updates[marker_name]);
+      tf::poseEigenToMsg(s->getGlobalLinkTransform(active_vj_[i].connecting_link), pose_updates[marker_name]);
     }
 
     for (std::size_t i = 0 ; i < active_generic_.size() ; ++i)
@@ -976,18 +969,19 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const Joint &
       vals[vj.joint_name + "/rot_z"] = q.z();
       vals[vj.joint_name + "/rot_w"] = q.w();
     }
-  state.getJointState(vj.joint_name)->setVariableValues(vals);
-  state.updateLinkTransforms();
+  state.setVariablePositions(vals);
+  state.update();
   return true;
 }
 
 bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
                                    unsigned int attempts, double ik_timeout,
-                                   const robot_state::StateValidityCallbackFn &validity_callback,
+                                   const robot_state::GroupStateValidityCallbackFn &validity_callback,
                                    const kinematics::KinematicsQueryOptions &kinematics_query_options)
 {
-  return state.getJointStateGroup(eef.parent_group)->setFromIK(pose, eef.parent_link, kinematics_query_options.lock_redundant_joints ? 1 : attempts,
-                                                               ik_timeout, validity_callback, kinematics_query_options);
+  return state.setFromIK(state.getJointModelGroup(eef.parent_group), pose, eef.parent_link,
+                         kinematics_query_options.lock_redundant_joints ? 1 : attempts,
+                         ik_timeout, validity_callback, kinematics_query_options);
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)

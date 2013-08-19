@@ -55,22 +55,24 @@ namespace
 {
 bool isIKSolutionValid(const planning_scene::PlanningScene *planning_scene,
                        const kinematic_constraints::KinematicConstraintSet *constraint_set,
-                       robot_state::JointStateGroup *group, const std::vector<double> &ik_solution)
+                       robot_state::RobotState *state, 
+                       const robot_model::JointModelGroup *jmg, 
+                       const double *ik_solution)
 {
-  group->setVariableValues(ik_solution);
-  return (!planning_scene || !planning_scene->isStateColliding(*group->getRobotState(), group->getName())) &&
-    (!constraint_set || constraint_set->decide(*group->getRobotState()).satisfied);
+  state->setJointGroupPositions(jmg, ik_solution);
+  return (!planning_scene || !planning_scene->isStateColliding(*state, jmg->getName())) &&
+    (!constraint_set || constraint_set->decide(*state).satisfied);
 }
 }
 
 void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRequest &req,
                                                        moveit_msgs::RobotState &solution,
                                                        moveit_msgs::MoveItErrorCodes &error_code,
-                                                       const robot_state::StateValidityCallbackFn &constraint) const
+                                                       robot_state::RobotState &rs,
+                                                       const robot_state::GroupStateValidityCallbackFn &constraint) const
 {
-  robot_state::RobotState rs = planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
-  robot_state::JointStateGroup *jsg = rs.getJointStateGroup(req.group_name);
-  if (jsg)
+  const robot_state::JointModelGroup *jmg = rs.getJointModelGroup(req.group_name);
+  if (jmg)
   {
     robot_state::robotStateMsgToRobotState(req.robot_state, rs);
     const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
@@ -84,9 +86,9 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
       {
         bool result_ik = false;
         if (ik_link.empty())
-          result_ik = jsg->setFromIK(req_pose.pose, req.attempts, req.timeout.toSec(), constraint);
+          result_ik = rs.setFromIK(jmg, req_pose.pose, req.attempts, req.timeout.toSec(), constraint);
         else
-          result_ik = jsg->setFromIK(req_pose.pose, ik_link, req.attempts, req.timeout.toSec(), constraint);
+          result_ik = rs.setFromIK(jmg, req_pose.pose, ik_link, req.attempts, req.timeout.toSec(), constraint);
 
         if(result_ik)
         {
@@ -121,7 +123,7 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
         }
         if (ok)
         {
-          if (jsg->setFromIK(req_poses, req.ik_link_names, req.attempts, req.timeout.toSec(), constraint))
+          if (rs.setFromIK(jmg, req_poses, req.ik_link_names, req.attempts, req.timeout.toSec(), constraint))
           {
             robot_state::robotStateToRobotStateMsg(rs, solution, false);
             error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -145,13 +147,19 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
   {
     planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
     kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel());
+    robot_state::RobotState rs = ls->getCurrentState();
     kset.add(req.ik_request.constraints, ls->getTransforms());
-    computeIK(req.ik_request, res.solution, res.error_code, boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
-                                                                        static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() : NULL, kset.empty() ? NULL : &kset, _1, _2));
+    computeIK(req.ik_request, res.solution, res.error_code, rs, boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
+                                                                            static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() : NULL,
+                                                                            kset.empty() ? NULL : &kset, _1, _2, _3));
   }
   else
+  {
     // compute unconstrained IK, no lock to planning scene maintained
-    computeIK(req.ik_request, res.solution, res.error_code);
+    robot_state::RobotState rs = planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
+    computeIK(req.ik_request, res.solution, res.error_code, rs);
+  }
+  
   return true;
 }
 
@@ -167,16 +175,17 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
   context_->planning_scene_monitor_->updateFrameTransforms();
 
   const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
-  bool do_transform = !req.header.frame_id.empty() && req.header.frame_id != default_frame && context_->planning_scene_monitor_->getTFClient();
+  bool do_transform = !req.header.frame_id.empty() && !robot_state::Transforms::sameFrame(req.header.frame_id, default_frame)
+    && context_->planning_scene_monitor_->getTFClient();
   bool tf_problem = false;
 
   robot_state::RobotState rs = planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
   robot_state::robotStateMsgToRobotState(req.robot_state, rs);
   for (std::size_t i = 0 ; i < req.fk_link_names.size() ; ++i)
-    if (const robot_state::LinkState *ls = rs.getLinkState(req.fk_link_names[i]))
+    if (rs.getRobotModel()->hasLinkModel(req.fk_link_names[i]))
     {
       res.pose_stamped.resize(res.pose_stamped.size() + 1);
-      tf::poseEigenToMsg(ls->getGlobalLinkTransform(), res.pose_stamped.back().pose);
+      tf::poseEigenToMsg(rs.getGlobalLinkTransform(req.fk_link_names[i]), res.pose_stamped.back().pose);
       res.pose_stamped.back().header.frame_id = default_frame;
       res.pose_stamped.back().header.stamp = ros::Time::now();
       if (do_transform)
