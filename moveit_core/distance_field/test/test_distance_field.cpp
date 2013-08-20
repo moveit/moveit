@@ -38,12 +38,13 @@
 
 #include <moveit/distance_field/voxel_grid.h>
 #include <moveit/distance_field/propagation_distance_field.h>
-#include <moveit/distance_field/distance_field_common.h>
+#include <moveit/distance_field/find_internal_points.h>
 #include <console_bridge/console.h>
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <octomap/octomap.h>
 #include <boost/make_shared.hpp>
+
 
 using namespace distance_field;
 
@@ -71,8 +72,8 @@ int dist_sq(int x, int y, int z)
 void print( PropagationDistanceField& pdf, int numX, int numY, int numZ)
 {
   for (int z=0; z<numZ; z++) {
-    for (int x=0; x<numX; x++) {
-      for (int y=0; y<numY; y++) {
+    for (int y=0; y<numY; y++) {
+      for (int x=0; x<numX; x++) {
         std::cout << pdf.getCell(x,y,z).distance_square_ << " ";
       }
       std::cout << std::endl;
@@ -80,8 +81,8 @@ void print( PropagationDistanceField& pdf, int numX, int numY, int numZ)
     std::cout << std::endl;
   }
   for (int z=0; z<numZ; z++) {
-    for (int x=0; x<numX; x++) {
-      for (int y=0; y<numY; y++) {
+    for (int y=0; y<numY; y++) {
+      for (int x=0; x<numX; x++) {
         if(pdf.getCell(x,y,z).distance_square_ == 0) {
           //logInform("Obstacle cell %d %d %d", x, y, z);
         }
@@ -93,9 +94,56 @@ void print( PropagationDistanceField& pdf, int numX, int numY, int numZ)
 void printNeg(PropagationDistanceField& pdf, int numX, int numY, int numZ)
 {
   for (int z=0; z<numZ; z++) {
-    for (int x=0; x<numX; x++) {
-      for (int y=0; y<numY; y++) {
+    for (int y=0; y<numY; y++) {
+      for (int x=0; x<numX; x++) {
         std::cout << pdf.getCell(x,y,z).negative_distance_square_ << " ";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
+}
+
+void printPointCoords(const Eigen::Vector3i& p)
+{
+  if (p.x() < 0)
+    std::cout << '-';
+  else
+    std::cout << p.x();
+
+  if (p.y() < 0)
+    std::cout << '-';
+  else
+    std::cout << p.y();
+
+  if (p.z() < 0)
+    std::cout << '-';
+  else
+    std::cout << p.z();
+
+  std::cout << " ";
+}
+
+void printBoth(PropagationDistanceField& pdf, int numX, int numY, int numZ)
+{
+  std::cout << "Positive distance square ... negative distance square" << std::endl;
+  for (int z=0; z<numZ; z++) {
+    std::cout << "Z=" << z << std::endl;
+    for (int y=0; y<numY; y++) {
+      for (int x=0; x<numX; x++) {
+        std::cout << pdf.getCell(x,y,z).distance_square_ << " ";
+      }
+      std::cout << "   ";
+      for (int x=0; x<numX; x++) {
+        std::cout << pdf.getCell(x,y,z).negative_distance_square_ << " ";
+      }
+      std::cout << "     ";
+      for (int x=0; x<numX; x++) {
+        printPointCoords(pdf.getCell(x,y,z).closest_point_);
+      }
+      std::cout << "   ";
+      for (int x=0; x<numX; x++) {
+        printPointCoords(pdf.getCell(x,y,z).closest_negative_point_);
       }
       std::cout << std::endl;
     }
@@ -415,14 +463,34 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   p.position.z = .5;
 
   gradient_df.addShapeToField(&sphere, p);
-  printNeg(gradient_df, numX, numY, numZ);
+  printBoth(gradient_df, numX, numY, numZ);
   EXPECT_GT(gradient_df.getCell(5,5,5).negative_distance_square_, 1);
   //all negative cells should have gradients that point towards cells with distance 1
   for (int z=1; z<df.getZNumCells()-1; z++) {
     for (int x=1; x<df.getXNumCells()-1; x++) {
       for (int y=1; y<df.getYNumCells()-1; y++) {
+        
+        double dist = gradient_df.getDistance(x,y,z);
+        double ncell_dist;
+        Eigen::Vector3i ncell_pos;
+        const PropDistanceFieldVoxel* ncell = gradient_df.getNearestCell(x,y,z, ncell_dist, ncell_pos);
+
+        EXPECT_EQ(ncell_dist, dist);
+
+        if (ncell == NULL)
+        {
+          if (ncell_dist > 0)
+          {
+            EXPECT_GE(ncell_dist, gradient_df.getUninitializedDistance()) << "dist=" << dist << " xyz=" << x << " " << y << " " << z << " ncell=" << ncell_pos.x() << " " << ncell_pos.y() << " " << ncell_pos.z() << std::endl;
+
+          }
+          else if (ncell_dist < 0)
+          {
+            EXPECT_LE(ncell_dist, -gradient_df.getUninitializedDistance()) << "dist=" << dist << " xyz=" << x << " " << y << " " << z << " ncell=" << ncell_pos.x() << " " << ncell_pos.y() << " " << ncell_pos.z() << std::endl;
+          }
+        }
+
         if(gradient_df.getCell(x,y,z).negative_distance_square_ > 0) {
-          double dist = gradient_df.getDistance(x,y,z);
           ASSERT_LT(dist, 0) << "Pos " << gradient_df.getCell(x,y,z).distance_square_ << " " << gradient_df.getCell(x,y,z).negative_distance_square_;
           double wx, wy, wz;
           df.gridToWorld(x,y,z,wx,wy,wz);
@@ -432,18 +500,39 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
                                                              grad.x(), grad.y(), grad.z(), grad_in_bounds);
           ASSERT_TRUE(grad_in_bounds) << x << " " << y << " " << z;
           ASSERT_NEAR(dist, dist_grad, .0001);
-          double xscale = grad.x()/grad.norm();
-          double yscale = grad.y()/grad.norm();
-          double zscale = grad.z()/grad.norm();
+
+          if (!ncell)
+            continue;
+
+          EXPECT_GE(gradient_df.getCell(ncell_pos.x(), ncell_pos.y(), ncell_pos.z()).distance_square_, 1) << "dist=" << dist << " xyz=" << x << " " << y << " " << z << " grad=" << grad.x() << " " << grad.y() << " " << grad.z() << " ncell=" << ncell_pos.x() << " " << ncell_pos.y() << " " << ncell_pos.z() << std::endl;
+
+          double grad_size_sq = grad.squaredNorm();
+          if (grad_size_sq < std::numeric_limits<double>::epsilon())
+            continue;
+
+          double oo_grad_size = 1.0 / sqrt(grad_size_sq);
+          double xscale = grad.x() * oo_grad_size;
+          double yscale = grad.y() * oo_grad_size;
+          double zscale = grad.z() * oo_grad_size;
 
           double comp_x = wx-xscale*dist;
           double comp_y = wy-yscale*dist;
           double comp_z = wz-zscale*dist;
 
           int cell_x, cell_y, cell_z;
-          gradient_df.worldToGrid(comp_x, comp_y, comp_z,
+          bool cell_in_bounds = gradient_df.worldToGrid(comp_x, comp_y, comp_z,
                                   cell_x, cell_y, cell_z);
-          ASSERT_GE(gradient_df.getCell(cell_x, cell_y, cell_z).distance_square_, 1) << dist << " " << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale << " " << yscale << " " << zscale << " cell " << comp_x << " " << comp_y << " " << comp_z << std::endl;
+
+          ASSERT_EQ(cell_in_bounds, true);
+          const PropDistanceFieldVoxel* cell = &gradient_df.getCell(cell_x, cell_y, cell_z);
+
+#if 0
+          EXPECT_EQ(ncell_pos.x(), cell_x);
+          EXPECT_EQ(ncell_pos.y(), cell_y);
+          EXPECT_EQ(ncell_pos.z(), cell_z);
+          EXPECT_EQ(ncell, cell);
+#endif
+          EXPECT_GE(cell->distance_square_, 1) << dist << " " << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale << " " << yscale << " " << zscale << " cell " << comp_x << " " << comp_y << " " << comp_z << std::endl;
         }
       }
     }
@@ -480,7 +569,8 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   Eigen::Affine3d pose_e;
   tf::poseMsgToEigen(p, pose_e);
   body->setPose(pose_e);
-  EigenSTL::vector_Vector3d point_vec = distance_field::determineCollisionPoints(body, resolution);
+  EigenSTL::vector_Vector3d point_vec;
+  findInternalPointsConvex(*body, resolution, point_vec);
   delete body;
   check_distance_field(df, point_vec,
                        numX, numY, numZ, true);
@@ -497,7 +587,8 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   tf::poseMsgToEigen(np, npose_e);
   body->setPose(npose_e);
 
-  EigenSTL::vector_Vector3d point_vec_2 = distance_field::determineCollisionPoints(body, resolution);
+  EigenSTL::vector_Vector3d point_vec_2;
+  findInternalPointsConvex(*body, resolution, point_vec_2);
   delete body;
   EigenSTL::vector_Vector3d point_vec_union = point_vec_2;
   point_vec_union.insert(point_vec_union.end(),
@@ -816,3 +907,4 @@ int main(int argc, char **argv){
 
   return RUN_ALL_TESTS();
 }
+

@@ -35,17 +35,15 @@
 /* Author: Mrinal Kalakrishnan, Ken Anderson, E. Gil Jones */
 
 #include <moveit/distance_field/distance_field.h>
-#include <moveit/distance_field/distance_field_common.h>
+#include <moveit/distance_field/find_internal_points.h>
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <console_bridge/console.h>
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
 
-namespace distance_field
-{
 
-DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution,
+distance_field::DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution,
                              double origin_x, double origin_y, double origin_z) :
   size_x_(size_x),
   size_y_(size_y),
@@ -58,11 +56,11 @@ DistanceField::DistanceField(double size_x, double size_y, double size_z, double
 {
 }
 
-DistanceField::~DistanceField()
+distance_field::DistanceField::~DistanceField()
 {
 }
 
-double DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z,
+double distance_field::DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z,
                                           bool& in_bounds) const
 {
   int gx, gy, gz;
@@ -88,7 +86,7 @@ double DistanceField::getDistanceGradient(double x, double y, double z, double& 
   return getDistance(gx,gy,gz);
 }
 
-void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance,
+void distance_field::DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance,
                                          const std::string & frame_id, const ros::Time stamp,
                                          visualization_msgs::Marker& inf_marker) const
 {
@@ -134,7 +132,7 @@ void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distanc
   }
 }
 
-void DistanceField::getGradientMarkers(double min_distance,
+void distance_field::DistanceField::getGradientMarkers(double min_distance,
                                        double max_distance,
                                        const std::string& frame_id,
                                        const ros::Time& stamp,
@@ -201,7 +199,7 @@ void DistanceField::getGradientMarkers(double min_distance,
   }
 }
 
-void DistanceField::addShapeToField(const shapes::Shape* shape,
+void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape,
                                     const geometry_msgs::Pose& pose)
 {
   if(shape->type == shapes::OCTREE) {
@@ -216,13 +214,14 @@ void DistanceField::addShapeToField(const shapes::Shape* shape,
     Eigen::Affine3d pose_e;
     tf::poseMsgToEigen(pose, pose_e);
     body->setPose(pose_e);
-    EigenSTL::vector_Vector3d point_vec = determineCollisionPoints(body, resolution_);
+    EigenSTL::vector_Vector3d point_vec;
+    findInternalPointsConvex(*body, resolution_, point_vec);
     delete body;
     addPointsToField(point_vec);
   }
 }
 
-void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
+void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octree)
 {
   //lower extent
   double min_x, min_y, min_z;
@@ -267,7 +266,7 @@ void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
   addPointsToField(points);
 }
 
-void DistanceField::moveShapeInField(const shapes::Shape* shape,
+void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
                                      const geometry_msgs::Pose& old_pose,
                                      const geometry_msgs::Pose& new_pose)
 {
@@ -279,29 +278,32 @@ void DistanceField::moveShapeInField(const shapes::Shape* shape,
   Eigen::Affine3d old_pose_e;
   tf::poseMsgToEigen(old_pose, old_pose_e);
   body->setPose(old_pose_e);
-  EigenSTL::vector_Vector3d old_point_vec = determineCollisionPoints(body, resolution_);
+  EigenSTL::vector_Vector3d old_point_vec;
+  findInternalPointsConvex(*body, resolution_, old_point_vec);
   Eigen::Affine3d new_pose_e;
   tf::poseMsgToEigen(new_pose, new_pose_e);
   body->setPose(new_pose_e);
-  EigenSTL::vector_Vector3d new_point_vec = determineCollisionPoints(body, resolution_);
+  EigenSTL::vector_Vector3d new_point_vec;
+  findInternalPointsConvex(*body, resolution_, new_point_vec);
   delete body;
   updatePointsInField(old_point_vec,
                       new_point_vec);
 }
 
-void DistanceField::removeShapeFromField(const shapes::Shape* shape,
+void distance_field::DistanceField::removeShapeFromField(const shapes::Shape* shape,
                                          const geometry_msgs::Pose& pose)
 {
   bodies::Body* body = bodies::createBodyFromShape(shape);
   Eigen::Affine3d pose_e;
   tf::poseMsgToEigen(pose, pose_e);
   body->setPose(pose_e);
-  EigenSTL::vector_Vector3d point_vec = determineCollisionPoints(body, resolution_);
+  EigenSTL::vector_Vector3d point_vec;
+  findInternalPointsConvex(*body, resolution_, point_vec);
   delete body;
   removePointsFromField(point_vec);
 }
 
-void DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type, double length, double width,
+void distance_field::DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type, double length, double width,
                                     double height, const Eigen::Vector3d& origin,
                                     const std::string & frame_id, const ros::Time stamp,
                                     visualization_msgs::Marker& plane_marker ) const
@@ -416,7 +418,7 @@ void DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type,
 
 
 
-void DistanceField::setPoint(int xCell, int yCell, int zCell,
+void distance_field::DistanceField::setPoint(int xCell, int yCell, int zCell,
                              double dist, geometry_msgs::Point& point,
                              std_msgs::ColorRGBA& color,
                              double max_distance) const
@@ -434,7 +436,7 @@ void DistanceField::setPoint(int xCell, int yCell, int zCell,
 }
 
 
-void DistanceField::getProjectionPlanes(const std::string& frame_id,
+void distance_field::DistanceField::getProjectionPlanes(const std::string& frame_id,
                                         const ros::Time& stamp,
                                         double max_dist,
                                         visualization_msgs::Marker& marker) const
@@ -529,4 +531,3 @@ void DistanceField::getProjectionPlanes(const std::string& frame_id,
 
 
 
-}

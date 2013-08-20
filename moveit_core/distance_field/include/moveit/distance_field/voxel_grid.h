@@ -32,13 +32,14 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Mrinal Kalakrishnan */
+/* Author: Mrinal Kalakrishnan, Acorn Pooley */
 
 #ifndef MOVEIT_DISTANCE_FIELD_VOXEL_GRID_
 #define MOVEIT_DISTANCE_FIELD_VOXEL_GRID_
 
 #include <algorithm>
 #include <cmath>
+#include <Eigen/Core>
 
 namespace distance_field
 {
@@ -131,6 +132,7 @@ public:
    * supplied in the constructor if the location is not valid.
    */
   const T& operator()(double x, double y, double z) const;
+  const T& operator()(const Eigen::Vector3d& pos) const;
 
   /**
    * \brief Gives the value of the given location (x,y,z) in the
@@ -146,10 +148,13 @@ public:
    * @param [in] y The Y index of the desired cell
    * @param [in] z The Z index of the desired cell
    *
-   * @return The data in the indicated cell, or a default value
-   * supplied in the constructor if the location is not valid.
+   * @return The data in the indicated cell.  If x,y,z is invalid then
+   * corruption and/or SEGFAULTS will occur.
    */
   T& getCell(int x, int y, int z);
+  T& getCell(const Eigen::Vector3i& pos);
+  const T& getCell(int x, int y, int z) const;
+  const T& getCell(const Eigen::Vector3i& pos) const;
 
   /**
    * \brief Sets the value of the given location (x,y,z) in the
@@ -161,8 +166,8 @@ public:
    * (origin_x+x_size, origin_y+y_size, origin_z+z_size) will be
    * (size_x/resolution, size_y/resolution, size_z/resolution).
    *
-   * If the arguments do not indicate a valid cell, no action is
-   * taken.
+   * If the arguments do not indicate a valid cell, corruption and/or SEGFAULTS
+   * will occur.
    *
    * @param [in] x The X index of the desired cell
    * @param [in] y The Y index of the desired cell
@@ -170,11 +175,7 @@ public:
    * @param [out] obj The data to place into the given cell
    */
   void setCell(int x, int y, int z, const T& obj);
-
-  /**
-   * The const version of the the function in \ref VoxelGrid::getCell(int x, int y, int z).
-   */
-  const T& getCell(int x, int y, int z) const;
+  void setCell(const Eigen::Vector3i& pos, const T& obj);
 
   /**
    * \brief Sets every cell in the voxel grid to the supplied data
@@ -238,7 +239,8 @@ public:
    *
    * @return True, as there is no check that the integer locations are valid
    */
-  bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
+  void gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
+  void gridToWorld(const Eigen::Vector3i& grid, Eigen::Vector3i& world) const;
 
   /**
    * \brief Converts from a world location to a set of integer
@@ -257,6 +259,7 @@ public:
    * that pass a validity check; otherwise False.
    */
   bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
+  bool worldToGrid(const Eigen::Vector3i& world, Eigen::Vector3i& grid) const;
 
   /**
    * \brief Checks if the given cell in integer coordinates is within the voxel grid
@@ -268,6 +271,7 @@ public:
    * @return True if the cell lies within the voxel grid; otherwise False.
    */
   bool isCellValid(int x, int y, int z) const;
+  bool isCellValid(const Eigen::Vector3i& pos) const;
 
   /**
    * \brief Checks if the indicated index is valid along a particular dimension.
@@ -410,6 +414,12 @@ inline bool VoxelGrid<T>::isCellValid(int x, int y, int z) const
 }
 
 template<typename T>
+inline bool VoxelGrid<T>::isCellValid(const Eigen::Vector3i& pos) const
+{
+  return isCellValid(pos.x(), pos.y(), pos.z());
+}
+
+template<typename T>
 inline bool VoxelGrid<T>::isCellValid(Dimension dim, int cell) const
 {
   return cell>=0 && cell<num_cells_[dim];
@@ -463,6 +473,12 @@ inline const T& VoxelGrid<T>::operator()(double x, double y, double z) const
 }
 
 template<typename T>
+inline const T& VoxelGrid<T>::operator()(const Eigen::Vector3d& pos) const
+{
+  this->operator()(pos.x(), pos.y(), pos.z());
+}
+
+template<typename T>
 inline T& VoxelGrid<T>::getCell(int x, int y, int z)
 {
   return data_[ref(x,y,z)];
@@ -475,9 +491,27 @@ inline const T& VoxelGrid<T>::getCell(int x, int y, int z) const
 }
 
 template<typename T>
+inline T& VoxelGrid<T>::getCell(const Eigen::Vector3i& pos)
+{
+  return data_[ref(pos.x(), pos.y(), pos.z())];
+}
+
+template<typename T>
+inline const T& VoxelGrid<T>::getCell(const Eigen::Vector3i& pos) const
+{
+  return data_[ref(pos.x(), pos.y(), pos.z())];
+}
+
+template<typename T>
 inline void VoxelGrid<T>::setCell(int x, int y, int z, const T& obj)
 {
   data_[ref(x,y,z)] = obj;
+}
+
+template<typename T>
+inline void VoxelGrid<T>::setCell(const Eigen::Vector3i& pos, const T& obj)
+{
+  data_[ref(pos.x(), pos.y(), pos.z())] = obj;
 }
 
 template<typename T>
@@ -514,12 +548,19 @@ inline void VoxelGrid<T>::reset(const T& initial)
 }
 
 template<typename T>
-inline bool VoxelGrid<T>::gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const
+inline void VoxelGrid<T>::gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const
 {
   world_x = getLocationFromCell(DIM_X, x);
   world_y = getLocationFromCell(DIM_Y, y);
   world_z = getLocationFromCell(DIM_Z, z);
-  return true;
+}
+
+template<typename T>
+inline void VoxelGrid<T>::gridToWorld(const Eigen::Vector3i& grid, Eigen::Vector3i& world) const
+{
+  world.x() = getLocationFromCell(DIM_X, grid.x());
+  world.y() = getLocationFromCell(DIM_Y, grid.y());
+  world.z() = getLocationFromCell(DIM_Z, grid.z());
 }
 
 template<typename T>
@@ -529,6 +570,15 @@ inline bool VoxelGrid<T>::worldToGrid(double world_x, double world_y, double wor
   y = getCellFromLocation(DIM_Y, world_y);
   z = getCellFromLocation(DIM_Z, world_z);
   return isCellValid(x,y,z);
+}
+
+template<typename T>
+inline bool VoxelGrid<T>::worldToGrid(const Eigen::Vector3i& world, Eigen::Vector3i& grid) const
+{
+  grid.x() = getCellFromLocation(DIM_X, world.x());
+  grid.y() = getCellFromLocation(DIM_Y, world.y());
+  grid.z() = getCellFromLocation(DIM_Z, world.z());
+  return isCellValid(grid.x(), grid.y(), grid.z());
 }
 
 } // namespace distance_field
