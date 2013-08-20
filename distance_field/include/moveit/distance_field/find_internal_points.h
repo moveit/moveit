@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2013, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,52 +32,31 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: E. Gil Jones */
+/* Author: Acorn Pooley */
 
-#ifndef MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_COMMON_
-#define MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_COMMON_
+#ifndef MOVEIT_DISTANCE_FIELD__FIND_INTERNAL_POINTS_
+#define MOVEIT_DISTANCE_FIELD__FIND_INTERNAL_POINTS_
 
 #include <eigen_stl_containers/eigen_stl_containers.h>
-#include <geometric_shapes/shapes.h>
+//#include <geometric_shapes/shapes.h>
 #include <geometric_shapes/bodies.h>
 
 namespace distance_field
 {
 
 /**
- * \brief Determines a set of obstacle points given a body and a particular resolution.
- *
- * This function computes a bounding sphere and iterates through it in
- * 3D at the specified resolution.  It tests each iterated for
- * inclusion in the body, returning the set of points that are
- * reported as being included in the body.
+ * \brief Find all points on a regular grid that are internal to the body,
+ * assuming the body is a convex shape.  If the body is not convex then its
+ * convex hull is used.
  *
  * @param [in] body The body to discretize
  * @param [in] resolution The resolution at which to test
- *
- * @return The set of points in the bounding sphere that return as
- * included in the body
+ * @param [out] points The points internal to the body are appended to thiss
+ *                   vector.
  */
-EigenSTL::vector_Vector3d static inline determineCollisionPoints(const bodies::Body* body, double resolution)
-{
-  EigenSTL::vector_Vector3d ret_vec;
-  if(!body) return ret_vec;
-  bodies::BoundingSphere sphere;
-  body->computeBoundingSphere(sphere);
-  //ROS_INFO_STREAM("Radius is " << sphere.radius);
-  //ROS_INFO_STREAM("Center is " << sphere.center.z() << " " << sphere.center.y() << " " << sphere.center.z());
-  for(double xval = sphere.center.x()-sphere.radius-resolution; xval <= sphere.center.x()+sphere.radius+resolution; xval += resolution) {
-    for(double yval = sphere.center.y()-sphere.radius-resolution; yval <= sphere.center.y()+sphere.radius+resolution; yval += resolution) {
-      for(double zval = sphere.center.z()-sphere.radius-resolution; zval <= sphere.center.z()+sphere.radius+resolution; zval += resolution) {
-        Eigen::Vector3d rel_vec(xval, yval, zval);
-        if(body->containsPoint(rel_vec)) {
-          ret_vec.push_back(rel_vec);
-        }
-      }
-    }
-  }
-  return ret_vec;
-}
+void findInternalPointsConvex(const bodies::Body& body,
+                              double resolution,
+                              EigenSTL::vector_Vector3d& points);
 
 }
 

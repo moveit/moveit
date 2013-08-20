@@ -639,7 +639,8 @@ int PropagationDistanceField::getZNumCells() const
 
 bool PropagationDistanceField::gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const
 {
-  return voxel_grid_->gridToWorld(x, y, z, world_x, world_y, world_z);
+  voxel_grid_->gridToWorld(x, y, z, world_x, world_y, world_z);
+  return true;
 }
 
 bool PropagationDistanceField::worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const

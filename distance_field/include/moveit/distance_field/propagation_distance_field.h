@@ -380,18 +380,61 @@ public:
   }
 
   /**
-   * \brief Gets full cell data given an indexes.
+   * \brief Gets full cell data given an index.
    *
+   * x,y,z MUST be valid or data corruption (SEGFAULTS) will occur.
    *
    * @param [in] x The integer X location
    * @param [in] y The integer Y location
    * @param [in] z The integer Z location
    *
-   * @return The data in the indicated cell or an unitialized
-   * voxel if the indexes are not valid.
+   * @return The data in the indicated cell.
    */
-  const PropDistanceFieldVoxel& getCell(int x, int y, int z) const {
+  const PropDistanceFieldVoxel& getCell(int x, int y, int z) const 
+  {
     return voxel_grid_->getCell(x, y, z);
+  }
+
+  /**
+   * \brief Gets nearest surface cell and returns distance to it.
+   *
+   * x,y,z MUST be valid or data corruption (SEGFAULTS) will occur.
+   *
+   * @param [in] x The integer X location of the starting cell
+   * @param [in] y The integer Y location of the starting cell
+   * @param [in] z The integer Z location of the starting cell
+   * @param [out] dist if starting cell is inside, the negative distance to the nearest outside cell
+   *                   if starting cell is outside, the positive distance to the nearest inside cell
+   *                   if nearby cell is unknown, zero
+   * @param [out] pos the position of the nearest cell
+   *
+   *
+   * @return If starting cell is inside, the nearest outside cell
+   *         If starting cell is outside, the nearst inside cell
+   *         If nearest cell is unknown, return NULL
+   */
+  const PropDistanceFieldVoxel* getNearestCell(int x, int y, int z, double& dist, Eigen::Vector3i& pos) const
+  {
+    const PropDistanceFieldVoxel* cell = &voxel_grid_->getCell(x, y, z);
+    if (cell->distance_square_ > 0)
+    {
+      dist = sqrt_table_[cell->distance_square_];
+      pos = cell->closest_point_;
+      const PropDistanceFieldVoxel* ncell = &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
+      return ncell == cell ? NULL : ncell;
+    }
+    if (cell->negative_distance_square_ > 0)
+    {
+      dist = -sqrt_table_[cell->negative_distance_square_];
+      pos = cell->closest_negative_point_;
+      const PropDistanceFieldVoxel* ncell = &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
+      return ncell == cell ? NULL : ncell;
+    }
+    dist = 0.0;
+    pos.x() = x;
+    pos.y() = y;
+    pos.z() = z;
+    return NULL;
   }
 
   /**
