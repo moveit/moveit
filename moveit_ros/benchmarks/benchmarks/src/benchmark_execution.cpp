@@ -867,6 +867,7 @@ bool isIKSolutionCollisionFree(const planning_scene::PlanningScene *scene,
                                bool *reachable)
 {
   state->setJointGroupPositions(group, ik_solution);
+  state->update();
   *reachable = true;
   if (scene->isStateColliding(*state, group->getName(), false))
     return false;

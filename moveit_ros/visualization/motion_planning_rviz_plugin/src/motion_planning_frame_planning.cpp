@@ -136,8 +136,8 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
   if (v == "<random>")
   {
     configureWorkspace();
-    if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(planning_display_->getCurrentPlanningGroup()))
-      jsg->setToRandomValues();
+    if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+      state.setToRandomPositions(jmg);
   }
   else
     if (v == "<current>")
@@ -159,8 +159,8 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
         else
         {
           // maybe it is a named state
-          if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(planning_display_->getCurrentPlanningGroup()))
-            jsg->setToDefaultState(v);
+          if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+            state.setToDefaultValues(jmg, v);
         }
 }
 
@@ -225,45 +225,49 @@ void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanReques
   mreq.workspace_parameters.max_corner.x = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
   mreq.workspace_parameters.max_corner.y = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
   mreq.workspace_parameters.max_corner.z = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
-  const robot_state::JointStateGroup *jsg = planning_display_->getQueryGoalState()->getJointStateGroup(mreq.group_name);
-  if (jsg)
+  robot_state::RobotStateConstPtr s = planning_display_->getQueryGoalState();
+  const robot_state::JointModelGroup *jmg = s->getJointModelGroup(mreq.group_name);
+  if (jmg)
   {
     mreq.goal_constraints.resize(1);
-    mreq.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(jsg);
+    mreq.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(*s, jmg);
   }
 }
 
 void MotionPlanningFrame::configureWorkspace()
 {
+  robot_model::VariableBounds bx, by, bz;
+  bx.position_bounded_ = by.position_bounded_ = bz.position_bounded_ = true;
+  
   robot_model::JointModel::Bounds b(3);
-  b[0].first = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
-  b[0].second = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
-  b[1].first = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
-  b[1].second = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
-  b[2].first = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;
-  b[2].second = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
-
+  bx.min_position_ = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
+  bx.max_position_ = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
+  by.min_position_ = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
+  by.max_position_ = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
+  bz.min_position_ = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;
+  bz.max_position_ = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
+  
   if (move_group_)
-    move_group_->setWorkspace(b[0].first, b[1].first, b[2].first,
-                              b[0].second, b[1].second, b[2].second);
+    move_group_->setWorkspace(bx.min_position_, by.min_position_, bz.min_position_,
+                              bx.max_position_, by.max_position_, bz.max_position_);
+  planning_scene_monitor::PlanningSceneMonitorPtr psm = planning_display_->getPlanningSceneMonitor();
   // get non-const access to the kmodel and update planar & floating joints as indicated by the workspace settings
-  if (planning_display_->getPlanningSceneMonitor() && planning_display_->getPlanningSceneMonitor()->getRobotModelLoader() &&
-      planning_display_->getPlanningSceneMonitor()->getRobotModelLoader()->getModel())
+  if (psm && psm->getRobotModelLoader() && psm->getRobotModelLoader()->getModel())
   {
-    const robot_model::RobotModelPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getRobotModelLoader()->getModel();
+    const robot_model::RobotModelPtr &kmodel = psm->getRobotModelLoader()->getModel();
     const std::vector<robot_model::JointModel*> &jm = kmodel->getJointModels();
     for (std::size_t i = 0 ; i < jm.size() ; ++i)
       if (jm[i]->getType() == robot_model::JointModel::PLANAR)
       {
-        jm[i]->setVariableBounds(jm[i]->getName() + "/x", b[0]);
-        jm[i]->setVariableBounds(jm[i]->getName() + "/y", b[1]);
+        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[0], bx);
+        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[1], by);
       }
       else
         if (jm[i]->getType() == robot_model::JointModel::FLOATING)
         {
-          jm[i]->setVariableBounds(jm[i]->getName() + "/trans_x", b[0]);
-          jm[i]->setVariableBounds(jm[i]->getName() + "/trans_y", b[1]);
-          jm[i]->setVariableBounds(jm[i]->getName() + "/trans_z", b[2]);
+          jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[0], bx);
+          jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[1], by);
+          jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[2], bz);
         }
   }
 }

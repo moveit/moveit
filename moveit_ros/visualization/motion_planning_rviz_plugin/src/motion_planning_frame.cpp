@@ -217,8 +217,7 @@ void MotionPlanningFrame::fillStateSelectionOptions()
     ui_->goal_state_selection->addItem(QString("<current>"));
     ui_->goal_state_selection->addItem(QString("<same as start>"));
 
-    std::vector<std::string> known_states;
-    jmg->getKnownDefaultStates(known_states);
+    const std::vector<std::string> &known_states = jmg->getDefaultStateNames();
     if (!known_states.empty())
     {
       ui_->start_state_selection->insertSeparator(ui_->start_state_selection->count());

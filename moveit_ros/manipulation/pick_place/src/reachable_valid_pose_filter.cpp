@@ -63,6 +63,7 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   state->setJointGroupPositions(group, joint_group_variable_values);
   // apply approach posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
   state->setVariableValues(manipulation_plan->approach_posture_);
+  state->update();
   
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;

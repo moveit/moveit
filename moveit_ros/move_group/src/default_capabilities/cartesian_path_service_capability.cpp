@@ -63,6 +63,7 @@ bool isStateValid(const planning_scene::PlanningScene *planning_scene,
                   const robot_state::JointModelGroup *group, const double *ik_solution)
 {
   state->setJointGroupPositions(group, ik_solution);
+  state->update();
   return (!planning_scene || !planning_scene->isStateColliding(*state, group->getName())) &&
     (!constraint_set || constraint_set->decide(*state).satisfied);
 }

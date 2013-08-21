@@ -376,16 +376,13 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   if (display_gripper_mesh_)
   {
     //If selected and gripper_mesh enabled, display the actual end effector mesh
-    const robot_state::JointStateGroup *joint_state_group = robot_state_->getJointStateGroup(eef_.eef_group);
-    const robot_state::RobotState *robot_state = joint_state_group->getRobotState();
-
-    const robot_model::JointModelGroup *joint_model_group = joint_state_group->getJointModelGroup();
+    const robot_state::JointModelGroup *joint_model_group = robot_state_->getJointModelGroup(eef_.eef_group);
     const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();
 
     std_msgs::ColorRGBA marker_color;
     marker_color = color;
     visualization_msgs::MarkerArray marker_array;
-    robot_state->getRobotMarkers(marker_array, link_names, marker_color, "goal_pose_marker", ros::Duration());
+    robot_state_->getRobotMarkers(marker_array, link_names, marker_color, "goal_pose_marker", ros::Duration());
 
     for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
     {
@@ -393,7 +390,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
       m_control.markers.push_back(marker_array.markers[i]);
     }
 
-    Eigen::Affine3d tip_pose = robot_state_->getLinkState(eef_.parent_link)->getGlobalLinkTransform();
+    Eigen::Affine3d tip_pose = robot_state_->getGlobalLinkTransform(eef_.parent_link);
     tf::poseEigenToMsg(tip_pose, int_marker.pose);
   }
   else

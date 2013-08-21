@@ -82,7 +82,7 @@ void MainWindow::createTrajectoryButtonClicked(void)
       else
       {
         //Create the new trajectory starting point at the current eef pose, and attach an interactive marker to it
-        Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getLinkState(robot_interaction_->getActiveEndEffectors()[0].parent_link)->getGlobalLinkTransform();
+        Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getGlobalLinkTransform(robot_interaction_->getActiveEndEffectors()[0].parent_link);
         geometry_msgs::Pose marker_pose;
         tf::poseEigenToMsg(tip_pose, marker_pose);
         static const float marker_scale = 0.15;
@@ -336,10 +336,11 @@ void MainWindow::trajectoryExecuteButtonClicked()
 
     if (waypoint_poses.size() > 0)
     {
-      robot_state::JointStateGroup *jsg = scene_display_->getPlanningSceneRW()->getCurrentStateNonConst().getJointStateGroup(ui_.planning_group_combo->currentText().toStdString());
+      robot_state::RobotState &rstate = scene_display_->getPlanningSceneRW()->getCurrentStateNonConst();
+      const robot_model::JointModelGroup *jmg = rstate.getJointModelGroup(ui_.planning_group_combo->currentText().toStdString());
 
-      std::vector<boost::shared_ptr<robot_state::RobotState> > traj;
-      double completed = jsg->computeCartesianPath(traj, robot_interaction_->getActiveEndEffectors()[0].parent_link, waypoint_poses, true, 0.04, 0.0);
+      std::vector<robot_state::RobotStatePtr> traj;
+      double completed = rstate.computeCartesianPath(jmg, traj, robot_interaction_->getActiveEndEffectors()[0].parent_link, waypoint_poses, true, 0.04, 0.0);
 
       ROS_INFO_STREAM("Trajectory completion percentage " << completed);
       JobProcessing::addBackgroundJob(boost::bind(&MainWindow::animateTrajectory, this, traj));

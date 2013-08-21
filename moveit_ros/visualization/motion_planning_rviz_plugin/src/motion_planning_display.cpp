@@ -562,7 +562,7 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
     double max_payload;
     unsigned int saturated_joint;
     std::vector<double> joint_values;
-    state.getJointStateGroup(ee.parent_group)->getVariableValues(joint_values);
+    state.copyJointGroupPositions(ee.parent_group, joint_values);
     if (ds->getMaxPayload(joint_values, max_payload, saturated_joint))
     {
       metrics["max_payload"] = max_payload;
@@ -642,17 +642,17 @@ void MotionPlanningDisplay::displayMetrics(bool start)
       }
     }
 
-    const robot_state::LinkState *ls = NULL;
+    const robot_state::LinkModel *lm = NULL;
     const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(eef[i].parent_group);
     if (jmg)
       if (!jmg->getLinkModelNames().empty())
-        ls = state->getLinkState(jmg->getLinkModelNames().back());
-    if (ls)
+        lm = state->getLinkModel(jmg->getLinkModelNames().back());
+    if (lm)
     {
-      const Eigen::Vector3d &t = ls->getGlobalLinkTransform().translation();
+      const Eigen::Vector3d &t = state->getGlobalLinkTransform(lm).translation();
       position[0] = t.x();
       position[1] = t.y();
-      position[2] = t.z() + 0.2;
+      position[2] = t.z() + 0.2; // \todo this should be a param
     }
     if (start)
       displayTable(text_table, query_start_color_property_->getOgreColor(), position, orientation);
@@ -675,7 +675,7 @@ void MotionPlanningDisplay::drawQueryStartState()
       // update link poses
       query_robot_start_->update(state);
       query_robot_start_->setVisible(true);
-
+      
       // update link colors
       std::vector<std::string> collision_links;
       getPlanningSceneRO()->getCollidingLinks(collision_links, *state);
@@ -684,29 +684,35 @@ void MotionPlanningDisplay::drawQueryStartState()
         status_links_start_[collision_links[i]] = COLLISION_LINK;
       if (!collision_links.empty())
       {
-    collision_detection::CollisionResult::ContactMap pairs;
-    getPlanningSceneRO()->getCollidingPairs(pairs, *state);
+        collision_detection::CollisionResult::ContactMap pairs;
+        getPlanningSceneRO()->getCollidingPairs(pairs, *state);
         setStatusTextColor(query_start_color_property_->getColor());
         addStatusText("Start state colliding links:");
-    for (collision_detection::CollisionResult::ContactMap::const_iterator it = pairs.begin() ; it != pairs.end() ; ++it)
-      addStatusText(it->first.first + " - " + it->first.second);
-    addStatusText(".");
+        for (collision_detection::CollisionResult::ContactMap::const_iterator it = pairs.begin() ; it != pairs.end() ; ++it)
+          addStatusText(it->first.first + " - " + it->first.second);
+        addStatusText(".");
       }
-      std::vector<std::string> outside_bounds;
-      const std::vector<robot_state::JointState*> &jstates = state->getJointStateVector();
-      for (std::size_t i = 0 ; i < jstates.size() ; ++i)
-        if (!jstates[i]->satisfiesBounds(jstates[i]->getJointModel()->getMaximumExtent() * 1e-2))
-        {
-          outside_bounds.push_back(jstates[i]->getJointModel()->getChildLinkModel()->getName());
-          status_links_start_[outside_bounds.back()] = OUTSIDE_BOUNDS_LINK;
-        }
-      if (!outside_bounds.empty())
+      if (!getCurrentPlanningGroup().empty())
       {
-        setStatusTextColor(query_start_color_property_->getColor());
-        addStatusText("Links descending from joints that are outside bounds in start state:");
-        addStatusText(outside_bounds);
+        const robot_model::JointModelGroup *jmg = state->getJointModelGroup(getCurrentPlanningGroup());
+        if (jmg)
+        {
+          std::vector<std::string> outside_bounds; 
+          const std::vector<const robot_model::JointModel*> &jmodels = jmg->getActiveJointModels();
+          for (std::size_t i = 0 ; i < jmodels.size() ; ++i)
+            if (!state->satisfiesBounds(jmodels[i], jmodels[i]->getMaximumExtent() * 1e-2))
+            {
+              outside_bounds.push_back(jmodels[i]->getChildLinkModel()->getName());
+              status_links_start_[outside_bounds.back()] = OUTSIDE_BOUNDS_LINK;
+            }
+          if (!outside_bounds.empty())
+          {
+            setStatusTextColor(query_start_color_property_->getColor());
+            addStatusText("Links descending from joints that are outside bounds in start state:");
+            addStatusText(outside_bounds);
+          }
+        }
       }
-
       updateLinkColors();
       // update metrics text
       displayMetrics(true);
@@ -793,34 +799,40 @@ void MotionPlanningDisplay::drawQueryGoalState()
       getPlanningSceneRO()->getCollidingLinks(collision_links, *state);
       status_links_goal_.clear();
       for (std::size_t i = 0 ; i < collision_links.size() ; ++i)
-    status_links_goal_[collision_links[i]] = COLLISION_LINK;
+        status_links_goal_[collision_links[i]] = COLLISION_LINK;
       if (!collision_links.empty())
       {
-    collision_detection::CollisionResult::ContactMap pairs;
-    getPlanningSceneRO()->getCollidingPairs(pairs, *state);
+        collision_detection::CollisionResult::ContactMap pairs;
+        getPlanningSceneRO()->getCollidingPairs(pairs, *state);
         setStatusTextColor(query_goal_color_property_->getColor());
         addStatusText("Goal state colliding links:");
-    for (collision_detection::CollisionResult::ContactMap::const_iterator it = pairs.begin() ; it != pairs.end() ; ++it)
-      addStatusText(it->first.first + " - " + it->first.second);
-    addStatusText(".");
+        for (collision_detection::CollisionResult::ContactMap::const_iterator it = pairs.begin() ; it != pairs.end() ; ++it)
+          addStatusText(it->first.first + " - " + it->first.second);
+        addStatusText(".");
       }
-
-      const std::vector<robot_state::JointState*> &jstates = state->getJointStateVector();
-      std::vector<std::string> outside_bounds;
-      for (std::size_t i = 0 ; i < jstates.size() ; ++i)
-        if (!jstates[i]->satisfiesBounds(std::numeric_limits<float>::epsilon()))
-        {
-          outside_bounds.push_back(jstates[i]->getJointModel()->getChildLinkModel()->getName());
-          status_links_goal_[outside_bounds.back()] = OUTSIDE_BOUNDS_LINK;
-        }
-
-      if (!outside_bounds.empty())
+      
+      if (!getCurrentPlanningGroup().empty())
       {
-        setStatusTextColor(query_goal_color_property_->getColor());
-        addStatusText("Links descending from joints that are outside bounds in goal state:");
-        addStatusText(outside_bounds);
+        const robot_model::JointModelGroup *jmg = state->getJointModelGroup(getCurrentPlanningGroup());
+        if (jmg)
+        {
+          const std::vector<const robot_state::JointModel*> &jmodels = jmg->getActiveJointModels();
+          std::vector<std::string> outside_bounds;
+          for (std::size_t i = 0 ; i < jmodels.size() ; ++i)
+            if (!state->satisfiesBounds(jmodels[i], jmodels[i]->getMaximumExtent() * 1e-2))
+            {
+              outside_bounds.push_back(jmodels[i]->getChildLinkModel()->getName());
+              status_links_goal_[outside_bounds.back()] = OUTSIDE_BOUNDS_LINK;
+            }
+          
+          if (!outside_bounds.empty())
+          {
+            setStatusTextColor(query_goal_color_property_->getColor());
+            addStatusText("Links descending from joints that are outside bounds in goal state:");
+            addStatusText(outside_bounds);
+          }
+        }
       }
-
       updateLinkColors();
 
       // update metrics text
@@ -988,12 +1000,13 @@ void MotionPlanningDisplay::useApproximateIK(bool flag)
   }
 }
 
-bool MotionPlanningDisplay::isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const
+bool MotionPlanningDisplay::isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group, const double *ik_solution) const
 {
   if (frame_->ui_->collision_aware_ik->isChecked() && planning_scene_monitor_)
   {
-    group->setVariableValues(ik_solution);
-    bool res = !getPlanningSceneRO()->isStateColliding(*group->getRobotState(), group->getName());
+    state->setJointGroupPositions(group, ik_solution);
+    state->update();
+    bool res = !getPlanningSceneRO()->isStateColliding(*state, group->getName());
     return res;
   }
   else
@@ -1034,9 +1047,8 @@ void MotionPlanningDisplay::changePlanningGroup(const std::string& group)
     planning_group_property_->setStdString(group);
     changedPlanningGroup();
   }
-  else {
+  else 
     ROS_ERROR("Group [%s] not found in the robot model.", group.c_str());
-  }
 }
 
 void MotionPlanningDisplay::changedPlanningGroup()
@@ -1051,10 +1063,10 @@ void MotionPlanningDisplay::changedPlanningGroup()
       return;
     }
   modified_groups_.insert(planning_group_property_->getStdString());
-
+  
   if (robot_interaction_)
     robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
-
+  
   updateQueryStartState();
   updateQueryGoalState();
   updateLinkColors();
@@ -1104,18 +1116,16 @@ void MotionPlanningDisplay::changedDisplayPathCollisionEnabled()
   }
 }
 
-void MotionPlanningDisplay::setQueryStateHelper(bool use_start_state,
-                                                const std::string &state_name)
+void MotionPlanningDisplay::setQueryStateHelper(bool use_start_state, const std::string &state_name)
 {
-
   robot_state::RobotState state = use_start_state ? *getQueryStartState() : *getQueryGoalState();
-
+  
   std::string v = "<" + state_name + ">";
 
   if (v == "<random>")
   {
-    if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(getCurrentPlanningGroup()))
-      jsg->setToRandomValues();
+    if (const robot_state::JointModelGroup *jmg = state.getJointModelGroup(getCurrentPlanningGroup()))
+      state.setToRandomPositions(jmg);
   }
   else
     if (v == "<current>")
@@ -1137,10 +1147,10 @@ void MotionPlanningDisplay::setQueryStateHelper(bool use_start_state,
         else
         {
           // maybe it is a named state
-          if (robot_state::JointStateGroup *jsg = state.getJointStateGroup(getCurrentPlanningGroup()))
-            jsg->setToDefaultState(v);
+          if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(getCurrentPlanningGroup()))
+            state.setToDefaultValues(jmg, state_name);
         }
-
+  
   use_start_state ? setQueryStartState(state) : setQueryGoalState(state);
 }
 
@@ -1167,7 +1177,7 @@ void MotionPlanningDisplay::populateMenuHandler(boost::shared_ptr<interactive_ma
     mh->insert(menu_states, state_names[i],
                boost::bind(&MotionPlanningDisplay::setQueryStateHelper, this, is_start, state_names[i]));
   }
-
+  
   //  // Group commands, which end up being the same for both interaction handlers
   //  const std::vector<std::string>& group_names = getRobotModel()->getJointModelGroupNames();
   //  immh::EntryHandle menu_groups = mh->insert("Planning Group", immh::FeedbackCallback());
@@ -1192,8 +1202,8 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1, _2));
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1, _2));
-  query_start_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
-  query_goal_state_->setStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2));
+  query_start_state_->setGroupStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2, _3));
+  query_goal_state_->setGroupStateValidityCallback(boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2, _3));
 
   // Interactive marker menus
   populateMenuHandler(menu_handler_start_);
@@ -1224,9 +1234,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   dynamics_solver_.clear();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     if (getRobotModel()->getJointModelGroup(groups[i])->isChain())
-      dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getRobotModel(),
-                                                                            groups[i],
-                                                                            gravity_vector));
+      dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getRobotModel(), groups[i], gravity_vector));
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::changedPlanningGroup, this));
 }
 
@@ -1235,12 +1243,12 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState &d
   robot_state::RobotState src_copy = src;
   for (std::set<std::string>::const_iterator it = modified_groups_.begin() ; it != modified_groups_.end() ; ++it)
   {
-    const robot_state::JointStateGroup *jsg = dest.getJointStateGroup(*it);
-    if (jsg)
+    const robot_model::JointModelGroup *jmg = dest.getJointModelGroup(*it);
+    if (jmg)
     {
-      std::map<std::string, double> values_to_keep;
-      jsg->getVariableValues(values_to_keep);
-      src_copy.setStateValues(values_to_keep);
+      std::vector<double> values_to_keep;
+      dest.copyJointGroupPositions(jmg, values_to_keep);
+      src_copy.setJointGroupPositions(jmg, values_to_keep);
     }
   }
 

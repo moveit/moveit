@@ -161,7 +161,7 @@ private:
   bool waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay *scene_display);
   void scheduleStateUpdate();
   void scheduleStateUpdateBackgroundJob();
-  bool isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution);
+  bool isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group, const double *ik_solution);
   bool configure();
   void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
