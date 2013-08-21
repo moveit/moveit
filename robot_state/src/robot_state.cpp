@@ -588,6 +588,52 @@ void moveit::core::RobotState::enforceBounds(const JointModelGroup *joint_group)
     enforceBounds(jm[i]);
 }
 
+std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToBounds() const
+{
+  return getMinDistanceToBounds(robot_model_->getActiveJointModels());
+}
+
+std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToBounds(const JointModelGroup *group) const
+{
+  return getMinDistanceToBounds(group->getActiveJointModels());
+}
+
+std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToBounds(const std::vector<const JointModel*> &joints) const
+{
+  double distance = std::numeric_limits<double>::max();
+  const JointModel* index = NULL;
+  for (std::size_t i = 0; i < joints.size() ; ++i)
+  {
+    if (joints[i]->getType() == JointModel::PLANAR || joints[i]->getType() == JointModel::FLOATING)
+      continue;
+    if (joints[i]->getType() == JointModel::REVOLUTE)
+      if (static_cast<const RevoluteJointModel*>(joints[i])->isContinuous())
+        continue;
+    
+    const double* joint_values = getJointPositions(joints[i]);
+    const JointModel::Bounds& bounds = joints[i]->getVariableBounds();
+    std::vector<double> lower_bounds(bounds.size()), upper_bounds(bounds.size());
+    for (std::size_t j = 0; j < bounds.size() ; ++j)
+    {
+      lower_bounds[j] = bounds[j].min_position_;
+      upper_bounds[j] = bounds[j].max_position_;
+    }
+    double new_distance = joints[i]->distance(joint_values, &lower_bounds[0]);
+    if (new_distance < distance)
+    {
+      index = joints[i];
+      distance = new_distance;
+    }
+    new_distance = joints[i]->distance(joint_values, &upper_bounds[0]);
+    if (new_distance < distance)
+    {
+      index = joints[i];
+      distance = new_distance;
+    }
+  }
+  return std::make_pair(distance, index);
+}
+
 double moveit::core::RobotState::distance(const RobotState &other, const JointModelGroup *joint_group) const
 {
   double d = 0.0;

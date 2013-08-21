@@ -857,6 +857,18 @@ public:
     return joint->satisfiesBounds(getJointPositions(joint), margin);
   }
   
+  /** \brief Get the minimm distance from this state to the bounds.
+      The minimum distance and the joint for which this minimum is achieved are returned. */
+  std::pair<double, const JointModel*> getMinDistanceToBounds() const;
+  
+  /** \brief Get the minimm distance from a group in this state to the bounds.
+      The minimum distance and the joint for which this minimum is achieved are returned. */
+  std::pair<double, const JointModel*> getMinDistanceToBounds(const JointModelGroup *group) const;
+
+  /** \brief Get the minimm distance from a set of joints in the state to the bounds. 
+      The minimum distance and the joint for which this minimum is achieved are returned. */
+  std::pair<double, const JointModel*> getMinDistanceToBounds(const std::vector<const JointModel*> &joints) const;
+  
   /** @} */
   
   /** \defgroup RobotStateAttachedBodies Managing attached bodies
