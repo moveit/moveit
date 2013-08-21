@@ -340,7 +340,8 @@ void MainWindow::trajectoryExecuteButtonClicked()
       const robot_model::JointModelGroup *jmg = rstate.getJointModelGroup(ui_.planning_group_combo->currentText().toStdString());
 
       std::vector<robot_state::RobotStatePtr> traj;
-      double completed = rstate.computeCartesianPath(jmg, traj, robot_interaction_->getActiveEndEffectors()[0].parent_link, waypoint_poses, true, 0.04, 0.0);
+      double completed = rstate.computeCartesianPath(jmg, traj, rstate.getLinkModel(robot_interaction_->getActiveEndEffectors()[0].parent_link),
+                                                     waypoint_poses, true, 0.04, 0.0);
 
       ROS_INFO_STREAM("Trajectory completion percentage " << completed);
       JobProcessing::addBackgroundJob(boost::bind(&MainWindow::animateTrajectory, this, traj));
