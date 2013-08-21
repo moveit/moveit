@@ -357,26 +357,29 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
     emitter << YAML::Key << (*joint_it)->getName();
     emitter << YAML::Value << YAML::BeginMap;
 
-    double vel = (*joint_it)->getMaximumVelocity();
+    const robot_model::VariableBounds &b = (*joint_it)->getVariableBounds()[0];
 
     // Output property
     emitter << YAML::Key << "has_velocity_limits";
-    if (vel > std::numeric_limits<double>::epsilon())
+    if (b.velocity_bounded_)
       emitter << YAML::Value << "true";
     else
       emitter << YAML::Value << "false";
 
     // Output property
     emitter << YAML::Key << "max_velocity";
-    emitter << YAML::Value << (*joint_it)->getMaximumVelocity();
-
+    emitter << YAML::Value << std::min(fabs(b.max_velocity_), fabs(b.min_velocity_));
+    
     // Output property
     emitter << YAML::Key << "has_acceleration_limits";
-    emitter << YAML::Value << "true";
+    if (b.acceleration_bounded_)
+      emitter << YAML::Value << "true";
+    else
+      emitter << YAML::Value << "false";
 
     // Output property
     emitter << YAML::Key << "max_acceleration";
-    emitter << YAML::Value << (*joint_it)->getMaximumVelocity() / 5.0;
+    emitter << YAML::Value << std::min(fabs(b.max_acceleration_), fabs(b.min_acceleration_));
 
     emitter << YAML::EndMap;
   }

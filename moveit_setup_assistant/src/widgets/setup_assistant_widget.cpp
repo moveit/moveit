@@ -344,7 +344,7 @@ void SetupAssistantWidget::loadRviz()
 void SetupAssistantWidget::highlightLink( const std::string& link_name )
 {
   const robot_model::LinkModel *lm = config_data_->getRobotModel()->getLinkModel(link_name);
-  if (lm->getShape()) // skip links with no geometry
+  if (!lm->getShapes().empty()) // skip links with no geometry
     robot_state_display_->setLinkColor( link_name, QColor(255, 0, 0) );
 }
 

@@ -365,7 +365,7 @@ void computeConnectionGraph(const robot_model::LinkModel *start_link, LinkGraph 
     // Check if each edge has a shape
     for (LinkGraph::const_iterator edge_it = link_graph.begin() ; edge_it != link_graph.end() ; ++edge_it)
     {
-      if (!edge_it->first->getShape()) // link in adjList "link_graph" does not have shape, remove!
+      if (edge_it->first->getShapes().empty()) // link in adjList "link_graph" does not have shape, remove!
       {
         // Temporary list for connected links
         std::vector<const robot_model::LinkModel*> temp_list;
@@ -442,7 +442,7 @@ unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGrap
       //ROS_INFO("Disabled %s to %s", link_graph_it->first->getName().c_str(), (*adj_it)->getName().c_str() );
 
       // Check if either of the links have no geometry. If so, do not add (are we sure?)
-      if ( link_graph_it->first->getShape() && (*adj_it)->getShape() ) // both links have geometry
+      if ( !link_graph_it->first->getShapes().empty() && !(*adj_it)->getShapes().empty() ) // both links have geometry
       {
         num_disabled += setLinkPair( link_graph_it->first->getName(), (*adj_it)->getName(), ADJACENT, link_pairs );
 
@@ -509,7 +509,7 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Link
     {
       // Check for collisions
       collision_detection::CollisionResult res;
-      scene.getCurrentStateNonConst().setToRandomValues();
+      scene.getCurrentStateNonConst().setToRandomPositions();
       scene.checkSelfCollision(req, res);
 
       // Sum the number of collisions
@@ -631,7 +631,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
     }
 
     collision_detection::CollisionResult res;
-    kstate.setToRandomValues();
+    kstate.setToRandomPositions();
     tc.scene_.checkSelfCollision(tc.req_, res, kstate);
 
     // Check all contacts
