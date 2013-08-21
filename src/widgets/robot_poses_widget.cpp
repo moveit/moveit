@@ -382,9 +382,7 @@ void RobotPosesWidget::showDefaultPose()
       double init_value;
 
       // get the first joint value in its vector
-      std::vector<double> default_values;
-      (*joint_it)->getVariableDefaultValues( default_values );
-      init_value = default_values[0];
+      (*joint_it)->getVariableDefaultValues( &init_value );
 
       // Change joint's value in joint_state_map to the default
       joint_state_map_[ (*joint_it)->getName() ] = init_value;
@@ -552,9 +550,7 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
         // the joint state map does not yet have an entry for this joint
 
         // get the first joint value in its vector
-        std::vector<double> default_values;
-        (*joint_it)->getVariableDefaultValues( default_values );
-        init_value = default_values[0];
+        (*joint_it)->getVariableDefaultValues( &init_value );
 
       }
       else // there is already a value in the map
@@ -851,7 +847,7 @@ void RobotPosesWidget::publishJoints()
   //config_data_->getPlanningScene()->getCurrentState().setToRandomValues();
 
   // Set the joints based on the map
-  config_data_->getPlanningScene()->getCurrentStateNonConst().setStateValues( joint_state_map_ );
+  config_data_->getPlanningScene()->getCurrentStateNonConst().setVariablePositions( joint_state_map_ );
 
   // Create a planning scene message
   moveit_msgs::DisplayRobotState msg;
@@ -916,7 +912,7 @@ SliderWidget::SliderWidget( QWidget *parent, const robot_model::JointModel *join
   row2->addWidget( joint_value_ );
 
   // Joint Limits ----------------------------------------------------
-  const std::vector<moveit_msgs::JointLimits> &limits = joint_model_->getVariableLimits();
+  const std::vector<moveit_msgs::JointLimits> &limits = joint_model_->getVariableBoundsMsg();
   if( limits.empty() )
   {
     QMessageBox::critical( this, "Error Loading", "An internal error has occured while loading the joints" );

@@ -150,7 +150,7 @@ void KinematicChainWidget::setAvailable()
   const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
 
   // Get the root joint
-  const robot_model::JointModel *root_joint = model->getRoot();
+  const robot_model::JointModel *root_joint = model->getRootJoint();
 
   addLinktoTreeRecursive( root_joint->getChildLinkModel(), NULL);
 
