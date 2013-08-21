@@ -518,7 +518,7 @@ void MainWindow::robotInteractionButtonClicked()
   {
     query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getPlanningSceneMonitor()->getTFClient()));
     query_goal_state_->setUpdateCallback(boost::bind(&MainWindow::scheduleStateUpdate, this));
-    query_goal_state_->setStateValidityCallback(boost::bind(&MainWindow::isIKSolutionCollisionFree, this, _1, _2));
+    query_goal_state_->setGroupStateValidityCallback(boost::bind(&MainWindow::isIKSolutionCollisionFree, this, _1, _2, _3));
     robot_interaction_->addInteractiveMarkers(query_goal_state_);
   }
   else
@@ -528,12 +528,13 @@ void MainWindow::robotInteractionButtonClicked()
   robot_interaction_->publishInteractiveMarkers();
 }
 
-bool MainWindow::isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution)
+bool MainWindow::isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group, const double *ik_solution)
 {
   if (scene_display_)
   {
-    group->setVariableValues(ik_solution);
-    return !scene_display_->getPlanningSceneRO()->isStateColliding(*group->getRobotState(), group->getName());
+    state->setJointGroupPositions(group, ik_solution);
+    state->update();
+    return !scene_display_->getPlanningSceneRO()->isStateColliding(*state, group->getName());
   }
   else
     return true;

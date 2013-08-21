@@ -60,6 +60,7 @@ bool isIKSolutionValid(const planning_scene::PlanningScene *planning_scene,
                        const double *ik_solution)
 {
   state->setJointGroupPositions(jmg, ik_solution);
+  state->update();
   return (!planning_scene || !planning_scene->isStateColliding(*state, jmg->getName())) &&
     (!constraint_set || constraint_set->decide(*state).satisfied);
 }

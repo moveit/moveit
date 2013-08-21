@@ -109,7 +109,8 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   state->setJointGroupPositions(group, joint_group_variable_values);
   // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
   state->setVariableValues(*grasp_posture);
-
+  state->update();
+  
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
   collision_detection::CollisionResult res;

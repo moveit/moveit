@@ -207,7 +207,7 @@ protected:
   void scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler *handler, bool error_state_changed);
   void scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler *handler, bool error_state_changed);
 
-  bool isIKSolutionCollisionFree(robot_state::JointStateGroup *group, const std::vector<double> &ik_solution) const;
+  bool isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_state::JointModelGroup *group, const double *ik_solution) const;
 
   void computeMetrics(bool start, const std::string &group, double payload);
   void computeMetricsInternal(std::map<std::string, double> &metrics,
