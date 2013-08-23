@@ -534,8 +534,8 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
       solution[ik_joint_bijection[i]] = ik_sol[i];
     state.setJointGroupPositions(jmg_, solution);
 
-    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getRobotState(), verbose_).satisfied);
-    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getRobotState(), verbose_).satisfied);
+    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(state, verbose_).satisfied);
+    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(state, verbose_).satisfied);
 
     return true;
   }

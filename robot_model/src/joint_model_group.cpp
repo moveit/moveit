@@ -520,6 +520,9 @@ bool moveit::core::JointModelGroup::computeIKIndexBijection(const std::vector<st
     VariableIndexMap::const_iterator it = joint_variables_index_map_.find(ik_jnames[i]);
     if (it == joint_variables_index_map_.end())
     {
+      // skip reported fixed joints
+      if (hasJointModel(ik_jnames[i]) && getJointModel(ik_jnames[i])->getType() == JointModel::FIXED)
+        continue;
       logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a joint.", ik_jnames[i].c_str(), getName().c_str());
       return false;
     }
