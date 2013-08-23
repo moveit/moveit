@@ -226,7 +226,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     }
     if (joint_model_group->hasJointModel(jm->getName()))
     {
-      if (joint_model_group->hasJointModel(jm->getMimic()->getName()))
+      if (jm->getMimic() && joint_model_group->hasJointModel(jm->getMimic()->getName()))
       {
         JointMimic mimic_joint;
         mimic_joint.reset(joint_counter);
