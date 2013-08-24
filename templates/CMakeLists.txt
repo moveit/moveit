@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   pluginlib
   roscpp
+  tf_conversions
 )
 
 include_directories(${catkin_INCLUDE_DIRS})
@@ -19,6 +20,7 @@ catkin_package(
   moveit_core
   pluginlib
   roscpp
+  tf_conversions
 )
 
 include_directories(include)
@@ -38,19 +40,4 @@ install(
   _ROBOT_NAME__moveit_ikfast_plugin_description.xml
   DESTINATION
   ${CATKIN_PACKAGE_SHARE_DESTINATION}
-  )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+)
