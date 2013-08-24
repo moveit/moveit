@@ -262,7 +262,7 @@ if __name__ == '__main__':
          break
    if not found:
 
-      for dependency in ["moveit_core", "pluginlib", "roscpp"]:
+      for dependency in ["moveit_core", "pluginlib", "roscpp", "tf_conversions"]:
          # Build depend
          child = etree.Element("build_depend")
          child.text = dependency
