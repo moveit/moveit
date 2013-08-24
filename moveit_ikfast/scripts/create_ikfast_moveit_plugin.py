@@ -263,15 +263,16 @@ if __name__ == '__main__':
    package_file_name = plugin_pkg_dir+"/package.xml"
    package_xml = etree.parse(package_file_name, parser)
 
-   # Check that moveit_core is in the depends list
-   found = False
-   for depend_entry in package_xml.getroot().findall("build_depend"):
-      if depend_entry.text == "moveit_core":
-         found = True
-         break
-   if not found:
-
-      for dependency in ["moveit_core", "pluginlib", "roscpp", "tf_conversions"]:
+   # Check that all the dependencies are in the depends list
+   modified_pkg = False
+   for dependency in ["moveit_core", "pluginlib", "roscpp", "tf_conversions"]:
+      found = False
+      for depend_entry in package_xml.getroot().findall("build_depend"):
+         if depend_entry.text == dependency:
+            found = True
+            break  
+      if not found:    
+         modified_pkg = True
          # Build depend
          child = etree.Element("build_depend")
          child.text = dependency
@@ -282,6 +283,7 @@ if __name__ == '__main__':
          child.text = dependency
          package_xml.getroot().append(child)
 
+   if modified_pkg:
       with open(package_file_name,"w") as f:
          package_xml.write(f, xml_declaration=True, pretty_print=True)
 
