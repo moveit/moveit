@@ -221,6 +221,28 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
                it->second->getTouchLinks(), it->second->getAttachedLinkName(), it->second->getDetachPosture());
 }
 
+bool moveit::core::RobotState::checkTransforms(const TransformTest level) const
+{
+  if (transforms_.empty())
+    throw Exception("Robot state instance does not have transforms allocated");
+  switch (level)
+  {
+  case TEST_JOINT_TRANSFORMS:
+    if (dirtyJointTransforms())
+      logWarn("Returning dirty joint transforms");
+    break;
+  case TEST_LINK_TRANSFORMS:
+    if (dirtyLinkTransforms())
+      logWarn("Returning dirty link transforms");
+    break;
+  case TEST_COLLISION_TRANSFORMS:
+    if (dirtyCollisionBodyTransforms())
+      logWarn("Returning dirty collision body transforms");
+    break;
+  }   
+  return true;
+}
+
 void moveit::core::RobotState::setToRandomPositions()
 {
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
@@ -932,6 +954,8 @@ Eigen::MatrixXd moveit::core::RobotState::getJacobian(const JointModelGroup *gro
 bool moveit::core::RobotState::getJacobian(const JointModelGroup *group, const LinkModel *link, const Eigen::Vector3d &reference_point_position,
                                            Eigen::MatrixXd& jacobian, bool use_quaternion_representation) const
 {
+  assert(checkTransforms(TEST_LINK_TRANSFORMS));
+  
   if (!group->isChain())
   {
     logError("The group '%s' is not a chain. Cannot compute Jacobian.", group->getName().c_str());
@@ -943,7 +967,7 @@ bool moveit::core::RobotState::getJacobian(const JointModelGroup *group, const L
     logError("Link name '%s' does not exist in the chain '%s' or is not a child for this chain", link->getName().c_str(), group->getName().c_str());
     return false;
   }
-  
+
   const robot_model::JointModel* root_joint_model = group->getJointRoots()[0];
   const robot_model::LinkModel* root_link_model = root_joint_model->getParentLinkModel();
   Eigen::Affine3d reference_transform = root_link_model ? getGlobalLinkTransform(root_link_model).inverse() : Eigen::Affine3d::Identity();
@@ -1681,6 +1705,8 @@ static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e
 
 void robot_state::RobotState::computeAABB(std::vector<double> &aabb) const
 {
+  assert(checkTransforms(TEST_LINK_TRANSFORMS));
+  
   aabb.clear();
   std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0 ; i < links.size() ; ++i)

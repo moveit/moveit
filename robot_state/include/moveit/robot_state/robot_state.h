@@ -42,6 +42,7 @@
 #include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/Twist.h>
+#include <cassert>
 
 namespace moveit
 {
@@ -760,6 +761,7 @@ public:
   
   const Eigen::Affine3d& getGlobalLinkTransform(const LinkModel *link) const
   {
+    assert(checkTransforms(TEST_LINK_TRANSFORMS));
     return global_link_transforms_[link->getLinkIndex()];
   }
   
@@ -770,6 +772,7 @@ public:
   
   const Eigen::Affine3d& getCollisionBodyTransform(const LinkModel *link, std::size_t index) const
   {
+    assert(checkTransforms(TEST_COLLISION_TRANSFORMS));
     return global_collision_body_transforms_[link->getFirstCollisionBodyTransformIndex() + index];
   }
   
@@ -780,6 +783,7 @@ public:
   
   const Eigen::Affine3d& getJointTransform(const JointModel *joint) const
   {
+    assert(checkTransforms(TEST_JOINT_TRANSFORMS));
     return variable_joint_transforms_[joint->getJointIndex()];
   }
   
@@ -1005,12 +1009,14 @@ private:
   
   void dirtyJointTransforms(int index)
   {
-    dirty_joint_transforms_ = dirty_joint_transforms_ == NULL ? robot_model_->getJointOfVariable(index) : robot_model_->getCommonRoot(dirty_joint_transforms_, robot_model_->getJointOfVariable(index));
+    dirty_joint_transforms_ = dirty_joint_transforms_ == NULL ? robot_model_->getJointOfVariable(index) :
+      robot_model_->getCommonRoot(dirty_joint_transforms_, robot_model_->getJointOfVariable(index));
   }
   
   void dirtyJointTransforms(const JointModel *joint)
   {
-    dirty_joint_transforms_ = dirty_joint_transforms_ == NULL ? joint : robot_model_->getCommonRoot(dirty_joint_transforms_, joint);
+    dirty_joint_transforms_ = dirty_joint_transforms_ == NULL ? joint :
+      robot_model_->getCommonRoot(dirty_joint_transforms_, joint);
   }
   
   void updateMimicPosition(int index)
@@ -1033,6 +1039,16 @@ private:
   void getMissingKeys(const std::map<std::string, double> &variable_map, std::vector<std::string> &missing_variables) const;
   void getStateTreeJointString(std::ostream& ss, const JointModel* jm, const std::string& pfx0, bool last) const;
   void printTransform(const Eigen::Affine3d &transform, std::ostream &out) const;
+
+  enum TransformTest
+  {
+    TEST_JOINT_TRANSFORMS,
+    TEST_LINK_TRANSFORMS,
+    TEST_COLLISION_TRANSFORMS
+  };
+
+  /** \brief This function is only called in debug mode */
+  bool checkTransforms(const TransformTest level) const;
   
   RobotModelConstPtr                     robot_model_;
   int                                    called_new_for_;
