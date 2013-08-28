@@ -1,7 +1,8 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Willow Garage, Inc.
+*  Copyright (c) 2008-2013, Willow Garage, Inc.
+*  Copyright (c) 2013-, Ioan A. Sucan
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -59,10 +60,10 @@ moveit::core::PlanarJointModel::PlanarJointModel(const std::string& name)
   variable_bounds_[1].position_bounded_ = true;
   variable_bounds_[2].position_bounded_ = false;
 
-  variable_bounds_[0].min_position_ = -std::numeric_limits<double>::max();
-  variable_bounds_[0].max_position_ = std::numeric_limits<double>::max();
-  variable_bounds_[1].min_position_ = -std::numeric_limits<double>::max();
-  variable_bounds_[1].max_position_ = std::numeric_limits<double>::max();
+  variable_bounds_[0].min_position_ = -std::numeric_limits<double>::infinity();
+  variable_bounds_[0].max_position_ = std::numeric_limits<double>::infinity();
+  variable_bounds_[1].min_position_ = -std::numeric_limits<double>::infinity();
+  variable_bounds_[1].max_position_ = std::numeric_limits<double>::infinity();
   variable_bounds_[2].min_position_ = -boost::math::constants::pi<double>();
   variable_bounds_[2].max_position_ = boost::math::constants::pi<double>();
   
@@ -96,11 +97,11 @@ void moveit::core::PlanarJointModel::getVariableDefaultValues(double *values, co
 
 void moveit::core::PlanarJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds) const
 {
-  if (bounds[0].max_position_ >= std::numeric_limits<double>::max() || bounds[0].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() || bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
     values[0] = 0.0;
   else
     values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
-  if (bounds[1].max_position_ >= std::numeric_limits<double>::max() || bounds[1].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() || bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
     values[1] = 0.0;
   else
     values[1] = rng.uniformReal(bounds[1].min_position_, bounds[1].max_position_);
@@ -110,12 +111,12 @@ void moveit::core::PlanarJointModel::getVariableRandomValues(random_numbers::Ran
 void moveit::core::PlanarJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
                                                                    const double *near, const double distance) const
 {
-  if (bounds[0].max_position_ >= std::numeric_limits<double>::max() || bounds[0].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() || bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
     values[0] = 0.0;
   else
     values[0] = rng.uniformReal(std::max(bounds[0].min_position_, near[0] - distance),
                                 std::min(bounds[0].max_position_, near[0] + distance));
-  if (bounds[1].max_position_ >= std::numeric_limits<double>::max() || bounds[1].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() || bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
     values[1] = 0.0;
   else
     values[1] = rng.uniformReal(std::max(bounds[1].min_position_, near[1] - distance),

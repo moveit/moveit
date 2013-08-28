@@ -2,6 +2,7 @@
 * Software License Agreement (BSD License)
 *
 *  Copyright (c) 2013, Willow Garage, Inc.
+*  Copyright (c) 2013, Ioan A. Sucan
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -38,6 +39,7 @@
 #include <moveit/transforms/transforms.h>
 #include <geometric_shapes/shape_operations.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <moveit/backtrace/backtrace.h>
 #include <boost/bind.hpp>
 
 moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model, AllocComponents alloc_components)
@@ -51,7 +53,7 @@ moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model, Allo
   , variable_joint_transforms_(NULL)
   , global_link_transforms_(NULL)
   , global_collision_body_transforms_(NULL)
-  , dirty_joint_transforms_(NULL)
+  , dirty_joint_transforms_(robot_model_->getRootJoint())
   , dirty_link_transforms_(NULL)
   , dirty_collision_body_transforms_(NULL)
   , rng_(NULL)
@@ -170,7 +172,7 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
   else
   {
     // no transforms to copy, so everything will become dirty if/when they get allocated.
-    dirty_joint_transforms_ = NULL;
+    dirty_joint_transforms_ = robot_model_->getRootJoint();
     dirty_collision_body_transforms_ = NULL;
     dirty_link_transforms_ = NULL;
   }
@@ -225,21 +227,38 @@ bool moveit::core::RobotState::checkTransforms(const TransformTest level) const
 {
   if (transforms_.empty())
     throw Exception("Robot state instance does not have transforms allocated");
+  bool dirty = false;
   switch (level)
   {
   case TEST_JOINT_TRANSFORMS:
     if (dirtyJointTransforms())
+    {
       logWarn("Returning dirty joint transforms");
+      dirty = true;
+    }
     break;
   case TEST_LINK_TRANSFORMS:
     if (dirtyLinkTransforms())
+    {
       logWarn("Returning dirty link transforms");
+      dirty = true;
+    }
     break;
   case TEST_COLLISION_TRANSFORMS:
     if (dirtyCollisionBodyTransforms())
+    {
       logWarn("Returning dirty collision body transforms");
+      dirty = true;
+    }
     break;
-  }   
+  }
+  if (dirty)
+  {
+    std::stringstream ss;
+    moveit::get_backtrace(ss);
+    logWarn(ss.str().c_str());
+  }
+  
   return true;
 }
 
@@ -446,7 +465,7 @@ void moveit::core::RobotState::copyJointGroupPositions(const JointModelGroup *gr
 
 void moveit::core::RobotState::updateCollisionBodyTransforms()
 {
-  if (dirty_joint_transforms_ != NULL)
+  if (dirty_joint_transforms_)
   {
     updateJointTransforms();
     updateLinkTransforms();
@@ -816,7 +835,7 @@ bool moveit::core::RobotState::clearAttachedBody(const std::string &id)
 const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::string &id)
 {
   updateLinkTransforms();
-  return const_cast<RobotState*>(this)->getFrameTransform(id);
+  return const_cast<const RobotState*>(this)->getFrameTransform(id);
 }
 
 const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::string &id) const
@@ -1772,7 +1791,7 @@ void moveit::core::RobotState::printStateInfo(std::ostream &out) const
   else
     out << "  * Acceleration: NULL" << std::endl;
   
-  out << "  * Dirty FK: " << (dirty_joint_transforms_ ? dirty_joint_transforms_->getName() : "NULL") << std::endl;
+  out << "  * Dirty Joint Transforms: " << (dirty_joint_transforms_ ? dirty_joint_transforms_->getName() : "NULL") << std::endl;
   out << "  * Dirty Link Transforms: " << (dirty_link_transforms_ ? dirty_link_transforms_->getName() : "NULL") << std::endl;
   out << "  * Dirty Collision Body Transforms: " << (dirty_collision_body_transforms_ ? dirty_collision_body_transforms_->getName() : "NULL") << std::endl;
   

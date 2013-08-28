@@ -1,7 +1,8 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2008-2013, Willow Garage, Inc.
+*  Copyright (c) 2013-, Ioan A. Sucan
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -101,19 +102,19 @@ void moveit::core::JointModel::setVariableBounds(const std::vector<moveit_msgs::
         if (jlim[i].has_position_limits)
         {
           variable_bounds_[j].min_position_ = jlim[i].min_position;
-          variable_bounds_[j].min_position_ = jlim[i].max_position;
+          variable_bounds_[j].max_position_ = jlim[i].max_position;
         }
         variable_bounds_[j].velocity_bounded_ = jlim[i].has_velocity_limits;
         if (jlim[i].has_velocity_limits)
         {
           variable_bounds_[j].min_position_ = -jlim[i].max_velocity;
-          variable_bounds_[j].min_position_ = jlim[i].max_velocity;
+          variable_bounds_[j].max_position_ = jlim[i].max_velocity;
         }
         variable_bounds_[j].acceleration_bounded_ = jlim[i].has_acceleration_limits;
         if (jlim[i].has_acceleration_limits)
         {
           variable_bounds_[j].min_acceleration_ = -jlim[i].max_acceleration;
-          variable_bounds_[j].min_acceleration_ = jlim[i].max_acceleration;
+          variable_bounds_[j].max_acceleration_ = jlim[i].max_acceleration;
         }
         break;
       }
@@ -164,10 +165,10 @@ namespace
 {
 inline void printBoundHelper(std::ostream &out, double v)
 {
-  if (v <= -std::numeric_limits<double>::max())
+  if (v <= -std::numeric_limits<double>::infinity())
     out << "-inf";
   else
-    if (v >= std::numeric_limits<double>::max())
+    if (v >= std::numeric_limits<double>::infinity())
       out << "inf";
     else
       out << v;  

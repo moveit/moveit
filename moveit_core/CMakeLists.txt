@@ -36,6 +36,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     ${VERSION_FILE_PATH}
     background_processing/include
     exceptions/include
+    backtrace/include
     collision_detection/include
     collision_detection_fcl/include
     constraint_samplers/include
@@ -133,6 +134,7 @@ endif()
 
 add_subdirectory(version)
 add_subdirectory(macros)
+add_subdirectory(backtrace)
 add_subdirectory(exceptions)
 add_subdirectory(profiler)
 add_subdirectory(background_processing)
