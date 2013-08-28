@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2008, Willow Garage, Inc.
+ *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2013, Ioan A. Sucan
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -499,7 +500,11 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   if (planning_scene_robot_)
   {
     planning_scene_robot_->load(*getRobotModel()->getURDF());
-    planning_scene_robot_->update(robot_state::RobotStatePtr(new robot_state::RobotState(ps->getCurrentState())));
+    robot_state::RobotState *rs = new robot_state::RobotState(ps->getCurrentState());
+    rs->printStateInfo(std::cout);
+    rs->update();
+    rs->printStateInfo(std::cout);
+    planning_scene_robot_->update(robot_state::RobotStateConstPtr(rs));
   }
 
   bool oldState = scene_name_property_->blockSignals(true);
@@ -515,6 +520,7 @@ void PlanningSceneDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Pl
 void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   bool oldState = scene_name_property_->blockSignals(true);
+  getPlanningSceneRW()->getCurrentStateNonConst().update();
   scene_name_property_->setStdString(getPlanningSceneRO()->getName());
   scene_name_property_->blockSignals(oldState);
 
