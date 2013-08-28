@@ -789,7 +789,7 @@ public:
   
   bool dirtyJointTransforms() const
   {
-    return transforms_.empty() || dirty_joint_transforms_;
+    return dirty_joint_transforms_;
   }
   
   bool dirtyLinkTransforms() const

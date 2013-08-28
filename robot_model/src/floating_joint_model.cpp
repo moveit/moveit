@@ -1,7 +1,8 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Willow Garage, Inc.
+*  Copyright (c) 2008-2013, Willow Garage, Inc.
+*  Copyright (c) 2013-, Ioan A. Sucan
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -68,12 +69,12 @@ moveit::core::FloatingJointModel::FloatingJointModel(const std::string& name)
   variable_bounds_[5].position_bounded_ = true;
   variable_bounds_[6].position_bounded_ = true;
 
-  variable_bounds_[0].min_position_ = -std::numeric_limits<double>::max();
-  variable_bounds_[0].max_position_ = std::numeric_limits<double>::max();
-  variable_bounds_[1].min_position_ = -std::numeric_limits<double>::max();
-  variable_bounds_[1].max_position_ = std::numeric_limits<double>::max();
-  variable_bounds_[2].min_position_ = -std::numeric_limits<double>::max();
-  variable_bounds_[2].max_position_ = std::numeric_limits<double>::max();
+  variable_bounds_[0].min_position_ = -std::numeric_limits<double>::infinity();
+  variable_bounds_[0].max_position_ = std::numeric_limits<double>::infinity();
+  variable_bounds_[1].min_position_ = -std::numeric_limits<double>::infinity();
+  variable_bounds_[1].max_position_ = std::numeric_limits<double>::infinity();
+  variable_bounds_[2].min_position_ = -std::numeric_limits<double>::infinity();
+  variable_bounds_[2].max_position_ = std::numeric_limits<double>::infinity();
   variable_bounds_[3].min_position_ = -1.0;
   variable_bounds_[3].max_position_ = 1.0;
   variable_bounds_[4].min_position_ = -1.0;
@@ -250,15 +251,15 @@ void moveit::core::FloatingJointModel::getVariableDefaultValues(double *values, 
 
 void moveit::core::FloatingJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds) const
 {
-  if (bounds[0].max_position_ >= std::numeric_limits<double>::max() || bounds[0].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() || bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
     values[0] = 0.0;
   else
     values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
-  if (bounds[1].max_position_ >= std::numeric_limits<double>::max() || bounds[1].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() || bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
     values[1] = 0.0;
   else
     values[1] = rng.uniformReal(bounds[1].min_position_, bounds[1].max_position_);
-  if (bounds[2].max_position_ >= std::numeric_limits<double>::max() || bounds[2].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[2].max_position_ >= std::numeric_limits<double>::infinity() || bounds[2].min_position_ <= -std::numeric_limits<double>::infinity())
     values[2] = 0.0;
   else
     values[2] = rng.uniformReal(bounds[2].min_position_, bounds[2].max_position_);
@@ -273,17 +274,17 @@ void moveit::core::FloatingJointModel::getVariableRandomValues(random_numbers::R
 void moveit::core::FloatingJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
                                                                      const double *near, const double distance) const
 {
-  if (bounds[0].max_position_ >= std::numeric_limits<double>::max() || bounds[0].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() || bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
     values[0] = 0.0;
   else
     values[0] = rng.uniformReal(std::max(bounds[0].min_position_, near[0] - distance),
                                 std::min(bounds[0].max_position_, near[0] + distance));
-  if (bounds[1].max_position_ >= std::numeric_limits<double>::max() || bounds[1].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() || bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
     values[1] = 0.0;
   else
     values[1] = rng.uniformReal(std::max(bounds[1].min_position_, near[1] - distance),
                                 std::min(bounds[1].max_position_, near[1] + distance));
-  if (bounds[2].max_position_ >= std::numeric_limits<double>::max() || bounds[2].min_position_ <= -std::numeric_limits<double>::max())
+  if (bounds[2].max_position_ >= std::numeric_limits<double>::infinity() || bounds[2].min_position_ <= -std::numeric_limits<double>::infinity())
     values[2] = 0.0;
   else
     values[2] = rng.uniformReal(std::max(bounds[2].min_position_, near[2] - distance),
